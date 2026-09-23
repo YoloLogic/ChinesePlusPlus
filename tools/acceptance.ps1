@@ -169,13 +169,20 @@ Report 'generated Diagnostic*Kinds.inc contain zero non-ASCII bytes' (($incFiles
     ("looked at {0} generated files{1}" -f $incFiles.Count, $(if ($incBad.Count) { '  NON-ASCII: ' + ($incBad -join ', ') } else { '' }))
 
 # The Chinese table itself must not be silently truncated.
-# The table validator now enforces a minimum entry count (see MIN_ENTRIES in
-# tools\diag_id_lookup.py) -- this records the number it actually read.
+# The lower bound lives in EXACTLY ONE place: MIN_ENTRIES in tools\diag_id_lookup.py.
+# This line used to hard-code "32", which quietly turned into a WEAKER gate than the
+# validator's own limit once the table grew to 48 entries -- a duplicated gate that
+# drifts is worse than no gate, because it still prints PASS. Read the source of truth.
 $zhCount = 0
-& python -c "import sys; sys.path.insert(0, r'E:\Chinese++\tools'); import diag_id_lookup as d; print(len(d.parse_zh_def()))" 2>&1 |
-    ForEach-Object { if ($_ -match '^\s*(\d+)\s*$') { $zhCount = [int]$Matches[1] } }
-Report 'the Chinese table is not truncated (>= 32 entries)' ($zhCount -ge 32) `
-    ("entries read: {0}" -f $zhCount)
+$minEntries = 0
+$zhInfo = & python -c "import sys; sys.path.insert(0, r'E:\Chinese++\tools'); import diag_id_lookup as d; print('count=%d min=%d' % (len(d.parse_zh_def()), d.MIN_ENTRIES))" 2>&1
+if ($zhInfo -match 'count=(\d+) min=(\d+)') {
+    $zhCount = [int]$Matches[1]
+    $minEntries = [int]$Matches[2]
+}
+Report ("the Chinese table is not truncated (>= {0} entries, from MIN_ENTRIES)" -f $minEntries) `
+    (($minEntries -gt 0) -and ($zhCount -ge $minEntries)) `
+    ("entries read: {0}   MIN_ENTRIES: {1}" -f $zhCount, $minEntries)
 
 # ---------------------------------------------------------------------------
 Write-Host ''

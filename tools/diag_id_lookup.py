@@ -636,8 +636,9 @@ def self_test(inc):
          "二元表达式的运算对象无效（和）（%0 和 %1）", True),
         ("角色词不在封闭词表", "err_unknown_typename",
          "未知的类型名（东西） %0", True),
-        ("含占位符的括号组不算角色表（允许）", "err_typecheck_invalid_operands",
-         "二元表达式的运算对象无效（%0 和 %1）", False),
+        ("含占位符的括号组不算角色表，光有它仍是缺角色表（硬失败）",
+         "err_typecheck_invalid_operands",
+         "二元表达式的运算对象无效（%0 和 %1）", True),
     ]
     for (why, name, zh, should_fail) in role_cases:
         got, _ = check_role_table(name, zh)
@@ -696,9 +697,11 @@ def check_role_table(name, text):
       「不存在的角色词」「整句无角色表」「角色标错」全部 problems=0，
       只有删占位符的对照组被抓到。这里是补上的两条。
 
-    设计取舍：**「有占位符就该有角色表」只报告、不判失败**。
-    因为第一批那 32 条是在角色表约定之前写的（例如 `缺少 %0` 就没有角色表），
-    硬判会让它们全部变红。所以列成迁移待办，由人逐步补齐。
+    设计取舍的历史：2026-09-23 引入时，「有占位符就该有角色表」**只报告、不判失败**
+    —— 第一批那 32 条写在角色表约定之前（例如 `缺少 %0` 就没有角色表），硬判会让
+    它们全部变红，所以先列成迁移待办。当天 20 条迁移完毕后，这一项**转为硬失败**：
+    既然「一律标」是有意选择的统一，就该由机器保证它继续成立，而不是靠人记得 ——
+    新增条目若不带角色表会直接让校核器变红。
     """
     problems, notes = [], []
     # 只把【不含占位符】的全角括号组当角色表：
@@ -722,7 +725,10 @@ def check_role_table(name, text):
             problems.append("%s：角色表里一个角色词都没有 -> %r" % (name, g))
     has_ph = "%" in text
     if has_ph and not groups:
-        notes.append("    [迁移待办] 有占位符但没有角色表: %s" % name)
+        # 2026-09-23 起是【硬失败】（迁移已完毕）。见 docstring 里的历史。
+        problems.append(
+            "%s：有占位符却没有角色表（一律标是有意选择的统一；"
+            "若确实该例外，请写进 .def 并说明理由）" % name)
     return problems, notes
 
 

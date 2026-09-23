@@ -1,5 +1,5 @@
-// expect: 不能给常量限定类型 'const int' 的变量 '甲' 赋值
-// expect: 变量 '甲' 在此被声明为常量
+// expect: 不能给常量限定类型（类型） 'const int' 的变量（变量名） '甲' 赋值
+// expect: 变量（变量名） '甲' 在此被声明为常量
 // forbid: cannot assign to variable
 // forbid: declared const here
 //
