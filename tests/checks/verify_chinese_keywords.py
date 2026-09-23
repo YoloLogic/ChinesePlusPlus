@@ -84,6 +84,37 @@ for lineno, line in enumerate(zh.splitlines(), 1):
     if m:
         rows.append((lineno, m.group(1), m.group(2), m.group(3)))
 
+# 另外两个宏族。它们【不在】上面的 rows 里 —— 因此长期没被任何检查覆盖：
+#   ZH_VIRT_SPECIFIER(override, 重写)    上下文关键字（只增不改，英文依旧可用）
+#   ZH_OPERATOR_KEYWORD(并且, ampamp)    运算符替代拼写（&& || ! … 的中文拼写）
+# 2026-09-23 实测：只数 ZH_KEYWORD 会报 86，而真实译名总数是 99。
+# 一个"只数了一族"的校核器会一直打印"全部通过" —— 与它本来要防的毛病同类
+# （"校核器会查角色表"而检查并不存在；用例文件放进目录却没注册）。
+virt_rows, op_rows = [], []
+for lineno, line in enumerate(zh.splitlines(), 1):
+    m = re.match(r"\s*ZH_VIRT_SPECIFIER\(\s*([A-Za-z_]\w*)\s*,\s*(\S+?)\s*\)", line)
+    if m:
+        virt_rows.append((lineno, m.group(1), m.group(2), "(virt-specifier)"))
+        continue
+    m = re.match(r"\s*ZH_OPERATOR_KEYWORD\(\s*(\S+?)\s*,\s*([A-Za-z_]\w*)\s*\)", line)
+    if m:
+        op_rows.append((lineno, m.group(2), m.group(1), "(operator-alias)"))
+all_rows = rows + virt_rows + op_rows
+print("  宏族统计：ZH_KEYWORD %d ＋ ZH_VIRT_SPECIFIER %d ＋ ZH_OPERATOR_KEYWORD %d"
+      " ＝ %d 条译名" % (len(rows), len(virt_rows), len(op_rows), len(all_rows)))
+
+# 运算符替代拼写的别名必须真的出现在 TokenKinds.def 的 CXX_KEYWORD_OPERATOR 里。
+# （这条以前也从来没查过 —— 那 11 个译名此前不在任何检查的视野里。）
+tk_aliases = set(m.group(1) for m in
+                 re.finditer(r"CXX_KEYWORD_OPERATOR\(\s*[A-Za-z_]\w*\s*,\s*([A-Za-z_]\w*)", tk))
+bad_alias = [(ln, name, zh) for ln, name, zh, _f in op_rows if name not in tk_aliases]
+if bad_alias:
+    for ln, name, zh in bad_alias:
+        errors.append("第 %d 行：运算符别名 `%s`（%s）在 TokenKinds.def 里找不到" % (ln, name, zh))
+        print("  [错误] 第 %d 行：`%s`（%s）不是 TokenKinds.def 里的运算符别名" % (ln, name, zh))
+else:
+    print("  [通过] %d 个运算符替代拼写的别名都能在 TokenKinds.def 中找到" % len(op_rows))
+
 # ------------------------------------------------------------------ 1. 名称
 section("1. 英文名存在性检查")
 unknown = [r for r in rows if r[1] not in known]
@@ -101,10 +132,10 @@ for src, cnt in sorted(by_src.items()):
     print("        来源 %-16s %d 个" % (src, cnt))
 
 # ------------------------------------------------------------------ 2. 唯一性
-section("2. 译名唯一性检查")
+section("2. 译名唯一性检查（覆盖全部三个宏族）")
 seen = {}
 dups = []
-for lineno, name, zhname, flags in rows:
+for lineno, name, zhname, flags in all_rows:
     if zhname in seen:
         dups.append((zhname, seen[zhname], name, lineno))
     else:
@@ -114,7 +145,7 @@ if dups:
         errors.append("译名 `%s` 重复：%s 与 %s" % (zhname, first, second))
         print("  [错误] 译名 `%s` 重复：先注册为 %s，第 %d 行又注册为 %s" % (zhname, first, lineno, second))
 else:
-    print("  [通过] %d 个译名互不重复" % len(rows))
+    print("  [通过] %d 个译名互不重复（三个宏族一起比）" % len(all_rows))
 
 # ------------------------------------------------------------------ 3. 标志
 section("3. FLAGS 合法性检查")
@@ -160,7 +191,7 @@ def in_ranges(cp, ranges):
 
 
 bad_chars = []
-for lineno, name, zhname, flags in rows:
+for lineno, name, zhname, flags in all_rows:
     for idx, ch in enumerate(zhname):
         cp = ord(ch)
         if idx == 0:
@@ -180,7 +211,7 @@ else:
     print("  [通过] 全部译名的每个字符都能被 clang 词法分析器识别为标识符")
 
 # 去重后的字符集规模
-allchars = sorted({ch for _, _, zhname, _ in rows for ch in zhname})
+allchars = sorted({ch for _, _, zhname, _ in all_rows for ch in zhname})
 print("  涉及的不同汉字数：%d" % len(allchars))
 
 # ---------------------------------------------------------- 前缀关系提示
@@ -373,7 +404,7 @@ def bad_length(zhname):
 
 
 bad_len = [(lineno, name, zhname, hanzi_count(zhname))
-           for lineno, name, zhname, flags in rows if bad_length(zhname)]
+           for lineno, name, zhname, flags in all_rows if bad_length(zhname)]
 if bad_len:
     for lineno, name, zhname, n in bad_len:
         errors.append("第 %d 行（%s）：译名 `%s` 有 %d 个汉字，超出 %d–%d"
@@ -381,10 +412,10 @@ if bad_len:
         print("  [错误] 第 %d 行（%s）：`%s` 汉字数 %d，应在 %d–%d 之间"
               % (lineno, name, zhname, n, KW_MIN_HANZI, KW_MAX_HANZI))
 else:
-    _longest = max(rows, key=lambda r: hanzi_count(r[2]))
-    _shortest = min(rows, key=lambda r: hanzi_count(r[2]))
+    _longest = max(all_rows, key=lambda r: hanzi_count(r[2]))
+    _shortest = min(all_rows, key=lambda r: hanzi_count(r[2]))
     print("  [通过] %d 个译名的汉字数都在 %d–%d 之间（最短 `%s`，最长 `%s`）"
-          % (len(rows), KW_MIN_HANZI, KW_MAX_HANZI, _shortest[2], _longest[2]))
+          % (len(all_rows), KW_MIN_HANZI, KW_MAX_HANZI, _shortest[2], _longest[2]))
 
 # 自测：这个检查必须证明自己【会失败】。一条永远返回"通过"的检查等于没有检查
 # —— 本项目吃过这个亏（"校核器会查角色表"而检查并不存在，被外部复核者用三份
@@ -401,7 +432,9 @@ else:
 
 # ---------------------------------------------------------------- 总结
 section("验证结论")
-print("  解析到中文关键字条目：%d" % len(rows))
+print("  解析到中文关键字条目：%d"
+      "（ZH_KEYWORD %d ＋ ZH_VIRT_SPECIFIER %d ＋ ZH_OPERATOR_KEYWORD %d）"
+      % (len(all_rows), len(rows), len(virt_rows), len(op_rows)))
 print("  错误：%d" % len(errors))
 if errors:
     for e in errors:
