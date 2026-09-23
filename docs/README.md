@@ -80,7 +80,14 @@ powershell -File E:\Chinese++\tests\run_all.ps1        →  passed: 19  failed: 
 补丁                                                   →  zh-keywords.patch 14 文件
                                                           zh-diagnostics.patch 5 文件
 
-第三方真实项目对照（ours vs 官方 clang 19.1.5）           →  projects=4  pass=2  same=2  fail=0
-    tinyxml2 0/0/0 PASS    pugixml 0/0/0 PASS
-    fmt      0/0/8 SAME    googletest 0/1/1 SAME（两边失败方式逐字相同）
+第三方真实项目对照（ours vs 官方 clang 19.1.5）           →  cases=7  pass=2  same=5  fail=0
+    用【原样发行包工具链】跑，不借任何外部工具：
+    tinyxml2 0/0/0 PASS      pugixml  0/0/0 PASS
+    fmt      0/0/8 SAME      googletest 0/1/1 SAME
+    cJSON    0/1/1 SAME      zlib     0/0/8 SAME   libuv 0/0/8 SAME
+    （zlib 修复前是 7 failed / 官方 5 failed = FAIL，补齐 lld-link 后变成逐条相同的 5 个）
+
+工具链完整性（2026-09-23 补齐）                          →  bin\ 新增 lld-link.exe / lld.exe /
+    ld.lld.exe / wasm-ld.exe / llvm-ar / llvm-lib / llvm-ranlib / llvm-rc
+    仍然缺：compiler-rt 运行时（clang_rt.*，影响 sanitizer/覆盖率/PGO）
 ```

@@ -38,9 +38,12 @@
 #  -----
 #  * This file is pure ASCII on purpose: PowerShell 5.1 reads a BOM-less file
 #    as GBK, so a Chinese literal here would be mangled into a bad path.
-#  * -DCMAKE_LINKER_TYPE=MSVC is passed to BOTH sides. Without it CMake asks
-#    Clang for "-fuse-ld=lld-link"; the stock toolchain ships lld-link.exe and
-#    ours does not, so the point would be lost. See third_party\README.md.
+#  * Earlier rounds passed -DCMAKE_LINKER_TYPE=MSVC to BOTH sides, because
+#    CMake asks Clang for "-fuse-ld=lld-link" and our distribution had no
+#    lld-link.exe. That gap is CLOSED (2026-09-23): bin\ now ships lld-link.exe
+#    + llvm-ar/llvm-lib/llvm-ranlib/llvm-rc, so the default 'plain' toolchain
+#    runs exactly what we ship, with no substitution. The old behaviour is
+#    still reachable with -Toolchain workaround, for comparison.
 #  * Build tools live OUTSIDE this repo (CLion's CMake/Ninja, the Windows SDK
 #    rc.exe), so this script needs the wider sandbox: cmake probes the
 #    compiler by spawning it with piped stdio, which deadlocks when confined.
@@ -55,18 +58,18 @@ param(
     [ValidateSet('static', 'shared', 'debug')]
     [string[]] $Variants = @('static'),
     # Which toolchain to give the compiler under test:
-    #   workaround (default) - borrowed llvm-ar/llvm-ranlib + MSVC link.exe.
-    #                          Isolates the COMPILER: the only variable left is
-    #                          which clang.exe runs.
-    #   plain                - exactly what our distribution ships. Reproduces
-    #                          packaging defect 1 (no lld-link.exe -> configure
-    #                          dies with "program not executable").
-    #   nolld                - MSVC link.exe but still no archiver. Reproduces
-    #                          packaging defect 2 (CMAKE_AR-NOTFOUND).
-    # Both defects are recorded in README.md section 4; these options keep them
-    # reproducible instead of being quotes in a document.
-    [ValidateSet('workaround', 'plain', 'nolld')]
-    [string]   $Toolchain = 'workaround'
+    #   plain (default) - exactly what our distribution ships TODAY, used as
+    #                     shipped: the drivers in build\Release\bin plus the
+    #                     lld-link / llvm-ar / llvm-lib / llvm-ranlib / llvm-rc
+    #                     built on 2026-09-23. This is the honest default -
+    #                     verification then tests what a user really gets.
+    #   workaround      - borrowed llvm-ar/llvm-ranlib from the stock LLVM plus
+    #                     -DCMAKE_LINKER_TYPE=MSVC. HISTORICAL: it exists to
+    #                     isolate the COMPILER by hiding gaps in our toolchain.
+    #   nolld           - MSVC link.exe but no archiver; reproduces the
+    #                     CMAKE_AR-NOTFOUND packaging defect.
+    [ValidateSet('plain', 'workaround', 'nolld')]
+    [string]   $Toolchain = 'plain'
 )
 
 $ErrorActionPreference = 'Continue'

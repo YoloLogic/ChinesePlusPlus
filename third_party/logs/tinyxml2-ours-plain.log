@@ -1,56 +1,30 @@
-﻿===== tinyxml2 / ours =====
+﻿===== tinyxml2 / static / ours  (toolchain=plain) =====
 -- configure --
 -- The C compiler identification is Clang 24.0.0 with GNU-like command-line
 -- The CXX compiler identification is Clang 24.0.0 with GNU-like command-line
 -- Detecting C compiler ABI info
--- Detecting C compiler ABI info - failed
--- Check for working C compiler: E:/Chinese++/build/Release/bin/clang.exe
--- Check for working C compiler: E:/Chinese++/build/Release/bin/clang.exe - broken
-cmake.exe : CMake Error at E:/CLion 2026.1.2/bin/cmake/win/x64/share/cmake-4.2/Modules/CMakeTestCCompiler.cmake:67 (mes
-sage):
-At E:\Chinese++\tools\verify_third_party.ps1:105 char:5
-+     & $exe @argv 2>&1 | Out-File -Append -Encoding utf8 $log
-+     ~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (CMake Error at ...e:67 (message)::String) [], RemoteException
-    + FullyQualifiedErrorId : NativeCommandError
- 
-  The C compiler
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: E:/Chinese++/build/Release/bin/clang.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: E:/Chinese++/build/Release/bin/chinese++.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring done (2.6s)
+-- Generating done (0.0s)
+-- Build files have been written to: E:/Chinese++/third_party/build/tinyxml2-ours
+-- build --
+[1/4] Building CXX object CMakeFiles/tinyxml2.dir/tinyxml2.cpp.obj
+[2/4] Building CXX object CMakeFiles/xmltest.dir/xmltest.cpp.obj
+[3/4] Linking CXX static library tinyxml2.lib
+[4/4] Linking CXX executable xmltest.exe
+-- ctest --
+Test project E:/Chinese++/third_party/build/tinyxml2-ours
+    Start 1: xmltest
+1/1 Test #1: xmltest ..........................   Passed    0.32 sec
 
-    "E:/Chinese++/build/Release/bin/clang.exe"
+100% tests passed, 0 tests failed out of 1
 
-  is not able to compile a simple test program.
-
-  It fails with the following output:
-
-    Change Dir: 'E:/Chinese++/third_party/build/tinyxml2-ours/CMakeFiles/CMakeScratch/TryCompile-s2ered'
-    
-    Run Build Command(s): "E:/CLion 2026.1.2/bin/ninja/win/x64/ninja.exe" -v cmTC_fc546
-    [1/2] E:\Chinese++\build\Release\bin\clang.exe -D_MBCS  -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --d
-ependent-lib=msvcrtd -MD -MT CMakeFiles/cmTC_fc546.dir/testCCompiler.c.obj -MF CMakeFiles\cmTC_fc546.dir\testCCompiler.
-c.obj.d -o CMakeFiles/cmTC_fc546.dir/testCCompiler.c.obj -c E:/Chinese++/third_party/build/tinyxml2-ours/CMakeFiles/CMa
-keScratch/TryCompile-s2ered/testCCompiler.c
-    [2/2] C:\windows\system32\cmd.exe /C "cd . && E:\Chinese++\build\Release\bin\clang.exe -nostartfiles -nostdlib -O0 
--g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -Xlinker /subsystem:console -fuse-ld=lld-li
-nk CMakeFiles/cmTC_fc546.dir/testCCompiler.c.obj -o cmTC_fc546.exe -Xlinker /MANIFEST:EMBED -Xlinker /implib:cmTC_fc546
-.lib -Xlinker /pdb:cmTC_fc546.pdb -Xlinker /version:0.0   -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -lol
-eaut32 -luuid -lcomdlg32 -ladvapi32 -loldnames  && cd ."
-    FAILED: [code=1] cmTC_fc546.exe 
-    C:\windows\system32\cmd.exe /C "cd . && E:\Chinese++\build\Release\bin\clang.exe -nostartfiles -nostdlib -O0 -g -Xc
-lang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -Xlinker /subsystem:console -fuse-ld=lld-link CMa
-keFiles/cmTC_fc546.dir/testCCompiler.c.obj -o cmTC_fc546.exe -Xlinker /MANIFEST:EMBED -Xlinker /implib:cmTC_fc546.lib -
-Xlinker /pdb:cmTC_fc546.pdb -Xlinker /version:0.0   -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32
- -luuid -lcomdlg32 -ladvapi32 -loldnames  && cd ."
-    clang: error: unable to execute command: program not executable
-    clang: error: linker command failed with exit code 1 (use -v to see invocation)
-    ninja: build stopped: subcommand failed.
-    
-    
-
-
-
-  CMake will not be able to correctly generate this project.
-Call Stack (most recent call first):
-  CMakeLists.txt:2 (project)
-
-
--- Configuring incomplete, errors occurred!
+Total Test time (real) =   0.33 sec

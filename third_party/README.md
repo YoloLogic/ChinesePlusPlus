@@ -96,16 +96,31 @@ powershell -Command "& 'E:\Chinese++\tools\verify_third_party.ps1' -Projects tin
 
 ## 四、已发现的问题（**真实项目才暴露得出来的**）
 
-### 问题 1：我们的发行包缺一整套二进制工具，不是完整工具链
+### 问题 1：我们的发行包曾缺一整套二进制工具（**前三样已于 2026-09-23 补齐**）
 
-`E:\Chinese++\build\Release\bin\` 里**只有编译器驱动**，对照官方 VS LLVM 的 bin 目录：
+> ## ✅ 状态：已修复（2026-09-23 当天）
+>
+> **补上了**：`lld-link.exe`、`llvm-ar.exe`、`llvm-lib.exe`、`llvm-ranlib.exe`、`llvm-rc.exe`
+> —— 全部用**我们自己源码树里的源码、我们自己的编译器**编出来，已装进
+> `build\Release\bin\`（lld 那 4 个名字是硬链接，共用 44.6 MB）。
+>
+> **验收判据（已达成，且数字完全吻合）**：zlib 的失败测试数应从 **7 降到 5**、与官方 clang 一致。
+> 实测：`ours 55% passed, 5 failed` / `stock 55% passed, 5 failed`，**失败集逐条相同**，
+> 判定由 **FAIL → SAME**。
+>
+> **仍然缺的**：compiler-rt 运行时（`clang_rt.*`，影响 `-fsanitize` / `-coverage` / PGO）
+> —— 那是另一个工程，见 `docs\打包\打包方案.md`。
+>
+> 下面保留的是**修复前的原始记录**，因为"怎么发现的"和"怎么复现"本身有价值。
 
-| 工具 | 作用 | 官方 | 我们 |
-|---|---|---|---|
-| `lld-link.exe` | CMake 默认要求 Clang 用的链接器 | ✅ | ❌ |
-| `llvm-ar.exe` / `llvm-ranlib.exe` | 打静态库（`.lib`） | ✅ | ❌ |
-| `llvm-lib.exe` | MSVC 风格打库 | ✅ | ❌ |
-| `llvm-rc.exe` | 资源编译 | ✅ | ❌ |
+修复前：`E:\Chinese++\build\Release\bin\` 里**只有编译器驱动**，对照官方 VS LLVM 的 bin 目录：
+
+| 工具 | 作用 | 官方 | 我们（修复前） | 现在 |
+|---|---|---|---|---|
+| `lld-link.exe` | CMake 默认要求 Clang 用的链接器 | ✅ | ❌ | ✅ 44.6 MB |
+| `llvm-ar.exe` / `llvm-ranlib.exe` | 打静态库（`.lib`） | ✅ | ❌ | ✅ 各 8.3 MB |
+| `llvm-lib.exe` | MSVC 风格打库 | ✅ | ❌ | ✅ 8.3 MB |
+| `llvm-rc.exe` | 资源编译 | ✅ | ❌ | ✅ 0.6 MB |
 
 **后果（两个都是实测撞上的，不是推测）：**
 
@@ -228,33 +243,57 @@ schannel: AcquireCredentialsHandle failed: SEC_E_NO_CREDENTIALS (0x8009030e)
 （每一格是 `configure/build/ctest` 的退出码；原始日志在 `logs\`，汇总在 `logs\summary.txt`）
 
 <!-- RESULTS:BEGIN -->
-第一轮（4 个 C++ 项目 × `static`）：
+### 第三轮（**当前**）：补齐工具链之后的全量复跑，用**原样发行包**
 
-| 项目 | 形态 | ours（我们的编译器） | stock（官方 clang 19.1.5） | 结论 |
+2026-09-23 补齐 `lld-link` + `llvm-ar/lib/ranlib/rc` 之后重跑，
+**默认工具链就是 `plain`（我们实际发的东西，不借任何外部工具）**：
+
+| 项目 | 语言 | ours（我们的工具链） | stock（官方 clang 19.1.5） | 结论 |
 |---|---|---|---|---|
-| tinyxml2 | static | `0/0/0` 1/1 passed | `0/0/0` 同上 | **PASS** |
-| pugixml | static | `0/0/0` 1/1 passed | `0/0/0` 同上 | **PASS** |
-| fmt | static | `0/0/8` 3/21 failed | `0/0/8` **完全相同的 3 个** | **SAME** |
-| googletest | static | `0/1/1` 编译失败于 `gtest-printers.h:915` | `0/1/1` **同一文件同一行列** | **SAME** |
+| tinyxml2 | C++ | `0/0/0` 1/1 passed | `0/0/0` 同上 | **PASS** |
+| pugixml | C++ | `0/0/0` 1/1 passed | `0/0/0` 同上 | **PASS** |
+| fmt | C++ | `0/0/8` 3/21 failed | `0/0/8` **完全相同的 3 个** | **SAME** |
+| googletest | C++ | `0/1/1` `gtest-printers.h:915` | `0/1/1` **同一文件同一行列** | **SAME** |
+| cJSON | **C** | `0/1/1` 测试链接失败 | `0/1/1` **同一条** | **SAME** |
+| zlib | **C** | `0/0/8` **5** failed | `0/0/8` **同一批 5 个** | **SAME** ✅ |
+| libuv | **C** | `0/0/8` 2/2 failed | `0/0/8` **同两个** | **SAME** |
 
-第二轮（新增纯 C 项目 + 新构建形态）：
+```
+cases=7  pass=2  same=5  fail=0        ← 零差异
+```
+
+> **zlib 那一行是这一轮的验收判据**：修复前是 `ours 7 failed / stock 5 failed`（**FAIL**），
+> 修复后两边都是 **5 个、且逐条相同**（**SAME**）。数字完全吻合，说明根因就是缺 `lld-link.exe`。
+
+### 历史轮次（保留：它们记录了"怎么发现的"）
+
+第一轮（4 个 C++ 项目 × `static`，工具链是借来的）：
+
+| 项目 | 形态 | ours | stock | 结论 |
+|---|---|---|---|---|
+| tinyxml2 | static | `0/0/0` | `0/0/0` | **PASS** |
+| pugixml | static | `0/0/0` | `0/0/0` | **PASS** |
+| fmt | static | `0/0/8` 3/21 | 完全相同的 3 个 | **SAME** |
+| googletest | static | `0/1/1` | 同一文件同一行列 | **SAME** |
+
+第二轮（新增纯 C 项目 + `shared`/`debug` 形态，**这一轮抓到了那个 FAIL**）：
 
 | 项目 | 形态 | ours | stock | 结论 |
 |---|---|---|---|---|
 | tinyxml2 | **shared** | `0/0/0` | `0/0/0` | **PASS** |
 | tinyxml2 | **debug** | `0/0/0` | `0/0/0` | **PASS** |
 | pugixml | **debug** | `0/0/0` | `0/0/0` | **PASS** |
-| pugixml | **shared** | `0/1/1` `no such file: 'pugixml.lib'` | `0/1/1` **同一条** | SAME |
-| libuv（C） | static | `0/0/8` 2/2 failed | `0/0/8` **同两个** | SAME |
-| cJSON（C） | static | `0/1120/1` 库编出来了，测试链接失败 | `0/1120/1` **同一条** | SAME |
+| pugixml | **shared** | `0/1/1` `no such file: 'pugixml.lib'` | `0/1/1` 同一条 | SAME |
+| libuv（C） | static | `0/0/8` 2/2 | 同两个 | SAME |
+| cJSON（C） | static | `0/1120/1` | 同一条 | SAME |
 | zlib（C） | static | `0/0/8` **7** failed | `0/0/8` **5** failed | **🔴 FAIL** |
 
 ```
 cases=11  pass=5  same=5  fail=1
 ```
 
-**唯一的 FAIL 就是那个差别性证据**（见第四节"🎯"）：zlib 的两个嵌套 CMake 测试，
-官方过、我们不过，根因是发行包缺 `lld-link.exe`。
+**那个唯一的 FAIL 就是差别性证据**（见第四节"🎯"）：zlib 的两个嵌套 CMake 测试，
+官方过、我们不过，根因是发行包缺 `lld-link.exe`。**第三轮把它修掉了。**
 
 ### 怎么读这张表
 
