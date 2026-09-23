@@ -45,6 +45,10 @@
 | `third_party\README.md` | 第三方验证的凭证与日志属于 `third_party\`（源码、日志、结论放一起才好复核） |
 | `patches\*.patch` | 补丁是产物，不是文档；由 `tools\make_patch.ps1` 生成 |
 
+> 📌 **改任何文档之前，先看根目录 [`README.md`](../README.md) 的"回滚"一节** ——
+> `E:\Chinese++` 现在是个 **git 仓库**，`git status` / `git diff` / `git checkout -- <文件>`
+> 可以撤销任何误改误删。这个能力**已经实测过**（改坏、删掉都能还原到同一字节）。
+
 ---
 
 ## 三、一条铁律：搬文件是改接口
