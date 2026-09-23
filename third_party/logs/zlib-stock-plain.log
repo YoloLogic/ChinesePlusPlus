@@ -1,0 +1,334 @@
+﻿===== zlib / static / stock  (toolchain=plain) =====
+-- configure --
+-- The C compiler identification is Clang 19.1.5 with GNU-like command-line
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/Llvm/x64/bin/clang.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Looking for sys/types.h
+-- Looking for sys/types.h - found
+-- Looking for stdint.h
+-- Looking for stdint.h - found
+-- Looking for stddef.h
+-- Looking for stddef.h - found
+-- Check size of off64_t
+-- Check size of off64_t - failed
+-- Looking for fseeko
+-- Looking for fseeko - not found
+-- Looking for stdarg.h
+-- Looking for stdarg.h - found
+-- Looking for unistd.h
+-- Looking for unistd.h - not found
+-- Performing Test HAVE___ATTR__VIS_HIDDEN
+-- Performing Test HAVE___ATTR__VIS_HIDDEN - Success
+-- Configuring done (2.9s)
+cmake.exe : CMake Warning:
+At E:\Chinese++\tools\verify_third_party.ps1:159 char:5
++     & $exe @argv 2>&1 | Out-File -Append -Encoding utf8 $log
++     ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (CMake Warning::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  Manually-specified variables were not used by the project:
+
+    CMAKE_CXX_COMPILER
+
+
+-- Generating done (0.0s)
+-- Build files have been written to: E:/Chinese++/third_party/build/zlib-stock
+-- build --
+[1/43] Building C object CMakeFiles/zlib.dir/adler32.c.obj
+[2/43] Building C object CMakeFiles/zlib.dir/compress.c.obj
+[3/43] Building C object CMakeFiles/zlib.dir/crc32.c.obj
+[4/43] Building C object CMakeFiles/zlib.dir/deflate.c.obj
+[5/43] Building C object CMakeFiles/zlib.dir/gzclose.c.obj
+[6/43] Building C object CMakeFiles/zlib.dir/gzlib.c.obj
+[7/43] Building C object CMakeFiles/zlib.dir/gzread.c.obj
+[8/43] Building C object CMakeFiles/zlib.dir/gzwrite.c.obj
+[9/43] Building C object CMakeFiles/zlib.dir/inflate.c.obj
+[10/43] Building C object CMakeFiles/zlib.dir/infback.c.obj
+[11/43] Building C object CMakeFiles/zlib.dir/inftrees.c.obj
+[12/43] Building C object CMakeFiles/zlib.dir/inffast.c.obj
+[13/43] Building C object CMakeFiles/zlib.dir/trees.c.obj
+[14/43] Building C object CMakeFiles/zlib.dir/uncompr.c.obj
+[15/43] Building C object CMakeFiles/zlib.dir/zutil.c.obj
+[16/43] Building C object CMakeFiles/zlibstatic.dir/adler32.c.obj
+[17/43] Building C object CMakeFiles/zlibstatic.dir/compress.c.obj
+[18/43] Building C object CMakeFiles/zlibstatic.dir/crc32.c.obj
+[19/43] Building C object CMakeFiles/zlibstatic.dir/deflate.c.obj
+[20/43] Building C object CMakeFiles/zlibstatic.dir/gzclose.c.obj
+[21/43] Building C object CMakeFiles/zlibstatic.dir/gzlib.c.obj
+[22/43] Building C object CMakeFiles/zlibstatic.dir/gzread.c.obj
+[23/43] Building C object CMakeFiles/zlibstatic.dir/gzwrite.c.obj
+[24/43] Building C object CMakeFiles/zlibstatic.dir/infback.c.obj
+[25/43] Building C object CMakeFiles/zlibstatic.dir/inftrees.c.obj
+[26/43] Building C object CMakeFiles/zlibstatic.dir/inffast.c.obj
+[27/43] Building C object CMakeFiles/zlibstatic.dir/uncompr.c.obj
+[28/43] Building C object CMakeFiles/zlibstatic.dir/zutil.c.obj
+[29/43] Building RC object CMakeFiles/zlib.dir/win32/zlib-cmake.rc.res
+Microsoft (R) Windows (R) Resource Compiler Version 10.0.10011.16384
+
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+
+[30/43] Building C object test/CMakeFiles/zlib_example.dir/example.c.obj
+[31/43] Building C object test/CMakeFiles/zlib_minigzip.dir/minigzip.c.obj
+[32/43] Building C object CMakeFiles/zlibstatic.dir/trees.c.obj
+[33/43] Building C object test/CMakeFiles/zlib_examplestatic.dir/example.c.obj
+[34/43] Building C object test/CMakeFiles/zlib_minigzipstatic.dir/minigzip.c.obj
+[35/43] Building C object CMakeFiles/zlibstatic.dir/inflate.c.obj
+[36/43] Building C object test/CMakeFiles/infcover.dir/infcover.c.obj
+E:/Chinese++/third_party/src/zlib/test/infcover.c:530:5: warning: 'strcpy' is deprecated: This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
+  530 |     strcpy(prefix, id);
+      |     ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\string.h:130:1: note: 'strcpy' has been explicitly marked deprecated here
+  130 | __DEFINE_CPP_OVERLOAD_STANDARD_FUNC_0_1(
+      | ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt.h:874:5: note: expanded from macro '__DEFINE_CPP_OVERLOAD_STANDARD_FUNC_0_1'
+  874 |     __DEFINE_CPP_OVERLOAD_STANDARD_FUNC_0_1_EX(_ReturnType, _ReturnPolicy, _DeclSpec, _FuncName, _FuncName##_s, _DstType, _SalAttributeDst, _DstType, _Dst, _TType1, _TArg1)
+      |     ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt.h:1933:17: note: expanded from macro '__DEFINE_CPP_OVERLOAD_STANDARD_FUNC_0_1_EX'
+ 1933 |                 _CRT_INSECURE_DEPRECATE(_SecureFuncName) _DeclSpec _ReturnType __cdecl _FuncName(_SalAttributeDst _DstType *_Dst, _TType1 _TArg1);
+      |                 ^
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:368:55: note: expanded from macro '_CRT_INSECURE_DEPRECATE'
+  368 |         #define _CRT_INSECURE_DEPRECATE(_Replacement) _CRT_DEPRECATE_TEXT(    \
+      |                                                       ^
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:358:47: note: expanded from macro '_CRT_DEPRECATE_TEXT'
+  358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
+      |                                               ^
+E:/Chinese++/third_party/src/zlib/test/infcover.c:531:5: warning: 'strcat' is deprecated: This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
+  531 |     strcat(prefix, "-late");
+      |     ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\string.h:91:5: note: 'strcat' has been explicitly marked deprecated here
+   91 |     __DEFINE_CPP_OVERLOAD_STANDARD_FUNC_0_1(
+      |     ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt.h:874:5: note: expanded from macro '__DEFINE_CPP_OVERLOAD_STANDARD_FUNC_0_1'
+  874 |     __DEFINE_CPP_OVERLOAD_STANDARD_FUNC_0_1_EX(_ReturnType, _ReturnPolicy, _DeclSpec, _FuncName, _FuncName##_s, _DstType, _SalAttributeDst, _DstType, _Dst, _TType1, _TArg1)
+      |     ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt.h:1933:17: note: expanded from macro '__DEFINE_CPP_OVERLOAD_STANDARD_FUNC_0_1_EX'
+ 1933 |                 _CRT_INSECURE_DEPRECATE(_SecureFuncName) _DeclSpec _ReturnType __cdecl _FuncName(_SalAttributeDst _DstType *_Dst, _TType1 _TArg1);
+      |                 ^
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:368:55: note: expanded from macro '_CRT_INSECURE_DEPRECATE'
+  368 |         #define _CRT_INSECURE_DEPRECATE(_Replacement) _CRT_DEPRECATE_TEXT(    \
+      |                                                       ^
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:358:47: note: expanded from macro '_CRT_DEPRECATE_TEXT'
+  358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
+      |                                               ^
+E:/Chinese++/third_party/src/zlib/test/infcover.c:556:9: warning: 'strcpy' is deprecated: This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
+  556 |         strcpy(prefix, id);
+      |         ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\string.h:130:1: note: 'strcpy' has been explicitly marked deprecated here
+  130 | __DEFINE_CPP_OVERLOAD_STANDARD_FUNC_0_1(
+      | ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt.h:874:5: note: expanded from macro '__DEFINE_CPP_OVERLOAD_STANDARD_FUNC_0_1'
+  874 |     __DEFINE_CPP_OVERLOAD_STANDARD_FUNC_0_1_EX(_ReturnType, _ReturnPolicy, _DeclSpec, _FuncName, _FuncName##_s, _DstType, _SalAttributeDst, _DstType, _Dst, _TType1, _TArg1)
+      |     ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt.h:1933:17: note: expanded from macro '__DEFINE_CPP_OVERLOAD_STANDARD_FUNC_0_1_EX'
+ 1933 |                 _CRT_INSECURE_DEPRECATE(_SecureFuncName) _DeclSpec _ReturnType __cdecl _FuncName(_SalAttributeDst _DstType *_Dst, _TType1 _TArg1);
+      |                 ^
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:368:55: note: expanded from macro '_CRT_INSECURE_DEPRECATE'
+  368 |         #define _CRT_INSECURE_DEPRECATE(_Replacement) _CRT_DEPRECATE_TEXT(    \
+      |                                                       ^
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:358:47: note: expanded from macro '_CRT_DEPRECATE_TEXT'
+  358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
+      |                                               ^
+E:/Chinese++/third_party/src/zlib/test/infcover.c:557:9: warning: 'strcat' is deprecated: This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
+  557 |         strcat(prefix, "-back");
+      |         ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\string.h:91:5: note: 'strcat' has been explicitly marked deprecated here
+   91 |     __DEFINE_CPP_OVERLOAD_STANDARD_FUNC_0_1(
+      |     ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt.h:874:5: note: expanded from macro '__DEFINE_CPP_OVERLOAD_STANDARD_FUNC_0_1'
+  874 |     __DEFINE_CPP_OVERLOAD_STANDARD_FUNC_0_1_EX(_ReturnType, _ReturnPolicy, _DeclSpec, _FuncName, _FuncName##_s, _DstType, _SalAttributeDst, _DstType, _Dst, _TType1, _TArg1)
+      |     ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt.h:1933:17: note: expanded from macro '__DEFINE_CPP_OVERLOAD_STANDARD_FUNC_0_1_EX'
+ 1933 |                 _CRT_INSECURE_DEPRECATE(_SecureFuncName) _DeclSpec _ReturnType __cdecl _FuncName(_SalAttributeDst _DstType *_Dst, _TType1 _TArg1);
+      |                 ^
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:368:55: note: expanded from macro '_CRT_INSECURE_DEPRECATE'
+  368 |         #define _CRT_INSECURE_DEPRECATE(_Replacement) _CRT_DEPRECATE_TEXT(    \
+      |                                                       ^
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:358:47: note: expanded from macro '_CRT_DEPRECATE_TEXT'
+  358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
+      |                                               ^
+4 warnings generated.
+[37/43] Linking C shared library z.dll
+[38/43] Linking C static library zs.lib
+[39/43] Linking C executable test\zlib_example.exe
+[40/43] Linking C executable test\minigzip.exe
+[41/43] Linking C executable test\zlib_examplestatic.exe
+[42/43] Linking C executable test\minigzipstatic.exe
+[43/43] Linking C executable test\infcover.exe
+-- ctest --
+Test project E:/Chinese++/third_party/build/zlib-stock
+      Start  1: zlib_example
+ 1/13 Test  #1: zlib_example ...................................   Passed    0.35 sec
+      Start  2: zlib_examplestatic
+ 2/13 Test  #2: zlib_examplestatic .............................   Passed    0.27 sec
+      Start  3: zlib_coverage
+ 3/13 Test  #3: zlib_coverage ..................................   Passed    0.24 sec
+      Start  4: zlib_coverage-summary
+ 4/13 Test  #4: zlib_coverage-summary ..........................   Passed    0.10 sec
+      Start  5: zlib_install
+ 5/13 Test  #5: zlib_install ...................................   Passed    0.05 sec
+      Start  6: zlib_find_package_configure
+ 6/13 Test  #6: zlib_find_package_configure ....................***Failed    0.80 sec
+-- The C compiler identification is Clang 19.1.5 with GNU-like command-line
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/Llvm/x64/bin/clang.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+CMake Error at CMakeLists.txt:12 (find_package):
+  Found package configuration file:
+
+    E:/Chinese++/third_party/build/zlib-stock/ZLIBConfig.cmake
+
+  but it set ZLIB_FOUND to FALSE so package "ZLIB" is considered to be NOT
+  FOUND.  Reason given by package:
+
+  Component shared not found.
+
+
+
+-- Configuring incomplete, errors occurred!
+
+      Start  7: zlib_find_package_build
+Failed test dependencies: zlib_find_package_configure
+ 7/13 Test  #7: zlib_find_package_build ........................***Not Run   0.00 sec
+      Start  8: zlib_find_package_no_components_configure
+ 8/13 Test  #8: zlib_find_package_no_components_configure ......***Failed    0.80 sec
+-- The C compiler identification is Clang 19.1.5 with GNU-like command-line
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/Llvm/x64/bin/clang.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+CMake Error at CMakeLists.txt:11 (find_package):
+  Found package configuration file:
+
+    E:/Chinese++/third_party/build/zlib-stock/ZLIBConfig.cmake
+
+  but it set ZLIB_FOUND to FALSE so package "ZLIB" is considered to be NOT
+  FOUND.  Reason given by package:
+
+  Target ZLIB::ZLIBSTATIC not created
+
+  build zlib with support for static libs or
+
+  specify COMPONENTS shared in your find_package call
+
+
+
+-- Configuring incomplete, errors occurred!
+
+      Start  9: zlib_find_package_wrong_components_configure
+ 9/13 Test  #9: zlib_find_package_wrong_components_configure ...   Passed    0.03 sec
+      Start 10: zlib_add_subdirectory_configure
+10/13 Test #10: zlib_add_subdirectory_configure ................   Passed    2.96 sec
+      Start 11: zlib_add_subdirectory_build
+11/13 Test #11: zlib_add_subdirectory_build ....................***Failed    0.73 sec
+[1/37] Building C object zlib/CMakeFiles/zlib.dir/adler32.c.obj
+[2/37] Building C object zlib/CMakeFiles/zlib.dir/compress.c.obj
+[3/37] Building C object zlib/CMakeFiles/zlib.dir/crc32.c.obj
+[4/37] Building C object zlib/CMakeFiles/zlib.dir/deflate.c.obj
+[5/37] Building C object zlib/CMakeFiles/zlib.dir/gzclose.c.obj
+[6/37] Building C object zlib/CMakeFiles/zlib.dir/gzlib.c.obj
+[7/37] Building C object zlib/CMakeFiles/zlib.dir/gzread.c.obj
+[8/37] Building C object zlib/CMakeFiles/zlib.dir/gzwrite.c.obj
+[9/37] Building C object zlib/CMakeFiles/zlib.dir/inflate.c.obj
+[10/37] Building C object zlib/CMakeFiles/zlib.dir/infback.c.obj
+[11/37] Building C object zlib/CMakeFiles/zlib.dir/inftrees.c.obj
+[12/37] Building C object zlib/CMakeFiles/zlib.dir/inffast.c.obj
+[13/37] Building C object zlib/CMakeFiles/zlib.dir/trees.c.obj
+[14/37] Building C object zlib/CMakeFiles/zlib.dir/uncompr.c.obj
+[15/37] Building C object zlib/CMakeFiles/zlib.dir/zutil.c.obj
+[16/37] Building C object zlib/CMakeFiles/zlibstatic.dir/adler32.c.obj
+[17/37] Building C object zlib/CMakeFiles/zlibstatic.dir/compress.c.obj
+[18/37] Building C object zlib/CMakeFiles/zlibstatic.dir/crc32.c.obj
+[19/37] Building C object zlib/CMakeFiles/zlibstatic.dir/gzclose.c.obj
+[20/37] Building C object zlib/CMakeFiles/zlibstatic.dir/gzlib.c.obj
+[21/37] Building C object zlib/CMakeFiles/zlibstatic.dir/gzread.c.obj
+[22/37] Building C object zlib/CMakeFiles/zlibstatic.dir/gzwrite.c.obj
+[23/37] Building C object zlib/CMakeFiles/zlibstatic.dir/inftrees.c.obj
+[24/37] Building RC object zlib/CMakeFiles/zlib.dir/win32/zlib-cmake.rc.res
+FAILED: [code=1] zlib/CMakeFiles/zlib.dir/win32/zlib-cmake.rc.res 
+C:\PROGRA~2\WI3CF2~1\10\bin\100261~1.0\x64\rc.exe -DHAVE_HIDDEN -DNO_FSEEKO -DZLIB_BUILD -DZLIB_DLL -I E:/Chinese++/third_party/build/zlib-stock/test/zlib_add_subdirectory_test_build/zlib -I E:/Chinese++/third_party/src/zlib  /fo zlib/CMakeFiles/zlib.dir/win32/zlib-cmake.rc.res E:/Chinese++/third_party/src/zlib/win32/zlib-cmake.rc
+Microsoft (R) Windows (R) Resource Compiler Version 10.0.10011.16384
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+E:/Chinese++/third_party/src/zlib/win32/zlib-cmake.rc(1) : fatal error RC1015: cannot open include file 'winver.h'.
+[25/37] Building C object zlib/CMakeFiles/zlibstatic.dir/uncompr.c.obj
+[26/37] Building C object zlib/CMakeFiles/zlibstatic.dir/inffast.c.obj
+[27/37] Building C object zlib/CMakeFiles/zlibstatic.dir/infback.c.obj
+[28/37] Building C object zlib/CMakeFiles/zlibstatic.dir/zutil.c.obj
+[29/37] Building C object zlib/CMakeFiles/zlibstatic.dir/deflate.c.obj
+[30/37] Building C object CMakeFiles/test_example.dir/E_/Chinese++/third_party/src/zlib/test/example.c.obj
+[31/37] Building C object CMakeFiles/test_example_static.dir/E_/Chinese++/third_party/src/zlib/test/example.c.obj
+[32/37] Building C object zlib/CMakeFiles/zlibstatic.dir/trees.c.obj
+[33/37] Building C object zlib/CMakeFiles/zlibstatic.dir/inflate.c.obj
+ninja: build stopped: subcommand failed.
+
+      Start 12: zlib_add_subdirectory_exclude_configure
+12/13 Test #12: zlib_add_subdirectory_exclude_configure ........   Passed    2.95 sec
+      Start 13: zlib_add_subdirectory_exclude_build
+13/13 Test #13: zlib_add_subdirectory_exclude_build ............***Failed    0.70 sec
+[1/37] Building C object zlib/CMakeFiles/zlib.dir/adler32.c.obj
+[2/37] Building C object zlib/CMakeFiles/zlib.dir/compress.c.obj
+[3/37] Building C object zlib/CMakeFiles/zlib.dir/crc32.c.obj
+[4/37] Building C object zlib/CMakeFiles/zlib.dir/deflate.c.obj
+[5/37] Building C object zlib/CMakeFiles/zlib.dir/gzclose.c.obj
+[6/37] Building C object zlib/CMakeFiles/zlib.dir/gzlib.c.obj
+[7/37] Building C object zlib/CMakeFiles/zlib.dir/gzread.c.obj
+[8/37] Building C object zlib/CMakeFiles/zlib.dir/gzwrite.c.obj
+[9/37] Building C object zlib/CMakeFiles/zlib.dir/inflate.c.obj
+[10/37] Building C object zlib/CMakeFiles/zlib.dir/infback.c.obj
+[11/37] Building C object zlib/CMakeFiles/zlib.dir/inftrees.c.obj
+[12/37] Building C object zlib/CMakeFiles/zlib.dir/inffast.c.obj
+[13/37] Building C object zlib/CMakeFiles/zlib.dir/trees.c.obj
+[14/37] Building C object zlib/CMakeFiles/zlib.dir/uncompr.c.obj
+[15/37] Building C object zlib/CMakeFiles/zlib.dir/zutil.c.obj
+[16/37] Building C object zlib/CMakeFiles/zlibstatic.dir/adler32.c.obj
+[17/37] Building C object zlib/CMakeFiles/zlibstatic.dir/compress.c.obj
+[18/37] Building C object zlib/CMakeFiles/zlibstatic.dir/crc32.c.obj
+[19/37] Building C object zlib/CMakeFiles/zlibstatic.dir/gzclose.c.obj
+[20/37] Building C object zlib/CMakeFiles/zlibstatic.dir/gzlib.c.obj
+[21/37] Building C object zlib/CMakeFiles/zlibstatic.dir/gzread.c.obj
+[22/37] Building C object zlib/CMakeFiles/zlibstatic.dir/gzwrite.c.obj
+[23/37] Building C object zlib/CMakeFiles/zlibstatic.dir/inftrees.c.obj
+[24/37] Building C object zlib/CMakeFiles/zlibstatic.dir/uncompr.c.obj
+[25/37] Building RC object zlib/CMakeFiles/zlib.dir/win32/zlib-cmake.rc.res
+FAILED: [code=1] zlib/CMakeFiles/zlib.dir/win32/zlib-cmake.rc.res 
+C:\PROGRA~2\WI3CF2~1\10\bin\100261~1.0\x64\rc.exe -DHAVE_HIDDEN -DNO_FSEEKO -DZLIB_BUILD -DZLIB_DLL -I E:/Chinese++/third_party/build/zlib-stock/test/zlib_add_subdirectory_exclude_test_build/zlib -I E:/Chinese++/third_party/src/zlib  /fo zlib/CMakeFiles/zlib.dir/win32/zlib-cmake.rc.res E:/Chinese++/third_party/src/zlib/win32/zlib-cmake.rc
+Microsoft (R) Windows (R) Resource Compiler Version 10.0.10011.16384
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+E:/Chinese++/third_party/src/zlib/win32/zlib-cmake.rc(1) : fatal error RC1015: cannot open include file 'winver.h'.
+[26/37] Building C object zlib/CMakeFiles/zlibstatic.dir/inffast.c.obj
+[27/37] Building C object zlib/CMakeFiles/zlibstatic.dir/infback.c.obj
+[28/37] Building C object zlib/CMakeFiles/zlibstatic.dir/deflate.c.obj
+[29/37] Building C object zlib/CMakeFiles/zlibstatic.dir/zutil.c.obj
+[30/37] Building C object CMakeFiles/test_example.dir/E_/Chinese++/third_party/src/zlib/test/example.c.obj
+[31/37] Building C object CMakeFiles/test_example_static.dir/E_/Chinese++/third_party/src/zlib/test/example.c.obj
+[32/37] Building C object zlib/CMakeFiles/zlibstatic.dir/trees.c.obj
+[33/37] Building C object zlib/CMakeFiles/zlibstatic.dir/inflate.c.obj
+ninja: build stopped: subcommand failed.
+
+
+62% tests passed, 5 tests failed out of 13
+
+Total Test time (real) =  10.01 sec
+
+The following tests FAILED:
+	  6 - zlib_find_package_configure (Failed)
+	  7 - zlib_find_package_build (Not Run)
+	  8 - zlib_find_package_no_components_configure (Failed)
+	 11 - zlib_add_subdirectory_build (Failed)
+	 13 - zlib_add_subdirectory_exclude_build (Failed)
+ctest.exe : Errors while running CTest
+At E:\Chinese++\tools\verify_third_party.ps1:159 char:5
++     & $exe @argv 2>&1 | Out-File -Append -Encoding utf8 $log
++     ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Errors while running CTest:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

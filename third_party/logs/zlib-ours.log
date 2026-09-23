@@ -1,0 +1,278 @@
+﻿===== zlib / static / ours  (toolchain=workaround) =====
+-- configure --
+-- The C compiler identification is Clang 24.0.0 with GNU-like command-line
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: E:/Chinese++/build/Release/bin/clang.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Looking for sys/types.h
+-- Looking for sys/types.h - found
+-- Looking for stdint.h
+-- Looking for stdint.h - found
+-- Looking for stddef.h
+-- Looking for stddef.h - found
+-- Check size of off64_t
+-- Check size of off64_t - failed
+-- Looking for fseeko
+-- Looking for fseeko - not found
+-- Looking for stdarg.h
+-- Looking for stdarg.h - found
+-- Looking for unistd.h
+-- Looking for unistd.h - not found
+-- Performing Test HAVE___ATTR__VIS_HIDDEN
+-- Performing Test HAVE___ATTR__VIS_HIDDEN - Success
+-- Configuring done (3.4s)
+-- Generating done (0.1s)
+cmake.exe : CMake Warning:
+At E:\Chinese++\tools\verify_third_party.ps1:159 char:5
++     & $exe @argv 2>&1 | Out-File -Append -Encoding utf8 $log
++     ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (CMake Warning::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  Manually-specified variables were not used by the project:
+
+    CMAKE_CXX_COMPILER
+
+
+-- Build files have been written to: E:/Chinese++/third_party/build/zlib-ours
+-- build --
+[1/41] Building C object CMakeFiles/zlib.dir/adler32.c.obj
+[2/41] Building C object CMakeFiles/zlib.dir/compress.c.obj
+[3/41] Building C object CMakeFiles/zlib.dir/crc32.c.obj
+[4/41] Building C object CMakeFiles/zlib.dir/deflate.c.obj
+[5/41] Building C object CMakeFiles/zlib.dir/gzclose.c.obj
+[6/41] Building C object CMakeFiles/zlib.dir/gzlib.c.obj
+[7/41] Building C object CMakeFiles/zlib.dir/gzread.c.obj
+[8/41] Building C object CMakeFiles/zlib.dir/gzwrite.c.obj
+[9/41] Building C object CMakeFiles/zlib.dir/infback.c.obj
+[10/41] Building C object CMakeFiles/zlib.dir/inftrees.c.obj
+[11/41] Building C object CMakeFiles/zlib.dir/inffast.c.obj
+[12/41] Building C object CMakeFiles/zlib.dir/trees.c.obj
+[13/41] Building C object CMakeFiles/zlib.dir/uncompr.c.obj
+[14/41] Building C object CMakeFiles/zlib.dir/zutil.c.obj
+[15/41] Building C object CMakeFiles/zlibstatic.dir/adler32.c.obj
+[16/41] Building C object CMakeFiles/zlibstatic.dir/compress.c.obj
+[17/41] Building C object CMakeFiles/zlibstatic.dir/crc32.c.obj
+[18/41] Building C object CMakeFiles/zlibstatic.dir/gzclose.c.obj
+[19/41] Building C object CMakeFiles/zlibstatic.dir/gzlib.c.obj
+[20/41] Building C object CMakeFiles/zlibstatic.dir/gzread.c.obj
+[21/41] Building C object CMakeFiles/zlibstatic.dir/gzwrite.c.obj
+[22/41] Building C object CMakeFiles/zlibstatic.dir/inftrees.c.obj
+[23/41] Building C object CMakeFiles/zlibstatic.dir/uncompr.c.obj
+[24/41] Building RC object CMakeFiles/zlib.dir/win32/zlib-cmake.rc.res
+Microsoft (R) Windows (R) Resource Compiler Version 10.0.10011.16384
+
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+
+[25/41] Building C object CMakeFiles/zlibstatic.dir/zutil.c.obj
+[26/41] Building C object CMakeFiles/zlibstatic.dir/inffast.c.obj
+[27/41] Building C object test/CMakeFiles/zlib_example.dir/example.c.obj
+[28/41] Building C object test/CMakeFiles/zlib_minigzip.dir/minigzip.c.obj
+[29/41] Building C object CMakeFiles/zlibstatic.dir/infback.c.obj
+[30/41] Building C object CMakeFiles/zlib.dir/inflate.c.obj
+[31/41] Building C object test/CMakeFiles/zlib_examplestatic.dir/example.c.obj
+[32/41] Building C object test/CMakeFiles/zlib_minigzipstatic.dir/minigzip.c.obj
+[33/41] Building C object CMakeFiles/zlibstatic.dir/deflate.c.obj
+[34/41] Building C object CMakeFiles/zlibstatic.dir/trees.c.obj
+[35/41] Linking C shared library z.dll
+  正在创建库 z.lib 和对象 z.exp
+[36/41] Building C object CMakeFiles/zlibstatic.dir/inflate.c.obj
+[37/41] Linking C static library zs.lib
+[38/41] Linking C executable test\zlib_example.exe
+[39/41] Linking C executable test\minigzip.exe
+[40/41] Linking C executable test\zlib_examplestatic.exe
+[41/41] Linking C executable test\minigzipstatic.exe
+-- ctest --
+Test project E:/Chinese++/third_party/build/zlib-ours
+      Start  1: zlib_example
+ 1/11 Test  #1: zlib_example ...................................   Passed    0.27 sec
+      Start  2: zlib_examplestatic
+ 2/11 Test  #2: zlib_examplestatic .............................   Passed    0.26 sec
+      Start  3: zlib_install
+ 3/11 Test  #3: zlib_install ...................................   Passed    0.05 sec
+      Start  4: zlib_find_package_configure
+ 4/11 Test  #4: zlib_find_package_configure ....................***Failed    0.88 sec
+-- The C compiler identification is Clang 24.0.0 with GNU-like command-line
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - failed
+-- Check for working C compiler: E:/Chinese++/build/Release/bin/clang.exe
+-- Check for working C compiler: E:/Chinese++/build/Release/bin/clang.exe - broken
+CMake Error at E:/CLion 2026.1.2/bin/cmake/win/x64/share/cmake-4.2/Modules/CMakeTestCCompiler.cmake:67 (message):
+  The C compiler
+
+    "E:/Chinese++/build/Release/bin/clang.exe"
+
+  is not able to compile a simple test program.
+
+  It fails with the following output:
+
+    Change Dir: 'E:/Chinese++/third_party/build/zlib-ours/test/zlib_find_package_test_build/CMakeFiles/CMakeScratch/TryCompile-4c784u'
+    
+    Run Build Command(s): "E:/CLion 2026.1.2/bin/ninja/win/x64/ninja.exe" -v cmTC_efc66
+    [1/2] E:\Chinese++\build\Release\bin\clang.exe -D_MBCS  -O0 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview -MD -MT CMakeFiles/cmTC_efc66.dir/testCCompiler.c.obj -MF CMakeFiles\cmTC_efc66.dir\testCCompiler.c.obj.d -o CMakeFiles/cmTC_efc66.dir/testCCompiler.c.obj -c E:/Chinese++/third_party/build/zlib-ours/test/zlib_find_package_test_build/CMakeFiles/CMakeScratch/TryCompile-4c784u/testCCompiler.c
+    [2/2] C:\windows\system32\cmd.exe /C "cd . && E:\Chinese++\build\Release\bin\clang.exe -nostartfiles -nostdlib -O0 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview -Xlinker /subsystem:console -fuse-ld=lld-link CMakeFiles/cmTC_efc66.dir/testCCompiler.c.obj -o cmTC_efc66.exe -Xlinker /MANIFEST:EMBED -Xlinker /implib:cmTC_efc66.lib -Xlinker /pdb:cmTC_efc66.pdb -Xlinker /version:0.0   -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 -loldnames  && cd ."
+    FAILED: [code=1] cmTC_efc66.exe 
+    C:\windows\system32\cmd.exe /C "cd . && E:\Chinese++\build\Release\bin\clang.exe -nostartfiles -nostdlib -O0 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview -Xlinker /subsystem:console -fuse-ld=lld-link CMakeFiles/cmTC_efc66.dir/testCCompiler.c.obj -o cmTC_efc66.exe -Xlinker /MANIFEST:EMBED -Xlinker /implib:cmTC_efc66.lib -Xlinker /pdb:cmTC_efc66.pdb -Xlinker /version:0.0   -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 -loldnames  && cd ."
+    clang: error: unable to execute command: program not executable
+    clang: error: linker command failed with exit code 1 (use -v to see invocation)
+    ninja: build stopped: subcommand failed.
+    
+    
+
+
+
+  CMake will not be able to correctly generate this project.
+Call Stack (most recent call first):
+  CMakeLists.txt:3 (project)
+
+
+-- Configuring incomplete, errors occurred!
+
+      Start  5: zlib_find_package_build
+Failed test dependencies: zlib_find_package_configure
+ 5/11 Test  #5: zlib_find_package_build ........................***Not Run   0.00 sec
+      Start  6: zlib_find_package_no_components_configure
+ 6/11 Test  #6: zlib_find_package_no_components_configure ......***Failed    0.87 sec
+-- The C compiler identification is Clang 24.0.0 with GNU-like command-line
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - failed
+-- Check for working C compiler: E:/Chinese++/build/Release/bin/clang.exe
+-- Check for working C compiler: E:/Chinese++/build/Release/bin/clang.exe - broken
+CMake Error at E:/CLion 2026.1.2/bin/cmake/win/x64/share/cmake-4.2/Modules/CMakeTestCCompiler.cmake:67 (message):
+  The C compiler
+
+    "E:/Chinese++/build/Release/bin/clang.exe"
+
+  is not able to compile a simple test program.
+
+  It fails with the following output:
+
+    Change Dir: 'E:/Chinese++/third_party/build/zlib-ours/test/zlib_find_package_no_components_test_build/CMakeFiles/CMakeScratch/TryCompile-z9qxhq'
+    
+    Run Build Command(s): "E:/CLion 2026.1.2/bin/ninja/win/x64/ninja.exe" -v cmTC_4212e
+    [1/2] E:\Chinese++\build\Release\bin\clang.exe -D_MBCS  -O0 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview -MD -MT CMakeFiles/cmTC_4212e.dir/testCCompiler.c.obj -MF CMakeFiles\cmTC_4212e.dir\testCCompiler.c.obj.d -o CMakeFiles/cmTC_4212e.dir/testCCompiler.c.obj -c E:/Chinese++/third_party/build/zlib-ours/test/zlib_find_package_no_components_test_build/CMakeFiles/CMakeScratch/TryCompile-z9qxhq/testCCompiler.c
+    [2/2] C:\windows\system32\cmd.exe /C "cd . && E:\Chinese++\build\Release\bin\clang.exe -nostartfiles -nostdlib -O0 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview -Xlinker /subsystem:console -fuse-ld=lld-link CMakeFiles/cmTC_4212e.dir/testCCompiler.c.obj -o cmTC_4212e.exe -Xlinker /MANIFEST:EMBED -Xlinker /implib:cmTC_4212e.lib -Xlinker /pdb:cmTC_4212e.pdb -Xlinker /version:0.0   -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 -loldnames  && cd ."
+    FAILED: [code=1] cmTC_4212e.exe 
+    C:\windows\system32\cmd.exe /C "cd . && E:\Chinese++\build\Release\bin\clang.exe -nostartfiles -nostdlib -O0 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview -Xlinker /subsystem:console -fuse-ld=lld-link CMakeFiles/cmTC_4212e.dir/testCCompiler.c.obj -o cmTC_4212e.exe -Xlinker /MANIFEST:EMBED -Xlinker /implib:cmTC_4212e.lib -Xlinker /pdb:cmTC_4212e.pdb -Xlinker /version:0.0   -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 -loldnames  && cd ."
+    clang: error: unable to execute command: program not executable
+    clang: error: linker command failed with exit code 1 (use -v to see invocation)
+    ninja: build stopped: subcommand failed.
+    
+    
+
+
+
+  CMake will not be able to correctly generate this project.
+Call Stack (most recent call first):
+  CMakeLists.txt:3 (project)
+
+
+-- Configuring incomplete, errors occurred!
+
+      Start  7: zlib_find_package_wrong_components_configure
+ 7/11 Test  #7: zlib_find_package_wrong_components_configure ...   Passed    0.03 sec
+      Start  8: zlib_add_subdirectory_configure
+ 8/11 Test  #8: zlib_add_subdirectory_configure ................***Failed    0.87 sec
+-- The C compiler identification is Clang 24.0.0 with GNU-like command-line
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - failed
+-- Check for working C compiler: E:/Chinese++/build/Release/bin/clang.exe
+-- Check for working C compiler: E:/Chinese++/build/Release/bin/clang.exe - broken
+CMake Error at E:/CLion 2026.1.2/bin/cmake/win/x64/share/cmake-4.2/Modules/CMakeTestCCompiler.cmake:67 (message):
+  The C compiler
+
+    "E:/Chinese++/build/Release/bin/clang.exe"
+
+  is not able to compile a simple test program.
+
+  It fails with the following output:
+
+    Change Dir: 'E:/Chinese++/third_party/build/zlib-ours/test/zlib_add_subdirectory_test_build/CMakeFiles/CMakeScratch/TryCompile-ruuvy9'
+    
+    Run Build Command(s): "E:/CLion 2026.1.2/bin/ninja/win/x64/ninja.exe" -v cmTC_0869e
+    [1/2] E:\Chinese++\build\Release\bin\clang.exe -D_MBCS  -O0 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview -MD -MT CMakeFiles/cmTC_0869e.dir/testCCompiler.c.obj -MF CMakeFiles\cmTC_0869e.dir\testCCompiler.c.obj.d -o CMakeFiles/cmTC_0869e.dir/testCCompiler.c.obj -c E:/Chinese++/third_party/build/zlib-ours/test/zlib_add_subdirectory_test_build/CMakeFiles/CMakeScratch/TryCompile-ruuvy9/testCCompiler.c
+    [2/2] C:\windows\system32\cmd.exe /C "cd . && E:\Chinese++\build\Release\bin\clang.exe -nostartfiles -nostdlib -O0 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview -Xlinker /subsystem:console -fuse-ld=lld-link CMakeFiles/cmTC_0869e.dir/testCCompiler.c.obj -o cmTC_0869e.exe -Xlinker /MANIFEST:EMBED -Xlinker /implib:cmTC_0869e.lib -Xlinker /pdb:cmTC_0869e.pdb -Xlinker /version:0.0   -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 -loldnames  && cd ."
+    FAILED: [code=1] cmTC_0869e.exe 
+    C:\windows\system32\cmd.exe /C "cd . && E:\Chinese++\build\Release\bin\clang.exe -nostartfiles -nostdlib -O0 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview -Xlinker /subsystem:console -fuse-ld=lld-link CMakeFiles/cmTC_0869e.dir/testCCompiler.c.obj -o cmTC_0869e.exe -Xlinker /MANIFEST:EMBED -Xlinker /implib:cmTC_0869e.lib -Xlinker /pdb:cmTC_0869e.pdb -Xlinker /version:0.0   -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 -loldnames  && cd ."
+    clang: error: unable to execute command: program not executable
+    clang: error: linker command failed with exit code 1 (use -v to see invocation)
+    ninja: build stopped: subcommand failed.
+    
+    
+
+
+
+  CMake will not be able to correctly generate this project.
+Call Stack (most recent call first):
+  CMakeLists.txt:3 (project)
+
+
+-- Configuring incomplete, errors occurred!
+
+      Start  9: zlib_add_subdirectory_build
+Failed test dependencies: zlib_add_subdirectory_configure
+ 9/11 Test  #9: zlib_add_subdirectory_build ....................***Not Run   0.00 sec
+      Start 10: zlib_add_subdirectory_exclude_configure
+10/11 Test #10: zlib_add_subdirectory_exclude_configure ........***Failed    0.84 sec
+-- The C compiler identification is Clang 24.0.0 with GNU-like command-line
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - failed
+-- Check for working C compiler: E:/Chinese++/build/Release/bin/clang.exe
+-- Check for working C compiler: E:/Chinese++/build/Release/bin/clang.exe - broken
+CMake Error at E:/CLion 2026.1.2/bin/cmake/win/x64/share/cmake-4.2/Modules/CMakeTestCCompiler.cmake:67 (message):
+  The C compiler
+
+    "E:/Chinese++/build/Release/bin/clang.exe"
+
+  is not able to compile a simple test program.
+
+  It fails with the following output:
+
+    Change Dir: 'E:/Chinese++/third_party/build/zlib-ours/test/zlib_add_subdirectory_exclude_test_build/CMakeFiles/CMakeScratch/TryCompile-xfl8f0'
+    
+    Run Build Command(s): "E:/CLion 2026.1.2/bin/ninja/win/x64/ninja.exe" -v cmTC_4373a
+    [1/2] E:\Chinese++\build\Release\bin\clang.exe -D_MBCS  -O0 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview -MD -MT CMakeFiles/cmTC_4373a.dir/testCCompiler.c.obj -MF CMakeFiles\cmTC_4373a.dir\testCCompiler.c.obj.d -o CMakeFiles/cmTC_4373a.dir/testCCompiler.c.obj -c E:/Chinese++/third_party/build/zlib-ours/test/zlib_add_subdirectory_exclude_test_build/CMakeFiles/CMakeScratch/TryCompile-xfl8f0/testCCompiler.c
+    [2/2] C:\windows\system32\cmd.exe /C "cd . && E:\Chinese++\build\Release\bin\clang.exe -nostartfiles -nostdlib -O0 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview -Xlinker /subsystem:console -fuse-ld=lld-link CMakeFiles/cmTC_4373a.dir/testCCompiler.c.obj -o cmTC_4373a.exe -Xlinker /MANIFEST:EMBED -Xlinker /implib:cmTC_4373a.lib -Xlinker /pdb:cmTC_4373a.pdb -Xlinker /version:0.0   -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 -loldnames  && cd ."
+    FAILED: [code=1] cmTC_4373a.exe 
+    C:\windows\system32\cmd.exe /C "cd . && E:\Chinese++\build\Release\bin\clang.exe -nostartfiles -nostdlib -O0 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview -Xlinker /subsystem:console -fuse-ld=lld-link CMakeFiles/cmTC_4373a.dir/testCCompiler.c.obj -o cmTC_4373a.exe -Xlinker /MANIFEST:EMBED -Xlinker /implib:cmTC_4373a.lib -Xlinker /pdb:cmTC_4373a.pdb -Xlinker /version:0.0   -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 -loldnames  && cd ."
+    clang: error: unable to execute command: program not executable
+    clang: error: linker command failed with exit code 1 (use -v to see invocation)
+    ninja: build stopped: subcommand failed.
+    
+    
+
+
+
+  CMake will not be able to correctly generate this project.
+Call Stack (most recent call first):
+  CMakeLists.txt:3 (project)
+
+
+-- Configuring incomplete, errors occurred!
+
+      Start 11: zlib_add_subdirectory_exclude_build
+Failed test dependencies: zlib_add_subdirectory_configure
+11/11 Test #11: zlib_add_subdirectory_exclude_build ............***Not Run   0.00 sec
+
+36% tests passed, 7 tests failed out of 11
+
+Total Test time (real) =   4.08 sec
+
+The following tests FAILED:
+	  4 - zlib_find_package_configure (Failed)
+	  5 - zlib_find_package_build (Not Run)
+	  6 - zlib_find_package_no_components_configure (Failed)
+	  8 - zlib_add_subdirectory_configure (Failed)
+	  9 - zlib_add_subdirectory_build (Not Run)
+	 10 - zlib_add_subdirectory_exclude_configure (Failed)
+	 11 - zlib_add_subdirectory_exclude_build (Not Run)
+ctest.exe : Errors while running CTest
+At E:\Chinese++\tools\verify_third_party.ps1:159 char:5
++     & $exe @argv 2>&1 | Out-File -Append -Encoding utf8 $log
++     ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Errors while running CTest:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

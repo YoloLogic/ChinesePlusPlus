@@ -1,0 +1,11 @@
+# 让 clangd 使用与编译任务一致的 C++ 标准。
+#
+# 为什么需要：
+#   没有 compile_commands.json 时，clangd 会用「回退命令」，而这份 clangd 的
+#   回退默认是 -std=c++14（实测它的 cc1 参数里就是它）。
+#   于是用了 C++20 特性的文件（概念 concept、模块 module、约束 requires 等）
+#   会被 clangd【误标红】—— 明明 `chinese++.exe -std=c++20` 能编过。
+#
+# 这里把它对齐到 C++20，与 .vscode/tasks.json 里的编译参数一致。
+CompileFlags:
+  Add: [-std=c++20]

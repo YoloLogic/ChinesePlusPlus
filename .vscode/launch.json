@@ -1,0 +1,41 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "调试当前文件（中文 C++ / MSVC 调试器）",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${fileDirname}\\${fileBasenameNoExtension}.exe",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${fileDirname}",
+      "environment": [],
+      "console": "integratedTerminal",
+      "preLaunchTask": "编译当前文件（中文 C++）"
+    },
+    {
+      "name": "调试多翻译单元（10-multi-tu）",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\tests\\10-multi-tu\\out\\cn.exe",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}\\tests\\10-multi-tu",
+      "environment": [],
+      "console": "integratedTerminal",
+      "preLaunchTask": "构建：多翻译单元（10-multi-tu）"
+    },
+    {
+      "name": "调试 C++20 模块（04-modules）",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\tests\\04-modules\\out\\module_test.exe",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}\\tests\\04-modules",
+      "environment": [],
+      "console": "integratedTerminal",
+      "preLaunchTask": "构建：C++20 模块（04-modules）"
+    }
+  ]
+}

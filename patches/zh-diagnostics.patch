@@ -1,0 +1,388 @@
+diff --git a/clang/include/clang/Basic/ChineseDiagnostics.def b/clang/include/clang/Basic/ChineseDiagnostics.def
+new file mode 100644
+index 0000000..ffa4cdf
+--- /dev/null
++++ b/clang/include/clang/Basic/ChineseDiagnostics.def
+@@ -0,0 +1,276 @@
++//===--- ChineseDiagnostics.def - 中文诊断文本表 ----------------*- C -*-===//
++//
++// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
++// See https://llvm.org/LICENSE.txt for license information.
++// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
++//
++//===----------------------------------------------------------------------===//
++//
++//  本文件为 Clang 增加「中文诊断文本」（Chinese diagnostic messages）。
++//
++//  效果：报错的正文用中文显示，前缀（error: / warning:）和选项名
++//        （[-Wunused-variable]）保持原样：
++//
++//            error: 未使用的变量 '甲' [-Wunused-variable]
++//
++//  设计约束（修改本文件前请务必阅读）：
++//
++//   1. 【只增不改】不动任何一个 Diagnostic*.td，也不动生成的
++//      Diagnostic*Kinds.inc。英文诊断的定义、分级、-W 分组、SFINAE 抑制
++//      全部保持原样。本表只提供「另一套正文文本」。
++//
++//   2. 【查不到就回退】表里没有的诊断一律照旧显示英文。因此本表可以
++//      【分批做，永远不完整】—— 这不产生任何错误，也不需要追平上游。
++//      上游新增诊断时自动是英文，不会漏、不会崩。
++//
++//   3. 【ID 就是 def 名】ZH_DIAG 的第一个参数是 Diagnostic*Kinds.td 里
++//      def 的名字，也就是生成的 .inc 里 DIAG(...) 的第一个参数。
++//      写错名字会「编译报错」（switch 里没有这个 case），这是好事。
++//
++//   4. 【抄生成的 .inc，不要抄 .td】源表 .td 里的 %sub{...} 和
++//      %enum_select<...>{...} 在生成 .inc 时就被展开了，例如
++//
++//          .td : "candidate %sub{select_ovl_candidate_kind}0,1,2 not viable"
++//          .inc: "candidate %select{function|constructor|...}0 not viable"
++//
++//      拿 .td 来翻会漏掉被展开的分支。请从
++//          build/tools/clang/include/clang/Basic/Diagnostic*Kinds.inc
++//      复制英文原文，再改字。
++//
++//   5. 【占位符一个都不能动】%0 %1 … 与 %select{…}N %plural{…}N
++//      %diff{…}N,M 的位置、序号、竖线、分支数、分支顺序都必须与英文
++//      完全一致。占位符写坏是这件事最大的风险，所以不要靠眼睛：
++//          python tools\diag_id_lookup.py --check-table
++//      会逐条机器校核：
++//        · ID 在生成的 .inc 里存在吗
++//        · 引用/丢弃了哪些参数（多重集比较，允许中文语序与英文不同）
++//        · 每个 %select/%plural/%diff 的种类、挂的序号、分支数
++//        · 分支顺序（按文档顺序比各分支的"原子画像"）
++//        · 中文正文里混着的英文词（只报告，因为 ';' 和 'typename' 该保留）
++//
++//      【校核器抓不到的两件事，别误以为它全包】
++//        a) 纯 %0/%1 对调：两者在结构上完全等价，多重集比较看不出来。
++//           只有对"实际会被触发的条目"写运行时逐条断言才能兜住
++//           （tests\12-diagnostics\ 就是这么做的）。
++//        b) 某个 %select 的所有分支彼此原子画像相同时（如 %select{非|}），
++//           颠倒分支顺序在结构上看不出来。
++//      独立复核者 2026-09-22 指出过这两点，文档已按实际情况描述，不再说大。
++//
++//      两处允许的、故意为之的改动（校核器认识这两种）：
++//        * %sN（英文的复数 s）在中文里直接删掉 —— 中文没有单复数。
++//        * %ordinalN 可以写成 %N —— %ordinal 只会渲染成英文的 1st/2nd，
++//          中文要的是「第 N 个」，用 %N 取整数即可。
++//
++//   6. 【术语与关键字表逐字一致】诊断里出现的类型名、限定词必须和
++//      ChineseKeywords.def 的译名相同，否则用户看到的报错和他写的代码
++//      对不上。对照关系见 docs\诊断汉化\诊断汉化-准备.md 的术语表。例如：
++//          类型(class) 名域(namespace) 结构(struct) 常量(const)
++//          重写(override) 重载(overload) 显式(explicit) 虚(virtual)
++//
++//   7. 【只换正文】前缀 error:/warning:/note:、[-Wxxx] 选项名、行列号、
++//      源码片段、插入提示（fix-it）一律不受影响 —— 本表只替换消息正文，
++//      所以按 "error:" 抓日志的 CI 脚本不会断。
++//
++//  用法：目前只有 clang/lib/Basic/Diagnostic.cpp 会重定义 ZH_DIAG
++//        并包含本文件，展开成
++//            case diag::err_xxx: return "中文";
++//        其它任何包含点都会把 ZH_DIAG 展开为空。
++//
++//  编码：本文件含 UTF-8 中文，必须保证编译器按 UTF-8 读取本文件。
++//        MSVC 的 /utf-8 由顶层 llvm/CMakeLists.txt 全局设置（与中文关键字表
++//        同一处），本文件被 clang/lib/Basic/Diagnostic.cpp 引入即自动生效。
++//        若漏了这一步，中文会「静默失效」：不报错，只是显示成乱码或匹配不上。
++//
++//  扩展：新增一条只需加一行
++//            ZH_DIAG(诊断ID, "中文文本")
++//
++//===----------------------------------------------------------------------===//
++
++#ifndef ZH_DIAG
++#define ZH_DIAG(NAME, TEXT)
++#endif
++
++//===----------------------------------------------------------------------===//
++// 一、声明与解析：初学者最常撞到的几句
++//===----------------------------------------------------------------------===//
++
++// 英文：expected %0            （%0 形如 "'}'" / "';'" / "')'"）
++ZH_DIAG(err_expected, "缺少 %0")                             // expected '}'
++
++// 英文：expected %select{identifier|unqualified-id}0
++ZH_DIAG(err_expected_unqualified_id,
++        "缺少 %select{标识符|非限定标识符}0")                  // expected unqualified-id
++
++// 英文：expected ';' at end of declaration
++ZH_DIAG(err_expected_semi_declaration,
++        "声明末尾缺少 ';'")                                  // 忘了分号
++
++// 英文：to match this %0       （与上一条配对出现的 note）
++ZH_DIAG(note_matching, "与这个 %0 匹配")
++
++//===----------------------------------------------------------------------===//
++// 二、名字与类型
++//===----------------------------------------------------------------------===//
++
++// 英文：unknown type name %0
++ZH_DIAG(err_unknown_typename, "未知的类型名 %0")
++
++// 英文：use of undeclared identifier %0
++ZH_DIAG(err_undeclared_var_use, "使用了未声明的标识符 %0")
++
++// 英文：no member named %0 in %1
++ZH_DIAG(err_no_member, "%1 中没有名为 %0 的成员")
++
++//===----------------------------------------------------------------------===//
++// 三、重载决议
++//===----------------------------------------------------------------------===//
++
++// 英文：no matching function for call to %0
++ZH_DIAG(err_ovl_no_viable_function_in_call, "没有与 %0 匹配的函数")
++
++//===----------------------------------------------------------------------===//
++// 四、常量限定（%select 里有嵌套 %select，分支顺序必须与英文一致）
++//===----------------------------------------------------------------------===//
++
++// 英文：
++//   %select{cannot assign to return value because function %1 returns a
++//           const value
++//          |cannot assign to variable %1 with const-qualified type %2
++//          |cannot assign to %select{non-|}1static data member %2 with
++//           const-qualified type %3
++//          |cannot assign to %select{variable %2|non-static data member %2
++//           |lvalue}1 with %select{|nested }3const-qualified data member %4
++//          |read-only variable is not assignable}0
++ZH_DIAG(err_typecheck_assign_const,
++        "%select{"
++        "不能给返回值赋值，因为函数 %1 返回的是常量值|"
++        "不能给常量限定类型 %2 的变量 %1 赋值|"
++        "不能给常量限定类型 %3 的 %select{非|}1静态数据成员 %2 赋值|"
++        "不能给 %select{变量 %2|非静态数据成员 %2|左值}1 赋值，"
++        "它带有 %select{|嵌套 }3常量限定数据成员 %4|"
++        "只读变量不能赋值}0")
++
++// 英文：
++//   %select{function %1 which returns const-qualified type %2 declared here
++//          |variable %1 declared const here
++//          |%select{non-|}1static data member %2 declared const here
++//          |%select{|nested }1data member %2 declared const here}0
++ZH_DIAG(note_typecheck_assign_const,
++        "%select{"
++        "函数 %1 在此声明，它返回常量限定类型 %2|"
++        "变量 %1 在此被声明为常量|"
++        "%select{非|}1静态数据成员 %2 在此被声明为常量|"
++        "%select{|嵌套}1数据成员 %2 在此被声明为常量}0")
++
++//===----------------------------------------------------------------------===//
++// 五、警告
++//===----------------------------------------------------------------------===//
++
++// 英文：unused variable %0
++// 注意：warn_unused_variable 与 warn_unused_const_variable 的英文正文
++//       完全相同。这正是「按 ID 而不是按英文正文查表」的原因。
++ZH_DIAG(warn_unused_variable, "未使用的变量 %0")
++ZH_DIAG(warn_unused_const_variable, "未使用的变量 %0")
++
++//===----------------------------------------------------------------------===//
++// 六、下标与运算符
++//===----------------------------------------------------------------------===//
++
++// 英文：subscripted value is not an array, pointer, or vector
++ZH_DIAG(err_typecheck_subscript_value, "被下标访问的值不是数组、指针或向量")
++
++// 英文：invalid operands to binary expression (%0 and %1)
++ZH_DIAG(err_typecheck_invalid_operands, "二元表达式的运算对象无效（%0 和 %1）")
++
++//===----------------------------------------------------------------------===//
++// 七、重定义与声明冲突
++//===----------------------------------------------------------------------===//
++
++// 英文：redefinition of %0
++ZH_DIAG(err_redefinition, "重定义 %0")
++
++// 英文：redefinition of %0 as different kind of symbol
++ZH_DIAG(err_redefinition_different_kind, "%0 被重定义为另一种符号")
++
++// 英文：previous definition is here
++ZH_DIAG(note_previous_definition, "上一次定义在这里")
++
++// 英文：previous declaration is here
++ZH_DIAG(note_previous_declaration, "上一次声明在这里")
++
++// 英文：expected ';' after top level declarator
++ZH_DIAG(err_invalid_token_after_toplevel_declarator,
++        "顶层声明符之后缺少 ';'")
++
++//===----------------------------------------------------------------------===//
++// 八、类型与名字（续）
++//===----------------------------------------------------------------------===//
++
++// 英文：no type named %0 in %1
++// 与上面的 err_no_member（"%1 中没有名为 %0 的成员"）句式保持一致
++ZH_DIAG(err_typename_nested_not_found, "%1 中没有名为 %0 的类型")
++
++// 英文：missing 'typename' prior to dependent type name %0
++// 这一句在 clang 里有**三个变体**（错误 / 扩展 / 兼容性警告），正文开头完全一样。
++// 只翻其中一个，用户就会在同一句话上看到中英混排 —— 所以三个一起翻。
++//   err_typename_missing              出错（某些上下文）
++//   ext_typename_missing              扩展警告
++//   compat_pre_cxx20_implicit_typename 警告：……是 C++20 扩展
++// 实测：-std=c++20 下写 T::某名字 触发的是第三个。
++ZH_DIAG(err_typename_missing, "依赖类型名 %0 之前缺少 'typename'")
++ZH_DIAG(ext_typename_missing, "依赖类型名 %0 之前缺少 'typename'")
++ZH_DIAG(compat_pre_cxx20_implicit_typename,
++        "依赖类型名 %0 之前缺少 'typename'，这是 C++20 扩展")
++
++// 英文：a type specifier is required for all declarations
++ZH_DIAG(err_missing_type_specifier, "所有声明都必须有类型说明符")
++
++//===----------------------------------------------------------------------===//
++// 九、找不到文件
++//===----------------------------------------------------------------------===//
++
++// 英文：'%0' file not found
++ZH_DIAG(err_pp_file_not_found, "找不到文件 '%0'")
++
++//===----------------------------------------------------------------------===//
++// 十、未使用（警告一族）
++//===----------------------------------------------------------------------===//
++
++// 英文：unused parameter %0
++ZH_DIAG(warn_unused_parameter, "未使用的形参 %0")
++
++// 英文：parameter %0 set but not used
++ZH_DIAG(warn_unused_but_set_parameter, "形参 %0 被赋值但未被使用")
++
++// 英文：expression result unused
++ZH_DIAG(warn_unused_expr, "表达式的结果未被使用")
++
++// 英文：unused %select{typedef|type alias}0 %1
++// 两个分支都用中文：分支 0 是 C 的 typedef（关键字表里 typedef = 类型别名），
++// 分支 1 是 C++ 的别名声明（alias-declaration = 别名声明）。
++// 曾经的写法是 "%select{typedef|别名声明}0" —— 保留英文 typedef 是错的：
++// 用户用中文关键字写出 `类型别名 整数 丙;`，却看到 `未使用的 typedef '丙'`，
++// 与「术语与关键字表逐字一致」这条硬约束冲突。
++// 这是独立复核者 2026-09-22 找出来的（F3）。
++ZH_DIAG(warn_unused_local_typedef,
++        "未使用的 %select{类型别名|别名声明}0 %1")
++
++//===----------------------------------------------------------------------===//
++// 十一、模板（note，实例化时最常看到的三条）
++//===----------------------------------------------------------------------===//
++
++// 英文：template is declared here
++ZH_DIAG(note_template_decl_here, "模板在此声明")
++
++// 英文：in instantiation of template class %q0 requested here
++// %q0 是限定名（如 盒子<int>），保留 %q 才有这个语义。
++ZH_DIAG(note_template_class_instantiation_here,
++        "这里要求实例化类模板 %q0")
++
++// 英文：in instantiation of function template specialization %q0 requested here
++ZH_DIAG(note_function_template_spec_here,
++        "这里要求实例化函数模板特化 %q0")
++
++//===----------------------------------------------------------------------===//
++
++#undef ZH_DIAG
+diff --git a/clang/include/clang/Basic/DiagnosticOptions.def b/clang/include/clang/Basic/DiagnosticOptions.def
+index 764e2f1..d38fd53 100644
+--- a/clang/include/clang/Basic/DiagnosticOptions.def
++++ b/clang/include/clang/Basic/DiagnosticOptions.def
+@@ -60,6 +60,9 @@ DIAGOPT(ShowPresumedLoc, 1, 0)  /// Show presumed location for diagnostics.
+ DIAGOPT(ShowOptionNames, 1, 0)  /// Show the option name for mappable
+                                 /// diagnostics.
+ DIAGOPT(ShowNoteIncludeStack, 1, 0) /// Show include stacks for notes.
++DIAGOPT(ChineseDiagnostics, 1, 1) /// 用中文显示诊断正文（见
++                                  /// clang/Basic/ChineseDiagnostics.def）。
++                                  /// 关掉：-fno-chinese-diagnostics。
+ VALUE_DIAGOPT(ShowCategories, 2, 0) /// Show categories: 0 -> none, 1 -> Number,
+                                     /// 2 -> Full Name.
+ 
+diff --git a/clang/include/clang/Options/Options.td b/clang/include/clang/Options/Options.td
+index 41848b1..7d85045 100644
+--- a/clang/include/clang/Options/Options.td
++++ b/clang/include/clang/Options/Options.td
+@@ -4492,6 +4492,12 @@ defm show_column : BoolFOption<"show-column",
+   NegFlag<SetFalse, [], [ClangOption, CC1Option],
+           "Do not include column number on diagnostics">,
+   PosFlag<SetTrue>>;
++defm chinese_diagnostics : BoolFOption<"chinese-diagnostics",
++  DiagnosticOpts<"ChineseDiagnostics">, DefaultTrue,
++  NegFlag<SetFalse, [], [ClangOption, CC1Option],
++          "Do not print diagnostics in Chinese">,
++  PosFlag<SetTrue, [], [ClangOption, CC1Option],
++          "Print diagnostics in Chinese (default)">>;
+ defm show_source_location : BoolFOption<"show-source-location",
+   DiagnosticOpts<"ShowLocation">, DefaultTrue,
+   NegFlag<SetFalse, [], [ClangOption, CC1Option],
+diff --git a/clang/lib/Basic/Diagnostic.cpp b/clang/lib/Basic/Diagnostic.cpp
+index 48dd955..d9b0e93 100644
+--- a/clang/lib/Basic/Diagnostic.cpp
++++ b/clang/lib/Basic/Diagnostic.cpp
+@@ -11,6 +11,7 @@
+ //===----------------------------------------------------------------------===//
+ 
+ #include "clang/Basic/Diagnostic.h"
++#include "clang/Basic/AllDiagnostics.h"
+ #include "clang/Basic/CharInfo.h"
+ #include "clang/Basic/DiagnosticDriver.h"
+ #include "clang/Basic/DiagnosticError.h"
+@@ -1027,6 +1028,28 @@ static const char *getTokenDescForDiagnostic(tok::TokenKind Kind) {
+   }
+ }
+ 
++//===----------------------------------------------------------------------===//
++// 中文诊断正文（Chinese diagnostic messages）
++//===----------------------------------------------------------------------===//
++
++/// 取出某条诊断的中文正文；表里没有这一条时返回空，调用方自动保持英文。
++///
++/// 表在 clang/Basic/ChineseDiagnostics.def。写错的诊断 ID 会让这个 switch
++/// 编译不过（没有这个 case），占位符写错则由
++///     python tools/diag_id_lookup.py --check-table
++/// 逐条机器校核。查不到就回退英文，所以这张表可以分批做、永远不完整。
++static StringRef getChineseDiagnosticText(unsigned DiagID) {
++  switch (DiagID) {
++#define ZH_DIAG(NAME, TEXT)                                                    \
++  case diag::NAME:                                                             \
++    return TEXT;
++#include "clang/Basic/ChineseDiagnostics.def"
++#undef ZH_DIAG
++  default:
++    return StringRef();
++  }
++}
++
+ /// FormatDiagnostic - Format this diagnostic into a string, substituting the
+ /// formal arguments into the %0 slots.  The result is appended onto the Str
+ /// array.
+@@ -1036,7 +1059,17 @@ void Diagnostic::FormatDiagnostic(SmallVectorImpl<char> &OutStr) const {
+     return;
+   }
+ 
+-  StringRef Diag = getDiags()->getDiagnosticIDs()->getDescription(getID());
++  const DiagnosticsEngine *Diags = getDiags();
++  StringRef Diag = Diags->getDiagnosticIDs()->getDescription(getID());
++
++  // 中文诊断：只替换消息正文。error:/warning: 前缀、[-Wxxx] 选项名、行列号、
++  // 源码片段、fix-it 都在别处生成，一律不受影响。默认开启，
++  // -fno-chinese-diagnostics 可关掉（跑上游 clang/test 时需要）。
++  if (Diags->getDiagnosticOptions().ChineseDiagnostics) {
++    StringRef ZH = getChineseDiagnosticText(getID());
++    if (!ZH.empty())
++      Diag = ZH;
++  }
+ 
+   FormatDiagnostic(Diag.begin(), Diag.end(), OutStr);
+ }
+diff --git a/clang/lib/Driver/ToolChains/Clang.cpp b/clang/lib/Driver/ToolChains/Clang.cpp
+index 660e61d..62932ee 100644
+--- a/clang/lib/Driver/ToolChains/Clang.cpp
++++ b/clang/lib/Driver/ToolChains/Clang.cpp
+@@ -4606,6 +4606,10 @@ static void RenderDiagnosticsOptions(const Driver &D, const ArgList &Args,
+   Args.addOptOutFlag(CmdArgs, options::OPT_fshow_source_location,
+                      options::OPT_fno_show_source_location);
+ 
++  // 中文诊断默认开启，只在被显式关掉时才往 cc1 传 -fno-chinese-diagnostics。
++  Args.addOptOutFlag(CmdArgs, options::OPT_fchinese_diagnostics,
++                     options::OPT_fno_chinese_diagnostics);
++
+   Args.addOptOutFlag(CmdArgs, options::OPT_fdiagnostics_show_line_numbers,
+                      options::OPT_fno_diagnostics_show_line_numbers);
+ 

@@ -1,0 +1,6 @@
+# 本项目的多处验收是【逐字节比较】：
+#   - tests\12-diagnostics\check.ps1  的 // expect: / // forbid: 标记按字节比对
+#   - tools\make_patch.ps1            用 SHA256 检查硬链接
+#   - tests\09-diagnostics            比对中英两份日志是否逐字节相同
+# 所以必须禁止 git 做任何行尾转换：写进去是什么字节，取出来就得是什么字节。
+* -text

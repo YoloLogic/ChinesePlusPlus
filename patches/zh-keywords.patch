@@ -1,0 +1,660 @@
+diff --git a/clang-tools-extra/clangd/SourceCode.cpp b/clang-tools-extra/clangd/SourceCode.cpp
+index 21c078f..db42b71 100644
+--- a/clang-tools-extra/clangd/SourceCode.cpp
++++ b/clang-tools-extra/clangd/SourceCode.cpp
+@@ -637,8 +637,11 @@ llvm::StringMap<unsigned> collectIdentifiers(llvm::StringRef Content,
+     if (Tok.kind() == tok::identifier)
+       ++Identifiers[Tok.text(SM)];
+     // FIXME: Should this function really return keywords too ?
+-    else if (const auto *Keyword = tok::getKeywordSpelling(Tok.kind()))
+-      ++Identifiers[Keyword];
++    // The key must be the spelling actually used in the source, not the
++    // official spelling returned by getKeywordSpelling() (which is Chinese for
++    // Chinese keywords), otherwise the counts do not match the source.
++    else if (tok::getKeywordSpelling(Tok.kind()))
++      ++Identifiers[Tok.text(SM)];
+   });
+   return Identifiers;
+ }
+diff --git a/clang/include/clang/Basic/ChineseKeywords.def b/clang/include/clang/Basic/ChineseKeywords.def
+new file mode 100644
+index 0000000..da2f299
+--- /dev/null
++++ b/clang/include/clang/Basic/ChineseKeywords.def
+@@ -0,0 +1,311 @@
++//===--- ChineseKeywords.def - 中文关键字别名表 -----------------*- C -*-===//
++//
++// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
++// See https://llvm.org/LICENSE.txt for license information.
++// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
++//
++//===----------------------------------------------------------------------===//
++//
++//  本文件为 Clang 增加「中文关键字别名」（Chinese keyword aliases）。
++//
++//  效果：中文拼写与英文拼写都被识别为同一个关键字。例如
++//
++//      中文 `如果`  ─┐
++//                    ├─→  tok::kw_if
++//      英文 `if`    ─┘
++//
++//  设计约束（修改本文件前请务必阅读）：
++//
++//   1. 【只增不改】本文件只“新增”拼写，绝不修改 TokenKinds.def 中的任何
++//      英文定义。TokenKinds.def 保持零改动，因此英文关键字的既有行为完全
++//      不变，标准库头文件（libc / libcxx / compiler-rt）以及 Clang 自身的
++//      自举编译都不受影响。
++//
++//   2. 【单一 token】每个中文拼写都注册到与英文原关键字「完全相同」的
++//      tok::kw_* 上。因此词法分析之后的所有阶段 —— Parser、Sema、
++//      CodeGen、AST 打印、clang-format、clangd —— 均无需任何改动。
++//
++//   3. 【中文为主】本表同时被 clang/lib/Basic/TokenKinds.cpp 的
++//      getKeywordSpelling() 使用，使中文成为对外呈现的「正式拼写」：
++//      诊断信息、AST 打印、clangd 补全都显示中文。英文仍可正常书写，
++//      只是不再作为对外显示的正式拼写。
++//
++//   4. 【标志照抄】FLAGS 一律照抄 TokenKinds.def / Traits.td 中对应英文
++//      关键字的标志，使中文与英文在各语言模式（C / C++ / C23 / 协程 /
++//      模块）下的可用性完全一致。
++//
++//   5. 【译名唯一】译名必须互不重复。若两个中文拼写相同，后注册者会覆盖
++//      先注册者，导致其中一个关键字失效。
++//
++//   6. 【至少两字】所有译名不短于两个汉字。单字关键字极易与用户标识符
++//      冲突，汉语本身也以双音节为主。
++//
++//  用法：仅以下两个位置会重定义 ZH_KEYWORD 并包含本文件，其它任何包含点
++//        都会把 ZH_KEYWORD 展开为空：
++//          clang/lib/Basic/IdentifierTable.cpp  —— 注册中文拼写
++//          clang/lib/Basic/TokenKinds.cpp       —— 中文作为正式拼写
++//
++//  编码：本文件含 UTF-8 中文，必须保证编译器按 UTF-8 读取本文件。
++//        在 MSVC 下由 clang/lib/Basic/CMakeLists.txt 对 IdentifierTable.cpp
++//        设置 /utf-8。若 TokenKinds.cpp 也需在 MSVC 下编译（它确实需要），
++//        该文件同样必须加 /utf-8，否则中文拼写会“静默失效”：不报错，只是
++//        永远匹配不上。
++//
++//  扩展：新增中文关键字只需在下方表中增加一行
++//            ZH_KEYWORD(英文名, 中文名, 标志)
++//        其中「英文名」必须与 TokenKinds.def 中 KEYWORD() 的第一个参数
++//        完全一致（Traits.td 来源的关键字同理，如 sizeof / alignof）。
++//
++//===----------------------------------------------------------------------===//
++
++#ifndef ZH_KEYWORD
++#define ZH_KEYWORD(NAME, ZH, FLAGS)
++#endif
++
++//===----------------------------------------------------------------------===//
++// 一、C 语言关键字（KEYALL = 在 C 与 C++ 中均为关键字）
++//===----------------------------------------------------------------------===//
++
++ZH_KEYWORD(auto,      自动,   KEYALL)              // auto
++ZH_KEYWORD(break,     跳出,   KEYALL)              // break：跳出整个循环
++ZH_KEYWORD(case,      情形,   KEYALL)              // case
++ZH_KEYWORD(char,      字符,   KEYALL)              // char
++ZH_KEYWORD(const,     常量,   KEYALL)              // const
++ZH_KEYWORD(continue,  跳过,   KEYALL)              // continue：跳过本轮剩余，与 break「跳出」相对
++ZH_KEYWORD(default,   默认,   KEYALL)              // default
++ZH_KEYWORD(do,        执行,   KEYALL)              // do：后测试循环，“执行 { } 每当(条件);”
++ZH_KEYWORD(double,    双精度, KEYALL)              // double
++ZH_KEYWORD(else,      否则,   KEYALL)              // else
++ZH_KEYWORD(enum,      枚举,   KEYALL)              // enum
++ZH_KEYWORD(extern,    外部,   KEYALL)              // extern
++ZH_KEYWORD(float,     单精度, KEYALL)              // float
++ZH_KEYWORD(for,       对于,   KEYALL)              // for
++ZH_KEYWORD(goto,      跳转,   KEYALL)              // goto
++ZH_KEYWORD(if,        如果,   KEYALL)              // if
++ZH_KEYWORD(int,       整数,   KEYALL)              // int
++ZH_KEYWORD(long,      长型,   KEYALL)              // long：可组合为「长型 双精度」「长型 长型」
++ZH_KEYWORD(register,  寄存器, KEYALL)              // register
++ZH_KEYWORD(return,    返回,   KEYALL)              // return
++ZH_KEYWORD(short,     短型,   KEYALL)              // short
++ZH_KEYWORD(signed,    有符号, KEYALL)              // signed
++ZH_KEYWORD(static,    静态,   KEYALL)              // static
++ZH_KEYWORD(struct,    结构,   KEYALL)              // struct
++ZH_KEYWORD(switch,    选择,   KEYALL)              // switch
++ZH_KEYWORD(typedef,   类型别名, KEYALL)            // typedef
++ZH_KEYWORD(union,     共用体, KEYALL)              // union
++ZH_KEYWORD(unsigned,  无符号, KEYALL)              // unsigned
++ZH_KEYWORD(void,      空型,   KEYALL)              // void
++ZH_KEYWORD(volatile,  易变,   KEYALL | KEYNOHLSL)  // volatile
++ZH_KEYWORD(while,     每当,   KEYALL)              // while：“每当(条件) { }”
++
++// C99 6.5.3.4 / 6.7.4：一元运算符与函数说明符
++// sizeof 定义于 clang/include/clang/Basic/Traits.td（经 Traits.inc 引入）
++ZH_KEYWORD(sizeof,    大小,   KEYALL)              // sizeof
++ZH_KEYWORD(restrict,  受限,   KEYC99)              // restrict（C99）
++ZH_KEYWORD(inline,    内联,   KEYC99 | KEYCXX | KEYGNU)  // inline
++
++// C99 6.2.5 / C23：布尔与真值
++ZH_KEYWORD(bool,      布尔,   BOOLSUPPORT | KEYC23)  // bool
++ZH_KEYWORD(true,      真值,   BOOLSUPPORT | KEYC23)  // true
++ZH_KEYWORD(false,     假值,   BOOLSUPPORT | KEYC23)  // false
++
++//===----------------------------------------------------------------------===//
++// 二、C++ 关键字（KEYCXX = 仅 C++）
++//===----------------------------------------------------------------------===//
++
++ZH_KEYWORD(asm,               汇编,         KEYCXX | KEYGNU)  // asm
++ZH_KEYWORD(catch,             捕获,         KEYCXX)           // catch
++ZH_KEYWORD(class,             类型,         KEYCXX)           // class：定义一个类类型
++ZH_KEYWORD(const_cast,        常量转换,     KEYCXX)           // const_cast
++ZH_KEYWORD(delete,            删除,         KEYCXX)           // delete
++ZH_KEYWORD(dynamic_cast,      动态转换,     KEYCXX)           // dynamic_cast
++ZH_KEYWORD(explicit,          显式,         KEYCXX)           // explicit
++ZH_KEYWORD(export,            导出,         KEYCXX)           // export
++ZH_KEYWORD(friend,            友元,         KEYCXX)           // friend
++ZH_KEYWORD(mutable,           可变,         KEYCXX)           // mutable
++ZH_KEYWORD(namespace,         名域,         KEYCXX)           // namespace
++ZH_KEYWORD(new,               新建,         KEYCXX)           // new
++ZH_KEYWORD(operator,          运算符,       KEYCXX)           // operator
++ZH_KEYWORD(private,           私有,         KEYCXX)           // private
++ZH_KEYWORD(protected,         受保护,       KEYCXX)           // protected
++ZH_KEYWORD(public,            公开,         KEYCXX)           // public
++ZH_KEYWORD(reinterpret_cast,  重释转换,     KEYCXX)           // reinterpret_cast
++ZH_KEYWORD(static_cast,       静态转换,     KEYCXX)           // static_cast
++ZH_KEYWORD(template,          模板,         KEYCXX)           // template
++ZH_KEYWORD(this,              自身,         KEYCXX)           // this
++ZH_KEYWORD(throw,             抛出,         KEYCXX)           // throw
++ZH_KEYWORD(try,               尝试,         KEYCXX)           // try
++ZH_KEYWORD(typename,          类型名,       KEYCXX)           // typename
++ZH_KEYWORD(typeid,            类型标识,     KEYCXX)           // typeid
++ZH_KEYWORD(using,             使用,         KEYCXX)           // using
++ZH_KEYWORD(virtual,           虚拟,         KEYCXX)           // virtual：运行时决定调用哪个实现
++
++// 宽字符 / 定宽字符类型
++ZH_KEYWORD(wchar_t,           宽字符,       WCHARSUPPORT)              // wchar_t
++ZH_KEYWORD(char8_t,           字符8位,      CHAR8SUPPORT)              // char8_t
++ZH_KEYWORD(char16_t,          字符16位,     KEYCXX11 | KEYNOMS18)      // char16_t
++ZH_KEYWORD(char32_t,          字符32位,     KEYCXX11 | KEYNOMS18)      // char32_t
++
++//===----------------------------------------------------------------------===//
++// 三、C++11 关键字
++//===----------------------------------------------------------------------===//
++
++ZH_KEYWORD(alignas,       对齐,       KEYCXX11 | KEYC23)                // alignas
++ZH_KEYWORD(alignof,       对齐值,     KEYCXX11 | KEYC23)                // alignof
++ZH_KEYWORD(constexpr,     常量表达式, KEYCXX11 | KEYC23)                // constexpr
++ZH_KEYWORD(decltype,      声明类型,   KEYCXX11)                         // decltype
++ZH_KEYWORD(noexcept,      不抛出,     KEYCXX11)                         // noexcept
++ZH_KEYWORD(nullptr,       空指针,     KEYCXX11 | KEYC23)                // nullptr
++ZH_KEYWORD(static_assert, 静态断言,   KEYCXX11 | KEYMSCOMPAT | KEYC23)  // static_assert
++ZH_KEYWORD(thread_local,  线程局部,   KEYCXX11 | KEYC23)                // thread_local
++
++//===----------------------------------------------------------------------===//
++// 四、C++20 关键字（含概念、模块与协程）
++//===----------------------------------------------------------------------===//
++
++ZH_KEYWORD(concept,    概念,        KEYCXX20)                  // concept
++ZH_KEYWORD(consteval,  立即求值,    KEYCXX20)                  // consteval
++ZH_KEYWORD(constinit,  常量初始化,  KEYCXX20)                  // constinit
++ZH_KEYWORD(requires,   约束,        KEYCXX20)                  // requires：为模板指定约束
++
++ZH_KEYWORD(module,     模块,        KEYMODULES)                // module
++ZH_KEYWORD(import,     导入,        KEYMODULES)                // import
++
++ZH_KEYWORD(co_await,   协程等待,    KEYCXX20 | KEYCOROUTINES)  // co_await
++ZH_KEYWORD(co_return,  协程返回,    KEYCXX20 | KEYCOROUTINES)  // co_return
++ZH_KEYWORD(co_yield,   协程产出,    KEYCXX20 | KEYCOROUTINES)  // co_yield
++
++//===----------------------------------------------------------------------===//
++// 五、C23 / GNU 扩展关键字
++//===----------------------------------------------------------------------===//
++
++ZH_KEYWORD(typeof,        取类型,        KEYC23 | KEYGNU)  // typeof：运算符，取出表达式类型
++ZH_KEYWORD(typeof_unqual, 取无修饰类型,  KEYC23)           // typeof_unqual
++
++//===----------------------------------------------------------------------===//
++// 六、上下文关键字（不是 tok::kw_*，由语法分析器按【标识符】识别）
++//===----------------------------------------------------------------------===//
++//
++//  这几个词在 C++ 里【不是关键字】，而是「有特殊含义的标识符」：
++//
++//      void f() override;     void f() final;     class X final {};
++//
++//  它们可以合法地当普通标识符使用（`整数 final = 1;` 是合法的），所以本表
++//  对它们【只增不改】：中文拼写与英文拼写并存，英文依旧可用。这与上面那 86 个
++//  保留字不同——那些不可能是标识符，中英才可以完全等价。
++//
++//  用法：clang/lib/Parse/ParseDeclCXX.cpp 的 isCXX11VirtSpecifier() 取这些拼写
++//        对应的 IdentifierInfo，再做指针比较。
++//
++//  译名说明：「重写」指重写基类的虚函数，**不要与「重载 = overload」混淆**——
++//            重载是另一个概念（同名不同参）。
++
++#ifndef ZH_VIRT_SPECIFIER
++#define ZH_VIRT_SPECIFIER(NAME, ZH)
++#endif
++
++ZH_VIRT_SPECIFIER(override, 重写)     // override：重写基类的虚函数（≠ 重载）
++ZH_VIRT_SPECIFIER(final,    最终)     // final：到此为止，不能再被继承／不能被重写
++
++#undef ZH_VIRT_SPECIFIER
++
++//===----------------------------------------------------------------------===//
++// 七、运算符替代拼写（and / or / not 一族）
++//===----------------------------------------------------------------------===//
++//
++//  这 11 个不是普通关键字，而是 && || ! ^ & | ~ &= |= ^= != 的【替代拼写】。
++//  TokenKinds.def 里用 CXX_KEYWORD_OPERATOR(名字, 对应符号) 登记，注册路径是
++//  AddCXXOperatorKeyword() 而不是 AddKeyword()，所以这里用单独的宏。
++//
++//  它们同样可以当普通标识符用，所以中文也是【增加】而非替换。译名一律取两个字
++//  以上，正是为了尽量不与用户标识符冲突（与本表开头的「至少两字」约束一致）。
++//
++//  用法：clang/lib/Basic/IdentifierTable.cpp
++//
++//  这些中文拼写不进入「正式拼写」——getKeywordSpelling() 对它们仍返回空，
++//  所以诊断与 AST 打印照旧显示 && || ! 等符号，不受影响。
++
++#ifndef ZH_OPERATOR_KEYWORD
++#define ZH_OPERATOR_KEYWORD(ZH, ALIAS)
++#endif
++
++ZH_OPERATOR_KEYWORD(并且,     ampamp)        // 并且     = and     = &&
++ZH_OPERATOR_KEYWORD(或者,     pipepipe)      // 或者     = or      = ||
++ZH_OPERATOR_KEYWORD(并非,     exclaim)       // 并非     = not     = !
++ZH_OPERATOR_KEYWORD(异或,     caret)         // 异或     = xor     = ^
++ZH_OPERATOR_KEYWORD(位与,     amp)           // 位与     = bitand  = &
++ZH_OPERATOR_KEYWORD(位或,     pipe)          // 位或     = bitor   = |
++ZH_OPERATOR_KEYWORD(取反,     tilde)         // 取反     = compl   = ~
++ZH_OPERATOR_KEYWORD(与赋值,   ampequal)      // 与赋值   = and_eq  = &=
++ZH_OPERATOR_KEYWORD(或赋值,   pipeequal)     // 或赋值   = or_eq   = |=
++ZH_OPERATOR_KEYWORD(异或赋值, caretequal)    // 异或赋值 = xor_eq  = ^=
++ZH_OPERATOR_KEYWORD(不等于,   exclaimequal)  // 不等于   = not_eq  = !=
++
++#undef ZH_OPERATOR_KEYWORD
++
++//===----------------------------------------------------------------------===//
++// 八、上下文关键字（module / import）
++//===----------------------------------------------------------------------===//
++//
++//  这两个在 clang 里【不是词法关键字】，而是「只在特定位置才有特殊含义的标识符」。
++//  证据：TokenKinds.def 给它们的 KEYWORD 用的是 KEYMODULES 标志，而
++//  IdentifierTable.cpp 的 getKeywordStatusHelper() 对 KEYMODULES 刻意返回
++//  KS_Unknown（于是 getKeywordStatus() 归为 KS_Disabled，AddKeyword() 直接跳过、
++//  且不报错）。这是【故意设计】：为了 `int module = 1;` 这类既有代码继续合法。
++//
++//  英文真正生效靠的是 IdentifierTable.cpp 里硬写死的两行：
++//      get("import").setKeywordImport(true);
++//      get("module").setModuleKeyword(true);
++//
++//  所以中文必须走【同一扇门】。也就是说，本表第一～五节里 module / import 那两行
++//  ZH_KEYWORD 在这种情形下是空操作（忠实地照抄了英文的空操作），真正让中文生效的
++//  是下面这一节。
++//
++//  用法：clang/lib/Basic/IdentifierTable.cpp，紧跟在那两行英文之后。
++//
++//  【为什么中文必须写在本文件，而不能直接写死在 .cpp 里】
++//  tools/zh_to_en.py（「无锁定」证明工具）只解析本文件。中文若硬写进 .cpp，
++//  转换器就翻不出来，转换后的源码仍含汉字、stock clang 编不过，证明链断掉。
++//
++//  【不要试图把它们改成真关键字】给 module / import 换成 KEYCXX 之类确实能让
++//  AddKeyword() 生效，但那会让 `int module = 1;` 全部失效——那不是「多一种写法」，
++//  而是砸掉生态。上下文关键字这条路是唯一不破坏既有代码的选择。
++
++#ifndef ZH_CONTEXTUAL_KEYWORD
++#define ZH_CONTEXTUAL_KEYWORD(NAME, ZH, SETTER)
++#endif
++
++ZH_CONTEXTUAL_KEYWORD(import, 导入, setKeywordImport)   // 导入 = import
++ZH_CONTEXTUAL_KEYWORD(module, 模块, setModuleKeyword)   // 模块 = module
++
++#undef ZH_CONTEXTUAL_KEYWORD
++
++//===----------------------------------------------------------------------===//
++//
++//  未纳入本表的关键字，及其原因：
++//
++//   * 以下划线开头者（_Bool、_Atomic、_Alignas、_Thread_local、
++//     _Static_assert、_Generic、_Complex、_Decimal32 等）：这些是标准中
++//     为实现保留的拼写，用户代码不应直接书写。它们的中文别名若加入，
++//     还会与既有译名冲突（例如 _Bool 与 bool 都应译作「布尔」）。
++//
++//   * 双下划线开头者（__attribute__、__int128、__builtin_*、
++//     __is_abstract 等全部类型萃取）：属实现内建扩展，保持英文原文，
++//     中文化只会干扰内建机制与诊断。
++//
++//   * HLSL / OpenCL / CUDA / Altivec / ObjC / MS 扩展关键字（cbuffer、tbuffer、
++//     groupshared、__global、__kernel、__declspec 等）：面向特定后端，
++//     非通用 C++ 写作场景。
++//
++//  以上三类合计约 124 个（其中下划线/双下划线开头 111 个），有意保持英文。
++//
++//  上下文关键字（override、final）见【第六节】；
++//  运算符替代拼写（and、or、not 等 11 个）见【第七节】；
++//  上下文关键字（module、import）见【第八节】。
++//
++//  如需为上述任一类别增加中文支持，请另行设计对应的宏与注册点，
++//  不要在下方表中直接添加，以免破坏上述设计约束。
++//
++//===----------------------------------------------------------------------===//
++
++#undef ZH_KEYWORD
+diff --git a/clang/include/clang/Basic/TokenKinds.h b/clang/include/clang/Basic/TokenKinds.h
+index 89b2d43..112379b 100644
+--- a/clang/include/clang/Basic/TokenKinds.h
++++ b/clang/include/clang/Basic/TokenKinds.h
+@@ -114,8 +114,24 @@ const char *getPunctuatorSpelling(TokenKind Kind) LLVM_READNONE;
+ 
+ /// Determines the spelling of simple keyword and contextual keyword
+ /// tokens like 'int' and 'dynamic_cast'. Returns NULL for other token kinds.
++///
++/// NOTE: This returns the "official" spelling presented to users. In this
++/// implementation, keywords registered in
++/// clang/include/clang/Basic/ChineseKeywords.def return their Chinese
++/// spelling, and everything else falls back to English. It must NOT be used
++/// to synthesize the spelling of a brand-new token -- use
++/// getKeywordSpellingEnglish() for that.
+ const char *getKeywordSpelling(TokenKind Kind) LLVM_READNONE;
+ 
++/// Determines the English spelling of simple keyword tokens, regardless of
++/// whether a Chinese alias is registered for the token kind.
++///
++/// Use this when synthesizing a token spelling that has no source location
++/// (for example a tooling refactoring inserting new code). English is always
++/// valid, whereas a Chinese spelling would inject Chinese keywords into the
++/// refactoring result for English sources.
++const char *getKeywordSpellingEnglish(TokenKind Kind) LLVM_READNONE;
++
+ /// Determines the spelling of simple Objective-C keyword tokens like '@import'.
+ /// Returns NULL for other token kinds.
+ const char *getObjCKeywordSpelling(ObjCKeywordKind Kind) LLVM_READNONE;
+diff --git a/clang/include/clang/Parse/Parser.h b/clang/include/clang/Parse/Parser.h
+index 163aa48..b9e645f 100644
+--- a/clang/include/clang/Parse/Parser.h
++++ b/clang/include/clang/Parse/Parser.h
+@@ -2887,6 +2887,11 @@ private:
+   mutable IdentifierInfo *Ident_GNU_final;
+   mutable IdentifierInfo *Ident_override;
+ 
++  /// 中文上下文关键字（重写 / 最终），拼写见 ChineseKeywords.def 第六节。
++  /// 与上面几个一样是懒加载：首次用到时在 isCXX11VirtSpecifier() 里取。
++  mutable IdentifierInfo *Ident_zh_override;
++  mutable IdentifierInfo *Ident_zh_final;
++
+   /// Representation of a class that has been parsed, including
+   /// any member function declarations or definitions that need to be
+   /// parsed after the corresponding top-level class is complete.
+diff --git a/clang/lib/Basic/CMakeLists.txt b/clang/lib/Basic/CMakeLists.txt
+index 21851e7..11c7f30 100644
+--- a/clang/lib/Basic/CMakeLists.txt
++++ b/clang/lib/Basic/CMakeLists.txt
+@@ -54,6 +54,11 @@ if(CLANG_VENDOR)
+     PROPERTIES COMPILE_DEFINITIONS "CLANG_VENDOR=\"${CLANG_VENDOR} \"")
+ endif()
+ 
++# 注意：MSVC 的 /utf-8 已在顶层 llvm/CMakeLists.txt 中【全局】设置。
++# 中文关键字表 ChineseKeywords.def 由本目录的 IdentifierTable.cpp 与
++# TokenKinds.cpp 引入，全局设置同时作用于预编译头（PCH），因此这里无需再单独
++# 设置：只给本目标设置会让 PCH 与源文件的字符集不一致，报 error C2855。
++
+ add_clang_library(clangBasic
+   ASTSourceDescriptor.cpp
+   Attributes.cpp
+diff --git a/clang/lib/Basic/IdentifierTable.cpp b/clang/lib/Basic/IdentifierTable.cpp
+index 68cd02a..8328900 100644
+--- a/clang/lib/Basic/IdentifierTable.cpp
++++ b/clang/lib/Basic/IdentifierTable.cpp
+@@ -288,6 +288,24 @@ void IdentifierTable::AddKeywords(const LangOptions &LangOpts) {
+ #define TESTING_KEYWORD(NAME, FLAGS)
+ #include "clang/Basic/TokenKinds.def"
+ 
++  // 中文关键字别名：把中文拼写注册到与英文原关键字完全相同的 tok::kw_* 上。
++  // 本表只“新增”拼写，TokenKinds.def 中的英文定义保持零改动，因此英文关键字
++  // 的既有行为、标准库头文件（libc/libcxx）以及编译器自身的自举编译都不受影响。
++  // 详见 clang/include/clang/Basic/ChineseKeywords.def。
++#define ZH_KEYWORD(NAME, ZH, FLAGS) \
++  AddKeyword(#ZH, tok::kw_ ## NAME, FLAGS, LangOpts, *this);
++
++  // 中文运算符替代拼写（and / or / not 一族），见 ChineseKeywords.def 第七节。
++  // 注册路径与普通关键字不同：走 AddCXXOperatorKeyword()，并且要跟英文一样区分
++  // LangOpts.CXXOperatorNames（即 -fno-operator-names 时它们不是关键字）。
++#define ZH_OPERATOR_KEYWORD(ZH, ALIAS)                                        \
++  if (LangOpts.CXXOperatorNames)                                              \
++    AddCXXOperatorKeyword(StringRef(#ZH), tok::ALIAS, *this);                 \
++  else                                                                        \
++    MarkIdentifierAsKeywordInCpp(*this, StringRef(#ZH));
++
++#include "clang/Basic/ChineseKeywords.def"
++
+   if (LangOpts.ParseUnknownAnytype)
+     AddKeyword("__unknown_anytype", tok::kw___unknown_anytype, KEYALL,
+                LangOpts, *this);
+@@ -303,6 +321,18 @@ void IdentifierTable::AddKeywords(const LangOptions &LangOpts) {
+   get("module").setModuleKeyword(true);
+   get("__preprocessed_import").setKeywordImport(true);
+   get("__preprocessed_module").setModuleKeyword(true);
++
++  // 中文拼写（导入 / 模块）走【同一扇门】，见 ChineseKeywords.def 第八节。
++  //
++  // 不能写成 AddKeyword("模块", tok::kw_module, KEYMODULES, ...)：KEYMODULES 在
++  // getKeywordStatusHelper() 里刻意返回 KS_Unknown → KS_Disabled，AddKeyword()
++  // 会静默跳过，中文根本不生效（而且不报错，很难查）。
++  // 也不要为了图省事把 module/import 改成真关键字——那会让 `int module = 1;`
++  // 这类既有代码全部失效。
++  //
++  // 上面的英文行一个字都不改：它们是英文继续可用的唯一保障。
++#define ZH_CONTEXTUAL_KEYWORD(NAME, ZH, SETTER) get(#ZH).SETTER(true);
++#include "clang/Basic/ChineseKeywords.def"
+ }
+ 
+ /// Checks if the specified token kind represents a keyword in the
+@@ -422,6 +452,25 @@ tok::PPKeywordKind IdentifierInfo::getPPKeywordID() const {
+   if (Name[0] == '_' && isModuleKeyword())
+     return tok::pp___preprocessed_module;
+ 
++  // 中文拼写（见 ChineseKeywords.def 第八节）：与上面两条用的是【同一个标志位】，
++  // 只是没有 '_' 前缀。
++  //
++  // 这一步是「模块」「导入」能否真正当模块声明用的关键：clang 把 C++20 的模块
++  // 声明当作【预处理器指令】处理（Lexer.cpp 里 HandleModuleContextualKeyword
++  // 成功后会调用 HandleDirective），而 HandleDirective 拿本函数的返回值去匹配
++  //   case tok::pp_module:   case tok::pp_import:
++  // 下面那张 perfect hash 表是给 ASCII 设计的（用长度 + 第 1/3 个字符算桶，
++  // 汉字算出来落不进任何 case，会返回 pp_not_keyword），所以汉字在这里单独判一次。
++  //
++  // 放在这里而不是新增一张 .def 表：标志位已经是唯一数据源，再抄一份拼写就会
++  // 出现两处需要同步。英文走不到这个分支（首字节 < 0x80），行为完全不变。
++  if (static_cast<unsigned char>(Name[0]) >= 0x80) {
++    if (isImportKeyword())
++      return tok::pp_import;
++    if (isModuleKeyword())
++      return tok::pp_module;
++  }
++
+   // clang-format off
+   switch (HASH(Len, Name[0], Name[2])) {
+   default: return tok::pp_not_keyword;
+diff --git a/clang/lib/Basic/TokenKinds.cpp b/clang/lib/Basic/TokenKinds.cpp
+index a5b8c99..8f50a4e 100644
+--- a/clang/lib/Basic/TokenKinds.cpp
++++ b/clang/lib/Basic/TokenKinds.cpp
+@@ -38,6 +38,27 @@ const char *tok::getPunctuatorSpelling(TokenKind Kind) {
+ }
+ 
+ const char *tok::getKeywordSpelling(TokenKind Kind) {
++  // 中文优先：使中文成为对外呈现的「正式拼写」，诊断信息、AST 打印与
++  // clangd 补全均显示中文。英文拼写仍可正常书写，只是不再对外显示。
++  switch (Kind) {
++#define ZH_KEYWORD(NAME, ZH, FLAGS) case kw_ ## NAME: return #ZH;
++#include "clang/Basic/ChineseKeywords.def"
++    default: break;
++  }
++  // 英文兜底：未纳入中文表的关键字（__attribute__、_Bool、__int128 等）
++  // 仍返回英文拼写，行为与改动前完全一致。
++  switch (Kind) {
++#define KEYWORD(X,Y) case kw_ ## X: return #X;
++#include "clang/Basic/TokenKinds.def"
++    default: break;
++  }
++  return nullptr;
++}
++
++const char *tok::getKeywordSpellingEnglish(TokenKind Kind) {
++  // 始终返回英文拼写，不受中文别名表影响。
++  // 中文正式拼写请用 getKeywordSpelling()；本函数用于「凭空合成 token 拼写」
++  // 的场景（例如工具链重构插入新代码），那里必须使用英文。
+   switch (Kind) {
+ #define KEYWORD(X,Y) case kw_ ## X: return #X;
+ #include "clang/Basic/TokenKinds.def"
+diff --git a/clang/lib/Lex/Preprocessor.cpp b/clang/lib/Lex/Preprocessor.cpp
+index 212b781..98706be 100644
+--- a/clang/lib/Lex/Preprocessor.cpp
++++ b/clang/lib/Lex/Preprocessor.cpp
+@@ -1335,9 +1335,13 @@ bool Preprocessor::HandleModuleContextualKeyword(Token &Result) {
+   /// preprocessed module file. We only allow '__preprocessed_module' and
+   /// '__preprocessed_import' in this context.
+   IdentifierInfo *II = Result.getIdentifierInfo();
++  // Compare token kinds instead of looking the spelling up via
++  // getKeywordSpelling(): that function now returns the Chinese official
++  // spelling, so a spelling-based comparison would fail when the user writes
++  // the English 'import'/'module'.
+   if (isPreprocessedModuleFile() &&
+-      (II->isStr(tok::getKeywordSpelling(tok::kw_import)) ||
+-       II->isStr(tok::getKeywordSpelling(tok::kw_module))))
++      (II->getTokenID() == tok::kw_import ||
++       II->getTokenID() == tok::kw_module))
+     return false;
+ 
+   if (LastExportKeyword.is(tok::kw_export)) {
+diff --git a/clang/lib/Parse/ParseDeclCXX.cpp b/clang/lib/Parse/ParseDeclCXX.cpp
+index 150987d..b9787fe 100644
+--- a/clang/lib/Parse/ParseDeclCXX.cpp
++++ b/clang/lib/Parse/ParseDeclCXX.cpp
+@@ -2415,6 +2415,18 @@ VirtSpecifiers::Specifier Parser::isCXX11VirtSpecifier(const Token &Tok) const {
+       Ident_abstract = &PP.getIdentifierTable().get("abstract");
+     }
+     Ident_override = &PP.getIdentifierTable().get("override");
++
++    // 中文拼写（见 clang/Basic/ChineseKeywords.def 第六节）。
++    // 这些词在 C++ 里不是关键字，而是「有特殊含义的标识符」，所以只能与英文
++    // 并存，绝不能替换英文拼写——override / final 都能合法地当普通标识符用。
++    // 这里用宏表而不是写死字符串，是为了让所有中文拼写集中在一个文件里：
++    // 将来改译名（比如「最终」改成「结尾」）只动 ChineseKeywords.def。
++    // 注意 get(#ZH) 里的 #：宏参数 ZH 是汉字（如 重写），必须【字符串化】成
++    // 字面量 "重写" 才能交给 getIdentifierTable().get()。写成 get(ZH) 会把汉字
++    // 当成标识符使用，报 “error C2065: 重写: 未声明的标识符”。
++#define ZH_VIRT_SPECIFIER(NAME, ZH) \
++    Ident_zh_##NAME = &PP.getIdentifierTable().get(#ZH);
++#include "clang/Basic/ChineseKeywords.def"
+   }
+ 
+   if (II == Ident_override)
+@@ -2432,6 +2444,15 @@ VirtSpecifiers::Specifier Parser::isCXX11VirtSpecifier(const Token &Tok) const {
+   if (II == Ident_GNU_final)
+     return VirtSpecifiers::VS_GNU_Final;
+ 
++  // 中文 virt-specifier（重写 / 最终）。与英文拼写【并存】而非替换：
++  // override / final 在 C++ 里是「有特殊含义的标识符」，可以合法地当普通标识符
++  // 使用，替换掉英文会破坏现有代码。拼写见 ChineseKeywords.def 第六节。
++  if (II == Ident_zh_override)
++    return VirtSpecifiers::VS_Override;
++
++  if (II == Ident_zh_final)
++    return VirtSpecifiers::VS_Final;
++
+   return VirtSpecifiers::VS_None;
+ }
+ 
+diff --git a/clang/lib/Parse/Parser.cpp b/clang/lib/Parse/Parser.cpp
+index 6a21acd..81f1616 100644
+--- a/clang/lib/Parse/Parser.cpp
++++ b/clang/lib/Parse/Parser.cpp
+@@ -523,6 +523,10 @@ void Parser::Initialize() {
+   Ident_override = nullptr;
+   Ident_GNU_final = nullptr;
+ 
++  // 中文上下文关键字（重写 / 最终），见 ChineseKeywords.def 第六节。
++  Ident_zh_override = nullptr;
++  Ident_zh_final = nullptr;
++
+   Ident_super = &PP.getIdentifierTable().get("super");
+ 
+   Ident_vector = nullptr;
+diff --git a/clang/lib/Sema/DeclSpec.cpp b/clang/lib/Sema/DeclSpec.cpp
+index 75b9b06..c9c299c 100644
+--- a/clang/lib/Sema/DeclSpec.cpp
++++ b/clang/lib/Sema/DeclSpec.cpp
+@@ -1748,8 +1748,11 @@ bool VirtSpecifiers::SetSpecifier(Specifier VS, SourceLocation Loc,
+ const char *VirtSpecifiers::getSpecifierName(Specifier VS) {
+   switch (VS) {
+   default: llvm_unreachable("Unknown specifier");
+-  case VS_Override: return "override";
+-  case VS_Final: return "final";
++  // 中文 virt-specifier。与关键字一致：对外呈现用中文，诊断里打印的就是这两个
++  // 名字。拼写见 clang/Basic/ChineseKeywords.def 第六节。
++  case VS_Override: return "重写";       // override
++  case VS_Final: return "最终";          // final
++  // 以下三个是 GNU / MS 扩展的别名，保持英文原文。
+   case VS_GNU_Final: return "__final";
+   case VS_Sealed: return "sealed";
+   case VS_Abstract: return "abstract";
+diff --git a/clang/lib/Sema/SemaCodeComplete.cpp b/clang/lib/Sema/SemaCodeComplete.cpp
+index bd239ad..291a9b5 100644
+--- a/clang/lib/Sema/SemaCodeComplete.cpp
++++ b/clang/lib/Sema/SemaCodeComplete.cpp
+@@ -6268,10 +6268,16 @@ void SemaCodeCompletion::CodeCompleteFunctionQualifiers(
+     Results.AddResult("noexcept");
+     if (D.getContext() == DeclaratorContext::Member && !D.isCtorOrDtor() &&
+         !D.isStaticMember()) {
+-      if (!VS || !VS->isFinalSpecified())
++      // 中文拼写与英文并列给出（见 ChineseKeywords.def 第六节）。
++      // 中英都能用，所以补全里两个都给。
++      if (!VS || !VS->isFinalSpecified()) {
++        Results.AddResult("最终");
+         Results.AddResult("final");
+-      if (!VS || !VS->isOverrideSpecified())
++      }
++      if (!VS || !VS->isOverrideSpecified()) {
++        Results.AddResult("重写");
+         Results.AddResult("override");
++      }
+     }
+   }
+   Results.ExitScope();
+diff --git a/clang/lib/Tooling/Syntax/Synthesis.cpp b/clang/lib/Tooling/Syntax/Synthesis.cpp
+index 39c1995..f9f11ec 100644
+--- a/clang/lib/Tooling/Syntax/Synthesis.cpp
++++ b/clang/lib/Tooling/Syntax/Synthesis.cpp
+@@ -59,7 +59,11 @@ syntax::Leaf *clang::syntax::createLeaf(syntax::Arena &A,
+                                         tok::TokenKind K) {
+   const auto *Spelling = tok::getPunctuatorSpelling(K);
+   if (!Spelling)
+-    Spelling = tok::getKeywordSpelling(K);
++    // This token is synthesized without any source location, so the English
++    // spelling must be used. getKeywordSpelling() returns the Chinese official
++    // spelling, which would inject Chinese keywords into the refactoring
++    // result for English sources.
++    Spelling = tok::getKeywordSpellingEnglish(K);
+   assert(Spelling &&
+          "Cannot infer the spelling of the token from its token kind.");
+   return createLeaf(A, TBTM, K, Spelling);
+diff --git a/llvm/CMakeLists.txt b/llvm/CMakeLists.txt
+index a9d9f1d..6121299 100644
+--- a/llvm/CMakeLists.txt
++++ b/llvm/CMakeLists.txt
+@@ -78,6 +78,21 @@ project(LLVM
+   VERSION ${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}
+   LANGUAGES C CXX ASM)
+ 
++# MSVC 默认按系统 ANSI 代码页读取源文件（简体中文 Windows 上是 CP936/GBK），
++# 而 LLVM 源码是 UTF-8，其中部分文件含非 ASCII 字符（例如
++# clang/lib/Lex/UnicodeCharSets.h 里数学符号的注释）。在 GBK 代码页下这些字节
++# 会被错误解码，错位的字节会吞掉行尾换行，使后续代码被并入上一行的注释——
++# 表现为“某个数组或声明凭空消失”。实例：该文件第 401 行起本应是四个数组元素
++# 各占一行，实际被挤成了一行，于是 C11AllowedIDCharRanges 等定义消失，
++# Lexer.cpp 报 error C2065“未声明的标识符”。
++#
++# /utf-8 同时把源字符集与执行字符集设为 UTF-8，与 LLVM 在 Unix 上的默认行为一致。
++# 必须【全局】设置：它同时作用于预编译头（PCH），否则会出现
++#   error C2855: 命令行选项"/source-charset"与预编译头不一致
++if(MSVC)
++  add_compile_options("/utf-8")
++endif()
++
+ if (NOT DEFINED CMAKE_INSTALL_LIBDIR AND DEFINED LLVM_LIBDIR_SUFFIX)
+   # Must go before `include(GNUInstallDirs)`.
+   set(CMAKE_INSTALL_LIBDIR "lib${LLVM_LIBDIR_SUFFIX}")

@@ -1,0 +1,38 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "编译当前文件（中文 C++）",
+      "type": "shell",
+      "command": "E:\\Chinese++\\build\\Release\\bin\\chinese++.exe",
+      "args": ["-std=c++20","-g","-Wall","${file}","-o","${fileDirname}\\${fileBasenameNoExtension}.exe"],
+      "options": { "cwd": "${fileDirname}" },
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": ["$gcc"],
+      "presentation": { "reveal": "always", "clear": true, "panel": "shared" }
+    },
+    {
+      "label": "编译并运行（中文 C++）",
+      "type": "shell",
+      "command": "E:\\Chinese++\\build\\Release\\bin\\chinese++.exe",
+      "args": ["-std=c++20","-g","-Wall","${file}","-o","${fileDirname}\\${fileBasenameNoExtension}.exe","&&","${fileDirname}\\${fileBasenameNoExtension}.exe"],
+      "options": { "cwd": "${fileDirname}" },
+      "problemMatcher": ["$clang"],
+      "presentation": { "reveal": "always", "clear": true, "panel": "dedicated" }
+    },
+    {
+      "label": "构建：多翻译单元（10-multi-tu）",
+      "type": "shell",
+      "command": "powershell",
+      "args": ["-NoProfile","-ExecutionPolicy","Bypass","-File","${workspaceFolder}\\tests\\10-multi-tu\\build.ps1"],
+      "problemMatcher": []
+    },
+    {
+      "label": "构建：C++20 模块（04-modules）",
+      "type": "shell",
+      "command": "powershell",
+      "args": ["-NoProfile","-ExecutionPolicy","Bypass","-File","${workspaceFolder}\\tests\\04-modules\\build.ps1"],
+      "problemMatcher": []
+    }
+  ]
+}

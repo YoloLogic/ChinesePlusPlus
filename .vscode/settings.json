@@ -1,0 +1,104 @@
+{
+  // ════════════════════════════════════════════════════════════════════════
+  //  用我们自己构建的 clangd —— 它认识全部 99 个中文拼写
+  //  （86 个关键字 + 2 个上下文关键字 + 11 个运算符替代拼写）。
+  //
+  //  为什么这里能行、CLion 不行：
+  //    VS Code 的 clangd 扩展只是"遥控器"，clangd 用哪个由 clangd.path 决定；
+  //    CLion 强制使用它自带的 JetBrains 分支 clangd，没有这个设置项。
+  // ════════════════════════════════════════════════════════════════════════
+  "clangd.path": "E:/Chinese++/build/Release/bin/clangd.exe",
+
+  "clangd.arguments": [
+    "--background-index",
+    "--clang-tidy",
+    "--header-insertion=iwyu",
+    "--completion-style=detailed",
+    "--pch-storage=memory",
+    "--fallback-style=LLVM",
+    // 让 clangd 向我们的编译器询问系统头文件路径（MSVC / Windows SDK）
+    "--query-driver=E:/Chinese++/build/Release/bin/chinese++.exe"
+  ],
+
+  // 改了配置就自动重启 clangd，不用手动重载窗口
+  "clangd.onConfigChanged": "restart",
+
+  // 中文源码必须按 UTF-8 读写
+  "files.encoding": "utf8",
+  "files.autoGuessEncoding": false,
+
+  // 如果装了微软的 C/C++ 扩展，把它的 IntelliSense 关掉，免得和 clangd 打架
+  // （它在这里【只当调试器用】，见 launch.json 的 cppvsdbg）
+  "C_Cpp.intelliSenseEngine": "disabled",
+
+  "[cpp]": {
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true
+  },
+
+  // ════════════════════════════════════════════════════════════════════════
+  //  因为工作区根是 E:\Chinese++，里面还躺着 LLVM 源码树和构建目录，
+  //  这里把它们从【资源管理器/搜索/文件监视】里排除，避免 VS Code 卡顿。
+  //
+  //  注意 .pdb/.ilk 只是【隐藏】，没有删除 —— 调试要用 .pdb，
+  //  千万别为了清爽把 .pdb 删了，否则 cppvsdbg 断点会失效。
+  // ════════════════════════════════════════════════════════════════════════
+  "files.exclude": {
+    "**/*.ilk": true,
+    "**/*.obj": true,
+    "**/*.exe": true,
+    "**/*.pdb": true,
+    "**/*.pcm": true
+  },
+  "search.exclude": {
+    "LLVM-main": true,
+    "build": true,
+    "**/*.exe": true,
+    "**/*.pdb": true
+  },
+  "files.watcherExclude": {
+    "**/LLVM-main/**": true,
+    "**/build/**": true
+  },
+
+  // ════════════════════════════════════════════════════════════════════════
+  //  集成终端：UTF-8 不在这里配 —— **两次都失败了，别再往这里加**
+  //
+  //  病根：编译器把中文字符串按 UTF-8 编进程序，而中文版 Windows 控制台默认代码页
+  //  是 GBK(936)，拿 GBK 解释 UTF-8 字节就成了乱码。实测：
+  //      程序输出字节    E5 9C 86 20 E9 9D A2 E7 A7 AF ...   （"圆 面积"）
+  //      按 UTF-8 解释   ->  圆 面积 = 12.5664     ← 程序真正想说的
+  //      按 GBK   解释   ->  鍦?闈㈢Н = 12.5664    ← 看到的乱码
+  //
+  //  乱码有【两层】，只治一层会剩一半：
+  //      ① 你的程序运行时打印的中文
+  //      ② 编译器自己的中文报错（诊断也是 UTF-8 字节，同样被 GBK 解释成花屏）
+  //  把终端设成 65001 可以同时治好两层。
+  //
+  //  【失败的尝试 1】args 里塞长命令：
+  //      ["-NoExit","-Command","chcp 65001 > $null; [Console]::OutputEncoding = …"]
+  //      → VS Code 拼命令行时丢了引号，启动即报「意外的标记"-Command"」
+  //
+  //  【失败的尝试 2】args 里塞短命令：
+  //      ["-NoExit","-Command","chcp 65001"]
+  //      → 启动即报「参数格式不正确 - -Command」
+  //      根因：**命令行里出现了第二个 -Command**（VS Code 的 shell 集成 / conda 注入
+  //      会再加一个），而 PowerShell 只认第一个 -Command，把后面的都当成脚本文本，
+  //      于是实际执行的是 `chcp 65001 -Command …` —— chcp 收到 "-Command" 就报错。
+  //      本机 $PROFILE 里确实有 conda init（`conda shell.powershell hook`）。
+  //
+  //  【教训】只要参数里出现 `-Command`，就会和"别人也要用 -Command"打架。
+  //  PowerShell 的参数里，-Command 必须独占，且只能出现一次。
+  //
+  //  【正确做法】根本不碰终端启动参数 —— 往用户自己的 PowerShell $PROFILE 里加一行
+  //      chcp 65001 > $null
+  //  它不经过 VS Code 的参数拼接，任何终端（VS Code / 普通窗口 / 别的 IDE 的终端）
+  //  都生效。项目提供了可逆的安装脚本：
+  //      tools\setup_utf8_terminal.ps1            # 加入（带标记，可识别）
+  //      tools\setup_utf8_terminal.ps1 -Undo      # 移除
+  //  这是"个人环境"的改动，所以**由用户自己运行**，项目配置里不替他做。
+  //
+  //  另外仍然建议程序里调用一次 启用中文控制台()（examples\中文控制台.h）：
+  //  双击 exe、在别的机器上跑，那才是程序自救的地方。
+  // ════════════════════════════════════════════════════════════════════════
+}

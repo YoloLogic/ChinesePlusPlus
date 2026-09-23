@@ -1,0 +1,50 @@
+# ============================================================
+#  Chinese++ —— 只跟踪"我们自己的东西"
+#
+#  大块、可再生、或已有别的回滚路径的东西一律排除。
+#  判断依据见 docs\README.md（文档地图）与 third_party\README.md。
+# ============================================================
+
+# --- 构建产物（可重编；主构建树一棵就是 4.4 GB） ---
+# 注意写成 build/（不带前导斜杠）= 匹配【任意层级】的 build 目录，
+# 这样 zhcpp-demo\build\ 这类子项目的构建目录也会被排除。
+build/
+build-*/
+/backup/
+
+# --- IDE 本地配置（不属于项目内容） ---
+.idea/
+*.iml
+
+# --- LLVM 源码树（18 万文件 / 2.09 GB）---
+#     它的回滚由两条路径保障，不需要（也不适合）纳入 git：
+#       1) E:\LLVM-main     干净的上游树，任何文件都能从它恢复原件
+#       2) patches\*.patch  我们自己那 19 个文件的改动，可重放
+#     而且 tools\make_patch.ps1 每次运行都在验证这两者对得上。
+/LLVM-main/
+
+# --- 第三方项目（可重新克隆，来源与 commit 记在 third_party\README.md）---
+/third_party/src/
+/third_party/build/
+/third_party/downloads/
+
+# --- 编译中间产物与可执行文件 ---
+*.exe
+*.lib
+*.obj
+*.pdb
+*.ilk
+*.exp
+*.dll
+*.res
+*.o
+*.a
+
+# --- 测试脚本生成的输出（每次运行重新生成）---
+**/out/
+
+# --- 杂项 ---
+*.tmp
+*.bak
+Thumbs.db
+desktop.ini
