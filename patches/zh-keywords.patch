@@ -18,10 +18,10 @@ index 21c078f..db42b71 100644
  }
 diff --git a/clang/include/clang/Basic/ChineseKeywords.def b/clang/include/clang/Basic/ChineseKeywords.def
 new file mode 100644
-index 0000000..5f3fba1
+index 0000000..e393d11
 --- /dev/null
 +++ b/clang/include/clang/Basic/ChineseKeywords.def
-@@ -0,0 +1,335 @@
+@@ -0,0 +1,356 @@
 +//===--- ChineseKeywords.def - 中文关键字别名表 -----------------*- C -*-===//
 +//
 +// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -75,7 +75,28 @@ index 0000000..5f3fba1
 +//      ⚠ 在这之前只有第 6 条写在注释里、而且【没有任何机器校核】；第 7 条
 +//      根本没写下来。现在两条都在 tests\checks\verify_chinese_keywords.py
 +//      第 10 节机器校核，而且那一节**自带自测**（证明这个检查真的会失败）。
-+//      实测 2026-09-23：68 个译名全部合规，最长的是 `取无修饰类型`（6 字）。
++//      实测 2026-09-23：**99 个译名全部合规**（三族合计，见第 8 条），
++//      最长的是 `取无修饰类型`（6 字）。
++//
++//   8. 【三族合计 99 条】本文件的译名分【三个宏族】，改任何一处都要知道总数：
++//
++//          ZH_KEYWORD            86   普通关键字（如果 / 返回 / 类型 …）
++//          ZH_VIRT_SPECIFIER      2   override 重写 / final 最终
++//          ZH_OPERATOR_KEYWORD   11   并且 或者 并非 异或 位与 位或 取反
++//                                     与赋值 或赋值 异或赋值 不等于
++//          ──────────────────────────
++//                                99
++//
++//      ⚠ 只解析第一族会数出 86 —— 这个坑 2026-09-23 踩过：有人用只匹配
++//      ZH_KEYWORD 的正则数出 86，据此去改文档里本来就对的 99。事实上
++//      「99」同时写在本文件所在目录的《关键字改动清单.md》第 7 行、
++//      tests\06-parity 的输出、以及校核器的三族分解里。
++//      现在 tests\checks\verify_chinese_keywords.py 解析全部三族，
++//      结论行会打印 86 ＋ 2 ＋ 11 ＝ 99。
++//
++//      译名的三条强制定则（2–6 个汉字 / 唯一 / 每个字符可被 clang 切分）
++//      与「已定、不再讨论」的译名，记在
++//      docs\关键字\关键字改动清单.md 的第十、十一节。
 +//
 +//  用法：仅以下两个位置会重定义 ZH_KEYWORD 并包含本文件，其它任何包含点
 +//        都会把 ZH_KEYWORD 展开为空：
