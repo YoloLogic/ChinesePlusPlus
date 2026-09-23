@@ -200,6 +200,8 @@ Check-Case '37_conv_function_complex.cpp'
 Check-Case '38_unsatisfied_trait.cpp'            '-std=c++26' 
 Check-Case '39_unused_private_field.cpp'         '-Wall'  -Expect ok
 Check-Case '40_unused_lambda_capture.cpp'        '-Wall'  -Expect ok
+Check-Case '41_conv_to_function.cpp'            
+Check-Case '42_matrix_disabled.cpp'              '-std=c++20'
 
 # ---------------------------------------------------------------------------
 # 2) prefix and option name must survive (ASCII, so trivially checkable)

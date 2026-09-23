@@ -75,7 +75,7 @@ Get-ChildItem E:\Chinese++ -Recurse -Include *.md,*.ps1,*.py,*.cpp,*.def,*.td |
 ```
 powershell -File E:\Chinese++\tools\acceptance.ps1     →  17 PASS / 0 FAIL
 powershell -File E:\Chinese++\tests\run_all.ps1        →  passed: 19  failed: 0
-tests\12-diagnostics\check.ps1                         →  40 个渲染用例全过（原 26）
+tests\12-diagnostics\check.ps1                         →  42 个渲染用例全过（原 26）
 中文诊断表                                             →  48 条（第三批 A/B/C 组，2026-09-23）
 按真实出现次数算的覆盖                                  →  ~73.4%（2849/3879，保守口径）
     口径说明（2026-09-23 更正）：报告共 3879 条实例、300 个 ID；能反查到 ID 的 3457 条
