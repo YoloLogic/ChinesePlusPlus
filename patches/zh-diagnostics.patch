@@ -1,9 +1,9 @@
 diff --git a/clang/include/clang/Basic/ChineseDiagnostics.def b/clang/include/clang/Basic/ChineseDiagnostics.def
 new file mode 100644
-index 0000000..180b9da
+index 0000000..33ed8a4
 --- /dev/null
 +++ b/clang/include/clang/Basic/ChineseDiagnostics.def
-@@ -0,0 +1,544 @@
+@@ -0,0 +1,547 @@
 +//===--- ChineseDiagnostics.def - 中文诊断文本表 ----------------*- C -*-===//
 +//
 +// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -527,8 +527,11 @@ index 0000000..180b9da
 +//   名词。写成「类中成员」就把「类」放进了方位短语（表里本来就有
 +//   `%1 中没有名为 %0 的成员` 这种「中」的用法），不容易被读成"关键字是类"。
 +//   代价如实记下：①「类中成员」不是标准术语（标准说法是「类成员」）；
-+//   ②和本表既有的「类模板」形成两种处理方式。根治办法是改关键字
-+//   （class -> 类），那是单独一轮的事，不在这里顺手做。
++//   ②和本表既有的「类模板」形成两种处理方式。
++//   ⚠ 上一稿在这里写了「根治办法是改关键字（class -> 类）」—— 那是错的，
++//   已收回：`class` 译「类型」是【已定】的，见 ChineseKeywords.def 里 class
++//   那一行上面的说明。所以这里不是"治症状、等根治"，而是在既定译名之下
++//   选一个不会把「类」误读成关键字的写法。
 +ZH_DIAG(err_member_redeclared, "类中成员不能被重新声明")
 +ZH_DIAG(ext_member_redeclared, "类中成员不能被重新声明")
 +

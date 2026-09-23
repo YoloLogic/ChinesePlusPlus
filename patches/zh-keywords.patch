@@ -18,10 +18,10 @@ index 21c078f..db42b71 100644
  }
 diff --git a/clang/include/clang/Basic/ChineseKeywords.def b/clang/include/clang/Basic/ChineseKeywords.def
 new file mode 100644
-index 0000000..da2f299
+index 0000000..5f3fba1
 --- /dev/null
 +++ b/clang/include/clang/Basic/ChineseKeywords.def
-@@ -0,0 +1,311 @@
+@@ -0,0 +1,335 @@
 +//===--- ChineseKeywords.def - 中文关键字别名表 -----------------*- C -*-===//
 +//
 +// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -63,6 +63,19 @@ index 0000000..da2f299
 +//
 +//   6. 【至少两字】所有译名不短于两个汉字。单字关键字极易与用户标识符
 +//      冲突，汉语本身也以双音节为主。
++//
++//   7. 【最多六字】所有译名不多于六个汉字。
++//
++//      6 与 7 合起来是一条【定则】：译名的汉字数必须在 2–6 之间。
++//      由用户 2026-09-23 明确（原话：关键字有一个定则，就是至少要两个汉字，
++//      最多 6 个汉字，无论如何都得遵守这一条）。
++//      汉字数按【汉字】算，不按总字符数 —— 表里有一个带数字的译名
++//      `字符8位`（char8_t）：总长 4、汉字 3，合规。
++//
++//      ⚠ 在这之前只有第 6 条写在注释里、而且【没有任何机器校核】；第 7 条
++//      根本没写下来。现在两条都在 tests\checks\verify_chinese_keywords.py
++//      第 10 节机器校核，而且那一节**自带自测**（证明这个检查真的会失败）。
++//      实测 2026-09-23：68 个译名全部合规，最长的是 `取无修饰类型`（6 字）。
 +//
 +//  用法：仅以下两个位置会重定义 ZH_KEYWORD 并包含本文件，其它任何包含点
 +//        都会把 ZH_KEYWORD 展开为空：
@@ -139,6 +152,17 @@ index 0000000..da2f299
 +
 +ZH_KEYWORD(asm,               汇编,         KEYCXX | KEYGNU)  // asm
 +ZH_KEYWORD(catch,             捕获,         KEYCXX)           // catch
++// ⚠ 译名【已定，不再讨论】：`class` 必须译成「类型」。
++//   由用户 2026-09-23 明确（原话：class 必须翻译成 类型，这是我和其他 AI
++//   对话里讨论的结果）。之所以要把"已定"写在这里 —— 此前全仓库翻遍只有
++//   docs\诊断汉化\诊断汉化-准备.md 的一行【陈述】，没有理由、也没有已定标记，
++//   于是 2026-09-23 有人把它当成待议项重新提了出来。只写映射不写状态，
++//   后来者只能读成"还没定"。
++//   （当时讨论的具体论证没有存进仓库。要看理由回去问用户，别自己编。）
++//
++//   推论（诊断汉化在用，不是这条关键字决定的一部分）：**关键字位置一律「类型」**；
++//   正文里作为【普通名词】出现的 class 沿用「类」（类模板 / 类中成员 / 最终类），
++//   见 ChineseDiagnostics.def 第十二节。
 +ZH_KEYWORD(class,             类型,         KEYCXX)           // class：定义一个类类型
 +ZH_KEYWORD(const_cast,        常量转换,     KEYCXX)           // const_cast
 +ZH_KEYWORD(delete,            删除,         KEYCXX)           // delete

@@ -354,6 +354,51 @@ for _path in CHANGED_FILES:
     else:
         print("  [通过] %-26s 纯 ASCII" % _base)
 
+# ------------------------------------------- 10. 译名长度检查（2–6 汉字）
+section("10. 译名长度检查（至少两字、最多六字）")
+
+# 定则（用户 2026-09-23 明确：无论如何都得遵守这一条）。
+# 汉字数按【汉字】算，不按总字符数 —— `字符8位` 是总长 4、汉字 3。
+KW_MIN_HANZI, KW_MAX_HANZI = 2, 6
+CJK_RE = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff]")
+
+
+def hanzi_count(s):
+    return len(CJK_RE.findall(s))
+
+
+def bad_length(zhname):
+    n = hanzi_count(zhname)
+    return n < KW_MIN_HANZI or n > KW_MAX_HANZI
+
+
+bad_len = [(lineno, name, zhname, hanzi_count(zhname))
+           for lineno, name, zhname, flags in rows if bad_length(zhname)]
+if bad_len:
+    for lineno, name, zhname, n in bad_len:
+        errors.append("第 %d 行（%s）：译名 `%s` 有 %d 个汉字，超出 %d–%d"
+                      % (lineno, name, zhname, n, KW_MIN_HANZI, KW_MAX_HANZI))
+        print("  [错误] 第 %d 行（%s）：`%s` 汉字数 %d，应在 %d–%d 之间"
+              % (lineno, name, zhname, n, KW_MIN_HANZI, KW_MAX_HANZI))
+else:
+    _longest = max(rows, key=lambda r: hanzi_count(r[2]))
+    _shortest = min(rows, key=lambda r: hanzi_count(r[2]))
+    print("  [通过] %d 个译名的汉字数都在 %d–%d 之间（最短 `%s`，最长 `%s`）"
+          % (len(rows), KW_MIN_HANZI, KW_MAX_HANZI, _shortest[2], _longest[2]))
+
+# 自测：这个检查必须证明自己【会失败】。一条永远返回"通过"的检查等于没有检查
+# —— 本项目吃过这个亏（"校核器会查角色表"而检查并不存在，被外部复核者用三份
+# 违规副本实测 problems=0 才暴露）。
+_probe = ["甲", "甲乙", "甲乙丙丁戊己", "甲乙丙丁戊己庚", "字符8位"]
+_want = [True, False, False, True, False]   # 1字/2字/6字/7字/带数字按3汉字
+_got = [bad_length(x) for x in _probe]
+if _got != _want:
+    errors.append("长度检查自测失败：%r -> %r，期望 %r" % (_probe, _got, _want))
+    print("  [错误] 长度检查自测失败：%r -> %r，期望 %r" % (_probe, _got, _want))
+else:
+    print("  [通过] 长度检查自测：1 字与 7 字被抓，2 字与 6 字放行，"
+          "`字符8位` 按 3 个汉字计")
+
 # ---------------------------------------------------------------- 总结
 section("验证结论")
 print("  解析到中文关键字条目：%d" % len(rows))
