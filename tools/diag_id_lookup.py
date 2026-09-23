@@ -653,6 +653,46 @@ def self_test(inc):
     return bad
 
 
+# 角色表的封闭词表（第三批起启用，见 ChineseDiagnostics.def 第十二节）。
+# 加词是一次【明确动作】：要同时改这里和 .def 里的说明。
+ROLE_WORDS = frozenset([
+    "关键字", "种类", "变量名", "类型名", "函数名", "属性名", "成员名", "名字",
+    "表达式", "类型", "符号", "选项",
+])
+
+# 匹配一处角色表：（关键字 类型名） / （名字） / （选项）
+ROLE_GROUP_RE = re.compile(r"（([^（）]*)）")
+
+
+def check_role_table(name, text):
+    """角色表检查。返回 (硬问题列表, 待办报告行列表)。
+
+    ⚠ 这个检查【查不出角色标错】—— 把（属性名）写成（变量名）照样通过。
+      独立复核者 2026-09-23 实测：造三份违规副本喂给旧版校核器，
+      「不存在的角色词」「整句无角色表」「角色标错」全部 problems=0，
+      只有删占位符的对照组被抓到。这里是补上的两条。
+
+    设计取舍：**「有占位符就该有角色表」只报告、不判失败**。
+    因为第一批那 32 条是在角色表约定之前写的（例如 `缺少 %0` 就没有角色表），
+    硬判会让它们全部变红。所以列成迁移待办，由人逐步补齐。
+    """
+    problems, notes = [], []
+    # 只把【不含占位符】的全角括号组当角色表：
+    # 既有条目里有用括号做补注的（如「二元表达式的运算对象无效（%0 和 %1）」），
+    # 那不是角色表，硬套词表会把合法条目判失败。
+    groups = [g for g in ROLE_GROUP_RE.findall(text) if "%" not in g]
+    for g in groups:
+        for w in g.split():
+            if w not in ROLE_WORDS:
+                problems.append(
+                    "%s：角色表里有词不在封闭词表内 -> %r（词表：%s）"
+                    % (name, w, "、".join(sorted(ROLE_WORDS))))
+    has_ph = "%" in text
+    if has_ph and not groups:
+        notes.append("    [迁移待办] 有占位符但没有角色表: %s" % name)
+    return problems, notes
+
+
 def check_table(inc, zh=None, raw=None):
     """校核整张中文表。返回 (报告行, 问题列表, 条目列表)。
 
@@ -696,6 +736,9 @@ def check_table(inc, zh=None, raw=None):
         seen.add(name)
         p, en = check_zh(name, text, inc)
         problems.extend(p)
+        rp, rn = check_role_table(name, text)
+        problems.extend(rp)
+        lines.extend(rn)
         if en is not None:
             lines.append("")
             lines.append("  %s  (第 %d 行)" % (name, line))
