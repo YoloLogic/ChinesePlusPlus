@@ -1,4 +1,4 @@
-// expect: 类成员不能被重新声明
+// expect: 类中成员不能被重新声明
 // forbid: cannot be redeclared
 //
 // 类成员被重复声明。err_member_redeclared 与 ext_member_redeclared 英文逐字相同，

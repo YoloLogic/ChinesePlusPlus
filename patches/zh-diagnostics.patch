@@ -1,9 +1,9 @@
 diff --git a/clang/include/clang/Basic/ChineseDiagnostics.def b/clang/include/clang/Basic/ChineseDiagnostics.def
 new file mode 100644
-index 0000000..abf2260
+index 0000000..180b9da
 --- /dev/null
 +++ b/clang/include/clang/Basic/ChineseDiagnostics.def
-@@ -0,0 +1,539 @@
+@@ -0,0 +1,544 @@
 +//===--- ChineseDiagnostics.def - 中文诊断文本表 ----------------*- C -*-===//
 +//
 +// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -521,11 +521,16 @@ index 0000000..abf2260
 +// ext_member_redeclared 试了 struct S { struct T; struct T {}; } 与 -pedantic
 +// 都没触发，**没有渲染用例** —— 如实写在这里，不假装验证过。
 +// 实测：结构 S { void f(); void f(); };
-+// ⚠ 术语：这里用了「类」字。关键字表里 class = 类型，但本表既有条目已经把
-+//   「类」当【普通名词】用（最终类 / 抽象类）。这里跟随后者用「类成员」，
-+//   没有用「类型成员」—— 后者不是汉语里的说法。这是一个要用户确认的选择。
-+ZH_DIAG(err_member_redeclared, "类成员不能被重新声明")
-+ZH_DIAG(ext_member_redeclared, "类成员不能被重新声明")
++// ⚠ 术语：「类中成员」，由用户 2026-09-23 定（原先写的是「类成员」）。
++//   背景：关键字表里 class = 类型，而「类」【不是关键字】—— 实测 `类 甲 { };`
++//   报 `未知的类型名 '类'`。所以正文里凡是出现「类」，都要让它一眼看出是普通
++//   名词。写成「类中成员」就把「类」放进了方位短语（表里本来就有
++//   `%1 中没有名为 %0 的成员` 这种「中」的用法），不容易被读成"关键字是类"。
++//   代价如实记下：①「类中成员」不是标准术语（标准说法是「类成员」）；
++//   ②和本表既有的「类模板」形成两种处理方式。根治办法是改关键字
++//   （class -> 类），那是单独一轮的事，不在这里顺手做。
++ZH_DIAG(err_member_redeclared, "类中成员不能被重新声明")
++ZH_DIAG(ext_member_redeclared, "类中成员不能被重新声明")
 +
 +// 英文：'reinterpret_cast' %select{from|to}3 class %0 %select{to|from}3 its
 +//       %select{virtual base|base at non-zero offset}2 %1 behaves differently
