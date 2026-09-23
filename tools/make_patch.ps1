@@ -281,7 +281,15 @@ function New-Patch {
         }
     }
     $applyLog = Join-Path $Work ($Name + '.apply.log')
-    & cmd /c ('cd /d "{0}" && git -c core.autocrlf=false apply --verbose "{1}" > "{2}" 2>&1' -f $verify, $patch, $applyLog)
+    # GIT_CEILING_DIRECTORIES is load-bearing: $verify is a PLAIN directory that
+    # git apply is meant to treat as "not a repository". Once E:\Chinese++ itself
+    # became a git repo (2026-09-23), git apply started walking UP from $verify,
+    # finding that repo, and silently doing nothing (exit code 0, no file
+    # touched) -- so the byte comparison below failed even for a GOOD patch.
+    # The ceiling stops the upward walk at $Work, restoring the original
+    # "outside any repository" behaviour. Proven by an A/B run: with the outer
+    # .git present the gate self-test failed; with it renamed away it passed.
+    & cmd /c ('cd /d "{0}" && set "GIT_CEILING_DIRECTORIES={3}" && git -c core.autocrlf=false apply --verbose "{1}" > "{2}" 2>&1' -f $verify, $patch, $applyLog, $Work)
     $applyCode = $LASTEXITCODE
     Write-Host "    git apply exit code: $applyCode"
     if ($applyCode -ne 0) {
