@@ -38,7 +38,7 @@ ZH_DEF = os.path.join(ROOT, "LLVM-main", "clang", "include", "clang", "Basic",
 # 中文表至少要有这么多条。**加了一批就把它调大。**
 # 存在的理由：逐条校核抓不到"表被改小"—— 剩下的条目依然条条合法。
 # 独立复核者 2026-09-22 实测：砍到 7 条时校核器仍报 0 问题、退出码 0（反例 A）。
-MIN_ENTRIES = 46
+MIN_ENTRIES = 48
 CORPUS = os.path.join(ROOT, "build", "_diag_corpus")
 CLANGXX = os.path.join(ROOT, "build", "Release", "bin", "clang++.exe")
 REPORT = os.path.join(ROOT, "build", "_diag_report.txt")

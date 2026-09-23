@@ -1,9 +1,9 @@
 diff --git a/clang/include/clang/Basic/ChineseDiagnostics.def b/clang/include/clang/Basic/ChineseDiagnostics.def
 new file mode 100644
-index 0000000..9bbab0f
+index 0000000..936fbb6
 --- /dev/null
 +++ b/clang/include/clang/Basic/ChineseDiagnostics.def
-@@ -0,0 +1,391 @@
+@@ -0,0 +1,404 @@
 +//===--- ChineseDiagnostics.def - 中文诊断文本表 ----------------*- C -*-===//
 +//
 +// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -391,6 +391,19 @@ index 0000000..9bbab0f
 +// 实测触发的是分支 1（typedef 那条）：struct S { operator int()(); };
 +ZH_DIAG(err_conv_function_with_complex_decl,
 +        "转换函数的声明中不能指定返回类型的任何部分%select{；请把完整类型写在（关键字） 运算符 之后|；请用（关键字） 类型别名 声明到（类型） %1 的转换|；请用别名模板声明到（类型） %1 的转换|}0")
++
++//===----------------------------------------------------------------------===//
++// 十四、第三批 C 组：真实代码里还会出现的高频条目（2026-09-23）
++//===----------------------------------------------------------------------===//
++
++// 英文：private field %0 is not used
++ZH_DIAG(warn_unused_private_field,
++        "未使用的私有字段（成员名） %0")
++
++// 英文：lambda capture %0 is not used
++// lambda 是语言术语，没有中文关键字拼写，保留英文。
++ZH_DIAG(warn_unused_lambda_capture,
++        "（变量名） %0 这个 lambda 捕获 %select{未被使用|在这一处用法中不必被捕获}1")
 +
 +//===----------------------------------------------------------------------===//
 +
