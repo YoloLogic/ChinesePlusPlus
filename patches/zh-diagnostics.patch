@@ -1,9 +1,9 @@
 diff --git a/clang/include/clang/Basic/ChineseDiagnostics.def b/clang/include/clang/Basic/ChineseDiagnostics.def
 new file mode 100644
-index 0000000..e8aabd8
+index 0000000..9c2ec16
 --- /dev/null
 +++ b/clang/include/clang/Basic/ChineseDiagnostics.def
-@@ -0,0 +1,404 @@
+@@ -0,0 +1,405 @@
 +//===--- ChineseDiagnostics.def - 中文诊断文本表 ----------------*- C -*-===//
 +//
 +// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -17,7 +17,7 @@ index 0000000..e8aabd8
 +//  效果：报错的正文用中文显示，前缀（error: / warning:）和选项名
 +//        （[-Wunused-variable]）保持原样：
 +//
-+//            error: 未使用的变量 '甲' [-Wunused-variable]
++//            error: 未使用的变量（变量名） '甲' [-Wunused-variable]
 +//
 +//  设计约束（修改本文件前请务必阅读）：
 +//
@@ -112,17 +112,17 @@ index 0000000..e8aabd8
 +        "声明末尾缺少 ';'")                                  // 忘了分号
 +
 +// 英文：to match this %0       （与上一条配对出现的 note）
-+ZH_DIAG(note_matching, "与这个 %0 匹配")
++ZH_DIAG(note_matching, "与这个（符号） %0 匹配")
 +
 +//===----------------------------------------------------------------------===//
 +// 二、名字与类型
 +//===----------------------------------------------------------------------===//
 +
 +// 英文：unknown type name %0
-+ZH_DIAG(err_unknown_typename, "未知的类型名 %0")
++ZH_DIAG(err_unknown_typename, "未知的类型名（类型名） %0")
 +
 +// 英文：use of undeclared identifier %0
-+ZH_DIAG(err_undeclared_var_use, "使用了未声明的标识符 %0")
++ZH_DIAG(err_undeclared_var_use, "使用了未声明的标识符（名字） %0")
 +
 +// 英文：no member named %0 in %1
 +ZH_DIAG(err_no_member, "%1 中没有名为 %0 的成员")
@@ -132,7 +132,7 @@ index 0000000..e8aabd8
 +//===----------------------------------------------------------------------===//
 +
 +// 英文：no matching function for call to %0
-+ZH_DIAG(err_ovl_no_viable_function_in_call, "没有与 %0 匹配的函数")
++ZH_DIAG(err_ovl_no_viable_function_in_call, "没有与（函数名） %0 匹配的函数")
 +
 +//===----------------------------------------------------------------------===//
 +// 四、常量限定（%select 里有嵌套 %select，分支顺序必须与英文一致）
@@ -175,8 +175,8 @@ index 0000000..e8aabd8
 +// 英文：unused variable %0
 +// 注意：warn_unused_variable 与 warn_unused_const_variable 的英文正文
 +//       完全相同。这正是「按 ID 而不是按英文正文查表」的原因。
-+ZH_DIAG(warn_unused_variable, "未使用的变量 %0")
-+ZH_DIAG(warn_unused_const_variable, "未使用的变量 %0")
++ZH_DIAG(warn_unused_variable, "未使用的变量（变量名） %0")
++ZH_DIAG(warn_unused_const_variable, "未使用的变量（变量名） %0")
 +
 +//===----------------------------------------------------------------------===//
 +// 六、下标与运算符
@@ -238,17 +238,17 @@ index 0000000..e8aabd8
 +//===----------------------------------------------------------------------===//
 +
 +// 英文：'%0' file not found
-+ZH_DIAG(err_pp_file_not_found, "找不到文件 '%0'")
++ZH_DIAG(err_pp_file_not_found, "找不到文件（名字） '%0'")
 +
 +//===----------------------------------------------------------------------===//
 +// 十、未使用（警告一族）
 +//===----------------------------------------------------------------------===//
 +
 +// 英文：unused parameter %0
-+ZH_DIAG(warn_unused_parameter, "未使用的形参 %0")
++ZH_DIAG(warn_unused_parameter, "未使用的形参（变量名） %0")
 +
 +// 英文：parameter %0 set but not used
-+ZH_DIAG(warn_unused_but_set_parameter, "形参 %0 被赋值但未被使用")
++ZH_DIAG(warn_unused_but_set_parameter, "形参（变量名） %0 被赋值但未被使用")
 +
 +// 英文：expression result unused
 +ZH_DIAG(warn_unused_expr, "表达式的结果未被使用")
@@ -273,11 +273,11 @@ index 0000000..e8aabd8
 +// 英文：in instantiation of template class %q0 requested here
 +// %q0 是限定名（如 盒子<int>），保留 %q 才有这个语义。
 +ZH_DIAG(note_template_class_instantiation_here,
-+        "这里要求实例化类模板 %q0")
++        "这里要求实例化类模板（类型名） %q0")
 +
 +// 英文：in instantiation of function template specialization %q0 requested here
 +ZH_DIAG(note_function_template_spec_here,
-+        "这里要求实例化函数模板特化 %q0")
++        "这里要求实例化函数模板特化（函数名） %q0")
 +
 +//===----------------------------------------------------------------------===//
 +// 十二、第三批：按真实频次挑的高频句（2026-09-23）
@@ -298,7 +298,8 @@ index 0000000..e8aabd8
 +//   · 角色表有两级机器校核（tools\diag_id_lookup.py 的 check_role_table）：
 +//       硬失败 —— 角色词必须属于上面那张封闭词表（ROLE_WORDS）
 +//       只报告 —— 有占位符却没有角色表。第一批那 32 条写在角色表约定之前，
-+//                 硬判会让它们全部变红，所以列成【迁移待办】（实测 20 条）
++//                 硬判会让它们全部变红，所以列成【迁移待办】（实测 20 条；
++//                 2026-09-23 已迁移 15 条，剩 5 条多角色/嵌套 select 待人工排布）
 +//     （历史：本注释曾写「校核器会查角色表」，而那时检查并未实现。2026-09-23
 +//      独立复核者用三份违规副本实测全部 problems=0，才把这个空洞暴露出来。）
 +//   · 它仍然【查不出角色标错】（把（属性名）写成（变量名）照样通过）——

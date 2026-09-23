@@ -1,5 +1,5 @@
 // expect: 模板在此声明
-// expect: 这里要求实例化类模板 '盒子<int>'
+// expect: 这里要求实例化类模板（类型名） '盒子<int>'
 // forbid: template is declared here
 // forbid: in instantiation of template class
 //

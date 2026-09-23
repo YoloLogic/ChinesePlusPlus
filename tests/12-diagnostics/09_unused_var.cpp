@@ -1,4 +1,4 @@
-// expect: 未使用的变量 '甲'
+// expect: 未使用的变量（变量名） '甲'
 // forbid: unused variable
 //
 // 定义了没用过的变量（本文件单独加 -Wall）。同时验证：

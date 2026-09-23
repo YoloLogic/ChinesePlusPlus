@@ -1,4 +1,4 @@
-// expect: 没有与 'f' 匹配的函数
+// expect: 没有与（函数名） 'f' 匹配的函数
 // forbid: no matching function for call to
 // expect: no known conversion from
 //

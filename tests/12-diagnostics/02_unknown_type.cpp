@@ -1,4 +1,4 @@
-// expect: 未知的类型名 '未知类型'
+// expect: 未知的类型名（类型名） '未知类型'
 // forbid: unknown type name
 //
 // 用了一个没定义过的类型名。

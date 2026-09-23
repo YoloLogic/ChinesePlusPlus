@@ -1,4 +1,4 @@
-// expect: 使用了未声明的标识符 '甲'
+// expect: 使用了未声明的标识符（名字） '甲'
 // forbid: use of undeclared identifier
 //
 // 用了没声明过的变量。

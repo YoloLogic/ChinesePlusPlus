@@ -1,5 +1,5 @@
-// expect: 未使用的形参 'a'
-// expect: 形参 'b' 被赋值但未被使用
+// expect: 未使用的形参（变量名） 'a'
+// expect: 形参（变量名） 'b' 被赋值但未被使用
 // forbid: unused parameter
 // forbid: set but not used
 //
