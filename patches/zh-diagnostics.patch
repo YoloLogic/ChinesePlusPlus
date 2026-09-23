@@ -1,9 +1,9 @@
 diff --git a/clang/include/clang/Basic/ChineseDiagnostics.def b/clang/include/clang/Basic/ChineseDiagnostics.def
 new file mode 100644
-index 0000000..5fcb77a
+index 0000000..9bbab0f
 --- /dev/null
 +++ b/clang/include/clang/Basic/ChineseDiagnostics.def
-@@ -0,0 +1,386 @@
+@@ -0,0 +1,391 @@
 +//===--- ChineseDiagnostics.def - 中文诊断文本表 ----------------*- C -*-===//
 +//
 +// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -295,8 +295,13 @@ index 0000000..5fcb77a
 +//       关键字 种类 变量名 类型名 函数名 属性名 成员名 名字
 +//       表达式 类型 符号 选项
 +//     加角色词是一次明确动作（要同时改词表和校核器），不是随手写新词。
-+//   · 校核器只查「有没有角色表」「角色词在不在词表内」。
-+//     它【查不出角色标错】（把（属性名）写成（变量名）照样通过）——
++//   · 角色表有两级机器校核（tools\diag_id_lookup.py 的 check_role_table）：
++//       硬失败 —— 角色词必须属于上面那张封闭词表（ROLE_WORDS）
++//       只报告 —— 有占位符却没有角色表。第一批那 32 条写在角色表约定之前，
++//                 硬判会让它们全部变红，所以列成【迁移待办】（实测 20 条）
++//     （历史：本注释曾写「校核器会查角色表」，而那时检查并未实现。2026-09-23
++//      独立复核者用三份违规副本实测全部 problems=0，才把这个空洞暴露出来。）
++//   · 它仍然【查不出角色标错】（把（属性名）写成（变量名）照样通过）——
 +//     这是第三条盲点，与文件开头记录的两条同类。
 +//===----------------------------------------------------------------------===//
 +
