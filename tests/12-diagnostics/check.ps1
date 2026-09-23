@@ -203,6 +203,22 @@ Check-Case '40_unused_lambda_capture.cpp'        '-Wall'  -Expect ok
 Check-Case '41_conv_to_function.cpp'            
 Check-Case '42_matrix_disabled.cpp'              '-std=c++20'
 
+# --- C1 (2026-09-23): sibling entries. Every one of these already had its main
+# --- sentence translated; these are the variants that used to fall back to
+# --- English and therefore appeared right next to Chinese in the same group.
+Check-Case '43_unused_but_set_var.cpp'         '-Wall'  -Expect ok
+Check-Case '44_unused_but_set_global.cpp'      '-Wall -Wunused-but-set-global' -Expect ok
+Check-Case '45_sa_expr_not_constant.cpp'       '-std=c++20'
+Check-Case '46_semi_decl_list.cpp'
+Check-Case '47_expected_expression.cpp'
+Check-Case '48_typename_suggest.cpp'
+Check-Case '49_undeclared_suggest.cpp'
+Check-Case '50_nested_typename_suggest.cpp'
+Check-Case '51_unknown_attribute_suggest.cpp'  '-Wall'  -Expect ok
+Check-Case '52_no_template_suggest.cpp'
+Check-Case '53_member_redeclared.cpp'
+Check-Case '54_reinterpret_warning.cpp'        '-Wall'  -Expect ok
+
 # ---------------------------------------------------------------------------
 # 2) prefix and option name must survive (ASCII, so trivially checkable)
 # ---------------------------------------------------------------------------
@@ -245,6 +261,27 @@ if (Test-SameBytes $def.Bytes $flg.Bytes) {
 } else {
     Write-Host '    FAIL default log differs from the -fno- log (fallback is broken)'
     $script:fail += 1
+}
+
+# ---------------------------------------------------------------------------
+# 5) every .cpp in this directory must be REFERENCED by this script.
+#    The case list above is hard-coded on purpose (each case carries its own
+#    flags and exit-code expectation), but that makes one specific mistake
+#    possible: drop in a new .cpp, forget the Check-Case line, and the file
+#    never runs and therefore never fails. A case file that silently tests
+#    nothing is worse than no case file -- it looks like coverage.
+# ---------------------------------------------------------------------------
+Write-Host '--- registration: every .cpp here must be run by this script'
+$selfText = Get-Content -Raw -Path $MyInvocation.MyCommand.Path
+$unregistered = @()
+foreach ($f in (Get-ChildItem -Path $here -Filter *.cpp | Sort-Object Name)) {
+    if ($selfText.IndexOf($f.Name) -lt 0) { $unregistered += $f.Name }
+}
+if ($unregistered.Count -gt 0) {
+    Write-Host ('    FAIL not referenced by this script: ' + ($unregistered -join ', '))
+    $script:fail += 1
+} else {
+    Write-Host '    OK   every case file is referenced by this script'
 }
 
 Write-Host ''

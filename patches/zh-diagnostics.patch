@@ -1,9 +1,9 @@
 diff --git a/clang/include/clang/Basic/ChineseDiagnostics.def b/clang/include/clang/Basic/ChineseDiagnostics.def
 new file mode 100644
-index 0000000..e12de3b
+index 0000000..abf2260
 --- /dev/null
 +++ b/clang/include/clang/Basic/ChineseDiagnostics.def
-@@ -0,0 +1,423 @@
+@@ -0,0 +1,539 @@
 +//===--- ChineseDiagnostics.def - 中文诊断文本表 ----------------*- C -*-===//
 +//
 +// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -423,6 +423,122 @@ index 0000000..e12de3b
 +// lambda 是语言术语，没有中文关键字拼写，保留英文。
 +ZH_DIAG(warn_unused_lambda_capture,
 +        "（变量名） %0 这个 lambda 捕获 %select{未被使用|在这一处用法中不必被捕获}1")
++
++//===----------------------------------------------------------------------===//
++// 十五、C1：补齐「兄弟条目」（2026-09-23）
++//
++// 依据：tools\diag_coverage.py 实测（400 个真实文件 / 4980 条诊断实例，
++// 直接观测覆盖率 70.0%）。未覆盖的 1495 条里 **1014 条能唯一贴上 ID** —— 而
++// 它们当中很大一部分不是"没见过的句子"，是【我们已经翻过的那句话的兄弟】：
++// 主句翻了、_suggest 变体没翻；或者同族的两条英文逐字相同、只翻了其中一条。
++// 结果是用户在同一句话上看到中英并排。
++//
++// 所以这一批按【句子】补齐，不按频次撒网。每条都注明了实测触发方式；
++// 没能触发的如实写出来，不含糊过去。
++//===----------------------------------------------------------------------===//
++
++// 英文：variable %0 set but not used
++// 兄弟：warn_unused_but_set_parameter（已翻：形参（变量名） %0 被赋值但未被使用）
++// 实测：整数 f() { 整数 甲 = 0; 甲 = 1; 返回 0; }   （-Wall）
++ZH_DIAG(warn_unused_but_set_variable,
++        "变量（变量名） %0 被赋值但未被使用")
++
++// 英文：variable %0 set but not used   （与上一条【逐字相同】）
++// 全局变量走的是另一个 ID。只翻一个，同一句话就会在两种情况下中英并排。
++// 实测：static 整数 甲 = 0; 整数 f() { 甲 = 1; 返回 0; }  （-Wunused-but-set-global）
++ZH_DIAG(warn_unused_but_set_global,
++        "变量（变量名） %0 被赋值但未被使用")
++
++// 英文：static assertion expression is not an integral constant expression
++// 兄弟：err_static_assert_requirement_failed（已翻）—— 一条说"要求不满足"，
++//       一条说"表达式本身不是常量"，用户会连着看到两句。
++// 实测：整数 甲 = 0; 静态断言(甲);   （-std=c++20）
++ZH_DIAG(err_static_assert_expression_is_not_constant,
++        "静态断言的表达式不是整型常量表达式")
++
++// 英文：expected ';' at end of declaration list
++// 兄弟：err_expected_semi_declaration（已翻：声明末尾缺少 ';'）
++// 实测：结构 甲 { 整数 乙 = 1 }
++ZH_DIAG(err_expected_semi_decl_list,
++        "声明列表末尾缺少 ';'")
++
++// 英文：expected expression
++// 兄弟：err_expected（已翻：缺少（符号） %0）—— 但这一条【没有占位符】，
++//       是独立 ID，不是同一条的另一个参数值。
++// 实测：整数 甲 = ;
++ZH_DIAG(err_expected_expression,
++        "缺少 表达式")
++
++// 英文：declared here
++// 实测：整数 甲 = 0; 静态断言(甲);  带出的 note
++ZH_DIAG(note_declared_at, "在此声明")
++
++// 英文：%0 declared here
++// 三个 ID 英文【逐字相同】（note_previous_decl / note_entity_declared_at /
++// note_callee_decl），必须一起翻，否则同一句话中英并排。
++// 与既有的（名字） %0 在此定义（note_defined_here）、模板在此声明 对齐。
++// 实测：结构 vector { }; vecotr 甲;
++ZH_DIAG(note_previous_decl, "（名字） %0 在此声明")
++ZH_DIAG(note_entity_declared_at, "（名字） %0 在此声明")
++ZH_DIAG(note_callee_decl, "（名字） %0 在此声明")
++
++// 英文：unknown type name %0; did you mean %1?
++// 兄弟：err_unknown_typename（已翻）—— 这是本批最要紧的一类：
++//       clang 只要能给出建议就走 suggest 变体，而建议恰恰是初学者最需要的那半句。
++//       翻了主句等于把最有用的部分留成英文。
++// 实测：结构 vector { }; vecotr 甲;
++ZH_DIAG(err_unknown_typename_suggest,
++        "未知的类型名（类型名） %0；你是不是想写（类型名） %1？")
++
++// 英文：use of undeclared identifier %0; did you mean %1?
++// 兄弟：err_undeclared_var_use（已翻）
++// 实测：整数 value = 0; 整数 main() { 返回 valu; }
++ZH_DIAG(err_undeclared_var_use_suggest,
++        "使用了未声明的标识符（名字） %0；你是不是想写（名字） %1？")
++
++// 英文：no type named %0 in %1; did you mean %select{|simply }2%3?
++// 兄弟：err_typename_nested_not_found（已翻）
++// 分支 0 是【空】的 —— 建议不需要"直接"时就是它，必须留空。
++// 实测：结构 S { 类型别名 整数 value_type; }; S::valuetype 甲;
++ZH_DIAG(err_unknown_nested_typename_suggest,
++        "（类型名） %1 中没有名为（名字） %0 的类型；"
++        "%select{你是不是想写|你是不是想直接写}2（类型名） %3？")
++
++// 英文：unknown attribute %0 ignored; did you mean '%1'?
++// 兄弟：warn_unknown_attribute_ignored（已翻）
++// 实测：void f() __attribute__((noretun));   （-Wall）
++ZH_DIAG(warn_unknown_attribute_ignored_suggestion,
++        "未知的属性（属性名） %0 被忽略；你是不是想写（属性名） '%1'？")
++
++// 英文：no template named %0; did you mean %1?
++// 实测：模板<类型名 T> 结构 Box { }; void f() { Boxx<整数> 甲; }
++ZH_DIAG(err_no_template_suggest,
++        "没有名为（名字） %0 的模板；你是不是想写（名字） %1？")
++
++// 英文：class member cannot be redeclared
++// 两个 ID 英文【逐字相同】（err_member_redeclared / ext_member_redeclared），
++// 一起翻。实测只触发到 err_member_redeclared（重复声明成员函数）；
++// ext_member_redeclared 试了 struct S { struct T; struct T {}; } 与 -pedantic
++// 都没触发，**没有渲染用例** —— 如实写在这里，不假装验证过。
++// 实测：结构 S { void f(); void f(); };
++// ⚠ 术语：这里用了「类」字。关键字表里 class = 类型，但本表既有条目已经把
++//   「类」当【普通名词】用（最终类 / 抽象类）。这里跟随后者用「类成员」，
++//   没有用「类型成员」—— 后者不是汉语里的说法。这是一个要用户确认的选择。
++ZH_DIAG(err_member_redeclared, "类成员不能被重新声明")
++ZH_DIAG(ext_member_redeclared, "类成员不能被重新声明")
++
++// 英文：'reinterpret_cast' %select{from|to}3 class %0 %select{to|from}3 its
++//       %select{virtual base|base at non-zero offset}2 %1 behaves differently
++//       from 'static_cast'
++// 兄弟：note_reinterpret_updowncast_use_static（已翻）—— 两条在源码里
++//       紧挨着发射（SemaCast.cpp:1136 与 1139），只翻后一条就会出现
++//       "中文 note 顶着英文 warning"。
++// 两个 %select 都挂在序号 3，但分支顺序【相反】，不能合并成一个。
++// 实测：tests\12-diagnostics\54_reinterpret_warning.cpp   （-Wall，downcasting 分支）
++ZH_DIAG(warn_reinterpret_different_from_static,
++        "'reinterpret_cast' %select{从|到}3类（类型） %0，"
++        "%select{目标是|来源是}3它的 %select{虚基类|非零偏移的基类}2（类型） %1，"
++        "行为与 'static_cast' 不同")
 +
 +//===----------------------------------------------------------------------===//
 +
