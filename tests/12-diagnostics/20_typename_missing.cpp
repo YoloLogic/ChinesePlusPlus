@@ -1,4 +1,4 @@
-// expect: 依赖类型名 'T::某名字' 之前缺少 'typename'
+// expect: 依赖类型名（名字） 'T::某名字' 之前缺少（关键字） 类型名
 // forbid: missing 'typename' prior to
 //
 // 依赖名前面漏了 typename。

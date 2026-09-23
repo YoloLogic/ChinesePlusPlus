@@ -75,8 +75,9 @@ Get-ChildItem E:\Chinese++ -Recurse -Include *.md,*.ps1,*.py,*.cpp,*.def,*.td |
 ```
 powershell -File E:\Chinese++\tools\acceptance.ps1     →  17 PASS / 0 FAIL
 powershell -File E:\Chinese++\tests\run_all.ps1        →  passed: 19  failed: 0
-中文诊断表                                             →  32 条（展开 49 句）
-按真实出现次数算的覆盖                                  →  61.3%
+tests\12-diagnostics\check.ps1                         →  33 个渲染用例全过（原 26）
+中文诊断表                                             →  42 条（第三批 2026-09-23）
+按真实出现次数算的覆盖                                  →  80.7%   （32 条时是 61.3%）
 补丁                                                   →  zh-keywords.patch 14 文件
                                                           zh-diagnostics.patch 5 文件
 

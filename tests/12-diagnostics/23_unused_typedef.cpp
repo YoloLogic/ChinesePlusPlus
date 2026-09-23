@@ -1,5 +1,5 @@
-// expect: 未使用的 类型别名 '丙'
-// expect: 未使用的 别名声明 '乙'
+// expect: 未使用的（种类 类型名） 类型别名 '丙'
+// expect: 未使用的（种类 类型名） 别名声明 '乙'
 // forbid: unused typedef
 // forbid: unused type alias
 //

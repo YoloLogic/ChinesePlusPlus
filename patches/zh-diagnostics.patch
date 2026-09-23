@@ -1,9 +1,9 @@
 diff --git a/clang/include/clang/Basic/ChineseDiagnostics.def b/clang/include/clang/Basic/ChineseDiagnostics.def
 new file mode 100644
-index 0000000..ffa4cdf
+index 0000000..39d24e7
 --- /dev/null
 +++ b/clang/include/clang/Basic/ChineseDiagnostics.def
-@@ -0,0 +1,276 @@
+@@ -0,0 +1,347 @@
 +//===--- ChineseDiagnostics.def - 中文诊断文本表 ----------------*- C -*-===//
 +//
 +// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -223,10 +223,12 @@ index 0000000..ffa4cdf
 +//   ext_typename_missing              扩展警告
 +//   compat_pre_cxx20_implicit_typename 警告：……是 C++20 扩展
 +// 实测：-std=c++20 下写 T::某名字 触发的是第三个。
-+ZH_DIAG(err_typename_missing, "依赖类型名 %0 之前缺少 'typename'")
-+ZH_DIAG(ext_typename_missing, "依赖类型名 %0 之前缺少 'typename'")
++ZH_DIAG(err_typename_missing,
++        "依赖类型名（名字） %0 之前缺少（关键字） 类型名")
++ZH_DIAG(ext_typename_missing,
++        "依赖类型名（名字） %0 之前缺少（关键字） 类型名")
 +ZH_DIAG(compat_pre_cxx20_implicit_typename,
-+        "依赖类型名 %0 之前缺少 'typename'，这是 C++20 扩展")
++        "依赖类型名（名字） %0 之前缺少（关键字） 类型名，这是 C++20 扩展")
 +
 +// 英文：a type specifier is required for all declarations
 +ZH_DIAG(err_missing_type_specifier, "所有声明都必须有类型说明符")
@@ -259,7 +261,7 @@ index 0000000..ffa4cdf
 +// 与「术语与关键字表逐字一致」这条硬约束冲突。
 +// 这是独立复核者 2026-09-22 找出来的（F3）。
 +ZH_DIAG(warn_unused_local_typedef,
-+        "未使用的 %select{类型别名|别名声明}0 %1")
++        "未使用的（种类 类型名） %select{类型别名|别名声明}0 %1")
 +
 +//===----------------------------------------------------------------------===//
 +// 十一、模板（note，实例化时最常看到的三条）
@@ -276,6 +278,75 @@ index 0000000..ffa4cdf
 +// 英文：in instantiation of function template specialization %q0 requested here
 +ZH_DIAG(note_function_template_spec_here,
 +        "这里要求实例化函数模板特化 %q0")
++
++//===----------------------------------------------------------------------===//
++// 十二、第三批：按真实频次挑的高频句（2026-09-23）
++//
++// 挑选依据：tools\diag_frequency.py 实测（语料 3956 条实例 / 303 个 ID）。
++// 这一批【全部不含 %select】—— 零结构风险。
++//
++// 【第三批起新增的排版约定：角色表】
++//   正文里的「成分」前面要写一张【角色表】，用全角括号：
++//       （角色词） 成分
++//   多个成分相邻时合并成一张表，按顺序一一对应：
++//       未使用的（关键字 类型名） 类型别名 '丙'
++//   · 能确定的写具体角色；不能确定的写兜底的（名字）。
++//   · 角色词来自【封闭词表】：
++//       关键字 种类 变量名 类型名 函数名 属性名 成员名 名字
++//       表达式 类型 符号 选项
++//     加角色词是一次明确动作（要同时改词表和校核器），不是随手写新词。
++//   · 校核器只查「有没有角色表」「角色词在不在词表内」。
++//     它【查不出角色标错】（把（属性名）写成（变量名）照样通过）——
++//     这是第三条盲点，与文件开头记录的两条同类。
++//===----------------------------------------------------------------------===//
++
++// 英文：call to undeclared function %0; ISO C99 and later do not support
++//       implicit function declarations
++// 实测 -std=c99：int main(void) { return foo(); }
++ZH_DIAG(ext_implicit_function_decl_c99,
++        "调用了未声明的函数（函数名） %0；ISO C99 及以后的版本不支持隐式函数声明")
++
++// 英文：'static_assert' with no message is a C++17 extension
++// 实测 -std=c++14：static_assert(true);   （附带插入提示 , ""）
++// 「静态断言」是 static_assert 的中文拼写；这里指用户写的那个构造。
++ZH_DIAG(ext_cxx_static_assert_no_message,
++        "不带消息的（关键字） 静态断言 是 C++17 扩展")
++
++// 英文：unknown attribute %0 ignored
++ZH_DIAG(warn_unknown_attribute_ignored,
++        "未知的属性（属性名） %0 被忽略")
++
++// 英文：multi-line // comment      （要 -Wcomment 或 -Wall 才出现）
++ZH_DIAG(ext_multi_line_line_comment,
++        "多行的 // 注释")
++
++// 英文：%0 defined here
++// %0 可能是变量、函数、类、名域……种类不定，所以用兜底的（名字）。
++// 「在此定义」与既有 note 的「在此声明」对齐（全表用「在此」，不用「于此」）。
++ZH_DIAG(note_defined_here,
++        "（名字） %0 在此定义")
++
++// 英文：suggest braces around initialization of subobject
++ZH_DIAG(warn_missing_braces,
++        "建议给子对象的初始化加上花括号")
++
++// 英文：matrix types extension is disabled. Pass -fenable-matrix to enable it
++ZH_DIAG(err_builtin_matrix_disabled,
++        "矩阵类型扩展已禁用。传入（选项） -fenable-matrix 以启用")
++
++// 英文：constexpr variable %0 must be initialized by a constant expression
++// 「常量表达式」同时是 constexpr 的中文拼写、又是「constant expression」的
++// 标准术语。同一句里同一个词指两样东西会读不懂，所以句尾改用「编译期常量」错开。
++ZH_DIAG(err_constexpr_var_requires_const_init,
++        "（关键字） 常量表达式 变量（变量名） %0 必须用编译期常量初始化")
++
++// 英文：conversion function cannot have any parameters
++ZH_DIAG(err_conv_function_with_params,
++        "转换函数不能带有任何形参")
++
++// 英文：conversion function cannot convert to a function type
++ZH_DIAG(err_conv_function_to_function,
++        "转换函数不能转换成函数类型")
 +
 +//===----------------------------------------------------------------------===//
 +

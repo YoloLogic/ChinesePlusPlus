@@ -186,6 +186,13 @@ Check-Case '23_unused_typedef.cpp' '-Wall' -Expect ok | Out-Null
 Check-Case '24_shadow.cpp'         '-Wshadow' -Expect ok | Out-Null
 Check-Case '25_template_notes.cpp' '-Wall' | Out-Null
 Check-Case '26_fn_template_spec.cpp' '-Wall' | Out-Null
+Check-Case '27_implicit_function.c'            '-x c -std=c99'
+Check-Case '28_static_assert_no_message.cpp'   '-std=c++14' -Expect ok
+Check-Case '29_unknown_attribute.cpp'           -Expect ok
+Check-Case '30_missing_braces.cpp'             '-Wall' -Expect ok
+Check-Case '31_constexpr_var_init.cpp'
+Check-Case '32_conv_function_params.cpp'
+Check-Case '33_multi_line_comment.cpp'         '-Wall' -Expect ok
 
 # ---------------------------------------------------------------------------
 # 2) prefix and option name must survive (ASCII, so trivially checkable)
