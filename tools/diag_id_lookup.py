@@ -646,6 +646,14 @@ def self_test(inc):
             bad.append("角色表·%s：期望%s，实际%s"
                        % (why, "报错" if should_fail else "通过",
                           "报错" if got else "通过"))
+    # 半角括号：必须失败，而且报错必须【说清是括号的问题】。
+    # 只断言"失败"不够 —— 原来的失败信息指向"没有角色表"，会把人带偏，
+    # 而那正是第四次复核记下的那个盲点。检查的措辞本身也要被检查。
+    hp, _ = check_role_table("err_unknown_typename", "未知的类型名(类型名) %0")
+    if not hp:
+        bad.append("半角括号写的角色表没被判失败")
+    elif "半角" not in hp[0]:
+        bad.append("半角括号被判失败，但报错没指出是括号的问题：%s" % hp[0])
     # 分支顺序颠倒必须被抓到（独立复核者指出的缺口 F4，现已补上）
     sig_a = branch_signature("candidate %select{%ordinal0 argument|object argument}1")
     sig_b = branch_signature("candidate %select{object argument|%ordinal0 argument}1")
@@ -725,10 +733,20 @@ def check_role_table(name, text):
             problems.append("%s：角色表里一个角色词都没有 -> %r" % (name, g))
     has_ph = "%" in text
     if has_ph and not groups:
-        # 2026-09-23 起是【硬失败】（迁移已完毕）。见 docstring 里的历史。
+        # 角色表只认【全角】括号（）。写半角会被判成"缺角色表" —— 失败是响的
+        # （2026-09-23 起这一项是硬失败），但原来的报错信息会指向错的方向：
+        # 它说"没有角色表"，用户看到的却是自己明明写了 (类型名)。这里把真实
+        # 原因一并说出来。这是第四次复核记下的盲点，不是新加的规则。
+        hint = ""
+        for g in re.findall(r"\(([^()]*)\)", text):
+            if "%" in g:
+                continue
+            if any(w in ROLE_WORDS for w in g.split()):
+                hint = ("；你是不是用了半角括号？角色表必须用全角（）—— 发现了 (%s)" % g)
+                break
         problems.append(
             "%s：有占位符却没有角色表（一律标是有意选择的统一；"
-            "若确实该例外，请写进 .def 并说明理由）" % name)
+            "若确实该例外，请写进 .def 并说明理由）%s" % (name, hint))
     return problems, notes
 
 
