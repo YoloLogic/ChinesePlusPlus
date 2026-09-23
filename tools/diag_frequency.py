@@ -51,14 +51,13 @@ DEFAULT_INCLUDES = [
 ]
 
 DIAG_LINE = re.compile(
-    r"^(.*?):\s*(error|warning|note|remark|fatal error):\s*(.*?)(?:\s*\[-W[\w\-\+=,]+\])?\s*$"
+    r"^(?P<loc>.*?):\s*(?P<sev>error|warning|note|remark|fatal error):\s*"
+    r"(?P<msg>.*?)(?:\s*\[-W[\w\-\+=,]+\])?\s*$"
 )
 
-# 这些不是"内容诊断"，统计进来会污染排名
-IGNORE_IDS = {
-    "err_expected",            # 单独看没意义，到处都是
-    "err_expected_semi_declaration",
-}
+# 这里原来有一个 IGNORE_IDS = {err_expected, err_expected_semi_declaration}，
+# 注释说"统计进来会污染排名" —— 但代码从头到尾没引用过它，是一条死代码：
+# 它宣称的剔除从未发生。2026-09-23 删掉。真要剔除就在这里接线，别只写注释。
 
 
 def collect(dirs, exts, limit):
@@ -75,7 +74,8 @@ def collect(dirs, exts, limit):
     return out
 
 
-def compile_one(path, extra, includes):
+def compile_one_full(path, extra, includes):
+    """返回 [(等级, 正文, 位置)]。位置是 `文件:行:列`，驱动自身的消息没有行号。"""
     cmd = [CLANGXX, "-fsyntax-only", "-fno-caret-diagnostics",
            "-fno-diagnostics-fixit-info", "-fno-color-diagnostics",
            "-ferror-limit=0"]
@@ -96,8 +96,13 @@ def compile_one(path, extra, includes):
     for line in p.stderr.decode("utf-8", errors="replace").splitlines():
         m = DIAG_LINE.match(line)
         if m:
-            msgs.append((m.group(2), m.group(3).strip()))
+            msgs.append((m.group("sev"), m.group("msg").strip(), m.group("loc").strip()))
     return msgs
+
+
+def compile_one(path, extra, includes):
+    """只要 (等级, 正文)。与 compile_one_full 是同一次编译，不会漂移。"""
+    return [(sev, msg) for (sev, msg, _loc) in compile_one_full(path, extra, includes)]
 
 
 # 驱动自身/环境造成的诊断，与"用户代码写错了"无关，统计进来会污染排名
@@ -144,8 +149,10 @@ def main():
     per_id = collections.Counter()
     per_id_sample = {}
     unmatched = collections.Counter()
+    noise = collections.Counter()
     sev_of = {}
     done = 0
+    n_seen = 0
 
     def work(path):
         return path, compile_one(path, extra, DEFAULT_INCLUDES)
@@ -156,12 +163,20 @@ def main():
             if done % 50 == 0:
                 print("  ... %d/%d" % (done, len(files)))
             for sev, msg in msgs:
+                n_seen += 1
                 hits = [n for (n, rx) in compiled if rx.match(msg)]
-                if len(hits) == 1 and not hits[0].startswith(NOISE_ID_PREFIX):
-                    per_id[hits[0]] += 1
-                    sev_of.setdefault(hits[0], sev)
-                    per_id_sample.setdefault(hits[0], msg)
-                elif len(hits) != 1:
+                if len(hits) == 1:
+                    if hits[0].startswith(NOISE_ID_PREFIX):
+                        # 识别到了，只是它属于驱动/前端自身，不参与"用户代码写错了"
+                        # 的排名。以前这里两个分支都不走 —— 实例凭空消失，既不在
+                        # 排名里也不在"未能反查"里，总数因此比实际少一截，而且少得
+                        # 不均匀（英文丢得比中文多），把覆盖率算高了。
+                        noise[hits[0]] += 1
+                    else:
+                        per_id[hits[0]] += 1
+                        sev_of.setdefault(hits[0], sev)
+                        per_id_sample.setdefault(hits[0], msg)
+                else:
                     unmatched[msg] += 1
 
     lines = []
@@ -170,6 +185,12 @@ def main():
     lines.append("=" * 78)
     total = sum(per_id.values())
     lines.append("识别出的诊断实例: %d 条，涉及 %d 个诊断 ID" % (total, len(per_id)))
+    # 三块相加必须等于实际看到的诊断行数 —— 本工具自己就能对账，
+    # 也对得上 tools\diag_coverage.py 的"诊断实例总数"。对不上就是有实例又丢了。
+    lines.append("  驱动/前端自身: %d 条（识别到但不参与排名）" % sum(noise.values()))
+    lines.append("  未能反查到   : %d 条" % sum(unmatched.values()))
+    lines.append("  三块相加     : %d 条  ← 必须等于实际看到的诊断行数 %d"
+                 % (total + sum(noise.values()) + sum(unmatched.values()), n_seen))
     lines.append("")
     lines.append("%-6s %-5s %-42s %s" % ("次数", "等级", "诊断 ID", "英文样例"))
     lines.append("-" * 78)
