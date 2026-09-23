@@ -1,9 +1,9 @@
 diff --git a/clang/include/clang/Basic/ChineseDiagnostics.def b/clang/include/clang/Basic/ChineseDiagnostics.def
 new file mode 100644
-index 0000000..39d24e7
+index 0000000..5fcb77a
 --- /dev/null
 +++ b/clang/include/clang/Basic/ChineseDiagnostics.def
-@@ -0,0 +1,347 @@
+@@ -0,0 +1,386 @@
 +//===--- ChineseDiagnostics.def - 中文诊断文本表 ----------------*- C -*-===//
 +//
 +// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -347,6 +347,45 @@ index 0000000..39d24e7
 +// 英文：conversion function cannot convert to a function type
 +ZH_DIAG(err_conv_function_to_function,
 +        "转换函数不能转换成函数类型")
++
++//===----------------------------------------------------------------------===//
++// 十三、第三批 B 组：含少量 %select 的高频句（2026-09-23）
++//
++// 【子规则】%select 分支内部的成分【不写角色表】—— 那些分支是句中的续接片段，
++// 不是独立成分，在片段里再塞括号只会更难读。角色表只管分支【之外】的成分。
++// 分支数、竖线、分支顺序必须与英文完全一致（校核器会验）。
++//===----------------------------------------------------------------------===//
++
++// 英文：static assertion failed due to requirement '%0'%select{: %2|}1
++// 分支 1 是【空】的 —— 没写消息时就是它，必须留空。
++// 实测：static_assert(sizeof(int) > 99);        （空分支）
++//       static_assert(sizeof(int) > 99, "…");   （带消息分支）
++ZH_DIAG(err_static_assert_requirement_failed,
++        "静态断言失败，因为不满足要求（表达式） '%0'%select{：%2|}1")
++
++// 英文：%0 is not %select{trivially relocatable|trivially copyable|empty|
++//                         standard-layout|aggregate|final|abstract}1
++// 7 个分支改成名词短语（原来「不是 可平凡重定位的」立不住）。
++// ⚠ 目前没有可靠的触发方式，所以【没有渲染用例】—— 只有校核器验过结构。
++ZH_DIAG(note_unsatisfied_trait,
++        "（类型） %0 不是 %select{可平凡重定位类型|可平凡复制类型|空类型|标准布局类型|聚合类型|最终类|抽象类}1")
++
++// 英文：use 'static_cast' to adjust the pointer correctly while
++//       %select{upcasting|downcasting}0
++// 分支顺序与英文一致（英文先 upcasting 后 downcasting）。
++// 实测只触发了 downcasting 那一支（reinterpret_cast 从虚基类向下转）。
++ZH_DIAG(note_reinterpret_updowncast_use_static,
++        "在 %select{向上转换|向下转换}0 时，请用（关键字） 静态转换 正确调整指针")
++
++// 英文：cannot specify any part of a return type in the declaration of a
++//       conversion function%select{; put the complete type after 'operator'|
++//       ; use a typedef to declare a conversion to %1|
++//       ; use an alias template to declare a conversion to %1|}0
++// 三个分支都以「；」开头 —— 它们是【追加从句】，所以 %select 必须留在句尾，
++// 不能把主语塞到分支后面（中文会把「不能转换函数」读成动宾）。
++// 实测触发的是分支 1（typedef 那条）：struct S { operator int()(); };
++ZH_DIAG(err_conv_function_with_complex_decl,
++        "转换函数的声明中不能指定返回类型的任何部分%select{；请把完整类型写在（关键字） 运算符 之后|；请用（关键字） 类型别名 声明到（类型） %1 的转换|；请用别名模板声明到（类型） %1 的转换|}0")
 +
 +//===----------------------------------------------------------------------===//
 +

@@ -193,6 +193,10 @@ Check-Case '30_missing_braces.cpp'             '-Wall' -Expect ok
 Check-Case '31_constexpr_var_init.cpp'
 Check-Case '32_conv_function_params.cpp'
 Check-Case '33_multi_line_comment.cpp'         '-Wall' -Expect ok
+Check-Case '34_sa_requirement.cpp'               
+Check-Case '35_sa_requirement_msg.cpp'           
+Check-Case '36_reinterpret_updown.cpp'            -Expect ok
+Check-Case '37_conv_function_complex.cpp'        
 
 # ---------------------------------------------------------------------------
 # 2) prefix and option name must survive (ASCII, so trivially checkable)
