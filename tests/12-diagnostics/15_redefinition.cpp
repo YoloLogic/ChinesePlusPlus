@@ -1,4 +1,4 @@
-// expect: 重定义 '甲'
+// expect: 重定义（名字） '甲'
 // expect: 上一次定义在这里
 // forbid: redefinition of
 // forbid: previous definition is here

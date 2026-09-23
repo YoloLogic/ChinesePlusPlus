@@ -1,6 +1,6 @@
 diff --git a/clang/include/clang/Basic/ChineseDiagnostics.def b/clang/include/clang/Basic/ChineseDiagnostics.def
 new file mode 100644
-index 0000000..936fbb6
+index 0000000..e8aabd8
 --- /dev/null
 +++ b/clang/include/clang/Basic/ChineseDiagnostics.def
 @@ -0,0 +1,404 @@
@@ -101,11 +101,11 @@ index 0000000..936fbb6
 +//===----------------------------------------------------------------------===//
 +
 +// 英文：expected %0            （%0 形如 "'}'" / "';'" / "')'"）
-+ZH_DIAG(err_expected, "缺少 %0")                             // expected '}'
++ZH_DIAG(err_expected, "缺少（符号） %0")                             // expected '}'
 +
 +// 英文：expected %select{identifier|unqualified-id}0
 +ZH_DIAG(err_expected_unqualified_id,
-+        "缺少 %select{标识符|非限定标识符}0")                  // expected unqualified-id
++        "缺少（种类） %select{标识符|非限定标识符}0")                  // expected unqualified-id
 +
 +// 英文：expected ';' at end of declaration
 +ZH_DIAG(err_expected_semi_declaration,
@@ -193,10 +193,10 @@ index 0000000..936fbb6
 +//===----------------------------------------------------------------------===//
 +
 +// 英文：redefinition of %0
-+ZH_DIAG(err_redefinition, "重定义 %0")
++ZH_DIAG(err_redefinition, "重定义（名字） %0")
 +
 +// 英文：redefinition of %0 as different kind of symbol
-+ZH_DIAG(err_redefinition_different_kind, "%0 被重定义为另一种符号")
++ZH_DIAG(err_redefinition_different_kind, "（名字） %0 被重定义为另一种符号")
 +
 +// 英文：previous definition is here
 +ZH_DIAG(note_previous_definition, "上一次定义在这里")

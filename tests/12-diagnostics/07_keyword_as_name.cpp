@@ -1,4 +1,4 @@
-// expect: 缺少 非限定标识符
+// expect: 缺少（种类） 非限定标识符
 // forbid: expected unqualified-id
 //
 // 拿关键字当变量名。中文表里这条是 %select{标识符|非限定标识符}0，

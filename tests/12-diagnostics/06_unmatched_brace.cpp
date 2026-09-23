@@ -1,4 +1,4 @@
-// expect: 缺少 '}'
+// expect: 缺少（符号） '}'
 // expect: 与这个 '{' 匹配
 // forbid: expected '}'
 // forbid: to match this
