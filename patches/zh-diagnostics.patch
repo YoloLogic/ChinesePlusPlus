@@ -1,9 +1,9 @@
 diff --git a/clang/include/clang/Basic/ChineseDiagnostics.def b/clang/include/clang/Basic/ChineseDiagnostics.def
 new file mode 100644
-index 0000000..9c2ec16
+index 0000000..db52416
 --- /dev/null
 +++ b/clang/include/clang/Basic/ChineseDiagnostics.def
-@@ -0,0 +1,405 @@
+@@ -0,0 +1,409 @@
 +//===--- ChineseDiagnostics.def - 中文诊断文本表 ----------------*- C -*-===//
 +//
 +// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -125,7 +125,7 @@ index 0000000..9c2ec16
 +ZH_DIAG(err_undeclared_var_use, "使用了未声明的标识符（名字） %0")
 +
 +// 英文：no member named %0 in %1
-+ZH_DIAG(err_no_member, "%1 中没有名为 %0 的成员")
++ZH_DIAG(err_no_member, "（类型名） %1 中没有名为（成员名） %0 的成员")
 +
 +//===----------------------------------------------------------------------===//
 +// 三、重载决议
@@ -186,7 +186,7 @@ index 0000000..9c2ec16
 +ZH_DIAG(err_typecheck_subscript_value, "被下标访问的值不是数组、指针或向量")
 +
 +// 英文：invalid operands to binary expression (%0 and %1)
-+ZH_DIAG(err_typecheck_invalid_operands, "二元表达式的运算对象无效（%0 和 %1）")
++ZH_DIAG(err_typecheck_invalid_operands, "二元表达式的运算对象无效（表达式 和 表达式）（%0 和 %1）")
 +
 +//===----------------------------------------------------------------------===//
 +// 七、重定义与声明冲突
@@ -214,7 +214,7 @@ index 0000000..9c2ec16
 +
 +// 英文：no type named %0 in %1
 +// 与上面的 err_no_member（"%1 中没有名为 %0 的成员"）句式保持一致
-+ZH_DIAG(err_typename_nested_not_found, "%1 中没有名为 %0 的类型")
++ZH_DIAG(err_typename_nested_not_found, "（类型名） %1 中没有名为（名字） %0 的类型")
 +
 +// 英文：missing 'typename' prior to dependent type name %0
 +// 这一句在 clang 里有**三个变体**（错误 / 扩展 / 兼容性警告），正文开头完全一样。
@@ -295,11 +295,15 @@ index 0000000..9c2ec16
 +//       关键字 种类 变量名 类型名 函数名 属性名 成员名 名字
 +//       表达式 类型 符号 选项
 +//     加角色词是一次明确动作（要同时改词表和校核器），不是随手写新词。
++//   · 多个成分并列时，角色表【按位置一一对应】，连词照写（连词要用空格
++//     与角色词分开）：
++//         二元表达式的运算对象无效（表达式 和 表达式）（%0 和 %1）
++//     连词表也是封闭的（tools\diag_id_lookup.py 的 ROLE_CONNECTORS）。
 +//   · 角色表有两级机器校核（tools\diag_id_lookup.py 的 check_role_table）：
 +//       硬失败 —— 角色词必须属于上面那张封闭词表（ROLE_WORDS）
 +//       只报告 —— 有占位符却没有角色表。第一批那 32 条写在角色表约定之前，
 +//                 硬判会让它们全部变红，所以列成【迁移待办】（实测 20 条；
-+//                 2026-09-23 已迁移 15 条，剩 5 条多角色/嵌套 select 待人工排布）
++//                 2026-09-23 已迁移 18 条，剩 2 条嵌套 %select 待排布）
 +//     （历史：本注释曾写「校核器会查角色表」，而那时检查并未实现。2026-09-23
 +//      独立复核者用三份违规副本实测全部 problems=0，才把这个空洞暴露出来。）
 +//   · 它仍然【查不出角色标错】（把（属性名）写成（变量名）照样通过）——

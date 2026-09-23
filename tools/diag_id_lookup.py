@@ -626,6 +626,25 @@ def self_test(inc):
     o_zh, _, _ = spec_profile("第%0个实参有歧义")
     if o_en != o_zh:
         bad.append("%ordinal 改 %N 被误判：%s vs %s" % (o_en, o_zh))
+    # 角色表检查本身也要有测试（2026-09-23 才真正实现；在此之前 .def 的注释
+    # 曾写「校核器会查角色表」，而检查并不存在 —— 独立复核者用三份违规副本
+    # 实测 problems=0 才把空洞暴露出来。一条没被测过的检查等于没有检查。）
+    role_cases = [
+        ("连词写法（允许）", "err_typecheck_invalid_operands",
+         "二元表达式的运算对象无效（表达式 和 表达式）（%0 和 %1）", False),
+        ("角色表里只有连词", "err_typecheck_invalid_operands",
+         "二元表达式的运算对象无效（和）（%0 和 %1）", True),
+        ("角色词不在封闭词表", "err_unknown_typename",
+         "未知的类型名（东西） %0", True),
+        ("含占位符的括号组不算角色表（允许）", "err_typecheck_invalid_operands",
+         "二元表达式的运算对象无效（%0 和 %1）", False),
+    ]
+    for (why, name, zh, should_fail) in role_cases:
+        got, _ = check_role_table(name, zh)
+        if bool(got) != should_fail:
+            bad.append("角色表·%s：期望%s，实际%s"
+                       % (why, "报错" if should_fail else "通过",
+                          "报错" if got else "通过"))
     # 分支顺序颠倒必须被抓到（独立复核者指出的缺口 F4，现已补上）
     sig_a = branch_signature("candidate %select{%ordinal0 argument|object argument}1")
     sig_b = branch_signature("candidate %select{object argument|%ordinal0 argument}1")
@@ -660,7 +679,12 @@ ROLE_WORDS = frozenset([
     "表达式", "类型", "符号", "选项",
 ])
 
-# 匹配一处角色表：（关键字 类型名） / （名字） / （选项）
+# 角色表里允许出现的【连词】：多个成分并列时，角色表按位置一一对应，连词照写，
+# 例如「二元表达式的运算对象无效（表达式 和 表达式）（%0 和 %1）」。
+# 连词必须用空格与角色词分开；加词同样是一次【明确动作】。
+ROLE_CONNECTORS = frozenset(["和", "与"])
+
+# 匹配一处角色表：（关键字 类型名） / （名字） / （选项） / （表达式 和 表达式）
 ROLE_GROUP_RE = re.compile(r"（([^（）]*)）")
 
 
@@ -682,11 +706,20 @@ def check_role_table(name, text):
     # 那不是角色表，硬套词表会把合法条目判失败。
     groups = [g for g in ROLE_GROUP_RE.findall(text) if "%" not in g]
     for g in groups:
+        n_role = 0
         for w in g.split():
-            if w not in ROLE_WORDS:
+            if w in ROLE_WORDS:
+                n_role += 1
+            elif w not in ROLE_CONNECTORS:
                 problems.append(
-                    "%s：角色表里有词不在封闭词表内 -> %r（词表：%s）"
-                    % (name, w, "、".join(sorted(ROLE_WORDS))))
+                    "%s：角色表里有词既不在封闭词表也不在连词表内 -> %r"
+                    "（词表：%s；连词：%s）"
+                    % (name, w, "、".join(sorted(ROLE_WORDS)),
+                       "、".join(sorted(ROLE_CONNECTORS))))
+        if n_role == 0:
+            # 光有连词不算角色表：「（和）」这种既没标出角色，还会被当成
+            # 「已经有角色表」而躲过迁移待办提醒 —— 必须单独堵上。
+            problems.append("%s：角色表里一个角色词都没有 -> %r" % (name, g))
     has_ph = "%" in text
     if has_ph and not groups:
         notes.append("    [迁移待办] 有占位符但没有角色表: %s" % name)

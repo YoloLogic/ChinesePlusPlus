@@ -1,4 +1,4 @@
-// expect: 二元表达式的运算对象无效（'甲' 和 '甲'）
+// expect: 二元表达式的运算对象无效（表达式 和 表达式）（'甲' 和 '甲'）
 // forbid: invalid operands to binary expression
 //
 // 两个结构体相加，而它没有定义 operator+。
