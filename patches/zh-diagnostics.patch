@@ -1,9 +1,9 @@
 diff --git a/clang/include/clang/Basic/ChineseDiagnostics.def b/clang/include/clang/Basic/ChineseDiagnostics.def
 new file mode 100644
-index 0000000..33ed8a4
+index 0000000..89fb481
 --- /dev/null
 +++ b/clang/include/clang/Basic/ChineseDiagnostics.def
-@@ -0,0 +1,547 @@
+@@ -0,0 +1,650 @@
 +//===--- ChineseDiagnostics.def - 中文诊断文本表 ----------------*- C -*-===//
 +//
 +// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -547,6 +547,109 @@ index 0000000..33ed8a4
 +        "'reinterpret_cast' %select{从|到}3类（类型） %0，"
 +        "%select{目标是|来源是}3它的 %select{虚基类|非零偏移的基类}2（类型） %1，"
 +        "行为与 'static_cast' 不同")
++
++//===----------------------------------------------------------------------===//
++// 十六、C2a：按实测排名补的 16 条（2026-09-23）
++//
++// 依据：tools\diag_coverage.py 实测（400 个真实文件 / 4980 条实例）。
++// 这一批**不含** note_ovl_candidate 一族 —— 那族每条都内嵌那段 11 分支的
++// %select，而且分支里有嵌套括号，跟角色表检查器的规则会打架，留作专门一批。
++//
++// 每条都注明了实测触发方式；没能触发的如实写出来。
++//===----------------------------------------------------------------------===//
++
++// 英文：%0 attribute ignored; %1 takes precedence
++// 实测：__attribute__((exclude_from_explicit_instantiation)) __declspec(dllexport) void f();
++ZH_DIAG(warn_dllattr_ignored_exclusion_takes_precedence,
++        "（属性名） %0 被忽略；（属性名） %1 优先")
++
++// 英文：a lambda expression may not appear inside of a constant expression
++// 只在 C++17 以前触发（源码里的条件是 !getLangOpts().CPlusPlus17）。
++// 实测：-std=c++14 下 enum E { X = []{ return 0; }() };
++ZH_DIAG(err_lambda_in_constant_expression,
++        "lambda 表达式不能出现在常量表达式内部")
++
++// 英文：blocks support disabled - compile with -fblocks or
++//       %select{pick a deployment target that supports them|for OpenCL C 2.0
++//       or OpenCL C 3.0 with __opencl_c_device_enqueue feature}0
++// 实测：-x cl -cl-std=CL1.2 下 void f(){ ^{} ; }   （触发的是 OpenCL 那一支）
++ZH_DIAG(err_blocks_disable,
++        "blocks 支持已禁用：请用 -fblocks 编译，或者"
++        "%select{选一个支持它们的部署目标|改用 OpenCL C 2.0，"
++        "或带 __opencl_c_device_enqueue 特性的 OpenCL C 3.0}0")
++
++// 英文：use of unknown builtin %0
++// 实测：C 模式下 int f(){ return __builtin_zzz(); }
++//       （名字以 __builtin_ 开头、又没有声明时走这一条，见 SemaDecl.cpp:17302）
++ZH_DIAG(warn_builtin_unknown, "使用了未知的内建（名字） %0")
++
++// 英文：unguarded header; consider using #ifdef guards or #pragma once
++// 实测：一个没有包含守卫的头被 #include 两次（SemaDecl.cpp:5010）
++ZH_DIAG(note_use_ifdef_guards,
++        "这个头文件没有包含守卫；建议用 #ifdef 守卫或者 #pragma once")
++
++// 英文：in call to '%0'
++// 常量求值失败时打印的调用栈。实测：
++//   constexpr int g(int x) { return x / 0; }
++//   constexpr int f() { return g(1); }
++//   constexpr int y = f();
++ZH_DIAG(note_constexpr_call_here, "在调用（表达式） '%0' 时")
++
++// 英文：%select{implicit|explicit}0 instantiation of undefined template %1
++// 实测：template<class T> struct S;  S<int> s;
++ZH_DIAG(err_template_instantiate_undefined,
++        "%select{隐式|显式}0实例化了未定义的模板（类型名） %1")
++
++// 英文：'%0' is invalid in friend declarations
++// 实测：struct A { friend static int x; };
++ZH_DIAG(err_friend_decl_spec, "（关键字） '%0' 不能用在友元声明里")
++
++// 英文：use of %select{class template|function template|variable template|
++//       alias template|template template parameter|concept|template}0 %1
++//       requires template arguments
++// 实测：-std=c++14 下 template<class T> struct S {};  S s;
++ZH_DIAG(err_template_missing_args,
++        "使用%select{类模板|函数模板|变量模板|别名模板|模板模板参数|概念|模板}0"
++        "（名字） %1 需要模板实参")
++
++// 英文：forward declaration of %0
++// 实测：struct A;  A a;
++ZH_DIAG(note_forward_declaration, "（名字） %0 的前向声明")
++
++// 英文：expected variable name or 'this' in lambda capture list
++// 实测：void f(){ auto g = [1](){}; }
++ZH_DIAG(err_expected_capture, "lambda 捕获列表里缺少变量名或 'this'")
++
++// 英文：in instantiation of static data member %q0 requested here
++// 与已翻的 note_template_class_instantiation_here 句式对齐。
++// 实测：静态数据成员的初始化式里出错时带出（见 66_tsdmd_here.cpp）
++ZH_DIAG(note_template_static_data_member_def_here,
++        "这里要求实例化静态数据成员（成员名） %q0")
++
++// 英文：constructor cannot be redeclared
++// 兄弟：err_member_redeclared（已翻）。三个在源码里是同一个 if/else 分支
++//（SemaDecl.cpp:4165-4172）—— 只翻 else 那一个，用户就会在同一个类别的错上
++// 看到一句中文一句英文。C1 只补了 else，这一批把这三条补齐。
++// 实测：struct S { S(); S(); };
++ZH_DIAG(err_constructor_redeclared, "构造函数不能被重新声明")
++
++// 英文：destructor cannot be redeclared
++// 实测：struct S { ~S(); ~S(); };
++ZH_DIAG(err_destructor_redeclared, "析构函数不能被重新声明")
++
++// 英文：conversion function cannot be redeclared
++// 实测：struct S { operator int(); operator int(); };
++ZH_DIAG(err_conv_function_redeclared, "转换函数不能被重新声明")
++
++// 英文：previous initialization %select{|with side effects }0is here
++//       %select{| (side effects will not occur at run time)}0
++// 两个 %select 都挂在序号 0、各 2 个分支。英文第二个分支是括号说明，
++// 中文改用语尾从句（全角括号在本表里【只用于角色表】，见第十二节）。
++// 实测：C 模式下 -Winitializer-overrides：
++//       struct S { int a; };  struct S s = { .a = 1, .a = 2 };
++ZH_DIAG(note_previous_initializer,
++        "上一次初始化在这里%select{|，且带有副作用}0"
++        "%select{|，副作用不会在运行时发生}0")
 +
 +//===----------------------------------------------------------------------===//
 +

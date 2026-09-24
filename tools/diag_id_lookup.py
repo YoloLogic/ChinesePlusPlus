@@ -38,7 +38,7 @@ ZH_DEF = os.path.join(ROOT, "LLVM-main", "clang", "include", "clang", "Basic",
 # 中文表至少要有这么多条。**加了一批就把它调大。**
 # 存在的理由：逐条校核抓不到"表被改小"—— 剩下的条目依然条条合法。
 # 独立复核者 2026-09-22 实测：砍到 7 条时校核器仍报 0 问题、退出码 0（反例 A）。
-MIN_ENTRIES = 65
+MIN_ENTRIES = 81
 CORPUS = os.path.join(ROOT, "build", "_diag_corpus")
 CLANGXX = os.path.join(ROOT, "build", "Release", "bin", "clang++.exe")
 REPORT = os.path.join(ROOT, "build", "_diag_report.txt")
@@ -639,6 +639,12 @@ def self_test(inc):
         ("含占位符的括号组不算角色表，光有它仍是缺角色表（硬失败）",
          "err_typecheck_invalid_operands",
          "二元表达式的运算对象无效（%0 和 %1）", True),
+        # 判据本身的自测：%select 渲染的是"选中的那段文本"，不是参数的值。
+        ("只有 %select、没有值占位符（不要求角色表）",
+         "err_expected_unqualified_id",
+         "缺少%select{标识符|非限定标识符}0", False),
+        ("%select 之外还有值占位符（要求角色表）",
+         "err_unknown_typename", "未知的类型名%select{|甲}0 %0", True),
     ]
     for (why, name, zh, should_fail) in role_cases:
         got, _ = check_role_table(name, zh)
@@ -696,6 +702,39 @@ ROLE_CONNECTORS = frozenset(["和", "与"])
 # 匹配一处角色表：（关键字 类型名） / （名字） / （选项） / （表达式 和 表达式）
 ROLE_GROUP_RE = re.compile(r"（([^（）]*)）")
 
+# %select{…}N / %plural{…}N / %diff{…}N,M 的开头。要整块去掉，因为大括号会嵌套。
+_SELECTOR_RE = re.compile(r"%(select|plural|diff)\{")
+
+
+def has_value_placeholder(text):
+    """去掉所有 %select/%plural/%diff 之后，文本里还有没有 "%"。
+
+    为什么要这么判：`%select` 渲染的是【按参数选中的那段文本】，不是参数的值。
+    分支本身是整句从句时（如 err_blocks_disable 的 "-fblocks 或部署目标"），
+    句子里根本没有【成分】，也就没有东西可标角色。
+    2026-09-23 的判据是「文本里有没有 %"，于是把这种条目误判成"缺角色表" ——
+    是 C2a 两条新条目（err_blocks_disable / note_previous_initializer）撞出来的。
+    """
+    out, i, n = [], 0, len(text)
+    while i < n:
+        m = _SELECTOR_RE.match(text, i)
+        if not m:
+            out.append(text[i])
+            i += 1
+            continue
+        j = m.end()                      # 刚过 '{'
+        depth = 1
+        while j < n and depth:
+            if text[j] == "{":
+                depth += 1
+            elif text[j] == "}":
+                depth -= 1
+            j += 1
+        while j < n and (text[j].isdigit() or text[j] == ","):
+            j += 1                       # 跳过挂载序号（N 或 N,M）
+        i = j
+    return "%" in "".join(out)
+
 
 def check_role_table(name, text):
     """角色表检查。返回 (硬问题列表, 待办报告行列表)。
@@ -710,6 +749,10 @@ def check_role_table(name, text):
     它们全部变红，所以先列成迁移待办。当天 20 条迁移完毕后，这一项**转为硬失败**：
     既然「一律标」是有意选择的统一，就该由机器保证它继续成立，而不是靠人记得 ——
     新增条目若不带角色表会直接让校核器变红。
+
+    2026-09-23 又修过一次判据：原先是「文本里有没有 %」，于是把【只有 %select】
+    的条目也判成"缺角色表" —— 可那类条目的分支是整句从句，句子里根本没有成分。
+    现在按 has_value_placeholder() 判：只有真正渲染【值】的占位符才算成分。
     """
     problems, notes = [], []
     # 只把【不含占位符】的全角括号组当角色表：
@@ -731,7 +774,7 @@ def check_role_table(name, text):
             # 光有连词不算角色表：「（和）」这种既没标出角色，还会被当成
             # 「已经有角色表」而躲过迁移待办提醒 —— 必须单独堵上。
             problems.append("%s：角色表里一个角色词都没有 -> %r" % (name, g))
-    has_ph = "%" in text
+    has_ph = has_value_placeholder(text)
     if has_ph and not groups:
         # 角色表只认【全角】括号（）。写半角会被判成"缺角色表" —— 失败是响的
         # （2026-09-23 起这一项是硬失败），但原来的报错信息会指向错的方向：

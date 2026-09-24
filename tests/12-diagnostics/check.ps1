@@ -44,7 +44,15 @@ function Get-Log {
     $src = Join-Path $here $File
     $log = Join-Path $out ("$File.$Tag.txt")
     if (Test-Path $log) { Remove-Item $log -Force }
-    & cmd /c "`"$cxx`" -std=c++20 -fsyntax-only $Extra `"$src`" > `"$log`" 2>&1"
+    # Default the language standard, but do NOT force it: a case that sets its
+    # own -std= or switches language with -x (the .c cases) would otherwise
+    # fight it -- "-std=c++20" together with "-x c" is
+    # "invalid argument '-std=c++20' not allowed with 'C'".
+    # A hard-coded flag that silently overrides (or breaks) a case's own flags
+    # is the same class of trap as the duplicate patch gate.
+    $std = '-std=c++20'
+    if ($Extra -match '-std=' -or $Extra -match '(^|\s)-x(\s|$)') { $std = '' }
+    & cmd /c "`"$cxx`" $std -fsyntax-only $Extra `"$src`" > `"$log`" 2>&1"
     $code = $LASTEXITCODE
     return @{
         Code  = $code
@@ -219,6 +227,22 @@ Check-Case '52_no_template_suggest.cpp'
 Check-Case '53_member_redeclared.cpp'
 Check-Case '54_reinterpret_warning.cpp'        '-Wall'  -Expect ok
 
+# --- C2a (2026-09-23): the rest of the measured top ranks.
+Check-Case '55_dllattr_precedence.cpp'         -Expect ok
+Check-Case '56_lambda_in_constexpr.cpp'        '-std=c++14'
+Check-Case '57_blocks_disabled.c'              '-x cl -cl-std=CL1.2'
+Check-Case '58_builtin_unknown.c'              '-x c'
+Check-Case '59_unguarded_header.cpp'
+Check-Case '60_constexpr_call_here.cpp'        '-std=c++14'
+Check-Case '61_undefined_template.cpp'
+Check-Case '62_friend_decl_spec.cpp'
+Check-Case '63_template_missing_args.cpp'      '-std=c++14'
+Check-Case '64_forward_declaration.cpp'
+Check-Case '65_expected_capture.cpp'
+Check-Case '66_tsdmd_here.cpp'
+Check-Case '67_redeclared_family.cpp'
+Check-Case '68_previous_initializer.c'         '-x c -Winitializer-overrides' -Expect ok
+
 # ---------------------------------------------------------------------------
 # 2) prefix and option name must survive (ASCII, so trivially checkable)
 # ---------------------------------------------------------------------------
@@ -274,7 +298,14 @@ if (Test-SameBytes $def.Bytes $flg.Bytes) {
 Write-Host '--- registration: every .cpp here must be run by this script'
 $selfText = Get-Content -Raw -Path $MyInvocation.MyCommand.Path
 $unregistered = @()
-foreach ($f in (Get-ChildItem -Path $here -Filter *.cpp | Sort-Object Name)) {
+# Covers *.cpp AND *.c -- this gate originally globbed only *.cpp, so .c cases
+# like 27_implicit_function.c were outside its protection. Its own hole.
+# Keep the whole foreach on ONE line: a trailing "|" as a line continuation is
+# PowerShell 7 only; 5.1 fails with "Unexpected token ')'". This script must
+# also run under 5.1.
+# (And keep every line here ASCII -- see the header note: 5.1 reads a BOM-less
+#  file as GBK, so a Chinese comment turns into mojibake and breaks parsing.)
+foreach ($f in (Get-ChildItem -Path $here -File | Where-Object { $_.Extension -eq '.cpp' -or $_.Extension -eq '.c' } | Sort-Object Name)) {
     if ($selfText.IndexOf($f.Name) -lt 0) { $unregistered += $f.Name }
 }
 if ($unregistered.Count -gt 0) {

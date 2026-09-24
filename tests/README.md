@@ -106,7 +106,7 @@ BMI 只有**导入方**才需要。
 最值得记的几条：
   06-parity    中英输出逐字节相同（68 B 对 68 B），用的是 stock clang 19.1.5
   10-multi-tu  7 个多翻译单元用例全过，含「MSVC 编译 main + 中文关键字 clang 编译实现」
-  12-diagnostics  65 条中文诊断、54 个用例逐条断言通过；回退（未翻译的仍英文）
+  12-diagnostics  81 条中文诊断、68 个用例逐条断言通过；回退（未翻译的仍英文）
                   由「默认日志与 -fno-chinese-diagnostics 日志逐字节相同」证明
   checks       verify_zh_diagnostics.py 同时跑校核器自检（故意写坏占位符必须报错）
   checks       verify_make_patch_gate.ps1 跑补丁门禁自检（**破坏的补丁必须被拒绝**）
@@ -117,7 +117,7 @@ BMI 只有**导入方**才需要。
 > "通过"的检查等于没有检查，所以每个门禁现在都要有"证明自己会失败"的自测。
 > 详见 `..\docs\诊断汉化\诊断汉化清单.md` 第十一节（独立复核）。
 
-### `12-diagnostics/` 的用例分四批
+### `12-diagnostics/` 的用例分五批
 
 `01`～`11` 是第一批（12 条）：初学者第一次写错就会撞到的句子。
 `12`～`26` 是第二批（20 条）：按 `tools\diag_frequency.py` 量出的**真实频次**选的
@@ -126,6 +126,8 @@ BMI 只有**导入方**才需要。
 `43`～`54` 是 C1（17 条，其中 `ext_member_redeclared` 与 `err_member_redeclared` 同文、
 共用 `53`，故 12 个文件）：按 `tools\diag_coverage.py` 的实测补「兄弟条目」——
 主句翻了、`_suggest` 变体或同文 ID 没翻的那些。
+`55`～`68` 是 C2a（16 条，14 个文件）：按实测排名补的高频条目，含三个
+`*_redeclared` 兄弟、OpenCL blocks、没有包含守卫的头、常量求值调用栈等。
 
 ## `12-diagnostics/` 的写法约定
 期望值写在**每个 `.cpp` 的头部注释**里，脚本从注释里读：
