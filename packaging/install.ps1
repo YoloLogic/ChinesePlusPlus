@@ -141,26 +141,108 @@ if ($vs) {
 }
 
 # ---------------------------------------------------------------------------
-# 4. bundled portable editor (optional)
+# 4. editor
 #
-#    PORTABLE ONLY. The user's own VS Code is never touched: this package
-#    always uses the editor inside its own folder, so behaviour is predictable
-#    and nothing outside this folder changes.
+#    Two paths, and the reason for the shape:
+#
+#    (a) OFFLINE: this package already contains a portable editor
+#        (vscodium\) -- used as is.
+#
+#    (b) ONLINE (default for the toolchain-only package): download the OFFICIAL
+#        Visual Studio Code into this folder.
+#
+#    WHY WE DOWNLOAD INSTEAD OF BUNDLING THE OFFICIAL BUILD
+#      The official VS Code binary ships under the Microsoft Software License
+#      Terms, which say (resources/app/LICENSE.rtf, section 5):
+#          "You may not ... share, publish, rent or lease the software, or
+#           provide the software as a stand-alone offering for others to use."
+#      Putting that binary in a zip WE hand out would be "share, publish".
+#      Letting Microsoft's own server hand it to the user is fine, and it is
+#      also what makes DEBUGGING work: Microsoft's C/C++ extension
+#      (ms-vscode.cpptools) is licensed for VS Code only, not for VSCodium.
+#
+#    PORTABLE MODE ONLY. A "data" folder next to the editor executable keeps
+#    settings and extensions inside this folder. The user's own VS Code
+#    installation is never read or written.
 # ---------------------------------------------------------------------------
 Write-Host ''
-Write-Host '--- 4) bundled portable editor'
-$editor = Get-ChildItem $here -Recurse -Depth 2 -Include 'VSCodium.exe', 'Code.exe' -File -ErrorAction SilentlyContinue |
+Write-Host '--- 4) editor'
+
+$VSCODE_URL   = 'https://update.code.visualstudio.com/latest/win32-x64-archive/stable'
+$LANG_PACK    = 'MS-CEINTL.vscode-language-pack-zh-hans'
+$CLANGD_EXT   = 'llvm-vs-code-extensions.vscode-clangd'
+$editorDir    = Join-Path $here 'vscode'
+
+function Enable-Portable($dir) {
+    $ed = Get-ChildItem $dir -Recurse -Depth 2 -Include 'Code.exe', 'VSCodium.exe' -File -ErrorAction SilentlyContinue |
           Select-Object -First 1
-if ($editor) {
-    $edir = $editor.Directory.FullName
-    $data = Join-Path $edir 'data'
-    if (-not (Test-Path $data)) { New-Item -ItemType Directory -Force $data | Out-Null }
-    Write-Host ("  portable mode enabled: " + $data) -ForegroundColor Green
-    Write-Host ("  editor: " + $editor.Name)
-    Write-Host '  your own VS Code installation is not touched.'
+    if (-not $ed) { return $null }
+    $data = Join-Path $ed.Directory.FullName 'data'
+    New-Item -ItemType Directory -Force $data | Out-Null
+    # Chinese UI: the language pack extension plus this locale hint.
+    $argv = '{"locale":"zh-cn"}'
+    foreach ($p in @((Join-Path $data 'argv.json'),
+                     (Join-Path $data 'user-data\argv.json'))) {
+        New-Item -ItemType Directory -Force (Split-Path $p) | Out-Null
+        if (-not (Test-Path $p)) { [System.IO.File]::WriteAllText($p, $argv) }
+    }
+    return $ed
+}
+
+$bundled = Get-ChildItem $here -Recurse -Depth 2 -Include 'VSCodium.exe', 'Code.exe' -File -ErrorAction SilentlyContinue |
+           Where-Object { $_.Directory.FullName -notlike "$editorDir*" } | Select-Object -First 1
+
+if ($bundled) {
+    Write-Host ("  using the portable editor already in this package: " + $bundled.Name)
+    $ed = Enable-Portable $bundled.Directory.FullName
 } else {
-    Write-Host '  no bundled editor in this package (toolchain-only build).' -ForegroundColor DarkGray
-    Write-Host '  the kit in vscode-kit\ works with any VS Code compatible editor.'
+    Write-Host '  this package has no editor bundled.'
+    Write-Host '  downloading the OFFICIAL Visual Studio Code (about 320 MB) into this folder...'
+    Write-Host '  (we do not redistribute it; Microsoft serves it directly to you)'
+    $zip = Join-Path $here 'vscode-download.zip'
+    $ok = $false
+    try {
+        $ProgressPreference = 'SilentlyContinue'
+        Invoke-WebRequest -Uri $VSCODE_URL -OutFile $zip -UseBasicParsing -TimeoutSec 3600
+        $ok = $true
+    } catch {
+        Write-Host ("  [FAIL] download failed: " + $_.Exception.Message) -ForegroundColor Red
+        Write-Host '  you can download it manually and unpack it into: ' -ForegroundColor Yellow
+        Write-Host ("     $editorDir") -ForegroundColor Yellow
+        Write-Host ("  from: $VSCODE_URL") -ForegroundColor Yellow
+    }
+    if ($ok) {
+        Write-Host '  extracting...'
+        New-Item -ItemType Directory -Force $editorDir | Out-Null
+        Expand-Archive -Path $zip -DestinationPath $editorDir -Force
+        Remove-Item $zip -Force
+        $ed = Enable-Portable $editorDir
+        if ($ed) { Write-Host ("  installed: " + $ed.FullName) -ForegroundColor Green }
+        else     { Write-Host '  [warn] Code.exe not found after extraction' -ForegroundColor Yellow }
+    }
+}
+
+if ($ed) {
+    Write-Host ("  portable mode: " + (Join-Path $ed.Directory.FullName 'data'))
+    Write-Host '  your own VS Code installation is not touched.'
+
+    # extensions: the editor's own CLI installs them into data\extensions
+    $cli = Get-ChildItem $ed.Directory.FullName -Recurse -Depth 2 -Include 'code.cmd', 'codium.cmd' -File -ErrorAction SilentlyContinue |
+           Select-Object -First 1
+    if ($cli) {
+        Write-Host '  installing extensions into the portable data folder:'
+        foreach ($ext in @($LANG_PACK, $CLANGD_EXT)) {
+            Write-Host ("    " + $ext)
+            & $cli.FullName --install-extension $ext --force 2>&1 |
+                Select-Object -Last 2 | ForEach-Object { Write-Host ("      " + $_) }
+        }
+        Write-Host '  (requires network access to the extension marketplace; if this' -ForegroundColor DarkGray
+        Write-Host '   failed, install them later from the Extensions panel)' -ForegroundColor DarkGray
+    } else {
+        Write-Host '  [warn] editor CLI (bin\code.cmd) not found; install the extensions manually:' -ForegroundColor Yellow
+        Write-Host ("     " + $LANG_PACK)
+        Write-Host ("     " + $CLANGD_EXT)
+    }
 }
 
 # ---------------------------------------------------------------------------

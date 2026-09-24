@@ -31,7 +31,12 @@
 
 param(
     [string] $Version = '0.1',
-    [switch] $NoZip
+    [switch] $NoZip,
+    # Include a portable editor IN the zip (offline variant, ~322 MB zip).
+    # Default is OFF: the official VS Code may not be redistributed (its license
+    # forbids "share, publish ... the software"), so the default package is
+    # toolchain-only and install.ps1 downloads the editor on the user's machine.
+    [switch] $WithEditor
 )
 
 $ErrorActionPreference = 'Stop'
@@ -115,10 +120,18 @@ foreach ($d in @('vscode-kit', 'examples')) {
         Write-Host "  $d copied"
     }
 }
-foreach ($f in @('install.ps1', 'uninstall.ps1', 'verify.ps1')) {
+foreach ($f in @('install.ps1', 'uninstall.ps1', 'verify.ps1', 'messages.txt')) {
     $s = Join-Path $packSrc $f
     if (Test-Path $s) { Copy-Item $s (Join-Path $pkg $f) -Force }
 }
+# Copy the launcher scripts BY EXTENSION, not by name: the one-click launcher
+# has a Chinese file name and THIS FILE IS PURE ASCII on purpose, so it must not
+# contain that name as a literal.
+Get-ChildItem $packSrc -File | Where-Object { $_.Extension -in @('.cmd', '.bat') } |
+    ForEach-Object {
+        Copy-Item $_.FullName (Join-Path $pkg $_.Name) -Force
+        Write-Host ("  launcher copied: " + $_.Name)
+    }
 
 # ---------------------------------------------------------------------------
 # 5b. bundled portable editor (VSCodium)
@@ -142,7 +155,7 @@ foreach ($f in @('install.ps1', 'uninstall.ps1', 'verify.ps1')) {
 #     keywords.
 # ---------------------------------------------------------------------------
 $codiumZip = Join-Path $root 'build\_downloads\VSCodium-win32-x64.zip'
-if (Test-Path $codiumZip) {
+if ($WithEditor -and (Test-Path $codiumZip)) {
     Write-Host '  bundling VSCodium (portable)...'
     $edst = Join-Path $pkg 'vscodium'
     New-Item -ItemType Directory -Force $edst | Out-Null
@@ -155,8 +168,10 @@ if (Test-Path $codiumZip) {
         Write-Host $emsg
     } else { Write-Host '  [warn] VSCodium.exe not found after extraction' -ForegroundColor Yellow }
 } else {
-    Write-Host '  no VSCodium zip in build\_downloads -- packaging toolchain only' -ForegroundColor DarkGray
-    Write-Host '    to include it: download VSCodium-win32-x64-*.zip there and re-run' -ForegroundColor DarkGray
+    if ($WithEditor) {
+        Write-Host '  [warn] -WithEditor given but no VSCodium zip in build\_downloads' -ForegroundColor Yellow
+    }
+    Write-Host '  toolchain-only package (install.ps1 downloads the editor on demand)' -ForegroundColor DarkGray
 }
 
 # ---------------------------------------------------------------------------
