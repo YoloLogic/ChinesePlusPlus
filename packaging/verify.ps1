@@ -182,6 +182,75 @@ if (Test-Path $clangd) {
 } else { Bad 'clangd.exe missing (the editor kit needs it)' }
 
 # ---------------------------------------------------------------------------
+# 6. the compiler-rt runtime libraries must be present AND actually usable
+#
+#    Why this section exists: the package gained these libraries on 2026-09-26,
+#    and nothing above would notice if they went missing. The failure mode is
+#    the nastiest one this package can produce:
+#      * the ASan IMPORT library (.lib) is what the linker needs
+#      * the ASan DLL is what the built program needs at RUN time
+#    Ship only the .lib and everything looks fine -- compile OK, link OK -- and
+#    then the program dies instantly with exit code -1073741515 (0xC0000135)
+#    and prints NOTHING. So both halves are checked, and ASan is made to
+#    actually report a real use-after-free.
+# ---------------------------------------------------------------------------
+Write-Host ''
+Write-Host '--- 6) compiler-rt runtimes (-fsanitize=address / --coverage)'
+
+$rtDir = ''
+if ($resdir) { $rtDir = Join-Path $resdir.FullName 'lib\windows' }
+$rtMust = @(
+    'clang_rt.asan_dynamic-x86_64.dll',
+    'clang_rt.asan_dynamic-x86_64.lib',
+    'clang_rt.asan_dynamic_runtime_thunk-x86_64.lib',
+    'clang_rt.asan_static_runtime_thunk-x86_64.lib',
+    'clang_rt.profile-x86_64.lib',
+    'clang_rt.ubsan_standalone-x86_64.lib'
+)
+$rtMissing = @()
+if (-not $rtDir -or -not (Test-Path $rtDir)) {
+    $rtMissing = $rtMust
+} else {
+    foreach ($f in $rtMust) { if (-not (Test-Path (Join-Path $rtDir $f))) { $rtMissing += $f } }
+}
+if ($rtMissing.Count -eq 0) { Ok ("all {0} required runtime libraries present" -f $rtMust.Count) }
+else { Bad ("runtime libraries missing from lib\clang\<ver>\lib\windows: " + ($rtMissing -join ', ')) }
+
+foreach ($f in @('asan_ignorelist.txt', 'cfi_ignorelist.txt')) {
+    $p = ''
+    if ($resdir) { $p = Join-Path $resdir.FullName "share\$f" }
+    if ($p -and (Test-Path $p)) { Ok "$f present" } else { Bad "$f missing (clang passes it to the driver)" }
+}
+
+# (a) it must LINK -- this is the import-library half
+$srcA = Join-Path $tmp 'asan.cpp'
+"int main() { int *p = new int[4]; delete[] p; return p[0]; }`n" | Set-Content -Encoding ASCII $srcA
+$exeA = Join-Path $tmp 'asan.exe'
+& $cxx -fsanitize=address -o $exeA $srcA 2>&1 | Out-Null
+if ($LASTEXITCODE -eq 0) { Ok '-fsanitize=address compiles and links' }
+else { Bad '-fsanitize=address failed to compile or link' }
+
+# (b) it must REPORT -- this is the DLL half, and it fails silently without it
+if ((Test-Path $exeA) -and $rtDir -and (Test-Path $rtDir)) {
+    $savedPath = $env:PATH
+    $env:PATH = "$rtDir;$env:PATH"
+    $t6 = Join-Path $tmp 'asan.txt'
+    & cmd /c "`"$exeA`" > `"$t6`" 2>&1"
+    $env:PATH = $savedPath
+    $aTxt = [System.IO.File]::ReadAllText($t6)
+    if ($aTxt -match 'AddressSanitizer') { Ok 'AddressSanitizer reports a real use-after-free' }
+    else { Bad 'AddressSanitizer produced no report (is the runtime DLL reachable?)' }
+}
+
+$srcC = Join-Path $tmp 'cov.cpp'
+"int add(int a, int b) { return a + b; } int main() { return add(1,2) == 3 ? 0 : 1; }`n" |
+    Set-Content -Encoding ASCII $srcC
+$exeC = Join-Path $tmp 'cov.exe'
+& $cxx --coverage -o $exeC $srcC 2>&1 | Out-Null
+if ($LASTEXITCODE -eq 0) { Ok '--coverage compiles and links' }
+else { Bad '--coverage failed to compile or link' }
+
+# ---------------------------------------------------------------------------
 if (-not $KeepTemp) { Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue }
 
 Write-Host ''
