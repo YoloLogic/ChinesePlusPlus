@@ -195,36 +195,92 @@ function Enable-Portable($dir) {
     return $ed
 }
 
+function Find-InstalledEditor {
+    # RE-RUN SAFETY. An earlier interrupted run may already have unpacked the
+    # editor here. The $bundled lookup below deliberately SKIPS $editorDir (that
+    # one is the download target, not something the packager shipped), so
+    # without this check a second run would re-download all 320 MB.
+    $direct = Join-Path $editorDir 'Code.exe'
+    if (Test-Path $direct) { return (Get-Item $direct) }
+    $direct = Join-Path $editorDir 'VSCodium.exe'
+    if (Test-Path $direct) { return (Get-Item $direct) }
+    return (Get-ChildItem $editorDir -Recurse -Depth 2 -Include 'Code.exe', 'VSCodium.exe' -File -ErrorAction SilentlyContinue |
+            Select-Object -First 1)
+}
+
 $bundled = Get-ChildItem $here -Recurse -Depth 2 -Include 'VSCodium.exe', 'Code.exe' -File -ErrorAction SilentlyContinue |
            Where-Object { $_.Directory.FullName -notlike "$editorDir*" } | Select-Object -First 1
+
+$ed = $null
+$editorFailed = $false
 
 if ($bundled) {
     Write-Host ("  using the portable editor already in this package: " + $bundled.Name)
     $ed = Enable-Portable $bundled.Directory.FullName
 } else {
-    Write-Host '  this package has no editor bundled.'
-    Write-Host '  downloading the OFFICIAL Visual Studio Code (about 320 MB) into this folder...'
-    Write-Host '  (we do not redistribute it; Microsoft serves it directly to you)'
     $zip = Join-Path $here 'vscode-download.zip'
-    $ok = $false
-    try {
-        $ProgressPreference = 'SilentlyContinue'
-        Invoke-WebRequest -Uri $VSCODE_URL -OutFile $zip -UseBasicParsing -TimeoutSec 3600
-        $ok = $true
-    } catch {
-        Write-Host ("  [FAIL] download failed: " + $_.Exception.Message) -ForegroundColor Red
-        Write-Host '  you can download it manually and unpack it into: ' -ForegroundColor Yellow
-        Write-Host ("     $editorDir") -ForegroundColor Yellow
-        Write-Host ("  from: $VSCODE_URL") -ForegroundColor Yellow
-    }
-    if ($ok) {
-        Write-Host '  extracting...'
-        New-Item -ItemType Directory -Force $editorDir | Out-Null
-        Expand-Archive -Path $zip -DestinationPath $editorDir -Force
-        Remove-Item $zip -Force
-        $ed = Enable-Portable $editorDir
-        if ($ed) { Write-Host ("  installed: " + $ed.FullName) -ForegroundColor Green }
-        else     { Write-Host '  [warn] Code.exe not found after extraction' -ForegroundColor Yellow }
+
+    $already = Find-InstalledEditor
+    if ($already) {
+        # The common re-run case: everything is already here.
+        Write-Host ("  editor already installed -- skipping the download: " + $already.FullName) -ForegroundColor Green
+        $ed = Enable-Portable $already.Directory.FullName
+    } else {
+        # A previous run may have been interrupted mid-download. Reuse the file
+        # if it is plausibly complete; otherwise throw it away and fetch again.
+        $haveZip = $false
+        if (Test-Path $zip) {
+            $mb = [int]((Get-Item $zip).Length / 1MB)
+            if ($mb -ge 100) {
+                Write-Host ("  reusing the download from a previous run ($mb MB)")
+                $haveZip = $true
+            } else {
+                Write-Host ("  discarding an incomplete previous download ($mb MB)")
+                Remove-Item $zip -Force -ErrorAction SilentlyContinue
+            }
+        }
+
+        if (-not $haveZip) {
+            Write-Host '  this package has no editor bundled.'
+            Write-Host '  downloading the OFFICIAL Visual Studio Code (about 320 MB) into this folder...'
+            Write-Host '  (we do not redistribute it; Microsoft serves it directly to you)'
+            try {
+                $ProgressPreference = 'SilentlyContinue'
+                Invoke-WebRequest -Uri $VSCODE_URL -OutFile $zip -UseBasicParsing -TimeoutSec 3600
+                $haveZip = $true
+            } catch {
+                $editorFailed = $true
+                Write-Host ("  [FAIL] download failed: " + $_.Exception.Message) -ForegroundColor Red
+                Write-Host '  re-run this script to try again -- nothing half-done is left behind.' -ForegroundColor Yellow
+                Write-Host '  or download it manually and unpack it into:' -ForegroundColor Yellow
+                Write-Host ("     $editorDir") -ForegroundColor Yellow
+                Write-Host ("  from: $VSCODE_URL") -ForegroundColor Yellow
+            }
+        }
+
+        if ($haveZip) {
+            Write-Host '  extracting...'
+            New-Item -ItemType Directory -Force $editorDir | Out-Null
+            try {
+                Expand-Archive -Path $zip -DestinationPath $editorDir -Force -ErrorAction Stop
+                Remove-Item $zip -Force -ErrorAction SilentlyContinue
+            } catch {
+                # Extraction failed: the zip is suspect, so drop it and let the
+                # next run fetch a fresh one. The partial folder is harmless --
+                # the next run overwrites it -- so we keep it and say so.
+                $editorFailed = $true
+                Write-Host ("  [FAIL] extraction failed: " + $_.Exception.Message) -ForegroundColor Red
+                Remove-Item $zip -Force -ErrorAction SilentlyContinue
+                Write-Host '  re-run this script: it will download again and overwrite the partial folder.' -ForegroundColor Yellow
+            }
+            $ed = Enable-Portable $editorDir
+            if ($ed) {
+                Write-Host ("  installed: " + $ed.FullName) -ForegroundColor Green
+            } else {
+                $editorFailed = $true
+                Write-Host '  [warn] Code.exe not found after extraction -- re-run the script.' -ForegroundColor Yellow
+            }
+        }
     }
 }
 
@@ -236,14 +292,21 @@ if ($ed) {
     $cli = Get-ChildItem $ed.Directory.FullName -Recurse -Depth 2 -Include 'code.cmd', 'codium.cmd' -File -ErrorAction SilentlyContinue |
            Select-Object -First 1
     if ($cli) {
-        Write-Host '  installing extensions into the portable data folder:'
+        # Ask what is already there, so a re-run does not re-download the .vsix
+        # files from the marketplace.
+        $have = @()
+        try { $have = & $cli.FullName --list-extensions 2>$null } catch { }
         foreach ($ext in @($LANG_PACK, $CLANGD_EXT)) {
-            Write-Host ("    " + $ext)
+            if ($have -contains $ext) {
+                Write-Host ("    already installed: " + $ext) -ForegroundColor DarkGray
+                continue
+            }
+            Write-Host ("    installing: " + $ext)
             & $cli.FullName --install-extension $ext --force 2>&1 |
                 Select-Object -Last 2 | ForEach-Object { Write-Host ("      " + $_) }
         }
-        Write-Host '  (requires network access to the extension marketplace; if this' -ForegroundColor DarkGray
-        Write-Host '   failed, install them later from the Extensions panel)' -ForegroundColor DarkGray
+        Write-Host '  (the extensions come from the official marketplace; if this failed,' -ForegroundColor DarkGray
+        Write-Host '   re-run the script or install them from the Extensions panel)' -ForegroundColor DarkGray
     } else {
         Write-Host '  [warn] editor CLI (bin\code.cmd) not found; install the extensions manually:' -ForegroundColor Yellow
         Write-Host ("     " + $LANG_PACK)
@@ -276,11 +339,29 @@ if (Test-Path $kit) {
 
 # ---------------------------------------------------------------------------
 # 6. prove it works
+#
+#    The self-test below only proves the TOOLCHAIN. If the editor step failed we
+#    must not end with "finished successfully" -- that would report a failure as
+#    a success, which is exactly the class of bug this project keeps hunting.
 # ---------------------------------------------------------------------------
+$rc = 0
 if (-not $SkipVerify) {
     Write-Host ''
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $here 'verify.ps1')
-    exit $LASTEXITCODE
+    $rc = $LASTEXITCODE
+} else {
+    Write-Host ''
+    Write-Host 'skipped verification (-SkipVerify).' -ForegroundColor Yellow
 }
-Write-Host ''
-Write-Host 'skipped verification (-SkipVerify).' -ForegroundColor Yellow
+
+if ($editorFailed) {
+    Write-Host ''
+    Write-Host '======================================================================' -ForegroundColor Yellow
+    Write-Host '  The TOOLCHAIN is fine, but the EDITOR was not installed.' -ForegroundColor Yellow
+    Write-Host '  Re-run this script (or the one-click launcher) to retry.' -ForegroundColor Yellow
+    Write-Host '  Nothing half-done is left behind: the next run starts clean.' -ForegroundColor Yellow
+    Write-Host '======================================================================' -ForegroundColor Yellow
+    exit 2
+}
+
+exit $rc
