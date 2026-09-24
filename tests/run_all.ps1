@@ -24,6 +24,30 @@ $pass = 0
 $fail = 0
 $failed = @()
 
+# ---------------------------------------------------------------------------
+# Child scripts run under PowerShell 7 (pwsh) when it is available, otherwise
+# under Windows PowerShell 5.1, which ships with Windows. Both are verified to
+# run every suite in this project (2026-09-24).
+#
+# The probe is not paranoia: being on PATH is not the same as working. The
+# Store install puts an app-execution ALIAS on PATH, and an alias can fail to
+# start in contexts where a real executable would not -- so we start it once
+# and check the exit code before trusting it.
+#
+# Keep this block identical in the three scripts that spawn children:
+#   tests\run_all.ps1, tools\acceptance.ps1,
+#   tests\checks\verify_make_patch_gate.ps1
+# ---------------------------------------------------------------------------
+$psExe = 'powershell'
+$pwshCmd = Get-Command pwsh -ErrorAction SilentlyContinue
+if ($pwshCmd) {
+    & $pwshCmd.Source -NoProfile -Command 'exit 0' 2>$null | Out-Null
+    if ($LASTEXITCODE -eq 0) { $psExe = $pwshCmd.Source }
+}
+# Say out loud which one was chosen: an unobservable fallback cannot be tested,
+# and the whole point of this block is that it has TWO paths.
+Write-Host ("  child shells: " + $psExe)
+
 foreach ($dir in (Get-ChildItem $here -Directory | Sort-Object Name)) {
 
     $driver = $null
@@ -38,7 +62,7 @@ foreach ($dir in (Get-ChildItem $here -Directory | Sort-Object Name)) {
     Write-Host ('=' * 72)
 
     if ($driver) {
-        & powershell -NoProfile -ExecutionPolicy Bypass -File $driver 2>&1 |
+        & $psExe -NoProfile -ExecutionPolicy Bypass -File $driver 2>&1 |
             ForEach-Object { Write-Host "  $_" }
         $code = $LASTEXITCODE
     } else {
@@ -70,7 +94,7 @@ if (Test-Path $checksDir) {
     foreach ($s in (Get-ChildItem $checksDir -File | Sort-Object Name)) {
         if ($s.Extension -eq '.ps1') {
             Write-Host ("  run {0}" -f $s.Name)
-            & powershell -NoProfile -ExecutionPolicy Bypass -File $s.FullName 2>&1 |
+            & $psExe -NoProfile -ExecutionPolicy Bypass -File $s.FullName 2>&1 |
                 Select-Object -Last 8 | ForEach-Object { Write-Host "      $_" }
         } elseif ($s.Extension -eq '.py') {
             Write-Host ("  run {0}" -f $s.Name)

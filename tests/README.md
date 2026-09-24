@@ -30,6 +30,37 @@ powershell -File E:\Chinese++\tests\run_all.ps1
 
 所以**你往 `tests/` 下丢一个新目录（比如 `demo/`），它会被自动收进来**，不用改脚本。
 
+## 子脚本用哪个 PowerShell：优先 7，回退 5.1（2026-09-24）
+
+三个会**再拉起子进程**的脚本 —— `tests\run_all.ps1`、`tools\acceptance.ps1`、
+`tests\checks\verify_make_patch_gate.ps1` —— 都是同一段选择逻辑：
+
+```powershell
+$psExe = 'powershell'
+$pwshCmd = Get-Command pwsh -ErrorAction SilentlyContinue
+if ($pwshCmd) {
+    & $pwshCmd.Source -NoProfile -Command 'exit 0' 2>$null | Out-Null
+    if ($LASTEXITCODE -eq 0) { $psExe = $pwshCmd.Source }
+}
+Write-Host ("  child shells: " + $psExe)
+```
+
+- **优先 PowerShell 7（`pwsh`）**，没有就回退 Windows 自带的 5.1 —— 所以**开箱即用没有丢**。
+- **为什么要真跑一下**：在 PATH 上不等于能用。Store 装出来的 `pwsh.exe` 是一个
+  **应用执行别名**（app-execution alias），在某些上下文里会起不来，所以先起一次看退出码。
+- **为什么把那行打出来**：**不可观测的回退等于没测过**。两条路都要能证明自己走通了。
+
+> ⚠️ 改这三个脚本时注意两条已经踩过的坑：
+> **① 必须保持纯 ASCII** —— PowerShell 5.1 按 GBK 读无 BOM 文件，中文注释会变乱码并顶崩解析器。
+> **② 行尾的 `|` 当续行是 PowerShell 7 才有的**，5.1 会报 `Unexpected token ')'`。
+>
+> 两条路都实测过（2026-09-24，PowerShell 7.6.6）：
+>
+> | | child shells | run_all | acceptance |
+> |---|---|---|---|
+> | 路径 A：pwsh 在场 | `...\WindowsApps\pwsh.exe` | passed 19 / 0 | passed 17 / 0 |
+> | 路径 B：把 pwsh 从 PATH 拿掉 | `powershell` | passed 19 / 0 | passed 17 / 0 |
+
 ## 实测结果（2026-09-22）
 
 `run_all.ps1` 一次跑完：**7 PASS / 0 FAIL**。其中最有价值的两条：

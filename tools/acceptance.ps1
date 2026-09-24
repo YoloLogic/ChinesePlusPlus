@@ -26,6 +26,30 @@
 $ErrorActionPreference = 'Continue'
 $ProgressPreference    = 'SilentlyContinue'
 
+# ---------------------------------------------------------------------------
+# Child scripts run under PowerShell 7 (pwsh) when it is available, otherwise
+# under Windows PowerShell 5.1, which ships with Windows. Both are verified to
+# run every suite in this project (2026-09-24).
+#
+# The probe is not paranoia: being on PATH is not the same as working. The
+# Store install puts an app-execution ALIAS on PATH, and an alias can fail to
+# start in contexts where a real executable would not -- so we start it once
+# and check the exit code before trusting it.
+#
+# Keep this block identical in the three scripts that spawn children:
+#   tests\run_all.ps1, tools\acceptance.ps1,
+#   tests\checks\verify_make_patch_gate.ps1
+# ---------------------------------------------------------------------------
+$psExe = 'powershell'
+$pwshCmd = Get-Command pwsh -ErrorAction SilentlyContinue
+if ($pwshCmd) {
+    & $pwshCmd.Source -NoProfile -Command 'exit 0' 2>$null | Out-Null
+    if ($LASTEXITCODE -eq 0) { $psExe = $pwshCmd.Source }
+}
+# Say out loud which one was chosen: an unobservable fallback cannot be tested,
+# and the whole point of this block is that it has TWO paths.
+Write-Host ("  child shells: " + $psExe)
+
 $Root  = 'E:\Chinese++'
 $Mine  = Join-Path $Root 'LLVM-main'
 $Base  = 'E:\LLVM-main'                       # clean reference tree (read-only)
@@ -237,14 +261,14 @@ Report 'table validator passes (IDs exist, placeholders match English)' ($LASTEX
 # ---------------------------------------------------------------------------
 Write-Host ''
 Write-Host '--- 7. the patch verification gate can FAIL (prove, do not assume) ---'
-& powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root 'tools\make_patch.ps1') -SelfTest 2>&1 |
+& $psExe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root 'tools\make_patch.ps1') -SelfTest 2>&1 |
     Select-String -Pattern 'SELF-TEST|returned:|git apply exit' | ForEach-Object { Write-Host ("        " + $_.Line.Trim()) }
 Report 'gate self-test: good patch accepted, sabotaged patch rejected' ($LASTEXITCODE -eq 0) ''
 
 # ---------------------------------------------------------------------------
 Write-Host ''
 Write-Host '--- 8. patches reproduce our tree, and cover EVERY changed directory ---'
-& powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root 'tools\make_patch.ps1') 2>&1 |
+& $psExe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root 'tools\make_patch.ps1') 2>&1 |
     Select-String -Pattern 'coverage sweep|NOT SCANNED|ok: every differing|changed files|-> keywords|-> diagnostics|byte-identical|corrupt|content differs|all patches verified|something failed' |
     ForEach-Object { Write-Host ("        " + $_.Line.Trim()) }
 Report 'make_patch.ps1 verified both patches against the clean tree' ($LASTEXITCODE -eq 0) `
@@ -253,7 +277,7 @@ Report 'make_patch.ps1 verified both patches against the clean tree' ($LASTEXITC
 # ---------------------------------------------------------------------------
 Write-Host ''
 Write-Host '--- 9. the full regression suite ---'
-& powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Tests 'run_all.ps1') 2>&1 |
+& $psExe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Tests 'run_all.ps1') 2>&1 |
     Select-String -Pattern 'passed:|failed:|=> FAIL' | ForEach-Object { Write-Host ("        " + $_.Line.Trim()) }
 Report 'run_all.ps1 is green' ($LASTEXITCODE -eq 0) ''
 
