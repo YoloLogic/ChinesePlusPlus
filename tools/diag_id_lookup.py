@@ -38,7 +38,7 @@ ZH_DEF = os.path.join(ROOT, "LLVM-main", "clang", "include", "clang", "Basic",
 # 中文表至少要有这么多条。**加了一批就把它调大。**
 # 存在的理由：逐条校核抓不到"表被改小"—— 剩下的条目依然条条合法。
 # 独立复核者 2026-09-22 实测：砍到 7 条时校核器仍报 0 问题、退出码 0（反例 A）。
-MIN_ENTRIES = 2744
+MIN_ENTRIES = 7344
 CORPUS = os.path.join(ROOT, "build", "_diag_corpus")
 CLANGXX = os.path.join(ROOT, "build", "Release", "bin", "clang++.exe")
 REPORT = os.path.join(ROOT, "build", "_diag_report.txt")
@@ -569,8 +569,14 @@ def check_zh(name, zh, inc):
     en = inc[name][0]
     en_atoms, en_br, en_bad = spec_profile(en)
     zh_atoms, zh_br, zh_bad = spec_profile(zh)
-    if zh_bad:
-        problems.append("%s：中文里有畸形的 %% 转义" % name)
+    if len(zh_bad) > len(en_bad):
+        # 只报【中文比英文多出来】的畸形转义。英文模板自己就可能有这种写法
+        # （例：note_omp_atomic_update 模板里含带引号的 '%|'，scan_specs 认不出），
+        # 那是上游的写法，不是中文引入的 —— 原先只看 zh_bad，于是这条无论怎么
+        # 翻都必红：删掉它还要同时丢记号、分支数对不上，两条路都走不通。
+        problems.append("%s：中文里有畸形的 %% 转义（英文 %d 处，中文 %d 处）\n"
+                        "      英文 %s\n      中文 %s"
+                        % (name, len(en_bad), len(zh_bad), en, zh))
     if en_atoms != zh_atoms:
         problems.append("%s：引用的参数对不上\n      英文 %s\n      中文 %s"
                         % (name, en_atoms, zh_atoms))
@@ -976,6 +982,12 @@ _FLAG_RX = re.compile(r"-{1,2}(?:W|f|m|O|g|std=|pedantic|target)[\w=+.-]*")
 # 后面跟的是不是数字。
 _QUOTED_PLACEHOLDER = re.compile(r"%[a-zA-Z]*\d")
 
+# 引号里若是 %select/%plural/%diff，整段也不能当「必须逐字保留的代码记号」——
+# 分支本身就是要翻的文本，引号只是排版；它的结构由 check_zh 的分支指纹管。
+# 2026-09-24：批量翻译时 5 条 `'%select{if|switch}0'` 撞出来的矛盾 ——
+# 门禁逼着把英文分支原样留下，而那正是最该翻的部分。
+_QUOTED_SELECTOR = re.compile(r"%(?:select|plural|selectordinal|diff)\{")
+
 # 引号里若是【描述性英文短语】而不是代码，就不该当记号要求逐字保留。
 # 例：'variable length array in structure' 是扩展的名字，中文写
 # 「结构体中的变长数组」是合理的，硬要求保留英文反而错。
@@ -1020,6 +1032,8 @@ def protect_tokens(text):
                     continue                  # 首尾有空白 -> 跨散文配对，不是记号
                 if _QUOTED_PLACEHOLDER.search(tok):
                     continue                  # '%1' 里的引号是排版，占位符归 check_zh 管
+                if _QUOTED_SELECTOR.search(tok):
+                    continue                  # 引号里的 %select 分支是要翻的正文
                 if _PROSE_QUOTED.match(inner):
                     continue                  # 描述性英文短语，不是代码记号
             for i in range(a, b):
@@ -1135,6 +1149,17 @@ def check_percent_escapes(name, en, zh):
     return problems
 
 
+# `（关键字） X` 里 X 的字符类。
+# 必须排除 `{ } |`：写成 %select{…|（关键字） 新建}0 时，`}0` 会被一起吃进来，
+# 于是报「'新建}0' 不在关键字表里」—— 那是排版问题，不是译错。
+# 也排除引号和 `%`：`（关键字） '%0'` 是动态关键字（运行时才知道是哪个），
+# 静态判不了，直接不捕获取。
+# 只定义这一份，检查器和 build\_r_fixkw.py 共用 —— 这个项目已经栽过三次
+# 「两份副本各说各话」。
+KEYWORD_MARKER_RE = re.compile(
+    r"（关键字）\s*([^\s（），。；：、？！…—{}|'\"%]+)")
+
+
 def check_keyword_markers(name, en, zh):
     """`（关键字） ` 只能标在英文【加了引号】的关键字上。返回问题列表。
 
@@ -1155,11 +1180,11 @@ def check_keyword_markers(name, en, zh):
         cn2en.setdefault(c, set()).add(e)
 
     problems = []
-    for m in re.finditer(r"（关键字）\s*([^\s（），。；：、？！…—]+)", zh):
+    # `|` 也必须排除：%select/%plural 的分支分隔符不是正文。不排除时
+    # `（关键字） 自动|'decltype(auto)'|...` 会把整段分支吃进"关键字"里，
+    # 于是每个分支里出现一次的关键字都会被误判成"不在关键字表里"。
+    for m in KEYWORD_MARKER_RE.finditer(zh):
         cn = m.group(1)
-        if "%" in cn:
-            continue          # 占位符（如 err_friend_decl_spec 的 （关键字） '%0'）：
-                              # 标的是什么由运行时决定，静态查不了，放行
         ens = cn2en.get(cn)
         if not ens:
             problems.append(
@@ -1211,6 +1236,24 @@ def check_table(inc, zh=None, raw=None):
             "（确实要减少条目时，请同时改 tools/diag_id_lookup.py 里的 MIN_ENTRIES，"
             "并在 docs\诊断汉化\诊断汉化清单.md 写明原因）"
             % (len(zh), MIN_ENTRIES))
+
+    # 2026-09-24 起成立的一条更强的保证：**凡是有英文正文的诊断，都必须在表里**。
+    # 在此之前只能靠 tests\12-diagnostics\10_fallback_english.cpp 挑一条"还没翻的"
+    # 来观测回退路径 —— 而那个用例每加一批就失效一次（换过三次，最后一次无条可换）。
+    # 改成表级断言后，它不会随着覆盖率上升而失效。
+    # 白名单是 `"%0"` 这类直通条目：正文由后端给，本来就没有英语可翻。
+    missing = []
+    have = {n for n, _t, _l in zh}       # 直接用 zh 建集合：不要依赖 seen 的填充时机
+    for _n, (_en, _sev, _line) in inc.items():
+        if _n in have:
+            continue
+        if re.search(r"[A-Za-z]", re.sub(r"%[a-zA-Z]*\d+", "", _en)):
+            missing.append(_n)
+    if missing:
+        problems.append(
+            "有 %d 个诊断【有英文正文却不在中文表里】：%s%s"
+            % (len(missing), "、".join(sorted(missing)[:10]),
+               " …" if len(missing) > 10 else ""))
 
     for name, text, line in zh:
         if name in seen:

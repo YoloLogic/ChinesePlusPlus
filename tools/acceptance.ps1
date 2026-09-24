@@ -232,29 +232,30 @@ Report 'prefix was NOT translated to Chinese' `
 
 # ---------------------------------------------------------------------------
 Write-Host ''
-Write-Host '--- 4. untranslated diagnostics fall back to English (byte-identical) ---'
+Write-Host '--- 4. the switch flips a table-backed diagnostic ---'
 $onLog  = Compile-To '10_fallback_english.cpp' '' 'on'
 $offLog = Compile-To '10_fallback_english.cpp' '-fno-chinese-diagnostics' 'off'
 $onB = Get-Bytes $onLog
 $offB = Get-Bytes $offLog
-# Compare the DIAGNOSTIC BODY, not the whole log.
-# Since 2026-09-24 the renderer also emits Chinese for text that has no
-# diagnostic ID at all (the "N errors generated." summary, the include stack,
-# the macro backtrace). That text is gated by the same switch, so it is Chinese
-# with the switch on and English with it off -- by design, not a fallback
-# failure. The fallback property is about TABLE lookups, so assert it on the
-# body: everything except the trailing summary line must be byte-identical.
+# This step used to assert "a diagnostic with NO table entry has a byte-identical
+# BODY with and without the switch" -- the fallback property, sampled on one
+# still-untranslated diagnostic. As of 2026-09-24 there is no such diagnostic
+# left: every one of the 7374 builtins that HAS English text is in the table
+# (7344 entries). The fallback path therefore cannot be observed by rendering.
+# The stronger guarantee replaced it, at table level, inside
+# tools\diag_id_lookup.py --check-table (the "has English text but is not in the table" count must be 0).
+# What is still observable here is the switch itself.
 #
-# !! tests\12-diagnostics\check.ps1 asserts the SAME property. This round
-# !! fixed that copy and missed this one, and acceptance went 16/1 -- a
-# !! duplicated assertion is only fixed when every copy is fixed.
-$onText  = [System.Text.Encoding]::UTF8.GetString($onB)  -split "`n"
-$offText = [System.Text.Encoding]::UTF8.GetString($offB) -split "`n"
-$onBody  = ($onText[0..($onText.Count - 3)])  -join "`n"
-$offBody = ($offText[0..($offText.Count - 3)]) -join "`n"
-Report 'a diagnostic with no table entry has a byte-identical BODY with and without the switch' `
-    ($onBody -ceq $offBody) `
-    ("body {0} vs {1} chars; whole log {2} vs {3} bytes" -f $onBody.Length, $offBody.Length, $onB.Length, $offB.Length)
+# !! tests\12-diagnostics\check.ps1 has a copy of this block. A duplicated
+# !! assertion is only fixed when EVERY copy is fixed -- this file has already
+# !! been the miss once (acceptance went 16/1). Keep the two in step.
+Report 'default: the diagnostic renders in Chinese' `
+    (Test-Contains $onB ([byte[]](0xE6, 0x97, 0xA0, 0xE6, 0xB3, 0x95, 0xE5, 0x88, 0x9D,
+                                 0xE5, 0xA7, 0x8B, 0xE5, 0x8C, 0x96))) `
+    'looking for the Chinese body'
+Report 'off: the English body is back' `
+    (Test-Contains $offB ([System.Text.Encoding]::ASCII.GetBytes('cannot initialize a variable of type'))) `
+    'looking for the English body'
 Report 'the generated-count summary follows the switch (Chinese on / English off)' `
     ((Test-Contains $onB ([byte[]](0xE7, 0x94, 0x9F, 0xE6, 0x88, 0x90, 0xE4, 0xBA, 0x86))) -and `
      (Test-Contains $offB ([System.Text.Encoding]::ASCII.GetBytes('generated.')))) `

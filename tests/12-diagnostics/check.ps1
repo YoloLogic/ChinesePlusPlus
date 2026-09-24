@@ -362,37 +362,28 @@ Expect-Utf8 'on : mixed summary keeps the space after the connector' $mxOnB `
 Expect-Ascii 'off: same counts in English' $mxOffB 'warnings and 1 error generated.' $true
 
 # ---------------------------------------------------------------------------
-# 4) fallback: a file with NO table entry must be byte-identical either way
+# 4) There used to be a "fallback" case here: a file whose diagnostic was NOT
+#    in the table, asserted byte-identical with and without the switch. As of
+#    2026-09-24 that property is no longer observable -- every one of the 7374
+#    builtin diagnostics that HAS English text is now in the table (7344
+#    entries; the remaining 30 are `"%0"` pass-throughs with no English of
+#    their own to translate). So there is nothing left to fall back FROM.
+#    The stronger guarantee replaces it, at table level, in
+#    tests\checks\verify_zh_diagnostics.py: no builtin diagnostic with English
+#    text may be missing from the table. Here we assert what still IS
+#    observable: the switch flips this table-backed diagnostic.
 # ---------------------------------------------------------------------------
-Write-Host '--- 10: untranslated diagnostics must fall back to English'
+Write-Host '--- 10: the switch flips a table-backed diagnostic'
 $def = Get-Log '10_fallback_english.cpp' '' 'def'
-# Keep this needle in sync with 10_fallback_english.cpp's "// expect:" line:
-# it must name a diagnostic that is NOT in ChineseDiagnostics.def.
-Expect-Ascii 'default: English body present' $def.Bytes 'cannot initialize a variable of type' $true
+# needle = "wu fa chu shi hua"
+Expect-Utf8 'default: Chinese body present' $def.Bytes `
+    ([byte[]](0xE6, 0x97, 0xA0, 0xE6, 0xB3, 0x95, 0xE5, 0x88, 0x9D,
+              0xE5, 0xA7, 0x8B, 0xE5, 0x8C, 0x96)) $true
 $flg = Get-Log '10_fallback_english.cpp' '-fno-chinese-diagnostics' 'flg'
-# Compare the DIAGNOSTIC BODY, not the whole log.
-# The whole-log comparison this used to make is no longer the right property:
-# since 2026-09-24 the renderer also emits Chinese for text that has no
-# diagnostic ID at all (the "N errors generated." summary, the include stack,
-# the macro backtrace). That text is gated by the same switch, so it is Chinese
-# with the switch on and English with it off -- by design, not a fallback
-# failure. The fallback property is about TABLE lookups, so assert it on the
-# body: everything except the trailing summary line must be byte-identical.
-$dl = [Text.Encoding]::UTF8.GetString($def.Bytes) -split "`n"
-$fl = [Text.Encoding]::UTF8.GetString($flg.Bytes) -split "`n"
-# drop the summary line and the empty tail that a trailing newline leaves
-$dbody = ($dl[0..($dl.Count - 3)]) -join "`n"
-$fbody = ($fl[0..($fl.Count - 3)]) -join "`n"
-if ($dbody -ceq $fbody) {
-    Write-Host '    OK   diagnostic body is byte-identical with and without the switch'
-} else {
-    Write-Host '    FAIL diagnostic body differs with and without the switch'
-    $script:fail += 1
-}
-# ...and the one line that IS expected to differ must differ in the right way.
-Expect-Utf8 'summary follows the switch (on : Chinese)' $def.Bytes `
-    ([byte[]](0xE7, 0x94, 0x9F, 0xE6, 0x88, 0x90, 0xE4, 0xBA, 0x86)) $true
-Expect-Ascii 'summary follows the switch (off: English)' $flg.Bytes 'generated.' $true
+Expect-Ascii 'off: English body is back' $flg.Bytes 'cannot initialize a variable of type' $true
+Expect-Utf8 'off: Chinese body is gone' $flg.Bytes `
+    ([byte[]](0xE6, 0x97, 0xA0, 0xE6, 0xB3, 0x95, 0xE5, 0x88, 0x9D,
+              0xE5, 0xA7, 0x8B, 0xE5, 0x8C, 0x96)) $false
 
 # ---------------------------------------------------------------------------
 # 5) every .cpp in this directory must be REFERENCED by this script.
