@@ -1,22 +1,19 @@
 # -*- coding: utf-8 -*-
 """实测：标准库「复制一份加中文名」以后，能不能做到"用户想引用哪个就用哪个"。
 
-这是 docs\\汉字第一公民-路线图.md 第 4.0 节那张表的证据脚本。
-**为什么它不是 tests\\ 下的常规用例**：它验证的是 C++ 语言与头文件组织方式的
-性质，不是我们编译器的行为。它是一次【设计决定的取证】，所以放在 tools\\ 下，
+这是 docs\\汉字第一公民-路线图.md 第 4.0 节的证据脚本。
+**为什么不是 tests\\ 下的常规用例**：它验证的是 C++ 语言与头文件组织方式的性质，
+不是我们编译器的行为。它是一次【设计决定的取证】，所以放 tools\\，
 且不参与 run_all 的通过计数。
 
 用法：
     python tools\\library_plan_evidence\\run.py
 
-结论（脚本会断言，跑不过就说明结论变了）：
-  1. 只引中文副本                              -> 通过
-  2. 引"原库"+"中文副本"（守卫不同名）          -> 重定义错误（两个顺序都报）
-  3. 引"原库"+"中文副本"（守卫同名，先引中文）  -> 通过
-  4. 引"原库"+"中文副本"（守卫同名，先引原库）  -> 【缺 压入 成员】
-  => 共用 guard 把"重定义"换成了【静默的顺序依赖】。
-     `#include <vector>` 常被其它头间接带进来，顺序不在用户手里，
-     所以成员级中文做不到"每个 include 各选各的"。
+三层结论（脚本会全部断言，跑不过就说明文档里的结论变了）：
+
+  A. 同一个文件里同时引        -> 报错（重定义 / 或缺成员）
+  B. 库之间互相引用（传递包含） -> 报错，但【错误指向第三方库的头】
+  C. 跨翻译单元各引各的        -> **不报错**（IFNDR：标准不要求诊断）
 """
 
 import io
@@ -33,59 +30,132 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 CLANG = os.path.join(ROOT, "build", "Release", "bin", "chinese++.exe")
 
-CASES = [
-    ("1. 只引中文副本", ["vec_zh.h"], True),
-    ("2. 原库 + 中文副本（守卫不同名）", ["vec_orig.h", "vec_zh.h"], False),
-    ("3. 中文副本 + 原库（守卫不同名）", ["vec_zh.h", "vec_orig.h"], False),
-    ("4. 中文副本 + 原库（守卫同名，先中文）", ["vec_zh_sameguard.h", "vec_orig.h"], True),
-    ("5. 原库 + 中文副本（守卫同名，先原库）", ["vec_orig.h", "vec_zh_sameguard.h"], False),
-]
-
 MAIN = "int main(){ my::V<int> v; v.压入(1); v.push_back(2); return 0; }"
+bad = 0
 
 
-def run(name, headers):
-    body = "".join('#include "%s"\n' % h for h in headers) + MAIN + "\n"
-    src = os.path.join(HERE, "_case.cpp")
-    io.open(src, "w", encoding="utf-8").write(body)
-    p = subprocess.run([CLANG, "-std=c++20", "-fsyntax-only", src],
-                       capture_output=True)
-    txt = p.stdout.decode("utf-8", "replace") + p.stderr.decode("utf-8", "replace")
-    first = ""
+def sh(args, cwd=HERE):
+    p = subprocess.run(args, capture_output=True, cwd=cwd)
+    return (p.returncode,
+            (p.stdout + p.stderr).decode("utf-8", "replace"))
+
+
+def first_error(txt):
     for line in txt.splitlines():
         if "error:" in line:
-            first = line.split("error:", 1)[1].strip()
-            break
-    return p.returncode, first
+            return line.split("error:", 1)[1].strip()
+    return ""
+
+
+def compile_case(fname, body, extra=None):
+    src = os.path.join(HERE, fname)
+    io.open(src, "w", encoding="utf-8").write(body)
+    rc, txt = sh([CLANG, "-std=c++20", "-fsyntax-only"] + (extra or []) + [src])
+    return rc, first_error(txt)
+
+
+def report(label, ok, detail):
+    global bad
+    mark = "[符合预期]" if ok else "[!! 结论变了 !!]"
+    if not ok:
+        bad += 1
+    print("  %s %-40s %s" % (mark, label, detail))
 
 
 if not os.path.isfile(CLANG):
     print("找不到编译器：%s" % CLANG)
     sys.exit(2)
-
-bad = 0
 print("compiler: %s\n" % CLANG)
-for name, headers, should_pass in CASES:
-    rc, err = run(name, headers)
-    ok = (rc == 0) == should_pass
-    mark = "[符合预期]" if ok else "[!! 结论变了 !!]"
-    if not ok:
-        bad += 1
-    print("  %s %-34s -> %s%s"
-          % (mark, name, "通过" if rc == 0 else "失败", "" if rc == 0 else "：" + err))
+
+# ---------------------------------------------------------------- A. 同一个文件
+print("A. 同一个文件里同时引（不需要任何库互相引用）")
+A = [
+    ("A1 只引中文副本", ["vec_zh.h"], True),
+    ("A2 原库 + 中文副本（守卫不同名）", ["vec_orig.h", "vec_zh.h"], False),
+    ("A3 中文副本 + 原库（守卫不同名）", ["vec_zh.h", "vec_orig.h"], False),
+    ("A4 中文副本 + 原库（守卫同名，先中文）", ["vec_zh_sameguard.h", "vec_orig.h"], True),
+    ("A5 原库 + 中文副本（守卫同名，先原库）", ["vec_orig.h", "vec_zh_sameguard.h"], False),
+]
+for name, headers, should_pass in A:
+    body = "".join('#include "%s"\n' % h for h in headers) + MAIN + "\n"
+    rc, err = compile_case("_a.cpp", body)
+    report(name, (rc == 0) == should_pass,
+           "通过" if rc == 0 else "失败：" + err)
+
+# ---------------------------------------------------------------- B. 库互相引用
+print()
+print("B. 库之间互相引用（第三方库的头里用了中文成员）")
+B = [
+    ("B1 先引库，再引英文 <vector>", ["lib_uses_chinese.h", "vec_orig.h"], True),
+    ("B2 先引英文 <vector>，再引库", ["vec_orig.h", "lib_uses_chinese.h"], False),
+]
+for name, headers, should_pass in B:
+    body = ("".join('#include "%s"\n' % h for h in headers)
+            + "int main(){ 库函数(); return 0; }\n")
+    rc, err = compile_case("_b.cpp", body)
+    report(name, (rc == 0) == should_pass,
+           "通过" if rc == 0 else "失败：" + err)
+
+# ---------------------------------------------------------------- C. 跨 TU（静默）
+# 这一层最危险：每个 TU 各自合法，链接也过，运行也过，【零诊断】。
+# 但 my::V<int> 在两个 TU 里是两份不同的定义 —— 标准上是 IFNDR。
+print()
+print("C. 跨翻译单元各引各的（这一层【不报错】）")
+tu_a = ('#include "vec_orig.h"\n'
+        'int fa(){ my::V<int> v; v.push_back(1); return (int)sizeof(v); }\n')
+tu_b = ('#include "vec_zh.h"\n'
+        'int fb(){ my::V<int> v; v.压入(2); return (int)sizeof(v); }\n')
+tu_m = ('#include <cstdio>\n'
+        'int fa(); int fb();\n'
+        'int main(){ std::printf("fa=%d fb=%d\\n", fa(), fb()); return 0; }\n')
+
+for fname, body in (("_c_a.cpp", tu_a), ("_c_b.cpp", tu_b), ("_c_m.cpp", tu_m)):
+    io.open(os.path.join(HERE, fname), "w", encoding="utf-8").write(body)
+
+objs, ok_all, detail = [], True, []
+for fname in ("_c_a.cpp", "_c_b.cpp", "_c_m.cpp"):
+    obj = os.path.join(HERE, fname.replace(".cpp", ".obj"))
+    rc, txt = sh([CLANG, "-std=c++20", "-c", "-o", obj,
+                  os.path.join(HERE, fname)])
+    if rc != 0:
+        ok_all = False
+        detail.append("%s 编译失败：%s" % (fname, first_error(txt)))
+    objs.append(obj)
+
+if ok_all:
+    exe = os.path.join(HERE, "_c.exe")
+    rc, txt = sh([CLANG, "-std=c++20", "-o", exe] + objs)
+    if rc != 0:
+        ok_all = False
+        detail.append("链接失败：" + first_error(txt))
+    else:
+        rc2, out = sh([exe])
+        detail.append("链接通过、运行通过、%s" % out.strip())
+
+report("C1 三个 TU 各自编译 + 链接 + 运行",
+       ok_all,
+       "零诊断（这正是问题）" if ok_all else "；".join(detail))
+
+# 关键断言：链接器【没有】报任何 ODR 相关诊断
+print()
+print("  ⚠ C 层没有报错，不是幸运，是标准如此：")
+print("     两个 TU 里 my::V<int> 的定义不同（一个有 压入 一个没有），")
+print("     属 [basic.def.odr] 的 IFNDR —— ill-formed, **no diagnostic required**。")
+print("     这里碰巧能跑，只因为差异仅在成员函数、布局相同（sizeof 都是 8）。")
+print("     一旦中文副本动了数据成员或对齐，跨 TU 传对象就会内存错乱，")
+print("     而**依然不会有任何提示**。")
+
+# ---------------------------------------------------------------- 清理
+for f in ("_a.cpp", "_b.cpp", "_c_a.cpp", "_c_b.cpp", "_c_m.cpp",
+          "_c_a.obj", "_c_b.obj", "_c_m.obj", "_c.exe"):
+    try:
+        os.remove(os.path.join(HERE, f))
+    except OSError:
+        pass
 
 print()
 if bad:
     print("有 %d 项与文档结论不符 —— 第 4.0 节需要更新。" % bad)
     sys.exit(1)
-
-print("全部符合 docs\\汉字第一公民-路线图.md 第 4.0 节的结论：")
-print("  成员级中文做不到「每个 include 各选各的」；")
-print("  共用 guard 换来的是静默的顺序依赖（第 5 项）。")
-
-# 清理临时文件
-try:
-    os.remove(os.path.join(HERE, "_case.cpp"))
-except OSError:
-    pass
+print("全部符合 docs\\汉字第一公民-路线图.md 第 4.0 节的结论（A 报错 / B 报错但指向别人的头 / C 不报错）。")
 sys.exit(0)
