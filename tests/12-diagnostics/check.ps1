@@ -264,6 +264,14 @@ Check-Case '68_previous_initializer.c'         '-x c -Winitializer-overrides' -E
 Check-Case '69_macro_backtrace.cpp'
 Check-Case '70_include_stack.cpp'
 
+# --- C4 (2026-09-24): chosen from the REAL-PROJECT ranking, not clang/test.
+Check-Case '71_deprecated.cpp'                 '-Wall'  -Expect ok
+Check-Case '72_deprecated_message.cpp'         '-Wall'  -Expect ok
+Check-Case '73_unused_function.cpp'            '-Wall'  -Expect ok
+Check-Case '74_override_exception_spec.cpp'    '-Wall'  -Expect ok
+Check-Case '75_template_member_here.cpp'
+Check-Case '76_uninit_const_pointer.cpp'       '-Wall'  -Expect ok
+
 # ---------------------------------------------------------------------------
 # 2) prefix and option name must survive (ASCII, so trivially checkable)
 # ---------------------------------------------------------------------------

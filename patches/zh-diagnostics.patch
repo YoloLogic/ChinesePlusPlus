@@ -1,9 +1,9 @@
 diff --git a/clang/include/clang/Basic/ChineseDiagnostics.def b/clang/include/clang/Basic/ChineseDiagnostics.def
 new file mode 100644
-index 0000000..22522e4
+index 0000000..e6ae731
 --- /dev/null
 +++ b/clang/include/clang/Basic/ChineseDiagnostics.def
-@@ -0,0 +1,658 @@
+@@ -0,0 +1,724 @@
 +//===--- ChineseDiagnostics.def - 中文诊断文本表 ----------------*- C -*-===//
 +//
 +// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -658,6 +658,72 @@ index 0000000..22522e4
 +ZH_DIAG(note_previous_initializer,
 +        "上一次初始化在这里%select{|，且带有副作用}0"
 +        "%select{|，副作用不会在运行时发生}0")
++
++//===----------------------------------------------------------------------===//
++// 十七、C4：真实项目语料驱动的一批（2026-09-24）
++//
++// 依据：tools\diag_coverage_projects.py —— 拿 7 个真实开源项目的
++// compile_commands.json 重放（721 条编译命令 / 1398 条实例）。
++// 这一批**不是**按 clang/test 的排名选的，是按真实代码的排名选的。
++//
++// 未覆盖前三名里，第一名已经由"渲染器手工正文"那一轮解决（57.2%）；
++// 这一批打的是第二、第三名：
++//     note_availability_specified_here      239 条（17.1%）
++//     warn_deprecated_message 一族          ~230 条（16.5%）
++// 加上几个小的，合计约 531 条 / 1398 = 38 个百分点。
++//
++// 【没加的三条】warn_unused_template / note_previous_attribute /
++// warn_redeclaration_without_attribute_prev_attribute_ignored —— 试了
++// -Wunused-template、属性不一致重声明等写法都**没触发到**，所以没有渲染用例。
++// 按项目规矩「没写断言的条目 = 没被验证的条目」，不加，记在这里。
++//===----------------------------------------------------------------------===//
++
++// 英文：%0 has been explicitly marked %select{unavailable|deleted|deprecated}1 here
++// 真实语料第 2 名（239 条）。触发：__attribute__((deprecated)) void f(); 然后调用 f()
++ZH_DIAG(note_availability_specified_here,
++        "（名字） %0 在此被明确标记为%select{不可用|已删除|已弃用}1")
++
++// 英文：%0 is deprecated: %1
++// 真实语料第 3 名（~230 条，都是 MSVC CRT 的弃用警告）。
++// ⚠ %1 是【属性里带的自由文本】（如 "This function or variable may be unsafe..."），
++//   它不是本项目能控制的成分，封闭词表里也没有对应角色词，所以**不给它标角色表**。
++//   这不是漏标：约定管的是"诊断自己拼进来的成分"，而 %1 是调用方给的字符串。
++// 触发：__attribute__((deprecated("用 g 代替"))) void f(); 然后调用 f()
++ZH_DIAG(warn_deprecated_message, "（名字） %0 已被弃用：%1")
++
++// 英文：%0 is deprecated        （带消息的那条见上，这是不带消息的兄弟）
++// 触发：__attribute__((deprecated)) void f(); 然后调用 f()
++ZH_DIAG(warn_deprecated, "（名字） %0 已被弃用")
++
++// 英文：unused function %0
++// 与已翻的「未使用的变量（变量名） %0」「未使用的形参（变量名） %0」句式一致。
++// 触发：static void f(){} 且没人调用（-Wall）
++ZH_DIAG(warn_unused_function, "未使用的函数（函数名） %0")
++
++// 英文：exception specification of overriding function is more lax than base version
++// 两个 ID 英文【逐字相同】（err_ 与 ext_），必须一起翻，否则同一句话中英并排。
++// 实测触发到的是警告那一支（-Wmicrosoft-exception-spec）；这里两个都翻、同文。
++// 触发：struct B { virtual void f() noexcept; };  struct D : B { void f(); };
++ZH_DIAG(err_override_exception_spec,
++        "重写函数的异常规范比基类版本更宽松")
++ZH_DIAG(ext_override_exception_spec,
++        "重写函数的异常规范比基类版本更宽松")
++
++// 英文：overridden virtual function is here
++// 与上一条配对出现（同一次编译里紧挨着），所以必须一起翻。
++// 触发：同上
++ZH_DIAG(note_overridden_virtual_function, "被重写的虚函数在这里")
++
++// 英文：in instantiation of member function %q0 requested here
++// 与已翻的「这里要求实例化类模板（类型名） %q0」等三条句式一致。
++// 触发：成员函数模板的实例化里出错
++ZH_DIAG(note_template_member_function_here,
++        "这里要求实例化成员函数（函数名） %q0")
++
++// 英文：variable %0 is uninitialized when passed as a const pointer argument here
++// 触发：void f(const int *); void g(){ int x; f(&x); }   （-Wall）
++ZH_DIAG(warn_uninit_const_pointer,
++        "变量（变量名） %0 在这里作为常量指针实参传入时尚未初始化")
 +
 +//===----------------------------------------------------------------------===//
 +
