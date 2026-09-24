@@ -1,4 +1,4 @@
-// expect: 'reinterpret_cast' 到类（类型） 'B *'，来源是它的 虚基类（类型） 'A *'，行为与 'static_cast' 不同
+// expect: （关键字） 重释转换 到类（类型） 'B *'，来源是它的 虚基类（类型） 'A *'，行为与（关键字） 静态转换 不同
 // forbid: behaves differently from
 //
 // reinterpret_cast 在类与虚基类之间转（%select 的 downcasting 分支）。

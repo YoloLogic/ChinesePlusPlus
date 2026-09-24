@@ -38,7 +38,7 @@ ZH_DEF = os.path.join(ROOT, "LLVM-main", "clang", "include", "clang", "Basic",
 # 中文表至少要有这么多条。**加了一批就把它调大。**
 # 存在的理由：逐条校核抓不到"表被改小"—— 剩下的条目依然条条合法。
 # 独立复核者 2026-09-22 实测：砍到 7 条时校核器仍报 0 问题、退出码 0（反例 A）。
-MIN_ENTRIES = 90
+MIN_ENTRIES = 2744
 CORPUS = os.path.join(ROOT, "build", "_diag_corpus")
 CLANGXX = os.path.join(ROOT, "build", "Release", "bin", "clang++.exe")
 REPORT = os.path.join(ROOT, "build", "_diag_report.txt")
@@ -279,6 +279,12 @@ def scan_specs(tpl):
     while i < n:
         if tpl[i] != "%":
             i += 1
+            continue
+        # %% 是【字面百分号】的转义，不是占位符。漏掉这一支会把 `%%` 判成
+        # "畸形的 % 转义"，于是任何保留 %% 的译文都会红 —— 可 %% 恰恰是必须
+        # 原样保留的。批量翻译 7 条含 %% 的条目时撞出来的。
+        if i + 1 < n and tpl[i + 1] == "%":
+            i += 2
             continue
         j = i + 1
         word = ""
@@ -684,6 +690,111 @@ def self_test(inc):
                   if "少于下限" in p or "截断" in p or "守卫" in p]
     if good_probs:
         bad.append("新加的规模/收尾检查误报了真表：%s" % good_probs)
+
+    # 不可翻记号检查本身也要有测试。它 2026-09-24 才加，加它的直接原因是
+    # 「批量翻 2654 条纯句子」—— 那批没法逐条构造触发用例，只能靠静态不变量兜。
+    # 一条没被测过的检查等于没有检查（这个项目已经栽过一次：.def 的注释声称
+    # 校核器会查角色表，而检查并不存在）。
+    tok_cases = [
+        # (说明, 英文, 中文, 是否应该失败)
+        ("引号里的代码丢了",
+         "expected 'begin' or 'end'", "要求 开始 或 结束", True),
+        ("关键字译成中文关键字（必须这样做）",
+         "missing 'typename' prior to dependent type name",
+         "依赖类型名之前缺少（关键字） 类型名", False),
+        ("关键字保留英文原拼写（2026-09-24 起判失败）",
+         "missing 'typename' prior to dependent type name",
+         "依赖类型名之前缺少 'typename'", True),
+        ("关键字既没译也没留（丢了）",
+         "missing 'typename' prior to dependent type name",
+         "依赖类型名之前缺少", True),
+        ("选项丢了",
+         "unknown argument '-fno-rtti'", "未知的参数", True),
+        ("选项保留",
+         "unknown argument '-fno-rtti'", "未知的参数 '-fno-rtti'", False),
+        ("%% 转义丢了",
+         "invalid %% escape in inline assembly string",
+         "内联汇编字符串里的转义无效", True),
+        ("%% 转义保留",
+         "invalid %% escape in inline assembly string",
+         "内联汇编字符串里的 %% 转义无效", False),
+        ("带占位符的引号不算记号（不要求照抄引号）",
+         "declare a conversion to '%1'", "声明到 %1 的转换", False),
+        ("内建记号丢了",
+         "use of __builtin_alloca_with_align", "使用了内建函数", True),
+        ("内建记号保留",
+         "use of __builtin_alloca_with_align", "使用了 __builtin_alloca_with_align", False),
+    ]
+    for (why, en, zh, should_fail) in tok_cases:
+        got = check_protected_tokens("self_test", en, zh) + check_percent_escapes("self_test", en, zh)
+        if bool(got) != should_fail:
+            bad.append("记号·%s：期望%s，实际%s"
+                       % (why, "报错" if should_fail else "通过",
+                          "报错" if got else "通过"))
+
+    # 关键字表必须真的读到了东西 —— 读不到就会让上面「关键字允许译」的用例
+    # 悄悄变成「原样保留」，检查形同虚设。
+    kw = keyword_cn_map()
+    if kw.get("typename") != "类型名":
+        bad.append("从 ChineseKeywords.def 读关键字映射失败：typename -> %r"
+                   % kw.get("typename"))
+    if kw.get("and") != "并且":
+        bad.append("替代记号映射失败（and 应该 -> 并且）：%r" % kw.get("and"))
+
+    # DSL 例外：引号里装的是别的语言的记号（OpenMP/OpenACC 子句名、map 取值），
+    # 拼写碰巧和 C++ 关键字一样，必须保留英文。两个方向都要测。
+    dsl_cases = [
+        ("DSL 记号保留英文（正确）",
+         "err_omp_no_more_if_clause", "no more 'if' clause is allowed",
+         "不再允许 'if' 子句", False),
+        ("DSL 记号被当成关键字译掉（要报错）",
+         "err_omp_no_more_if_clause", "no more 'if' clause is allowed",
+         "不再允许（关键字） 如果 子句", True),
+        ("DSL 记号整个丢了（要报错）",
+         "err_omp_no_more_if_clause", "no more 'if' clause is allowed",
+         "不再允许该子句", True),
+        ("同一个 'if' 在别的条目里【是】关键字语义时仍按关键字译",
+         "err_if_expected", "expected 'if'", "缺少（关键字） 如果", None),
+    ]
+    for (why, name, en, zh, should_fail) in dsl_cases:
+        if should_fail is None:          # 只断言不炸，不判成败
+            continue
+        got = check_protected_tokens(name, en, zh)
+        if bool(got) != should_fail:
+            bad.append("DSL·%s：期望%s，实际%s"
+                       % (why, "报错" if should_fail else "通过",
+                          "报错" if got else "通过"))
+    # 例外名单本身要非空，且真的被用上 —— 空名单会让上面的用例悄悄退化
+    if not KW_IS_DSL_TOKEN:
+        bad.append("KW_IS_DSL_TOKEN 是空的，DSL 例外形同虚设")
+
+    # （关键字）标记的适用范围。这条检查 2026-09-24 写好时**忘了接进 check_table**，
+    # 也没写自检 —— 是批量翻译的子代理反过来指出的（"工具里定义了但没人调用"）。
+    # 这个项目已经栽过两次同类：.def 注释声称会查角色表而检查不存在、
+    # IGNORE_IDS 是死代码却在注释里声称做了排除。所以这里既接上、也补上自检。
+    marker_cases = [
+        ("引号内的关键字标了（正确）",
+         "expected variable name or 'this' in lambda capture list",
+         "lambda 捕获列表里缺少变量名或（关键字） 自身", False),
+        ("裸提及也标了（要报错）",
+         "for loop has empty body", "（关键字） 对于 循环的主体为空", True),
+        ("裸提及不标（正确）",
+         "for loop has empty body", "对于 循环的主体为空", False),
+        ("标了个不在词表里的词（要报错）",
+         "expected expression", "缺少（关键字） 表达式体", True),
+        ("英文有引号形式但没标（不报错，交给 check_protected_tokens 管）",
+         "'static_assert' with no message", "不带消息的静态断言", False),
+    ]
+    for (why, en, zh, should_fail) in marker_cases:
+        got = check_keyword_markers("self_test", en, zh)
+        if bool(got) != should_fail:
+            bad.append("标记范围·%s：期望%s，实际%s"
+                       % (why, "报错" if should_fail else "通过",
+                          "报错" if got else "通过"))
+    # 全角问号不能被当成关键字的一部分（'空型？' 曾被误报）
+    if check_keyword_markers("self_test", "should this cast be to 'void'?",
+                             "这个转换是否应该转换为（关键字） 空型？"):
+        bad.append("全角问号被当成了中文关键字的一部分（'空型？'）")
     return bad
 
 
@@ -733,7 +844,9 @@ def has_value_placeholder(text):
         while j < n and (text[j].isdigit() or text[j] == ","):
             j += 1                       # 跳过挂载序号（N 或 N,M）
         i = j
-    return "%" in "".join(out)
+    # %% 是字面百分号的转义，不是占位符 —— 必须先去掉再判，
+    # 否则任何保留 %% 的条目都会被判成"有占位符"，进而被要求挂角色表。
+    return "%" in "".join(out).replace("%%", "")
 
 
 def check_role_table(name, text):
@@ -755,25 +868,30 @@ def check_role_table(name, text):
     现在按 has_value_placeholder() 判：只有真正渲染【值】的占位符才算成分。
     """
     problems, notes = [], []
-    # 只把【不含占位符】的全角括号组当角色表：
-    # 既有条目里有用括号做补注的（如「二元表达式的运算对象无效（%0 和 %1）」），
-    # 那不是角色表，硬套词表会把合法条目判失败。
-    groups = [g for g in ROLE_GROUP_RE.findall(text) if "%" not in g]
-    for g in groups:
-        n_role = 0
-        for w in g.split():
-            if w in ROLE_WORDS:
-                n_role += 1
-            elif w not in ROLE_CONNECTORS:
-                problems.append(
-                    "%s：角色表里有词既不在封闭词表也不在连词表内 -> %r"
-                    "（词表：%s；连词：%s）"
-                    % (name, w, "、".join(sorted(ROLE_WORDS)),
-                       "、".join(sorted(ROLE_CONNECTORS))))
-        if n_role == 0:
-            # 光有连词不算角色表：「（和）」这种既没标出角色，还会被当成
-            # 「已经有角色表」而躲过迁移待办提醒 —— 必须单独堵上。
-            problems.append("%s：角色表里一个角色词都没有 -> %r" % (name, g))
+    # 候选括号组：不含占位符的（含 %0 的是「（%0 和 %1）」这种补注，不是角色表）。
+    cands = [g for g in ROLE_GROUP_RE.findall(text) if "%" not in g]
+    # 2026-09-24：候选里只有【至少含一个角色词】的才算角色表。
+    # 一个角色词都没有的全角括号组是【普通补注】，例如
+    # 「POD（plain old data）类型」「多余的右花括号（'}'）」「VSX 支持（POWER7 或更高版本可用）」。
+    # 原先把任何全角括号组都当角色表，于是批量翻译新增的 121 条补注全被判非法 ——
+    # 可全角括号本来就是中文排版的正常用法，硬占为角色表专用是过度约束。
+    # 这个收窄不会放过「（和）」这类空角色表：它没有角色词 -> 不算角色表 ->
+    # 下面 `has_ph and not groups` 照样会以「有占位符却没有角色表」失败。
+    groups = []
+    for g in cands:
+        words = g.split()
+        if not any(w in ROLE_WORDS for w in words):
+            notes.append("    [补注] 全角括号组（非角色表）: %r" % g)
+            continue
+        groups.append(g)
+        for w in words:
+            if w in ROLE_WORDS or w in ROLE_CONNECTORS:
+                continue
+            problems.append(
+                "%s：角色表里有词既不在封闭词表也不在连词表内 -> %r"
+                "（词表：%s；连词：%s）"
+                % (name, w, "、".join(sorted(ROLE_WORDS)),
+                   "、".join(sorted(ROLE_CONNECTORS))))
     has_ph = has_value_placeholder(text)
     if has_ph and not groups:
         # 角色表只认【全角】括号（）。写半角会被判成"缺角色表" —— 失败是响的
@@ -791,6 +909,270 @@ def check_role_table(name, text):
             "%s：有占位符却没有角色表（一律标是有意选择的统一；"
             "若确实该例外，请写进 .def 并说明理由）%s" % (name, hint))
     return problems, notes
+
+
+# --------------------------------------------------------------------------
+# 五之二、不可翻记号：英文正文里是【代码】的部分，中文正文里必须还在
+# --------------------------------------------------------------------------
+
+ZH_KEYWORDS_DEF = os.path.join(TD_DIR, "ChineseKeywords.def")
+
+_KEYWORD_MAP = None
+
+
+def keyword_cn_map():
+    """英文关键字拼写 -> 中文关键字拼写。**从 ChineseKeywords.def 现读**。
+
+    故意不手写这张表：手写的副本一定会和关键字表漂移，
+    而这个项目已经栽过三次「两份副本各说各话」。
+    """
+    global _KEYWORD_MAP
+    if _KEYWORD_MAP is not None:
+        return _KEYWORD_MAP
+    m = {}
+    try:
+        raw = open(ZH_KEYWORDS_DEF, encoding="utf-8", errors="replace").read()
+    except OSError:
+        _KEYWORD_MAP = m
+        return m
+    for line in raw.splitlines():
+        mm = re.match(r"\s*ZH_KEYWORD\(\s*(\w+)\s*,\s*(\w+)\s*,", line)
+        if mm:
+            m[mm.group(1)] = mm.group(2)
+            continue
+        mm = re.match(r"\s*ZH_VIRT_SPECIFIER\(\s*(\w+)\s*,\s*(\w+)\s*\)", line)
+        if mm:
+            m[mm.group(1)] = mm.group(2)
+            continue
+        # ZH_OPERATOR_KEYWORD(并且, ampamp)   // 并且 = and = &&
+        mm = re.match(r"\s*ZH_OPERATOR_KEYWORD\(\s*(\w+)\s*,\s*(\w+)\s*\)"
+                      r"\s*//[^=]*=\s*(\w+)", line)
+        if mm:
+            m[mm.group(3)] = mm.group(1)      # 替代记号 and/or/not/... -> 中文
+    _KEYWORD_MAP = m
+    return m
+
+
+# 判定「可能是代码」的形状。顺序有意义：先整段吃掉单引号内容，别被后面的规则切碎。
+_CODE_PATTERNS = [
+    # 开引号前面不能是字母：否则 English 里的所有格/缩写（function's / don't）
+    # 会被当成引号开头，跨着一大段散文配对出 "'s / method'" 这种假记号。
+    (r"(?<![A-Za-z])'[^']*'", "quoted"),
+    (r"__[A-Za-z_]\w*", "dunder"),
+    (r"\b[A-Za-z_]\w*(?:::[A-Za-z_]\w*)+", "scoped"),
+    (r"\bC(?:\+\+)?\d+[a-z]?\b", "stdver"),
+    (r"\bC\+\+", "cpp"),
+    (r"(?<![\w-])-{1,2}(?:W|f|m|O|g|std=|pedantic|target)[\w=+.-]*", "flag"),
+    (r"\b[A-Za-z_]\w*<[^<>]*>", "template"),
+    (r"\b[A-Za-z_]\w*\(\)", "call"),
+]
+_CODE_RX = [(re.compile(p), k) for p, k in _CODE_PATTERNS]
+
+# 选项开关的形状。单独提出来，因为「加了引号的选项」要按裸选项处理。
+_FLAG_RX = re.compile(r"-{1,2}(?:W|f|m|O|g|std=|pedantic|target)[\w=+.-]*")
+
+# 引号里带【占位符】的不算代码记号：'%1' 里的引号是排版，占位符本身由
+# check_zh 管。但 '%%P' 里的 %% 是转义、是真代码，必须留下 —— 差别就在
+# 后面跟的是不是数字。
+_QUOTED_PLACEHOLDER = re.compile(r"%[a-zA-Z]*\d")
+
+# 引号里若是【描述性英文短语】而不是代码，就不该当记号要求逐字保留。
+# 例：'variable length array in structure' 是扩展的名字，中文写
+# 「结构体中的变长数组」是合理的，硬要求保留英文反而错。
+# 判据：≥4 个空格分隔的纯字母单词，且不含任何代码标点。
+_PROSE_QUOTED = re.compile(r"^[A-Za-z]+(?: [A-Za-z]+){3,}$")
+
+
+def protect_tokens(text):
+    """抽出必须原样出现在中文里的记号。返回 [(token, kind)]，去重保序。
+
+    早先版本的连字符规则写成 -[A-Za-z]...，把英语连字符词也当成了选项
+    （non-type -> -type、multi-line -> -line），会逼着人往中文里塞英文单词。
+    现在只认 -W / -f / -m / -O / -g / -std= / -pedantic / --target 这些真前缀。
+
+    2026-09-24 又修两处（都是批量翻译时被门禁自己的误报逼出来的）：
+
+    1. **引号内容首尾带空白的一律丢弃。** 英文诊断里会出现 `''{...}'` 这种
+       相邻引号，`'[^']*'` 会跨着一大段散文配对，产出
+       `' are expressions with scalar type, and '` 这种根本不是记号的"记号"。
+       代码记号不会有内边距，所以按首尾空白一刀切，干净且不误伤。
+    2. **加了引号的选项按裸选项处理。** 英文写 `'-fno-rtti'`，中文按项目约定写
+       `（选项） -fno-rtti`（gold 的 `传入（选项） -fenable-matrix 以启用` 就没有引号）。
+       如果按带引号的记号要求，就会逼着写成 `（选项） '-fno-rtti'`，很别扭。
+    """
+    taken = [False] * len(text)
+
+    def free(a, b):
+        return not any(taken[a:b])
+
+    out = []
+    for rx, kind in _CODE_RX:
+        for m in rx.finditer(text):
+            a, b = m.span()
+            if not free(a, b):
+                continue
+            tok = m.group(0)
+            if kind == "quoted":
+                inner = tok[1:-1]
+                if not inner.strip():
+                    continue                  # '' 空引号，不是记号
+                if inner != inner.strip():
+                    continue                  # 首尾有空白 -> 跨散文配对，不是记号
+                if _QUOTED_PLACEHOLDER.search(tok):
+                    continue                  # '%1' 里的引号是排版，占位符归 check_zh 管
+                if _PROSE_QUOTED.match(inner):
+                    continue                  # 描述性英文短语，不是代码记号
+            for i in range(a, b):
+                taken[i] = True
+            tok = tok.strip().rstrip(".,;:")
+            if tok:
+                out.append((tok, kind))
+
+    # 后处理：带引号的选项统一按【裸选项】算。
+    # 放在这里而不是上面那个分支里，是因为分支里做会遇到"同一段文字被
+    # 两个模式各匹配一次"的先后顺序问题 —— 实测同一句里的两个选项，
+    # 一个转成了一个没转。收口到一处，与匹配顺序无关。
+    fixed = []
+    for tok, kind in out:
+        if kind == "quoted" and len(tok) > 2 and _FLAG_RX.fullmatch(tok[1:-1]):
+            fixed.append((tok[1:-1], "flag"))
+        else:
+            fixed.append((tok, kind))
+    return sorted(set(fixed))
+
+
+# 少数条目引号里装的是【别的语言/DSL 的记号】，只是拼写碰巧和 C++ 关键字一样
+# —— OpenMP/OpenACC 的子句名、map 类型取值、构造名。用户在 pragma 里必须
+# 原样敲英文，所以这些【必须保留英文】，不能套「（关键字） 中文关键字」。
+#
+# 这是一份**显式名单**，不是启发式：机器判断不出「这个词在这里是不是关键字」，
+# 宁可由人过目后写死。这批全部 217 处「引号内是关键字」的出现点已逐条过目
+# （见 build\_p_kw_audit.txt），只有下面 6 处属于这一类。
+KW_IS_DSL_TOKEN = {
+    "err_acc_invalid_default_clause_kind": {"'default'"},   # OpenACC 子句名
+    "err_omp_no_more_if_clause":           {"'if'"},        # OpenMP 子句名
+    "err_omp_unknown_map_type":            {"'delete'"},    # map 类型取值
+    "err_omp_wrong_cancel_region":         {"'for'"},       # OpenMP 构造名
+    "warn_acc_if_self_conflict":           {"'if'"},        # OpenACC 子句名
+    "warn_omp_default_deprecated":         {"'default'"},   # OpenMP 子句名
+}
+
+
+def check_protected_tokens(name, en, zh):
+    """中文里必须保住英文正文里的代码记号。返回问题列表。
+
+    【关键字】是唯一的例外，而且是有方向的例外：2026-09-24 用户裁定，
+    诊断里提到的关键字一律写【中文关键字拼写】并前置 `（关键字） `，
+    不放 `'typename'` 这种英文原拼写。理由是这是汉语编译器 ——
+    用户敲进去的就是 `类型名`，诊断不该告诉他一个他不需要敲的词。
+    实测 `自身` / `静态转换<int*>` / `[自身]` / `常量表达式` / `静态断言` 均可编译。
+
+    这条规则原先在表里是矛盾的：6 处中文拼写，3 处英文拼写，其中两条诊断
+    说的是同一句话（「改用 static_cast」），一条 `（关键字） 静态转换`、
+    一条 `'static_cast'`。所以这里不是"两者皆可"，而是必须中文。
+    关键字名单从 ChineseKeywords.def 现读，不手写。
+
+    例外中的例外是 KW_IS_DSL_TOKEN：那几处引号里是别的 DSL 的记号，
+    必须原样保留英文。
+    """
+    problems = []
+    kw = keyword_cn_map()
+    dsl = KW_IS_DSL_TOKEN.get(name, frozenset())
+    for tok, _kind in protect_tokens(en):
+        if tok in dsl:
+            # 这是 DSL 记号，不是 C++ 关键字：必须原样保留英文
+            if tok not in zh:
+                problems.append(
+                    "%s：%r 是别的语言的记号（不是 C++ 关键字），必须原样保留英文\n"
+                    "      英文 %s\n      中文 %s" % (name, tok, en, zh))
+            continue
+
+        bare = tok[1:-1] if tok.startswith("'") and tok.endswith("'") else None
+        cn = kw.get(bare) if bare else None
+
+        if cn:
+            # 约定是「（关键字） 中文关键字」，所以要求【整对】都在。
+            # 只查「中文关键字在不在这段文字里」是不够的：`typename` 的中文是
+            # `类型名`，而 `依赖类型名` 里就含这个子串 —— 于是把关键字整个删掉
+            # 也能蒙混过关。写自检时正是这条用例（「关键字既没译也没留」）
+            # 暴露了这个假通过。
+            want = "（关键字） " + cn
+            if want in zh:
+                continue
+            if tok in zh:
+                problems.append(
+                    "%s：关键字 %r 必须用中文拼写，写成 %r，不能保留英文原拼写\n"
+                    "      英文 %s\n      中文 %s" % (name, tok, want, en, zh))
+            else:
+                problems.append(
+                    "%s：关键字 %r 要写成 %r\n      英文 %s\n      中文 %s"
+                    % (name, tok, want, en, zh))
+            continue
+
+        if tok in zh:
+            continue
+        problems.append(
+            "%s：中文里丢了英文正文里的代码记号 %r\n      英文 %s\n      中文 %s"
+            % (name, tok, en, zh))
+    return problems
+
+
+def check_percent_escapes(name, en, zh):
+    """%% 是【字面百分号】的转义，数量必须一致。返回问题列表。
+
+    为什么单独一条：%% 不是「代码记号」的任何一种形状，protect_tokens 抓不到它
+    （写入自检时就撞出来了 —— 「%% 转义丢了」那条用例实际通过）。
+    译文里漏掉一个 % 会让输出少一个字面 %；多写一个会让格式化器把它当成
+    占位符开头。少写已经被 check_zh 的畸形转义检查兜住，漏写只有这里能抓。
+
+    中文里该写全角「％」还是 `%%`：跟英文一样写 %% —— 那是输出内容，不是排版。
+    """
+    problems = []
+    if en.count("%%") != zh.count("%%"):
+        problems.append(
+            "%s：%%%% 转义数量对不上（英文 %d 个，中文 %d 个）\n      英文 %s\n      中文 %s"
+            % (name, en.count("%%"), zh.count("%%"), en, zh))
+    return problems
+
+
+def check_keyword_markers(name, en, zh):
+    """`（关键字） ` 只能标在英文【加了引号】的关键字上。返回问题列表。
+
+    为什么要有这条：批量翻译时有 88 处把**裸提及**也标成了 `（关键字） `，
+    例如 `using declaration` → `（关键字） 使用 声明`、`declared static` →
+    `声明为（关键字） 静态`。这些词在英文里是**普通散文**，不是"被指称的关键字"。
+
+    gold 先例是决定性的：`class member cannot be redeclared` →
+    `类中成员不能被重新声明` —— 裸的 `class` 当普通名词译成「类」，
+    而不是关键字拼写「类型」。同理 `by default` 里的 `default` 显然也不该标。
+
+    判据：中文里每处 `（关键字） X`，都能在关键字表里把 X 反查成英文拼写，
+    且英文正文里确实有 `'那个拼写'`。
+    """
+    kw = keyword_cn_map()
+    cn2en = {}
+    for e, c in kw.items():
+        cn2en.setdefault(c, set()).add(e)
+
+    problems = []
+    for m in re.finditer(r"（关键字）\s*([^\s（），。；：、？！…—]+)", zh):
+        cn = m.group(1)
+        if "%" in cn:
+            continue          # 占位符（如 err_friend_decl_spec 的 （关键字） '%0'）：
+                              # 标的是什么由运行时决定，静态查不了，放行
+        ens = cn2en.get(cn)
+        if not ens:
+            problems.append(
+                "%s：`（关键字） %s` 里的「%s」不在关键字表里\n      英文 %s\n      中文 %s"
+                % (name, cn, cn, en, zh))
+            continue
+        if any(("'%s'" % e) in en for e in ens):
+            continue
+        problems.append(
+            "%s：英文里没有加引号的关键字（%s），裸提及不该标 `（关键字） `\n"
+            "      英文 %s\n      中文 %s"
+            % (name, "/".join("'%s'" % e for e in sorted(ens)), en, zh))
+    return problems
 
 
 def check_table(inc, zh=None, raw=None):
@@ -840,6 +1222,9 @@ def check_table(inc, zh=None, raw=None):
         problems.extend(rp)
         lines.extend(rn)
         if en is not None:
+            problems.extend(check_protected_tokens(name, en, text))
+            problems.extend(check_percent_escapes(name, en, text))
+            problems.extend(check_keyword_markers(name, en, text))
             lines.append("")
             lines.append("  %s  (第 %d 行)" % (name, line))
             lines.append("    英文: %s" % en)

@@ -324,6 +324,43 @@ $cntOff = [System.IO.File]::ReadAllBytes((Join-Path $out 'cnt.off.txt'))
 Expect-Utf8 'on : summary is Chinese' $cntOn ([byte[]](0xE7, 0x94, 0x9F, 0xE6, 0x88, 0x90, 0xE4, 0xBA, 0x86)) $true   # "sheng cheng le"
 Expect-Ascii 'off: summary is English again' $cntOff 'generated.' $true
 
+# 3d) A CLEAN compile must print NO summary at all.
+#     This assertion did not exist before 2026-09-24, and its absence let a real
+#     regression ship: in CompilerInstance.cpp the Chinese branch printed an
+#     unconditional "sheng cheng le " prefix, so EVERY successful compile
+#     emitted a stray half-sentence while the English branch printed nothing.
+#     All 78 cases here and all 18 acceptance checks still passed, because every
+#     single one of them compiles a file that has diagnostics.
+#     "No assertion = not verified."
+Write-Host '--- a clean compile prints no summary at all'
+$clean = Join-Path $out 'clean_summary.cpp'
+[System.IO.File]::WriteAllText($clean, "int main(){ return 0; }")
+$clOn = Join-Path $out 'clean.on.txt'
+& cmd /c "`"$cxx`" -c `"$clean`" -o `"$obj`" > `"$clOn`" 2>&1"
+$clOnB = [System.IO.File]::ReadAllBytes($clOn)
+Expect-Utf8 'on : no Chinese summary on a clean compile' $clOnB `
+    ([byte[]](0xE7, 0x94, 0x9F, 0xE6, 0x88, 0x90, 0xE4, 0xBA, 0x86)) $false
+Expect-Ascii 'on : no English summary on a clean compile' $clOnB 'generated.' $false
+
+# 3e) warnings AND errors together: the Chinese connector must be followed by a
+#     space. The typography rule is a space between a CJK character and a digit
+#     (measured on the shipped table: 0 exceptions), so it is "he SPACE 1",
+#     never "he1". This defect shipped once too -- same missing assertion.
+Write-Host '--- warning + error: Chinese connector keeps the digit space'
+$mix = Join-Path $out 'mix_summary.cpp'
+[System.IO.File]::WriteAllText($mix, "int a(){ int unused_a; return 0; }`nint b(){ int unused_b; return 0; }`nint c(){ return undefined_c; }`n")
+$mxOn = Join-Path $out 'mix.on.txt'
+& cmd /c "`"$cxx`" -c -Wall `"$mix`" -o `"$obj`" > `"$mxOn`" 2>&1"
+$mxOnB = [System.IO.File]::ReadAllBytes($mxOn)
+$mxOff = Join-Path $out 'mix.off.txt'
+& cmd /c "`"$cxx`" -c -Wall -fno-chinese-diagnostics `"$mix`" -o `"$obj`" > `"$mxOff`" 2>&1"
+$mxOffB = [System.IO.File]::ReadAllBytes($mxOff)
+# needle = "ge jing gao he 1 ge cuo wu"  (the space before 1 is the point)
+Expect-Utf8 'on : mixed summary keeps the space after the connector' $mxOnB `
+    ([byte[]](0xE4, 0xB8, 0xAA, 0xE8, 0xAD, 0xA6, 0xE5, 0x91, 0x8A, 0xE5, 0x92, 0x8C,
+              0x20, 0x31, 0x20, 0xE4, 0xB8, 0xAA, 0xE9, 0x94, 0x99, 0xE8, 0xAF, 0xAF)) $true
+Expect-Ascii 'off: same counts in English' $mxOffB 'warnings and 1 error generated.' $true
+
 # ---------------------------------------------------------------------------
 # 4) fallback: a file with NO table entry must be byte-identical either way
 # ---------------------------------------------------------------------------
