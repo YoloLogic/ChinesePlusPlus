@@ -146,7 +146,37 @@ else { Fail '-E -dI normalised the Chinese directive spelling to English' }
 
 # ---------------------------------------------------------------------------
 Write-Host ''
-Write-Host '--- 7) per-spelling parity sweep'
+Write-Host '--- 7) diagnostics name directives in CHINESE, whatever the user typed'
+# The keyword policy is "always show the canonical Chinese spelling", NOT
+# "echo what the user typed": writing English `static_assert` still prints the
+# Chinese spelling of static_assert. Directives must follow the same rule, so
+# BOTH files below must print the Chinese spelling. Asserting this in both
+# directions is the only way to tell the two policies apart -- a single file
+# would pass under either.
+$needleZh = -join [char[]](0x23, 0x5426, 0x5219, 0x82E5, 0x5DF2, 0x5B9A, 0x4E49)
+$diagEn = Join-Path $out 'elifdef_en.txt'
+$diagZh = Join-Path $out 'elifdef_zh.txt'
+& cmd /c "`"$cxx`" -std=c++20 -fsyntax-only `"$(Join-Path $here 'elifdef_en.cpp')`" > `"$diagEn`" 2>&1"
+& cmd /c "`"$cxx`" -std=c++20 -fsyntax-only `"$(Join-Path $here 'elifdef_zh.cpp')`" > `"$diagZh`" 2>&1"
+# Only the diagnostic lines -- NOT the echoed source line. The echo necessarily
+# shows whatever the user wrote (that is the point of an echo), so searching the
+# whole output would always "find" the English spelling.
+function Get-DiagLine($path) {
+    $ls = [System.IO.File]::ReadAllText($path) -split "`r?`n"
+    return (($ls | Where-Object { $_ -match 'warning:|error:' }) -join "`n")
+}
+$te = Get-DiagLine $diagEn
+$tz = Get-DiagLine $diagZh
+Write-Host ("    english input -> " + $te.Trim())
+Write-Host ("    chinese input -> " + $tz.Trim())
+if (-not $te.Contains($needleZh)) { Fail 'English #elifdef input did not produce the Chinese directive spelling' }
+elseif (-not $tz.Contains($needleZh)) { Fail 'Chinese input did not produce the Chinese directive spelling' }
+elseif ($te.Contains('#elifdef') -or $tz.Contains('#elifdef')) { Fail 'the English spelling #elifdef is still echoed in the diagnostic text' }
+else { Pass 'both #elifdef and the Chinese spelling print the Chinese spelling' }
+
+# ---------------------------------------------------------------------------
+Write-Host ''
+Write-Host '--- 8) per-spelling parity sweep'
 & $python (Join-Path $here 'sweep.py') $cxx 2>&1 | Select-Object -Last 6 | ForEach-Object { Write-Host "    $_" }
 if ($LASTEXITCODE -ne 0) { Fail 'sweep.py reported a mismatch' } else { Pass 'sweep.py: all spellings at parity' }
 

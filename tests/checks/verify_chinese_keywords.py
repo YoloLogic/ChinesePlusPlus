@@ -689,6 +689,91 @@ else:
                   "ChineseDirectives.def 可能不会被安装 —— 请显式加入安装列表")
     print("  [错误] clang/CMakeLists.txt 不再通配安装 .def")
 
+# --- 11.8 诊断正文里的指令拼写必须是中文 -------------------------------
+# 【方针】2026-09-24 第二次裁定。原来这一节记的是"已知不一致，未处理，
+#   理由是诊断里引用的是规范英文拼写"。那条理由被推翻了，因为关键字那边的
+#   方针不是"回显用户写的拼写"，而是【永远显示规范中文拼写】：
+#       写 static_assert  -> 诊断输出 "（关键字） 静态断言"
+#       写 静态断言       -> 诊断输出 "（关键字） 静态断言"
+#   （实测见 docs\预处理指令汉化\预处理指令汉化.md 第七节）
+#   指令是功能集里唯一走相反方针的地方，所以现在统一：正文里出现的可译指令
+#   一律写中文拼写。
+#
+# 【本条校核本身踩过的两个坑，都写进自测】
+#   1) 只许看【字符串字面量】。第一版整文件替换把文件头注释里的 60 处文档
+#      示例也改了；第二版按行跳过注释，又改了 .def 自己的 include guard
+#      （`#ifndef ZH_DIAG` / `#define ZH_DIAG(...)` —— 那是真的预处理指令）。
+#   2) `#pragma <子名>` 必须放过。omp / clang / MS 的子名字层是另一套命名
+#      空间，ChineseDirectives.def 有意不收，所以那 164 处保持英文。
+P_DIAG = os.path.join(ROOT, r"clang\include\clang\Basic\ChineseDiagnostics.def")
+diag_text = read(P_DIAG)
+
+# 有意不收中文的 6 条（见 ChineseDirectives.def 第 8 条）
+NOT_TRANSLATED = {"__include_macros", "__preprocessed_module",
+                  "__preprocessed_import", "__public_macro",
+                  "__private_macro", "sccs"}
+
+# 允许在正文里保持英文的指令名：pragma（子名字层）+ 上面 6 条
+allowed_english = {"pragma"} | NOT_TRANSLATED
+en2zh_dir = {en: zh for _ln, en, zh in dir_rows}
+MUST_BE_CHINESE = {k: v for k, v in en2zh_dir.items() if k not in allowed_english}
+
+_STR_LIT = re.compile(r'"(?:[^"\\]|\\.)*"')
+_HASH_NAME = re.compile(r"#([A-Za-z_]\w*)")
+
+
+def scan_diag_directive_spellings(text):
+    """Return [(lineno, id, english)] for English directive spellings that
+    appear INSIDE string literals. Comments and code are never inspected."""
+    bad = []
+    cur_id = "?"
+    for lineno, line in enumerate(text.splitlines(), 1):
+        m = re.search(r"ZH_DIAG\(\s*(\w+)", line)
+        if m:
+            cur_id = m.group(1)
+        if line.lstrip().startswith("//"):
+            continue
+        for lit in _STR_LIT.findall(line):
+            for name in _HASH_NAME.findall(lit):
+                if name in MUST_BE_CHINESE:
+                    bad.append((lineno, cur_id, name))
+    return bad
+
+
+_dm = scan_diag_directive_spellings(diag_text)
+if _dm:
+    for lineno, did, name in _dm[:20]:
+        errors.append("ChineseDiagnostics.def 第 %d 行（%s）：正文里仍写英文指令 "
+                      "`#%s`，应为 `#%s`" % (lineno, did, name, MUST_BE_CHINESE[name]))
+        print("  [错误] 第 %d 行 %s：正文里仍是 #%s（应为 #%s）"
+              % (lineno, did, name, MUST_BE_CHINESE[name]))
+    if len(_dm) > 20:
+        print("  ...（共 %d 处）" % len(_dm))
+else:
+    print("  [通过] 诊断正文里的可译指令拼写全部是中文（%d 条译名参与检查）"
+          % len(MUST_BE_CHINESE))
+
+# 自测一：正文里的英文指令拼写必须被抓到
+_p1 = scan_diag_directive_spellings('ZH_DIAG(x, "见 #include 指令")')
+# 自测二：.def 自己的 include guard 不可以被抓到（整行替换会误伤它）
+_p2 = scan_diag_directive_spellings("#ifndef ZH_DIAG\n#define ZH_DIAG(NAME, TEXT)")
+# 自测三：注释里的文档示例不可以被抓到
+_p3 = scan_diag_directive_spellings('// 例如 "#include <x.h>" 这样写')
+# 自测四：pragma 子名字层必须放过
+_p4 = scan_diag_directive_spellings('ZH_DIAG(y, "\'#pragma omp atomic\' 非法")')
+
+if not _p1:
+    errors.append("指令拼写校核自测失败：正文里的 #include 没被抓到")
+    print("  [错误] 自测一失败：正文里的 #include 没被抓到")
+elif _p2 or _p3 or _p4:
+    errors.append("指令拼写校核自测失败：误伤了 include guard / 注释 / pragma "
+                  "（%r %r %r）" % (_p2, _p3, _p4))
+    print("  [错误] 自测二/三/四失败：误伤 guard=%r 注释=%r pragma=%r"
+          % (_p2, _p3, _p4))
+else:
+    print("  [通过] 指令拼写校核自测：正文英文被抓到；include guard、注释、"
+          "#pragma 子名字层都不误伤")
+
 # ---------------------------------------------------------------- 总结
 section("验证结论")
 print("  解析到中文关键字条目：%d"

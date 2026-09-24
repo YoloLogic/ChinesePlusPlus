@@ -145,15 +145,18 @@ def norm(text, spelling):
         line = re.sub(r"[^\s]*\.cpp", "@F@", line)
         line = re.sub(r":\d+:\d+:", ":@L@:", line)
         line = re.sub(r"-W[-\w#]*", "@W@", line)
-        # Mask EVERY directive mention. This deliberately also masks the
-        # English spelling when it appears in a CHINESE diagnostic (e.g. the
-        # translated `#pragma once in main file` reads
-        # `主文件中出现 #pragma once`, and `#include_next` likewise).
-        # That embed is a real, separately-tracked inconsistency -- see the
-        # report at the bottom of this file -- but it is not a BEHAVIOUR
-        # difference, and this sweep is about behaviour.
-        line = re.sub(r"#[A-Za-z_]\w*", "#@D@", line)
-        line = re.sub(r"#" + re.escape(spelling) + r"\b", "#@D@", line)
+        # Mask EVERY directive mention, spelling-agnostically.
+        #
+        # This has to include the CHINESE spellings, and that is not cosmetic:
+        # since 2026-09-24 the diagnostic names the directive in Chinese no
+        # matter what the user typed (same policy as keywords, where English
+        # `static_assert` still prints `静态断言`). So the English run's
+        # diagnostic now contains `#否则若已定义` -- masking only `#elifdef`
+        # would leave the two runs looking different when they are in fact
+        # identical, which is exactly the false positive this mask prevents.
+        #
+        # `-W...` is masked first, so `-W#warnings` never reaches this rule.
+        line = re.sub(r"#[^\s'\"]+", "#@D@", line)
         # summary lines only count what is already listed
         if line.startswith("生成了"):
             continue

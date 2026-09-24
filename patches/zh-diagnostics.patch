@@ -1,6 +1,6 @@
 diff --git a/clang/include/clang/Basic/ChineseDiagnostics.def b/clang/include/clang/Basic/ChineseDiagnostics.def
 new file mode 100644
-index 0000000..de9bde9
+index 0000000..b67b7f1
 --- /dev/null
 +++ b/clang/include/clang/Basic/ChineseDiagnostics.def
 @@ -0,0 +1,22506 @@
@@ -601,7 +601,7 @@ index 0000000..de9bde9
 +// 英文：unguarded header; consider using #ifdef guards or #pragma once
 +// 实测：一个没有包含守卫的头被 #include 两次（SemaDecl.cpp:5010）
 +ZH_DIAG(note_use_ifdef_guards,
-+        "这个头文件没有包含守卫；建议用 #ifdef 守卫或者 #pragma once")
++        "这个头文件没有包含守卫；建议用 #如果已定义 守卫或者 #pragma once")
 +
 +// 英文：in call to '%0'
 +// 常量求值失败时打印的调用栈。实测：
@@ -3847,13 +3847,13 @@ index 0000000..de9bde9
 +ZH_DIAG(err_pp_double_begin_pragma_unsafe_buffer_usage, "已经位于 '#pragma unsafe_buffer_usage' 内部")
 +
 +// 英文：device files are not yet supported by '#embed' directive
-+ZH_DIAG(err_pp_embed_device_file, "'#embed' 指令尚不支持设备文件")
++ZH_DIAG(err_pp_embed_device_file, "'#嵌入' 指令尚不支持设备文件")
 +
 +// 英文：empty filename
 +ZH_DIAG(err_pp_empty_filename, "文件名为空")
 +
 +// 英文：#endif without #if
-+ZH_DIAG(err_pp_endif_without_if, "#endif 没有对应的 #if")
++ZH_DIAG(err_pp_endif_without_if, "#结束如果 没有对应的 #如果")
 +
 +// 英文：'#pragma clang arc_cf_code_audited' was not ended within this file
 +ZH_DIAG(err_pp_eof_in_arc_cf_code_audited, "'#pragma clang arc_cf_code_audited' 在本文件中没有结束")
@@ -3892,7 +3892,7 @@ index 0000000..de9bde9
 +ZH_DIAG(err_pp_import_directive_ms, "导入类型库是不受支持的 Microsoft 特性")
 +
 +// 英文：#include nested too deeply
-+ZH_DIAG(err_pp_include_too_deep, "#include 嵌套过深")
++ZH_DIAG(err_pp_include_too_deep, "#包含 嵌套过深")
 +
 +// 英文：main file cannot be included recursively when building a preamble
 +ZH_DIAG(err_pp_including_mainfile_in_preamble, "构建预编译头时不能递归地包含主文件")
@@ -3904,10 +3904,10 @@ index 0000000..de9bde9
 +ZH_DIAG(err_pp_invalid_tok_in_arg_list, "宏形参列表里有无效的记号")
 +
 +// 英文：invalid filename for #line directive
-+ZH_DIAG(err_pp_line_invalid_filename, "#line 指令中的文件名无效")
++ZH_DIAG(err_pp_line_invalid_filename, "#行号 指令中的文件名无效")
 +
 +// 英文：#line directive requires a positive integer argument
-+ZH_DIAG(err_pp_line_requires_integer, "#line 指令需要一个正整数实参")
++ZH_DIAG(err_pp_line_requires_integer, "#行号 指令需要一个正整数实参")
 +
 +// 英文：invalid filename for line marker directive
 +ZH_DIAG(err_pp_linemarker_invalid_filename, "行标记指令中的文件名无效")
@@ -3925,7 +3925,7 @@ index 0000000..de9bde9
 +ZH_DIAG(err_pp_macro_not_identifier, "宏名必须是标识符")
 +
 +// 英文：invalid #ident directive
-+ZH_DIAG(err_pp_malformed_ident, "#ident 指令无效")
++ZH_DIAG(err_pp_malformed_ident, "#标识 指令无效")
 +
 +// 英文：missing '(' following __VA_OPT__
 +ZH_DIAG(err_pp_missing_lparen_in_vaopt_use, "__VA_OPT__ 之后缺少 '('")
@@ -3943,7 +3943,7 @@ index 0000000..de9bde9
 +ZH_DIAG(err_pp_module_build_missing_end, "这个 '#pragma clang module build' 没有匹配的 '#pragma clang module endbuild'")
 +
 +// 英文：module declaration must not come from an #include directive
-+ZH_DIAG(err_pp_module_decl_in_header, "模块声明不能来自 #include 指令")
++ZH_DIAG(err_pp_module_decl_in_header, "模块声明不能来自 #包含 指令")
 +
 +// 英文：no matching '#pragma clang module begin' for this '#pragma clang module end'
 +ZH_DIAG(err_pp_module_end_without_module_begin, "这个 '#pragma clang module end' 没有匹配的 '#pragma clang module begin'")
@@ -5455,22 +5455,22 @@ index 0000000..de9bde9
 +ZH_DIAG(ext_pp_bad_vaopt_use, "__VA_OPT__ 只能出现在可变参数宏的展开中")
 +
 +// 英文：comma operator in operand of #if
-+ZH_DIAG(ext_pp_comma_expr, "在 #if 的运算对象中使用了逗号运算符")
++ZH_DIAG(ext_pp_comma_expr, "在 #如果 的运算对象中使用了逗号运算符")
 +
 +// 英文：this style of line directive is a GNU extension
 +ZH_DIAG(ext_pp_gnu_line_directive, "这种风格的行指令是 GNU 扩展")
 +
 +// 英文：#ident is a language extension
-+ZH_DIAG(ext_pp_ident_directive, "#ident 是语言扩展")
++ZH_DIAG(ext_pp_ident_directive, "#标识 是语言扩展")
 +
 +// 英文：#import is a language extension
-+ZH_DIAG(ext_pp_import_directive, "#import 是语言扩展")
++ZH_DIAG(ext_pp_import_directive, "#导入 是语言扩展")
 +
 +// 英文：#include_next is a language extension
-+ZH_DIAG(ext_pp_include_next_directive, "#include_next 是语言扩展")
++ZH_DIAG(ext_pp_include_next_directive, "#包含下一个 是语言扩展")
 +
 +// 英文：#line directive with zero argument is a GNU extension
-+ZH_DIAG(ext_pp_line_zero, "带零参数的 #line 指令是 GNU 扩展")
++ZH_DIAG(ext_pp_line_zero, "带零参数的 #行号 指令是 GNU 扩展")
 +
 +// 英文：variadic macros are a Clang extension in OpenCL
 +ZH_DIAG(ext_pp_opencl_variadic_macros, "在 OpenCL 中，可变参数宏是 Clang 扩展")
@@ -6919,19 +6919,19 @@ index 0000000..de9bde9
 +ZH_DIAG(pp_disabled_macro_expansion, "已禁用递归宏的展开")
 +
 +// 英文：#else after #else
-+ZH_DIAG(pp_err_else_after_else, "#else 之后又出现 #else")
++ZH_DIAG(pp_err_else_after_else, "#否则 之后又出现 #否则")
 +
 +// 英文：#else without #if
-+ZH_DIAG(pp_err_else_without_if, "没有 #if 的 #else")
++ZH_DIAG(pp_err_else_without_if, "没有 #如果 的 #否则")
 +
 +// 英文：the #__include_macros directive is only for internal use by -imacros
 +ZH_DIAG(pp_include_macros_out_of_predefines, "#__include_macros 指示符仅供（选项） -imacros 内部使用")
 +
 +// 英文：#include_next in file found relative to primary source file or found by absolute path; will search from start of include path
-+ZH_DIAG(pp_include_next_absolute_path, "在相对于主源文件找到的文件或通过绝对路径找到的文件中使用 #include_next；将从包含路径的开头开始搜索")
++ZH_DIAG(pp_include_next_absolute_path, "在相对于主源文件找到的文件或通过绝对路径找到的文件中使用 #包含下一个；将从包含路径的开头开始搜索")
 +
 +// 英文：#include_next in primary source file; will search from start of include path
-+ZH_DIAG(pp_include_next_in_primary, "在主源文件中使用 #include_next；将从包含路径的开头开始搜索")
++ZH_DIAG(pp_include_next_in_primary, "在主源文件中使用 #包含下一个；将从包含路径的开头开始搜索")
 +
 +// 英文：invalid string literal, ignoring final '\'
 +ZH_DIAG(pp_invalid_string_literal, "无效的字符串字面量，忽略末尾的 '\\'")
@@ -7177,7 +7177,7 @@ index 0000000..de9bde9
 +ZH_DIAG(warn_c23_compat_utf8_string, "UTF-8 字符串字面量的类型在 C23 中将从 字符 数组变为 字符8位 数组")
 +
 +// 英文：#warning is incompatible with C standards before C23
-+ZH_DIAG(warn_c23_compat_warning_directive, "#warning 与 C23 之前的 C 标准不兼容")
++ZH_DIAG(warn_c23_compat_warning_directive, "#警告 与 C23 之前的 C 标准不兼容")
 +
 +// 英文：passing a type argument as the first operand to '_Generic' is incompatible with C standards before C2y
 +ZH_DIAG(warn_c2y_compat_generic_with_type_arg, "把类型实参作为第一个操作数传给 '_Generic'，与 C2y 之前的 C 标准不兼容")
@@ -7222,7 +7222,7 @@ index 0000000..de9bde9
 +ZH_DIAG(warn_comparison_bitwise_or, "与非零值进行按位或运算的结果始终为真")
 +
 +// 英文：#embed is incompatible with C standards before C23
-+ZH_DIAG(warn_compat_pp_embed_directive, "#embed 与 C23 之前的 C 标准不兼容")
++ZH_DIAG(warn_compat_pp_embed_directive, "#嵌入 与 C23 之前的 C 标准不兼容")
 +
 +// 英文：completion handler is called twice
 +ZH_DIAG(warn_completion_handler_called_twice, "完成处理程序被调用了两次")
@@ -7432,7 +7432,7 @@ index 0000000..de9bde9
 +ZH_DIAG(warn_cxx23_compat_decl_attrs_on_binding, "附加到结构化绑定声明的属性说明符序列与 C++2c 之前的 C++ 标准不兼容")
 +
 +// 英文：#warning is incompatible with C++ standards before C++23
-+ZH_DIAG(warn_cxx23_compat_warning_directive, "#warning 与 C++23 之前的 C++ 标准不兼容")
++ZH_DIAG(warn_cxx23_compat_warning_directive, "#警告 与 C++23 之前的 C++ 标准不兼容")
 +
 +// 英文：'= delete' with a message is incompatible with C++ standards before C++2c
 +ZH_DIAG(warn_cxx23_delete_with_message, "带消息的 '= delete' 与 C++2c 之前的 C++ 标准不兼容")
@@ -7540,7 +7540,7 @@ index 0000000..de9bde9
 +ZH_DIAG(warn_cxx98_compat_nullptr, "（关键字） 空指针 与 C++98 不兼容")
 +
 +// 英文：#line number greater than 32767 is incompatible with C++98
-+ZH_DIAG(warn_cxx98_compat_pp_line_too_big, "大于 32767 的 #line 行号与 C++98 不兼容")
++ZH_DIAG(warn_cxx98_compat_pp_line_too_big, "#行号 中大于 32767 的行号与 C++98 不兼容")
 +
 +// 英文：raw string literals are incompatible with C++98
 +ZH_DIAG(warn_cxx98_compat_raw_string_literal, "原始字符串字面量与 C++98 不兼容")
@@ -12957,7 +12957,7 @@ index 0000000..de9bde9
 +ZH_DIAG(err_module_header_missing, "找不到%select{|伞 }0头文件（名字） '%1'")
 +
 +// 英文：@import of module '%0' in implementation of '%1'; use #import
-+ZH_DIAG(err_module_import_in_implementation, "在（名字） '%1' 的实现中 @import 模块（名字） '%0'；请改用 #import")
++ZH_DIAG(err_module_import_in_implementation, "在（名字） '%1' 的实现中 @import 模块（名字） '%0'；请改用 #导入")
 +
 +// 英文：import of module '%0' imported non C++20 importable modules
 +ZH_DIAG(err_module_import_non_interface_nor_parition, "导入模块（名字） '%0' 时导入了非 C++20 可导入的模块")
@@ -13074,7 +13074,7 @@ index 0000000..de9bde9
 +ZH_DIAG(err_module_unimported_use, "（名字） %1 的（种类） %select{声明|定义|默认实参|显式特化|部分特化}0 必须在被需要之前从模块（名字） '%2' 导入")
 +
 +// 英文：%select{missing '#include'|missing '#include %3'}2; %select{||default argument of |explicit specialization of |partial specialization of }0%1 must be %select{declared|defined|defined|declared|declared}0 before it is used
-+ZH_DIAG(err_module_unimported_use_header, "%select{缺少 '#include'|缺少 '#include %3'}2；（名字） %1%select{|| 的默认实参| 的显式特化| 的部分特化}0 在使用它之前必须先 %select{声明|定义|定义|声明|声明}0")
++ZH_DIAG(err_module_unimported_use_header, "%select{缺少 '#包含'|缺少 '#包含 %3'}2；（名字） %1%select{|| 的默认实参| 的显式特化| 的部分特化}0 在使用它之前必须先 %select{声明|定义|定义|声明|声明}0")
 +
 +// 英文：%select{declaration|definition|default argument|explicit specialization|partial specialization}0 of %1 must be imported from one of the following modules before it is required:%2
 +ZH_DIAG(err_module_unimported_use_multiple, "（名字） %1 的（种类） %select{声明|定义|默认实参|显式特化|部分特化}0 必须在被需要之前从下列模块之一导入：%2")
@@ -14589,7 +14589,7 @@ index 0000000..de9bde9
 +ZH_DIAG(err_pp_duplicate_name_in_arg_list, "宏形参名（变量名） %0 重复")
 +
 +// 英文：cannot specify parameter '%0' twice in the same '#embed' directive
-+ZH_DIAG(err_pp_embed_dup_params, "在同一个 '#embed' 指令中不能两次指定形参（变量名） '%0'")
++ZH_DIAG(err_pp_embed_dup_params, "在同一个 '#嵌入' 指令中不能两次指定形参（变量名） '%0'")
 +
 +// 英文：error opening file '%0': %1
 +ZH_DIAG(err_pp_error_opening_file, "打开文件（名字） '%0' 时出错：%1")
@@ -14613,10 +14613,10 @@ index 0000000..de9bde9
 +ZH_DIAG(err_pp_identifier_arg_not_identifier, "无法把记号（符号） %0 转换成标识符")
 +
 +// 英文：cannot %select{#include files|import headers}0 inside '#pragma clang arc_cf_code_audited'
-+ZH_DIAG(err_pp_include_in_arc_cf_code_audited, "不能在 '#pragma clang arc_cf_code_audited' 内 %select{#include 文件|导入头文件}0")
++ZH_DIAG(err_pp_include_in_arc_cf_code_audited, "不能在 '#pragma clang arc_cf_code_audited' 内 %select{#包含 文件|导入头文件}0")
 +
 +// 英文：cannot %select{#include files|import headers}0 inside '#pragma clang assume_nonnull'
-+ZH_DIAG(err_pp_include_in_assume_nonnull, "不能在 '#pragma clang assume_nonnull' 内 %select{#include 文件|导入头文件}0")
++ZH_DIAG(err_pp_include_in_assume_nonnull, "不能在 '#pragma clang assume_nonnull' 内 %select{#包含 文件|导入头文件}0")
 +
 +// 英文：invalid preprocessing directive%select{|, did you mean '#%1'?}0
 +ZH_DIAG(err_pp_invalid_directive, "无效的预处理指令%select{|，你是不是想写（名字） '#%1'？}0")
@@ -14625,7 +14625,7 @@ index 0000000..de9bde9
 +ZH_DIAG(err_pp_invalid_udl, "带用户自定义后缀的 %select{字符|整数}0 字面量不能用在预处理常量表达式中")
 +
 +// 英文：%select{#line|GNU line marker}0 directive requires a simple digit sequence
-+ZH_DIAG(err_pp_line_digit_sequence, "（名字） %select{#line|GNU 行标记}0 指令需要简单的数字序列")
++ZH_DIAG(err_pp_line_digit_sequence, "（名字） %select{#行号|GNU 行标记}0 指令需要简单的数字序列")
 +
 +// 英文：no module map available for module %0
 +ZH_DIAG(err_pp_module_begin_no_module_map, "没有可用于模块（名字） %0 的模块映射")
@@ -14655,7 +14655,7 @@ index 0000000..de9bde9
 +ZH_DIAG(err_pp_through_header_not_found, "预编译头所需的（名字） '%0' 未找到")
 +
 +// 英文：#include of '%0' not seen while attempting to %select{create|use}1 precompiled header
-+ZH_DIAG(err_pp_through_header_not_seen, "尝试 %select{创建|使用}1 预编译头时，没有见到（名字） '%0' 的 #include")
++ZH_DIAG(err_pp_through_header_not_seen, "尝试 %select{创建|使用}1 预编译头时，没有见到（名字） '%0' 的 #包含")
 +
 +// 英文：unexpected preprocessing token '%0' after module name, only ';' and '[' (start of attribute specifier sequence) are allowed
 +ZH_DIAG(err_pp_unexpected_tok_after_module_name, "模块名之后出现意外的预处理记号（符号） '%0'，只允许 ';' 和 '['（属性说明符序列的开始）")
@@ -16395,7 +16395,7 @@ index 0000000..de9bde9
 +ZH_DIAG(ext_c23_enum_value_not_int, "%select{|递增后的}0枚举值超出（关键字） 整数 的范围是 C23 扩展（（表达式） %1 太%select{小|大}2）")
 +
 +// 英文：use of a '#%select{<BUG IF SEEN>|elifdef|elifndef}0' directive is a C23 extension
-+ZH_DIAG(ext_c23_pp_directive, "使用 '#%select{<BUG IF SEEN>|elifdef|elifndef}0' 指令是 C23 扩展")
++ZH_DIAG(ext_c23_pp_directive, "使用 '#%select{<BUG IF SEEN>|否则若已定义|否则若未定义}0' 指令是 C23 扩展")
 +
 +// 英文：'%0' is a C2y extension
 +ZH_DIAG(ext_c2y_feature, "（关键字） '%0' 是 C2y 扩展")
@@ -16437,7 +16437,7 @@ index 0000000..de9bde9
 +ZH_DIAG(ext_cxx23_attr, "使用（属性名） %0 属性是 C++23 扩展")
 +
 +// 英文：use of a '#%select{<BUG IF SEEN>|elifdef|elifndef}0' directive is a C++23 extension
-+ZH_DIAG(ext_cxx23_pp_directive, "使用 '#%select{<BUG IF SEEN>|elifdef|elifndef}0' 指令是 C++23 扩展")
++ZH_DIAG(ext_cxx23_pp_directive, "使用 '#%select{<BUG IF SEEN>|否则若已定义|否则若未定义}0' 指令是 C++23 扩展")
 +
 +// 英文： '%0' in a raw string literal delimiter is a C++2c extension
 +ZH_DIAG(ext_cxx26_raw_string_literal_character_set, "原始字符串字面量分隔符中的（名字） '%0' 是 C++2c 扩展")
@@ -16629,7 +16629,7 @@ index 0000000..de9bde9
 +ZH_DIAG(ext_module_import_in_extern_c, "导入 C++ 模块（名字） '%0' 出现在 extern \"C\" 语言链接规范内")
 +
 +// 英文：redundant #include of module '%0' appears within %1
-+ZH_DIAG(ext_module_import_not_at_top_level_noop, "模块（名字） '%0' 的 #include 是多余的，它出现在（名字） %1 内")
++ZH_DIAG(ext_module_import_not_at_top_level_noop, "模块（名字） '%0' 的 #包含 是多余的，它出现在（名字） %1 内")
 +
 +// 英文：accessing inaccessible direct base %0 of %1 is a Microsoft extension
 +ZH_DIAG(ext_ms_ambiguous_direct_base, "访问（类型） %1 中不可访问的直接基类（类型） %0 是 Microsoft 扩展")
@@ -16716,16 +16716,16 @@ index 0000000..de9bde9
 +ZH_DIAG(ext_pp_bad_paste_ms, "粘贴形成了（符号） '%0'，这是一个无效的预处理记号")
 +
 +// 英文：#embed is a %select{C23|Clang}0 extension
-+ZH_DIAG(ext_pp_embed_directive, "#embed 是 %select{C23|Clang}0 扩展")
++ZH_DIAG(ext_pp_embed_directive, "#嵌入 是 %select{C23|Clang}0 扩展")
 +
 +// 英文：extra tokens at end of #%0 directive
 +ZH_DIAG(ext_pp_extra_tokens_at_eol, "#（名字） %0 指令末尾有多余的记号")
 +
 +// 英文：#include resolved using non-portable Microsoft search rules as: %0
-+ZH_DIAG(ext_pp_include_search_ms, "#include 使用不可移植的 Microsoft 搜索规则解析为：（名字） %0")
++ZH_DIAG(ext_pp_include_search_ms, "#包含 使用不可移植的 Microsoft 搜索规则解析为：（名字） %0")
 +
 +// 英文：C requires #line number to be less than %0, allowed as extension
-+ZH_DIAG(ext_pp_line_too_big, "C 要求 #line 编号小于（名字） %0，这里作为扩展允许")
++ZH_DIAG(ext_pp_line_too_big, "C 要求 #行号 编号小于（名字） %0，这里作为扩展允许")
 +
 +// 英文：%0 macro redefined
 +ZH_DIAG(ext_pp_macro_redef, "宏（名字） %0 被重定义")
@@ -16734,7 +16734,7 @@ index 0000000..de9bde9
 +ZH_DIAG(ext_pp_operator_used_as_macro_name, "C++ 运算符（名字） %0（即（符号） %1）被用作宏名")
 +
 +// 英文：#warning is a %select{C23|C++23}0 extension
-+ZH_DIAG(ext_pp_warning_directive, "#warning 是 %select{C23|C++23}0 扩展")
++ZH_DIAG(ext_pp_warning_directive, "#警告 是 %select{C23|C++23}0 扩展")
 +
 +// 英文：redefinition of typedef %0 is a C11 feature
 +ZH_DIAG(ext_redefinition_of_typedef, "重定义类型别名（类型名） %0 是 C11 特性")
@@ -18894,10 +18894,10 @@ index 0000000..de9bde9
 +ZH_DIAG(override_keyword_only_allowed_on_virtual_member_functions, "只有虚成员函数才能被标记为（关键字） '%0'")
 +
 +// 英文：%select{#elif|#elifdef|#elifndef}0 after #else
-+ZH_DIAG(pp_err_elif_after_else, "%select{#elif|#elifdef|#elifndef}0 出现在 #else 之后")
++ZH_DIAG(pp_err_elif_after_else, "%select{#否则若|#否则若已定义|#否则若未定义}0 出现在 #否则 之后")
 +
 +// 英文：%select{#elif|#elifdef|#elifndef}0 without #if
-+ZH_DIAG(pp_err_elif_without_if, "%select{#elif|#elifdef|#elifndef}0 没有对应的 #if")
++ZH_DIAG(pp_err_elif_without_if, "%select{#否则若|#否则若已定义|#否则若未定义}0 没有对应的 #如果")
 +
 +// 英文：non-portable path to file '%0'; specified path differs in case from file name on disk
 +ZH_DIAG(pp_nonportable_path, "指向文件（名字） '%0' 的路径不可移植；指定的路径与磁盘上的文件名大小写不一致")
@@ -18963,7 +18963,7 @@ index 0000000..de9bde9
 +ZH_DIAG(remark_module_validation, "正在校验来自（名字） '%2' 的模块（名字） '%1' 中的（表达式） %0 个输入文件")
 +
 +// 英文：treating #%select{include|import|include_next|__include_macros}0 as an import of module '%1'
-+ZH_DIAG(remark_pp_include_directive_modular_translation, "正在把 #%select{include|导入|include_next|__include_macros}0 视为对模块（名字） '%1' 的导入")
++ZH_DIAG(remark_pp_include_directive_modular_translation, "正在把 #%select{包含|导入|包含下一个|__include_macros}0 视为对模块（名字） '%1' 的导入")
 +
 +// 英文：search path used: '%0'
 +ZH_DIAG(remark_pp_search_path_usage, "使用的搜索路径：（名字） '%0'")
@@ -19401,7 +19401,7 @@ index 0000000..de9bde9
 +ZH_DIAG(warn_c23_compat_literal_ucn_escape_basic_scs, "用通用字符名指定字符 '（名字） %0' 与 C23 之前的 C 标准不兼容")
 +
 +// 英文：use of a '#%select{<BUG IF SEEN>|elifdef|elifndef}0' directive is incompatible with C standards before C23
-+ZH_DIAG(warn_c23_compat_pp_directive, "使用 '#%select{<BUG IF SEEN>|elifdef|elifndef}0' 指令与 C23 之前的 C 标准不兼容")
++ZH_DIAG(warn_c23_compat_pp_directive, "使用 '#%select{<BUG IF SEEN>|否则若已定义|否则若未定义}0' 指令与 C23 之前的 C 标准不兼容")
 +
 +// 英文：'%0' is a keyword in C23
 +ZH_DIAG(warn_c23_keyword, "'（关键字） %0' 是 C23 中的关键字")
@@ -19692,7 +19692,7 @@ index 0000000..de9bde9
 +ZH_DIAG(warn_cxx20_keyword, "（关键字） '%0' 在 C++20 中是关键字")
 +
 +// 英文：use of a '#%select{<BUG IF SEEN>|elifdef|elifndef}0' directive is incompatible with C++ standards before C++23
-+ZH_DIAG(warn_cxx23_compat_pp_directive, "使用 '#%select{<BUG IF SEEN>|elifdef|elifndef}0' 指令与 C++23 之前的标准不兼容")
++ZH_DIAG(warn_cxx23_compat_pp_directive, "使用 '#%select{<BUG IF SEEN>|否则若已定义|否则若未定义}0' 指令与 C++23 之前的标准不兼容")
 +
 +// 英文：%select{delimited|named}0 escape sequences are incompatible with C++ standards before C++23
 +ZH_DIAG(warn_cxx23_delimited_escape_sequence, "%select{分隔式|具名式}0 转义序列与 C++23 之前的标准不兼容")
@@ -20490,7 +20490,7 @@ index 0000000..de9bde9
 +ZH_DIAG(warn_header_availability_mismatch, "声明（名字） '%0' 被标记为%select{可用|不可用}1，但符号在动态库中%select{未|}2导出")
 +
 +// 英文：%0 is used as a header guard here, followed by #define of a different macro
-+ZH_DIAG(warn_header_guard, "（名字） %0 在这里被用作头文件保护，后面却 #define 了另一个不同的宏")
++ZH_DIAG(warn_header_guard, "（名字） %0 在这里被用作头文件保护，后面却 #定义 了另一个不同的宏")
 +
 +// 英文：symbol exported in dynamic library, but marked hidden in declaration '%0'
 +ZH_DIAG(warn_header_hidden_symbol, "符号在动态库中被导出，但在声明（名字） '%0' 中被标记为隐藏")
@@ -21009,7 +21009,7 @@ index 0000000..de9bde9
 +ZH_DIAG(warn_modifying_shadowing_decl, "修改了构造函数形参（变量名） %0，它遮蔽了（类型名） %1 的字段")
 +
 +// 英文：%select{definition|#undef}0 of configuration macro '%1' has no effect on the import of '%2'; pass '%select{-D%1=...|-U%1}0' on the command line to configure the module
-+ZH_DIAG(warn_module_config_macro_undef, "配置宏（名字） '%1' 的%select{定义|#undef}0对导入（名字） '%2' 没有影响；请在命令行上传入 '%select{-D%1=...|-U%1}0' 来配置该模块")
++ZH_DIAG(warn_module_config_macro_undef, "配置宏（名字） '%1' 的%select{定义|#取消定义}0对导入（名字） '%2' 没有影响；请在命令行上传入 '%select{-D%1=...|-U%1}0' 来配置该模块")
 +
 +// 英文：module '%0' conflicts with already-imported module '%1': %2
 +ZH_DIAG(warn_module_conflict, "模块（名字） '%0' 与已导入的模块（名字） '%1' 冲突：（名字） %2")
@@ -21501,13 +21501,13 @@ index 0000000..de9bde9
 +ZH_DIAG(warn_pp_identifier_is_cpp_keyword, "标识符（名字） %0 与 C++ 关键字冲突")
 +
 +// 英文：'#include <filename>' attaches the declarations to the named module '%0', which is not usually intended; consider moving that directive before the module declaration
-+ZH_DIAG(warn_pp_include_angled_in_module_purview, "'#include <filename>' 会把声明附加到具名模块（名字） '%0' 上，这通常不是本意；请考虑把该指令移到模块声明之前")
++ZH_DIAG(warn_pp_include_angled_in_module_purview, "'#包含 <filename>' 会把声明附加到具名模块（名字） '%0' 上，这通常不是本意；请考虑把该指令移到模块声明之前")
 +
 +// 英文：invalid preprocessing directive%select{|, did you mean '#%1'?}0
 +ZH_DIAG(warn_pp_invalid_directive, "无效的预处理指令%select{|，你是不是想写（名字） '#%1'？}0")
 +
 +// 英文：%select{#line|GNU line marker}0 directive interprets number as decimal, not octal
-+ZH_DIAG(warn_pp_line_decimal, "%select{#line|GNU 行标记}0 指令把数字解释为十进制，而不是八进制")
++ZH_DIAG(warn_pp_line_decimal, "%select{#行号|GNU 行标记}0 指令把数字解释为十进制，而不是八进制")
 +
 +// 英文：definition of macro %0 does not match definition in precompiled header
 +ZH_DIAG(warn_pp_macro_def_mismatch_with_pch, "宏（名字） %0 的定义与预编译头中的定义不匹配")

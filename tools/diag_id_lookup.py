@@ -774,6 +774,46 @@ def self_test(inc):
     if not KW_IS_DSL_TOKEN:
         bad.append("KW_IS_DSL_TOKEN 是空的，DSL 例外形同虚设")
 
+    # 指令拼写例外（2026-09-24 第二次裁定）。加它的原因：原来 `'#embed'` /
+    # `'#include'` 保留英文，与关键字方针（永远显示规范中文拼写）直接冲突。
+    # 与关键字唯一的差别是不加 `（关键字） ` 前缀。
+    dir_cases = [
+        ("引号里的指令写了中文（正确）",
+         "err_pp_embed_device_file", "'#embed' directive is not supported",
+         "'#嵌入' 指令尚不支持", False),
+        ("引号里的指令保留英文（要报错）",
+         "err_pp_embed_device_file", "'#embed' directive is not supported",
+         "'#embed' 指令尚不支持", True),
+        ("指令后面还跟着别的正文（正确）",
+         "warn_pp_include_angled_in_module_purview",
+         "'#include <filename>' attaches declarations",
+         "'#包含 <filename>' 会把声明附加", False),
+        ("指令后面还跟着别的正文、但仍是英文（要报错）",
+         "warn_pp_include_angled_in_module_purview",
+         "'#include <filename>' attaches declarations",
+         "'#include <filename>' 会把声明附加", True),
+        ("#pragma 子名字层必须保持英文（正确）",
+         "err_omp_invalid_target_directive", "'#pragma omp target' is invalid",
+         "'#pragma omp target' 非法", False),
+    ]
+    for (why, name, en, zh, should_fail) in dir_cases:
+        got = check_protected_tokens(name, en, zh)
+        if bool(got) != should_fail:
+            bad.append("指令·%s：期望%s，实际%s"
+                       % (why, "报错" if should_fail else "通过",
+                          "报错" if got else "通过"))
+    # 映射表必须真的读到了东西，且 pragma 必须被排除 ——
+    # 读不到会让「写了中文」的用例悄悄退化成「原样保留」，检查形同虚设。
+    dmap = directive_cn_map()
+    if dmap.get("include") != "包含" or dmap.get("embed") != "嵌入":
+        bad.append("从 ChineseDirectives.def 读指令映射失败：include -> %r, embed -> %r"
+                   % (dmap.get("include"), dmap.get("embed")))
+    if "pragma" in dmap:
+        bad.append("指令映射里不该有 pragma（子名字层有意保持英文）")
+    for must_absent in ("__include_macros", "sccs", "__public_macro"):
+        if must_absent in dmap:
+            bad.append("指令映射里不该有 %s（有意不收中文）" % must_absent)
+
     # （关键字）标记的适用范围。这条检查 2026-09-24 写好时**忘了接进 check_table**，
     # 也没写自检 —— 是批量翻译的子代理反过来指出的（"工具里定义了但没人调用"）。
     # 这个项目已经栽过两次同类：.def 注释声称会查角色表而检查不存在、
@@ -922,8 +962,37 @@ def check_role_table(name, text):
 # --------------------------------------------------------------------------
 
 ZH_KEYWORDS_DEF = os.path.join(TD_DIR, "ChineseKeywords.def")
+ZH_DIRECTIVES_DEF = os.path.join(TD_DIR, "ChineseDirectives.def")
 
 _KEYWORD_MAP = None
+_DIRECTIVE_MAP = None
+
+
+def directive_cn_map():
+    """英文指令拼写 -> 中文指令拼写。**从 ChineseDirectives.def 现读**。
+
+    与 keyword_cn_map() 同样的理由：手写的副本一定会和指令表漂移。
+
+    排除 `pragma`：`#pragma omp ...` / `#pragma clang ...` 里的 omp/clang/MS
+    是【另一套命名空间】，ChineseDirectives.def 有意不收，那 164 处保持英文。
+    `ChineseDirectives.def` 里本来也没有 `__include_macros` / `sccs` 等 6 条，
+    所以它们天然不会被要求翻成中文。
+    """
+    global _DIRECTIVE_MAP
+    if _DIRECTIVE_MAP is not None:
+        return _DIRECTIVE_MAP
+    m = {}
+    try:
+        raw = open(ZH_DIRECTIVES_DEF, encoding="utf-8", errors="replace").read()
+    except OSError:
+        _DIRECTIVE_MAP = m
+        return m
+    for line in raw.splitlines():
+        mm = re.match(r"\s*ZH_DIRECTIVE\(\s*(\w+)\s*,\s*([^)]+?)\s*\)\s*$", line)
+        if mm and mm.group(1) != "pragma":
+            m[mm.group(1)] = mm.group(2)
+    _DIRECTIVE_MAP = m
+    return m
 
 
 def keyword_cn_map():
@@ -1088,9 +1157,23 @@ def check_protected_tokens(name, en, zh):
 
     例外中的例外是 KW_IS_DSL_TOKEN：那几处引号里是别的 DSL 的记号，
     必须原样保留英文。
+
+    【指令】是第二个例外，2026-09-24 第二次裁定，方向与关键字相同：
+    引号里的指令拼写也要写中文（`'#包含'` 而不是 `'#include'`）。
+
+    为什么原来没这么做、又为什么改了：原表里 `'#embed'` / `'#include'` 保留
+    英文，理由是"规范英文拼写在文档/上游/搜索里通用"。但那条理由与关键字方针
+    直接冲突 —— 关键字那边的方针**不是**"回显用户写的拼写"，而是【永远显示
+    规范中文拼写】：写英文 `static_assert`，诊断照样输出 `（关键字） 静态断言`。
+    实测见 docs\\预处理指令汉化\\预处理指令汉化.md 第七节。指令是功能集里唯一
+    走相反方针的地方，所以统一。
+
+    与关键字唯一的差别：指令**不加** `（关键字） ` 前缀。角色词表里没有
+    「指令」这个词，而 `#包含` 里的 `#` 已经足够表明它是指令。
     """
     problems = []
     kw = keyword_cn_map()
+    dmap = directive_cn_map()
     dsl = KW_IS_DSL_TOKEN.get(name, frozenset())
     for tok, _kind in protect_tokens(en):
         if tok in dsl:
@@ -1122,6 +1205,21 @@ def check_protected_tokens(name, en, zh):
                     "%s：关键字 %r 要写成 %r\n      英文 %s\n      中文 %s"
                     % (name, tok, want, en, zh))
             continue
+
+        # 引号里的指令拼写：同样必须中文，但不加角色前缀。
+        # 一个记号里可能有多处（`'#include <filename>'`），也允许指令后面还跟
+        # 别的正文（`<filename>`），所以按出现次数逐个要求，不要求整体相等。
+        if bare:
+            dir_hits = [d for d in re.findall(r"#([A-Za-z_]\w*)", bare)
+                        if d in dmap]
+            if dir_hits:
+                for d in dir_hits:
+                    want = "#" + dmap[d]
+                    if want not in zh:
+                        problems.append(
+                            "%s：指令拼写必须写中文，%r 要写成 %r\n"
+                            "      英文 %s\n      中文 %s" % (name, tok, want, en, zh))
+                continue
 
         if tok in zh:
             continue
