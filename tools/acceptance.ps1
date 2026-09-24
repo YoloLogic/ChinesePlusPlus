@@ -237,8 +237,28 @@ $onLog  = Compile-To '10_fallback_english.cpp' '' 'on'
 $offLog = Compile-To '10_fallback_english.cpp' '-fno-chinese-diagnostics' 'off'
 $onB = Get-Bytes $onLog
 $offB = Get-Bytes $offLog
-Report 'a diagnostic with no table entry is byte-identical with and without the switch' `
-    (Test-Same $onB $offB) ("length {0} vs {1}" -f $onB.Length, $offB.Length)
+# Compare the DIAGNOSTIC BODY, not the whole log.
+# Since 2026-09-24 the renderer also emits Chinese for text that has no
+# diagnostic ID at all (the "N errors generated." summary, the include stack,
+# the macro backtrace). That text is gated by the same switch, so it is Chinese
+# with the switch on and English with it off -- by design, not a fallback
+# failure. The fallback property is about TABLE lookups, so assert it on the
+# body: everything except the trailing summary line must be byte-identical.
+#
+# !! tests\12-diagnostics\check.ps1 asserts the SAME property. This round
+# !! fixed that copy and missed this one, and acceptance went 16/1 -- a
+# !! duplicated assertion is only fixed when every copy is fixed.
+$onText  = [System.Text.Encoding]::UTF8.GetString($onB)  -split "`n"
+$offText = [System.Text.Encoding]::UTF8.GetString($offB) -split "`n"
+$onBody  = ($onText[0..($onText.Count - 3)])  -join "`n"
+$offBody = ($offText[0..($offText.Count - 3)]) -join "`n"
+Report 'a diagnostic with no table entry has a byte-identical BODY with and without the switch' `
+    ($onBody -ceq $offBody) `
+    ("body {0} vs {1} chars; whole log {2} vs {3} bytes" -f $onBody.Length, $offBody.Length, $onB.Length, $offB.Length)
+Report 'the generated-count summary follows the switch (Chinese on / English off)' `
+    ((Test-Contains $onB ([byte[]](0xE7, 0x94, 0x9F, 0xE6, 0x88, 0x90, 0xE4, 0xBA, 0x86))) -and `
+     (Test-Contains $offB ([System.Text.Encoding]::ASCII.GetBytes('generated.')))) `
+    'needles: Chinese summary when on, "generated." when off'
 
 Write-Host ''
 Write-Host '--- 5. the switch really switches back to English ---'
