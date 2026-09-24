@@ -250,6 +250,30 @@ $exeC = Join-Path $tmp 'cov.exe'
 if ($LASTEXITCODE -eq 0) { Ok '--coverage compiles and links' }
 else { Bad '--coverage failed to compile or link' }
 
+# UBSan CANNOT be linked on its own here. The package FAQ section 9 records the
+# evidence: the __coe_win interface it needs is implemented in neither this
+# VS/SDK nor anywhere in the LLVM source tree. Combined WITH address it links and
+# really reports, so that combination -- and only that -- is asserted.
+# NOTE: the flag MUST stay quoted; PowerShell would otherwise split the comma
+# into two arguments and clang would reject the command line.
+$srcU = Join-Path $tmp 'ub.cpp'
+"int main() { int x = 1; return x << 40; }`n" | Set-Content -Encoding ASCII $srcU
+$exeU = Join-Path $tmp 'ub.exe'
+& $cxx '-fsanitize=address,undefined' -o $exeU $srcU 2>&1 | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    Bad '-fsanitize=address,undefined failed to compile or link'
+} else {
+    $savedPath2 = $env:PATH
+    $env:PATH = "$rtDir;$env:PATH"
+    $tU = Join-Path $tmp 'ub.txt'
+    & cmd /c "`"$exeU`" > `"$tU`" 2>&1"
+    $env:PATH = $savedPath2
+    $uTxt = [System.IO.File]::ReadAllText($tU)
+    if ($uTxt -match 'UndefinedBehaviorSanitizer|runtime error') {
+        Ok 'UBSan (with address) reports real undefined behaviour'
+    } else { Bad 'UBSan produced no report' }
+}
+
 # ---------------------------------------------------------------------------
 if (-not $KeepTemp) { Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue }
 
