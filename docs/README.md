@@ -24,10 +24,11 @@
 
 | 文档 | 讲什么 | 什么时候需要改它 |
 |---|---|---|
-| [`使用说明.md`](使用说明.md) | 怎么编译、99 个关键字速查、控制台中文乱码、IDE 配置、**一条命令验收**、怎么重建 | 用户可见的行为变了（新关键字、新开关、控制台注意事项、日志格式） |
+| [`使用说明.md`](使用说明.md) | 怎么编译、99 个关键字速查、**22 条预处理指令速查（`#包含` 等，可中英混用）**、控制台中文乱码、IDE 配置、**一条命令验收**、怎么重建 | 用户可见的行为变了（新关键字、新指令拼写、新开关、控制台注意事项、日志格式） |
 | [`汉字第一公民-路线图.md`](汉字第一公民-路线图.md) | 判定规则（**加名字 vs 改名字**）、分层现状、优先级、标准库方案、**底线** | 定了新的方向 / 推翻旧决定 |
 | [`关键字/关键字改动清单.md`](关键字/关键字改动清单.md) | `虚拟`/`重写`/`最终`/11 个运算符/`模块`/`导入` 的改动、14 个文件、补丁 | 关键字表或那 14 个文件变了 |
 | [`诊断汉化/诊断汉化清单.md`](诊断汉化/诊断汉化清单.md) | **报错汉化的主文档**：机制、7344 条 / 7374（99.6%）、真实频次与覆盖率口径、排版约定与角色表、加条目 4 步、**四轮复核结论** | 加了中文诊断、改了挂钩/开关、或又做了一轮复核 |
+| [`预处理指令汉化/预处理指令汉化.md`](预处理指令汉化/预处理指令汉化.md) | **`#include` → `#包含`**：22 条对照表、为什么中英可以**随意混用**、三处读取者一张表、**踩到的两个坑**（跳过路径读不到标志位 / 依赖扫描器静默丢依赖）、一条被推翻的旧结论、已知未处理项 | 加了指令拼写、改了 `ChineseDirectives.def`，或动了 `SkipExcludedConditionalBlock` / `DependencyDirectivesScanner` |
 | [`诊断汉化/诊断汉化-准备.md`](诊断汉化/诊断汉化-准备.md) | 动手前的调研：7374 条口径、语料、术语表、候选 ID | 基本不再改（**部分结论已被主文档更正**，见其开头） |
 | [`诊断汉化/诊断汉化-独立复核.md`](诊断汉化/诊断汉化-独立复核.md) | **给复核者用的自包含指南**：9 条主张 + 失败判据 + 已知陷阱 | 加了新的"该验证什么"的主张 |
 | [`诊断汉化/诊断汉化-对抗性复核报告.md`](诊断汉化/诊断汉化-对抗性复核报告.md) | 独立会话的复核结果（含它自己的反例与"未验证"清单） | 复核者自己写；不要替他改 |
@@ -73,8 +74,8 @@ Get-ChildItem E:\Chinese++ -Recurse -Include *.md,*.ps1,*.py,*.cpp,*.def,*.td |
 ## 四、当前实测（2026-09-23）
 
 ```
-powershell -File E:\Chinese++\tools\acceptance.ps1     →  17 PASS / 0 FAIL
-powershell -File E:\Chinese++\tests\run_all.ps1        →  passed: 19  failed: 0
+powershell -File E:\Chinese++\tools\acceptance.ps1     →  19 PASS / 0 FAIL
+powershell -File E:\Chinese++\tests\run_all.ps1        →  passed: 20  failed: 0
 tests\12-diagnostics\check.ps1                         →  78 个渲染用例全过（原 26）
 中文诊断表                                             →  7344 条（第三批 A/B/C + C1 + C2a + C4 + P 档 2654 + V/S/F 档 4600，2026-09-24）
 覆盖（两个语料，都要看）                                →  真实项目 100.0%（1398/1398）
@@ -97,15 +98,23 @@ tests\12-diagnostics\check.ps1                         →  78 个渲染用例�
       反查只能归属 3890/4980 = 78.1%，看不见 1090 条；而且英文被丢 32.2%、中文只丢 17.5%，
       丢得不均匀，把比例抬高了。更早的 85.2% / 80.7% / 61.3% 同样撤回。
     唯一无口径争议的数字是【条目数】：7344 / 7374 = 99.6%（全部内置诊断）
-补丁                                                   →  zh-keywords.patch 14 文件
+补丁                                                   →  zh-keywords.patch 16 文件
                                                           zh-diagnostics.patch 8 文件
 
-第三方真实项目对照（ours vs 官方 clang 19.1.5）           →  cases=7  pass=2  same=5  fail=0
+第三方真实项目对照（ours vs 官方 clang 19.1.5）           →  cases=8  pass=2  same=6  fail=0
     用【原样发行包工具链】跑，不借任何外部工具：
     tinyxml2 0/0/0 PASS      pugixml  0/0/0 PASS
     fmt      0/0/8 SAME      googletest 0/1/1 SAME
     cJSON    0/1/1 SAME      zlib     0/0/8 SAME   libuv 0/0/8 SAME
+    lz4      1/1/1 SAME      （lz4 两侧 configure 都失败，属上游/环境问题）
     （zlib 修复前是 7 failed / 官方 5 failed = FAIL，补齐 lld-link 后变成逐条相同的 5 个）
+    ⚠ 口径：这一栏比较的是【两侧的退出码与失败用例集合】，不是"全绿"。
+      SAME = 我们和官方 clang 错得一模一样，PASS = 全绿且与官方相同。
+      真正的判据是 fail=0（没有任何一处我们与官方不同）。
+
+预处理指令汉化（2026-09-24）                             →  22 条拼写与英文逐条对拍一致
+    tests\13-preprocessor\check.ps1                      →  7 PASS / 0 FAIL
+    全中文 vs 全英文 -E -P                                →  逐字节相同（150 B 对 150 B）
 
 工具链完整性（2026-09-23 补齐）                          →  bin\ 新增 lld-link.exe / lld.exe /
     ld.lld.exe / wasm-ld.exe / llvm-ar / llvm-lib / llvm-ranlib / llvm-rc

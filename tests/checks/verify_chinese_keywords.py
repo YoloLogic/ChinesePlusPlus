@@ -430,6 +430,265 @@ else:
     print("  [通过] 长度检查自测：1 字与 7 字被抓，2 字与 6 字放行，"
           "`字符8位` 按 3 个汉字计")
 
+# ------------------------------------------------- 11. 中文预处理指令拼写表
+section("11. 中文预处理指令拼写检查（ChineseDirectives.def）")
+
+# 这一节是 2026-09-24 新增的。它校核的是【另一张表】——预处理指令的中文拼写。
+# 两张表分开是有原因的，见 ChineseDirectives.def 头部第 5 条：
+#   * 关键字有标志位（TokenKey），指令【没有】；
+#   * 依赖扫描器（DependencyDirectivesScanner.cpp）只认字符串，读不到标志位。
+# 所以指令拼写必须自有一张表，而这张表有三处读取者，必须机器校核一致性。
+
+P_ZH_DIR = os.path.join(ROOT, r"clang\include\clang\Basic\ChineseDirectives.def")
+P_SCAN = os.path.join(ROOT, r"clang\lib\Lex\DependencyDirectivesScanner.cpp")
+P_IDTAB = os.path.join(ROOT, r"clang\lib\Basic\IdentifierTable.cpp")
+
+zh_dir_text = read(P_ZH_DIR)
+scan_text = read(P_SCAN)
+idtab_text = read(P_IDTAB)
+
+# --- 11.0 解析 PPKEYWORD 英文名（TokenKinds.def 是唯一权威） ---
+pp_keywords = [m.group(1) for m in
+               re.finditer(r"^\s*PPKEYWORD\((\w+)\)", tk, re.M)]
+pp_keyword_set = set(pp_keywords)
+print("  解析到 TokenKinds.def 的 PPKEYWORD：%d 条（含哨兵 not_keyword）"
+      % len(pp_keywords))
+
+# --- 11.1 解析 ChineseDirectives.def ---
+dir_rows = []
+for lineno, line in enumerate(zh_dir_text.splitlines(), 1):
+    m = re.match(r"^\s*ZH_DIRECTIVE\(\s*(\w+)\s*,\s*([^)]+?)\s*\)\s*$", line)
+    if m:
+        dir_rows.append((lineno, m.group(1), m.group(2)))
+
+if not dir_rows:
+    errors.append("ChineseDirectives.def 里一条 ZH_DIRECTIVE 都没解析到")
+    print("  [错误] 一条 ZH_DIRECTIVE 都没解析到")
+else:
+    print("  解析到中文指令拼写：%d 条" % len(dir_rows))
+
+# 自测：解析器必须真的能解析出东西，否则下面的检查全是"空集通过"
+if len(dir_rows) != 22:
+    errors.append("ChineseDirectives.def 解析到 %d 条，期望 22 条"
+                  % len(dir_rows))
+    print("  [错误] 解析到 %d 条，期望 22 条" % len(dir_rows))
+else:
+    print("  [通过] 条目数 22（8 条件 ＋ 1 包含 ＋ 2 宏替换 ＋ 1 行号 ＋ 1 错误 "
+          "＋ 1 编译指示 ＋ 1 嵌入 ＋ 2 模块 ＋ 5 GNU/遗留）")
+
+# --- 11.2 英文名必须真实存在（否则 tok::pp_##EN 编译不过） ---
+def bad_dir_names(rows, kwset):
+    return [(ln, en) for ln, en, zh in rows if en not in kwset]
+
+_bad = bad_dir_names(dir_rows, pp_keyword_set)
+if _bad:
+    for ln, en in _bad:
+        errors.append("ChineseDirectives.def 第 %d 行：英文名 `%s` 不在 "
+                      "TokenKinds.def 的 PPKEYWORD 中，tok::pp_%s 不存在"
+                      % (ln, en, en))
+        print("  [错误] 第 %d 行：`%s` 不是 PPKEYWORD" % (ln, en))
+else:
+    print("  [通过] %d 个英文名全部存在于 TokenKinds.def" % len(dir_rows))
+
+# 自测：这个检查必须证明自己会失败
+_probe = [(1, "include", "包含"), (2, "nosuchdirective", "不存在")]
+if not bad_dir_names(_probe, pp_keyword_set):
+    errors.append("指令英文名检查自测失败：伪造的 nosuchdirective 没被抓到")
+    print("  [错误] 英文名检查自测失败")
+else:
+    print("  [通过] 英文名检查自测：伪造的 `nosuchdirective` 被抓到")
+
+# --- 11.3 表内译名唯一 + 英文名唯一 ---
+def dup_dir_zh(rows):
+    seen, dups = {}, []
+    for ln, en, zh in rows:
+        if zh in seen:
+            dups.append((zh, seen[zh], en))
+        seen[zh] = en
+    return dups
+
+def dup_dir_en(rows):
+    seen, dups = {}, []
+    for ln, en, zh in rows:
+        if en in seen:
+            dups.append(en)
+        seen[en] = zh
+    return dups
+
+_dz = dup_dir_zh(dir_rows)
+_de = dup_dir_en(dir_rows)
+if _dz:
+    for zh, a, b in _dz:
+        errors.append("ChineseDirectives.def 译名 `%s` 重复（%s 与 %s）" % (zh, a, b))
+        print("  [错误] 译名 `%s` 重复：%s 与 %s" % (zh, a, b))
+elif _de:
+    for en in _de:
+        errors.append("ChineseDirectives.def 英文名 `%s` 重复" % en)
+        print("  [错误] 英文名 `%s` 重复" % en)
+else:
+    print("  [通过] %d 个英文名与 %d 个译名均互不重复"
+          % (len(dir_rows), len(dir_rows)))
+
+if not dup_dir_zh([(1, "a", "同"), (2, "b", "同")]):
+    errors.append("译名唯一性检查自测失败：重复译名没被抓到")
+    print("  [错误] 译名唯一性检查自测失败")
+else:
+    print("  [通过] 译名唯一性检查自测：重复译名被抓到")
+
+# --- 11.4 汉字数 2–6（与关键字同一定则） ---
+_bad_len = [(ln, en, zh) for ln, en, zh in dir_rows if bad_length(zh)]
+if _bad_len:
+    for ln, en, zh in _bad_len:
+        errors.append("ChineseDirectives.def 第 %d 行：译名 `%s`（%s）汉字数 %d，"
+                      "应在 %d–%d 之间" % (ln, zh, en, hanzi_count(zh),
+                                            KW_MIN_HANZI, KW_MAX_HANZI))
+        print("  [错误] 第 %d 行 `%s` 汉字数 %d" % (ln, zh, hanzi_count(zh)))
+else:
+    _l = max(dir_rows, key=lambda r: hanzi_count(r[2]))
+    print("  [通过] %d 个译名的汉字数都在 %d–%d 之间（最长 `%s`，%d 字）"
+          % (len(dir_rows), KW_MIN_HANZI, KW_MAX_HANZI, _l[2],
+             hanzi_count(_l[2])))
+
+# --- 11.4b 字节长度必须 < 20（SkipExcludedConditionalBlock 的栈缓冲） ---
+# PPDirectives.cpp 的 SkipExcludedConditionalBlock() 里有一句
+#     char DirectiveBuf[20];
+# 且用 `RI.size() < 20` 作为「不必清洗、可直接引用」的条件。超过 20 字节的
+# 指令名会被那条 `IdLen >= 20 -> continue` 分支【静默忽略】，也就是
+# `#结束如果` 永远弹不出条件栈。汉字每字 3 字节，2–6 字 = 6–18 字节，
+# 所以这条安全边界是【由 2–6 汉字定则推出来的】—— 在这里显式钉住它，
+# 将来有人加 7 字译名时会在本脚本失败，而不是在编译器里静默出错。
+_bad_bytes = [(ln, en, zh) for ln, en, zh in dir_rows
+              if len(zh.encode("utf-8")) >= 20]
+if _bad_bytes:
+    for ln, en, zh in _bad_bytes:
+        errors.append("ChineseDirectives.def 第 %d 行：译名 `%s`（%s）占 %d 字节，"
+                      "达到或超过 PPDirectives.cpp 里 DirectiveBuf[20] 的上限，"
+                      "会被跳过逻辑静默忽略"
+                      % (ln, zh, en, len(zh.encode("utf-8"))))
+        print("  [错误] 第 %d 行 `%s` 占 %d 字节 >= 20" % (ln, zh, len(zh.encode("utf-8"))))
+else:
+    _mx = max(dir_rows, key=lambda r: len(r[2].encode("utf-8")))
+    print("  [通过] 最长译名 `%s` 占 %d 字节 < 20"
+          "（PPDirectives.cpp 的 DirectiveBuf[20] 上限）"
+          % (_mx[2], len(_mx[2].encode("utf-8"))))
+
+# 自测：20 字节的假译名必须被抓到
+if not [(1, "x", "甲乙丙丁戊己庚")] or not [
+        r for r in [(1, "x", "甲乙丙丁戊己庚")]
+        if len(r[2].encode("utf-8")) >= 20]:
+    errors.append("字节长度检查自测失败：7 汉字（21 字节）没被算出 >= 20")
+    print("  [错误] 字节长度检查自测失败")
+else:
+    print("  [通过] 字节长度检查自测：7 汉字译名（21 字节）会被抓到")
+
+# --- 11.5 跨表重名：只有指向【同一个英文】时才允许 ---
+# 例如 `如果` 既是关键字 if 又是指令 if —— 这与英文 `if` 的双重身份一致
+# （指令名在 ParsingPreprocessorDirective 下不做关键字映射）。
+# 但若把 `#否则` 指给 endif 而 `否则` 是 else，就是真错误。
+kw_spelling_to_en = {}
+for _ln, _en, _zh, _fl in all_rows:
+    kw_spelling_to_en.setdefault(_zh, _en)
+
+def cross_conflicts(rows, kwmap):
+    out = []
+    for ln, en, zh in rows:
+        if zh in kwmap and kwmap[zh] != en:
+            out.append((ln, en, zh, kwmap[zh]))
+    return out
+
+_cc = cross_conflicts(dir_rows, kw_spelling_to_en)
+_same_name = [(en, zh) for ln, en, zh in dir_rows if kw_spelling_to_en.get(zh) == en]
+if _cc:
+    for ln, en, zh, kwen in _cc:
+        errors.append("ChineseDirectives.def 第 %d 行：`%s` 指给 %s，"
+                      "但它是关键字 %s 的拼写 —— 两者英文必须相同"
+                      % (ln, zh, en, kwen))
+        print("  [错误] `%s` 是关键字 %s 的拼写，不能指给指令 %s" % (zh, kwen, en))
+else:
+    if _same_name:
+        print("  [通过] 与关键字同名的拼写 %d 个，英文名全部一致：%s"
+              % (len(_same_name),
+                 "、".join("%s(%s)" % (zh, en) for en, zh in _same_name)))
+    else:
+        print("  [通过] 没有与关键字重名的拼写")
+
+# 自测：必须能抓出「英文不同却共用拼写」
+if not cross_conflicts([(1, "endif", "否则")], {"否则": "else"}):
+    errors.append("跨表重名检查自测失败：endif/否则(else) 没被抓到")
+    print("  [错误] 跨表重名检查自测失败")
+else:
+    print("  [通过] 跨表重名检查自测：把 `否则` 指给 endif 会被抓到")
+
+# --- 11.6 依赖扫描器的中文 .Case() 必须与表一致 ---
+# 扫描器自有一张字符串表（不能 include 本表，因为 DirectiveKind 里没有
+# pp_module）。漏一条的后果不是「回退到完整预处理器」，而是【静默丢依赖】——
+# 见 DependencyDirectivesScanner.cpp 里那段注释。所以必须机器校核。
+_m = re.search(r'\.Case\("include",\s*pp_include\)', scan_text)
+if not _m:
+    errors.append("在 DependencyDirectivesScanner.cpp 里找不到指令 StringSwitch")
+    print("  [错误] 找不到指令 StringSwitch")
+    scan_en, scan_zh = [], {}
+else:
+    _tail = scan_text[_m.start():]
+    _tail = _tail[:_tail.index(".Default(")]
+    _cases = re.findall(r'\.Case\("([^"]+)",\s*(pp_\w+)\)', _tail)
+    scan_en = [c for c, v in _cases if c.isascii()]
+    scan_zh = {c: v for c, v in _cases if not c.isascii()}
+    print("  扫描器指令表：英文 %d 条，中文 %d 条" % (len(scan_en), len(scan_zh)))
+
+# 期望：表里所有「英文名出现在扫描器英文表中」的条目，其译名必须出现在扫描器里
+expect_zh = {zh: "pp_" + en for en, zh in ((r[1], r[2]) for r in dir_rows)
+             if en in scan_en}
+
+def scan_mismatches(scan_zh_map, expect_map):
+    missing = {k: v for k, v in expect_map.items() if scan_zh_map.get(k) != v}
+    extra = {k: v for k, v in scan_zh_map.items() if k not in expect_map}
+    return missing, extra
+
+_miss, _extra = scan_mismatches(scan_zh, expect_zh)
+if _miss or _extra:
+    for k, v in _miss.items():
+        errors.append("DependencyDirectivesScanner.cpp 缺少或写错中文指令 "
+                      "`%s`（应为 %s）" % (k, v))
+        print("  [错误] 扫描器缺少/写错 `%s` -> %s" % (k, v))
+    for k, v in _extra.items():
+        errors.append("DependencyDirectivesScanner.cpp 多出中文指令 `%s` -> %s"
+                      "（ChineseDirectives.def 里没有）" % (k, v))
+        print("  [错误] 扫描器多出 `%s` -> %s" % (k, v))
+else:
+    print("  [通过] 扫描器 %d 条中文指令与 ChineseDirectives.def 完全一致：%s"
+          % (len(scan_zh), "、".join(sorted(scan_zh))))
+
+# 自测：删掉一条必须被抓到
+_m2, _e2 = scan_mismatches({k: v for k, v in scan_zh.items() if k != "包含"},
+                           expect_zh)
+if not _m2:
+    errors.append("扫描器一致性检查自测失败：删掉 `包含` 没被抓到")
+    print("  [错误] 扫描器一致性检查自测失败")
+else:
+    print("  [通过] 扫描器一致性检查自测：删掉 `包含` 会被抓到")
+
+# --- 11.7 接线检查：IdentifierTable.cpp 真的读了这张表 ---
+if '#include "clang/Basic/ChineseDirectives.def"' not in idtab_text:
+    errors.append("IdentifierTable.cpp 没有 include ChineseDirectives.def，"
+                  "表被定义了却没人读")
+    print("  [错误] IdentifierTable.cpp 没有 include ChineseDirectives.def")
+else:
+    print("  [通过] IdentifierTable.cpp 引用了 ChineseDirectives.def")
+
+# 新表必须真的能被安装/构建到。clang/CMakeLists.txt 用
+#   install(DIRECTORY include/clang ... FILES_MATCHING PATTERN "*.def")
+# 通配收录 .def，所以新表自动被覆盖 —— 但这条通配是【隐式契约】，
+# 一旦上游改成白名单，新表会静默不被安装。在这里钉住它。
+_clang_cml = read(os.path.join(ROOT, r"clang\CMakeLists.txt"))
+if 'PATTERN "*.def"' in _clang_cml:
+    print("  [通过] clang/CMakeLists.txt 用 PATTERN \"*.def\" 通配安装，"
+          "新表自动被收录（无需改 CMake）")
+else:
+    errors.append("clang/CMakeLists.txt 不再用 PATTERN \"*.def\" 通配安装头文件，"
+                  "ChineseDirectives.def 可能不会被安装 —— 请显式加入安装列表")
+    print("  [错误] clang/CMakeLists.txt 不再通配安装 .def")
+
 # ---------------------------------------------------------------- 总结
 section("验证结论")
 print("  解析到中文关键字条目：%d"

@@ -16,6 +16,152 @@ index 21c078f..db42b71 100644
    });
    return Identifiers;
  }
+diff --git a/clang/include/clang/Basic/ChineseDirectives.def b/clang/include/clang/Basic/ChineseDirectives.def
+new file mode 100644
+index 0000000..9976409
+--- /dev/null
++++ b/clang/include/clang/Basic/ChineseDirectives.def
+@@ -0,0 +1,140 @@
++//===--- ChineseDirectives.def - 中文预处理指令拼写表 -----------*- C -*-===//
++//
++// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
++// See https://llvm.org/LICENSE.txt for license information.
++// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
++//
++//===----------------------------------------------------------------------===//
++//
++//  本文件为 Clang 增加「中文预处理指令拼写」（Chinese preprocessor
++//  directive spellings）。
++//
++//  效果：`#包含` 与 `#include` 被识别为【同一条】指令。例如
++//
++//      中文 `#包含`  ─┐
++//                     ├─→  tok::pp_include  →  HandleIncludeDirective
++//      英文 `#include`─┘
++//
++//  用户可以【随意混用】中英两种拼写，不需要任何开关或模式 —— 因为两种拼写
++//  解析出的是同一个 tok::pp_* 枚举值，`HandleDirective` 拿到枚举值之后
++//  根本无法区分文件里写的是哪一种（它从来不看指令名的拼写）。
++//
++//  设计约束（修改本文件前请务必阅读）：
++//
++//   1. 【只增不改】本文件只“新增”拼写。TokenKinds.def 里的 PPKEYWORD 列表
++//      保持零改动，所以英文指令的既有行为完全不变，标准库头文件、第三方
++//      项目以及 Clang 自举编译都不受影响。
++//
++//   2. 【单一 token】每个中文拼写都映射到与英文原指令「完全相同」的
++//      tok::pp_* 上。因此词法分析之后的所有阶段 —— PPDirectives、
++//      PreprocessingRecord、clang-format、clangd、libclang 索引 ——
++//      均无需任何改动。
++//
++//   3. 【本表的读取者】目前有两处，加拼写时两处自动同步、无需手工维护：
++//
++//        * clang/lib/Basic/IdentifierTable.cpp : lookupChineseDirective()
++//          把中文拼写解析成 tok::pp_*，供 `#` 之后的指令分发使用。
++//        * tests/checks/verify_chinese_keywords.py 第 11 节
++//          机器校核本表与 TokenKinds.def / ChineseKeywords.def 的一致性。
++//
++//      依赖扫描器（clang/lib/Lex/DependencyDirectivesScanner.cpp）是【第三处】
++//      读取者，但它为了性能自有一张 ASCII 字符串表，不能 include 本文件；
++//      它那 13 条中文 .Case() 由上面第 11 节校核为「本表与本表英文名在
++//      扫描器中的交集」，因此不会漂移。
++//
++//   4. 【键是英文名】第一个参数必须是 TokenKinds.def 中 PPKEYWORD 的
++//      英文名（拼写完全一致）。它同时被用作 tok::pp_##EN，所以写错名字
++//      编译不过 —— 这是故意的：编译器替我们查出拼写错误。
++//
++//   5. 【不与关键字表抢所有权】`模块` / `导入` 同时出现在
++//      ChineseKeywords.def 第八节（作为 C++20 模块关键字 kw_module /
++//      kw_import）。本表也列出它们，是因为「中文预处理指令拼写」这件事
++//      需要一处唯一来源给依赖扫描器和校验脚本用。两者给出的 tok::pp_*
++//      必须相同，第 11 节机器校核。
++//
++//       ⚠ 这里推翻了一条 2026-09-22 写在 IdentifierTable.cpp 里的旧结论：
++//         「放在这里而不是新增一张 .def 表：标志位已经是唯一数据源，
++//          再抄一份拼写就会出现两处需要同步。」
++//         那条结论对【关键字】成立（关键字都有标志位），对【指令】不成立：
++//         include / define / if 这些英文在 TokenKinds.def 里【没有】关键字
++//         标志位可抄，而且依赖扫描器根本读不到标志位。所以指令拼写必须
++//         自有一张表。推翻记录见 docs\诊断汉化\第三批-待译与术语包.md。
++//
++//   6. 【汉字数 2–6】与关键字同一条定则（用户 2026-09-23 明确）。本表
++//      最长的是 `否则若未定义` / `否则若已定义`（6 字），全部合规。
++//
++//   7. 【译名唯一】本表内不得重复。与关键字表重名时，只有当两者指向
++//      【同一个英文】才允许 —— 例如 `如果` 既是关键字 if 也是指令 if，
++//      这与英文 `if` 的双重身份完全一致（指令名在
++//      ParsingPreprocessorDirective 下不做关键字映射）。若把 `#否则` 指给
++//      endif 而 `否则` 是 else，第 11 节会报错。
++//
++//   8. 【有意不收的拼写】下面 6 条保持英文，不收中文：
++//
++//        __include_macros   __preprocessed_module   __preprocessed_import
++//        __public_macro     __private_macro         sccs
++//
++//      前 5 条是编译器自己写进 PCH / 模块文件（.pcm）的内部拼写。PCH 与
++//      模块文件是二进制格式、可跨版本复用，改动其指令拼写会影响格式兼容，
++//      收益为零。`sccs` 是 1980 年代 SCCS 的遗留，Clang 默认报错，
++//      没有必要汉化。
++//
++//===----------------------------------------------------------------------===//
++
++#ifndef ZH_DIRECTIVE
++#define ZH_DIRECTIVE(EN, ZH)
++#endif
++
++// C99 6.10.1 - Conditional Inclusion.
++
++ZH_DIRECTIVE(if, 如果)
++ZH_DIRECTIVE(ifdef, 如果已定义)
++ZH_DIRECTIVE(ifndef, 如果未定义)
++ZH_DIRECTIVE(elif, 否则若)
++ZH_DIRECTIVE(elifdef, 否则若已定义)
++ZH_DIRECTIVE(elifndef, 否则若未定义)
++ZH_DIRECTIVE(else, 否则)
++ZH_DIRECTIVE(endif, 结束如果)
++
++// C99 6.10.2 - Source File Inclusion.
++
++ZH_DIRECTIVE(include, 包含)
++
++// C99 6.10.3 - Macro Replacement.
++
++ZH_DIRECTIVE(define, 定义)
++ZH_DIRECTIVE(undef, 取消定义)
++
++// C99 6.10.4 - Line Control.
++
++ZH_DIRECTIVE(line, 行号)
++
++// C99 6.10.5 - Error Directive.
++
++ZH_DIRECTIVE(error, 错误)
++
++// C99 6.10.6 - Pragma Directive.
++
++ZH_DIRECTIVE(pragma, 编译指示)
++
++// C23 6.10.4 / C++26 - Embed Directive.
++
++ZH_DIRECTIVE(embed, 嵌入)
++
++// C++20 - Modules.
++
++ZH_DIRECTIVE(module, 模块)
++ZH_DIRECTIVE(import, 导入)
++
++// GNU Extensions.
++
++ZH_DIRECTIVE(include_next, 包含下一个)
++ZH_DIRECTIVE(warning, 警告)
++ZH_DIRECTIVE(ident, 标识)
++
++// Obsolete GNU Extensions.
++
++ZH_DIRECTIVE(assert, 断言)
++ZH_DIRECTIVE(unassert, 取消断言)
++
++#undef ZH_DIRECTIVE
 diff --git a/clang/include/clang/Basic/ChineseKeywords.def b/clang/include/clang/Basic/ChineseKeywords.def
 new file mode 100644
 index 0000000..e393d11
@@ -440,7 +586,7 @@ index 21851e7..11c7f30 100644
    ASTSourceDescriptor.cpp
    Attributes.cpp
 diff --git a/clang/lib/Basic/IdentifierTable.cpp b/clang/lib/Basic/IdentifierTable.cpp
-index 68cd02a..8328900 100644
+index 68cd02a..629e437 100644
 --- a/clang/lib/Basic/IdentifierTable.cpp
 +++ b/clang/lib/Basic/IdentifierTable.cpp
 @@ -288,6 +288,24 @@ void IdentifierTable::AddKeywords(const LangOptions &LangOpts) {
@@ -487,27 +633,65 @@ index 68cd02a..8328900 100644
  }
  
  /// Checks if the specified token kind represents a keyword in the
-@@ -422,6 +452,25 @@ tok::PPKeywordKind IdentifierInfo::getPPKeywordID() const {
+@@ -401,6 +431,22 @@ StringRef IdentifierInfo::deuglifiedName() const {
+   return Name;
+ }
+ 
++/// 中文预处理指令拼写 → tok::pp_*。
++///
++/// 表在 clang/Basic/ChineseDirectives.def，以【英文 PPKEYWORD 名】为键，
++/// 因此 tok::pp_##EN 由编译器展开并检查：写错名字直接编译不过。
++///
++/// 只被 getPPKeywordID() 在「首字节 >= 0x80」时调用，所以英文路径既不增加
++/// 比较次数也不改变返回值。表只有 22 条，线性 if 链足够 —— 这条路径每次
++/// 编译最多命中个位数次（每个指令名一次，且 IdentifierInfo 会缓存结果）。
++static tok::PPKeywordKind lookupChineseDirective(StringRef Name) {
++#define ZH_DIRECTIVE(EN, ZH)                                                   \
++  if (Name == #ZH)                                                             \
++    return tok::pp_##EN;
++#include "clang/Basic/ChineseDirectives.def"
++  return tok::pp_not_keyword;
++}
++
+ tok::PPKeywordKind IdentifierInfo::getPPKeywordID() const {
+   // We use a perfect hash function here involving the length of the keyword,
+   // the first and third character.  For preprocessor ID's there are no
+@@ -422,6 +468,40 @@ tok::PPKeywordKind IdentifierInfo::getPPKeywordID() const {
    if (Name[0] == '_' && isModuleKeyword())
      return tok::pp___preprocessed_module;
  
-+  // 中文拼写（见 ChineseKeywords.def 第八节）：与上面两条用的是【同一个标志位】，
-+  // 只是没有 '_' 前缀。
++  // 中文拼写：下面那张 perfect hash 表是给 ASCII 设计的（用长度 + 第 1/3 个
++  // 字符算桶，汉字算出来的桶落不进任何 case），所以汉字在这里单独查表。
 +  //
-+  // 这一步是「模块」「导入」能否真正当模块声明用的关键：clang 把 C++20 的模块
-+  // 声明当作【预处理器指令】处理（Lexer.cpp 里 HandleModuleContextualKeyword
-+  // 成功后会调用 HandleDirective），而 HandleDirective 拿本函数的返回值去匹配
-+  //   case tok::pp_module:   case tok::pp_import:
-+  // 下面那张 perfect hash 表是给 ASCII 设计的（用长度 + 第 1/3 个字符算桶，
-+  // 汉字算出来落不进任何 case，会返回 pp_not_keyword），所以汉字在这里单独判一次。
++  // 【这一步是中文能否当指令用的关键】
++  //   clang 把预处理指令名当作普通标识符词法，然后在 HandleDirective 里用
++  //   本函数的返回值去匹配
++  //     case tok::pp_include:  case tok::pp_if:  case tok::pp_define:  ...
++  //   中文拼写如果在这里返回 pp_not_keyword，就会掉进 HandleDirective 的
++  //   `default: break`，报「无效的预处理指令」。把它映射到与英文【同一个】
++  //   tok::pp_*，后面所有阶段（含 HandleIncludeDirective 等）就一视同仁。
 +  //
-+  // 放在这里而不是新增一张 .def 表：标志位已经是唯一数据源，再抄一份拼写就会
-+  // 出现两处需要同步。英文走不到这个分支（首字节 < 0x80），行为完全不变。
++  // 【本函数不会被普通标识符问到】
++  //   调用点共 20 余处，全部在「已经看到 '#'（或处于模块上下文）」之后
++  //   （PPDirectives / PrintPreprocessedOutput / InclusionRewriter /
++  //   PreprocessingRecord / clang-format / clangd / libclang 索引）。
++  //   Lexer.cpp 里【没有任何调用点】，所以 `整数 包含 = 1;` 里的 `包含`
++  //   不会被当成指令。英文走不到这个分支（首字节 < 0x80），行为完全不变。
++  //
++  // 【为什么是一张表，而不是照抄关键字标志位】
++  //   2026-09-22 这里曾用 `isImportKeyword()` / `isModuleKeyword()` 标志位来
++  //   处理 模块/导入，并写下结论「标志位已经是唯一数据源，再抄一份拼写就会
++  //   出现两处需要同步」。那条结论对【关键字】成立，对【指令】不成立：
++  //   include / define / if / elif …… 的英文在 TokenKinds.def 里根本没有
++  //   关键字标志位可抄（它们不是 C++ 关键字），而且依赖扫描器
++  //   （DependencyDirectivesScanner.cpp）读不到标志位、只认字符串。
++  //   所以指令拼写必须自有一张表：ChineseDirectives.def。
++  //   该表同时也列出 模块/导入，使「中文指令拼写」只有一处来源。
++  //   第 11 节校验脚本机器校核它俩与关键字标志位给出的值相同。
 +  if (static_cast<unsigned char>(Name[0]) >= 0x80) {
-+    if (isImportKeyword())
-+      return tok::pp_import;
-+    if (isModuleKeyword())
-+      return tok::pp_module;
++    tok::PPKeywordKind ZhKind = lookupChineseDirective(StringRef(Name, Len));
++    if (ZhKind != tok::pp_not_keyword)
++      return ZhKind;
 +  }
 +
    // clang-format off
@@ -545,6 +729,116 @@ index a5b8c99..8f50a4e 100644
    switch (Kind) {
  #define KEYWORD(X,Y) case kw_ ## X: return #X;
  #include "clang/Basic/TokenKinds.def"
+diff --git a/clang/lib/Lex/DependencyDirectivesScanner.cpp b/clang/lib/Lex/DependencyDirectivesScanner.cpp
+index ede5d49..191c89b 100644
+--- a/clang/lib/Lex/DependencyDirectivesScanner.cpp
++++ b/clang/lib/Lex/DependencyDirectivesScanner.cpp
+@@ -1007,6 +1007,42 @@ bool Scanner::lexPPLine(const char *&First, const char *const End) {
+                   .Case("elifndef", pp_elifndef)
+                   .Case("else", pp_else)
+                   .Case("endif", pp_endif)
++                  // 中文拼写，与上面一一对应（见 ChineseDirectives.def）。
++                  //
++                  // 【为什么必须在这里再抄一遍，而不是 include 那张表】
++                  //   本扫描器是「快速依赖扫描」：只认字符串，不碰
++                  //   IdentifierInfo，所以读不到 ChineseDirectives.def 之外
++                  //   的任何东西 —— 但也正因为它只认字符串，它可以 include。
++                  //   这里没有 include 是因为 DirectiveKind 里【没有】
++                  //   pp_module，而表里有 module，笼统 include 会编译不过；
++                  //   为了 22 条里的 1 条写条件宏不值得，所以手抄这 13 条。
++                  //
++                  // 【漏了会怎样 —— 这是必须抄的真正原因】
++                  //   本函数返回 false 表示【扫描成功】（见头文件
++                  //   scanSourceForDependencyDirectives 的 \returns：false =
++                  //   success）。而认不出的指令走下面的 pp_none 分支，
++                  //   只是 skipDirective() 跳掉这一行、然后 return false。
++                  //   也就是说漏掉 `#包含` 不会「回退到完整预处理器」，而是
++                  //   【静默丢依赖】：增量编译与 clang-scan-deps 会认为这个头
++                  //   文件不存在，改了头文件不重编。
++                  //
++                  // 【一致性由机器保证】
++                  //   tests\checks\verify_chinese_keywords.py 第 11 节校核
++                  //   这 13 条 == ChineseDirectives.def ∩ 上面那 14 条英文，
++                  //   所以两边不会漂移。加拼写时两处都要加，脚本会拦住遗漏。
++                  .Case("包含", pp_include)
++                  .Case("定义", pp_define)
++                  .Case("取消定义", pp_undef)
++                  .Case("导入", pp_import)
++                  .Case("包含下一个", pp_include_next)
++                  .Case("如果", pp_if)
++                  .Case("如果已定义", pp_ifdef)
++                  .Case("如果未定义", pp_ifndef)
++                  .Case("否则若", pp_elif)
++                  .Case("否则若已定义", pp_elifdef)
++                  .Case("否则若未定义", pp_elifndef)
++                  .Case("否则", pp_else)
++                  .Case("结束如果", pp_endif)
+                   .Default(pp_none);
+   if (Kind == pp_none) {
+     skipDirective(Id, First, End);
+diff --git a/clang/lib/Lex/PPDirectives.cpp b/clang/lib/Lex/PPDirectives.cpp
+index c161f6a..e2607aa 100644
+--- a/clang/lib/Lex/PPDirectives.cpp
++++ b/clang/lib/Lex/PPDirectives.cpp
+@@ -533,6 +533,39 @@ void Preprocessor::SuggestTypoedDirective(const Token &Tok,
+   }
+ }
+ 
++/// 中文预处理指令拼写 → 英文拼写（表见 ChineseDirectives.def）。
++///
++/// 【本函数为什么存在】
++///   SkipExcludedConditionalBlock() 是「跳过被排除的条件分支」的快路径。它为了
++///   速度【故意不做标识符查找】（源码里写着 "we can't use Tok.getIdentifierInfo()
++///   because its lookup is disabled when skipping"），改用原始字符串比较：
++///
++///       if (Directive.starts_with("if"))            // #if / #ifdef / #ifndef
++///       else if (Directive[0] == 'e')               // #endif / #else / #elif
++///
++///   于是中文拼写一条都匹配不上：#如果 0 为假时，#结束如果 弹不出条件栈，
++///   最终报「条件指令没有终结」。2026-09-24 实测：
++///   `#如果 0 / #否则若 1 / #结束如果` 报错，而单独一条 `#如果 1 ... #结束如果`
++///   正常 —— 因为后者走的是 HandleDirective 快路径（读 getPPKeywordID），
++///   根本不经过本函数。
++///
++/// 【为什么在这里换成英文，而不是给跳过逻辑再加一套中文分支】
++///   这个函数是一台手写的状态机（push/pop 条件栈、foundnonskip、foundelse、
++///   CheckEndOfDirective("endif")、SuggestTypoedDirective……）。加一套平行分支
++///   等于把整台状态机复制一遍，两处必须永远同步 —— 这正是本项目反复吃亏的
++///   地方。把中文拼写【就地换成英文】之后，下面所有既有逻辑一个字都不用改，
++///   中文与英文走的是同一条代码路径，不存在「漂移」的可能。
++///
++/// 只被 SkipExcludedConditionalBlock() 调用。表只有 22 条，线性比较足够：
++/// 这条路径每个指令名最多走一次。
++static const char *chineseDirectiveEnglishSpelling(StringRef Name) {
++#define ZH_DIRECTIVE(EN, ZH)                                                   \
++  if (Name == #ZH)                                                             \
++    return #EN;
++#include "clang/Basic/ChineseDirectives.def"
++  return nullptr;
++}
++
+ /// SkipExcludedConditionalBlock - We just read a \#if or related directive and
+ /// decided that the subsequent tokens are in the \#if'd out portion of the
+ /// file.  Lex the rest of the file, until we see an \#endif.  If
+@@ -761,6 +794,18 @@ void Preprocessor::SkipExcludedConditionalBlock(SourceLocation HashTokenLoc,
+       Directive = StringRef(DirectiveBuf, IdLen);
+     }
+ 
++    // 中文指令拼写：本函数不做标识符查找，所以就地换成英文，让下面所有
++    // 既有逻辑（starts_with("if") / Directive[0]=='e' 那一套）照常工作。
++    // 见 chineseDirectiveEnglishSpelling() 的注释。
++    //
++    // 【20 字节缓冲的边界】DirectiveBuf 只有 20 字节，且上面用 RI.size() < 20
++    // 挡了一道。中文拼写每个汉字 3 字节，2–6 个汉字就是 6–18 字节，
++    // 全部安全 —— 但这条安全边界【依赖】关键字/指令译名 2–6 汉字的定则。
++    // tests\checks\verify_chinese_keywords.py 第 11 节同时校核汉字数与字节数，
++    // 所以将来有人加一个 7 汉字译名时会先在那里失败，而不是在这里静默丢指令。
++    if (const char *En = chineseDirectiveEnglishSpelling(Directive))
++      Directive = En;
++
+     if (Directive.starts_with("if")) {
+       StringRef Sub = Directive.substr(2);
+       if (Sub.empty() ||   // "if"
 diff --git a/clang/lib/Lex/Preprocessor.cpp b/clang/lib/Lex/Preprocessor.cpp
 index 212b781..98706be 100644
 --- a/clang/lib/Lex/Preprocessor.cpp
