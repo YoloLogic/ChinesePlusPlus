@@ -25,7 +25,10 @@
 
 param(
     [switch] $AddToUserPath,
-    [switch] $SkipVerify
+    [switch] $SkipVerify,
+    # Skip the editor step entirely. Useful when the user already has an editor
+    # they like, and for testing the toolchain part without a 320 MB download.
+    [switch] $NoEditor
 )
 
 $ErrorActionPreference = 'Continue'
@@ -168,6 +171,9 @@ if ($vs) {
 Write-Host ''
 Write-Host '--- 4) editor'
 
+if ($NoEditor) {
+    Write-Host '  skipped (-NoEditor)' -ForegroundColor DarkGray
+} else {
 $VSCODE_URL   = 'https://update.code.visualstudio.com/latest/win32-x64-archive/stable'
 $LANG_PACK    = 'MS-CEINTL.vscode-language-pack-zh-hans'
 $CLANGD_EXT   = 'llvm-vs-code-extensions.vscode-clangd'
@@ -244,6 +250,7 @@ if ($ed) {
         Write-Host ("     " + $CLANGD_EXT)
     }
 }
+}   # end of the editor step (skipped by -NoEditor)
 
 # ---------------------------------------------------------------------------
 # 5. examples kit

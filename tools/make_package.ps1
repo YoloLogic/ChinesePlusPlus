@@ -215,7 +215,23 @@ Write-Host ("uncompressed: {0} MB" -f $size) -ForegroundColor Green
 if (-not $NoZip) {
     $zip = Join-Path $distRoot "$pkgName.zip"
     if (Test-Path $zip) { Remove-Item $zip -Force }
-    Compress-Archive -Path $pkg -DestinationPath $zip -CompressionLevel Optimal
+    # Retry: the freshly copied ~79 MB executables are often still being scanned
+    # by Windows Defender for a few seconds, which makes Compress-Archive fail
+    # with "being used by another process". Observed twice (2026-09-25); it is
+    # predictable, so it is handled here instead of by hand.
+    $ok = $false
+    for ($i = 1; $i -le 6; $i++) {
+        try {
+            Compress-Archive -Path $pkg -DestinationPath $zip -CompressionLevel Optimal -ErrorAction Stop
+            $ok = $true; break
+        } catch {
+            Write-Host ("  zip attempt {0} failed ({1}); retrying in {2}s" -f `
+                        $i, $_.Exception.GetType().Name, (3 * $i)) -ForegroundColor DarkGray
+            Start-Sleep -Seconds (3 * $i)
+            if (Test-Path $zip) { Remove-Item $zip -Force -ErrorAction SilentlyContinue }
+        }
+    }
+    if (-not $ok) { throw "could not create $zip after 6 attempts" }
     $zsize = [int]((Get-Item $zip).Length/1MB)
     Write-Host ("zip: {0} MB  ->  {1}" -f $zsize, $zip) -ForegroundColor Green
 }
