@@ -95,6 +95,11 @@ def main():
     ap.add_argument("--db", action="append", required=True)
     ap.add_argument("--jobs", type=int, default=10)
     ap.add_argument("--limit", type=int, default=0, help="每个 db 最多取多少条（0=全部）")
+    ap.add_argument("--out", default="",
+                    help="报告写到哪个文件。默认 build\\_diag_coverage_projects.txt；"
+                         "但若那个文件里已经记着【另一组 db】的报告，就自动改用带 db 数的"
+                         "名字，不去覆盖别人 —— 外部复核 2026-09-24 用两个 db 复验时，"
+                         "把项目的七项目报告覆盖成了两项目。")
     args = ap.parse_args()
 
     entries = []
@@ -190,14 +195,26 @@ def main():
         L.append("  %-5d %s" % (cnt, name))
     L.append("  合计 %d 条 / %d 个 ID" % (sum(by_id.values()), len(by_id)))
 
-    with open(REPORT, "w", encoding="utf-8", newline="\n") as f:
+    report = REPORT
+    if args.out:
+        report = args.out if os.path.isabs(args.out) else os.path.join(ROOT, args.out)
+    elif os.path.exists(REPORT):
+        # 默认路径已有报告：看它记的是不是同一组 db。不是就改名，别覆盖。
+        old = open(REPORT, encoding="utf-8", errors="replace").read()
+        old_dbs = [l.strip() for l in old.splitlines() if "条编译命令" in l]
+        new_dbs = ["%s %d 条编译命令" % (nm, c) for nm, c in per_db]
+        if old_dbs and old_dbs != new_dbs:
+            report = REPORT.replace(".txt", "_%ddb.txt" % len(per_db))
+            print("!! default report belongs to a different db set; writing to %s"
+                  % os.path.basename(report))
+    with open(report, "w", encoding="utf-8", newline="\n") as f:
         f.write("\n".join(L) + "\n")
 
     print("")
     for l in L[:14]:
         print(l.encode("ascii", "replace").decode("ascii"))
     print("")
-    print("full report (UTF-8): %s" % REPORT)
+    print("full report (UTF-8): %s" % report)
     return 2 if bug else 0
 
 

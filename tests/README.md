@@ -142,7 +142,8 @@ BMI 只有**导入方**才需要。
 最值得记的几条：
   06-parity    中英输出逐字节相同（45 B 对 45 B），用的是 stock clang 19.1.5
   10-multi-tu  7 个多翻译单元用例全过，含「MSVC 编译 main + 中文关键字 clang 编译实现」
-  12-diagnostics  90 条中文诊断、78 个用例逐条断言通过；回退（未翻译的仍英文）
+  12-diagnostics  7344 条中文诊断、78 个用例逐条断言通过；回退路径已无条可观测
+                 （凡有英文正文的诊断都已进表，保证改由 --check-table 的表级断言承担）
                   由「默认日志与 -fno-chinese-diagnostics 日志逐字节相同」证明
   checks       verify_zh_diagnostics.py 同时跑校核器自检（故意写坏占位符必须报错）
   checks       verify_make_patch_gate.ps1 跑补丁门禁自检（**破坏的补丁必须被拒绝**）
