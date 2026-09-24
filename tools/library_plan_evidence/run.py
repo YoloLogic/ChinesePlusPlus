@@ -136,6 +136,50 @@ report("C1 三个 TU 各自编译 + 链接 + 运行",
        ok_all,
        "零诊断（这正是问题）" if ok_all else "；".join(detail))
 
+# ---------------------------------------------------------------- D. 可行的那一步
+# 与 A/B/C 相反：中文【头文件名】副本是纯文件操作，只做别名、不改 std::vector
+# 的定义，所以三层问题一个都不沾。这是被推迟的库方案里唯一现在就能做的部分。
+print()
+print("D. 中文【头文件名】副本（唯一零风险、现在就能做的一步）")
+
+D_BODY = """#包含 <向量>
+#包含 <cstdio>
+
+// 关键断言：中文名与英文名必须是【同一个类型】，能互相传参
+空型 收下(std::vector<整数>& v) { v.push_back(9); }
+
+整数 main() {
+    std::vector<整数> 英;
+    标准::向量<整数> 中;
+    收下(中);                       // 中文名对象 -> 收英文名参数的函数
+    if (中.size() != 1) return 1;
+    if (sizeof(中) != sizeof(英)) return 2;
+    std::printf("D ok: 中.size=%zu sizeof 相同\\n", 中.size());
+    return 0;
+}
+"""
+src = os.path.join(HERE, "_d.cpp")
+io.open(src, "w", encoding="utf-8").write(D_BODY)
+exe = os.path.join(HERE, "_d.exe")
+rc, txt = sh([CLANG, "-std=c++20", "-I", HERE, "-o", exe, src])
+if rc != 0:
+    report("D1 #包含 <向量> 编译", False, "失败：" + first_error(txt))
+else:
+    rc2, out = sh([exe])
+    report("D1 #包含 <向量> 编译 + 运行 + 中英同类型互传",
+           rc2 == 0,
+           out.strip() if rc2 == 0 else "运行失败 exit=%d" % rc2)
+
+# 中文 include 目录名也要能用（真实项目里目录常是中文的）
+zhdir = os.path.join(HERE, "中文目录")
+os.makedirs(zhdir, exist_ok=True)
+io.open(os.path.join(zhdir, "向量"), "w", encoding="utf-8").write(
+    io.open(os.path.join(HERE, "向量"), encoding="utf-8").read())
+rc, txt = sh([CLANG, "-std=c++20", "-I", zhdir, "-fsyntax-only", src])
+report("D2 中文 include 目录名", rc == 0,
+       "通过" if rc == 0 else "失败：" + first_error(txt))
+
+
 # 关键断言：链接器【没有】报任何 ODR 相关诊断
 print()
 print("  ⚠ C 层没有报错，不是幸运，是标准如此：")
@@ -146,16 +190,22 @@ print("     一旦中文副本动了数据成员或对齐，跨 TU 传对象就�
 print("     而**依然不会有任何提示**。")
 
 # ---------------------------------------------------------------- 清理
-for f in ("_a.cpp", "_b.cpp", "_c_a.cpp", "_c_b.cpp", "_c_m.cpp",
-          "_c_a.obj", "_c_b.obj", "_c_m.obj", "_c.exe"):
+for f in ("_a.cpp", "_b.cpp", "_c_a.cpp", "_c_b.cpp", "_c_m.cpp", "_d.cpp",
+          "_c_a.obj", "_c_b.obj", "_c_m.obj", "_c.exe", "_d.exe"):
     try:
         os.remove(os.path.join(HERE, f))
     except OSError:
         pass
+try:
+    os.remove(os.path.join(zhdir, "向量"))
+    os.rmdir(zhdir)
+except OSError:
+    pass
 
 print()
 if bad:
     print("有 %d 项与文档结论不符 —— 第 4.0 节需要更新。" % bad)
     sys.exit(1)
-print("全部符合 docs\\汉字第一公民-路线图.md 第 4.0 节的结论（A 报错 / B 报错但指向别人的头 / C 不报错）。")
+print("全部符合 docs\\汉字第一公民-路线图.md 第 4.0 节的结论：")
+print("  A 报错 / B 报错但指向别人的头 / C 不报错（致命）/ D 可行且零风险。")
 sys.exit(0)
