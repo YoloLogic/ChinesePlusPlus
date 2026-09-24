@@ -396,6 +396,13 @@ if ($ed) {
         foreach ($d in $docs) { Write-Host ('      ' + $d) }
         Write-Host '      -- prerequisites, troubleshooting, and the full cheat sheet'
     }
+    Write-Host ''
+    Write-Host '  Want your OWN VS Code to understand Chinese too?'
+    Write-Host '      run the one-click attach script in this folder'
+    Write-Host '      (the one-click restore script next to it undoes it)'
+    Write-Host ''
+    Write-Host '  Contact: QQ 1396257961'
+    Write-Host '  Provided as-is, with no warranty. Back up your own data.'
     Write-Host '======================================================================' -ForegroundColor Cyan
 } else {
     Write-Host ''

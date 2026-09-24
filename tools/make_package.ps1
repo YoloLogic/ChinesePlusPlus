@@ -120,13 +120,11 @@ foreach ($d in @('vscode-kit', 'examples')) {
         Write-Host "  $d copied"
     }
 }
-foreach ($f in @('install.ps1', 'uninstall.ps1', 'verify.ps1', 'messages.txt')) {
-    $s = Join-Path $packSrc $f
-    if (Test-Path $s) { Copy-Item $s (Join-Path $pkg $f) -Force }
-}
-# Copy the launcher scripts BY EXTENSION, not by name: the one-click launcher
-# has a Chinese file name and THIS FILE IS PURE ASCII on purpose, so it must not
-# contain that name as a literal.
+# Copy the PowerShell scripts and the launchers BY EXTENSION, not by name:
+# several have Chinese file names and THIS FILE IS PURE ASCII on purpose, so it
+# must not contain those names as literals.
+Get-ChildItem $packSrc -File | Where-Object { $_.Extension -eq '.ps1' } |
+    ForEach-Object { Copy-Item $_.FullName (Join-Path $pkg $_.Name) -Force }
 Get-ChildItem $packSrc -File | Where-Object { $_.Extension -in @('.cmd', '.bat') } |
     ForEach-Object {
         Copy-Item $_.FullName (Join-Path $pkg $_.Name) -Force
