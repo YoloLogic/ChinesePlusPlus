@@ -91,7 +91,30 @@ $msg = "  bin: {0} real files shipped; {1} aliases will be created by install.ps
 Write-Host $msg
 
 # ---------------------------------------------------------------------------
-# 3. resource dir  (lib\clang\<ver>\  -- builtin headers; REQUIRED)
+# 3. resource dir  (lib\clang\<ver>\)
+#
+#    THREE directories must ship. Their layout is not guessed: it is exactly
+#    what compiler-rt's own `cmake --install` produces (verified 2026-09-26),
+#    and it agrees with what the driver asks for:
+#
+#       clang --print-runtime-dir
+#           -> lib\clang\24\lib\windows
+#       clang -fsanitize=address -###
+#           -libpath:...\lib\clang\24\lib\windows
+#
+#    so:
+#        include\      builtin headers, plus compiler-rt's sanitizer\ and
+#                      profile\ headers                        REQUIRED
+#        lib\windows\  every clang_rt.*.lib and clang_rt.*.dll  REQUIRED
+#        share\        asan / cfi / hwasan / msan ignorelists   REQUIRED
+#
+#    Do NOT move the runtime libraries into lib\x86_64-pc-windows-msvc\.
+#    The link line names that directory, but the runtime is resolved through
+#    -libpath (lib\windows\). Measured: with only lib\windows\ populated,
+#    -fsanitize=address links AND runs.
+#
+#    compiler-rt is NOT produced by the normal clang build. LLVM_ENABLE_RUNTIMES
+#    is a separate configure; see tools\build_runtimes.ps1.
 # ---------------------------------------------------------------------------
 $ver = (Get-ChildItem $resSrc -Directory | Sort-Object Name -Descending | Select-Object -First 1).Name
 if (-not $ver) { throw "no resource dir under $resSrc" }
@@ -99,6 +122,20 @@ $resDst = Join-Path $pkg "lib\clang\$ver"
 New-Item -ItemType Directory -Force $resDst | Out-Null
 Copy-Item (Join-Path $resSrc "$ver\include") (Join-Path $resDst 'include') -Recurse -Force
 Write-Host "  lib\clang\$ver\include copied"
+
+$rtWin = Join-Path $resSrc "$ver\lib\windows"
+if (-not (Test-Path $rtWin)) {
+    throw "compiler-rt missing at $rtWin -- run tools\build_runtimes.ps1 first"
+}
+$rtDstWin = Join-Path $resDst 'lib\windows'
+New-Item -ItemType Directory -Force $rtDstWin | Out-Null
+Copy-Item -Path (Join-Path $rtWin '*') -Destination $rtDstWin -Force
+$shareSrc = Join-Path $resSrc "$ver\share"
+if (Test-Path $shareSrc) { Copy-Item $shareSrc (Join-Path $resDst 'share') -Recurse -Force }
+
+$rtFiles = @(Get-ChildItem $rtDstWin -File)
+$rtSizeKB = [int](($rtFiles | Measure-Object Length -Sum).Sum / 1KB)
+Write-Host ("  lib\clang\{0}\lib\windows: {1} runtime files, {2} KB" -f $ver, $rtFiles.Count, $rtSizeKB)
 
 # ---------------------------------------------------------------------------
 # 4. licenses  (Apache-2.0 section 4(a) and 4(b); NOT optional)
@@ -203,7 +240,36 @@ $lines += "=== NOT shipped on purpose ==="
 $lines += "  lib\*.lib                     918 MB, compiler's own build output"
 $lines += "  llvm-tblgen / clang-tblgen / llvm-min-tblgen /"
 $lines += "  clang-tidy-confusable-chars-gen / llvm-lit    build-time tools"
-$lines += "  clang_rt.*                    compiler-rt was never built"
+$lines += "  opt / llc / llvm-as / llvm-dis / llvm-config / lldb /"
+$lines += "  clang-tidy / libclang / polly                  LLVM tools, not"
+$lines += "                                                 needed to compile"
+$lines += ""
+$lines += "=== compiler-rt runtime libraries (SHIPPED) ==="
+$lines += "  lib\clang\$ver\lib\windows\      the runtimes themselves"
+$lines += "  lib\clang\$ver\include\sanitizer\  and include\profile\  headers"
+$lines += "  lib\clang\$ver\share\            asan/cfi/hwasan/msan ignorelists"
+foreach ($f in ($rtFiles | Sort-Object Name)) {
+    $lines += ("  {0,-50} {1,6} KB" -f $f.Name, [int]($f.Length / 1KB))
+}
+$lines += ""
+$lines += "  -fsanitize=address    VERIFIED: links, and catches a real"
+$lines += "                        heap-use-after-free at run time."
+$lines += "                        NOTE: clang_rt.asan_dynamic-x86_64.dll must"
+$lines += "                        be on PATH (or beside the .exe) to RUN the"
+$lines += "                        program. install.ps1 puts it on PATH."
+$lines += "  --coverage            VERIFIED: links and runs."
+$lines += "  -fsanitize=undefined  NOT WORKING YET. Linking fails with:"
+$lines += "                          __imp_getenv"
+$lines += "                          __imp_CommandLineToArgvW"
+$lines += "                          __coe_win::ContinueOnError"
+$lines += "                        The library is shipped, but this is NOT"
+$lines += "                        claimed to work. Do not rely on it."
+$lines += "  -fopenmp              works, but not because of this package:"
+$lines += "                        Visual Studio already ships libomp.lib in"
+$lines += "                        VC\Tools\MSVC\<ver>\lib\x64\. It is not"
+$lines += "                        shipped here and is not needed."
+$lines += "  -fsanitize=address/undefined need MSVC STL + Windows SDK anyway."
+
 $lines += ""
 $lines += "=== REQUIRED on the user's machine (not in this package) ==="
 $lines += "  Visual Studio Build Tools: MSVC STL, Windows SDK, link.exe"
