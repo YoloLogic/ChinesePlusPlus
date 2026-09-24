@@ -36,7 +36,13 @@ $enTxt  = Join-Path $out 'out_en.txt'
 Write-Host '--- 1) compile with our compiler'
 & $cxx -std=c++20 -O0 -o $zhExe $src 2>&1 | ForEach-Object { Write-Host "    $_" }
 if ($LASTEXITCODE -ne 0) { Write-Host 'FAILED: our compiler'; exit 1 }
-& $zhExe > $zhTxt
+# Redirect through cmd, NOT through a PowerShell pipeline -- same lesson as
+# tools\rebuild_clang.ps1 documents for MSBuild. `& $exe > file` is shell
+# DEPENDENT: Windows PowerShell 5.1 pushes the text through Out-File and lands
+# UTF-16LE with a BOM (68 bytes for this program), while PowerShell 7 writes
+# the program's raw bytes (45). The byte count is evidence, so it must not
+# depend on which shell happens to be driving the test.
+& cmd /c "`"$zhExe`" > `"$zhTxt`""
 Write-Host "    ran, exit=$LASTEXITCODE"
 
 Write-Host '--- 2) convert to English'
@@ -47,7 +53,7 @@ Write-Host '--- 3) compile with STOCK clang (not our fork)'
 & $stock --version 2>&1 | Select-Object -First 1 | ForEach-Object { Write-Host "    $_" }
 & $stock -x c++ -std=c++20 -O0 -o $enExe $gen 2>&1 | ForEach-Object { Write-Host "    $_" }
 if ($LASTEXITCODE -ne 0) { Write-Host 'FAILED: stock compiler'; exit 3 }
-& $enExe > $enTxt
+& cmd /c "`"$enExe`" > `"$enTxt`""
 Write-Host "    ran, exit=$LASTEXITCODE"
 
 Write-Host '--- 4) compare'

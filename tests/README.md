@@ -53,6 +53,11 @@ Write-Host ("  child shells: " + $psExe)
 > ⚠️ 改这三个脚本时注意两条已经踩过的坑：
 > **① 必须保持纯 ASCII** —— PowerShell 5.1 按 GBK 读无 BOM 文件，中文注释会变乱码并顶崩解析器。
 > **② 行尾的 `|` 当续行是 PowerShell 7 才有的**，5.1 会报 `Unexpected token ')'`。
+> **③ 重定向要经 cmd，不要经 PowerShell 管道**。`& $exe > file` 是**跟 shell 有关**的：
+> 5.1 把文本推过 `Out-File`，落成 UTF-16LE 带 BOM（`06-parity` 那句输出是 **68** 字节）；
+> 7 直接写程序原始字节（**45** 字节）。**字节数是证据，就不能让"谁在驱动测试"决定它。**
+> `06-parity` 已改成 `cmd /c "... > file"`（和 `rebuild_clang.ps1` 对 MSBuild 用的是同一条教训），
+> 现在两条路都是 45。
 >
 > 两条路都实测过（2026-09-24，PowerShell 7.6.6）：
 >
@@ -135,7 +140,7 @@ BMI 只有**导入方**才需要。
 ```
 13 个测试目录（01～12 + demo）+ checks 目录 + 5 个检查脚本 = 19 项全绿
 最值得记的几条：
-  06-parity    中英输出逐字节相同（68 B 对 68 B），用的是 stock clang 19.1.5
+  06-parity    中英输出逐字节相同（45 B 对 45 B），用的是 stock clang 19.1.5
   10-multi-tu  7 个多翻译单元用例全过，含「MSVC 编译 main + 中文关键字 clang 编译实现」
   12-diagnostics  81 条中文诊断、68 个用例逐条断言通过；回退（未翻译的仍英文）
                   由「默认日志与 -fno-chinese-diagnostics 日志逐字节相同」证明
