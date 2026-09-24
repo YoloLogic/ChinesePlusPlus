@@ -132,6 +132,14 @@ Get-ChildItem $packSrc -File | Where-Object { $_.Extension -in @('.cmd', '.bat')
         Copy-Item $_.FullName (Join-Path $pkg $_.Name) -Force
         Write-Host ("  launcher copied: " + $_.Name)
     }
+# User-facing documents (the cheat sheet is GENERATED from the compiler's own
+# tables by tools\make_cheatsheet.py, so it cannot drift). Copied by extension
+# for the same ASCII reason as above.
+Get-ChildItem $packSrc -File | Where-Object { $_.Extension -in @('.md', '.txt') } |
+    ForEach-Object {
+        Copy-Item $_.FullName (Join-Path $pkg $_.Name) -Force
+        Write-Host ("  document copied: " + $_.Name)
+    }
 
 # ---------------------------------------------------------------------------
 # 5b. bundled portable editor (VSCodium)

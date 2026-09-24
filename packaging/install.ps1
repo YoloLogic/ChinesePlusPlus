@@ -386,6 +386,16 @@ if ($ed) {
     Write-Host ''
     Write-Host '  To compile from a terminal instead: double-click env.cmd, then'
     Write-Host '      chinese++ yourfile.cpp -o yourfile.exe'
+    Write-Host ''
+    # List the real file names rather than describing them: this script is pure
+    # ASCII, so it must not contain the (Chinese) names as literals.
+    $docs = Get-ChildItem $here -File -Filter '*.md' -ErrorAction SilentlyContinue |
+            Select-Object -ExpandProperty Name
+    if ($docs) {
+        Write-Host '  Read these (in this folder):'
+        foreach ($d in $docs) { Write-Host ('      ' + $d) }
+        Write-Host '      -- prerequisites, troubleshooting, and the full cheat sheet'
+    }
     Write-Host '======================================================================' -ForegroundColor Cyan
 } else {
     Write-Host ''

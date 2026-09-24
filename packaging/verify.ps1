@@ -43,13 +43,38 @@ Write-Host ""
 # 1. the compiler and every hardlink alias must be present
 # ---------------------------------------------------------------------------
 Write-Host '--- 1) files present (hardlink aliases included)'
-$must = @('chinese++.exe','clang.exe','clang++.exe','clang-cl.exe','clang-cpp.exe',
-          'lld-link.exe','lld.exe','ld.lld.exe','wasm-ld.exe',
-          'llvm-ar.exe','llvm-lib.exe','llvm-ranlib.exe','llvm-rc.exe')
+# The zip ships only 5 real files; the other 8 names are hardlinks that
+# install.ps1 creates after extraction. So "aliases missing" on a freshly
+# unzipped package is NOT a defect -- it means setup has not run yet. Saying
+# "1 failed" there would scare a first-time user for no reason, so that case is
+# reported separately with its own exit code.
+$real  = @('chinese++.exe','lld-link.exe','llvm-ar.exe','clangd.exe','llvm-rc.exe')
+$alias = @('clang.exe','clang++.exe','clang-cl.exe','clang-cpp.exe',
+           'lld.exe','ld.lld.exe','wasm-ld.exe','llvm-lib.exe','llvm-ranlib.exe')
+$must  = $real + $alias
 $missing = @()
 foreach ($f in $must) { if (-not (Test-Path (Join-Path $bin $f))) { $missing += $f } }
-if ($missing.Count -eq 0) { Ok ("all {0} binaries present" -f $must.Count) }
-else { Bad ("missing: " + ($missing -join ', ') + "   (run install.ps1 to recreate hardlinks)") }
+
+$missingReal  = @($missing | Where-Object { $real  -contains $_ })
+$missingAlias = @($missing | Where-Object { $alias -contains $_ })
+
+if ($missing.Count -eq 0) {
+    Ok ("all {0} binaries present" -f $must.Count)
+} elseif ($missingReal.Count -eq 0 -and $missingAlias.Count -gt 0) {
+    Write-Host ''
+    Write-Host '  This package has NOT BEEN SET UP YET.' -ForegroundColor Yellow
+    Write-Host ("  {0} of the binary names are missing: they are hardlinks that the" -f $missingAlias.Count) -ForegroundColor Yellow
+    Write-Host '  setup step creates after extraction (the zip ships one copy of each' -ForegroundColor Yellow
+    Write-Host '  binary; a zip cannot store hardlinks).' -ForegroundColor Yellow
+    Write-Host ''
+    Write-Host '  Run this first, then run verify.ps1 again:' -ForegroundColor Yellow
+    Write-Host '      double-click the one-click setup file in this folder' -ForegroundColor Yellow
+    Write-Host '      (or: powershell -File install.ps1)' -ForegroundColor Yellow
+    Write-Host ''
+    exit 3
+} else {
+    Bad ("missing: " + ($missing -join ', '))
+}
 
 if (-not (Test-Path $cxx)) { Write-Host "`n  cannot continue without $cxx" -ForegroundColor Red; exit 1 }
 
