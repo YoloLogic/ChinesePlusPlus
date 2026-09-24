@@ -1,9 +1,9 @@
 diff --git a/clang/include/clang/Basic/ChineseDiagnostics.def b/clang/include/clang/Basic/ChineseDiagnostics.def
 new file mode 100644
-index 0000000..89fb481
+index 0000000..22522e4
 --- /dev/null
 +++ b/clang/include/clang/Basic/ChineseDiagnostics.def
-@@ -0,0 +1,650 @@
+@@ -0,0 +1,658 @@
 +//===--- ChineseDiagnostics.def - 中文诊断文本表 ----------------*- C -*-===//
 +//
 +// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -28,6 +28,14 @@ index 0000000..89fb481
 +//   2. 【查不到就回退】表里没有的诊断一律照旧显示英文。因此本表可以
 +//      【分批做，永远不完整】—— 这不产生任何错误，也不需要追平上游。
 +//      上游新增诊断时自动是英文，不会漏、不会崩。
++//
++//      例外（2026-09-24 起）：有一类正文【不经过诊断 ID】，而是渲染器
++//      手工拼出来的（如 "expanded from macro 'X'"、"In file included
++//      from ..."、"N warnings generated."）。它们没有 ID 可挂表项，
++//      中文就内联在渲染器里，用 DiagOpts.ChineseDiagnostics 门控 ——
++//      那是和本表查表【同一个开关对象】，所以 -fno-chinese-diagnostics
++//      对它们照样管用。共 3 个文件、12 处，见
++//      clang/lib/Frontend/{DiagnosticRenderer,TextDiagnostic,CompilerInstance}.cpp
 +//
 +//   3. 【ID 就是 def 名】ZH_DIAG 的第一个参数是 Diagnostic*Kinds.td 里
 +//      def 的名字，也就是生成的 .inc 里 DIAG(...) 的第一个参数。
@@ -760,3 +768,193 @@ index 660e61d..62932ee 100644
    Args.addOptOutFlag(CmdArgs, options::OPT_fdiagnostics_show_line_numbers,
                       options::OPT_fno_diagnostics_show_line_numbers);
  
+diff --git a/clang/lib/Frontend/CompilerInstance.cpp b/clang/lib/Frontend/CompilerInstance.cpp
+index 66662a7..7977d40 100644
+--- a/clang/lib/Frontend/CompilerInstance.cpp
++++ b/clang/lib/Frontend/CompilerInstance.cpp
+@@ -1078,24 +1078,34 @@ void CompilerInstance::printDiagnosticStats() {
+   unsigned NumWarnings = getDiagnostics().getClient()->getNumWarnings();
+   unsigned NumErrors = getDiagnostics().getClient()->getNumErrors();
+ 
++  // 这一行是手工拼的（没有诊断 ID），所以中文内联在这里，并用同一个开关门控。
++  // 英文分支的【顺序、单复数、标点与原实现逐字节一致】—— 只是把原来
++  // " warning" + (单数?"":"s") 拆成语义等价的两支，输出不变。
++  const bool ZH = getDiagnosticOpts().ChineseDiagnostics;
++  if (ZH)
++    OS << "生成了 ";
+   if (NumWarnings)
+-    OS << NumWarnings << " warning" << (NumWarnings == 1 ? "" : "s");
++    OS << NumWarnings
++       << (ZH ? " 个警告" : (NumWarnings == 1 ? " warning" : " warnings"));
+   if (NumWarnings && NumErrors)
+-    OS << " and ";
++    OS << (ZH ? "和" : " and ");
+   if (NumErrors)
+-    OS << NumErrors << " error" << (NumErrors == 1 ? "" : "s");
++    OS << NumErrors
++       << (ZH ? " 个错误" : (NumErrors == 1 ? " error" : " errors"));
+   if (NumWarnings || NumErrors) {
+-    OS << " generated";
++    if (!ZH)
++      OS << " generated";
+     if (getLangOpts().CUDA) {
+       if (!getLangOpts().CUDAIsDevice) {
+-        OS << " when compiling for host";
++        OS << (ZH ? "（是为宿主编译的）" : " when compiling for host");
+       } else {
+-        OS << " when compiling for "
++        OS << (ZH ? "（是为 " : " when compiling for ")
+            << (!getTargetOpts().CPU.empty() ? getTargetOpts().CPU
+-                                            : getTarget().getTriple().str());
++                                            : getTarget().getTriple().str())
++           << (ZH ? " 编译的）" : "");
+       }
+     }
+-    OS << ".\n";
++    OS << (ZH ? "。\n" : ".\n");
+   }
+ }
+ 
+diff --git a/clang/lib/Frontend/DiagnosticRenderer.cpp b/clang/lib/Frontend/DiagnosticRenderer.cpp
+index 2b6fbc2..e05d270 100644
+--- a/clang/lib/Frontend/DiagnosticRenderer.cpp
++++ b/clang/lib/Frontend/DiagnosticRenderer.cpp
+@@ -442,10 +442,21 @@ void DiagnosticRenderer::emitSingleMacroExpansion(
+   llvm::raw_svector_ostream Message(MessageStorage);
+   StringRef MacroName = Lexer::getImmediateMacroNameForDiagnostics(
+       Loc, Loc.getManager(), LangOpts);
+-  if (MacroName.empty())
+-    Message << "expanded from here";
+-  else
+-    Message << "expanded from macro '" << MacroName << "'";
++  // 手工拼出来的正文：没有诊断 ID 可以挂表项，而为了它去动 Diagnostic*.td
++  // 会破坏本项目的硬约束。所以中文写在这里，并用【和表查表同一个开关】门控
++  // （Diagnostic.cpp 读 Diags->getDiagnosticOptions().ChineseDiagnostics，
++  //   DiagOpts 是同一个对象）—— 这样 -fno-chinese-diagnostics 对它也管用。
++  if (DiagOpts.ChineseDiagnostics) {
++    if (MacroName.empty())
++      Message << "从这里展开";
++    else
++      Message << "从宏 '" << MacroName << "' 展开";
++  } else {
++    if (MacroName.empty())
++      Message << "expanded from here";
++    else
++      Message << "expanded from macro '" << MacroName << "'";
++  }
+ 
+   emitDiagnostic(SpellingLoc, DiagnosticsEngine::Note, Message.str(),
+                  SpellingRanges, {});
+@@ -555,9 +566,13 @@ void DiagnosticRenderer::emitMacroExpansions(FullSourceLoc Loc,
+ 
+   SmallString<200> MessageStorage;
+   llvm::raw_svector_ostream Message(MessageStorage);
+-  Message << "(skipping " << (MacroDepth - MacroLimit)
+-          << " expansions in backtrace; use -fmacro-backtrace-limit=0 to "
+-             "see all)";
++  if (DiagOpts.ChineseDiagnostics)
++    Message << "（回溯里省略了 " << (MacroDepth - MacroLimit)
++            << " 层展开；要看全部请用 -fmacro-backtrace-limit=0）";
++  else
++    Message << "(skipping " << (MacroDepth - MacroLimit)
++            << " expansions in backtrace; use -fmacro-backtrace-limit=0 to "
++               "see all)";
+   emitBasicNote(Message.str());
+ 
+   for (auto I = LocationStack.rend() - MacroEndMessages,
+@@ -573,8 +588,9 @@ void DiagnosticNoteRenderer::emitIncludeLocation(FullSourceLoc Loc,
+   // Generate a note indicating the include location.
+   SmallString<200> MessageStorage;
+   llvm::raw_svector_ostream Message(MessageStorage);
+-  Message << "in file included from " << PLoc.getFilename() << ':'
+-          << PLoc.getLine() << ":";
++  Message << (DiagOpts.ChineseDiagnostics ? "在包含自 "
++                                          : "in file included from ")
++          << PLoc.getFilename() << ':' << PLoc.getLine() << ":";
+   emitNote(Loc, Message.str());
+ }
+ 
+@@ -584,10 +600,13 @@ void DiagnosticNoteRenderer::emitImportLocation(FullSourceLoc Loc,
+   // Generate a note indicating the include location.
+   SmallString<200> MessageStorage;
+   llvm::raw_svector_ostream Message(MessageStorage);
+-  Message << "in module '" << ModuleName;
++  const bool ZH = DiagOpts.ChineseDiagnostics;
++  Message << (ZH ? "在模块 '" : "in module '") << ModuleName;
+   if (PLoc.isValid())
+-    Message << "' imported from " << PLoc.getFilename() << ':'
+-            << PLoc.getLine();
++    Message << (ZH ? "' 中，导入自 " : "' imported from ")
++            << PLoc.getFilename() << ':' << PLoc.getLine();
++  else if (ZH)
++    Message << "'";
+   Message << ":";
+   emitNote(Loc, Message.str());
+ }
+@@ -598,10 +617,13 @@ void DiagnosticNoteRenderer::emitBuildingModuleLocation(FullSourceLoc Loc,
+   // Generate a note indicating the include location.
+   SmallString<200> MessageStorage;
+   llvm::raw_svector_ostream Message(MessageStorage);
++  const bool ZH = DiagOpts.ChineseDiagnostics;
+   if (PLoc.isValid())
+-    Message << "while building module '" << ModuleName << "' imported from "
++    Message << (ZH ? "在构建模块 '" : "while building module '") << ModuleName
++            << (ZH ? "' 时，导入自 " : "' imported from ")
+             << PLoc.getFilename() << ':' << PLoc.getLine() << ":";
+   else
+-    Message << "while building module '" << ModuleName << "':";
++    Message << (ZH ? "在构建模块 '" : "while building module '") << ModuleName
++            << (ZH ? "' 时:" : "':");
+   emitNote(Loc, Message.str());
+ }
+diff --git a/clang/lib/Frontend/TextDiagnostic.cpp b/clang/lib/Frontend/TextDiagnostic.cpp
+index 01a4d2f..5d58a25 100644
+--- a/clang/lib/Frontend/TextDiagnostic.cpp
++++ b/clang/lib/Frontend/TextDiagnostic.cpp
+@@ -955,31 +955,40 @@ void TextDiagnostic::emitDiagnosticLoc(FullSourceLoc Loc, PresumedLoc PLoc,
+ }
+ 
+ void TextDiagnostic::emitIncludeLocation(FullSourceLoc Loc, PresumedLoc PLoc) {
++  // 手工拼出来的正文：没有诊断 ID 可挂表项，所以中文内联在这里，
++  // 并用【和表查表同一个开关】门控（DiagOpts 就是那个 DiagnosticOptions）。
++  const bool ZH = DiagOpts.ChineseDiagnostics;
+   if (DiagOpts.ShowLocation && PLoc.isValid()) {
+-    OS << "In file included from ";
++    OS << (ZH ? "包含自 " : "In file included from ");
+     emitFilename(PLoc.getFilename(), Loc.getManager());
+     OS << ':' << PLoc.getLine() << ":\n";
+   } else
+-    OS << "In included file:\n";
++    OS << (ZH ? "在包含的文件中：\n" : "In included file:\n");
+ }
+ 
+ void TextDiagnostic::emitImportLocation(FullSourceLoc Loc, PresumedLoc PLoc,
+                                         StringRef ModuleName) {
++  const bool ZH = DiagOpts.ChineseDiagnostics;
+   if (DiagOpts.ShowLocation && PLoc.isValid())
+-    OS << "In module '" << ModuleName << "' imported from "
++    OS << (ZH ? "在模块 '" : "In module '") << ModuleName
++       << (ZH ? "' 中，导入自 " : "' imported from ")
+        << PLoc.getFilename() << ':' << PLoc.getLine() << ":\n";
+   else
+-    OS << "In module '" << ModuleName << "':\n";
++    OS << (ZH ? "在模块 '" : "In module '") << ModuleName
++       << (ZH ? "'：\n" : "':\n");
+ }
+ 
+ void TextDiagnostic::emitBuildingModuleLocation(FullSourceLoc Loc,
+                                                 PresumedLoc PLoc,
+                                                 StringRef ModuleName) {
++  const bool ZH = DiagOpts.ChineseDiagnostics;
+   if (DiagOpts.ShowLocation && PLoc.isValid())
+-    OS << "While building module '" << ModuleName << "' imported from "
++    OS << (ZH ? "在构建模块 '" : "While building module '") << ModuleName
++      << (ZH ? "' 时，导入自 " : "' imported from ")
+       << PLoc.getFilename() << ':' << PLoc.getLine() << ":\n";
+   else
+-    OS << "While building module '" << ModuleName << "':\n";
++    OS << (ZH ? "在构建模块 '" : "While building module '") << ModuleName
++      << (ZH ? "' 时：\n" : "':\n");
+ }
+ 
+ /// Find the suitable set of lines to show to include a set of ranges.

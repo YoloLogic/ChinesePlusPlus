@@ -96,12 +96,19 @@ $Work = Join-Path $Root 'build\_patchgen'
 $ScanDirs = @('clang', 'llvm', 'clang-tools-extra')
 
 # Files owned by the diagnostics patch; everything else is the keywords patch.
+# NOTE: this is an explicit list, so a NEW diagnostics file lands in the
+# keywords patch unless it is added here. DiagnosticRenderer.cpp was added
+# 2026-09-24: it carries five hand-built message strings that have no
+# diagnostic ID to key a table entry on (see the comments there).
 $DiagFiles = @(
     'clang/include/clang/Basic/ChineseDiagnostics.def',
     'clang/include/clang/Basic/DiagnosticOptions.def',
     'clang/include/clang/Options/Options.td',
     'clang/lib/Basic/Diagnostic.cpp',
-    'clang/lib/Driver/ToolChains/Clang.cpp'
+    'clang/lib/Driver/ToolChains/Clang.cpp',
+    'clang/lib/Frontend/DiagnosticRenderer.cpp',
+    'clang/lib/Frontend/TextDiagnostic.cpp',
+    'clang/lib/Frontend/CompilerInstance.cpp'
 )
 
 # Set by -SelfTest only: truncate the patch so reverse verification must fail.

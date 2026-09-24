@@ -90,7 +90,7 @@ tests\12-diagnostics\check.ps1                         →  68 个渲染用例�
       丢得不均匀，把比例抬高了。更早的 85.2% / 80.7% / 61.3% 同样撤回。
     唯一无口径争议的数字是【条目数】：81 / 7374 = 1.10%（全部内置诊断）
 补丁                                                   →  zh-keywords.patch 14 文件
-                                                          zh-diagnostics.patch 5 文件
+                                                          zh-diagnostics.patch 8 文件
 
 第三方真实项目对照（ours vs 官方 clang 19.1.5）           →  cases=7  pass=2  same=5  fail=0
     用【原样发行包工具链】跑，不借任何外部工具：

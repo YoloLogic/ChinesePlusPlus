@@ -159,6 +159,21 @@ function Expect-Ascii {
     }
 }
 
+# Same idea, but for Chinese needles: Expect-Ascii encodes with the ASCII
+# encoding, so a Chinese string would come out as question marks. This is why
+# every other Chinese assertion in this suite lives in a case file's
+# "// expect:" comment instead. Hand-built renderer text has no case file of
+# its own for the switch, so it needs this.
+function Expect-Utf8 {
+    param([string]$Label, [byte[]]$Hay, [byte[]]$Needle, [bool]$Want)
+    $found = Test-Bytes $Hay $Needle
+    if ($found -eq $Want) { Write-Host "    OK   $Label" }
+    else {
+        Write-Host "    FAIL $Label (found=$found, wanted=$Want)"
+        $script:fail += 1
+    }
+}
+
 # ---------------------------------------------------------------------------
 # 1) one case per translated entry
 # ---------------------------------------------------------------------------
@@ -243,6 +258,12 @@ Check-Case '66_tsdmd_here.cpp'
 Check-Case '67_redeclared_family.cpp'
 Check-Case '68_previous_initializer.c'         '-x c -Winitializer-overrides' -Expect ok
 
+# --- hand-built renderer text (2026-09-24). No diagnostic ID exists for these,
+# --- so the Chinese lives inline in the renderer and is gated by the SAME
+# --- option the table lookup uses. The switch assertions for 69 are below.
+Check-Case '69_macro_backtrace.cpp'
+Check-Case '70_include_stack.cpp'
+
 # ---------------------------------------------------------------------------
 # 2) prefix and option name must survive (ASCII, so trivially checkable)
 # ---------------------------------------------------------------------------
@@ -272,6 +293,30 @@ if (Test-SameBytes $on.Bytes $off.Bytes) {
 }
 
 # ---------------------------------------------------------------------------
+# 3b) the switch must ALSO cover the hand-built renderer text.
+#     Those strings have no diagnostic ID, so they are gated inline; nothing
+#     else in this suite would notice if that gate were dropped. The macro
+#     backtrace note is the one that fires most in real projects.
+# ---------------------------------------------------------------------------
+Write-Host '--- hand-built renderer text must obey the switch too'
+$mbOn  = Get-Log '69_macro_backtrace.cpp' '' 'mbon'
+$mbOff = Get-Log '69_macro_backtrace.cpp' '-fno-chinese-diagnostics' 'mboff'
+Expect-Utf8 'on : macro backtrace is Chinese' $mbOn.Bytes ([byte[]](0xE4, 0xBB, 0x8E, 0xE5, 0xAE, 0x8F)) $true   # "cong hong"
+Expect-Ascii 'off: macro backtrace is English again' $mbOff.Bytes 'expanded from macro' $true
+
+# 3c) the "N warnings generated." summary is only printed by a real compile
+#     (-c), not by -fsyntax-only, so it needs its own check.
+Write-Host '--- the generated-count summary follows the switch'
+$obj = Join-Path $out 'cnt.obj'
+$src = Join-Path $here '68_previous_initializer.c'
+& cmd /c "`"$cxx`" -c -x c -Wall `"$src`" -o `"$obj`" > `"$out\cnt.on.txt`" 2>&1"
+$cntOn = [System.IO.File]::ReadAllBytes((Join-Path $out 'cnt.on.txt'))
+& cmd /c "`"$cxx`" -c -x c -Wall -fno-chinese-diagnostics `"$src`" -o `"$obj`" > `"$out\cnt.off.txt`" 2>&1"
+$cntOff = [System.IO.File]::ReadAllBytes((Join-Path $out 'cnt.off.txt'))
+Expect-Utf8 'on : summary is Chinese' $cntOn ([byte[]](0xE7, 0x94, 0x9F, 0xE6, 0x88, 0x90, 0xE4, 0xBA, 0x86)) $true   # "sheng cheng le"
+Expect-Ascii 'off: summary is English again' $cntOff 'generated.' $true
+
+# ---------------------------------------------------------------------------
 # 4) fallback: a file with NO table entry must be byte-identical either way
 # ---------------------------------------------------------------------------
 Write-Host '--- 10: untranslated diagnostics must fall back to English'
@@ -280,12 +325,29 @@ $def = Get-Log '10_fallback_english.cpp' '' 'def'
 # it must name a diagnostic that is NOT in ChineseDiagnostics.def.
 Expect-Ascii 'default: English body present' $def.Bytes 'cannot initialize a variable of type' $true
 $flg = Get-Log '10_fallback_english.cpp' '-fno-chinese-diagnostics' 'flg'
-if (Test-SameBytes $def.Bytes $flg.Bytes) {
-    Write-Host '    OK   default log is byte-identical to the -fno- log (fallback works)'
+# Compare the DIAGNOSTIC BODY, not the whole log.
+# The whole-log comparison this used to make is no longer the right property:
+# since 2026-09-24 the renderer also emits Chinese for text that has no
+# diagnostic ID at all (the "N errors generated." summary, the include stack,
+# the macro backtrace). That text is gated by the same switch, so it is Chinese
+# with the switch on and English with it off -- by design, not a fallback
+# failure. The fallback property is about TABLE lookups, so assert it on the
+# body: everything except the trailing summary line must be byte-identical.
+$dl = [Text.Encoding]::UTF8.GetString($def.Bytes) -split "`n"
+$fl = [Text.Encoding]::UTF8.GetString($flg.Bytes) -split "`n"
+# drop the summary line and the empty tail that a trailing newline leaves
+$dbody = ($dl[0..($dl.Count - 3)]) -join "`n"
+$fbody = ($fl[0..($fl.Count - 3)]) -join "`n"
+if ($dbody -ceq $fbody) {
+    Write-Host '    OK   diagnostic body is byte-identical with and without the switch'
 } else {
-    Write-Host '    FAIL default log differs from the -fno- log (fallback is broken)'
+    Write-Host '    FAIL diagnostic body differs with and without the switch'
     $script:fail += 1
 }
+# ...and the one line that IS expected to differ must differ in the right way.
+Expect-Utf8 'summary follows the switch (on : Chinese)' $def.Bytes `
+    ([byte[]](0xE7, 0x94, 0x9F, 0xE6, 0x88, 0x90, 0xE4, 0xBA, 0x86)) $true
+Expect-Ascii 'summary follows the switch (off: English)' $flg.Bytes 'generated.' $true
 
 # ---------------------------------------------------------------------------
 # 5) every .cpp in this directory must be REFERENCED by this script.
