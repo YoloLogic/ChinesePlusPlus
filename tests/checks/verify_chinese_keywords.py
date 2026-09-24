@@ -366,6 +366,16 @@ CHANGED_FILES = [
     os.path.join(ROOT, r"clang\lib\Lex\Preprocessor.cpp"),
     os.path.join(ROOT, r"clang\lib\Tooling\Syntax\Synthesis.cpp"),
     os.path.join(ROOT, r"clang-tools-extra\clangd\SourceCode.cpp"),
+    # ------------------------------------------------------------------
+    # IdentifierTable.h 必须【纯 ASCII】，尽管它旁边就放着中文相关的改动。
+    #
+    # 2026-09-25 加这一条的原因：我给 `主函数` 做标识符别名时，把中文注释写进了
+    # 这个头文件（672 字节），而它正是本检查要防的那类文件 —— 公共头、被外部
+    # 项目包含、那些项目不一定用 /utf-8 编译。当时是靠人工量字节数发现的。
+    #
+    # 所以：中文判定放在 IdentifierTable.cpp（在 PROTECTED 里），
+    # 头文件只留 ASCII 注释 + 一个函数声明。这条现在由机器保证。
+    os.path.join(ROOT, r"clang\include\clang\Basic\IdentifierTable.h"),
 ]
 for _path in CHANGED_FILES:
     if not os.path.exists(_path):

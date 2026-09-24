@@ -524,6 +524,48 @@ index 0000000..e393d11
 +//===----------------------------------------------------------------------===//
 +
 +#undef ZH_KEYWORD
+diff --git a/clang/include/clang/Basic/IdentifierTable.h b/clang/include/clang/Basic/IdentifierTable.h
+index 79a2aec..30f3024 100644
+--- a/clang/include/clang/Basic/IdentifierTable.h
++++ b/clang/include/clang/Basic/IdentifierTable.h
+@@ -695,6 +695,24 @@ class IdentifierTable {
+   // Shark shows that using MallocAllocator is *much* slower than using this
+   // BumpPtrAllocator!
+   using HashTableTy = llvm::StringMap<IdentifierInfo *, llvm::BumpPtrAllocator>;
++  /// Chinese identifier alias: resolve a Chinese spelling to the English
++  /// identifier it denotes.
++  ///
++  /// Currently exactly one entry: the Chinese spelling of the program entry
++  /// point resolves to `main` (user decision, 2026-09-24).
++  ///
++  /// WHY THE BODY IS NOT IN THIS HEADER
++  /// This is a PUBLIC header, included by external projects that do not
++  /// necessarily compile with /utf-8. Non-ASCII bytes read under the wrong
++  /// source charset can be mis-decoded and even swallow a line ending, folding
++  /// following code into a comment -- this project has actually been bitten by
++  /// that. So the Chinese literal lives in IdentifierTable.cpp and this header
++  /// stays pure ASCII. See tests\checks\verify_chinese_keywords.py section 9.
++  ///
++  /// Only called when the name has a non-ASCII first byte, so the English path
++  /// costs nothing.
++  static StringRef aliasChineseIdentifier(StringRef Name);
++
+   HashTableTy HashTable;
+ 
+   IdentifierInfoLookup* ExternalLookup;
+@@ -725,6 +743,12 @@ public:
+   /// Return the identifier token info for the specified named
+   /// identifier.
+   IdentifierInfo &get(StringRef Name) {
++    // Resolve a Chinese spelling to its English identifier first, so the two
++    // are ONE IdentifierInfo rather than two names denoting one symbol.
++    // Rationale lives in aliasChineseIdentifier().
++    if (!Name.empty() && static_cast<unsigned char>(Name[0]) >= 0x80)
++      Name = aliasChineseIdentifier(Name);
++
+     auto &Entry = *HashTable.try_emplace(Name, nullptr).first;
+ 
+     IdentifierInfo *&II = Entry.second;
 diff --git a/clang/include/clang/Basic/TokenKinds.h b/clang/include/clang/Basic/TokenKinds.h
 index 89b2d43..112379b 100644
 --- a/clang/include/clang/Basic/TokenKinds.h
@@ -586,7 +628,7 @@ index 21851e7..11c7f30 100644
    ASTSourceDescriptor.cpp
    Attributes.cpp
 diff --git a/clang/lib/Basic/IdentifierTable.cpp b/clang/lib/Basic/IdentifierTable.cpp
-index 68cd02a..629e437 100644
+index 68cd02a..1350beb 100644
 --- a/clang/lib/Basic/IdentifierTable.cpp
 +++ b/clang/lib/Basic/IdentifierTable.cpp
 @@ -288,6 +288,24 @@ void IdentifierTable::AddKeywords(const LangOptions &LangOpts) {
@@ -633,7 +675,7 @@ index 68cd02a..629e437 100644
  }
  
  /// Checks if the specified token kind represents a keyword in the
-@@ -401,6 +431,22 @@ StringRef IdentifierInfo::deuglifiedName() const {
+@@ -401,6 +431,54 @@ StringRef IdentifierInfo::deuglifiedName() const {
    return Name;
  }
  
@@ -653,10 +695,42 @@ index 68cd02a..629e437 100644
 +  return tok::pp_not_keyword;
 +}
 +
++StringRef IdentifierTable::aliasChineseIdentifier(StringRef Name) {
++  // `主函数` —— 入口点 main 的中文拼写（用户 2026-09-24 决定）。
++  //
++  // 【为什么做成标识符别名，而不是"另一个名字 + asm("main") 标号"】
++  //   别名之后 `主函数` 与 `main` 是【同一个 IdentifierInfo】，于是四件事全部
++  //   自动成立，一件都不用手写：
++  //     * 符号名自然是 main —— 不必挂 asm 标号，也就不会出现"两个名字"
++  //     * FunctionDecl::isMain() 是按名字判的（Decl.cpp 里 isNamed(this,"main")），
++  //       所以 main 的专属检查全部生效：返回类型必须是 int、参数形式、
++  //       以及函数体的隐式 return 0
++  //     * 同时写 `main` 和 `主函数` 自动报重定义（同一个名字），
++  //       不必额外写冲突检查
++  //     * `整数 主函数 = 5;` 自动报错（与 `整数 main = 5;` 是同一句诊断），
++  //       即 `主函数` 成为保留名 —— 这是用户明确要的
++  //
++  //   对比"挂 asm("main")"那条路：实测它会【静默丢掉】上面第二项，
++  //   即 `空型 主函数() 汇编("main")` 与 `整数 主函数(整数 甲) 汇编("main")`
++  //   都不报错。不报错才是危险的那一类。
++  //
++  // 【代价（如实记下）】
++  //   诊断【消息】里引用的名字会变成 `main`（IdentifierInfo 的名字就是它），
++  //   而源码回显行仍然是用户写的 `主函数`。因为 main 不是关键字，没有
++  //   getKeywordSpelling() 那种"对外正式拼写"机制可用。
++  //
++  // 【只影响这一个拼写】
++  //   判断在调用方已用"首字节 >= 0x80"筛过，英文路径完全不变；
++  //   LLVM-main 全树没有别处使用 `主函数`（已核对）。
++  if (Name == "主函数")
++    return "main";
++  return Name;
++}
++
  tok::PPKeywordKind IdentifierInfo::getPPKeywordID() const {
    // We use a perfect hash function here involving the length of the keyword,
    // the first and third character.  For preprocessor ID's there are no
-@@ -422,6 +468,40 @@ tok::PPKeywordKind IdentifierInfo::getPPKeywordID() const {
+@@ -422,6 +500,40 @@ tok::PPKeywordKind IdentifierInfo::getPPKeywordID() const {
    if (Name[0] == '_' && isModuleKeyword())
      return tok::pp___preprocessed_module;
  

@@ -5,12 +5,12 @@
 #    1) the Chinese spelling works as the entry point (compiles, links, runs)
 #    2) it is the SAME ENTITY as `main`, not "a second name for the same symbol"
 #         - writing both is a REDEFINITION error (caught at compile time)
-#         - it is a RESERVED name: `整数 主函数 = 5;` is rejected
+#         - it is a RESERVED name: declaring a variable with it is rejected
 #    3) every `main`-specific check applies to the Chinese spelling too
 #         - return type must be int
 #         - only the legal parameter forms are accepted
 #       This is the point that a text-substitution or asm-label approach MISSES:
-#       both of those let `空型 主函数()` through silently.
+#       both of those let a void-returning entry point through silently.
 #    4) English code is untouched (regression guard)
 #
 #  Pure ASCII on purpose (see ..\README.md): PowerShell 5.1 reads a BOM-less
@@ -37,9 +37,9 @@ function Pass($m) { Write-Host ("  [ok]   " + $m) }
 if (-not (Test-Path $cxx)) { Fail "no compiler at $cxx"; exit 1 }
 
 # Code-point needles so this script stays pure ASCII.
-$ZH_MAIN   = -join [char[]](0x4E3B, 0x51FD, 0x6570)                  # 主函数
-$ZH_REDEF  = -join [char[]](0x91CD, 0x5B9A, 0x4E49)                  # 重定义
-$ZH_MUSTINT= -join [char[]](0x5FC5, 0x987B, 0x8FD4, 0x56DE)          # 必须返回
+$ZH_MAIN   = -join [char[]](0x4E3B, 0x51FD, 0x6570)                  # entry point
+$ZH_REDEF  = -join [char[]](0x91CD, 0x5B9A, 0x4E49)                  # redefinition
+$ZH_MUSTINT= -join [char[]](0x5FC5, 0x987B, 0x8FD4, 0x56DE)          # must return
 
 # Helper: compile (optionally link), return @{ rc; txt }
 function Compile($src, $exe) {
@@ -92,8 +92,42 @@ elseif (-not $r.txt.Contains($ZH_MUSTINT)) { Fail ('wrong message: ' + $r.txt.Tr
 else { Pass 'void return type is rejected with the main-specific diagnostic' }
 
 $r = Compile 'bad_param.cpp' $null
-if ($r.rc -eq 0) { Fail 'an illegal main parameter form was ACCEPTED' }
-else { Pass 'an illegal main parameter form is rejected' }
+if ($r.rc -eq 0) { Fail 'a wrong first-parameter type was ACCEPTED' }
+else { Pass 'a wrong first-parameter type is rejected' }
+
+# Parity, not guesswork.
+#
+# The first version of this suite asserted that a single-int-parameter entry
+# point must FAIL. It does not: clang reports warn_main_one_arg, which is a
+# WARNING, so exit code 0. The expectation was wrong, not the compiler.
+# The right criterion for "same entity" is not a severity I guessed -- it is
+# that the Chinese spelling behaves EXACTLY like `main`. So compare them.
+Write-Host ''
+Write-Host '--- 3b) parity with `main` on a diagnostic that is only a warning'
+$rz = Compile 'parity_one_arg_zh.cpp' $null
+$re = Compile 'parity_one_arg_en.cpp' $null
+if ($rz.rc -ne $re.rc) {
+    Fail ("exit codes differ: zh=$($rz.rc) en=$($re.rc)")
+} else {
+    # Strip file name and the echoed source line; the two files necessarily
+    # differ in both. What must match is the diagnostic itself.
+    # Take the text from the level word onwards -- path-independent, and it
+    # avoids the Windows-drive-letter colon trap (`^[^:]+:` stops at 'E').
+    # (Same bug I already fixed once in tests\13-preprocessor\sweep.py.)
+    function Core($t) {
+        $ls = $t -split "`r?`n" | ForEach-Object {
+            $m = [regex]::Match($_, '(warning|error|note):.*')
+            if ($m.Success) { $m.Value }
+        }
+        ($ls -join "`n")
+    }
+    $cz = Core $rz.txt; $ce = Core $re.txt
+    if ($cz -ne $ce) {
+        Fail ("diagnostics differ:`n        zh: $cz`n        en: $ce")
+    } else {
+        Pass "identical diagnostic (exit=$($rz.rc)): $cz"
+    }
+}
 
 # ---------------------------------------------------------------------------
 Write-Host ''
