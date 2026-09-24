@@ -364,4 +364,34 @@ if ($editorFailed) {
     exit 2
 }
 
+# ---------------------------------------------------------------------------
+# 7. what to do next
+#
+#    Without this the setup ends with "success" and no instruction on how to
+#    actually start working -- the editor was installed but never launched and
+#    the user is not told which folder to open.
+# ---------------------------------------------------------------------------
+if ($ed) {
+    Write-Host ''
+    Write-Host '======================================================================' -ForegroundColor Cyan
+    Write-Host '  Ready. To start writing Chinese C++:' -ForegroundColor Cyan
+    Write-Host ''
+    Write-Host ('    1. start the editor:  ' + $ed.FullName)
+    Write-Host ('    2. in it, open:       ' + (Join-Path $here 'examples'))
+    Write-Host '    3. press Ctrl+Shift+B and choose the build task'
+    Write-Host ''
+    Write-Host '  That folder already has the editor configured: clangd points at the'
+    Write-Host '  bundled clangd (the one that understands Chinese keywords), and the'
+    Write-Host '  build task points at the bundled chinese++.exe.'
+    Write-Host ''
+    Write-Host '  To compile from a terminal instead: double-click env.cmd, then'
+    Write-Host '      chinese++ yourfile.cpp -o yourfile.exe'
+    Write-Host '======================================================================' -ForegroundColor Cyan
+} else {
+    Write-Host ''
+    Write-Host '=== Toolchain ready ===' -ForegroundColor Cyan
+    Write-Host ('  compiler: ' + (Join-Path $bin 'chinese++.exe'))
+    Write-Host '  double-click env.cmd to get a shell that can see chinese++.'
+}
+
 exit $rc
