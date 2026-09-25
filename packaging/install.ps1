@@ -196,12 +196,38 @@ function Enable-Portable($dir) {
     if (-not $ed) { return $null }
     $data = Join-Path $ed.Directory.FullName 'data'
     New-Item -ItemType Directory -Force $data | Out-Null
-    # Chinese UI: the language pack extension plus this locale hint.
+
+    # CHINESE UI. Installing the language pack is NOT enough on its own: VS Code
+    # reads the display language from argv.json at startup. Read out of VS Code's
+    # own source (resources/app/out/main.js in the official archive):
+    #     function r(){ if (process.env.VSCODE_PORTABLE) return process.env.VSCODE_PORTABLE;
+    #                   if (win32 || linux) return path.join(appRoot(), "data"); }
+    #     get argvResource(){ return joinPath(VSCODE_PORTABLE, "argv.json"); }
+    # and appRoot() is the directory holding Code.exe, because that archive ships
+    # "win32VersionedUpdate": true in product.json (verified against the zip this
+    # script downloads). So the file VS Code actually reads is
+    #     <editor>\data\argv.json
+    # The second path below is a harmless extra for older layouts.
     $argv = '{"locale":"zh-cn"}'
-    foreach ($p in @((Join-Path $data 'argv.json'),
-                     (Join-Path $data 'user-data\argv.json'))) {
+    $script:argvPath = Join-Path $data 'argv.json'
+    foreach ($p in @($script:argvPath, (Join-Path $data 'user-data\argv.json'))) {
         New-Item -ItemType Directory -Force (Split-Path $p) | Out-Null
-        if (-not (Test-Path $p)) { [System.IO.File]::WriteAllText($p, $argv) }
+        if (-not (Test-Path $p)) {
+            [System.IO.File]::WriteAllText($p, $argv)
+        } elseif ($p -eq $script:argvPath) {
+            # RE-RUN SAFETY, and a real bug fix. This used to be skipped whenever
+            # the file already existed -- so once VS Code had rewritten argv.json
+            # without a locale (or an interrupted run left it empty), no number
+            # of re-runs could ever make the interface Chinese again. Only touch
+            # it when the locale is genuinely absent, and back up what was there.
+            $cur = ''
+            try { $cur = [System.IO.File]::ReadAllText($p) } catch { }
+            if ($cur -notmatch '"locale"') {
+                Copy-Item $p ($p + '.zhpp-backup') -Force -ErrorAction SilentlyContinue
+                [System.IO.File]::WriteAllText($p, $argv)
+                Write-Host ("  re-asserted the display language in " + $p) -ForegroundColor Yellow
+            }
+        }
     }
     return $ed
 }
@@ -316,6 +342,22 @@ if ($ed) {
             & $cli.FullName --install-extension $ext --force 2>&1 |
                 Select-Object -Last 2 | ForEach-Object { Write-Host ("      " + $_) }
         }
+        # VERIFY the language pack instead of assuming it. A marketplace install
+        # that silently failed used to leave the editor in English with nothing
+        # but a soft note, and the user has no way to guess that the language
+        # pack is what is missing.
+        $after = @()
+        try { $after = & $cli.FullName --list-extensions 2>$null } catch { }
+        if ($after -contains $LANG_PACK) {
+            Write-Host '  Chinese language pack: installed' -ForegroundColor Green
+        } else {
+            Write-Host '  [warn] the Chinese language pack did NOT install,' -ForegroundColor Yellow
+            Write-Host '         so the editor will start in English. Fix it either way:' -ForegroundColor Yellow
+            Write-Host '           in the editor: Ctrl+Shift+P -> Configure Display Language' -ForegroundColor Yellow
+            Write-Host '                          -> Chinese (Simplified), then let it restart' -ForegroundColor Yellow
+            Write-Host '           Extensions panel -> search Chinese (Simplified)' -ForegroundColor Yellow
+            Write-Host ('           or: ' + $cli.FullName + ' --install-extension ' + $LANG_PACK) -ForegroundColor Yellow
+        }
         Write-Host '  (the extensions come from the official marketplace; if this failed,' -ForegroundColor DarkGray
         Write-Host '   re-run the script or install them from the Extensions panel)' -ForegroundColor DarkGray
     } else {
@@ -390,6 +432,11 @@ if ($ed) {
     Write-Host ('    1. start the editor:  ' + $ed.FullName)
     Write-Host ('    2. in it, open:       ' + (Join-Path $here 'examples'))
     Write-Host '    3. press Ctrl+Shift+B and choose the build task'
+    Write-Host ''
+    Write-Host '  If the interface is still English, the Chinese language pack is what'
+    Write-Host '  is missing -- installing it can fail without stopping setup:'
+    Write-Host '      in the editor:  Ctrl+Shift+P  ->  Configure Display Language'
+    Write-Host '                      ->  Chinese (Simplified)  ->  restart'
     Write-Host ''
     Write-Host '  That folder already has the editor configured: clangd points at the'
     Write-Host '  bundled clangd (the one that understands Chinese keywords), and the'
