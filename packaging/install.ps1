@@ -188,6 +188,9 @@ if ($NoEditor) {
 $VSCODE_URL   = 'https://update.code.visualstudio.com/latest/win32-x64-archive/stable'
 $LANG_PACK    = 'MS-CEINTL.vscode-language-pack-zh-hans'
 $CLANGD_EXT   = 'llvm-vs-code-extensions.vscode-clangd'
+# Provides the cppvsdbg DEBUG ADAPTER that vscode-kit\.vscode\launch.json needs.
+# VS Code only -- see the licence note where it is installed below.
+$CPPTOOLS_EXT = 'ms-vscode.cpptools'
 $editorDir    = Join-Path $here 'vscode'
 
 function Enable-Portable($dir) {
@@ -345,7 +348,20 @@ if ($ed) {
         # files from the marketplace.
         $have = @()
         try { $have = & $cli.FullName --list-extensions 2>$null } catch { }
-        foreach ($ext in @($LANG_PACK, $CLANGD_EXT)) {
+        # cpptools is what makes the Run/Debug button usable, but its licence
+        # permits use with OFFICIAL VS Code only -- not with other builds -- and
+        # the -WithEditor offline variant ships VSCodium. So it joins the list
+        # only for Code.exe; under VSCodium the tasks still work, only the run
+        # button does not.
+        $exts = @($LANG_PACK, $CLANGD_EXT)
+        if ($ed.Name -eq 'Code.exe') {
+            $exts += $CPPTOOLS_EXT
+        } else {
+            Write-Host '  (not installing the C/C++ debugger: its licence is VS Code only)' -ForegroundColor DarkGray
+            Write-Host ('  so the Run button will not work under ' + $ed.Name + '; the build tasks still do.') -ForegroundColor DarkGray
+        }
+
+        foreach ($ext in $exts) {
             if ($have -contains $ext) {
                 Write-Host ("    already installed: " + $ext) -ForegroundColor DarkGray
                 continue
@@ -384,6 +400,14 @@ if ($ed) {
             Write-Host '                          -> Chinese (Simplified), then let it restart' -ForegroundColor Yellow
             Write-Host '           Extensions panel -> search Chinese (Simplified)' -ForegroundColor Yellow
             Write-Host ('           or: ' + $cli.FullName + ' --install-extension ' + $LANG_PACK) -ForegroundColor Yellow
+        }
+        if ($ed.Name -eq 'Code.exe') {
+            if ($after -contains $CPPTOOLS_EXT) {
+                Write-Host '  C/C++ debugger for launch.json: installed' -ForegroundColor Green
+            } else {
+                Write-Host '  [warn] the C/C++ extension did NOT install, so the Run button' -ForegroundColor Yellow
+                Write-Host '         will not work. The build tasks and Ctrl+Shift+B still do.' -ForegroundColor Yellow
+            }
         }
         Write-Host '  (the extensions come from the official marketplace; if this failed,' -ForegroundColor DarkGray
         Write-Host '   re-run the script or install them from the Extensions panel)' -ForegroundColor DarkGray
@@ -505,6 +529,9 @@ if ($ed) {
     Write-Host '  is missing -- installing it can fail without stopping setup:'
     Write-Host '      in the editor:  Ctrl+Shift+P  ->  Configure Display Language'
     Write-Host '                      ->  Chinese (Simplified)  ->  restart'
+    Write-Host ''
+    Write-Host '  To just RUN the current file: open the examples folder, then press F5'
+    Write-Host '  or click the triangle at the top right. It compiles first, then runs.'
     Write-Host ''
     Write-Host '  That folder already has the editor configured: clangd points at the'
     Write-Host '  bundled clangd (the one that understands Chinese keywords), and the'
