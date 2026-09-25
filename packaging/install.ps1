@@ -430,14 +430,41 @@ if (Test-Path $kit) {
     if (-not (Test-Path $ex)) { New-Item -ItemType Directory -Force $ex | Out-Null }
     Copy-Item (Join-Path $kit '*') $ex -Recurse -Force -ErrorAction SilentlyContinue
     Write-Host "  kit copied into examples\ (open that folder in the editor)"
-    # substitute the placeholders with this package's real paths
+    # Substitute the placeholders in EVERY text file of the kit, not just
+    # settings.json.
+    #
+    # This was a real bug, found 2026-09-26 on an installed copy: only
+    # settings.json was processed, so tasks.json kept the literal text
+    # "@@CXX@@" as its "command". Every build task then died with a shell error
+    # saying @@CXX@@ is not recognized, and F5's preLaunchTask died with it too.
+    # The user's copy had to be repaired by hand; this is the fix in the
+    # installer so nobody else meets it.
     $settings = Join-Path $ex '.vscode\settings.json'
     if (Test-Path $settings) {
-        $t = [System.IO.File]::ReadAllText($settings)
-        $t = $t.Replace('@@CLANGD@@', (Join-Path $bin 'clangd.exe').Replace('\', '\\'))
-        $t = $t.Replace('@@CXX@@',    (Join-Path $bin 'chinese++.exe').Replace('\', '\\'))
-        [System.IO.File]::WriteAllText($settings, $t)
-        Write-Host '  paths substituted into .vscode\settings.json'
+        $cxxEsc = (Join-Path $bin 'chinese++.exe').Replace('\', '\\')
+        $cldEsc = (Join-Path $bin 'clangd.exe').Replace('\', '\\')
+        $n = 0
+        foreach ($f in @(Get-ChildItem (Join-Path $ex '.vscode') -File -Recurse -ErrorAction SilentlyContinue)) {
+            $t = [System.IO.File]::ReadAllText($f.FullName)
+            if ($t.Contains('@@CXX@@') -or $t.Contains('@@CLANGD@@')) {
+                $t = $t.Replace('@@CXX@@', $cxxEsc).Replace('@@CLANGD@@', $cldEsc)
+                [System.IO.File]::WriteAllText($f.FullName, $t)
+                $n++
+            }
+        }
+        Write-Host ("  paths substituted in {0} kit file(s)" -f $n)
+
+        # Leave the same .vscode at the PACKAGE ROOT as well.
+        #
+        # A .vscode folder is only read at the WORKSPACE ROOT. Users very
+        # naturally open the package folder itself, and with the kit only under
+        # examples\ that showed "create a launch.json file" and an empty task
+        # list -- measured on a real install 2026-09-26. A copy at the root
+        # makes whichever folder they open work.
+        $rootVscode = Join-Path $here '.vscode'
+        New-Item -ItemType Directory -Force $rootVscode | Out-Null
+        Copy-Item (Join-Path $ex '.vscode\*') $rootVscode -Recurse -Force -ErrorAction SilentlyContinue
+        Write-Host '  same .vscode copied to the package root (either folder works)'
 
         # ALSO install the same settings for the editor USER, not just for the
         # examples folder.
@@ -473,7 +500,9 @@ if (Test-Path $kit) {
                 if (Test-Path $userSettings) {
                     Copy-Item $userSettings ($userSettings + '.zhpp-backup') -Force -ErrorAction SilentlyContinue
                 }
-                [System.IO.File]::WriteAllText($userSettings, $t)
+                # Read settings.json fresh: $t now belongs to the substitution
+                # loop above and must not be relied on here.
+                [System.IO.File]::WriteAllText($userSettings, [System.IO.File]::ReadAllText($settings))
                 Write-Host '  same settings installed for the editor user (works in ANY folder)'
             } else {
                 Write-Host '  editor user settings already point at a clangd; left alone' -ForegroundColor DarkGray
