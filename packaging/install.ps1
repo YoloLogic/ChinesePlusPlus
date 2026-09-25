@@ -208,25 +208,37 @@ function Enable-Portable($dir) {
     # script downloads). So the file VS Code actually reads is
     #     <editor>\data\argv.json
     # The second path below is a harmless extra for older layouts.
-    $argv = '{"locale":"zh-cn"}'
+    # Write it MULTI-LINE with a trailing newline, and validate it with a STRICT
+    # pattern that requires the value's closing quote.
+    #
+    # Measured on a real install (2026-09-26): VS Code rewrote the one-line file
+    # this script used to write into
+    #     {"locale":"zh-cn, // Allows to disable crash reporting. ...
+    # -- note the MISSING closing quote. That is not valid JSON, so VS Code
+    # cannot read the locale at all, silently starts in English, and also trips
+    # its own "argv.json contains errors" warning.
+    #
+    # A substring test for '"locale"' does NOT detect that, because the corrupt
+    # text contains the substring too (this script's first attempt made exactly
+    # that mistake). So: drop comment lines and require a properly quoted value.
+    $argv = "{`n`t`"locale`": `"zh-cn`"`n}`n"
     $script:argvPath = Join-Path $data 'argv.json'
     foreach ($p in @($script:argvPath, (Join-Path $data 'user-data\argv.json'))) {
         New-Item -ItemType Directory -Force (Split-Path $p) | Out-Null
-        if (-not (Test-Path $p)) {
-            [System.IO.File]::WriteAllText($p, $argv)
-        } elseif ($p -eq $script:argvPath) {
-            # RE-RUN SAFETY, and a real bug fix. This used to be skipped whenever
-            # the file already existed -- so once VS Code had rewritten argv.json
-            # without a locale (or an interrupted run left it empty), no number
-            # of re-runs could ever make the interface Chinese again. Only touch
-            # it when the locale is genuinely absent, and back up what was there.
-            $cur = ''
-            try { $cur = [System.IO.File]::ReadAllText($p) } catch { }
-            if ($cur -notmatch '"locale"') {
+        $ok = $false
+        if (Test-Path $p) {
+            try {
+                $body = ([System.IO.File]::ReadAllLines($p) |
+                         Where-Object { $_.TrimStart() -notmatch '^//' }) -join "`n"
+                if ($body -match '"locale"\s*:\s*"[A-Za-z][A-Za-z-]*"') { $ok = $true }
+            } catch { $ok = $false }
+        }
+        if (-not $ok) {
+            if (Test-Path $p) {
                 Copy-Item $p ($p + '.zhpp-backup') -Force -ErrorAction SilentlyContinue
-                [System.IO.File]::WriteAllText($p, $argv)
-                Write-Host ("  re-asserted the display language in " + $p) -ForegroundColor Yellow
+                Write-Host ("  repaired the display language in " + $p) -ForegroundColor Yellow
             }
+            [System.IO.File]::WriteAllText($p, $argv)
         }
     }
     return $ed
@@ -339,8 +351,23 @@ if ($ed) {
                 continue
             }
             Write-Host ("    installing: " + $ext)
-            & $cli.FullName --install-extension $ext --force 2>&1 |
-                Select-Object -Last 2 | ForEach-Object { Write-Host ("      " + $_) }
+            # Retry three times, checking each time instead of trusting the exit
+            # code. A single marketplace hiccup is common, and when the LANGUAGE
+            # PACK is the one that fails, the only symptom is an editor that
+            # stays English with no error anywhere -- which took a user bug
+            # report to find. Measured on a real install (2026-09-26): the pack
+            # was missing while clangd had installed fine.
+            for ($try = 1; $try -le 3; $try++) {
+                & $cli.FullName --install-extension $ext --force 2>&1 |
+                    Select-Object -Last 2 | ForEach-Object { Write-Host ("      " + $_) }
+                $now = @()
+                try { $now = & $cli.FullName --list-extensions 2>$null } catch { }
+                if ($now -contains $ext) { break }
+                if ($try -lt 3) {
+                    Write-Host ("      attempt " + $try + " did not take; retrying...") -ForegroundColor DarkGray
+                    Start-Sleep -Seconds (4 * $try)
+                }
+            }
         }
         # VERIFY the language pack instead of assuming it. A marketplace install
         # that silently failed used to leave the editor in English with nothing
