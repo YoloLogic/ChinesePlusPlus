@@ -577,6 +577,14 @@ if ($ed) {
     Write-Host '  To compile from a terminal instead: double-click env.cmd, then'
     Write-Host '      chinese++ yourfile.cpp -o yourfile.exe'
     Write-Host ''
+    Write-Host '  Program output shows garbled Chinese (gibberish instead of the'
+    Write-Host '  characters you expected)? That is the CONSOLE code page, not the'
+    Write-Host '  compiler -- official clang does the same here. Short version: turn ON'
+    Write-Host '  "Beta: Use Unicode UTF-8 for worldwide language support" in Windows'
+    Write-Host '  Settings > Time & language > Language & region, then reboot.'
+    Write-Host '  One switch, and turning it back off restores everything.'
+    Write-Host '  Full explanation: section 10 of the troubleshooting document below.'
+    Write-Host ''
     # List the real file names rather than describing them: this script is pure
     # ASCII, so it must not contain the (Chinese) names as literals.
     $docs = Get-ChildItem $here -File -Filter '*.md' -ErrorAction SilentlyContinue |
