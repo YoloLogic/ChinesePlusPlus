@@ -46,17 +46,25 @@
   //    所以把终端对齐到 UTF-8，而不是让程序迁就旧代码页。
   //
   //    顺带修好的：编译器自己的中文诊断走同一个终端，也会跟着正常。
+  //
+  //    只有 defaultProfile，没有 automationProfile。
+  //    教训（我犯的错，2026-09-26）：给 automationProfile 设了
+  //        args: ["/d", "/k", "chcp 65001 >nul"]
+  //    结果每个任务都报
+  //        "参数格式不正确 - /d"
+  //    而且编译器根本没被执行。原因：automationProfile 是"非交互式 shell"
+  //    配置，VS Code 会自己再追加 /c <任务命令>，于是命令行变成
+  //        cmd.exe /d /k "chcp 65001 >nul" /c "..."
+  //    /k 已经把后面的东西全当命令内容吃掉了，整个命令行就烂了。
+  //    不设 automationProfile 时，任务会回退到 defaultProfile（命令是"写进"
+  //    终端而不是拼进命令行参数），这才是安全的那条路。
   "terminal.integrated.profiles.windows": {
     "中文编程 (UTF-8)": {
       "path": "cmd.exe",
-      "args": ["/d", "/k", "chcp 65001 >nul"]
+      "args": ["/k", "chcp 65001 >nul"]
     }
   },
   "terminal.integrated.defaultProfile.windows": "中文编程 (UTF-8)",
-  "terminal.integrated.automationProfile.windows": {
-    "path": "cmd.exe",
-    "args": ["/d", "/k", "chcp 65001 >nul"]
-  },
 
   "[cpp]": { "editor.tabSize": 4, "editor.insertSpaces": true },
 
