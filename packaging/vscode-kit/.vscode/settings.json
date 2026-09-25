@@ -33,6 +33,31 @@
   // ④ 关掉微软 C/C++ 扩展的 IntelliSense，免得和 clangd 抢标红
   "C_Cpp.intelliSenseEngine": "disabled",
 
+  // ⑤ 终端必须用 UTF-8 代码页，否则中文输出全是乱码。
+  //
+  //    实测（字节级）：程序打出的是 UTF-8
+  //        E5 90 88 E8 AE A1  =  "合计"
+  //    按 UTF-8 解 -> "合计"；按 GBK/936 解 -> "鍚堣"。
+  //    中文 Windows 的 cmd 默认是 936，于是中文就花了。
+  //
+  //    这不是编译器的问题：官方 clang 在 Windows 上同样输出 UTF-8，
+  //    微软的 cl.exe 在 936 系统上才输出 GBK。两边选一边，我们选 UTF-8
+  //    （它也是 VS Code、现代 Windows 和整个工具链的默认），
+  //    所以把终端对齐到 UTF-8，而不是让程序迁就旧代码页。
+  //
+  //    顺带修好的：编译器自己的中文诊断走同一个终端，也会跟着正常。
+  "terminal.integrated.profiles.windows": {
+    "中文编程 (UTF-8)": {
+      "path": "cmd.exe",
+      "args": ["/d", "/k", "chcp 65001 >nul"]
+    }
+  },
+  "terminal.integrated.defaultProfile.windows": "中文编程 (UTF-8)",
+  "terminal.integrated.automationProfile.windows": {
+    "path": "cmd.exe",
+    "args": ["/d", "/k", "chcp 65001 >nul"]
+  },
+
   "[cpp]": { "editor.tabSize": 4, "editor.insertSpaces": true },
 
   "files.exclude": {
