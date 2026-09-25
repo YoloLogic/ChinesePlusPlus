@@ -17,6 +17,13 @@
   //
   // preLaunchTask 必须和 tasks.json 里的任务名完全一致（这里是"编译当前文件"），
   // 它已经带 -g，所以启动前会先编出带调试信息的 exe。
+  // 注意：这个配置用 ${fileDirname} / ${fileBasenameNoExtension}，也就是
+  // 「当前正在编辑的那个文件」。如果【没有】任何文件处于活动状态 —— 比如刚
+  // 打开文件夹还停在欢迎页 —— 这两个变量会展开成空字符串，VS Code 就报：
+  //     launch: program "" does not exist.
+  // 这不是配置坏了，是缺一个活动文件。先在左侧点开一个 .cpp，再按 F5。
+  // （若活动文件是别的，报错里会带上具体文件名而不是空的 ""，可据此区分。）
+  //
   "version": "0.2.0",
   "configurations": [
     {

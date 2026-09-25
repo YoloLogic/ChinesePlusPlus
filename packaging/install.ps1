@@ -532,6 +532,8 @@ if ($ed) {
     Write-Host ''
     Write-Host '  To just RUN the current file: open the examples folder, then press F5'
     Write-Host '  or click the triangle at the top right. It compiles first, then runs.'
+    Write-Host '  Open a .cpp file FIRST: with no active file those settings expand'
+    Write-Host '  to nothing and VS Code reports: launch: program "" does not exist.'
     Write-Host ''
     Write-Host '  That folder already has the editor configured: clangd points at the'
     Write-Host '  bundled clangd (the one that understands Chinese keywords), and the'
