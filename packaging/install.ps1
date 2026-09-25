@@ -414,6 +414,47 @@ if (Test-Path $kit) {
         $t = $t.Replace('@@CXX@@',    (Join-Path $bin 'chinese++.exe').Replace('\', '\\'))
         [System.IO.File]::WriteAllText($settings, $t)
         Write-Host '  paths substituted into .vscode\settings.json'
+
+        # ALSO install the same settings for the editor USER, not just for the
+        # examples folder.
+        #
+        # Why this is not optional: .vscode\settings.json is a FOLDER-scoped
+        # setting, so it only applies while the opened folder IS examples\.
+        # Open any other folder and the clangd extension sees no clangd.path,
+        # falls back to searching for 'clangd' on PATH, finds nothing, and pops
+        # up:
+        #     "The 'clangd' language server was not found on your PATH.
+        #      Would you like to download and install clangd 22.1.6?"
+        # Clicking Install there downloads the OFFICIAL clangd, which does not
+        # know the Chinese keywords and red-squiggles every one of them -- the
+        # exact opposite of the point of this package. Measured on a real
+        # install 2026-09-26, after the user opened a folder other than
+        # examples\.
+        #
+        # Writing it as the USER setting makes it apply to every folder, so
+        # which folder the user opens stops mattering.
+        if ($ed) {
+            $userDir = Join-Path $ed.Directory.FullName 'data\user-data\User'
+            New-Item -ItemType Directory -Force $userDir | Out-Null
+            $userSettings = Join-Path $userDir 'settings.json'
+            $write = $true
+            if (Test-Path $userSettings) {
+                # Do not clobber a user's own tuning: if they already point at a
+                # clangd themselves, leave it alone.
+                $cur = ''
+                try { $cur = [System.IO.File]::ReadAllText($userSettings) } catch { }
+                if ($cur -match '"clangd\.path"') { $write = $false }
+            }
+            if ($write) {
+                if (Test-Path $userSettings) {
+                    Copy-Item $userSettings ($userSettings + '.zhpp-backup') -Force -ErrorAction SilentlyContinue
+                }
+                [System.IO.File]::WriteAllText($userSettings, $t)
+                Write-Host '  same settings installed for the editor user (works in ANY folder)'
+            } else {
+                Write-Host '  editor user settings already point at a clangd; left alone' -ForegroundColor DarkGray
+            }
+        }
     }
 }
 
