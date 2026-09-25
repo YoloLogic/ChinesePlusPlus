@@ -78,11 +78,22 @@ w("")
 w("## 一、关键字（%d 个）" % (len(plain) + len(virt)))
 w("")
 
+def esc(s):
+    """Escape a pipe so it cannot break out of a markdown table cell.
+
+    GFM resolves table structure BEFORE inline spans, so a raw '|' splits the
+    cell even when it sits inside backticks. The documented escape is '\\|',
+    which renders as a literal pipe. This is not hypothetical: the operator
+    table has rows whose ENTIRE symbol is '|', '||' and '|=', and those rows
+    were silently corrupting that table (found 2026-09-26).
+    """
+    return str(s).replace("|", "\\|")
+
 rows = sorted(plain + virt, key=lambda x: x[0])
 cols = 4
 cell = "| `%s` | `%s` "
 w("| 中文 | 英文 " * 0 + "|" + " 中文 | 英文 |" * (cols // 2))
-w("|---|---|" * (cols // 2))
+w("|" + "---|" * cols)
 per = (len(rows) + cols // 2 - 1) // (cols // 2)
 for i in range(per):
     line = "|"
@@ -90,7 +101,7 @@ for i in range(per):
         j = i + c * per
         if j < len(rows):
             en, zh = rows[j]
-            line += " `%s` | `%s` |" % (zh, en)
+            line += " `%s` | `%s` |" % (esc(zh), esc(en))
         else:
             line += "  |  |"
     w(line)
@@ -103,7 +114,7 @@ w("")
 w("| 中文 | 英文 | 符号 |")
 w("|---|---|---|")
 for en, sym, zh in sorted(oper):
-    w("| `%s` | `%s` | `%s` |" % (zh, en, sym))
+    w("| `%s` | `%s` | `%s` |" % (esc(zh), esc(en), esc(sym)))
 w("")
 w("这些和 C++ 原本的 `and` / `or` / `not` 是同一类东西（运算符的替代拼写）。")
 w("")
@@ -112,7 +123,7 @@ w("")
 w("| 中文 | 英文 |")
 w("|---|---|")
 for en, zh in sorted(directives):
-    w("| `#%s` | `#%s` |" % (zh, en))
+    w("| `#%s` | `#%s` |" % (esc(zh), esc(en)))
 w("")
 w("**中英可以混用**，同一个文件、同一条 `#if` 链里混着写都行，不影响编译结果。")
 w("")
@@ -160,6 +171,93 @@ w("    返回 0;")
 w("}")
 w("```")
 w("")
+
+# ---------------------------------------------------------------------------
+# Guard: every table emitted here must have a delimiter row whose cell count
+# matches its header row (and every body row).
+#
+# Why this check exists -- the bug it would have caught:
+#   the keyword table's delimiter was built as  "|---|---|" * (cols // 2).
+#   "|---|---|" is TWO cells but THREE pipes, so repeating it produced
+#   "|---|---||---|---|" = FIVE cells for a FOUR-column header. GFM then
+#   refuses to parse the table and the reader sees a wall of pipes -- and
+#   NOTHING reports an error: not Python, not the compiler, not the editor.
+#   Section one of 中文对照表.md shipped like that (reported 2026-09-26).
+# ---------------------------------------------------------------------------
+def _cells(line):
+    """Split a table row into cells, treating '\\|' as content, not a separator.
+
+    A plain s.split('|') is wrong here: it would also split on the escaped
+    pipes that esc() writes, making correctly-escaped rows look malformed.
+    """
+    s = line.strip()
+    if s.startswith("|"):
+        s = s[1:]
+    if s.endswith("|") and not s.endswith("\\|"):
+        s = s[:-1]
+    cells = []
+    cur = []
+    i = 0
+    while i < len(s):
+        c = s[i]
+        if c == "\\" and i + 1 < len(s):
+            cur.append(s[i:i + 2])
+            i += 2
+            continue
+        if c == "|":
+            cells.append("".join(cur))
+            cur = []
+            i += 1
+            continue
+        cur.append(c)
+        i += 1
+    cells.append("".join(cur))
+    return cells
+
+def _is_delimiter(raw):
+    """True if this line is a table's delimiter row.
+
+    Deliberately permissive: it only requires the line to consist of '|', '-',
+    ':' and spaces. Empty cells are ALLOWED on purpose. The malformed delimiter
+    that caused the reported bug -- "|---|---||---|---|", i.e. 5 cells for a
+    4-column header -- contains one empty cell. A stricter test that rejected
+    empty cells classified that line as "not a delimiter row", skipped the whole
+    table, and MISSED the very bug this guard exists to catch. The mutation test
+    found that hole; the cell-count comparison is what reports the problem.
+    """
+    t = raw.strip()
+    return bool(t) and t.startswith("|") and "-" in t and not (set(t) - set("|-: "))
+
+def check_tables(lines):
+    problems = []
+    ntables = 0
+    i = 0
+    while i < len(lines):
+        if lines[i].startswith("|") and i + 1 < len(lines) and lines[i + 1].startswith("|"):
+            delim = _cells(lines[i + 1])
+            if _is_delimiter(lines[i + 1]):
+                ntables += 1
+                head = _cells(lines[i])
+                if len(head) != len(delim):
+                    problems.append((i + 1, len(head), len(delim), lines[i + 1]))
+                j = i + 2
+                while j < len(lines) and lines[j].startswith("|"):
+                    got = len(_cells(lines[j]))
+                    if got != len(head):
+                        problems.append((j + 1, len(head), got, lines[j]))
+                    j += 1
+                i = j
+                continue
+        i += 1
+    return problems, ntables
+
+bad, ntables = check_tables(out)
+if bad:
+    for ln, want, got, text in bad:
+        print("表格列数不一致：第 %d 行，表头 %d 列、该行 %d 列" % (ln, want, got))
+        print("    " + text)
+    raise SystemExit("refusing to write a table that GFM will not parse")
+print("表格自检通过：%d 张表列数一致" % ntables)
 
 io.open(OUT, "w", encoding="utf-8").write("\n".join(out))
 print("写入 %s（%d 行）" % (OUT, len(out)))
