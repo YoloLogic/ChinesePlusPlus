@@ -5,11 +5,21 @@
 中文关键字是 Clang/LLVM 的**第一公民**。英文拼写照旧可用，两种写法可以随意混写。
 
 ```cpp
-整数 main() {
-  标准::输出 << "你好，世界" << 标准::换行;
-  返回 0;
+#包含 <cstdio>          // 中文指令，等价于 #include
+#include <vector>        // 英文指令 —— 混着写没问题
+
+整数 主函数() {                       // 主函数 = main
+    std::vector<int> 数字{1, 2, 3};   // 库名仍是英文
+    整数 和 = 0;                      // 整数 = int
+    对于 (整数 n : 数字)              // 对于 = for
+        和 += n;
+    std::printf("和 = %d\n", 和);
+    返回 0;                           // 返回 = return
 }
 ```
+
+> 完整可编译示例见 [`vscode-kit/示例.cpp`](vscode-kit/示例.cpp)（含类、构造函数、范围 for）。
+> 上面这段、以及包内那份示例，都在发行包自带的编译器上**实测编译并运行通过**。
 
 入口点可以写 `main`，也可以写 `主函数`：
 
@@ -23,9 +33,16 @@
 **Chinese++** is a modified Clang/LLVM toolchain that makes **Chinese keywords a first-class spelling** in C++. English keywords still work, and the two can be mixed freely in the same file.
 
 ```cpp
-整数 main() {                                // int main()
-  标准::输出 << "你好，世界" << 标准::换行;   // std::cout << "Hello, world" << std::endl;
-  返回 0;                                     // return 0;
+#包含 <cstdio>          // #include — a Chinese preprocessor directive
+#include <vector>        // English directives still work; mix freely
+
+整数 主函数() {                       // int main()
+    std::vector<int> 数字{1, 2, 3};   // library names stay English
+    整数 和 = 0;                      // int
+    对于 (整数 n : 数字)              // for
+        和 += n;
+    std::printf("和 = %d\n", 和);
+    返回 0;                           // return
 }
 ```
 
