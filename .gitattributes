@@ -1,0 +1,7 @@
+# 本发行包的校验依赖【逐字节一致】：
+#   - MANIFEST.txt 记录各二进制的 SHA256，verify.ps1 会核对
+#   - install.ps1 / verify.ps1 / *.cmd 是纯 ASCII，且行尾故意混用
+#     （.cmd 与 .ps1 为 LF；MANIFEST.txt 为 CRLF + BOM）
+# 任何行尾转换都会改变文件内容，进而让校验失败。
+# 所以禁止 git 做任何行尾转换：写进去是什么字节，取出来就得是什么字节。
+* -text

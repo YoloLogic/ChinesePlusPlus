@@ -1,0 +1,109 @@
+Chinese++ 中文编程工具链 —— 发行说明与第三方声明
+==================================================
+
+本文件说明这个发行包里装了什么、依据哪些许可证、以及我们改动了什么。
+
+
+一、这是一个【修改过的】LLVM/Clang（重要）
+------------------------------------------
+
+本发行包里的 clang / lld / clangd / llvm-* 二进制，是由 **修改过的 LLVM 源码**
+构建的，不是上游原版。依据 Apache License 2.0 第 4(b) 条，我们在此明确声明：
+**我们改动了若干 LLVM/Clang 源文件。**
+
+改动内容（完整清单见 docs\关键字\关键字改动清单.md 与 patches\*.patch）：
+
+  * 新增中文关键字拼写表（99 个），英文拼写一律保留、行为不变
+  * 新增中文预处理指令拼写表（22 条），与英文等价、可混用
+  * 新增中文诊断正文表（7344 / 7374 条），查不到时回退英文
+  * 让 `主函数` 与 `main` 成为同一个标识符
+
+改动**不涉及**任何 `Diagnostic*.td`：那 17 个文件与上游逐字节相同。
+所有改动都以补丁形式保存在 `patches\` 下。
+
+上游项目：https://llvm.org/  （LLVM 24.0.0git）
+
+
+二、许可证
+----------
+
+本发行包内 LLVM 派生的全部内容，采用
+**Apache License v2.0 with LLVM Exceptions**。
+
+许可证正文完整附在本目录的 `LICENSE.TXT`（15141 字节，与上游 `LICENSE.TXT`
+逐字节相同）。请连同 `LICENSE.TXT` 一起分发。
+
+本发行包**不含** LLVM 项目的 NOTICE 文件内容 —— 上游 LLVM 本身不提供 NOTICE 文件，
+因此 Apache-2.0 第 4(d) 条不适用。
+
+
+三、包里装了什么
+----------------
+
+  bin\chinese++.exe     C++ 编译器（中文为主，英文照旧可用）
+  bin\clang.exe         C 编译器（与上面是同一个程序，靠文件名分派）
+  bin\clang-cl.exe      MSVC 风格命令行
+  bin\clang-cpp.exe     仅预处理（-E）
+  bin\clangd.exe        语言服务（编辑器高亮与补全用）
+  bin\lld-link.exe      Windows 链接器
+  bin\lld.exe / ld.lld.exe / wasm-ld.exe
+  bin\llvm-ar.exe / llvm-lib.exe / llvm-ranlib.exe
+  bin\llvm-rc.exe       Windows 资源编译器
+  lib\clang\24\include\ 编译器内建头文件（stddef.h / stdint.h 等）
+
+  ※ 上面若干 `.exe` 是**同一个程序的硬链接**。若复制或解压后硬链接丢失，
+    会变成多份独立副本（功能不受影响，只是占用变大）。
+    安装脚本会用 New-Item -ItemType HardLink 重建。
+
+
+四、包里【没有】装什么（因此需要用户自备）
+------------------------------------------
+
+  1. **C++ 标准库与 Windows SDK**。本工具链在 Windows 上使用微软的
+     MSVC STL 与 Windows UCRT/SDK，这些**不在本发行包内**，需要用户
+     自行安装 Visual Studio Build Tools（含 C++ 生成工具与 Windows SDK）。
+     我们**没有再分发**任何微软的库或头文件。
+
+  2. **compiler-rt 运行时**（clang_rt.*）。因此
+     `-fsanitize=*`、`--coverage`、PGO 目前不可用。
+
+  3. **不是**微软官方产品，与 Microsoft 无隶属或背书关系。
+
+
+五、生成物的运行时依赖
+----------------------
+
+用本工具链编出来的程序，在运行时需要微软的 Visual C++ 运行库
+（MSVCP140.dll / VCRUNTIME140.dll 等）。这属于微软可再分发的运行库，
+但**不在本包内** —— 用户的开发机上装了 Visual Studio 即已具备。
+
+
+六、本发行包自身的版本
+----------------------
+
+  Chinese++ <版本号>
+  构建自 LLVM/Clang 24.0.0git + 本仓库的补丁
+  目标平台：x86_64-pc-windows-msvc
+
+  （版本号与构建日期由打包脚本填入。）
+
+
+七、联系方式
+------------
+
+  QQ：1396257961
+
+
+八、免责声明
+------------
+
+  **本工具链按「现状」提供，不附带任何担保。** 使用它及其脚本所造成的
+  任何后果 —— 包括但不限于系统或数据损坏、软件冲突、编译产物有问题、
+  项目延期 —— **发布者不承担责任。** 请在使用前自行备份重要数据。
+
+  本包内 LLVM / Clang 部分依 **Apache License v2.0 with LLVM Exceptions**
+  分发；该许可证正文见同目录 LICENSE.TXT，**其中的免责与责任限制条款同样适用**。
+
+  本工具链**不是微软官方产品**，与 Microsoft 无隶属或背书关系。
+  它使用但你**没有**获得微软的 MSVC STL、Windows SDK 与 Visual C++ 运行库 ——
+  那些需要使用者自行安装并遵守微软自己的许可条款。

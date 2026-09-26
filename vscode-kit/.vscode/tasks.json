@@ -1,0 +1,47 @@
+{
+  // @@CXX@@ 由包内 install.ps1 替换成本包 chinese++.exe 的真实路径。
+  //
+  // problemMatcher 用 "$gcc"：它靠正则匹配 "error: " / "warning: " 把报错抓进
+  // Problems 面板（能点、能跳转）。我们的诊断【只换正文不换前缀】：
+  //
+  //     error: 未知的类型名（类型名） '我的类型'
+  //     ^^^^^   前缀仍是英文 ⇒ $gcc 照样认得
+  //
+  // 这也是"前缀故意不翻"那条决定的实际理由之一：翻了前缀，
+  // Problems 面板会空。
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "编译当前文件",
+      "type": "shell",
+      "command": "@@CXX@@",
+      "args": [
+        "-std=c++20", "-g", "-Wall",
+        "${file}", "-o", "${fileDirname}\\${fileBasenameNoExtension}.exe"
+      ],
+      "options": { "cwd": "${fileDirname}" },
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "编译并运行",
+      "type": "shell",
+      "command": "@@CXX@@",
+      "args": [
+        "-std=c++20", "-g", "-Wall",
+        "${file}", "-o", "${fileDirname}\\${fileBasenameNoExtension}.exe",
+        "&&", "${fileDirname}\\${fileBasenameNoExtension}.exe"
+      ],
+      "options": { "cwd": "${fileDirname}" },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "只检查语法（看中文报错）",
+      "type": "shell",
+      "command": "@@CXX@@",
+      "args": ["-std=c++20", "-Wall", "-fsyntax-only", "${file}"],
+      "options": { "cwd": "${fileDirname}" },
+      "problemMatcher": ["$gcc"]
+    }
+  ]
+}

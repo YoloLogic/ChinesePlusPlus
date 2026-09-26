@@ -1,0 +1,74 @@
+﻿Chinese++ 0.1  (win64, target x86_64-pc-windows-msvc)
+built: 2026-09-26 19:42:56
+
+=== bin (one real file per family; aliases are NOT in the zip) ===
+chinese++.exe          79 MB  9421FD328442035CA1EDB4A0EDA2853BD3DA85C8735EF7311C83E2DD4CF70624
+lld-link.exe           45 MB  56383779DA485C5484EA7597D395D950C622AD96F047F6959B605112CDE8205A
+llvm-ar.exe             8 MB  1E821562D386081AE2046B1AB8615C340364CD34BCA6A01BBE2886120CB72509
+clangd.exe             45 MB  2A9AC6F64595C730A9A0F1C6541E8E772153D9FB86D9F365B280E8AA66BD00B2
+llvm-rc.exe             1 MB  98823C73B4F17F5A0A4FB07CBFC7164C0E3C1495E267431E383645C6906DDB1C
+
+aliases install.ps1 creates (hardlink, falling back to a copy):
+  clang.exe  ->  chinese++.exe
+  clang++.exe  ->  chinese++.exe
+  clang-cl.exe  ->  chinese++.exe
+  clang-cpp.exe  ->  chinese++.exe
+  lld.exe  ->  lld-link.exe
+  ld.lld.exe  ->  lld-link.exe
+  wasm-ld.exe  ->  lld-link.exe
+  llvm-lib.exe  ->  llvm-ar.exe
+  llvm-ranlib.exe  ->  llvm-ar.exe
+
+=== NOT shipped on purpose ===
+  lib\*.lib                     918 MB, compiler's own build output
+  llvm-tblgen / clang-tblgen / llvm-min-tblgen /
+  clang-tidy-confusable-chars-gen / llvm-lit    build-time tools
+  opt / llc / llvm-as / llvm-dis / llvm-config / lldb /
+  clang-tidy / libclang / polly                  LLVM tools, not
+                                                 needed to compile
+
+=== compiler-rt runtime libraries (SHIPPED) ===
+  lib\clang\24\lib\windows\      the runtimes themselves
+  lib\clang\24\include\sanitizer\  and include\profile\  headers
+  lib\clang\24\share\            asan/cfi/hwasan/msan ignorelists
+  clang_rt.asan_dynamic_runtime_thunk-x86_64.lib        117 KB
+  clang_rt.asan_dynamic-x86_64.dll                      514 KB
+  clang_rt.asan_dynamic-x86_64.lib                      108 KB
+  clang_rt.asan_static_runtime_thunk-x86_64.lib         181 KB
+  clang_rt.builtins-x86_64.lib                          184 KB
+  clang_rt.profile_rocm-x86_64.lib                     1783 KB
+  clang_rt.profile-x86_64.lib                           149 KB
+  clang_rt.stats_client-x86_64.lib                       10 KB
+  clang_rt.stats-x86_64.lib                            2350 KB
+  clang_rt.ubsan_loop_detect-x86_64.lib                   5 KB
+  clang_rt.ubsan_standalone_cxx-x86_64.lib               56 KB
+  clang_rt.ubsan_standalone-x86_64.lib                 2869 KB
+
+  -fsanitize=address    VERIFIED: links, and catches a real
+                        heap-use-after-free at run time.
+                        NOTE: clang_rt.asan_dynamic-x86_64.dll must
+                        be on PATH (or beside the .exe) to RUN the
+                        program. install.ps1 puts it on PATH.
+  --coverage            VERIFIED: links and runs.
+  -fsanitize=undefined  CANNOT LINK ON ITS OWN here. Fails with:
+                          __imp_getenv            (gone with /MD)
+                          __imp_CommandLineToArgvW (gone with shell32.lib)
+                          __imp_SymLoadModuleEx    (needs dbghelp.lib)
+                          __coe_win::ContinueOnError / RawWrite
+                        __coe_win is implemented in NEITHER this VS/SDK
+                        NOR anywhere in the LLVM source tree -- and not
+                        in Microsoft's own clang_rt.ubsan_standalone
+                        either (member lists compared). Upstream skew.
+  -fsanitize=address,undefined   VERIFIED: links, and UBSan really
+                        reports undefined behaviour. This is the form
+                        to use -- UBSan needs the ASan runtime to
+                        resolve those symbols. Do not use it alone.
+  -fopenmp              works, but not because of this package:
+                        Visual Studio already ships libomp.lib in
+                        VC\Tools\MSVC\<ver>\lib\x64\. It is not
+                        shipped here and is not needed.
+  -fsanitize=address/undefined need MSVC STL + Windows SDK anyway.
+
+=== REQUIRED on the user's machine (not in this package) ===
+  Visual Studio Build Tools: MSVC STL, Windows SDK, link.exe
+  See NOTICE.txt section 4.

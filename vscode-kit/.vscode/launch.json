@@ -1,0 +1,42 @@
+{
+  // 由包内 install.ps1 配置：编辑器右上角 ▷ 一键「编译 + 运行 + 调试」。
+  //
+  // 为什么 type 是 cppvsdbg：
+  //   它用的是微软调试引擎，读的是 PDB。我们的编译器实测产出正是 PDB
+  //   （-g 会生成 .pdb，目标文件里是 .debug$S / .debug$T，不是 DWARF），
+  //   所以格式是对得上的。
+  //
+  // 为什么需要额外装扩展：
+  //   launch.json 只说明"怎么启动"，真正启动进程的是调试适配器。
+  //   这个适配器由 ms-vscode.cpptools 提供，install.ps1 已一并装好。
+  //   注意：clangd 只负责补全和标红，它【不提供】调试功能。
+  //
+  // 为什么不会和 clangd 打架：
+  //   cpptools 自带的 IntelliSense 在 settings.json 里被关掉了
+  //   （"C_Cpp.intelliSenseEngine": "disabled"），只借它的调试器用。
+  //
+  // preLaunchTask 必须和 tasks.json 里的任务名完全一致（这里是"编译当前文件"），
+  // 它已经带 -g，所以启动前会先编出带调试信息的 exe。
+  // 注意：这个配置用 ${fileDirname} / ${fileBasenameNoExtension}，也就是
+  // 「当前正在编辑的那个文件」。如果【没有】任何文件处于活动状态 —— 比如刚
+  // 打开文件夹还停在欢迎页 —— 这两个变量会展开成空字符串，VS Code 就报：
+  //     launch: program "" does not exist.
+  // 这不是配置坏了，是缺一个活动文件。先在左侧点开一个 .cpp，再按 F5。
+  // （若活动文件是别的，报错里会带上具体文件名而不是空的 ""，可据此区分。）
+  //
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "编译并调试当前文件",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${fileDirname}\\${fileBasenameNoExtension}.exe",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${fileDirname}",
+      "environment": [],
+      "console": "integratedTerminal",
+      "preLaunchTask": "编译当前文件"
+    }
+  ]
+}
