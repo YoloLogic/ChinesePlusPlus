@@ -78,21 +78,36 @@
 
 ## 快速开始
 
-### 第 1 步：先装 Visual Studio（**必须，别跳过**）
+**下载：** [最新发布版](https://github.com/YoloLogic/ChinesePlusPlus/releases/latest) ·
+直接下 [Chinese++-0.1-win64.zip](https://github.com/YoloLogic/ChinesePlusPlus/releases/latest/download/Chinese++-0.1-win64.zip)
 
-**本工具链不自带标准库。** C++ 标准库（`std::vector`、`std::string`…）、C 运行库、Windows SDK 都是微软的东西，没有权利把它们打包分发。
+> 在 Releases 页面找 **Assets** 区块 —— 它**可能是折叠的，点一下展开**才能看到附件。
+
+### 第 1 步：先装 Visual Studio 的 C++ 组件（**必须，别跳过**）
+
+**已经装过 Visual Studio、且勾了「使用 C++ 的桌面开发」的 —— 跳过这一步。**
+
+三条路，挑一条：
 
 ```powershell
+# 最快：一行命令
 winget install --id Microsoft.VisualStudio.2022.BuildTools --override "--quiet --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
 ```
 
-或者下载 **Visual Studio Community**（免费），安装时勾选 **「使用 C++ 的桌面开发」**。
+- **Build Tools 直链**（点开就下安装器，约 2 GB）：<https://aka.ms/vs/17/release/vs_BuildTools.exe>
+- **完整版 Visual Studio Community**（免费，图形界面更友好）：<https://visualstudio.microsoft.com/vs/community/>
+  —— 安装时**务必勾选「使用 C++ 的桌面开发」**
+- 官方图文安装教程：<https://learn.microsoft.com/cpp/build/vscpp-step-0-installation>
 
 > 下载约 2 GB，装完约占 6 GB，需要管理员权限，需要几分钟。
 
+**为什么必须装？** 本工具链**不自带标准库** —— C++ 标准库（`std::vector`、`std::string`…）、C 运行库、Windows SDK 都是微软的东西，没有权利把它们打包分发。
+
 **这也是一件好事**：正因为用的是微软原封不动的 MSVC STL，本编译器编出来的东西和官方 clang / MSVC 编出来的**二进制兼容**，可以互相链接，现成的第三方库照用。
 
-**没装的症状**：编译时报 `找不到文件（名字） 'cstdio'`。看到"找不到文件"这类错，十有八九就是这一条。
+**没装的症状**：编译时报 `找不到文件（名字） 'cstdio'`。看到「找不到文件」这类错，十有八九就是这一条。
+
+**不确定装没装？** 跑第 3 步的 `verify.ps1` —— 它不但会告诉你缺什么，还会真编一个中文 hello world。
 
 ### 第 2 步：双击 `一键安装.cmd`
 
