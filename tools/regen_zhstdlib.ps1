@@ -44,6 +44,9 @@ $jobs = @(
 )
 
 $fail = 0
+# 「改回英文」的台账（见循环里的说明：这是本脚本原先吞掉的东西）
+$revTotal = 0
+$revRows = @()
 foreach ($j in $jobs) {
     if ($j.Once) {
         Write-Host ("=== {0}  (一次生成全部) ===" -f $j.Script) -ForegroundColor Cyan
@@ -62,6 +65,22 @@ foreach ($j in $jobs) {
     foreach ($h in $list) {
         $o = & pwsh -NoProfile -File (Join-Path $root "tools\$($j.Script)") -Header $h 2>&1
         $last = ([string]($o | Select-Object -Last 1)).Trim()
+        # -------------------------------------------------------------------
+        #  ⚠ 【守卫必须在 regen 输出里显式可见】—— 这条本脚本自己违反了。
+        #
+        #  原来这里只取 `Select-Object -Last 1`，于是生成器打到中间的
+        #  「⚠ 改回英文: X（第 N 行）」全被吞掉。后果是实测到的：
+        #    · 生成器里明明报了 12 处回退，regen 显示全绿；
+        #    · 我据此说"全库 0 回退"，而实际 <向量> 里 `_Ilist.begin()` /
+        #      `_Ilist.end()` 一直是英文（借来的 std::initializer_list 的成员）
+        #      —— 这就是"隐形规矩等于没有规矩"。
+        #  现在把每个头的回退逐条收上来，集中在末尾打一张表。
+        # -------------------------------------------------------------------
+        $revs = @($o | Where-Object { $_ -match '⚠ 改回英文' } | ForEach-Object { ([string]$_).Trim() })
+        if ($revs.Count) {
+            $script:revTotal += $revs.Count
+            $script:revRows += ("  {0,-22} {1}" -f $h, (($revs | ForEach-Object { $_ -replace '^⚠ 改回英文:\s*', '' }) -join '  |  '))
+        }
         # 生成器里的"跨头译名一致性检查"（方案 §3.11）输出会被这里捕获而看不见，
         # 隐形规矩等于没有规矩 —— 所以对每个脚本的第一个头把它显式打出来一行。
         if ($h -eq $list[0]) {
@@ -81,6 +100,25 @@ Write-Host "=== 全量验证 ===" -ForegroundColor Cyan
 $v = $LASTEXITCODE
 
 Write-Host ''
+# ---------------------------------------------------------------------------
+#  「改回英文」台账 —— 必须显式可见。
+#  每一条都是"抄来那层里还剩一个英文标识符"，也就是【欠账】：
+#  它没被算进 fail（产品本身编得过、测试也过），但**必须看得见**，
+#  否则就会重演"我说全库 0 回退、实际 <向量> 里 _Ilist.begin() 一直是英文"。
+#  典型成因（已查清两类）：
+#    · 成员名被改到了【借来的类型】上（std::initializer_list 的 begin/end、
+#      std::ranges 的 data/size）—— §15.8 / §15.9 那一类；
+#    · 拷贝缺了自己的前向声明（xmemory 的 _Iterator_base12）—— §16.23.1。
+#  消除路径：把提供那个名字的头也抄成汉语件（步骤 1），或从源头挡住（§16.27.1）。
+# ---------------------------------------------------------------------------
+if ($revTotal -gt 0) {
+    Write-Host ("=== 「改回英文」台账：{0} 处（= 抄来那层还剩的英文名，属【欠账】）===" -f $revTotal) -ForegroundColor Yellow
+    foreach ($r in $revRows) { Write-Host $r -ForegroundColor Yellow }
+    Write-Host '  说明：这些位置编译与测试都通过，所以不计入失败；但它们必须被看见。' -ForegroundColor Yellow
+    Write-Host '        消除路径见方案 §16.23.1 / §16.27.1 / §16.30。' -ForegroundColor Yellow
+    Write-Host ''
+}
+
 if ($fail -eq 0 -and $v -eq 0) { Write-Host "重新生成 + 全量验证：全部通过" -ForegroundColor Green; exit 0 }
 Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}" -f $fail, $v) -ForegroundColor Red
 exit 1

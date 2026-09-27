@@ -148,9 +148,9 @@ public:
         c.pop_front();
     }
 
-    void 交换(队列实现& _Right) noexcept(_Is_nothrow_swappable<_Container>::value) {
+    void swap(队列实现& _Right) noexcept(_Is_nothrow_swappable<_Container>::value) {
         using _STD swap;
-        交换(c, _Right.c); // intentional ADL
+        swap(c, _Right.c); // intentional ADL
     }
 
     _NODISCARD const _Container& _Get_container() const noexcept {
@@ -218,8 +218,8 @@ _NODISCARD compare_three_way_result_t<_Container> operator<=>(
 #endif // _HAS_CXX20
 
 _EXPORT_STD template <class _Ty, class _Container, enable_if_t<_Is_swappable<_Container>::value, int> = 0>
-void 交换(队列实现<_Ty, _Container>& _Left, 队列实现<_Ty, _Container>& _Right) noexcept(noexcept(_Left.交换(_Right))) {
-    _Left.交换(_Right);
+void swap(队列实现<_Ty, _Container>& _Left, 队列实现<_Ty, _Container>& _Right) noexcept(noexcept(_Left.swap(_Right))) {
+    _Left.swap(_Right);
 }
 
 template <class _Ty, class _Container, class _Alloc>
@@ -426,11 +426,11 @@ public:
         c.pop_back();
     }
 
-    void 交换(优先队列实现& _Right)
+    void swap(优先队列实现& _Right)
         noexcept(_Is_nothrow_swappable<_Container>::value && _Is_nothrow_swappable<_Pr>::value) {
         using _STD swap;
-        交换(c, _Right.c); // intentional ADL
-        交换(comp, _Right.comp); // intentional ADL
+        swap(c, _Right.c); // intentional ADL
+        swap(comp, _Right.comp); // intentional ADL
     }
 
 private:
@@ -492,9 +492,9 @@ template <_RANGES input_range _Rng, class _Alloc, enable_if_t<_Is_allocator<_All
 
 _EXPORT_STD template <class _Ty, class _Container, class _Pr,
     enable_if_t<_Is_swappable<_Container>::value && _Is_swappable<_Pr>::value, int> = 0>
-void 交换(优先队列实现<_Ty, _Container, _Pr>& _Left, 优先队列实现<_Ty, _Container, _Pr>& _Right)
-    noexcept(noexcept(_Left.交换(_Right))) {
-    _Left.交换(_Right);
+void swap(优先队列实现<_Ty, _Container, _Pr>& _Left, 优先队列实现<_Ty, _Container, _Pr>& _Right)
+    noexcept(noexcept(_Left.swap(_Right))) {
+    _Left.swap(_Right);
 }
 
 template <class _Ty, class _Container, class _Pr, class _Alloc>
@@ -540,11 +540,10 @@ _STL_RESTORE_CLANG_WARNINGS
     模板 <类型名... 参数> 自动 push(参数&&... 值) 常量 { 返回 基类::压入(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 push_range(参数&&... 值) { 返回 基类::范围压入(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 push_range(参数&&... 值) 常量 { 返回 基类::范围压入(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 swap(参数&&... 值) { 返回 基类::交换(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 swap(参数&&... 值) 常量 { 返回 基类::交换(static_cast<参数&&>(值)...); }
 
     // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
     // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
+    模板 <类型名... 参数> 自动 交换(参数&&... 值) { 返回 基类::swap(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 尺寸(参数&&... 值) 常量 { 返回 基类::size(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 为空(参数&&... 值) 常量 { 返回 基类::empty(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 前(参数&&... 值) { 返回 基类::front(static_cast<参数&&>(值)...); }
