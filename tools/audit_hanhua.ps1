@@ -97,9 +97,42 @@ function Get-DeclaredNames([string] $text) {
     return $names
 }
 
+# ---------------------------------------------------------------------------
+#  嵌套名字（类体内的类型别名 / 嵌套类）—— 第二把尺（§16.35）
+#
+#  为什么要有第二把尺：第一把尺只量"行首声明的顶层类型名"。
+#  而 §9/§9.1 要求**嵌套类型名也要汉化**（用户明确要求："基类::value_type，
+#  value_type 你就没汉化，这些都得汉化的"），并且方向要反过来：
+#      抄来那层 `using 值类型 = _Ty;`（中文）×  派生层 `使用 value_type = 基类::值类型;`（补英文）
+#  目前只有 <可选> 一个头是这个方向，其余仍是旧的（§9.3）。
+#  **没有数字，这件事就会退化成"我记得翻过"** —— 所以先把它量出来。
+#
+#  提取判据（要精确，不能靠猜 —— 第一把尺就因为取名算法错而误报过两次）：
+#    · 有缩进的 `using NAME =`   -> 类体内的类型别名
+#    · 有缩进的 `typedef ... NAME;`
+#    · 有缩进的 `class/struct/enum class NAME`（嵌套类声明）
+#    （行首 = 顶层，已由第一把尺量过，这里靠"必须缩进"把它们排除掉。）
+# ---------------------------------------------------------------------------
+function Get-NestedNames([string] $text) {
+    $names = @{}
+    foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+using\s+([A-Za-z_]\w*)\s*=')) { $names[$m.Groups[1].Value] = $true }
+    foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+typedef\s+[^;\r\n]*?\b([A-Za-z_]\w*)\s*;')) { $names[$m.Groups[1].Value] = $true }
+    foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+(?:class|struct|union|enum\s+class|enum)\s+([^;{\r\n=]*)')) {
+        $g = [regex]::Replace($m.Groups[1].Value, '\([^()]*\)', ' ')
+        $mm = [regex]::Match($g, '([\w~]+)\s*$')
+        if (-not $mm.Success) { continue }
+        $n = $mm.Groups[1].Value
+        if ($n -in @('class', 'struct', 'enum', 'union', 'final')) { continue }
+        $names[$n] = $true
+    }
+    return $names
+}
+
 $entries = Get-Entries (Join-Path $root 'tools\make_zhstdlib2.ps1')
 $rows = @()
+$rows2 = @()
 $totAll = 0; $totDone = 0
+$totAll2 = 0; $totDone2 = 0
 foreach ($e in $entries) {
     if (-not $e.Zh) { continue }
     $prod = Join-Path $root "zhstdlib\$($e.Zh)"
@@ -143,6 +176,24 @@ foreach ($e in $entries) {
     $rows += [pscustomobject]@{
         中文头 = $e.Zh; 源 = $e.H; 顶层类型 = $effTotal; 残留 = $res.Count; 名单 = ($res -join ' ')
     }
+
+    # ---- 第二把尺：嵌套名字 ----
+    $names2 = Get-NestedNames $src
+    $res2 = @()
+    foreach ($n in $names2.Keys) {
+        # 同样的边界排除：std 模板特化的名字必须留英文（铁律 4）
+        if ($stdSpecials -contains $n) { continue }
+        if ([regex]::IsMatch($copy, "\b$([regex]::Escape($n))\b")) { $res2 += $n }
+    }
+    $res2 = @($res2 | Sort-Object)
+    $effTotal2 = $names2.Count - @($names2.Keys | Where-Object { $stdSpecials -contains $_ }).Count
+    if ($effTotal2 -gt 0) {
+        $totAll2 += $effTotal2
+        $totDone2 += ($effTotal2 - $res2.Count)
+        $rows2 += [pscustomobject]@{
+            中文头 = $e.Zh; 源 = $e.H; 嵌套名 = $effTotal2; 残留 = $res2.Count; 名单 = ($res2 -join ' ')
+        }
+    }
 }
 
 $rows = @($rows | Sort-Object -Property @{ Expression = { $_.残留 } } -Descending)
@@ -160,3 +211,26 @@ Write-Host ("=== 抄+派生轨道 顶层类型名汉化率: {0} / {1} = {2:N1}% 
 Write-Host ("    完全无残留的头: {0} / {1}" -f $clean, $rows.Count) -ForegroundColor Cyan
 Write-Host "    注意：残留 = 欠账【加上】借用边界（false_type / uintptr_t 这类真 std 名）。"
 Write-Host "          前者要消灭，后者要等步骤 1 的 34 个内部头全部抄完才会自然消失。"
+
+# ---------------------------------------------------------------------------
+#  第二把尺：嵌套名字（§16.35）
+# ---------------------------------------------------------------------------
+$rows2 = @($rows2 | Sort-Object -Property @{ Expression = { $_.残留 } } -Descending)
+if ($rows2.Count) {
+    Write-Host ""
+    Write-Host "=== 嵌套名字（类体内 using/typedef/嵌套类）===" -ForegroundColor Cyan
+    $rows2 | Format-Table -Property 中文头, 源, 嵌套名, 残留 -AutoSize
+    if ($Detail) {
+        Write-Host "--- 嵌套名残留名单 ---"
+        foreach ($r in $rows2) { if ($r.残留) { Write-Host ("  {0,-14} {1}" -f $r.中文头, $r.名单) } }
+    }
+    $clean2 = @($rows2 | Where-Object { $_.残留 -eq 0 }).Count
+    Write-Host ("=== 嵌套名汉化率: {0} / {1} = {2:N1}% ===" -f `
+        $totDone2, $totAll2, (100 * $totDone2 / [Math]::Max($totAll2, 1))) -ForegroundColor Cyan
+    Write-Host ("    完全无残留的头: {0} / {1}" -f $clean2, $rows2.Count) -ForegroundColor Cyan
+    Write-Host "    注意：这一栏【天然偏高】—— 旧方向（抄来那层留英文、派生层补中文，§9.1）下，"
+    Write-Host "          中文名其实【用户已经能写】，只是抄来那层还不是汉语。"
+    Write-Host "          所以这一栏量的是「§9.3 要翻转的方向」，不是「用户写不出来」。"
+    Write-Host "          另有真边界：reference / value_type 这类会出现在【借用路径】上"
+    Write-Host "          （allocator_traits<_Alloc>::value_type），改错必须能回退（§15.5）。"
+}
