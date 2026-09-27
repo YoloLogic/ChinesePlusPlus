@@ -44,7 +44,7 @@ public:
     template <class... _Args>
     using _In_place_key_extractor = _In_place_key_extract_map<_Kty, _Args...>;
 
-    class 值比较器 {
+    class value_compare {
     public:
         using _FIRST_ARGUMENT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS  = value_type;
         using _SECOND_ARGUMENT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS = value_type;
@@ -58,7 +58,7 @@ public:
     protected:
         friend _Tree<_映射特征>;
 
-        值比较器(key_compare _Pred) : comp(_Pred) {}
+        value_compare(key_compare _Pred) : comp(_Pred) {}
 
         key_compare comp; // the comparator predicate for keys
     };
@@ -83,7 +83,7 @@ public:
     using key_type               = _Kty;
     using mapped_type            = _Ty;
     using key_compare            = _Pr;
-    using 值比较器          = typename _我的基类::值比较器;
+    using value_compare          = typename _我的基类::value_compare;
     using value_type             = pair<const _Kty, _Ty>;
     using allocator_type         = typename _我的基类::allocator_type;
     using size_type              = typename _我的基类::size_type;
@@ -118,22 +118,22 @@ public:
 
     template <class _Iter>
     映射实现(_Iter _First, _Iter _Last) : _我的基类(key_compare()) {
-        插入(_First, _Last);
+        insert(_First, _Last);
     }
 
     template <class _Iter>
     映射实现(_Iter _First, _Iter _Last, const key_compare& _Pred) : _我的基类(_Pred) {
-        插入(_First, _Last);
+        insert(_First, _Last);
     }
 
     template <class _Iter>
     映射实现(_Iter _First, _Iter _Last, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
-        插入(_First, _Last);
+        insert(_First, _Last);
     }
 
     template <class _Iter>
     映射实现(_Iter _First, _Iter _Last, const key_compare& _Pred, const allocator_type& _Al) : _我的基类(_Pred, _Al) {
-        插入(_First, _Last);
+        insert(_First, _Last);
     }
 
 #if _HAS_CXX23
@@ -172,7 +172,7 @@ public:
         return *this;
     }
 
-    mapped_type& operator[](key_type&& _Keyval) { // find element matching _Keyval or 插入 value-initialized value
+    mapped_type& operator[](key_type&& _Keyval) { // find element matching _Keyval or insert value-initialized value
         return _Try_emplace(_STD move(_Keyval)).first->_Myval.second;
     }
 
@@ -180,15 +180,15 @@ public:
         _我的基类::swap(_Right);
     }
 
-    using _我的基类::插入;
+    using _我的基类::insert;
 
     template <class _Valty, enable_if_t<is_constructible_v<value_type, _Valty>, int> = 0>
-    pair<iterator, bool> 插入(_Valty&& _Val) {
+    pair<iterator, bool> insert(_Valty&& _Val) {
         return this->就地构造(_STD forward<_Valty>(_Val));
     }
 
     template <class _Valty, enable_if_t<is_constructible_v<value_type, _Valty>, int> = 0>
-    iterator 插入(const_iterator _Where, _Valty&& _Val) {
+    iterator insert(const_iterator _Where, _Valty&& _Val) {
         return this->emplace_hint(_Where, _STD forward<_Valty>(_Val));
     }
 
@@ -321,25 +321,25 @@ public:
     }
 
     映射实现(initializer_list<value_type> _Ilist) : _我的基类(key_compare()) {
-        插入(_Ilist);
+        insert(_Ilist);
     }
 
     映射实现(initializer_list<value_type> _Ilist, const key_compare& _Pred) : _我的基类(_Pred) {
-        插入(_Ilist);
+        insert(_Ilist);
     }
 
     映射实现(initializer_list<value_type> _Ilist, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
-        插入(_Ilist);
+        insert(_Ilist);
     }
 
     映射实现(initializer_list<value_type> _Ilist, const key_compare& _Pred, const allocator_type& _Al)
         : _我的基类(_Pred, _Al) {
-        插入(_Ilist);
+        insert(_Ilist);
     }
 
     映射实现& operator=(initializer_list<value_type> _Ilist) {
         _我的基类::clear();
-        插入(_Ilist);
+        insert(_Ilist);
         return *this;
     }
 
@@ -464,7 +464,7 @@ public:
     using key_type               = _Kty;
     using mapped_type            = _Ty;
     using key_compare            = _Pr;
-    using 值比较器          = typename _我的基类::值比较器;
+    using value_compare          = typename _我的基类::value_compare;
     using value_type             = pair<const _Kty, _Ty>;
     using allocator_type         = typename _我的基类::allocator_type;
     using size_type              = typename _我的基类::size_type;
@@ -496,22 +496,22 @@ public:
 
     template <class _Iter>
     多重映射实现(_Iter _First, _Iter _Last) : _我的基类(key_compare()) {
-        插入(_First, _Last);
+        insert(_First, _Last);
     }
 
     template <class _Iter>
     多重映射实现(_Iter _First, _Iter _Last, const key_compare& _Pred) : _我的基类(_Pred) {
-        插入(_First, _Last);
+        insert(_First, _Last);
     }
 
     template <class _Iter>
     多重映射实现(_Iter _First, _Iter _Last, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
-        插入(_First, _Last);
+        insert(_First, _Last);
     }
 
     template <class _Iter>
     多重映射实现(_Iter _First, _Iter _Last, const key_compare& _Pred, const allocator_type& _Al) : _我的基类(_Pred, _Al) {
-        插入(_First, _Last);
+        insert(_First, _Last);
     }
 
 #if _HAS_CXX23
@@ -560,38 +560,38 @@ public:
         _我的基类::swap(_Right);
     }
 
-    using _我的基类::插入;
+    using _我的基类::insert;
 
     template <class _Valty, enable_if_t<is_constructible_v<value_type, _Valty>, int> = 0>
-    iterator 插入(_Valty&& _Val) {
+    iterator insert(_Valty&& _Val) {
         return this->就地构造(_STD forward<_Valty>(_Val));
     }
 
     template <class _Valty, enable_if_t<is_constructible_v<value_type, _Valty>, int> = 0>
-    iterator 插入(const_iterator _Where, _Valty&& _Val) {
+    iterator insert(const_iterator _Where, _Valty&& _Val) {
         return this->emplace_hint(_Where, _STD forward<_Valty>(_Val));
     }
 
     多重映射实现(initializer_list<value_type> _Ilist) : _我的基类(key_compare()) {
-        插入(_Ilist);
+        insert(_Ilist);
     }
 
     多重映射实现(initializer_list<value_type> _Ilist, const key_compare& _Pred) : _我的基类(_Pred) {
-        插入(_Ilist);
+        insert(_Ilist);
     }
 
     多重映射实现(initializer_list<value_type> _Ilist, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
-        插入(_Ilist);
+        insert(_Ilist);
     }
 
     多重映射实现(initializer_list<value_type> _Ilist, const key_compare& _Pred, const allocator_type& _Al)
         : _我的基类(_Pred, _Al) {
-        插入(_Ilist);
+        insert(_Ilist);
     }
 
     多重映射实现& operator=(initializer_list<value_type> _Ilist) {
         _我的基类::clear();
-        插入(_Ilist);
+        insert(_Ilist);
         return *this;
     }
 
@@ -728,8 +728,6 @@ _STL_RESTORE_CLANG_WARNINGS
     // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
     模板 <类型名... 参数> 自动 at(参数&&... 值) { 返回 基类::取值(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 at(参数&&... 值) 常量 { 返回 基类::取值(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 insert(参数&&... 值) { 返回 基类::插入(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 insert(参数&&... 值) 常量 { 返回 基类::插入(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 insert_or_assign(参数&&... 值) { 返回 基类::插入或赋值(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 insert_or_assign(参数&&... 值) 常量 { 返回 基类::插入或赋值(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 try_emplace(参数&&... 值) { 返回 基类::尝试就地构造(static_cast<参数&&>(值)...); }
@@ -739,6 +737,7 @@ _STL_RESTORE_CLANG_WARNINGS
 
     // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
     // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
+    模板 <类型名... 参数> 自动 插入(参数&&... 值) { 返回 基类::insert(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 擦除(参数&&... 值) { 返回 基类::erase(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 查找(参数&&... 值) { 返回 基类::find(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 计数(参数&&... 值) 常量 { 返回 基类::count(static_cast<参数&&>(值)...); }
@@ -760,7 +759,7 @@ _STL_RESTORE_CLANG_WARNINGS
 公开:
     使用 基类 = 细节::多重映射实现<键, 映射值, 比较, 分配器>;
     使用 基类::基类;
-    模板 <类型名... 参数> 自动 插入(参数&&... 值) { 返回 基类::插入(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 插入(参数&&... 值) { 返回 基类::insert(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 擦除(参数&&... 值) { 返回 基类::erase(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 查找(参数&&... 值) { 返回 基类::find(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 计数(参数&&... 值) 常量 { 返回 基类::count(static_cast<参数&&>(值)...); }
