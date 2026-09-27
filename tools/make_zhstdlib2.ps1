@@ -922,6 +922,55 @@ $H = @{
       @('无序多重映射 + 就地构造','#包含 <无序映射>`n整数 主函数(){ 标准::无序多重映射<整数, 整数> 甲; 甲.插入({1, 1}); 甲.插入({1, 2}); 标准::无序映射<整数, 整数> 乙; 乙.try_emplace(5, 6); 返回 (整数)甲.计数(1) + (整数)乙.尺寸() - 3; }')
     )
   }
+  'span' = @{
+    zh      = '跨度'
+    types   = [ordered]@{ 'span' = '跨度实现' }
+    # ⚠ dynamic_extent 是【变量】不是类型/成员 —— 登记进 data 表，
+    #   这样既改名、又会被步 4c 去限定（4c 遍历 types/members/data）。
+    #   实测漏了它：error: namespace 'std' 中没有名为 'dynamic_extent' 的成员；
+    #   你是不是想写 '细节::dynamic_extent'？ / 没有变量模板匹配部分特化
+    members = [ordered]@{
+      'size' = '尺寸'; 'size_bytes' = '字节尺寸'; 'empty' = '为空'
+      'data' = '数据'; 'front' = '前'; 'back' = '后'
+      'begin' = '开始'; 'end' = '结束'
+      'rbegin' = '反向开始'; 'rend' = '反向结束'
+      'first' = '首段'; 'last' = '末段'; 'subspan' = '子跨度'
+      # as_bytes / as_writable_bytes 是命名空间作用域的自由函数，
+      # 抄来后落在 细节:: —— 用 using 声明引进 标准（§3.19.1）
+      'as_bytes' = '转字节'; 'as_writable_bytes' = '转可写字节'
+      # ⚠ swap 照旧不改名（§3.12）
+    }
+    data    = [ordered]@{ 'dynamic_extent' = '动态范围' }
+    derive  = @( @('size','尺寸'), @('size_bytes','字节尺寸'), @('empty','为空'),
+                 @('data','数据'), @('front','前'), @('back','后'),
+                 @('begin','开始'), @('end','结束'),
+                 @('rbegin','反向开始'), @('rend','反向结束'),
+                 @('first','首段'), @('last','末段'), @('subspan','子跨度') )
+    deriveTypes = @( @('迭代器','iterator'), @('元素类型','element_type'),
+                     @('值类型','value_type'), @('尺寸类型','size_type') )
+    stdHash = $false
+    tparam  = @{ decl = '模板 <类型名 元素, size_t 范围 = 细节::动态范围>'; args = '<元素, 范围>' }
+    extra = @'
+
+名域 标准 {
+
+// 自由函数：抄来后落在 细节::，用 using 声明引进 标准::（§3.19.1，
+// 比重写转发保真：重载全带上、返回引用也不丢）
+使用 细节::转字节;
+使用 细节::转可写字节;
+
+// 动态范围常量（std::dynamic_extent）—— 变量，成员转发管不到，手写
+内联 常量表达式 size_t 动态范围常量 = 细节::动态范围;
+
+}  // 名域 标准
+'@
+    tests = @(
+      @('只引中文头','#包含 <跨度>`n整数 主函数(){ 整数 原[4] = {1, 2, 3, 4}; 标准::跨度<整数> 甲(原); 返回 (整数)甲.尺寸() + 甲.前() + 甲.后() - 9; }'),
+      @('与微软原头并存','#包含 <跨度>`n#包含 <span>`n整数 主函数(){ 整数 原[3] = {1, 2, 3}; 标准::跨度<整数> 甲(原); std::span<int> 乙(原); 返回 (整数)甲.尺寸() - (整数)乙.size(); }'),
+      @('中英并用 + 子跨度 / 首段 / 末段','#包含 <跨度>`n整数 主函数(){ 整数 原[5] = {1, 2, 3, 4, 5}; 标准::跨度<整数> 甲(原); 自动 子 = 甲.subspan(1, 3); 自动 首 = 甲.首段(2); 自动 尾 = 甲.末段(1); 返回 (整数)子.尺寸() + 首.前() + 尾.后() - 9; }'),
+      @('字节视图 + 动态范围常量','#包含 <跨度>`n整数 主函数(){ 整数 原[2] = {1, 2}; 标准::跨度<整数> 甲(原); 自动 字节 = 标准::转字节(甲); 布尔 全 = 字节.尺寸() == 甲.字节尺寸(); 标准::跨度<整数, 标准::动态范围> 乙(甲); 返回 (全 ? 0 : 1) + (整数)乙.尺寸() - 2; }')
+    )
+  }
   'scoped_allocator' = @{
     zh      = '作用域分配器'
     types   = [ordered]@{ 'scoped_allocator_adaptor' = '作用域分配器适配器实现'
@@ -1312,12 +1361,18 @@ Write-Host "  步2 名域 -> 标准::细节 + 使用 名域 std;"
 #  修法：在 `namespace pmr {` 后面补一句 `使用 名域 std::pmr;`。
 #  pmr 名域本身暂不翻（方案 §六第 9 条），但里面的名字必须能找到。
 # ---------------------------------------------------------------------------
-$nPmr = 0
-if ($text -match '(?m)^namespace pmr \{') {
-    $text = [regex]::Replace($text, '(?m)^(namespace pmr \{)',
-        "`$1`n    使用 名域 std::pmr;   // pmr 暂不翻，但里面的名字要靠它找到（步 2b）")
-    $nPmr = 1
-    Write-Host '  步2b pmr 名域：补 使用 名域 std::pmr;'
+# ⚠ 不止 pmr：std 里还有 ranges / chrono / filesystem / execution 等【嵌套名域】，
+#   原头行里写 namespace X { ... }，里面的名字靠"在 std::X 里"这个位置找。
+#   搬进 细节 之后同样找不到 —— 一律补一句 使用 名域 std::X;
+$nested# ⚠ 绝不能放进 this_thread：<thread> 里它是【我们自己翻译】的（本线程），
+#   注入 使用 名域 std::this_thread; 会被改名成 std::本线程 -> 名域不存在。
+$nested = @('pmr', 'ranges', 'chrono', 'filesystem', 'execution')
+foreach ($ns in $nested) {
+    if ($text -match "(?m)^namespace $ns \{") {
+        $text = [regex]::Replace($text, "(?m)^(namespace $ns \{)",
+            "`$1`n    使用 名域 std::$ns;   // 嵌套名域暂不翻，但里面的名字要靠它找到（步 2b）")
+        Write-Host "  步2b 嵌套名域 $ns：补 使用 名域 std::$ns;"
+    }
 }
 
 # 步 3/4：类型名、成员名、数据成员名（按 \b 边界，逐条替换）

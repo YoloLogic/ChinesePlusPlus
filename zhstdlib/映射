@@ -690,7 +690,7 @@ _EXPORT_STD template <class _Kty, class _Ty, class _Keylt, class _Alloc, class _
 
 #if _HAS_CXX17
 namespace pmr {
-    使用 名域 std::pmr;   // pmr 暂不翻，但里面的名字要靠它找到（步 2b）
+    使用 名域 std::pmr;   // 嵌套名域暂不翻，但里面的名字要靠它找到（步 2b）
     _EXPORT_STD template <class _Kty, class _Ty, class _Pr = less<_Kty>>
     using 映射实现 = 映射实现<_Kty, _Ty, _Pr, polymorphic_allocator<pair<const _Kty, _Ty>>>;
 
