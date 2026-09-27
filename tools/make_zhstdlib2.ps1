@@ -324,6 +324,42 @@ $H = @{
       @('本线程名域','#包含 <线程>`n整数 主函数(){ 标准::本线程::让出(); 标准::本线程::yield(); 标准::线程::id 标 = 标准::本线程::取标识(); (空型)标; 返回 0; }')
     )
   }
+  'bitset' = @{
+    zh      = '位集'
+    # types 第一个 = 派生层基类
+    # ⚠ 嵌套代理类 `bitset::reference` 【不改名】：`reference` 太通用，
+    #   全局 \breference\b 替换不安全（同 §3.13 的 thread::id，§六第 8 条）。
+    #   它跟着派生一起继承，所以 标准::位集<8>::reference 照样能写。
+    types   = [ordered]@{ 'bitset' = '位集实现' }
+    members = [ordered]@{
+      'set' = '置位'; 'reset' = '复位'; 'flip' = '翻转'; 'test' = '测试'
+      'count' = '计数'; 'size' = '尺寸'
+      'all' = '全为真'; 'any' = '有真'; 'none' = '全为假'
+      'to_string' = '转字符串'; 'to_ulong' = '转无符号长'; 'to_ullong' = '转无符号长长'
+    }
+    data    = [ordered]@{}
+    derive  = @( @('set','置位'), @('reset','复位'), @('flip','翻转'), @('test','测试'),
+                 @('count','计数'), @('size','尺寸'), @('all','全为真'), @('any','有真'),
+                 @('none','全为假'), @('to_string','转字符串'),
+                 @('to_ulong','转无符号长'), @('to_ullong','转无符号长长') )
+    stdHash = $false
+    # ⚠ bitset 是【类模板】，且是【非类型参数】模板 <size_t _Bits>。
+    #   tparam 漏了的话派生层会写成 `类型 位集 : 公开 细节::位集实现 {`，报
+    #   「使用类模板 '细节::位集实现' 需要模板实参」/「缺少类名」/「未声明的标识符 '基类'」。
+    tparam  = @{ decl = '模板 <size_t 位数>'; args = '<位数>' }
+    # ⚠ 原头里的 hash<bitset<_Bits>> 特化挂在【抄来那层】的类型上（细节::位集实现）。
+    #   而对外类型 标准::位集 是【派生出来的另一个类模板】—— 按 §3.13 的判据
+    #   （模板参数是不是"对外类型本身"）这里必须【重发一份】，
+    #   否则 unordered_set<标准::位集<8>> 找不到 hash。
+    stdExtra = '模板 <size_t 位数>
+    结构 hash<标准::位集<位数>> : hash<标准::细节::位集实现<位数>> {};'
+    tests = @(
+      @('只引中文头','#包含 <位集>`n整数 主函数(){ 标准::位集<8> 甲; 甲.置位(1); 布尔 有 = 甲.测试(1); 甲.复位(1); 甲.翻转(); 返回 (有 && 甲.计数() == 8) ? 0 : 1; }'),
+      @('与微软原头并存','#包含 <位集>`n#包含 <bitset>`n整数 主函数(){ 标准::位集<8> 甲(""1010""); std::bitset<8> 乙(""1010""); 返回 (整数)甲.计数() - (整数)乙.count(); }'),
+      @('英文名与中文名并用 + 转字符串','#包含 <位集>`n整数 主函数(){ 标准::位集<4> 甲; 甲.set(0); 甲.set(1); 自动 串 = 甲.to_string(); 自动 串2 = 甲.转字符串(); 返回 (串.size() == 4 && 串2.size() == 4) ? 0 : 1; }'),
+      @('位运算 + std::hash 特化必须认识对外类型','#包含 <位集>`n整数 主函数(){ 标准::位集<8> 甲(""1100""); 标准::位集<8> 乙(""0110""); 自动 丙 = 甲 | 乙; std::hash<标准::位集<8>> 哈; 返回 (丙.计数() == 3 && 哈(甲) == 哈(甲)) ? 0 : 1; }')
+    )
+  }
   'scoped_allocator' = @{
     zh      = '作用域分配器'
     types   = [ordered]@{ 'scoped_allocator_adaptor' = '作用域分配器适配器实现'
@@ -538,8 +574,54 @@ Write-Host ("跨头译名检查: 共 {0} 个英文名，其中 {1} 个跨了多�
 if ($zhClash.Count) {
     Write-Host "❌ 跨头译名不一致（同一个英文名、两个译名）:" -ForegroundColor Red
     $zhClash | ForEach-Object { Write-Host $_ -ForegroundColor Red }
-    Write-Host "  修法：统一成同一个译名；若确实同名不同义，到 \$ZH_NAME_EXCEPTIONS 登记并写理由。" -ForegroundColor Yellow
+    Write-Host '  修法：统一成同一个译名；若确实同名不同义，到 $ZH_NAME_EXCEPTIONS 登记并写理由。' -ForegroundColor Yellow
     throw "跨头译名不一致，先修表再生成"
+}
+
+# ---------------------------------------------------------------------------
+#  关键词表检查：中文名绝不能是关键词（实测踩到，且极难从报错看出是命名问题）
+#
+#  <bitset> 里我把 flip 译作「取反」，而关键词表里：
+#      ZH_OPERATOR_KEYWORD(取反, tilde)   // 取反 = compl = ~
+#  于是 `取反()` 被词法成 `~()`，编译器报的是
+#      error: '~' 之后需要给出类名来指明析构函数
+#  —— 报的是"析构函数"，跟命名八竿子打不着，看半天看不出来。
+#
+#  判据：ChineseKeywords.def 里的中文词一律不能当标识符（方案 §2.2 第一步就是查它，
+#        但"我记得查"不算数 —— 这里改成机器查）。
+# ---------------------------------------------------------------------------
+$kwFile = Join-Path $root 'LLVM-main\clang\include\clang\Basic\ChineseKeywords.def'
+$kwList = @{}
+if (Test-Path $kwFile) {
+    foreach ($line in [System.IO.File]::ReadAllLines($kwFile)) {
+        if ($line -notmatch 'KEYWORD') { continue }
+        # ZH_KEYWORD(英文, 中文, FLAGS)     —— 中文是第 2 个参数
+        foreach ($m in [regex]::Matches($line, 'ZH_KEYWORD\s*\(\s*[^,]+,\s*([^,]+),')) {
+            $kwList[$m.Groups[1].Value.Trim()] = $line.Trim()
+        }
+        # ZH_OPERATOR_KEYWORD(中文, 英文)   —— 中文是第 1 个参数
+        foreach ($m in [regex]::Matches($line, 'ZH_OPERATOR_KEYWORD\s*\(\s*([^,]+),')) {
+            $kwList[$m.Groups[1].Value.Trim()] = $line.Trim()
+        }
+    }
+}
+$kwBad = @(); $kwChecked = 0
+foreach ($en in ($H.Keys | Sort-Object)) {
+    $names = @($H[$en].zh)
+    if ($H[$en].ContainsKey('pub')) { $names += $H[$en].pub }
+    foreach ($kind in @('types', 'members', 'data')) {
+        if ($H[$en].ContainsKey($kind)) { $names += @($H[$en][$kind].Values) }
+    }
+    foreach ($n in $names) {
+        $kwChecked++
+        if ($kwList.ContainsKey($n)) { $kwBad += ("  [{0}] '{1}' 是关键词：{2}" -f $en, $n, $kwList[$n]) }
+    }
+}
+Write-Host ("关键词表检查: 表里 {0} 个关键词，查了本表 {1} 个中文名" -f $kwList.Count, $kwChecked)
+if ($kwBad.Count) {
+    Write-Host "❌ 有中文名撞上关键词（会词法成运算符/语句，报错完全不像命名问题）:" -ForegroundColor Red
+    $kwBad | ForEach-Object { Write-Host $_ -ForegroundColor Red }
+    throw "中文名撞关键词，先改名再生成"
 }
 
 $spec = $H[$Header]

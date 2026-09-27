@@ -65,8 +65,8 @@ foreach ($j in $jobs) {
         # 生成器里的"跨头译名一致性检查"（方案 §3.11）输出会被这里捕获而看不见，
         # 隐形规矩等于没有规矩 —— 所以对每个脚本的第一个头把它显式打出来一行。
         if ($h -eq $list[0]) {
-            $ck = @($o | Where-Object { $_ -match '跨头译名检查|跨头译名不一致' }) | Select-Object -First 1
-            if ($ck) { Write-Host ("  {0}" -f ([string]$ck).Trim()) }
+            $ck = @($o | Where-Object { $_ -match '跨头译名检查|跨头译名不一致|关键词表检查|撞上关键词' }) | Select-Object -First 2
+            foreach ($c in $ck) { Write-Host ("  {0}" -f ([string]$c).Trim()) }
         }
         $ok = ($last -match '^(\d+) / \1$') -or ($last -match '全部通过') -or ($last -match '^([0-9]+) / ([0-9]+)$' -and $Matches[1] -eq $Matches[2])
         if (-not $ok) { $fail++ }
