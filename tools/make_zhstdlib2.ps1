@@ -1511,7 +1511,7 @@ function Remove-ClassDef {
     # ⚠ 类名和 class 之间常夹着宏/说明符：原文是 `class _NODISCARD bad_optional_access`。
     #   原来写成 `class\s+NAME` 会【匹配不到】-> dropTypes 静默什么都没删（实测踩到），
     #   于是异常类还在，_Throw_xxx() 抛的是抄来那个类 -> catch(std::xxx&) 永远抓不到。
-    $rx = [regex]('(?m)^[^\r\n]*\b(?:class|struct)\s+(?:[A-Za-z_]\w*\s+)*' + [regex]::Escape($Name) + '\b[^\r\n]*\{')
+    $rx = [regex]('(?m)^[^\r\n]*\b(?:class|struct)\s+[^;{\r\n]*?' + [regex]::Escape($Name) + '\b[^\r\n]*\{')
     $m = $rx.Match($Text)
     if (-not $m.Success) { return $Text }
     $i = $Text.IndexOf('{', $m.Index)
