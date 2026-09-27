@@ -570,6 +570,51 @@ $H = @{
       @('英文名与中文名并用','#包含 <任意>`n整数 主函数(){ 标准::任意 甲 = 3; 布尔 有 = 甲.has_value(); 整数 值 = 标准::任意转换<整数>(甲); 返回 (有 ? 值 : 0) - 3; }')
     )
   }
+  'deque' = @{
+    zh      = '双端队列'
+    types   = [ordered]@{ 'deque' = '双端队列实现' }
+    # 迭代器类是【本文件自己定义的】（不像 set/map 借用 _Tree），
+    # 故意不改名：它们是内部件，跟着派生一起继承即可（§2.2.1 的"内部件暂不翻"）。
+    members = [ordered]@{
+      'size' = '尺寸'; 'empty' = '为空'; 'max_size' = '最大尺寸'
+      'begin' = '开始'; 'end' = '结束'
+      'cbegin' = '常量开始'; 'cend' = '常量结束'
+      'rbegin' = '反向开始'; 'rend' = '反向结束'
+      'crbegin' = '常量反向开始'; 'crend' = '常量反向结束'
+      'at' = '取值'; 'front' = '前'; 'back' = '后'
+      'push_back' = '尾插'; 'push_front' = '头插'
+      'pop_back' = '尾删'; 'pop_front' = '头删'
+      'emplace' = '就地构造'; 'emplace_back' = '尾部就地构造'; 'emplace_front' = '头部就地构造'
+      'insert' = '插入'; 'erase' = '擦除'; 'assign' = '赋值'
+      'resize' = '调整尺寸'; 'shrink_to_fit' = '收缩至适应'
+      'clear' = '清空'; 'get_allocator' = '取分配器'
+      'append_range' = '追加范围'; 'prepend_range' = '前置范围'
+      'assign_range' = '范围赋值'; 'insert_range' = '范围插入'
+      # ⚠ swap 照旧不改名（§3.12）
+    }
+    data    = [ordered]@{}
+    derive  = @( @('size','尺寸'), @('empty','为空'), @('max_size','最大尺寸'),
+                 @('begin','开始'), @('end','结束'),
+                 @('at','取值'), @('front','前'), @('back','后'),
+                 @('push_back','尾插'), @('push_front','头插'),
+                 @('pop_back','尾删'), @('pop_front','头删'),
+                 @('emplace','就地构造'), @('emplace_back','尾部就地构造'),
+                 @('emplace_front','头部就地构造'),
+                 @('insert','插入'), @('erase','擦除'), @('assign','赋值'),
+                 @('resize','调整尺寸'), @('shrink_to_fit','收缩至适应'),
+                 @('clear','清空'), @('get_allocator','取分配器') )
+    deriveTypes = @( @('迭代器','iterator'), @('常量迭代器','const_iterator'),
+                     @('反向迭代器','reverse_iterator'), @('常量反向迭代器','const_reverse_iterator'),
+                     @('值类型','value_type'), @('尺寸类型','size_type') )
+    stdHash = $false
+    tparam  = @{ decl = '模板 <类型名 元素, 类型名 分配器 = std::allocator<元素>>'; args = '<元素, 分配器>' }
+    tests = @(
+      @('只引中文头','#包含 <双端队列>`n整数 主函数(){ 标准::双端队列<整数> 甲; 甲.尾插(1); 甲.头插(0); 甲.尾部就地构造(2); 返回 甲.取值(0) + (整数)甲.尺寸() - 3; }'),
+      @('与微软原头并存','#包含 <双端队列>`n#包含 <deque>`n整数 主函数(){ 标准::双端队列<整数> 甲; 甲.push_back(1); std::deque<int> 乙; 乙.push_back(1); 返回 (整数)甲.尺寸() - (整数)乙.size(); }'),
+      @('中英并用 + 中文迭代器名','#包含 <双端队列>`n整数 主函数(){ 标准::双端队列<整数> 甲; 甲.尾插(3); 甲.头插(1); 标准::双端队列<整数>::迭代器 头 = 甲.开始(); 整数 和 = 0; for (; 头 != 甲.结束(); ++头) { 和 += *头; } 返回 和 - 4; }'),
+      @('擦除 / 插入 / 前后','#包含 <双端队列>`n整数 主函数(){ 标准::双端队列<整数> 甲; 甲.尾插(1); 甲.尾插(2); 甲.尾插(3); 甲.擦除(甲.开始()); 甲.插入(甲.开始(), 9); 返回 甲.前() + 甲.后() - 12; }')
+    )
+  }
   'scoped_allocator' = @{
     zh      = '作用域分配器'
     types   = [ordered]@{ 'scoped_allocator_adaptor' = '作用域分配器适配器实现'
