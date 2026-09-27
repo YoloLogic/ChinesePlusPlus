@@ -222,7 +222,13 @@ Write-Host "  步3/4 类型 $nT 处 / 成员 $nM 处 / 数据 $nD 处"
 #  修法：改名完成后，把 `_STD <改后的名字>` 还原成不带限定的 `<改后的名字>`。
 # ---------------------------------------------------------------------------
 $nq = 0
-foreach ($m in @($spec.types, $spec.members, $spec.data)) {
+# ⚠ 只对【类型】与【数据成员】去限定，绝不能对【成员函数名】去限定。
+#   反例（实测踩到）：<stack> 里 `using _STD swap;` 是**故意**把 std::swap 拉进来供 ADL 用，
+#   它不是"引用自己"。而我那张 members 表里也有 swap->交换，于是步 4c 把
+#   `using _STD 交换;` 去限定成 `using 交换;` -> error: 使用 声明要求限定名。
+#   判据：`_STD X` 只有在本文件【定义】了 X 时才该去限定；函数名会和 std 自由函数同名，
+#   所以只认 types/data 两类。
+foreach ($m in @($spec.types, $spec.data)) {
     foreach ($k in $m.Keys) {
         $newName = $m[$k]
         $before2 = $text
@@ -344,7 +350,12 @@ Remove-Item $probe -Force -ErrorAction SilentlyContinue
 #  为什么：校对是按编译器给的【字节坐标】直接改文件，如果派生层已经在那儿，
 #  它的中文标识符会被误当冲突位置改坏 —— 实测把「到达令牌」改成了「到」「达」碎片。
 # ---------------------------------------------------------------------------
-[System.IO.File]::AppendAllText($outPath, $layer, $utf8)
+# extra：原样追加在文件最末的代码。用途：一个头里有【多个对外类】时，
+# 主类由上面的机制生成，其余类与自由函数在这里手写（如 <mutex> 有 8 个公开类）。
+# 这样不必为多类重构整张表，现有条目一行都不用改。
+$layerText = $layer
+if ($spec.ContainsKey('extra')) { $layerText += "`n" + $spec.extra }
+[System.IO.File]::AppendAllText($outPath, $layerText, $utf8)
 Write-Host "  步6 派生层 + 英文转发 $($spec.derive.Count) 条$(if ($spec.deriveTypes) { " + 嵌套类型 $($spec.deriveTypes.Count) 条" })$(if ($spec.stdHash) { ' + std::hash 特化' })"
 
 # --- 最终验证：中文名 / 英文名 / 与 std 并存 ---
