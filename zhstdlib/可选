@@ -234,7 +234,7 @@ public:
     static_assert(is_object_v<_Ty> && is_destructible_v<_Ty> && !is_array_v<_Ty>,
         "T in 可选实现<T> must meet the Cpp17Destructible requirements (N4950 [可选实现.可选实现.general]/3).");
 
-    using value_type = _Ty;
+    using 值类型 = _Ty;
 
     constexpr 可选实现() noexcept {}
     constexpr 可选实现(空值类型) noexcept {}
@@ -1011,8 +1011,7 @@ _STL_RESTORE_CLANG_WARNINGS
     使用 基类::基类;
 
     // 嵌套类型名也要补回英文（数据成员不行 —— 那会改布局）
-    使用 值 = 基类::类;
-    使用 v = 基类::a;
+    使用 value_type = 基类::值类型;
 
     // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
     模板 <类型名... 参数> 自动 has_value(参数&&... 值) { 返回 基类::有值(static_cast<参数&&>(值)...); }

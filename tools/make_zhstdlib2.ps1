@@ -478,7 +478,9 @@ $H = @{
   'optional' = @{
     zh      = '可选'
     types   = [ordered]@{ 'optional' = '可选实现'
-                          'nullopt_t' = '空值类型' }
+                          'nullopt_t' = '空值类型'
+                          # 嵌套类型名也汉化（用户要求：抄来那层也要全中文）
+                          'value_type' = '值类型' }
     # 步 0b：把【真 <optional>】也包含进来 —— 为了让 std::bad_optional_access 真的存在。
     # 抄来的那份异常类定义要删掉（dropTypes），否则 _Throw_bad_optional_access()
     # 抛的是我们抄的那个类，用户 catch (std::bad_optional_access&) 永远抓不到。
@@ -495,7 +497,8 @@ $H = @{
     derive  = @( @('has_value','有值'), @('value','取值'), @('value_or','取值或'),
                  @('reset','重置'), @('emplace','就地构造'),
                  @('and_then','且则'), @('transform','变换'), @('or_else','或则') )
-    deriveTypes = @( @('值类型','value_type') )
+    # 方向与以前相反：以前是'给派生类加中文名'，现在是'派生层把英文原名补回来'
+    deriveTypes = @( @('value_type','值类型') )
     stdHash = $false
     tparam  = @{ decl = '模板 <类型名 值>'; args = '<值>' }
     extra = @'
@@ -519,7 +522,7 @@ $H = @{
       @('只引中文头','#包含 <可选>`n整数 主函数(){ 标准::可选<整数> 甲; 布尔 有 = 甲.有值(); 甲 = 5; 返回 (有 ? 1 : 0) + 甲.取值() - 5; }'),
       @('异常必须是同一个类型（与 <optional> 并存）','#包含 <可选>`n#包含 <optional>`n静态断言(std::is_same<标准::坏可选访问, std::bad_optional_access>::value, "");`n整数 主函数(){ 标准::可选<整数> 甲; 尝试 { (空型)甲.取值(); } 捕获 (常量 std::bad_optional_access&) { std::optional<int> 乙; 乙 = 3; 返回 乙.value() - 3; } 返回 1; }'),
       @('无值 / 就地构造 / 取值或','#包含 <可选>`n整数 主函数(){ 标准::可选<整数> 甲(标准::无值); 甲.就地构造(7); 整数 值 = 甲.取值或(0); 甲.重置(); 返回 (整数)甲.有值() + 值 - 7; }'),
-      @('英文名与中文名并用','#包含 <可选>`n整数 主函数(){ 标准::可选<整数> 甲(9); 布尔 有 = 甲.has_value(); 整数 值 = 甲.value(); 返回 (有 ? 值 : 0) - 9; }')
+      @('英文名与中文名并用','#包含 <可选>`n整数 主函数(){ 标准::可选<整数> 甲(9); 布尔 有 = 甲.has_value(); 整数 值 = 甲.value(); 标准::可选<整数>::值类型 值2 = 值; 标准::可选<整数>::value_type 值3 = 值2; 返回 (有 ? 值3 : 0) - 9; }')
     )
   }
   'any' = @{
@@ -1458,8 +1461,33 @@ $cls = ($spec.types.Values | Select-Object -First 1)   # 实现类名
 $origType = ($spec.types.Keys | Select-Object -First 1) # 原本的类型名（供测试用）
 # 头名与对外类名不一定相同（例：<条件变量> 里只有 condition_variable_any）
 $pub = if ($spec.ContainsKey('pub')) { $spec.pub } else { $spec.zh }
+
+# ---------------------------------------------------------------------------
+#  ⚠⚠ 成对列表的"恰好一对"陷阱（实测：<可选> 派生层生成出 `使用 值 = 基类::类;`）
+#
+#  PowerShell 的数组子表达式 @() 会【枚举】内容：
+#      @( @('值类型','value_type') ).Count  ==  2     # 被展平！元素是 String
+#      @( @('a','b'), @('c','d') ).Count    ==  2     # 不展平，元素是 Object[]
+#  于是 foreach ($p in $spec.deriveTypes) 里的 $p 成了【字符串】，
+#  $p[0]/$p[1] 取到的是【单个字符】：'值类型'[0]='值' [1]='类'；'value_type'[0]='v' [1]='a'。
+#  生成物就是 `使用 值 = 基类::类;` 与 `使用 v = 基类::a;` —— 而且它【编译得过】，
+#  所以"4/4 语法通过"照不出来（见方案第八节）。
+#
+#  ⚠ 不要把它写成函数：PowerShell 的函数返回值【也会被管道展开】，
+#    `return $out`（只含一对时）会被摊回两个字符串 —— 第一版修复就栽在这里。
+#    必须【内联 + 纯赋值】（赋值不走管道，不展开）。
+# ---------------------------------------------------------------------------
+function Repair-Pairs([object]$list) {
+    # 注意：调用方必须用 = 赋值接收（不能用 foreach 直接吃函数输出）
+    $arr = @($list)
+    if ($arr.Count -eq 0 -or $arr[0] -isnot [string]) { return , $arr }
+    $tmp = @()
+    for ($i = 0; $i + 1 -lt $arr.Count; $i += 2) { $tmp += , @($arr[$i], $arr[$i + 1]) }
+    return , $tmp
+}
+$derPairs = Repair-Pairs $spec.derive
 $fwd = @()
-foreach ($p in $spec.derive) {
+foreach ($p in $derPairs) {
     # 发两个转发：非 const 一个、const 一个。
     # 为什么两个都要：只发非 const 的话，const 对象上调用不到（实测
     # std::hash 特化里 _键.hash_code() 就是 const 引用，直接报"没有匹配的成员函数"）。
@@ -1470,7 +1498,7 @@ foreach ($p in $spec.derive) {
 }
 $fwdT = @()
 if ($spec.ContainsKey('deriveTypes')) {
-    foreach ($p in $spec.deriveTypes) { $fwdT += ("    使用 {0} = 基类::{1};" -f $p[0], $p[1]) }
+    foreach ($p in (Repair-Pairs $spec.deriveTypes)) { $fwdT += ("    使用 {0} = 基类::{1};" -f $p[0], $p[1]) }
 }
 $hashSpec = if ($spec.stdHash) { @"
 
@@ -1531,11 +1559,15 @@ $probe = Join-Path $env:TEMP ('zh2_' + [guid]::NewGuid().ToString('N').Substring
 $rev = @{}
 foreach ($k in $spec.members.Keys) { $rev[$spec.members[$k]] = $k }
 foreach ($k in $spec.data.Keys)    { $rev[$spec.data[$k]] = $k }
+# ⚠ 类型名也要能回退：现在要让【抄来那层】的嵌套类型名（value_type 等）也汉化，
+#   而这类名字会用在【借用类型】的路径上（allocator_traits<_Alloc>::value_type 之类），
+#   一旦改错必须能自动救回。
+foreach ($k in $spec.types.Keys)     { $rev[$spec.types[$k]] = $k }
 for ($round = 1; $round -le 8; $round++) {
     $raw = & cmd /c "`"$cxx`" -std=c++20 -isystem`"$out`" -ferror-limit=0 -fsyntax-only `"$probe`" 2>&1"
     $hits = @()
     foreach ($l in @($raw)) {
-        if ([string]$l -match "$($spec.zh)`:(\d+):(\d+): error: .*没有名为（成员名） '([^']+)' 的成员") {
+        if ([string]$l -match "$($spec.zh)`:(\d+):(\d+): error: .*?(?:没有名为（成员名）|没有名为（名字）|未知的类型名（类型名）) '([^']+)'") {
             $hits += [pscustomobject]@{ Line=[int]$Matches[1]; Col=[int]$Matches[2]; Name=$Matches[3] }
         }
     }
