@@ -1086,7 +1086,26 @@ $H = @{
       @('本体类型确实可用（模板形状对）','#包含 <特殊成员控制>`n结构 基类 { 整数 值; };`n整数 主函数(){ 标准::_特殊成员控制<基类, 整数> 甲; (空型)甲; 返回 0; }')
     )
   }
-  'scoped_allocator' = @{
+  'xpolymorphic_allocator.h' = @{
+    zh      = '多态分配器'
+    realInclude = @('xpolymorphic_allocator.h')
+    dropTypes   = @('memory_resource')
+    noPub       = $true
+    types   = [ordered]@{ 'pmr' = 'pmr'
+                          '_Normally_bound_ref' = '_常规绑定引用'
+                          '_Deallocate_bytes_guard' = '_字节释放卫兵'
+                          'polymorphic_allocator' = '多态分配器模板'
+                          '_Pair_ref_t' = '_对引用类型' }
+    members = [ordered]@{}
+    data    = [ordered]@{}
+    derive  = @()
+    stdHash = $false
+    tparam  = @{ decl = ''; args = '' }
+    tests = @(
+      @('只引中文头','#包含 <多态分配器>`n整数 主函数(){ 返回 0; }'),
+      @('本体类型确实可用（pmr 名域里的模板）','#包含 <多态分配器>`n整数 主函数(){ 标准::细节::pmr::多态分配器模板<整数> 甲; (空型)甲; 返回 0; }')
+    )
+  }  'scoped_allocator' = @{
     zh      = '作用域分配器'
     types   = [ordered]@{ 'scoped_allocator_adaptor' = '作用域分配器适配器实现'
                           '_Scoped_base' = '_作用域基类'
@@ -1467,6 +1486,45 @@ if ($spec.zhIncludes) {
 #  ⚠ dropTypes 只适合"简单异常类"。删除用花括号配对实现，
 #     不处理字符串/注释里的花括号 —— 对异常类足够，别拿它删大东西。
 # ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+#  §16.16：dropTypes 只丢类定义不够 —— 为这个类写的【自由运算符/函数】也要一起丢。
+#  实测（xpolymorphic_allocator.h）：丢掉 memory_resource 之后，
+#    多态分配器:299:36: error: 重载运算符 '==' 的使用有歧义（memory_resource 和 memory_resource）
+#  因为拷贝里还留着 operator==(const memory_resource&, const memory_resource&)，
+#  而 realInclude 带来的真头里也有一份 -> 两份同时可见（细节::pmr 有 使用 名域 std::pmr;）-> 歧义。
+#
+#  做法：对每个被丢的类名，凡是以 operator 开头且签名里出现该类名的行，
+#  从该处起用【花括号配对】删掉整个定义块。
+# ---------------------------------------------------------------------------
+function Remove-OperatorDefs {
+    param([string]$Text, [string]$Name, [ref]$Count)
+    $rx = [regex]('(?m)^[^\r\n]*\boperator\b[^\r\n]*\b' + [regex]::Escape($Name) + '\b')
+    $removed = 0
+    while ($true) {
+        $m = $rx.Match($Text)
+        if (-not $m.Success) { break }
+        $i = $Text.IndexOf('{', $m.Index)
+        if ($i -lt 0) { break }
+        $depth = 0; $j = $i
+        while ($j -lt $Text.Length) {
+            $ch = $Text[$j]
+            if ($ch -eq '{') { $depth++ }
+            elseif ($ch -eq '}') { $depth--; if ($depth -eq 0) { break } }
+            $j++
+        }
+        if ($j -ge $Text.Length) { break }
+        $end = $j + 1
+        while ($end -lt $Text.Length -and ($Text[$end] -eq ';' -or $Text[$end] -eq "`r" -or $Text[$end] -eq "`n" -or $Text[$end] -eq ' ')) { $end++ }
+        $start = $m.Index
+        while ($start -gt 0 -and $Text[$start - 1] -ne "`n") { $start-- }
+        $Text = $Text.Substring(0, $start) + $Text.Substring($end)
+        $removed++
+    }
+    if ($removed -gt 0) { $Count.Value += $removed }
+    return $Text
+}
+
 function Remove-ClassDef {
     param([string]$Text, [string]$Name, [ref]$Count)
     # ⚠ 类名和 class 之间常夹着宏/说明符：原文是 `class _NODISCARD bad_optional_access`。
@@ -1504,6 +1562,7 @@ if ($spec.dropTypes) {
             Write-Host "  步0b ⚠ dropTypes 没找到类定义 '$dn'" -ForegroundColor Yellow
         } else {
             Write-Host "  步0b 丢掉抄来的类定义 '$dn'（改用真头的 std::$dn）"
+$text = Remove-OperatorDefs -Text $text -Name $dn -Count ([ref]$nDrop)
         }
     }
 }
