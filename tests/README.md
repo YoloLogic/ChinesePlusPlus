@@ -249,8 +249,9 @@ BMI 只有**导入方**才需要。
 
 实测踩过：`我的测试.cpp` 从 `experiments\` 搬到 `tests\demo\` 后，里面写的
 `#include "../examples/zhstd.h"` 变成了 `tests\examples\zhstd.h`（不存在）——
-于是 `zhstd.h` 里定义的 `概念` / `可相加` / `标准` / `数列` 全部报「未声明」，
-看起来像语言坏了，其实是路径少了退一级。查漏命令：
+于是那个头里定义的 `概念` / `可相加` / `标准` / `数列` 全部报「未声明」，
+看起来像语言坏了，其实是路径少了退一级。
+（`examples\zhstd.h` **已于 2026-09-27 删除**，本条作为教训保留。）查漏命令：
 
 ```powershell
 Get-ChildItem E:\Chinese++\tests -Recurse -Include *.cpp,*.h |
