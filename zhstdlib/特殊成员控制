@@ -26,8 +26,8 @@ struct _非平凡复制 : _Base { // non-trivial copy construction facade
 
     _非平凡复制() = default;
     _CONSTEXPR20 _非平凡复制(const _非平凡复制& _That)
-        noexcept(noexcept(_Base::_Construct_from(static_cast<const _Base&>(_That)))) {
-        _Base::_Construct_from(static_cast<const _Base&>(_That));
+        noexcept(noexcept(_Base::_由之构造(static_cast<const _Base&>(_That)))) {
+        _Base::_由之构造(static_cast<const _Base&>(_That));
     }
     _非平凡复制(_非平凡复制&&)                 = default;
     _非平凡复制& operator=(const _非平凡复制&) = default;
@@ -57,8 +57,8 @@ struct _非平凡移动 : _特殊成员控制复制<_Base, _Types...> { // non-t
     _非平凡移动()                         = default;
     _非平凡移动(const _非平凡移动&) = default;
     _CONSTEXPR20 _非平凡移动(_非平凡移动&& _That)
-        noexcept(noexcept(_我的基类::_Construct_from(static_cast<_Base&&>(_That)))) {
-        _我的基类::_Construct_from(static_cast<_Base&&>(_That));
+        noexcept(noexcept(_我的基类::_由之构造(static_cast<_Base&&>(_That)))) {
+        _我的基类::_由之构造(static_cast<_Base&&>(_That));
     }
     _非平凡移动& operator=(const _非平凡移动&) = default;
     _非平凡移动& operator=(_非平凡移动&&)      = default;
@@ -92,8 +92,8 @@ struct _非平凡复制赋值 : _特殊成员控制移动<_Base, _Types...> { //
     _非平凡复制赋值(_非平凡复制赋值&&)      = default;
 
     _CONSTEXPR20 _非平凡复制赋值& operator=(const _非平凡复制赋值& _That)
-        noexcept(noexcept(_我的基类::_Assign_from(static_cast<const _Base&>(_That)))) {
-        _我的基类::_Assign_from(static_cast<const _Base&>(_That));
+        noexcept(noexcept(_我的基类::_由之赋值(static_cast<const _Base&>(_That)))) {
+        _我的基类::_由之赋值(static_cast<const _Base&>(_That));
         return *this;
     }
     _非平凡复制赋值& operator=(_非平凡复制赋值&&) = default;
@@ -130,8 +130,8 @@ struct _非平凡移动赋值 : _特殊成员控制复制赋值<_Base, _Types...
     _非平凡移动赋值& operator=(const _非平凡移动赋值&) = default;
 
     _CONSTEXPR20 _非平凡移动赋值& operator=(_非平凡移动赋值&& _That)
-        noexcept(noexcept(_我的基类::_Assign_from(static_cast<_Base&&>(_That)))) {
-        _我的基类::_Assign_from(static_cast<_Base&&>(_That));
+        noexcept(noexcept(_我的基类::_由之赋值(static_cast<_Base&&>(_That)))) {
+        _我的基类::_由之赋值(static_cast<_Base&&>(_That));
         return *this;
     }
 };

@@ -1889,7 +1889,13 @@ $H = @{
                           '_Non_trivial_move_assign' = '_非平凡移动赋值'
                           '_SMF_control_copy_assign' = '_特殊成员控制复制赋值'
                           '_SMF_control_move_assign' = '_特殊成员控制移动赋值' }
-    members = [ordered]@{}
+    members = [ordered]@{
+      # §16.66 把本条目自己清零（第三把尺"完全无残留的头"从 3/31 起往上推）：
+      #   这两个是本头**自己定义**的内部助手（量过"谁定义它"：只有 xsmf_control.h 有），
+      #   不是公开 API -> 不需要派生层补英文。
+      '_Assign_from' = '_由之赋值'
+      '_Construct_from' = '_由之构造'
+    }
     data    = [ordered]@{}
     derive  = @()
     stdHash = $false
