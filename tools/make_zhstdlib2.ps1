@@ -1871,6 +1871,51 @@ $H = @{
       @('顶层汉语类型名可用（模板形参照原文）','#包含 <树内部件>`n整数 主函数(){`n  (空型)sizeof(标准::细节::_树子向);`n  (空型)sizeof(标准::细节::_树节点<整数, 空型*>);`n  (空型)sizeof(标准::细节::_树简单类型集<整数>);`n  返回 0; }')
     )
   }
+  # ===========================================================================
+  #  §16.48 步骤 1 的第五个内部件：xhash（2063 行）
+  #
+  #  为什么做它：`<无序集合>`/`<无序映射>` 的一整族欠账卡在它上面 ——
+  #    `_Alnode` / `_Alnode_traits` / `_Mutable_value_type` / `_In_place_key_extractor` /
+  #    `_Key_compare` 在那些头的拷贝里都是 `typename _Mybase::X`（_Mybase = 借来的 std::_Hash）
+  #    -> 第 ③ 类不能翻（同 §16.37 的 <映射> 族），除非 `_Hash` 也是我们自己的。
+  #
+  #  ⚠ `hash_compare` 【不翻】：它在 `_STDEXT_BEGIN`/`_STDEXT_END` 里，也就是
+  #    **`stdext` 名域**（第 58 行），而第 90 行的 `using stdext::hash_compare;` 才把它引进 std。
+  #    搬名域时 `namespace stdext` 原样不动，所以它是【另一个名域的公开名】，
+  #    不属于"我们抄进 细节 的东西" —— 翻了反而会让第 90 行那个 using 找不到它。
+  #    这是**边界**（不是欠账）：本项目的汉语化只覆盖 `标准`。
+  #
+  #  与 xtree 同形：noPub，先做类型层；成员层下一批。
+  # ===========================================================================
+  'xhash' = @{
+    zh      = '哈希内部件'
+    noPub   = $true
+    types   = [ordered]@{
+      '_Hash'                         = '_哈希'
+      '_Hash_vec'                     = '_哈希向量'
+      '_Hash_find_last_result'        = '_哈希查找最后结果'
+      '_Uhash_compare'                = '_无序哈希比较'
+      '_Uhash_choose_transparency'    = '_无序哈希选择透明性'
+      '_Reinterpret_move_iter'        = '_重解释移动迭代器'
+      '_List_head_construct_ptr'      = '_链表头构造指针'
+      '_Is_hasher'                    = '_是哈希器'
+    }
+    members = [ordered]@{}
+    data    = [ordered]@{}
+    derive  = @()
+    stdHash = $false
+    tparam  = @{ decl = ''; args = '' }
+    tests = @(
+      @('只引中文头','#包含 <哈希内部件>`n整数 主函数(){ 返回 0; }'),
+      # ⚠ 真守卫（不是空测）：形参个数照原文查过 ——
+      #   _Hash_find_last_result<_Nodeptr>(1)、_Hash_vec<_Aliter>(1)、
+      #   _Uhash_choose_transparency<_Kty,_Hasher,_Keyeq>(3)。
+      # ⚠ `_哈希向量` 这里【不敢】实例化：它要求实参是**带成员的迭代器类型**
+      #   （实测 `_哈希向量<整数*>` 报 "'int *' 不能用在 '::' 之前，因为它没有成员"）——
+      #   而裸指针不是。它的形参个数已记在上面，实例化留给真正用到它的上层。
+      @('顶层汉语类型名可用（模板形参照原文）','#包含 <哈希内部件>`n整数 主函数(){`n  (空型)sizeof(标准::细节::_哈希查找最后结果<整数*>);`n  (空型)sizeof(标准::细节::_无序哈希选择透明性<整数, std::hash<整数>, std::equal_to<整数>>);`n  返回 0; }')
+    )
+  }
   'scoped_allocator' = @{
     zh      = '作用域分配器'
     realInclude = @('scoped_allocator')   # §16.29「乙」
