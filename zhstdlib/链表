@@ -28,7 +28,7 @@ class _链表非检查常量迭代器 : public _Base {
 public:
     using iterator_category = bidirectional_iterator_tag;
 
-    using _Nodeptr        = typename _我的链表::_Nodeptr;
+    using _结点指针        = typename _我的链表::_结点指针;
     using value_type      = typename _我的链表::value_type;
     using difference_type = typename _我的链表::difference_type;
     using pointer         = typename _我的链表::const_pointer;
@@ -36,7 +36,7 @@ public:
 
     _链表非检查常量迭代器() noexcept : _Ptr() {}
 
-    _链表非检查常量迭代器(_Nodeptr _Pnode, const _我的链表* _Plist) noexcept : _Ptr(_Pnode) {
+    _链表非检查常量迭代器(_结点指针 _Pnode, const _我的链表* _Plist) noexcept : _Ptr(_Pnode) {
         this->_Adopt(_Plist);
     }
 
@@ -80,7 +80,7 @@ public:
     }
 #endif // !_HAS_CXX20
 
-    _Nodeptr _Ptr; // pointer to node
+    _结点指针 _Ptr; // pointer to node
 };
 
 template <class _我的链表>
@@ -89,7 +89,7 @@ public:
     using _我的基类           = _链表非检查常量迭代器<_我的链表>;
     using iterator_category = bidirectional_iterator_tag;
 
-    using _Nodeptr        = typename _我的链表::_Nodeptr;
+    using _结点指针        = typename _我的链表::_结点指针;
     using value_type      = typename _我的链表::value_type;
     using difference_type = typename _我的链表::difference_type;
     using pointer         = typename _我的链表::pointer;
@@ -134,7 +134,7 @@ public:
     using _我的基类           = _链表非检查常量迭代器<_我的链表, _Iterator_base>;
     using iterator_category = bidirectional_iterator_tag;
 
-    using _Nodeptr        = typename _我的链表::_Nodeptr;
+    using _结点指针        = typename _我的链表::_结点指针;
     using value_type      = typename _我的链表::value_type;
     using difference_type = typename _我的链表::difference_type;
     using pointer         = typename _我的链表::const_pointer;
@@ -211,7 +211,7 @@ public:
     }
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
-    using _Prevent_inheriting_unwrap = _链表常量迭代器;
+    using _阻止继承解包 = _链表常量迭代器;
 
     _NODISCARD _链表非检查常量迭代器<_我的链表> _Unwrapped() const noexcept {
         return _链表非检查常量迭代器<_我的链表>(this->_Ptr, static_cast<const _我的链表*>(this->_Getcont()));
@@ -228,7 +228,7 @@ public:
     using _我的基类           = _链表常量迭代器<_我的链表>;
     using iterator_category = bidirectional_iterator_tag;
 
-    using _Nodeptr        = typename _我的链表::_Nodeptr;
+    using _结点指针        = typename _我的链表::_结点指针;
     using value_type      = typename _我的链表::value_type;
     using difference_type = typename _我的链表::difference_type;
     using pointer         = typename _我的链表::pointer;
@@ -266,7 +266,7 @@ public:
         return _Tmp;
     }
 
-    using _Prevent_inheriting_unwrap = _链表迭代器;
+    using _阻止继承解包 = _链表迭代器;
 
     _NODISCARD _链表非检查迭代器<_我的链表> _Unwrapped() const noexcept {
         return _链表非检查迭代器<_我的链表>(this->_Ptr, static_cast<const _我的链表*>(this->_Getcont()));
@@ -281,15 +281,15 @@ struct _链表迭代类型集 {
     using difference_type = _Difference_type;
     using pointer         = _Pointer;
     using const_pointer   = _Const_pointer;
-    using _Nodeptr        = _Nodeptr_type;
+    using _结点指针        = _Nodeptr_type;
 };
 
 template <class _Value_type, class _Voidptr>
 struct _链表节点 { // 链表实现 node
     using value_type = _Value_type;
-    using _Nodeptr   = _Rebind_pointer_t<_Voidptr, _链表节点>;
-    _Nodeptr _Next; // successor node, or first element if head
-    _Nodeptr _Prev; // predecessor node, or last element if head
+    using _结点指针   = _Rebind_pointer_t<_Voidptr, _链表节点>;
+    _结点指针 _Next; // successor node, or first element if head
+    _结点指针 _Prev; // predecessor node, or last element if head
     _Value_type _Myval = // the stored value, unused if head
         _Returns_exactly<_Value_type>(); // fake a viable constructor to workaround GH-2749
 
@@ -298,7 +298,7 @@ struct _链表节点 { // 链表实现 node
     _链表节点& operator=(const _链表节点&) = delete;
 
     template <class _Alnode>
-    static _Nodeptr _Buyheadnode(_Alnode& _Al) {
+    static _结点指针 _Buyheadnode(_Alnode& _Al) {
         const auto _Result = _Al.allocate(1);
         _Construct_in_place(_Result->_Next, _Result);
         _Construct_in_place(_Result->_Prev, _Result);
@@ -306,7 +306,7 @@ struct _链表节点 { // 链表实现 node
     }
 
     template <class _Alnode>
-    static void _Freenode0(_Alnode& _Al, _Nodeptr _Ptr) noexcept {
+    static void _Freenode0(_Alnode& _Al, _结点指针 _Ptr) noexcept {
         // destroy pointer members in _Ptr and deallocate with _Al
         static_assert(is_same_v<typename _Alnode::value_type, _链表节点>, "Bad _Freenode0 call");
         _Destroy_in_place(_Ptr->_Next);
@@ -315,18 +315,18 @@ struct _链表节点 { // 链表实现 node
     }
 
     template <class _Alnode>
-    static void _Freenode(_Alnode& _Al, _Nodeptr _Ptr) noexcept { // destroy all members in _Ptr and deallocate with _Al
+    static void _Freenode(_Alnode& _Al, _结点指针 _Ptr) noexcept { // destroy all members in _Ptr and deallocate with _Al
         allocator_traits<_Alnode>::destroy(_Al, _STD addressof(_Ptr->_Myval));
         _Freenode0(_Al, _Ptr);
     }
 
     template <class _Alnode>
     static void _Free_non_head(
-        _Alnode& _Al, _Nodeptr _Head) noexcept { // free a 链表实现 starting at _First and terminated at nullptr
+        _Alnode& _Al, _结点指针 _Head) noexcept { // free a 链表实现 starting at _First and terminated at nullptr
         _Head->_Prev->_Next = nullptr;
 
         auto _Pnode = _Head->_Next;
-        for (_Nodeptr _Pnext; _Pnode; _Pnode = _Pnext) {
+        for (_结点指针 _Pnext; _Pnode; _Pnode = _Pnext) {
             _Pnext = _Pnode->_Next;
             _Freenode(_Al, _Pnode);
         }
@@ -336,13 +336,13 @@ struct _链表节点 { // 链表实现 node
 template <class _Ty>
 struct _链表简单类型集 : _Simple_types<_Ty> {
     using _节点    = _链表节点<_Ty, void*>;
-    using _Nodeptr = _节点*;
+    using _结点指针 = _节点*;
 };
 
 template <class _值类型集>
 class _链表值 : public _Container_base {
 public:
-    using _Nodeptr = typename _值类型集::_Nodeptr;
+    using _结点指针 = typename _值类型集::_结点指针;
 
     using value_type      = typename _值类型集::value_type;
     using size_type       = typename _值类型集::size_type;
@@ -356,15 +356,15 @@ public:
 
 #if _MSVC_STL_DESTRUCTOR_TOMBSTONES
     ~_链表值() noexcept {
-        if constexpr (is_pointer_v<_Nodeptr>) {
-            const auto _Tombstone{reinterpret_cast<_Nodeptr>(_MSVC_STL_UINTPTR_TOMBSTONE_VALUE)};
+        if constexpr (is_pointer_v<_结点指针>) {
+            const auto _Tombstone{reinterpret_cast<_结点指针>(_MSVC_STL_UINTPTR_TOMBSTONE_VALUE)};
             _Myhead = _Tombstone;
             _Mysize = 0;
         }
     }
 #endif // _MSVC_STL_DESTRUCTOR_TOMBSTONES
 
-    void _Orphan_ptr2(_Nodeptr _Ptr) noexcept { // orphan iterators with specified node pointers
+    void _Orphan_ptr2(_结点指针 _Ptr) noexcept { // orphan iterators with specified node pointers
 #if _ITERATOR_DEBUG_LEVEL == 2
         _Lockit _Lock(_LOCK_DEBUG);
         _Iterator_base12** _Pnext = &this->_Myproxy->_Myfirstiter;
@@ -402,7 +402,7 @@ public:
 #endif // _ITERATOR_DEBUG_LEVEL == 2
     }
 
-    _Nodeptr _Unlinknode(_Nodeptr _Pnode) noexcept { // unlink node at _Where from the 链表实现
+    _结点指针 _Unlinknode(_结点指针 _Pnode) noexcept { // unlink node at _Where from the 链表实现
         _Orphan_ptr2(_Pnode);
         _Pnode->_Prev->_Next = _Pnode->_Next;
         _Pnode->_Next->_Prev = _Pnode->_Prev;
@@ -411,7 +411,7 @@ public:
     }
 
 #if _ITERATOR_DEBUG_LEVEL == 2
-    void _Adopt_unique(_链表值& _Other, _Nodeptr _Pnode) noexcept {
+    void _Adopt_unique(_链表值& _Other, _结点指针 _Pnode) noexcept {
         // adopt iterators pointing to the spliced node
         _Lockit _Lock(_LOCK_DEBUG);
         _Iterator_base12** _Pnext = &_Other._Myproxy->_Myfirstiter;
@@ -448,13 +448,13 @@ public:
         }
     }
 
-    void _Adopt_range(_链表值& _Other, const _Nodeptr _First, const _Nodeptr _Last) noexcept {
+    void _Adopt_range(_链表值& _Other, const _结点指针 _First, const _结点指针 _Last) noexcept {
         // adopt all iterators pointing to nodes in the "range" [_First, _Last) by marking nodes
         _Lockit _Lock(_LOCK_DEBUG);
         _Iterator_base12** _Pnext = &_Other._Myproxy->_Myfirstiter;
         const auto _Myproxy       = this->_Myproxy;
-        _Nodeptr _Oldprev         = _First->_Prev;
-        for (_Nodeptr _Ptr = _First; _Ptr != _Last; _Ptr = _Ptr->_Next) { // mark _Prev pointers
+        _结点指针 _Oldprev         = _First->_Prev;
+        for (_结点指针 _Ptr = _First; _Ptr != _Last; _Ptr = _Ptr->_Next) { // mark _Prev pointers
             _Ptr->_Prev = nullptr;
         }
 
@@ -470,14 +470,14 @@ public:
             }
         }
 
-        for (_Nodeptr _Ptr = _First; _Ptr != _Last; _Ptr = _Ptr->_Next) { // restore _Prev pointers
+        for (_结点指针 _Ptr = _First; _Ptr != _Last; _Ptr = _Ptr->_Next) { // restore _Prev pointers
             _Ptr->_Prev = _Oldprev;
             _Oldprev    = _Ptr;
         }
     }
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
-    static _Nodeptr _Unchecked_splice(const _Nodeptr _Before, const _Nodeptr _First, const _Nodeptr _Last) noexcept {
+    static _结点指针 _Unchecked_splice(const _结点指针 _Before, const _结点指针 _First, const _结点指针 _Last) noexcept {
         // 接合 [_First, _Last) before _Before; returns _Last
         _STL_INTERNAL_CHECK(_Before != _First && _Before != _Last && _First != _Last);
         // 3 reads and 6 writes
@@ -498,7 +498,7 @@ public:
         return _Last;
     }
 
-    static _Nodeptr _Unchecked_splice(const _Nodeptr _Before, const _Nodeptr _First) noexcept {
+    static _结点指针 _Unchecked_splice(const _结点指针 _Before, const _结点指针 _First) noexcept {
         // 接合 [_First, _First->_Next) before _Before; returns _First->_Next
         _STL_INTERNAL_CHECK(_Before != _First && _First->_Next != _Before);
         // still 3 reads and 6 writes, but 1 less read if the caller was going to get _First->_Next
@@ -521,11 +521,11 @@ public:
     }
 
     template <class _Pr2>
-    static _Nodeptr _Merge_same(_Nodeptr _First, _Nodeptr _Mid, const _Nodeptr _Last, _Pr2 _Pred) {
+    static _结点指针 _Merge_same(_结点指针 _First, _结点指针 _Mid, const _结点指针 _Last, _Pr2 _Pred) {
         // Merge the sorted ranges [_First, _Mid) and [_Mid, _Last)
         // Returns the new beginning of the range (which won't be _First if it was spliced elsewhere)
         _STL_INTERNAL_CHECK(_First != _Mid && _Mid != _Last);
-        _Nodeptr _Newfirst;
+        _结点指针 _Newfirst;
         if (_DEBUG_LT_PRED(_Pred, _Mid->_Myval, _First->_Myval)) {
             // _Mid will be spliced to the 前 of the range
             _Newfirst = _Mid;
@@ -565,7 +565,7 @@ public:
     }
 
     template <class _Pr2>
-    static _Nodeptr _Sort(_Nodeptr& _First, const size_type _Size, _Pr2 _Pred) {
+    static _结点指针 _Sort(_结点指针& _First, const size_type _Size, _Pr2 _Pred) {
         // order [_First, _First + _Size), return _First + _Size
         switch (_Size) {
         case 0:
@@ -582,7 +582,7 @@ public:
         return _Last;
     }
 
-    _Nodeptr _Myhead; // pointer to head node
+    _结点指针 _Myhead; // pointer to head node
     size_type _Mysize; // number of elements
 };
 
@@ -775,18 +775,18 @@ private:
     template <class _Traits>
     friend bool _Hash_equal(const _哈希<_Traits>&, const _哈希<_Traits>&);
 
-    using _Alty          = _Rebind_alloc_t<_Alloc, _Ty>;
-    using _Alty_traits   = allocator_traits<_Alty>;
+    using _分配器类型          = _Rebind_alloc_t<_Alloc, _Ty>;
+    using _分配器特征   = allocator_traits<_分配器类型>;
     using _节点          = _链表节点<_Ty, typename allocator_traits<_Alloc>::void_pointer>;
     using _Alnode        = _Rebind_alloc_t<_Alloc, _节点>;
     using _Alnode_traits = allocator_traits<_Alnode>;
-    using _Nodeptr       = typename _Alnode_traits::pointer;
+    using _结点指针       = typename _Alnode_traits::pointer;
 
     using _值类型集 = conditional_t<_Is_simple_alloc_v<_Alnode>, _链表简单类型集<_Ty>,
-        _链表迭代类型集<_Ty, typename _Alty_traits::size_type, typename _Alty_traits::difference_type,
-            typename _Alty_traits::pointer, typename _Alty_traits::const_pointer, _Nodeptr>>;
+        _链表迭代类型集<_Ty, typename _分配器特征::size_type, typename _分配器特征::difference_type,
+            typename _分配器特征::pointer, typename _分配器特征::const_pointer, _结点指针>>;
 
-    using _Scary_val = _链表值<_值类型集>;
+    using _迭代器检查值 = _链表值<_值类型集>;
 
 public:
     static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<_Ty, typename _Alloc::value_type>,
@@ -796,17 +796,17 @@ public:
 
     using value_type      = _Ty;
     using allocator_type  = _Alloc;
-    using size_type       = typename _Alty_traits::size_type;
-    using difference_type = typename _Alty_traits::difference_type;
-    using pointer         = typename _Alty_traits::pointer;
-    using const_pointer   = typename _Alty_traits::const_pointer;
+    using size_type       = typename _分配器特征::size_type;
+    using difference_type = typename _分配器特征::difference_type;
+    using pointer         = typename _分配器特征::pointer;
+    using const_pointer   = typename _分配器特征::const_pointer;
     using reference       = value_type&;
     using const_reference = const value_type&;
 
-    using iterator                  = _链表迭代器<_Scary_val>;
-    using const_iterator            = _链表常量迭代器<_Scary_val>;
-    using _Unchecked_iterator       = _链表非检查迭代器<_Scary_val>;
-    using _Unchecked_const_iterator = _链表非检查常量迭代器<_Scary_val>;
+    using iterator                  = _链表迭代器<_迭代器检查值>;
+    using const_iterator            = _链表常量迭代器<_迭代器检查值>;
+    using _非检查迭代器       = _链表非检查迭代器<_迭代器检查值>;
+    using _非检查常量迭代器 = _链表非检查常量迭代器<_迭代器检查值>;
 
     using reverse_iterator       = _STD reverse_iterator<iterator>;
     using const_reverse_iterator = _STD reverse_iterator<const_iterator>;
@@ -827,7 +827,7 @@ private:
 
     void _Construct_n(_CRT_GUARDOVERFLOW size_type _Count) {
         auto&& _Alproxy = _GET_PROXY_ALLOCATOR(_Alnode, _Getal());
-        _Container_proxy_ptr<_Alty> _Proxy(_Alproxy, _Mypair._Myval2);
+        _Container_proxy_ptr<_分配器类型> _Proxy(_Alproxy, _Mypair._Myval2);
         _链表节点插入操作2<_Alnode> _Appended(_Getal());
         _Appended._Append_n(_Count);
         _Appended._Attach_head(_Mypair._Myval2);
@@ -848,7 +848,7 @@ public:
 private:
     void _Construct_n(_CRT_GUARDOVERFLOW size_type _Count, const _Ty& _Val) {
         auto&& _Alproxy = _GET_PROXY_ALLOCATOR(_Alnode, _Getal());
-        _Container_proxy_ptr<_Alty> _Proxy(_Alproxy, _Mypair._Myval2);
+        _Container_proxy_ptr<_分配器类型> _Proxy(_Alproxy, _Mypair._Myval2);
         _链表节点插入操作2<_Alnode> _Appended(_Getal());
         _Appended._Append_n(_Count, _Val);
         _Appended._Attach_head(_Mypair._Myval2);
@@ -873,7 +873,7 @@ private:
     template <class _Iter, class _Sent>
     void _Construct_range_unchecked(_Iter _First, const _Sent _Last) {
         auto&& _Alproxy = _GET_PROXY_ALLOCATOR(_Alnode, _Getal());
-        _Container_proxy_ptr<_Alty> _Proxy(_Alproxy, _Mypair._Myval2);
+        _Container_proxy_ptr<_分配器类型> _Proxy(_Alproxy, _Mypair._Myval2);
         _链表节点插入操作2<_Alnode> _Appended(_Getal());
         _Appended._Append_range_unchecked(_STD move(_First), _Last);
         _Appended._Attach_head(_Mypair._Myval2);
@@ -944,7 +944,7 @@ public:
             if (_Al != _Right_al) {
                 auto&& _Alproxy       = _GET_PROXY_ALLOCATOR(_Alnode, _Al);
                 auto&& _Right_alproxy = _GET_PROXY_ALLOCATOR(_Alnode, _Right_al);
-                _Container_proxy_ptr<_Alty> _Proxy(_Right_alproxy, _Leave_proxy_unbound{});
+                _Container_proxy_ptr<_分配器类型> _Proxy(_Right_alproxy, _Leave_proxy_unbound{});
                 auto& _My_data      = _Mypair._Myval2;
                 auto& _Right_data   = _Right._Mypair._Myval2;
                 const auto _Newhead = _STD exchange(_Right_data._Myhead, _节点::_Buyheadnode(_Right_al));
@@ -1027,7 +1027,7 @@ public:
     }
 
     template <class... _Valty>
-    _Nodeptr _Emplace(const _Nodeptr _Where, _Valty&&... _Val) { // 插入 element at _Where
+    _结点指针 _Emplace(const _结点指针 _Where, _Valty&&... _Val) { // 插入 element at _Where
         size_type& _Mysize = _Mypair._Myval2._Mysize;
         if (_Mysize == max_size()) {
             _Xlength_error("链表实现 too long");
@@ -1073,7 +1073,7 @@ private:
         auto&& _Alproxy       = _GET_PROXY_ALLOCATOR(_Alnode, _Al);
         auto& _Right_al       = _Right._Getal();
         auto&& _Right_alproxy = _GET_PROXY_ALLOCATOR(_Alnode, _Right_al);
-        _Container_proxy_ptr<_Alty> _Proxy(_Right_alproxy, _Leave_proxy_unbound{});
+        _Container_proxy_ptr<_分配器类型> _Proxy(_Right_alproxy, _Leave_proxy_unbound{});
         auto _Right_al_non_const = _Right_al;
         auto _Newhead            = _节点::_Buyheadnode(_Right_al_non_const);
         _Tidy();
@@ -1119,27 +1119,27 @@ public:
         return const_iterator(_Mypair._Myval2._Myhead, _STD addressof(_Mypair._Myval2));
     }
 
-    _Unchecked_iterator _Unchecked_begin() noexcept {
-        return _Unchecked_iterator(_Mypair._Myval2._Myhead->_Next, nullptr);
+    _非检查迭代器 _Unchecked_begin() noexcept {
+        return _非检查迭代器(_Mypair._Myval2._Myhead->_Next, nullptr);
     }
 
-    _Unchecked_const_iterator _Unchecked_begin() const noexcept {
-        return _Unchecked_const_iterator(_Mypair._Myval2._Myhead->_Next, nullptr);
+    _非检查常量迭代器 _Unchecked_begin() const noexcept {
+        return _非检查常量迭代器(_Mypair._Myval2._Myhead->_Next, nullptr);
     }
 
-    _Unchecked_iterator _Unchecked_end() noexcept {
-        return _Unchecked_iterator(_Mypair._Myval2._Myhead, nullptr);
+    _非检查迭代器 _Unchecked_end() noexcept {
+        return _非检查迭代器(_Mypair._Myval2._Myhead, nullptr);
     }
 
-    _Unchecked_const_iterator _Unchecked_end() const noexcept {
-        return _Unchecked_const_iterator(_Mypair._Myval2._Myhead, nullptr);
+    _非检查常量迭代器 _Unchecked_end() const noexcept {
+        return _非检查常量迭代器(_Mypair._Myval2._Myhead, nullptr);
     }
 
-    iterator _Make_iter(_Nodeptr _Where) const noexcept {
+    iterator _Make_iter(_结点指针 _Where) const noexcept {
         return iterator(_Where, _STD addressof(_Mypair._Myval2));
     }
 
-    const_iterator _Make_const_iter(_Nodeptr _Where) const noexcept {
+    const_iterator _Make_const_iter(_结点指针 _Where) const noexcept {
         return const_iterator(_Where, _STD addressof(_Mypair._Myval2));
     }
 
@@ -1436,7 +1436,7 @@ public:
     }
 
 private:
-    _Nodeptr _Unchecked_erase(const _Nodeptr _Pnode) noexcept { // 擦除 element at _Pnode
+    _结点指针 _Unchecked_erase(const _结点指针 _Pnode) noexcept { // 擦除 element at _Pnode
         const auto _Result = _Pnode->_Next;
         _Mypair._Myval2._Orphan_ptr2(_Pnode);
         --_Mypair._Myval2._Mysize;
@@ -1453,7 +1453,7 @@ public:
     }
 
 private:
-    _Nodeptr _Unchecked_erase(_Nodeptr _First, const _Nodeptr _Last) noexcept { // 擦除 [_First, _Last)
+    _结点指针 _Unchecked_erase(_结点指针 _First, const _结点指针 _Last) noexcept { // 擦除 [_First, _Last)
         if (_First == _Last) {
             return _Last;
         }
@@ -1607,16 +1607,16 @@ public:
         接合(_Where, _Right, _First, _Last);
     }
 
-    struct _List_node_remove_op {
+    struct _链表节点删除操作 {
         // tracks nodes pending removal in a 移除 operation, so that program-defined predicates may reference those
         // elements until the removal is complete.
 
-        explicit _List_node_remove_op(链表实现& _List_) noexcept : _List(_List_), _Head(), _Tail(_STD addressof(_Head)) {}
+        explicit _链表节点删除操作(链表实现& _List_) noexcept : _List(_List_), _Head(), _Tail(_STD addressof(_Head)) {}
 
-        _List_node_remove_op(const _List_node_remove_op&)            = delete;
-        _List_node_remove_op& operator=(const _List_node_remove_op&) = delete;
+        _链表节点删除操作(const _链表节点删除操作&)            = delete;
+        _链表节点删除操作& operator=(const _链表节点删除操作&) = delete;
 
-        _Nodeptr _Transfer_back(const _Nodeptr _Removed) noexcept {
+        _结点指针 _Transfer_back(const _结点指针 _Removed) noexcept {
             // extract _Removed from the 链表实现, and add it to the singly-linked 链表实现 of nodes to destroy
             // returns the node after _Removed
             _STL_INTERNAL_CHECK(_List._Mypair._Myval2._Myhead != _Removed);
@@ -1639,7 +1639,7 @@ public:
             return _Next;
         }
 
-        ~_List_node_remove_op() {
+        ~_链表节点删除操作() {
             auto& _Al = _List._Getal();
 
 #if _ITERATOR_DEBUG_LEVEL == 2
@@ -1673,8 +1673,8 @@ public:
         }
 
         链表实现& _List;
-        _Nodeptr _Head; // singly linked 链表实现 of nodes to 移除; their _Prev pointers set to nullptr
-        _Nodeptr* _Tail;
+        _结点指针 _Head; // singly linked 链表实现 of nodes to 移除; their _Prev pointers set to nullptr
+        _结点指针* _Tail;
     };
 
     _LIST_REMOVE_RETURN 移除(const _Ty& _Val) { // 擦除 each element matching _Val
@@ -1684,7 +1684,7 @@ public:
     template <class _Pr1>
     _LIST_REMOVE_RETURN 按条件移除(_Pr1 _Pred) { // 擦除 each element satisfying _Pred
         auto& _My_data = _Mypair._Myval2;
-        _List_node_remove_op _Op(*this);
+        _链表节点删除操作 _Op(*this);
         const auto _Last         = _My_data._Myhead;
         const size_type _Oldsize = _My_data._Mysize;
         for (auto _First = _Last->_Next; _First != _Last;) {
@@ -1709,10 +1709,10 @@ public:
 
     template <class _Pr2>
     _LIST_REMOVE_RETURN 去重(_Pr2 _Pred) { // 擦除 each element satisfying _Pred with previous
-        _List_node_remove_op _Op(*this);
-        const _Nodeptr _Phead    = _Mypair._Myval2._Myhead;
-        _Nodeptr _Pprev          = _Phead->_Next;
-        _Nodeptr _Pnode          = _Pprev->_Next;
+        _链表节点删除操作 _Op(*this);
+        const _结点指针 _Phead    = _Mypair._Myval2._Myhead;
+        _结点指针 _Pprev          = _Phead->_Next;
+        _结点指针 _Pnode          = _Pprev->_Next;
         const size_type _Oldsize = _Mypair._Myval2._Mysize;
         while (_Pnode != _Phead) {
             if (_Pred(_Pprev->_Myval, _Pnode->_Myval)) { // match, 移除 it
@@ -1779,7 +1779,7 @@ private:
 
         // if *this had any elements, run the 归并 op between the range we just spliced and the old elements
         if (_Myhead->_Next != _Mid) {
-            _Scary_val::_Merge_same(_Myhead->_Next, _Mid, _Myhead, _Pred);
+            _迭代器检查值::_Merge_same(_Myhead->_Next, _Mid, _Myhead, _Pred);
         }
     }
 
@@ -1791,15 +1791,15 @@ public:
     template <class _Pr2>
     void 排序(_Pr2 _Pred) { // order sequence
         auto& _My_data = _Mypair._Myval2;
-        _Scary_val::_Sort(_My_data._Myhead->_Next, _My_data._Mysize, _Pass_fn(_Pred));
+        _迭代器检查值::_Sort(_My_data._Myhead->_Next, _My_data._Mysize, _Pass_fn(_Pred));
     }
 
     void 反转() noexcept { // 反转 sequence
-        const _Nodeptr _Phead = _Mypair._Myval2._Myhead;
-        _Nodeptr _Pnode       = _Phead;
+        const _结点指针 _Phead = _Mypair._Myval2._Myhead;
+        _结点指针 _Pnode       = _Phead;
 
         for (;;) { // flip pointers in a node
-            const _Nodeptr _Pnext = _Pnode->_Next;
+            const _结点指针 _Pnext = _Pnode->_Next;
             _Pnode->_Next         = _Pnode->_Prev;
             _Pnode->_Prev         = _Pnext;
 
@@ -1812,8 +1812,8 @@ public:
     }
 
 private:
-    _Nodeptr _Splice(
-        const _Nodeptr _Where, 链表实现& _Right, const _Nodeptr _First, const _Nodeptr _Last, const size_type _Count) {
+    _结点指针 _Splice(
+        const _结点指针 _Where, 链表实现& _Right, const _结点指针 _First, const _结点指针 _Last, const size_type _Count) {
         // 接合 _Right [_First, _Last) before _Where; returns _Last
         if (this != _STD addressof(_Right)) { // splicing from another 链表实现, adjust counts
 #if _ITERATOR_DEBUG_LEVEL != 0
@@ -1843,12 +1843,12 @@ private:
             _Right_data._Mysize -= _Count;
         }
 
-        return _Scary_val::_Unchecked_splice(_Where, _First, _Last);
+        return _迭代器检查值::_Unchecked_splice(_Where, _First, _Last);
     }
 
     void _Alloc_sentinel_and_proxy() {
         auto&& _Alproxy = _GET_PROXY_ALLOCATOR(_Alnode, _Getal());
-        _Container_proxy_ptr<_Alty> _Proxy(_Alproxy, _Mypair._Myval2);
+        _Container_proxy_ptr<_分配器类型> _Proxy(_Alproxy, _Mypair._Myval2);
         auto& _Al     = _Getal();
         auto _Newhead = _Al.allocate(1);
         _Construct_in_place(_Newhead->_Next, _Newhead);
@@ -1869,7 +1869,7 @@ private:
         return _Mypair._Get_first();
     }
 
-    _Compressed_pair<_Alnode, _Scary_val> _Mypair;
+    _Compressed_pair<_Alnode, _迭代器检查值> _Mypair;
 };
 
 #if _HAS_CXX17

@@ -704,7 +704,24 @@ $H = @{
                           '_Deque_unchecked_iterator' = '_双端队列非检查迭代器'
                           '_Deque_unchecked_const_iterator' = '_双端队列非检查常量迭代器'
                           '_Deque_iter_types'     = '_双端队列迭代类型集'
-                          '_Deque_simple_types'   = '_双端队列简单类型集' }
+                          '_Deque_simple_types'   = '_双端队列简单类型集'
+                          # §16.36 容器族第 ① 类嵌套名（本头类内私有别名）
+                          '_Alty'                 = '_分配器类型'
+                          '_Alty_traits'          = '_分配器特征'
+                          '_Alpty'                = '_代理分配器'
+                          '_Alpty_traits'         = '_代理分配器特征'
+                          '_Alproxy_ty'           = '_代理分配器类型'
+                          '_Mapptr'               = '_映射指针'
+                          '_Map_difference_type'  = '_映射差异类型'
+                          '_Mydeque_t'            = '_我的双端队列类型'
+                          '_Size_type'            = '_尺寸类型'
+                          '_Scary_val'            = '_迭代器检查值'
+                          '_Unchecked_iterator'   = '_非检查迭代器'
+                          '_Unchecked_const_iterator' = '_非检查常量迭代器'
+                          '_Prevent_inheriting_unwrap' = '_阻止继承解包'
+                          '_Restore_old_size_guard' = '_恢复原尺寸守卫'
+                          '_Is_bidi'              = '_是双向'
+                          '_Pop_direction'        = '_弹出方向' }
     members = [ordered]@{
       'size' = '尺寸'; 'empty' = '为空'
       'begin' = '开始'; 'end' = '结束'
@@ -767,7 +784,16 @@ $H = @{
                           '_List_node_insert_op2' = '_链表节点插入操作2'
                           '_List_node_emplace_op2' = '_链表节点就地构造操作2'
                           '_Move_allocator_tag'   = '_移动分配器标记'
-                          '_Hash'                 = '_哈希' }
+                          '_Hash'                 = '_哈希'
+                          # §16.36 容器族第 ① 类嵌套名（本头类内私有别名）
+                          '_Alty'                 = '_分配器类型'
+                          '_Alty_traits'          = '_分配器特征'
+                          '_Scary_val'            = '_迭代器检查值'
+                          '_Nodeptr'              = '_结点指针'
+                          '_List_node_remove_op'  = '_链表节点删除操作'
+                          '_Unchecked_iterator'   = '_非检查迭代器'
+                          '_Unchecked_const_iterator' = '_非检查常量迭代器'
+                          '_Prevent_inheriting_unwrap' = '_阻止继承解包' }
     members = [ordered]@{
       'size' = '尺寸'; 'empty' = '为空'
       'begin' = '开始'; 'end' = '结束'
@@ -863,7 +889,35 @@ $H = @{
                           '_Vb_iterator'           = '_位向量迭代器'
                           '_Vb_const_iterator'     = '_位向量常量迭代器'
                           '_Vb_iter_base'          = '_位向量迭代基类'
-                          '_Vb_reference'          = '_位引用' }
+                          '_Vb_reference'          = '_位引用'
+                          # §16.36 容器族第 ① 类嵌套名（本头类内私有别名，无第二个主人）
+                          '_Alty'                  = '_分配器类型'
+                          '_Alty_traits'           = '_分配器特征'
+                          '_Alproxy_type'          = '_代理分配器类型'
+                          '_Scary_val'             = '_迭代器检查值'
+                          '_Size_type'             = '_尺寸类型'
+                          '_Difference_type'       = '_差异类型'
+                          '_Tptr'                  = '_类型指针'
+                          '_Mycont'                = '_我的容器'
+                          '_Comp'                  = '_比较器'
+                          '_Vectype'               = '_向量类型'
+                          '_Reft'                  = '_引用类型'
+                          '_Alvbase'               = '_位向量基分配器'
+                          '_Alvbase_traits'        = '_位向量基分配器特征'
+                          '_Alvbase_wrapped'       = '_位向量基分配器包装'
+                          '_Prevent_inheriting_unwrap' = '_阻止继承解包'
+                          '_Asan_create_guard'     = '_地址消毒创建守卫'
+                          '_Asan_extend_guard'     = '_地址消毒延长守卫'
+                          '_Reallocation_guard'    = '_重分配守卫'
+                          '_Simple_reallocation_guard' = '_简单重分配守卫'
+                          '_Reallocation_policy'   = '_重分配策略'
+                          '_Vaporization_guard'    = '_蒸发守卫'
+                          # ⚠ 宏名也必须一起汉化（§16.24 判据，本轮由宏泄漏守卫【在组合探针之前】抓到）：
+                          #   这两个宏的宏体里含 _Asan_create_guard / _Asan_extend_guard，
+                          #   而那两个名字已被翻成汉语 -> 宏体出现汉语 -> 宏名若不改，
+                          #   真 <vector> 展开同名宏时会拿到汉语标识符（在 std 里找不到）。
+                          '_ASAN_VECTOR_CREATE_GUARD' = '_地址消毒向量创建守卫'
+                          '_ASAN_VECTOR_EXTEND_GUARD' = '_地址消毒向量延长守卫' }
     # vector<bool> 特化也定义在本文件里，同一个 types 改名会一起覆盖 ——
     # 于是 细节::向量实现<bool, 分配器> 自动指到那个特化，派生层不用特殊处理。
     members = [ordered]@{
@@ -923,7 +977,16 @@ $H = @{
                           '_Flist_unchecked_const_iterator' = '_单向链表非检查常量迭代器'
                           '_Flist_iter_types'     = '_单向链表迭代类型集'
                           '_Flist_simple_types'   = '_单向链表简单类型集'
-                          '_Flist_insert_after_op2' = '_单向链表后插操作2' }
+                          '_Flist_insert_after_op2' = '_单向链表后插操作2'
+                          # §16.36 容器族第 ① 类嵌套名（本头类内私有别名）
+                          '_Alty'                 = '_分配器类型'
+                          '_Alty_traits'          = '_分配器特征'
+                          '_Scary_val'            = '_迭代器检查值'
+                          '_Nodeptr'              = '_结点指针'
+                          '_Flist_node_remove_op' = '_单向链表节点删除操作'
+                          '_Unchecked_iterator'   = '_非检查迭代器'
+                          '_Unchecked_const_iterator' = '_非检查常量迭代器'
+                          '_Prevent_inheriting_unwrap' = '_阻止继承解包' }
     # ⚠ forward_list 【没有 size()】（标准如此，取尺寸是 O(n) 所以不提供）——
     #   所以这里刻意不登记 size，免得改名遍去动文件里别处的 size。
     members = [ordered]@{

@@ -117,12 +117,40 @@ function Get-NestedNames([string] $text) {
     $names = @{}
     foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+using\s+([A-Za-z_]\w*)\s*=')) { $names[$m.Groups[1].Value] = $true }
     foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+typedef\s+[^;\r\n]*?\b([A-Za-z_]\w*)\s*;')) { $names[$m.Groups[1].Value] = $true }
+    #  ⚠ 嵌套类/枚举的名字不能写成"最后一个标识符"——实测假残留：
+    #        enum class _Deque_types : bool { ... }
+    #    取最后一个标识符会取到【底层类型】bool。必须先把基类/底层类型子句切掉
+    #    （与第一把尺 Get-DeclaredNames 用同一套剥法：去括号、切顶层 ':'、
+    #      去尾部模板实参表、去 final，再取最后一个标识符）。
     foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+(?:class|struct|union|enum\s+class|enum)\s+([^;{\r\n=]*)')) {
         $g = [regex]::Replace($m.Groups[1].Value, '\([^()]*\)', ' ')
+        $depth = 0; $cut = -1
+        for ($i = 0; $i -lt $g.Length; $i++) {
+            $c = $g[$i]
+            if ($c -eq '<') { $depth++ }
+            elseif ($c -eq '>') { if ($depth -gt 0) { $depth-- } }
+            elseif ($c -eq ':' -and $depth -eq 0) {
+                if (($i + 1 -lt $g.Length -and $g[$i + 1] -eq ':') -or ($i -gt 0 -and $g[$i - 1] -eq ':')) { $i++; continue }
+                $cut = $i; break
+            }
+        }
+        if ($cut -ge 0) { $g = $g.Substring(0, $cut) }
+        $g = $g -replace '\bfinal\b', ' '
+        while ($true) {
+            $t = $g.TrimEnd()
+            if (-not $t.EndsWith('>')) { break }
+            $d = 0; $st = -1
+            for ($i = $t.Length - 1; $i -ge 0; $i--) {
+                if ($t[$i] -eq '>') { $d++ }
+                elseif ($t[$i] -eq '<') { $d--; if ($d -eq 0) { $st = $i; break } }
+            }
+            if ($st -lt 0) { break }
+            $g = $t.Substring(0, $st)
+        }
         $mm = [regex]::Match($g, '([\w~]+)\s*$')
         if (-not $mm.Success) { continue }
         $n = $mm.Groups[1].Value
-        if ($n -in @('class', 'struct', 'enum', 'union', 'final')) { continue }
+        if ($n -in @('class', 'struct', 'enum', 'union', 'final', 'bool', 'int', 'unsigned', 'char', 'short', 'long', 'size_t')) { continue }
         $names[$n] = $true
     }
     return $names

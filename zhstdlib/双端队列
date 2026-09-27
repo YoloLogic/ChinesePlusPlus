@@ -26,7 +26,7 @@ _STL_DISABLE_CLANG_WARNINGS
 template <class _我的双端队列>
 class _双端队列非检查常量迭代器 {
 private:
-    using _Size_type = typename _我的双端队列::size_type;
+    using _尺寸类型 = typename _我的双端队列::size_type;
 
     static constexpr int _Block_size = _我的双端队列::_Block_size;
 
@@ -40,7 +40,7 @@ public:
 
     _双端队列非检查常量迭代器() noexcept : _Mycont(), _Myoff(0) {}
 
-    _双端队列非检查常量迭代器(_Size_type _Off, const _Container_base12* _Pdeque) noexcept
+    _双端队列非检查常量迭代器(_尺寸类型 _Off, const _Container_base12* _Pdeque) noexcept
         : _Mycont(static_cast<const _我的双端队列*>(_Pdeque)), _Myoff(_Off) {}
 
     _NODISCARD reference operator*() const noexcept {
@@ -74,7 +74,7 @@ public:
     }
 
     _双端队列非检查常量迭代器& operator+=(const difference_type _Off) noexcept {
-        _Myoff = static_cast<_Size_type>(_Myoff + _Off);
+        _Myoff = static_cast<_尺寸类型>(_Myoff + _Off);
         return *this;
     }
 
@@ -91,7 +91,7 @@ public:
     }
 
     _双端队列非检查常量迭代器& operator-=(const difference_type _Off) noexcept {
-        _Myoff = static_cast<_Size_type>(_Myoff - _Off);
+        _Myoff = static_cast<_尺寸类型>(_Myoff - _Off);
         return *this;
     }
 
@@ -144,13 +144,13 @@ public:
     }
 
     const _我的双端队列* _Mycont;
-    _Size_type _Myoff; // offset of element in 双端队列实现
+    _尺寸类型 _Myoff; // offset of element in 双端队列实现
 };
 
 template <class _我的双端队列>
 class _双端队列非检查迭代器 : public _双端队列非检查常量迭代器<_我的双端队列> {
 private:
-    using _Size_type = typename _我的双端队列::size_type;
+    using _尺寸类型 = typename _我的双端队列::size_type;
     using _我的基类    = _双端队列非检查常量迭代器<_我的双端队列>;
 
 public:
@@ -233,7 +233,7 @@ public:
 template <class _我的双端队列>
 class _双端队列常量迭代器 : public _Iterator_base12 {
 private:
-    using _Size_type = typename _我的双端队列::size_type;
+    using _尺寸类型 = typename _我的双端队列::size_type;
 
     static constexpr int _Block_size = _我的双端队列::_Block_size;
 
@@ -245,13 +245,13 @@ public:
     using pointer         = typename _我的双端队列::const_pointer;
     using reference       = const value_type&;
 
-    using _Mydeque_t = _我的双端队列; // helper for expression evaluator
+    using _我的双端队列类型 = _我的双端队列; // helper for expression evaluator
     enum { _EEN_DS = _Block_size }; // helper for expression evaluator
     _双端队列常量迭代器() noexcept : _Myoff(0) {
         _Setcont(nullptr);
     }
 
-    _双端队列常量迭代器(_Size_type _Off, const _Container_base12* _Pdeque) noexcept : _Myoff(_Off) {
+    _双端队列常量迭代器(_尺寸类型 _Off, const _Container_base12* _Pdeque) noexcept : _Myoff(_Off) {
         _Setcont(static_cast<const _我的双端队列*>(_Pdeque));
     }
 
@@ -315,7 +315,7 @@ public:
         }
 #endif // _ITERATOR_DEBUG_LEVEL != 0
 
-        _Myoff = static_cast<_Size_type>(_Myoff + _Off);
+        _Myoff = static_cast<_尺寸类型>(_Myoff + _Off);
         return *this;
     }
 
@@ -395,7 +395,7 @@ public:
         this->_Adopt(_Pdeque);
     }
 
-    using _Prevent_inheriting_unwrap = _双端队列常量迭代器;
+    using _阻止继承解包 = _双端队列常量迭代器;
 
     _NODISCARD _双端队列非检查常量迭代器<_我的双端队列> _Unwrapped() const noexcept {
         return {this->_Myoff, this->_Getcont()};
@@ -426,13 +426,13 @@ public:
         _Myoff = _UIt._Myoff;
     }
 
-    _Size_type _Myoff; // offset of element in 双端队列实现
+    _尺寸类型 _Myoff; // offset of element in 双端队列实现
 };
 
 template <class _我的双端队列>
 class _双端队列迭代器 : public _双端队列常量迭代器<_我的双端队列> {
 private:
-    using _Size_type = typename _我的双端队列::size_type;
+    using _尺寸类型 = typename _我的双端队列::size_type;
     using _我的基类    = _双端队列常量迭代器<_我的双端队列>;
 
 public:
@@ -508,27 +508,27 @@ public:
         return const_cast<reference>(_我的基类::operator[](_Off));
     }
 
-    using _Prevent_inheriting_unwrap = _双端队列迭代器;
+    using _阻止继承解包 = _双端队列迭代器;
 
     _NODISCARD _双端队列非检查迭代器<_我的双端队列> _Unwrapped() const noexcept {
         return {this->_Myoff, this->_Getcont()};
     }
 };
 
-template <class _Value_type, class _Size_type, class _Difference_type, class _Pointer, class _Const_pointer,
+template <class _Value_type, class _尺寸类型, class _Difference_type, class _Pointer, class _Const_pointer,
     class _Mapptr_type>
 struct _双端队列迭代类型集 {
     using value_type      = _Value_type;
-    using size_type       = _Size_type;
+    using size_type       = _尺寸类型;
     using difference_type = _Difference_type;
     using pointer         = _Pointer;
     using const_pointer   = _Const_pointer;
-    using _Mapptr         = _Mapptr_type;
+    using _映射指针         = _Mapptr_type;
 };
 
 template <class _Ty>
 struct _双端队列简单类型集 : _Simple_types<_Ty> {
-    using _Mapptr = _Ty**;
+    using _映射指针 = _Ty**;
 };
 
 template <class _值类型集>
@@ -541,10 +541,10 @@ public:
     using const_pointer   = typename _值类型集::const_pointer;
     using reference       = value_type&;
     using const_reference = const value_type&;
-    using _Mapptr         = typename _值类型集::_Mapptr;
+    using _映射指针         = typename _值类型集::_映射指针;
 
 private:
-    using _Map_difference_type = typename iterator_traits<_Mapptr>::difference_type;
+    using _映射差异类型 = typename iterator_traits<_映射指针>::difference_type;
 
     static constexpr size_t _Bytes = sizeof(value_type);
 
@@ -559,8 +559,8 @@ public:
 
 #if _MSVC_STL_DESTRUCTOR_TOMBSTONES
     ~_双端队列值() noexcept {
-        if constexpr (is_pointer_v<_Mapptr>) {
-            const auto _Tombstone{reinterpret_cast<_Mapptr>(_MSVC_STL_UINTPTR_TOMBSTONE_VALUE)};
+        if constexpr (is_pointer_v<_映射指针>) {
+            const auto _Tombstone{reinterpret_cast<_映射指针>(_MSVC_STL_UINTPTR_TOMBSTONE_VALUE)};
             _Map     = _Tombstone;
             _Mapsize = 0;
             _Myoff   = 0;
@@ -569,9 +569,9 @@ public:
     }
 #endif // _MSVC_STL_DESTRUCTOR_TOMBSTONES
 
-    _Map_difference_type _Getblock(size_type _Off) const noexcept {
+    _映射差异类型 _Getblock(size_type _Off) const noexcept {
         // NB: _Mapsize and _Block_size are guaranteed to be powers of 2
-        return static_cast<_Map_difference_type>((_Off / _Block_size) & (_Mapsize - 1));
+        return static_cast<_映射差异类型>((_Off / _Block_size) & (_Mapsize - 1));
     }
 
     reference _Subscript(size_type _Off) noexcept {
@@ -592,7 +592,7 @@ public:
         return _Unfancy(_Map[_Block] + _Block_off);
     }
 
-    _Mapptr _Map; // pointer to array of pointers to blocks
+    _映射指针 _Map; // pointer to array of pointers to blocks
     size_type _Mapsize; // 尺寸 of map array, zero or 2^N
     size_type _Myoff; // offset of initial element
     size_type _Mysize; // current length of sequence
@@ -607,53 +607,53 @@ private:
     static_assert(is_object_v<_Ty>, "The C++ Standard forbids containers of non-object types "
                                     "because of [container.requirements].");
 
-    using _Alty         = _Rebind_alloc_t<_Alloc, _Ty>;
-    using _Alty_traits  = allocator_traits<_Alty>;
-    using _Alpty        = _Rebind_alloc_t<_Alloc, typename _Alty_traits::pointer>;
-    using _Alpty_traits = allocator_traits<_Alpty>;
-    using _Mapptr       = typename _Alpty_traits::pointer;
-    using _Alproxy_ty   = _Rebind_alloc_t<_Alty, _Container_proxy>;
+    using _分配器类型         = _Rebind_alloc_t<_Alloc, _Ty>;
+    using _分配器特征  = allocator_traits<_分配器类型>;
+    using _代理分配器        = _Rebind_alloc_t<_Alloc, typename _分配器特征::pointer>;
+    using _代理分配器特征 = allocator_traits<_代理分配器>;
+    using _映射指针       = typename _代理分配器特征::pointer;
+    using _代理分配器类型   = _Rebind_alloc_t<_分配器类型, _Container_proxy>;
 
-    using _Map_difference_type = typename iterator_traits<_Mapptr>::difference_type;
+    using _映射差异类型 = typename iterator_traits<_映射指针>::difference_type;
 
-    using _Scary_val = _双端队列值<conditional_t<_Is_simple_alloc_v<_Alty>, _双端队列简单类型集<_Ty>,
-        _双端队列迭代类型集<_Ty, typename _Alty_traits::size_type, typename _Alty_traits::difference_type,
-            typename _Alty_traits::pointer, typename _Alty_traits::const_pointer, _Mapptr>>>;
+    using _迭代器检查值 = _双端队列值<conditional_t<_Is_simple_alloc_v<_分配器类型>, _双端队列简单类型集<_Ty>,
+        _双端队列迭代类型集<_Ty, typename _分配器特征::size_type, typename _分配器特征::difference_type,
+            typename _分配器特征::pointer, typename _分配器特征::const_pointer, _映射指针>>>;
 
     static constexpr int _Minimum_map_size = 8;
-    static constexpr int _Block_size       = _Scary_val::_Block_size;
+    static constexpr int _Block_size       = _迭代器检查值::_Block_size;
 
 public:
     using allocator_type  = _Alloc;
     using value_type      = _Ty;
-    using size_type       = typename _Alty_traits::size_type;
-    using difference_type = typename _Alty_traits::difference_type;
-    using pointer         = typename _Alty_traits::pointer;
-    using const_pointer   = typename _Alty_traits::const_pointer;
+    using size_type       = typename _分配器特征::size_type;
+    using difference_type = typename _分配器特征::difference_type;
+    using pointer         = typename _分配器特征::pointer;
+    using const_pointer   = typename _分配器特征::const_pointer;
     using reference       = _Ty&;
     using const_reference = const _Ty&;
 
-    using iterator                  = _双端队列迭代器<_Scary_val>;
-    using const_iterator            = _双端队列常量迭代器<_Scary_val>;
-    using _Unchecked_iterator       = _双端队列非检查迭代器<_Scary_val>;
-    using _Unchecked_const_iterator = _双端队列非检查常量迭代器<_Scary_val>;
+    using iterator                  = _双端队列迭代器<_迭代器检查值>;
+    using const_iterator            = _双端队列常量迭代器<_迭代器检查值>;
+    using _非检查迭代器       = _双端队列非检查迭代器<_迭代器检查值>;
+    using _非检查常量迭代器 = _双端队列非检查常量迭代器<_迭代器检查值>;
 
     using reverse_iterator       = _STD reverse_iterator<iterator>;
     using const_reverse_iterator = _STD reverse_iterator<const_iterator>;
     enum { _EEN_DS = _Block_size }; // helper for expression evaluator
 
     双端队列实现() : _Mypair(_Zero_then_variadic_args_t{}) {
-        _Get_data()._Alloc_proxy(static_cast<_Alproxy_ty>(_Getal()));
+        _Get_data()._Alloc_proxy(static_cast<_代理分配器类型>(_Getal()));
     }
 
     explicit 双端队列实现(const _Alloc& _Al) : _Mypair(_One_then_variadic_args_t{}, _Al) {
-        _Get_data()._Alloc_proxy(static_cast<_Alproxy_ty>(_Getal()));
+        _Get_data()._Alloc_proxy(static_cast<_代理分配器类型>(_Getal()));
     }
 
     explicit 双端队列实现(_CRT_GUARDOVERFLOW size_type _Count, const _Alloc& _Al = _Alloc())
         : _Mypair(_One_then_variadic_args_t{}, _Al) {
-        _Alproxy_ty _Alproxy(_Getal());
-        _Container_proxy_ptr12<_Alproxy_ty> _Proxy(_Alproxy, _Get_data());
+        _代理分配器类型 _Alproxy(_Getal());
+        _Container_proxy_ptr12<_代理分配器类型> _Proxy(_Alproxy, _Get_data());
         _Tidy_guard<双端队列实现> _Guard{this};
         调整尺寸(_Count);
         _Guard._Target = nullptr;
@@ -695,7 +695,7 @@ public:
 #endif // _HAS_CXX23
 
     双端队列实现(const 双端队列实现& _Right)
-        : _Mypair(_One_then_variadic_args_t{}, _Alty_traits::select_on_container_copy_construction(_Right._Getal())) {
+        : _Mypair(_One_then_variadic_args_t{}, _分配器特征::select_on_container_copy_construction(_Right._Getal())) {
         _Construct(_Right._Unchecked_begin(), _Right._Unchecked_end());
     }
 
@@ -704,12 +704,12 @@ public:
     }
 
     双端队列实现(双端队列实现&& _Right) : _Mypair(_One_then_variadic_args_t{}, _STD move(_Right._Getal())) {
-        _Get_data()._Alloc_proxy(static_cast<_Alproxy_ty>(_Getal()));
+        _Get_data()._Alloc_proxy(static_cast<_代理分配器类型>(_Getal()));
         _Take_contents(_Right);
     }
 
     双端队列实现(双端队列实现&& _Right, const _Identity_t<_Alloc>& _Al) : _Mypair(_One_then_variadic_args_t{}, _Al) {
-        if constexpr (!_Alty_traits::is_always_equal::value) {
+        if constexpr (!_分配器特征::is_always_equal::value) {
             if (_Getal() != _Right._Getal()) {
                 _Construct(_STD make_move_iterator(_Right._Unchecked_begin()),
                     _STD make_move_iterator(_Right._Unchecked_end()));
@@ -717,7 +717,7 @@ public:
             }
         }
 
-        _Get_data()._Alloc_proxy(static_cast<_Alproxy_ty>(_Getal()));
+        _Get_data()._Alloc_proxy(static_cast<_代理分配器类型>(_Getal()));
         _Take_contents(_Right);
     }
 
@@ -729,8 +729,8 @@ public:
 private:
     template <class _Iter, class _Sent>
     void _Construct(_Iter _First, const _Sent _Last) { // initialize from input range [_First, _Last)
-        _Alproxy_ty _Alproxy(_Getal());
-        _Container_proxy_ptr12<_Alproxy_ty> _Proxy(_Alproxy, _Get_data());
+        _代理分配器类型 _Alproxy(_Getal());
+        _Container_proxy_ptr12<_代理分配器类型> _Proxy(_Alproxy, _Get_data());
 
         _Tidy_guard<双端队列实现> _Guard{this};
         for (; _First != _Last; ++_First) {
@@ -742,8 +742,8 @@ private:
     }
 
     void _Construct_n(size_type _Count, const _Ty& _Val) { // construct from _Count * _Val
-        _Alproxy_ty _Alproxy(_Getal());
-        _Container_proxy_ptr12<_Alproxy_ty> _Proxy(_Alproxy, _Get_data());
+        _代理分配器类型 _Alproxy(_Getal());
+        _Container_proxy_ptr12<_代理分配器类型> _Proxy(_Alproxy, _Get_data());
 
         _Tidy_guard<双端队列实现> _Guard{this};
         for (; _Count > 0; --_Count) {
@@ -774,7 +774,7 @@ private:
 public:
     ~双端队列实现() noexcept {
         _Tidy();
-        _Alproxy_ty _Proxy_allocator(_Getal());
+        _代理分配器类型 _Proxy_allocator(_Getal());
         _Delete_plain_internal(_Proxy_allocator, _STD exchange(_Get_data()._Myproxy, nullptr));
     }
 
@@ -785,10 +785,10 @@ public:
 
         auto& _Al       = _Getal();
         auto& _Right_al = _Right._Getal();
-        if constexpr (_Choose_pocca_v<_Alty>) {
+        if constexpr (_Choose_pocca_v<_分配器类型>) {
             if (_Al != _Right_al) {
                 _Tidy();
-                _Get_data()._Reload_proxy(static_cast<_Alproxy_ty>(_Al), static_cast<_Alproxy_ty>(_Right_al));
+                _Get_data()._Reload_proxy(static_cast<_代理分配器类型>(_Al), static_cast<_代理分配器类型>(_Right_al));
             }
         }
 
@@ -798,19 +798,19 @@ public:
         return *this;
     }
 
-    双端队列实现& operator=(双端队列实现&& _Right) noexcept(_Alty_traits::is_always_equal::value) {
+    双端队列实现& operator=(双端队列实现&& _Right) noexcept(_分配器特征::is_always_equal::value) {
         if (this == _STD addressof(_Right)) {
             return *this;
         }
 
         auto& _Al                 = _Getal();
         auto& _Right_al           = _Right._Getal();
-        constexpr auto _Pocma_val = _Choose_pocma_v<_Alty>;
+        constexpr auto _Pocma_val = _Choose_pocma_v<_分配器类型>;
         if constexpr (_Pocma_val == _Pocma_values::_Propagate_allocators) {
             if (_Al != _Right_al) {
-                _Alproxy_ty _Alproxy(_Al);
-                _Alproxy_ty _Right_alproxy(_Right_al);
-                _Container_proxy_ptr12<_Alproxy_ty> _Proxy(_Right_alproxy, _Leave_proxy_unbound{});
+                _代理分配器类型 _Alproxy(_Al);
+                _代理分配器类型 _Right_alproxy(_Right_al);
+                _Container_proxy_ptr12<_代理分配器类型> _Proxy(_Right_alproxy, _Leave_proxy_unbound{});
                 _Tidy();
                 _Pocma(_Al, _Right_al);
                 _Proxy._Bind(_Alproxy, _STD addressof(_Get_data()));
@@ -917,20 +917,20 @@ public:
         return const_iterator(_Myoff() + _Mysize(), _STD addressof(_Get_data()));
     }
 
-    _Unchecked_iterator _Unchecked_begin() noexcept {
-        return _Unchecked_iterator(_Myoff(), _STD addressof(_Get_data()));
+    _非检查迭代器 _Unchecked_begin() noexcept {
+        return _非检查迭代器(_Myoff(), _STD addressof(_Get_data()));
     }
 
-    _Unchecked_const_iterator _Unchecked_begin() const noexcept {
-        return _Unchecked_const_iterator(_Myoff(), _STD addressof(_Get_data()));
+    _非检查常量迭代器 _Unchecked_begin() const noexcept {
+        return _非检查常量迭代器(_Myoff(), _STD addressof(_Get_data()));
     }
 
-    _Unchecked_iterator _Unchecked_end() noexcept {
-        return _Unchecked_iterator(_Myoff() + _Mysize(), _STD addressof(_Get_data()));
+    _非检查迭代器 _Unchecked_end() noexcept {
+        return _非检查迭代器(_Myoff() + _Mysize(), _STD addressof(_Get_data()));
     }
 
-    _Unchecked_const_iterator _Unchecked_end() const noexcept {
-        return _Unchecked_const_iterator(_Myoff() + _Mysize(), _STD addressof(_Get_data()));
+    _非检查常量迭代器 _Unchecked_end() const noexcept {
+        return _非检查常量迭代器(_Myoff() + _Mysize(), _STD addressof(_Get_data()));
     }
 
     iterator _Make_iter(const_iterator _Where) const noexcept {
@@ -978,7 +978,7 @@ public:
     }
 
     _NODISCARD size_type max_size() const noexcept {
-        return (_STD min)(static_cast<size_type>(_STD _Max_limit<difference_type>()), _Alty_traits::max_size(_Getal()));
+        return (_STD min)(static_cast<size_type>(_STD _Max_limit<difference_type>()), _分配器特征::max_size(_Getal()));
     }
 
     void 调整尺寸(_CRT_GUARDOVERFLOW size_type _Newsize) {
@@ -1027,7 +1027,7 @@ public:
         // deallocate unused blocks, traversing over the circular buffer until the first used block index
         for (auto _Block_idx = _First_unused_block_idx; _Block_idx != _First_used_block_idx;
             _Block_idx       = static_cast<size_type>((_Block_idx + 1) & _Mask)) {
-            auto& _Block_ptr = _Map()[static_cast<_Map_difference_type>(_Block_idx)];
+            auto& _Block_ptr = _Map()[static_cast<_映射差异类型>(_Block_idx)];
             if (_Block_ptr != nullptr) {
                 _Getal().deallocate(_Block_ptr, _Block_size);
                 _Block_ptr = nullptr;
@@ -1049,21 +1049,21 @@ public:
 
         // worth shrinking the internal map, do it
 
-        _Alpty _Almap(_Getal());
+        _代理分配器 _Almap(_Getal());
         const auto _New_map = _Almap.allocate(_New_block_count);
 
         _Orphan_all(); // the map can be shrunk, invalidate all iterators
 
         // transfer the ownership of blocks to pointers in the new map
         for (size_type _Block = 0; _Block != _Used_block_count; ++_Block) {
-            const auto _New_block_idx = static_cast<_Map_difference_type>(_Block);
-            const auto _Old_block_idx = static_cast<_Map_difference_type>((_First_used_block_idx + _Block) & _Mask);
+            const auto _New_block_idx = static_cast<_映射差异类型>(_Block);
+            const auto _Old_block_idx = static_cast<_映射差异类型>((_First_used_block_idx + _Block) & _Mask);
             _Construct_in_place(_New_map[_New_block_idx], _Map()[_Old_block_idx]);
         }
 
         // null out the rest of the new map
         _Uninitialized_value_construct_n_unchecked1(
-            _New_map + static_cast<_Map_difference_type>(_Used_block_count), _New_block_count - _Used_block_count);
+            _New_map + static_cast<_映射差异类型>(_Used_block_count), _New_block_count - _Used_block_count);
 
         for (auto _Block = _Map_distance(); _Block > 0;) {
             --_Block;
@@ -1153,7 +1153,7 @@ private:
             _Map()[_Block] = _Getal().allocate(_Block_size);
         }
 
-        _Alty_traits::construct(_Getal(), _Get_data()._Address_subscript(_Newoff), _STD forward<_Tys>(_Vals)...);
+        _分配器特征::construct(_Getal(), _Get_data()._Address_subscript(_Newoff), _STD forward<_Tys>(_Vals)...);
 
         ++_Mysize();
     }
@@ -1170,7 +1170,7 @@ private:
             _Map()[_Block] = _Getal().allocate(_Block_size);
         }
 
-        _Alty_traits::construct(_Getal(), _Get_data()._Address_subscript(_Newoff), _STD forward<_Tys>(_Vals)...);
+        _分配器特征::construct(_Getal(), _Get_data()._Address_subscript(_Newoff), _STD forward<_Tys>(_Vals)...);
 
         _Myoff() = _Newoff;
         ++_Mysize();
@@ -1210,7 +1210,7 @@ public:
         } else if (_Off == _Mysize()) { // 取值 the 结束
             _Emplace_back_internal(_STD forward<_Valty>(_Val)...);
         } else {
-            _Alloc_temporary2<_Alty> _Obj(_Getal(), _STD forward<_Valty>(_Val)...); // handle aliasing
+            _Alloc_temporary2<_分配器类型> _Obj(_Getal(), _STD forward<_Valty>(_Val)...); // handle aliasing
 
             if (_Off <= _Mysize() / 2) { // closer to 前
                 _Emplace_front_internal(_STD move(*_Unchecked_begin()));
@@ -1262,7 +1262,7 @@ public:
         _Orphan_all();
 
         const auto _Oldsize = _Mysize();
-        _Restore_old_size_guard<_Pop_direction::_Front> _Guard{this, _Oldsize};
+        _恢复原尺寸守卫<_弹出方向::_Front> _Guard{this, _Oldsize};
         if constexpr (_RANGES bidirectional_range<_Rng>) {
             const auto _UFirst = _RANGES _Ubegin(_Range);
             auto _ULast        = _RANGES _Get_final_iterator_unwrapped(_Range);
@@ -1290,7 +1290,7 @@ public:
         auto _UFirst        = _RANGES _Ubegin(_Range);
         const auto _ULast   = _RANGES _Uend(_Range);
 
-        _Restore_old_size_guard<_Pop_direction::_Back> _Guard{this, _Oldsize};
+        _恢复原尺寸守卫<_弹出方向::_Back> _Guard{this, _Oldsize};
         for (; _UFirst != _ULast; ++_UFirst) {
             _Emplace_back_internal(*_UFirst);
         }
@@ -1318,7 +1318,7 @@ public:
         // 插入 [_First, _Last) 取值 _Where
         _Adl_verify_range(_First, _Last);
         const size_type _Off = static_cast<size_type>(_Where - 开始());
-        return _Insert_range<static_cast<_Is_bidi>(_Is_cpp17_bidi_iter_v<_Iter>)>(
+        return _Insert_range<static_cast<_是双向>(_Is_cpp17_bidi_iter_v<_Iter>)>(
             _Off, _Get_unwrapped(_First), _Get_unwrapped(_Last));
     }
 
@@ -1328,10 +1328,10 @@ public:
         const size_type _Off = static_cast<size_type>(_Where - 开始());
 
         if constexpr (_RANGES bidirectional_range<_Rng>) {
-            return _Insert_range<_Is_bidi::_Yes>(
+            return _Insert_range<_是双向::_Yes>(
                 _Off, _RANGES _Ubegin(_Range), _RANGES _Get_final_iterator_unwrapped(_Range));
         } else {
-            return _Insert_range<_Is_bidi::_Nope>(_Off, _RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+            return _Insert_range<_是双向::_Nope>(_Off, _RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
         }
     }
 #endif // _HAS_CXX23
@@ -1341,20 +1341,20 @@ public:
     }
 
 private:
-    enum class _Pop_direction : bool {
+    enum class _弹出方向 : bool {
         _Front,
         _Back,
     };
 
-    template <_Pop_direction _Direction>
-    struct _NODISCARD _Restore_old_size_guard {
+    template <_弹出方向 _Direction>
+    struct _NODISCARD _恢复原尺寸守卫 {
         双端队列实现* _Container;
         const size_type _Oldsize;
 
-        ~_Restore_old_size_guard() { // restore old 尺寸, 取值 least
+        ~_恢复原尺寸守卫() { // restore old 尺寸, 取值 least
             if (_Container) {
                 while (_Oldsize < _Container->_Mysize()) {
-                    if constexpr (_Direction == _Pop_direction::_Front) {
+                    if constexpr (_Direction == _弹出方向::_Front) {
                         _Container->头删();
                     } else {
                         _Container->尾删();
@@ -1364,12 +1364,12 @@ private:
         }
     };
 
-    enum class _Is_bidi : bool { _Nope, _Yes };
+    enum class _是双向 : bool { _Nope, _Yes };
 
-    template <_Is_bidi _Bidi, class _Iter, class _Sent>
+    template <_是双向 _Bidi, class _Iter, class _Sent>
     iterator _Insert_range(const size_type _Off, _Iter _First, _Sent _Last) {
         // 插入 [_First, _Last) 取值 开始() + _Off
-        // Pre: _Bidi == _Is_bidi::_Yes implies that _Iter and _Sent are the same type, and that
+        // Pre: _Bidi == _是双向::_Yes implies that _Iter and _Sent are the same type, and that
         //      _Iter is either a bidirectional_iterator or a Cpp17BidirectionalIterator.
 
 #if _ITERATOR_DEBUG_LEVEL == 2
@@ -1384,8 +1384,8 @@ private:
 
         _Orphan_all();
         if (_Off <= _Oldsize / 2) { // closer to 前, push to 前 then rotate
-            _Restore_old_size_guard<_Pop_direction::_Front> _Guard{this, _Oldsize};
-            if constexpr (_Bidi == _Is_bidi::_Yes) {
+            _恢复原尺寸守卫<_弹出方向::_Front> _Guard{this, _Oldsize};
+            if constexpr (_Bidi == _是双向::_Yes) {
                 while (_First != _Last) {
                     _Emplace_front_internal(*--_Last); // prepend in order
                 }
@@ -1400,14 +1400,14 @@ private:
             const auto _Num     = static_cast<difference_type>(_Mysize() - _Oldsize);
             const auto _Myfirst = _Unchecked_begin();
             const auto _Mymid   = _Myfirst + _Num;
-            if constexpr (_Bidi == _Is_bidi::_Nope) {
+            if constexpr (_Bidi == _是双向::_Nope) {
                 _STD reverse(_Myfirst, _Mymid); // flip new stuff in place
             }
             _STD rotate(_Myfirst, _Mymid, _Mymid + static_cast<difference_type>(_Off));
             return 开始() + static_cast<difference_type>(_Off);
         }
 
-        _Restore_old_size_guard<_Pop_direction::_Back> _Guard{this, _Oldsize};
+        _恢复原尺寸守卫<_弹出方向::_Back> _Guard{this, _Oldsize};
         for (; _First != _Last; ++_First) {
             _Emplace_back_internal(*_First);
         }
@@ -1422,7 +1422,7 @@ private:
     }
 
     void _Insert_n(const_iterator _Where, size_type _Count, const _Ty& _Val) { // 插入 _Count * _Val 取值 _Where
-        _Unchecked_iterator _Mid;
+        _非检查迭代器 _Mid;
         size_type _Num;
         size_type _Off     = static_cast<size_type>(_Where - 开始());
         size_type _Oldsize = _Mysize();
@@ -1433,7 +1433,7 @@ private:
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
         if (_Off < _Rem) { // closer to 前
-            _Restore_old_size_guard<_Pop_direction::_Front> _Guard{this, _Oldsize};
+            _恢复原尺寸守卫<_弹出方向::_Front> _Guard{this, _Oldsize};
             if (_Off < _Count) { // 插入 longer than prefix
                 for (_Num = _Count - _Off; _Num > 0; --_Num) {
                     头插(_Val); // push excess values
@@ -1450,7 +1450,7 @@ private:
                 }
 
                 _Mid = _Unchecked_begin() + static_cast<difference_type>(_Count);
-                _Alloc_temporary2<_Alty> _Tmp(_Getal(), _Val); // in case _Val is in sequence
+                _Alloc_temporary2<_分配器类型> _Tmp(_Getal(), _Val); // in case _Val is in sequence
                 _STD move(_Mid + static_cast<difference_type>(_Count), _Mid + static_cast<difference_type>(_Off),
                     _Mid); // copy rest of prefix
                 _STD fill(_Unchecked_begin() + static_cast<difference_type>(_Off),
@@ -1458,7 +1458,7 @@ private:
             }
             _Guard._Container = nullptr;
         } else { // closer to 后
-            _Restore_old_size_guard<_Pop_direction::_Back> _Guard{this, _Oldsize};
+            _恢复原尺寸守卫<_弹出方向::_Back> _Guard{this, _Oldsize};
             if (_Rem < _Count) { // 插入 longer than suffix
                 _Orphan_all();
                 for (_Num = _Count - _Rem; _Num > 0; --_Num) {
@@ -1476,7 +1476,7 @@ private:
                 }
 
                 _Mid = _Unchecked_begin() + static_cast<difference_type>(_Off);
-                _Alloc_temporary2<_Alty> _Tmp(_Getal(), _Val); // in case _Val is in sequence
+                _Alloc_temporary2<_分配器类型> _Tmp(_Getal(), _Val); // in case _Val is in sequence
                 _STD move_backward(_Mid, _Mid + static_cast<difference_type>(_Rem - _Count),
                     _Mid + static_cast<difference_type>(_Rem)); // copy rest of prefix
                 _STD fill_n(_Mid, _Count, _Tmp._Get_value()); // fill in values
@@ -1494,7 +1494,7 @@ public:
 #if _ITERATOR_DEBUG_LEVEL == 2
         _Orphan_off(_Myoff());
 #endif
-        _Alty_traits::destroy(_Getal(), _Get_data()._Address_subscript(_Myoff()));
+        _分配器特征::destroy(_Getal(), _Get_data()._Address_subscript(_Myoff()));
         if (--_Mysize() == 0) {
             _Myoff() = 0;
         } else {
@@ -1511,7 +1511,7 @@ public:
 #if _ITERATOR_DEBUG_LEVEL == 2
         _Orphan_off(_Newoff);
 #endif
-        _Alty_traits::destroy(_Getal(), _Get_data()._Address_subscript(_Newoff));
+        _分配器特征::destroy(_Getal(), _Get_data()._Address_subscript(_Newoff));
         if (--_Mysize() == 0) {
             _Myoff() = 0;
         }
@@ -1604,7 +1604,7 @@ private:
     void _Growmap(size_type _Count) { // grow map by 取值 least _Count pointers, _Mapsize() a power of 2
         static_assert(_Minimum_map_size > 1, "The _Xlen() test should always be performed.");
 
-        _Alpty _Almap(_Getal());
+        _代理分配器 _Almap(_Getal());
         size_type _Newsize = _Mapsize() > 0 ? _Mapsize() : 1;
         while (_Newsize - _Mapsize() < _Count || _Newsize < _Minimum_map_size) {
             // scale _Newsize to 2^N >= _Mapsize() + _Count
@@ -1618,9 +1618,9 @@ private:
         size_type _Allocsize = _Newsize;
 
         const auto _Myboff  = static_cast<size_type>(_Myoff() / _Block_size);
-        const auto _Map_off = static_cast<_Map_difference_type>(_Myboff);
-        _Mapptr _Newmap     = _Allocate_at_least_helper(_Almap, _Allocsize);
-        _Mapptr _Myptr      = _Newmap + _Map_off;
+        const auto _Map_off = static_cast<_映射差异类型>(_Myboff);
+        _映射指针 _Newmap     = _Allocate_at_least_helper(_Almap, _Allocsize);
+        _映射指针 _Myptr      = _Newmap + _Map_off;
         _STL_ASSERT(_Allocsize >= _Newsize, "_Allocsize >= _Newsize");
         while (_Newsize <= _Allocsize / 2) {
             _Newsize *= 2;
@@ -1628,7 +1628,7 @@ private:
 
         _Count = _Newsize - _Mapsize();
 
-        const auto _Map_count = static_cast<_Map_difference_type>(_Count);
+        const auto _Map_count = static_cast<_映射差异类型>(_Count);
 
         _Myptr = _STD uninitialized_copy(_Map() + _Map_off, _Map() + _Map_distance(), _Myptr); // copy initial to 结束
         if (_Myboff <= _Count) { // increment greater than offset of initial block
@@ -1662,7 +1662,7 @@ private:
             _Destroy_in_place(_Block_ptr); // destroy pointer to block
         }
 
-        _Alpty _Almap(_Getal());
+        _代理分配器 _Almap(_Getal());
         _Almap.deallocate(_Map(), _Mapsize()); // free storage for map
 
         _Map()     = nullptr;
@@ -1704,7 +1704,7 @@ private:
     }
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
-    _Map_difference_type _Getblock(size_type _Off) const noexcept {
+    _映射差异类型 _Getblock(size_type _Off) const noexcept {
         return _Get_data()._Getblock(_Off);
     }
 
@@ -1712,27 +1712,27 @@ private:
         _Get_data()._Orphan_all();
     }
 
-    _Alty& _Getal() noexcept {
+    _分配器类型& _Getal() noexcept {
         return _Mypair._Get_first();
     }
 
-    const _Alty& _Getal() const noexcept {
+    const _分配器类型& _Getal() const noexcept {
         return _Mypair._Get_first();
     }
 
-    _Scary_val& _Get_data() noexcept {
+    _迭代器检查值& _Get_data() noexcept {
         return _Mypair._Myval2;
     }
 
-    const _Scary_val& _Get_data() const noexcept {
+    const _迭代器检查值& _Get_data() const noexcept {
         return _Mypair._Myval2;
     }
 
-    _Mapptr& _Map() noexcept {
+    _映射指针& _Map() noexcept {
         return _Get_data()._Map;
     }
 
-    const _Mapptr& _Map() const noexcept {
+    const _映射指针& _Map() const noexcept {
         return _Get_data()._Map;
     }
 
@@ -1760,8 +1760,8 @@ private:
         return _Get_data()._Mysize;
     }
 
-    _Map_difference_type _Map_distance() const noexcept {
-        return static_cast<_Map_difference_type>(_Get_data()._Mapsize);
+    _映射差异类型 _Map_distance() const noexcept {
+        return static_cast<_映射差异类型>(_Get_data()._Mapsize);
     }
 
     reference _Subscript(size_type _Pos) noexcept {
@@ -1772,7 +1772,7 @@ private:
         return _Get_data()._Subscript(_Myoff() + _Pos);
     }
 
-    _Compressed_pair<_Alty, _Scary_val> _Mypair;
+    _Compressed_pair<_分配器类型, _迭代器检查值> _Mypair;
 };
 
 #if _HAS_CXX17
