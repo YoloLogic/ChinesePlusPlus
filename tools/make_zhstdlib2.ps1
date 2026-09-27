@@ -621,7 +621,7 @@ $H = @{
     # 迭代器类是【本文件自己定义的】（不像 set/map 借用 _Tree），
     # 故意不改名：它们是内部件，跟着派生一起继承即可（§2.2.1 的"内部件暂不翻"）。
     members = [ordered]@{
-      'size' = '尺寸'; 'empty' = '为空'; 'max_size' = '最大尺寸'
+      'size' = '尺寸'; 'empty' = '为空'
       'begin' = '开始'; 'end' = '结束'
       'cbegin' = '常量开始'; 'cend' = '常量结束'
       'rbegin' = '反向开始'; 'rend' = '反向结束'
@@ -638,7 +638,7 @@ $H = @{
       # ⚠ swap 照旧不改名（§3.12）
     }
     data    = [ordered]@{}
-    derive  = @( @('size','尺寸'), @('empty','为空'), @('max_size','最大尺寸'),
+    derive  = @( @('size','尺寸'), @('empty','为空'),
                  @('begin','开始'), @('end','结束'),
                  @('at','取值'), @('front','前'), @('back','后'),
                  @('push_back','尾插'), @('push_front','头插'),
@@ -648,6 +648,7 @@ $H = @{
                  @('insert','插入'), @('erase','擦除'), @('assign','赋值'),
                  @('resize','调整尺寸'), @('shrink_to_fit','收缩至适应'),
                  @('clear','清空'), @('get_allocator','取分配器') )
+    deriveExtra = '    模板 <类型名... 参数> 自动 最大尺寸(参数&&... 值) 常量 { 返回 基类::max_size(static_cast<参数&&>(值)...); }'
     deriveTypes = @( @('迭代器','iterator'), @('常量迭代器','const_iterator'),
                      @('反向迭代器','reverse_iterator'), @('常量反向迭代器','const_reverse_iterator'),
                      @('值类型','value_type'), @('尺寸类型','size_type') )
@@ -664,7 +665,7 @@ $H = @{
     zh      = '链表'
     types   = [ordered]@{ 'list' = '链表实现' }
     members = [ordered]@{
-      'size' = '尺寸'; 'empty' = '为空'; 'max_size' = '最大尺寸'
+      'size' = '尺寸'; 'empty' = '为空'
       'begin' = '开始'; 'end' = '结束'
       'cbegin' = '常量开始'; 'cend' = '常量结束'
       'rbegin' = '反向开始'; 'rend' = '反向结束'
@@ -684,7 +685,7 @@ $H = @{
       # ⚠ swap 照旧不改名（§3.12）
     }
     data    = [ordered]@{}
-    derive  = @( @('size','尺寸'), @('empty','为空'), @('max_size','最大尺寸'),
+    derive  = @( @('size','尺寸'), @('empty','为空'),
                  @('begin','开始'), @('end','结束'),
                  @('front','前'), @('back','后'),
                  @('push_back','尾插'), @('push_front','头插'),
@@ -697,6 +698,7 @@ $H = @{
                  @('sort','排序'), @('merge','归并'), @('splice','接合'),
                  @('remove','移除'), @('remove_if','按条件移除'),
                  @('unique','去重'), @('reverse','反转') )
+    deriveExtra = '    模板 <类型名... 参数> 自动 最大尺寸(参数&&... 值) 常量 { 返回 基类::max_size(static_cast<参数&&>(值)...); }'
     deriveTypes = @( @('迭代器','iterator'), @('常量迭代器','const_iterator'),
                      @('反向迭代器','reverse_iterator'), @('常量反向迭代器','const_reverse_iterator'),
                      @('值类型','value_type'), @('尺寸类型','size_type') )
@@ -716,7 +718,7 @@ $H = @{
     # vector<bool> 特化也定义在本文件里，同一个 types 改名会一起覆盖 ——
     # 于是 细节::向量实现<bool, 分配器> 自动指到那个特化，派生层不用特殊处理。
     members = [ordered]@{
-      'size' = '尺寸'; 'empty' = '为空'; 'max_size' = '最大尺寸'
+      'size' = '尺寸'; 'empty' = '为空'
       'capacity' = '容量'; 'reserve' = '预留'; 'data' = '数据'
       'begin' = '开始'; 'end' = '结束'
       'cbegin' = '常量开始'; 'cend' = '常量结束'
@@ -732,7 +734,7 @@ $H = @{
       # ⚠ swap 照旧不改名（§3.12）
     }
     data    = [ordered]@{}
-    derive  = @( @('size','尺寸'), @('empty','为空'), @('max_size','最大尺寸'),
+    derive  = @( @('size','尺寸'), @('empty','为空'),
                  @('capacity','容量'), @('reserve','预留'), @('data','数据'),
                  @('begin','开始'), @('end','结束'),
                  @('at','取值'), @('front','前'), @('back','后'),
@@ -741,6 +743,7 @@ $H = @{
                  @('insert','插入'), @('erase','擦除'), @('assign','赋值'),
                  @('resize','调整尺寸'), @('shrink_to_fit','收缩至适应'),
                  @('clear','清空'), @('get_allocator','取分配器') )
+    deriveExtra = '    模板 <类型名... 参数> 自动 最大尺寸(参数&&... 值) 常量 { 返回 基类::max_size(static_cast<参数&&>(值)...); }'
     deriveTypes = @( @('迭代器','iterator'), @('常量迭代器','const_iterator'),
                      @('反向迭代器','reverse_iterator'), @('常量反向迭代器','const_reverse_iterator'),
                      @('值类型','value_type'), @('尺寸类型','size_type'),

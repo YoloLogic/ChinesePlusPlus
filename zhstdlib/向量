@@ -885,7 +885,7 @@ private:
         const auto _Whereoff = static_cast<size_type>(_Whereptr - _Myfirst);
         const auto _Oldsize  = static_cast<size_type>(_Mylast - _Myfirst);
 
-        if (_Oldsize == 最大尺寸()) {
+        if (_Oldsize == max_size()) {
             _Xlength();
         }
 
@@ -969,7 +969,7 @@ private:
         } else if (_Count > _Unused_capacity) { // reallocate
             const auto _Oldsize = static_cast<size_type>(_Oldlast - _Oldfirst);
 
-            if (_Count > 最大尺寸() - _Oldsize) {
+            if (_Count > max_size() - _Oldsize) {
                 _Xlength();
             }
 
@@ -1087,7 +1087,7 @@ public:
         } else if (_Count > _Unused_capacity) { // reallocate
             const auto _Oldsize = static_cast<size_type>(_Oldlast - _Oldfirst);
 
-            if (_Count > 最大尺寸() - _Oldsize) {
+            if (_Count > max_size() - _Oldsize) {
                 _Xlength();
             }
 
@@ -1179,7 +1179,7 @@ private:
         } else if (_Count > _Unused_capacity) { // reallocate
             const auto _Oldsize = static_cast<size_type>(_Oldlast - _Oldfirst);
 
-            if (_Count > 最大尺寸() - _Oldsize) {
+            if (_Count > max_size() - _Oldsize) {
                 _Xlength();
             }
 
@@ -1551,7 +1551,7 @@ public:
 private:
     template <class _Ty2>
     _CONSTEXPR20 void _Resize_reallocate(const size_type _Newsize, const _Ty2& _Val) {
-        if (_Newsize > 最大尺寸()) {
+        if (_Newsize > max_size()) {
             _Xlength();
         }
 
@@ -1701,7 +1701,7 @@ private:
         _Check_all_orphaned();
 #endif // _ITERATOR_DEBUG_LEVEL != 0 && defined(_ENABLE_STL_INTERNAL_CHECK)
 
-        if (_Newsize > 最大尺寸()) {
+        if (_Newsize > max_size()) {
             _Xlength();
         }
 
@@ -1724,7 +1724,7 @@ public:
     _CONSTEXPR20 void 预留(_CRT_GUARDOVERFLOW size_type _Newcapacity) {
         // increase 容量 to _Newcapacity (without geometric growth), provide strong guarantee
         if (_Newcapacity > 容量()) { // something to do (预留() never shrinks)
-            if (_Newcapacity > 最大尺寸()) {
+            if (_Newcapacity > max_size()) {
                 _Xlength();
             }
 
@@ -1916,8 +1916,8 @@ public:
         return static_cast<size_type>(_My_data._Mylast - _My_data._Myfirst);
     }
 
-    _NODISCARD _CONSTEXPR20 size_type 最大尺寸() const noexcept {
-        return (_STD min)(static_cast<size_type>(_STD _Max_limit<difference_type>()), _Alty_traits::最大尺寸(_Getal()));
+    _NODISCARD _CONSTEXPR20 size_type max_size() const noexcept {
+        return (_STD min)(static_cast<size_type>(_STD _Max_limit<difference_type>()), _Alty_traits::max_size(_Getal()));
     }
 
     _NODISCARD _CONSTEXPR20 size_type 容量() const noexcept {
@@ -2007,7 +2007,7 @@ private:
     _CONSTEXPR20 size_type _Calculate_growth(const size_type _Newsize) const {
         // given _Oldcapacity and _Newsize, calculate geometric growth
         const size_type _Oldcapacity = 容量();
-        const auto _Max              = 最大尺寸();
+        const auto _Max              = max_size();
 
         if (_Oldcapacity > _Max - _Oldcapacity / 2) {
             return _Max; // geometric growth would overflow
@@ -2030,7 +2030,7 @@ private:
         pointer& _Myend   = _My_data._Myend;
 
         _STL_INTERNAL_CHECK(!_Myfirst && !_Mylast && !_Myend); // check that *this is tidy
-        _STL_INTERNAL_CHECK(0 < _Newcapacity && _Newcapacity <= 最大尺寸());
+        _STL_INTERNAL_CHECK(0 < _Newcapacity && _Newcapacity <= max_size());
 
         const pointer _Newvec = _Allocate_at_least_helper(_Getal(), _Newcapacity);
         _Myfirst              = _Newvec;
@@ -2049,7 +2049,7 @@ private:
         _STL_INTERNAL_CHECK(0 < _Newcapacity);
 #endif // _ENABLE_STL_INTERNAL_CHECK
 
-        if (_Newcapacity > 最大尺寸()) {
+        if (_Newcapacity > max_size()) {
             _Xlength();
         }
 
@@ -3193,14 +3193,14 @@ public:
         return this->_Mysize;
     }
 
-    _NODISCARD _CONSTEXPR20 size_type 最大尺寸() const noexcept {
+    _NODISCARD _CONSTEXPR20 size_type max_size() const noexcept {
         constexpr auto _Diff_max  = static_cast<size_type>(_STD _Max_limit<difference_type>());
-        const size_type _Ints_max = this->_我的向量.最大尺寸();
-        if (_Ints_max > _Diff_max / _VBITS) { // 最大尺寸 bound by difference_type limits
+        const size_type _Ints_max = this->_我的向量.max_size();
+        if (_Ints_max > _Diff_max / _VBITS) { // max_size bound by difference_type limits
             return _Diff_max;
         }
 
-        // 最大尺寸 bound by underlying storage limits
+        // max_size bound by underlying storage limits
         return _Ints_max * _VBITS;
     }
 
@@ -3527,7 +3527,7 @@ public:
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
         if (_Count != 0) {
-            if (最大尺寸() - 尺寸() < _Count) {
+            if (max_size() - 尺寸() < _Count) {
                 _Xlen(); // result too long
             }
 
@@ -3589,7 +3589,7 @@ public:
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
     _CONSTEXPR20 void _Trim(size_type _Size) {
-        if (最大尺寸() < _Size) {
+        if (max_size() < _Size) {
             _Xlen(); // result too long
         }
 
@@ -4015,8 +4015,6 @@ _STL_RESTORE_CLANG_WARNINGS
     模板 <类型名... 参数> 自动 size(参数&&... 值) 常量 { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 empty(参数&&... 值) { 返回 基类::为空(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 empty(参数&&... 值) 常量 { 返回 基类::为空(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 max_size(参数&&... 值) { 返回 基类::最大尺寸(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 max_size(参数&&... 值) 常量 { 返回 基类::最大尺寸(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 capacity(参数&&... 值) { 返回 基类::容量(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 capacity(参数&&... 值) 常量 { 返回 基类::容量(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 reserve(参数&&... 值) { 返回 基类::预留(static_cast<参数&&>(值)...); }
@@ -4058,7 +4056,7 @@ _STL_RESTORE_CLANG_WARNINGS
 
     // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
     // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
-
+    模板 <类型名... 参数> 自动 最大尺寸(参数&&... 值) 常量 { 返回 基类::max_size(static_cast<参数&&>(值)...); }
 };
 }
 

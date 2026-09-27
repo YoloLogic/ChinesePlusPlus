@@ -976,8 +976,8 @@ public:
         return _Mysize();
     }
 
-    _NODISCARD size_type 最大尺寸() const noexcept {
-        return (_STD min)(static_cast<size_type>(_STD _Max_limit<difference_type>()), _Alty_traits::最大尺寸(_Getal()));
+    _NODISCARD size_type max_size() const noexcept {
+        return (_STD min)(static_cast<size_type>(_STD _Max_limit<difference_type>()), _Alty_traits::max_size(_Getal()));
     }
 
     void 调整尺寸(_CRT_GUARDOVERFLOW size_type _Newsize) {
@@ -1607,7 +1607,7 @@ private:
         size_type _Newsize = _Mapsize() > 0 ? _Mapsize() : 1;
         while (_Newsize - _Mapsize() < _Count || _Newsize < _Minimum_map_size) {
             // scale _Newsize to 2^N >= _Mapsize() + _Count
-            if (最大尺寸() / _Block_size - _Newsize < _Newsize) {
+            if (max_size() / _Block_size - _Newsize < _Newsize) {
                 _Xlen(); // result too long
             }
 
@@ -1882,8 +1882,6 @@ _STL_RESTORE_CLANG_WARNINGS
     模板 <类型名... 参数> 自动 size(参数&&... 值) 常量 { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 empty(参数&&... 值) { 返回 基类::为空(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 empty(参数&&... 值) 常量 { 返回 基类::为空(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 max_size(参数&&... 值) { 返回 基类::最大尺寸(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 max_size(参数&&... 值) 常量 { 返回 基类::最大尺寸(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 begin(参数&&... 值) { 返回 基类::开始(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 begin(参数&&... 值) 常量 { 返回 基类::开始(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 end(参数&&... 值) { 返回 基类::结束(static_cast<参数&&>(值)...); }
@@ -1925,7 +1923,7 @@ _STL_RESTORE_CLANG_WARNINGS
 
     // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
     // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
-
+    模板 <类型名... 参数> 自动 最大尺寸(参数&&... 值) 常量 { 返回 基类::max_size(static_cast<参数&&>(值)...); }
 };
 }
 
