@@ -124,12 +124,12 @@ struct _作用域基类<_Outer> : _Outer { // nest of allocators, one deep
 _EXPORT_STD template <class _Outer, class... _Inner>
 class 作用域分配器适配器实现 : public _作用域基类<_Outer, _Inner...> { // nest of allocators
 private:
-    using _Mybase       = _作用域基类<_Outer, _Inner...>;
+    using _我的基类       = _作用域基类<_Outer, _Inner...>;
     using _Outer_traits = allocator_traits<_Outer>;
 
 public:
     using outer_allocator_type = _Outer;
-    using inner_allocator_type = typename _Mybase::inner_allocator_type;
+    using inner_allocator_type = typename _我的基类::inner_allocator_type;
 
     using value_type         = typename _Outer_traits::value_type;
     using pointer            = typename _Outer_traits::pointer;
@@ -165,27 +165,27 @@ public:
 
     template <class _Other, enable_if_t<is_constructible_v<_Outer, _Other>, int> = 0>
     作用域分配器适配器实现(_Other&& _Other_arg, const _Inner&... _Inner_args) noexcept
-        : _Mybase(_STD forward<_Other>(_Other_arg), _Inner_args...) {
+        : _我的基类(_STD forward<_Other>(_Other_arg), _Inner_args...) {
         // also handles rebinding construction when sizeof...(_Inner) == 0
     }
 
-    作用域分配器适配器实现(const 作用域分配器适配器实现& _Right) noexcept : _Mybase(_Right) {}
+    作用域分配器适配器实现(const 作用域分配器适配器实现& _Right) noexcept : _我的基类(_Right) {}
 
-    作用域分配器适配器实现(作用域分配器适配器实现&& _Right) noexcept : _Mybase(_STD move(_Right)) {}
+    作用域分配器适配器实现(作用域分配器适配器实现&& _Right) noexcept : _我的基类(_STD move(_Right)) {}
 
     template <class _Other, bool _Enabled = sizeof...(_Inner) != 0 && is_constructible_v<_Outer, const _Other&>,
         enable_if_t<_Enabled, int> = 0>
     作用域分配器适配器实现(const 作用域分配器适配器实现<_Other, _Inner...>& _Right) noexcept
-        : _Mybase(_Right.外层分配器(), _Right.内层分配器()) {}
+        : _我的基类(_Right.外层分配器(), _Right.内层分配器()) {}
 
     template <class _Other, bool _Enabled = sizeof...(_Inner) != 0 && is_constructible_v<_Outer, _Other>,
         enable_if_t<_Enabled, int> = 0>
     作用域分配器适配器实现(作用域分配器适配器实现<_Other, _Inner...>&& _Right) noexcept
-        : _Mybase(_STD move(_Right.外层分配器()), _STD move(_Right.内层分配器())) {}
+        : _我的基类(_STD move(_Right.外层分配器()), _STD move(_Right.内层分配器())) {}
 
     作用域分配器适配器实现(_作用域构造内部标号, const outer_allocator_type& _Outer_arg,
         const inner_allocator_type& _Inner_arg) noexcept
-        : _Mybase(_Outer_arg, _Inner_arg) {}
+        : _我的基类(_Outer_arg, _Inner_arg) {}
 
     作用域分配器适配器实现& operator=(const 作用域分配器适配器实现&) = default;
     作用域分配器适配器实现& operator=(作用域分配器适配器实现&&)      = default;

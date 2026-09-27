@@ -78,97 +78,97 @@ public:
     static_assert(is_object_v<_Kty>, "The C++ Standard forbids containers of non-object types "
                                      "because of [container.requirements].");
 
-    using _Mybase                = _Tree<_映射特征<_Kty, _Ty, _Pr, _Alloc, false>>;
-    using _Nodeptr               = typename _Mybase::_Nodeptr;
+    using _我的基类                = _Tree<_映射特征<_Kty, _Ty, _Pr, _Alloc, false>>;
+    using _Nodeptr               = typename _我的基类::_Nodeptr;
     using key_type               = _Kty;
     using mapped_type            = _Ty;
     using key_compare            = _Pr;
-    using 值比较器          = typename _Mybase::值比较器;
+    using 值比较器          = typename _我的基类::值比较器;
     using value_type             = pair<const _Kty, _Ty>;
-    using allocator_type         = typename _Mybase::allocator_type;
-    using size_type              = typename _Mybase::size_type;
-    using difference_type        = typename _Mybase::difference_type;
-    using pointer                = typename _Mybase::pointer;
-    using const_pointer          = typename _Mybase::const_pointer;
+    using allocator_type         = typename _我的基类::allocator_type;
+    using size_type              = typename _我的基类::size_type;
+    using difference_type        = typename _我的基类::difference_type;
+    using pointer                = typename _我的基类::pointer;
+    using const_pointer          = typename _我的基类::const_pointer;
     using reference              = value_type&;
     using const_reference        = const value_type&;
-    using iterator               = typename _Mybase::iterator;
-    using const_iterator         = typename _Mybase::const_iterator;
-    using reverse_iterator       = typename _Mybase::reverse_iterator;
-    using const_reverse_iterator = typename _Mybase::const_reverse_iterator;
+    using iterator               = typename _我的基类::iterator;
+    using const_iterator         = typename _我的基类::const_iterator;
+    using reverse_iterator       = typename _我的基类::reverse_iterator;
+    using const_reverse_iterator = typename _我的基类::const_reverse_iterator;
 
-    using _Alnode        = typename _Mybase::_Alnode;
-    using _Alnode_traits = typename _Mybase::_Alnode_traits;
+    using _Alnode        = typename _我的基类::_Alnode;
+    using _Alnode_traits = typename _我的基类::_Alnode_traits;
 
 #if _HAS_CXX17
-    using insert_return_type = _Insert_return_type<iterator, typename _Mybase::node_type>;
+    using insert_return_type = _Insert_return_type<iterator, typename _我的基类::node_type>;
 #endif // _HAS_CXX17
 
-    映射实现() : _Mybase(key_compare()) {}
+    映射实现() : _我的基类(key_compare()) {}
 
-    explicit 映射实现(const allocator_type& _Al) : _Mybase(key_compare(), _Al) {}
+    explicit 映射实现(const allocator_type& _Al) : _我的基类(key_compare(), _Al) {}
 
-    映射实现(const 映射实现& _Right) : _Mybase(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._Getal())) {}
+    映射实现(const 映射实现& _Right) : _我的基类(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._Getal())) {}
 
-    映射实现(const 映射实现& _Right, const allocator_type& _Al) : _Mybase(_Right, _Al) {}
+    映射实现(const 映射实现& _Right, const allocator_type& _Al) : _我的基类(_Right, _Al) {}
 
-    explicit 映射实现(const key_compare& _Pred) : _Mybase(_Pred) {}
+    explicit 映射实现(const key_compare& _Pred) : _我的基类(_Pred) {}
 
-    映射实现(const key_compare& _Pred, const allocator_type& _Al) : _Mybase(_Pred, _Al) {}
+    映射实现(const key_compare& _Pred, const allocator_type& _Al) : _我的基类(_Pred, _Al) {}
 
     template <class _Iter>
-    映射实现(_Iter _First, _Iter _Last) : _Mybase(key_compare()) {
+    映射实现(_Iter _First, _Iter _Last) : _我的基类(key_compare()) {
         插入(_First, _Last);
     }
 
     template <class _Iter>
-    映射实现(_Iter _First, _Iter _Last, const key_compare& _Pred) : _Mybase(_Pred) {
+    映射实现(_Iter _First, _Iter _Last, const key_compare& _Pred) : _我的基类(_Pred) {
         插入(_First, _Last);
     }
 
     template <class _Iter>
-    映射实现(_Iter _First, _Iter _Last, const allocator_type& _Al) : _Mybase(key_compare(), _Al) {
+    映射实现(_Iter _First, _Iter _Last, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
         插入(_First, _Last);
     }
 
     template <class _Iter>
-    映射实现(_Iter _First, _Iter _Last, const key_compare& _Pred, const allocator_type& _Al) : _Mybase(_Pred, _Al) {
+    映射实现(_Iter _First, _Iter _Last, const key_compare& _Pred, const allocator_type& _Al) : _我的基类(_Pred, _Al) {
         插入(_First, _Last);
     }
 
 #if _HAS_CXX23
     template <_Container_compatible_range<value_type> _Rng>
-    映射实现(from_range_t, _Rng&& _Range) : _Mybase(key_compare()) {
+    映射实现(from_range_t, _Rng&& _Range) : _我的基类(key_compare()) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    映射实现(from_range_t, _Rng&& _Range, const key_compare& _Pred) : _Mybase(_Pred) {
+    映射实现(from_range_t, _Rng&& _Range, const key_compare& _Pred) : _我的基类(_Pred) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    映射实现(from_range_t, _Rng&& _Range, const key_compare& _Pred, const allocator_type& _Al) : _Mybase(_Pred, _Al) {
+    映射实现(from_range_t, _Rng&& _Range, const key_compare& _Pred, const allocator_type& _Al) : _我的基类(_Pred, _Al) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    映射实现(from_range_t, _Rng&& _Range, const allocator_type& _Al) : _Mybase(key_compare(), _Al) {
+    映射实现(from_range_t, _Rng&& _Range, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 #endif // _HAS_CXX23
 
     映射实现& operator=(const 映射实现& _Right) {
-        _Mybase::operator=(_Right);
+        _我的基类::operator=(_Right);
         return *this;
     }
 
-    映射实现(映射实现&& _Right) : _Mybase(_STD move(_Right)) {}
+    映射实现(映射实现&& _Right) : _我的基类(_STD move(_Right)) {}
 
-    映射实现(映射实现&& _Right, const allocator_type& _Al) : _Mybase(_STD move(_Right), _Al) {}
+    映射实现(映射实现&& _Right, const allocator_type& _Al) : _我的基类(_STD move(_Right), _Al) {}
 
     映射实现& operator=(映射实现&& _Right) noexcept(_Alnode_traits::is_always_equal::value && is_nothrow_move_assignable_v<_Pr>) {
-        _Mybase::operator=(_STD move(_Right));
+        _我的基类::operator=(_STD move(_Right));
         return *this;
     }
 
@@ -176,11 +176,11 @@ public:
         return _Try_emplace(_STD move(_Keyval)).first->_Myval.second;
     }
 
-    void swap(映射实现& _Right) noexcept(noexcept(_Mybase::swap(_Right))) {
-        _Mybase::swap(_Right);
+    void swap(映射实现& _Right) noexcept(noexcept(_我的基类::swap(_Right))) {
+        _我的基类::swap(_Right);
     }
 
-    using _Mybase::插入;
+    using _我的基类::插入;
 
     template <class _Valty, enable_if_t<is_constructible_v<value_type, _Valty>, int> = 0>
     pair<iterator, bool> 插入(_Valty&& _Val) {
@@ -195,15 +195,15 @@ public:
 private:
     template <class _Keyty, class... _Mappedty>
     pair<_Nodeptr, bool> _Try_emplace(_Keyty&& _Keyval, _Mappedty&&... _Mapval) {
-        const auto _Loc = _Mybase::_Find_lower_bound(_Keyval);
-        if (_Mybase::_Lower_bound_duplicate(_Loc._Bound, _Keyval)) {
+        const auto _Loc = _我的基类::_Find_lower_bound(_Keyval);
+        if (_我的基类::_Lower_bound_duplicate(_Loc._Bound, _Keyval)) {
             return {_Loc._Bound, false};
         }
 
-        _Mybase::_Check_grow_by_1();
+        _我的基类::_Check_grow_by_1();
 
-        const auto _Scary    = _Mybase::_Get_scary();
-        const auto _Inserted = _Tree_temp_node<_Alnode>(_Mybase::_Getal(), _Scary->_Myhead, piecewise_construct,
+        const auto _Scary    = _我的基类::_Get_scary();
+        const auto _Inserted = _Tree_temp_node<_Alnode>(_我的基类::_Getal(), _Scary->_Myhead, piecewise_construct,
             _STD forward_as_tuple(_STD forward<_Keyty>(_Keyval)),
             _STD forward_as_tuple(_STD forward<_Mappedty>(_Mapval)...))
                                    ._Release();
@@ -214,15 +214,15 @@ private:
 
     template <class _Keyty, class... _Mappedty>
     _Nodeptr _Try_emplace_hint(const _Nodeptr _Hint, _Keyty&& _Keyval, _Mappedty&&... _Mapval) {
-        const auto _Loc = _Mybase::_Find_hint(_Hint, _Keyval);
+        const auto _Loc = _我的基类::_Find_hint(_Hint, _Keyval);
         if (_Loc._Duplicate) {
             return _Loc._Location._Parent;
         }
 
-        _Mybase::_Check_grow_by_1();
+        _我的基类::_Check_grow_by_1();
 
-        const auto _Scary    = _Mybase::_Get_scary();
-        const auto _Inserted = _Tree_temp_node<_Alnode>(_Mybase::_Getal(), _Scary->_Myhead, piecewise_construct,
+        const auto _Scary    = _我的基类::_Get_scary();
+        const auto _Inserted = _Tree_temp_node<_Alnode>(_我的基类::_Getal(), _Scary->_Myhead, piecewise_construct,
             _STD forward_as_tuple(_STD forward<_Keyty>(_Keyval)),
             _STD forward_as_tuple(_STD forward<_Mappedty>(_Mapval)...))
                                    ._Release();
@@ -235,41 +235,41 @@ public:
     template <class... _Mappedty>
     pair<iterator, bool> 尝试就地构造(const key_type& _Keyval, _Mappedty&&... _Mapval) {
         const auto _Result = _Try_emplace(_Keyval, _STD forward<_Mappedty>(_Mapval)...);
-        return {iterator(_Result.first, _Mybase::_Get_scary()), _Result.second};
+        return {iterator(_Result.first, _我的基类::_Get_scary()), _Result.second};
     }
 
     template <class... _Mappedty>
     iterator 尝试就地构造(const const_iterator _Hint, const key_type& _Keyval, _Mappedty&&... _Mapval) {
         return iterator(
-            _Try_emplace_hint(_Hint._Ptr, _Keyval, _STD forward<_Mappedty>(_Mapval)...), _Mybase::_Get_scary());
+            _Try_emplace_hint(_Hint._Ptr, _Keyval, _STD forward<_Mappedty>(_Mapval)...), _我的基类::_Get_scary());
     }
 
     template <class... _Mappedty>
     pair<iterator, bool> 尝试就地构造(key_type&& _Keyval, _Mappedty&&... _Mapval) {
         const auto _Result = _Try_emplace(_STD move(_Keyval), _STD forward<_Mappedty>(_Mapval)...);
-        return {iterator(_Result.first, _Mybase::_Get_scary()), _Result.second};
+        return {iterator(_Result.first, _我的基类::_Get_scary()), _Result.second};
     }
 
     template <class... _Mappedty>
     iterator 尝试就地构造(const const_iterator _Hint, key_type&& _Keyval, _Mappedty&&... _Mapval) {
         return iterator(_Try_emplace_hint(_Hint._Ptr, _STD move(_Keyval), _STD forward<_Mappedty>(_Mapval)...),
-            _Mybase::_Get_scary());
+            _我的基类::_Get_scary());
     }
 
 private:
     template <class _Keyty, class _Mappedty>
     pair<_Nodeptr, bool> _Insert_or_assign(_Keyty&& _Keyval, _Mappedty&& _Mapval) {
-        const auto _Loc = _Mybase::_Find_lower_bound(_Keyval);
-        if (_Mybase::_Lower_bound_duplicate(_Loc._Bound, _Keyval)) {
+        const auto _Loc = _我的基类::_Find_lower_bound(_Keyval);
+        if (_我的基类::_Lower_bound_duplicate(_Loc._Bound, _Keyval)) {
             _Loc._Bound->_Myval.second = _STD forward<_Mappedty>(_Mapval);
             return {_Loc._Bound, false};
         }
 
-        _Mybase::_Check_grow_by_1();
+        _我的基类::_Check_grow_by_1();
 
-        const auto _Scary    = _Mybase::_Get_scary();
+        const auto _Scary    = _我的基类::_Get_scary();
         const auto _Inserted = _Tree_temp_node<_Alnode>(
-            _Mybase::_Getal(), _Scary->_Myhead, _STD forward<_Keyty>(_Keyval), _STD forward<_Mappedty>(_Mapval))
+            _我的基类::_Getal(), _Scary->_Myhead, _STD forward<_Keyty>(_Keyval), _STD forward<_Mappedty>(_Mapval))
                                    ._Release();
 
         // nothrow hereafter
@@ -278,17 +278,17 @@ private:
 
     template <class _Keyty, class _Mappedty>
     _Nodeptr _Insert_or_assign_hint(const _Nodeptr _Hint, _Keyty&& _Keyval, _Mappedty&& _Mapval) {
-        const auto _Loc = _Mybase::_Find_hint(_Hint, _Keyval);
+        const auto _Loc = _我的基类::_Find_hint(_Hint, _Keyval);
         if (_Loc._Duplicate) {
             _Loc._Location._Parent->_Myval.second = _STD forward<_Mappedty>(_Mapval);
             return _Loc._Location._Parent;
         }
 
-        _Mybase::_Check_grow_by_1();
+        _我的基类::_Check_grow_by_1();
 
-        const auto _Scary    = _Mybase::_Get_scary();
+        const auto _Scary    = _我的基类::_Get_scary();
         const auto _Inserted = _Tree_temp_node<_Alnode>(
-            _Mybase::_Getal(), _Scary->_Myhead, _STD forward<_Keyty>(_Keyval), _STD forward<_Mappedty>(_Mapval))
+            _我的基类::_Getal(), _Scary->_Myhead, _STD forward<_Keyty>(_Keyval), _STD forward<_Mappedty>(_Mapval))
                                    ._Release();
 
         // nothrow hereafter
@@ -299,46 +299,46 @@ public:
     template <class _Mappedty>
     pair<iterator, bool> 插入或赋值(const key_type& _Keyval, _Mappedty&& _Mapval) {
         const auto _Result = _Insert_or_assign(_Keyval, _STD forward<_Mappedty>(_Mapval));
-        return {iterator(_Result.first, _Mybase::_Get_scary()), _Result.second};
+        return {iterator(_Result.first, _我的基类::_Get_scary()), _Result.second};
     }
 
     template <class _Mappedty>
     iterator 插入或赋值(const const_iterator _Hint, const key_type& _Keyval, _Mappedty&& _Mapval) {
         return iterator(
-            _Insert_or_assign_hint(_Hint._Ptr, _Keyval, _STD forward<_Mappedty>(_Mapval)), _Mybase::_Get_scary());
+            _Insert_or_assign_hint(_Hint._Ptr, _Keyval, _STD forward<_Mappedty>(_Mapval)), _我的基类::_Get_scary());
     }
 
     template <class _Mappedty>
     pair<iterator, bool> 插入或赋值(key_type&& _Keyval, _Mappedty&& _Mapval) {
         const auto _Result = _Insert_or_assign(_STD move(_Keyval), _STD forward<_Mappedty>(_Mapval));
-        return {iterator(_Result.first, _Mybase::_Get_scary()), _Result.second};
+        return {iterator(_Result.first, _我的基类::_Get_scary()), _Result.second};
     }
 
     template <class _Mappedty>
     iterator 插入或赋值(const const_iterator _Hint, key_type&& _Keyval, _Mappedty&& _Mapval) {
         return iterator(_Insert_or_assign_hint(_Hint._Ptr, _STD move(_Keyval), _STD forward<_Mappedty>(_Mapval)),
-            _Mybase::_Get_scary());
+            _我的基类::_Get_scary());
     }
 
-    映射实现(initializer_list<value_type> _Ilist) : _Mybase(key_compare()) {
+    映射实现(initializer_list<value_type> _Ilist) : _我的基类(key_compare()) {
         插入(_Ilist);
     }
 
-    映射实现(initializer_list<value_type> _Ilist, const key_compare& _Pred) : _Mybase(_Pred) {
+    映射实现(initializer_list<value_type> _Ilist, const key_compare& _Pred) : _我的基类(_Pred) {
         插入(_Ilist);
     }
 
-    映射实现(initializer_list<value_type> _Ilist, const allocator_type& _Al) : _Mybase(key_compare(), _Al) {
+    映射实现(initializer_list<value_type> _Ilist, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
         插入(_Ilist);
     }
 
     映射实现(initializer_list<value_type> _Ilist, const key_compare& _Pred, const allocator_type& _Al)
-        : _Mybase(_Pred, _Al) {
+        : _我的基类(_Pred, _Al) {
         插入(_Ilist);
     }
 
     映射实现& operator=(initializer_list<value_type> _Ilist) {
-        _Mybase::clear();
+        _我的基类::clear();
         插入(_Ilist);
         return *this;
     }
@@ -348,8 +348,8 @@ public:
     }
 
     _NODISCARD mapped_type& 取值(const key_type& _Keyval) {
-        const auto _Loc = _Mybase::_Find_lower_bound(_Keyval);
-        if (!_Mybase::_Lower_bound_duplicate(_Loc._Bound, _Keyval)) {
+        const auto _Loc = _我的基类::_Find_lower_bound(_Keyval);
+        if (!_我的基类::_Lower_bound_duplicate(_Loc._Bound, _Keyval)) {
             _Xout_of_range("invalid 映射实现<K, T> key");
         }
 
@@ -357,16 +357,16 @@ public:
     }
 
     _NODISCARD const mapped_type& 取值(const key_type& _Keyval) const {
-        const auto _Loc = _Mybase::_Find_lower_bound(_Keyval);
-        if (!_Mybase::_Lower_bound_duplicate(_Loc._Bound, _Keyval)) {
+        const auto _Loc = _我的基类::_Find_lower_bound(_Keyval);
+        if (!_我的基类::_Lower_bound_duplicate(_Loc._Bound, _Keyval)) {
             _Xout_of_range("invalid 映射实现<K, T> key");
         }
 
         return _Loc._Bound->_Myval.second;
     }
 
-    using _Mybase::_Unchecked_begin;
-    using _Mybase::_Unchecked_end;
+    using _我的基类::_Unchecked_begin;
+    using _我的基类::_Unchecked_end;
 };
 
 #if _HAS_CXX17
@@ -460,107 +460,107 @@ public:
     static_assert(is_object_v<_Kty>, "The C++ Standard forbids containers of non-object types "
                                      "because of [container.requirements].");
 
-    using _Mybase                = _Tree<_映射特征<_Kty, _Ty, _Pr, _Alloc, true>>;
+    using _我的基类                = _Tree<_映射特征<_Kty, _Ty, _Pr, _Alloc, true>>;
     using key_type               = _Kty;
     using mapped_type            = _Ty;
     using key_compare            = _Pr;
-    using 值比较器          = typename _Mybase::值比较器;
+    using 值比较器          = typename _我的基类::值比较器;
     using value_type             = pair<const _Kty, _Ty>;
-    using allocator_type         = typename _Mybase::allocator_type;
-    using size_type              = typename _Mybase::size_type;
-    using difference_type        = typename _Mybase::difference_type;
-    using pointer                = typename _Mybase::pointer;
-    using const_pointer          = typename _Mybase::const_pointer;
+    using allocator_type         = typename _我的基类::allocator_type;
+    using size_type              = typename _我的基类::size_type;
+    using difference_type        = typename _我的基类::difference_type;
+    using pointer                = typename _我的基类::pointer;
+    using const_pointer          = typename _我的基类::const_pointer;
     using reference              = value_type&;
     using const_reference        = const value_type&;
-    using iterator               = typename _Mybase::iterator;
-    using const_iterator         = typename _Mybase::const_iterator;
-    using reverse_iterator       = typename _Mybase::reverse_iterator;
-    using const_reverse_iterator = typename _Mybase::const_reverse_iterator;
+    using iterator               = typename _我的基类::iterator;
+    using const_iterator         = typename _我的基类::const_iterator;
+    using reverse_iterator       = typename _我的基类::reverse_iterator;
+    using const_reverse_iterator = typename _我的基类::const_reverse_iterator;
 
-    using _Alnode        = typename _Mybase::_Alnode;
-    using _Alnode_traits = typename _Mybase::_Alnode_traits;
+    using _Alnode        = typename _我的基类::_Alnode;
+    using _Alnode_traits = typename _我的基类::_Alnode_traits;
 
-    多重映射实现() : _Mybase(key_compare()) {}
+    多重映射实现() : _我的基类(key_compare()) {}
 
-    explicit 多重映射实现(const allocator_type& _Al) : _Mybase(key_compare(), _Al) {}
+    explicit 多重映射实现(const allocator_type& _Al) : _我的基类(key_compare(), _Al) {}
 
     多重映射实现(const 多重映射实现& _Right)
-        : _Mybase(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._Getal())) {}
+        : _我的基类(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._Getal())) {}
 
-    多重映射实现(const 多重映射实现& _Right, const allocator_type& _Al) : _Mybase(_Right, _Al) {}
+    多重映射实现(const 多重映射实现& _Right, const allocator_type& _Al) : _我的基类(_Right, _Al) {}
 
-    explicit 多重映射实现(const key_compare& _Pred) : _Mybase(_Pred) {}
+    explicit 多重映射实现(const key_compare& _Pred) : _我的基类(_Pred) {}
 
-    多重映射实现(const key_compare& _Pred, const allocator_type& _Al) : _Mybase(_Pred, _Al) {}
+    多重映射实现(const key_compare& _Pred, const allocator_type& _Al) : _我的基类(_Pred, _Al) {}
 
     template <class _Iter>
-    多重映射实现(_Iter _First, _Iter _Last) : _Mybase(key_compare()) {
+    多重映射实现(_Iter _First, _Iter _Last) : _我的基类(key_compare()) {
         插入(_First, _Last);
     }
 
     template <class _Iter>
-    多重映射实现(_Iter _First, _Iter _Last, const key_compare& _Pred) : _Mybase(_Pred) {
+    多重映射实现(_Iter _First, _Iter _Last, const key_compare& _Pred) : _我的基类(_Pred) {
         插入(_First, _Last);
     }
 
     template <class _Iter>
-    多重映射实现(_Iter _First, _Iter _Last, const allocator_type& _Al) : _Mybase(key_compare(), _Al) {
+    多重映射实现(_Iter _First, _Iter _Last, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
         插入(_First, _Last);
     }
 
     template <class _Iter>
-    多重映射实现(_Iter _First, _Iter _Last, const key_compare& _Pred, const allocator_type& _Al) : _Mybase(_Pred, _Al) {
+    多重映射实现(_Iter _First, _Iter _Last, const key_compare& _Pred, const allocator_type& _Al) : _我的基类(_Pred, _Al) {
         插入(_First, _Last);
     }
 
 #if _HAS_CXX23
     template <_Container_compatible_range<value_type> _Rng>
-    多重映射实现(from_range_t, _Rng&& _Range) : _Mybase(key_compare()) {
+    多重映射实现(from_range_t, _Rng&& _Range) : _我的基类(key_compare()) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    多重映射实现(from_range_t, _Rng&& _Range, const key_compare& _Pred) : _Mybase(_Pred) {
+    多重映射实现(from_range_t, _Rng&& _Range, const key_compare& _Pred) : _我的基类(_Pred) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    多重映射实现(from_range_t, _Rng&& _Range, const key_compare& _Pred, const allocator_type& _Al) : _Mybase(_Pred, _Al) {
+    多重映射实现(from_range_t, _Rng&& _Range, const key_compare& _Pred, const allocator_type& _Al) : _我的基类(_Pred, _Al) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    多重映射实现(from_range_t, _Rng&& _Range, const allocator_type& _Al) : _Mybase(key_compare(), _Al) {
+    多重映射实现(from_range_t, _Rng&& _Range, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 #endif // _HAS_CXX23
 
     多重映射实现& operator=(const 多重映射实现& _Right) {
-        _Mybase::operator=(_Right);
+        _我的基类::operator=(_Right);
         return *this;
     }
 
-    多重映射实现(多重映射实现&& _Right) : _Mybase(_STD move(_Right)) {}
+    多重映射实现(多重映射实现&& _Right) : _我的基类(_STD move(_Right)) {}
 
-    多重映射实现(多重映射实现&& _Right, const allocator_type& _Al) : _Mybase(_STD move(_Right), _Al) {}
+    多重映射实现(多重映射实现&& _Right, const allocator_type& _Al) : _我的基类(_STD move(_Right), _Al) {}
 
     多重映射实现& operator=(多重映射实现&& _Right)
         noexcept(_Alnode_traits::is_always_equal::value && is_nothrow_move_assignable_v<_Pr>) {
-        _Mybase::operator=(_STD move(_Right));
+        _我的基类::operator=(_STD move(_Right));
         return *this;
     }
 
     template <class... _Valty>
     iterator 就地构造(_Valty&&... _Val) {
-        return _Mybase::就地构造(_STD forward<_Valty>(_Val)...).first;
+        return _我的基类::就地构造(_STD forward<_Valty>(_Val)...).first;
     }
 
-    void swap(多重映射实现& _Right) noexcept(noexcept(_Mybase::swap(_Right))) {
-        _Mybase::swap(_Right);
+    void swap(多重映射实现& _Right) noexcept(noexcept(_我的基类::swap(_Right))) {
+        _我的基类::swap(_Right);
     }
 
-    using _Mybase::插入;
+    using _我的基类::插入;
 
     template <class _Valty, enable_if_t<is_constructible_v<value_type, _Valty>, int> = 0>
     iterator 插入(_Valty&& _Val) {
@@ -572,31 +572,31 @@ public:
         return this->emplace_hint(_Where, _STD forward<_Valty>(_Val));
     }
 
-    多重映射实现(initializer_list<value_type> _Ilist) : _Mybase(key_compare()) {
+    多重映射实现(initializer_list<value_type> _Ilist) : _我的基类(key_compare()) {
         插入(_Ilist);
     }
 
-    多重映射实现(initializer_list<value_type> _Ilist, const key_compare& _Pred) : _Mybase(_Pred) {
+    多重映射实现(initializer_list<value_type> _Ilist, const key_compare& _Pred) : _我的基类(_Pred) {
         插入(_Ilist);
     }
 
-    多重映射实现(initializer_list<value_type> _Ilist, const allocator_type& _Al) : _Mybase(key_compare(), _Al) {
+    多重映射实现(initializer_list<value_type> _Ilist, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
         插入(_Ilist);
     }
 
     多重映射实现(initializer_list<value_type> _Ilist, const key_compare& _Pred, const allocator_type& _Al)
-        : _Mybase(_Pred, _Al) {
+        : _我的基类(_Pred, _Al) {
         插入(_Ilist);
     }
 
     多重映射实现& operator=(initializer_list<value_type> _Ilist) {
-        _Mybase::clear();
+        _我的基类::clear();
         插入(_Ilist);
         return *this;
     }
 
-    using _Mybase::_Unchecked_begin;
-    using _Mybase::_Unchecked_end;
+    using _我的基类::_Unchecked_begin;
+    using _我的基类::_Unchecked_end;
 };
 
 #if _HAS_CXX17

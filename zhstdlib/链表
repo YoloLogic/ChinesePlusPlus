@@ -22,20 +22,20 @@ _STL_DISABLE_CLANG_WARNINGS
 
 名域 标准 { 名域 细节 {
 使用 名域 std;
-template <class _Mylist, class _Base = _Iterator_base0>
+template <class _我的链表, class _Base = _Iterator_base0>
 class _List_unchecked_const_iterator : public _Base {
 public:
     using iterator_category = bidirectional_iterator_tag;
 
-    using _Nodeptr        = typename _Mylist::_Nodeptr;
-    using value_type      = typename _Mylist::value_type;
-    using difference_type = typename _Mylist::difference_type;
-    using pointer         = typename _Mylist::const_pointer;
+    using _Nodeptr        = typename _我的链表::_Nodeptr;
+    using value_type      = typename _我的链表::value_type;
+    using difference_type = typename _我的链表::difference_type;
+    using pointer         = typename _我的链表::const_pointer;
     using reference       = const value_type&;
 
     _List_unchecked_const_iterator() noexcept : _Ptr() {}
 
-    _List_unchecked_const_iterator(_Nodeptr _Pnode, const _Mylist* _Plist) noexcept : _Ptr(_Pnode) {
+    _List_unchecked_const_iterator(_Nodeptr _Pnode, const _我的链表* _Plist) noexcept : _Ptr(_Pnode) {
         this->_Adopt(_Plist);
     }
 
@@ -82,22 +82,22 @@ public:
     _Nodeptr _Ptr; // pointer to node
 };
 
-template <class _Mylist>
-class _List_unchecked_iterator : public _List_unchecked_const_iterator<_Mylist> {
+template <class _我的链表>
+class _List_unchecked_iterator : public _List_unchecked_const_iterator<_我的链表> {
 public:
-    using _Mybase           = _List_unchecked_const_iterator<_Mylist>;
+    using _我的基类           = _List_unchecked_const_iterator<_我的链表>;
     using iterator_category = bidirectional_iterator_tag;
 
-    using _Nodeptr        = typename _Mylist::_Nodeptr;
-    using value_type      = typename _Mylist::value_type;
-    using difference_type = typename _Mylist::difference_type;
-    using pointer         = typename _Mylist::pointer;
+    using _Nodeptr        = typename _我的链表::_Nodeptr;
+    using value_type      = typename _我的链表::value_type;
+    using difference_type = typename _我的链表::difference_type;
+    using pointer         = typename _我的链表::pointer;
     using reference       = value_type&;
 
-    using _Mybase::_Mybase;
+    using _我的基类::_我的基类;
 
     _NODISCARD reference operator*() const noexcept {
-        return const_cast<reference>(_Mybase::operator*());
+        return const_cast<reference>(_我的基类::operator*());
     }
 
     _NODISCARD pointer operator->() const noexcept {
@@ -105,45 +105,45 @@ public:
     }
 
     _List_unchecked_iterator& operator++() noexcept {
-        _Mybase::operator++();
+        _我的基类::operator++();
         return *this;
     }
 
     _List_unchecked_iterator operator++(int) noexcept {
         _List_unchecked_iterator _Tmp = *this;
-        _Mybase::operator++();
+        _我的基类::operator++();
         return _Tmp;
     }
 
     _List_unchecked_iterator& operator--() noexcept {
-        _Mybase::operator--();
+        _我的基类::operator--();
         return *this;
     }
 
     _List_unchecked_iterator operator--(int) noexcept {
         _List_unchecked_iterator _Tmp = *this;
-        _Mybase::operator--();
+        _我的基类::operator--();
         return _Tmp;
     }
 };
 
-template <class _Mylist>
-class _List_const_iterator : public _List_unchecked_const_iterator<_Mylist, _Iterator_base> {
+template <class _我的链表>
+class _List_const_iterator : public _List_unchecked_const_iterator<_我的链表, _Iterator_base> {
 public:
-    using _Mybase           = _List_unchecked_const_iterator<_Mylist, _Iterator_base>;
+    using _我的基类           = _List_unchecked_const_iterator<_我的链表, _Iterator_base>;
     using iterator_category = bidirectional_iterator_tag;
 
-    using _Nodeptr        = typename _Mylist::_Nodeptr;
-    using value_type      = typename _Mylist::value_type;
-    using difference_type = typename _Mylist::difference_type;
-    using pointer         = typename _Mylist::const_pointer;
+    using _Nodeptr        = typename _我的链表::_Nodeptr;
+    using value_type      = typename _我的链表::value_type;
+    using difference_type = typename _我的链表::difference_type;
+    using pointer         = typename _我的链表::const_pointer;
     using reference       = const value_type&;
 
-    using _Mybase::_Mybase;
+    using _我的基类::_我的基类;
 
     _NODISCARD reference operator*() const noexcept {
 #if _ITERATOR_DEBUG_LEVEL == 2
-        const auto _Mycont = static_cast<const _Mylist*>(this->_Getcont());
+        const auto _Mycont = static_cast<const _我的链表*>(this->_Getcont());
         _STL_VERIFY(_Mycont, "cannot dereference value-initialized 链表实现 iterator");
         _STL_VERIFY(this->_Ptr != _Mycont->_Myhead, "cannot dereference 结束 链表实现 iterator");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
@@ -157,7 +157,7 @@ public:
 
     _List_const_iterator& operator++() noexcept {
 #if _ITERATOR_DEBUG_LEVEL == 2
-        const auto _Mycont = static_cast<const _Mylist*>(this->_Getcont());
+        const auto _Mycont = static_cast<const _我的链表*>(this->_Getcont());
         _STL_VERIFY(_Mycont, "cannot increment value-initialized 链表实现 iterator");
         _STL_VERIFY(this->_Ptr != _Mycont->_Myhead, "cannot increment 结束 链表实现 iterator");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
@@ -175,7 +175,7 @@ public:
     _List_const_iterator& operator--() noexcept {
         const auto _New_ptr = this->_Ptr->_Prev;
 #if _ITERATOR_DEBUG_LEVEL == 2
-        const auto _Mycont = static_cast<const _Mylist*>(this->_Getcont());
+        const auto _Mycont = static_cast<const _我的链表*>(this->_Getcont());
         _STL_VERIFY(_Mycont, "cannot decrement value-initialized 链表实现 iterator");
         _STL_VERIFY(_New_ptr != _Mycont->_Myhead, "cannot decrement 开始 链表实现 iterator");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
@@ -212,31 +212,31 @@ public:
 
     using _Prevent_inheriting_unwrap = _List_const_iterator;
 
-    _NODISCARD _List_unchecked_const_iterator<_Mylist> _Unwrapped() const noexcept {
-        return _List_unchecked_const_iterator<_Mylist>(this->_Ptr, static_cast<const _Mylist*>(this->_Getcont()));
+    _NODISCARD _List_unchecked_const_iterator<_我的链表> _Unwrapped() const noexcept {
+        return _List_unchecked_const_iterator<_我的链表>(this->_Ptr, static_cast<const _我的链表*>(this->_Getcont()));
     }
 
-    void _Seek_to(const _List_unchecked_const_iterator<_Mylist> _It) noexcept {
+    void _Seek_to(const _List_unchecked_const_iterator<_我的链表> _It) noexcept {
         this->_Ptr = _It._Ptr;
     }
 };
 
-template <class _Mylist>
-class _List_iterator : public _List_const_iterator<_Mylist> {
+template <class _我的链表>
+class _List_iterator : public _List_const_iterator<_我的链表> {
 public:
-    using _Mybase           = _List_const_iterator<_Mylist>;
+    using _我的基类           = _List_const_iterator<_我的链表>;
     using iterator_category = bidirectional_iterator_tag;
 
-    using _Nodeptr        = typename _Mylist::_Nodeptr;
-    using value_type      = typename _Mylist::value_type;
-    using difference_type = typename _Mylist::difference_type;
-    using pointer         = typename _Mylist::pointer;
+    using _Nodeptr        = typename _我的链表::_Nodeptr;
+    using value_type      = typename _我的链表::value_type;
+    using difference_type = typename _我的链表::difference_type;
+    using pointer         = typename _我的链表::pointer;
     using reference       = value_type&;
 
-    using _Mybase::_Mybase;
+    using _我的基类::_我的基类;
 
     _NODISCARD reference operator*() const noexcept {
-        return const_cast<reference>(_Mybase::operator*());
+        return const_cast<reference>(_我的基类::operator*());
     }
 
     _NODISCARD pointer operator->() const noexcept {
@@ -244,31 +244,31 @@ public:
     }
 
     _List_iterator& operator++() noexcept {
-        _Mybase::operator++();
+        _我的基类::operator++();
         return *this;
     }
 
     _List_iterator operator++(int) noexcept {
         _List_iterator _Tmp = *this;
-        _Mybase::operator++();
+        _我的基类::operator++();
         return _Tmp;
     }
 
     _List_iterator& operator--() noexcept {
-        _Mybase::operator--();
+        _我的基类::operator--();
         return *this;
     }
 
     _List_iterator operator--(int) noexcept {
         _List_iterator _Tmp = *this;
-        _Mybase::operator--();
+        _我的基类::operator--();
         return _Tmp;
     }
 
     using _Prevent_inheriting_unwrap = _List_iterator;
 
-    _NODISCARD _List_unchecked_iterator<_Mylist> _Unwrapped() const noexcept {
-        return _List_unchecked_iterator<_Mylist>(this->_Ptr, static_cast<const _Mylist*>(this->_Getcont()));
+    _NODISCARD _List_unchecked_iterator<_我的链表> _Unwrapped() const noexcept {
+        return _List_unchecked_iterator<_我的链表>(this->_Ptr, static_cast<const _我的链表*>(this->_Getcont()));
     }
 };
 
@@ -334,20 +334,20 @@ struct _List_node { // 链表实现 node
 
 template <class _Ty>
 struct _List_simple_types : _Simple_types<_Ty> {
-    using _Node    = _List_node<_Ty, void*>;
-    using _Nodeptr = _Node*;
+    using _节点    = _List_node<_Ty, void*>;
+    using _Nodeptr = _节点*;
 };
 
-template <class _Val_types>
+template <class _值类型集>
 class _List_val : public _Container_base {
 public:
-    using _Nodeptr = typename _Val_types::_Nodeptr;
+    using _Nodeptr = typename _值类型集::_Nodeptr;
 
-    using value_type      = typename _Val_types::value_type;
-    using size_type       = typename _Val_types::size_type;
-    using difference_type = typename _Val_types::difference_type;
-    using pointer         = typename _Val_types::pointer;
-    using const_pointer   = typename _Val_types::const_pointer;
+    using value_type      = typename _值类型集::value_type;
+    using size_type       = typename _值类型集::size_type;
+    using difference_type = typename _值类型集::difference_type;
+    using pointer         = typename _值类型集::pointer;
+    using const_pointer   = typename _值类型集::const_pointer;
     using reference       = value_type&;
     using const_reference = const value_type&;
 
@@ -688,8 +688,8 @@ struct _List_node_insert_op2 {
         }
     }
 
-    template <class _Val_types>
-    pointer _Attach_before(_List_val<_Val_types>& _List_data, const pointer _Insert_before) noexcept {
+    template <class _值类型集>
+    pointer _Attach_before(_List_val<_值类型集>& _List_data, const pointer _Insert_before) noexcept {
         // Attach the elements in *this before _Insert_before.
         // If *this is 为空, returns _Insert_before; otherwise returns a pointer to the first inserted 链表实现 node.
         // Resets *this to the default-initialized state.
@@ -713,13 +713,13 @@ struct _List_node_insert_op2 {
         return _Local_head;
     }
 
-    template <class _Val_types>
-    void _Attach_at_end(_List_val<_Val_types>& _List_data) noexcept {
+    template <class _值类型集>
+    void _Attach_at_end(_List_val<_值类型集>& _List_data) noexcept {
         _Attach_before(_List_data, _List_data._Myhead);
     }
 
-    template <class _Val_types>
-    void _Attach_head(_List_val<_Val_types>& _List_data) {
+    template <class _值类型集>
+    void _Attach_head(_List_val<_值类型集>& _List_data) {
         _Alloc_construct_ptr<_Alnode> _Newnode(_Al);
         _Newnode._Allocate(); // throws
         const auto _Local_added = _STD exchange(_Added, size_type{0});
@@ -776,16 +776,16 @@ private:
 
     using _Alty          = _Rebind_alloc_t<_Alloc, _Ty>;
     using _Alty_traits   = allocator_traits<_Alty>;
-    using _Node          = _List_node<_Ty, typename allocator_traits<_Alloc>::void_pointer>;
-    using _Alnode        = _Rebind_alloc_t<_Alloc, _Node>;
+    using _节点          = _List_node<_Ty, typename allocator_traits<_Alloc>::void_pointer>;
+    using _Alnode        = _Rebind_alloc_t<_Alloc, _节点>;
     using _Alnode_traits = allocator_traits<_Alnode>;
     using _Nodeptr       = typename _Alnode_traits::pointer;
 
-    using _Val_types = conditional_t<_Is_simple_alloc_v<_Alnode>, _List_simple_types<_Ty>,
+    using _值类型集 = conditional_t<_Is_simple_alloc_v<_Alnode>, _List_simple_types<_Ty>,
         _List_iter_types<_Ty, typename _Alty_traits::size_type, typename _Alty_traits::difference_type,
             typename _Alty_traits::pointer, typename _Alty_traits::const_pointer, _Nodeptr>>;
 
-    using _Scary_val = _List_val<_Val_types>;
+    using _Scary_val = _List_val<_值类型集>;
 
 public:
     static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<_Ty, typename _Alloc::value_type>,
@@ -946,7 +946,7 @@ public:
                 _Container_proxy_ptr<_Alty> _Proxy(_Right_alproxy, _Leave_proxy_unbound{});
                 auto& _My_data      = _Mypair._Myval2;
                 auto& _Right_data   = _Right._Mypair._Myval2;
-                const auto _Newhead = _STD exchange(_Right_data._Myhead, _Node::_Buyheadnode(_Right_al));
+                const auto _Newhead = _STD exchange(_Right_data._Myhead, _节点::_Buyheadnode(_Right_al));
                 const auto _Newsize = _STD exchange(_Right_data._Mysize, size_type{0});
                 _Tidy();
                 _Pocma(_Al, _Right_al);
@@ -1074,7 +1074,7 @@ private:
         auto&& _Right_alproxy = _GET_PROXY_ALLOCATOR(_Alnode, _Right_al);
         _Container_proxy_ptr<_Alty> _Proxy(_Right_alproxy, _Leave_proxy_unbound{});
         auto _Right_al_non_const = _Right_al;
-        auto _Newhead            = _Node::_Buyheadnode(_Right_al_non_const);
+        auto _Newhead            = _节点::_Buyheadnode(_Right_al_non_const);
         _Tidy();
         _Pocca(_Al, _Right_al);
         _Mypair._Myval2._Myhead = _Newhead;
@@ -1430,7 +1430,7 @@ public:
         _STL_VERIFY(_Where._Getcont() == _STD addressof(_Mypair._Myval2), "链表实现 擦除 iterator outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
         const auto _Result = _Where._Ptr->_Next;
-        _Node::_Freenode(_Getal(), _Mypair._Myval2._Unlinknode(_Where._Ptr));
+        _节点::_Freenode(_Getal(), _Mypair._Myval2._Unlinknode(_Where._Ptr));
         return _Make_iter(_Result);
     }
 
@@ -1441,7 +1441,7 @@ private:
         --_Mypair._Myval2._Mysize;
         _Pnode->_Prev->_Next = _Result;
         _Result->_Prev       = _Pnode->_Prev;
-        _Node::_Freenode(_Getal(), _Pnode);
+        _节点::_Freenode(_Getal(), _Pnode);
         return _Result;
     }
 
@@ -1492,7 +1492,7 @@ private:
         size_type _Erasures = 0;
         do {
             const auto _Next = _First->_Next;
-            _Node::_Freenode(_Al, _First);
+            _节点::_Freenode(_Al, _First);
             _First = _Next;
             ++_Erasures;
         } while (_First != _Last);
@@ -1505,7 +1505,7 @@ public:
     void 清空() noexcept { // 擦除 all
         auto& _My_data = _Mypair._Myval2;
         _My_data._Orphan_non_end();
-        _Node::_Free_non_head(_Getal(), _My_data._Myhead);
+        _节点::_Free_non_head(_Getal(), _My_data._Myhead);
         _My_data._Myhead->_Next = _My_data._Myhead;
         _My_data._Myhead->_Prev = _My_data._Myhead;
         _My_data._Mysize        = 0;
@@ -1516,8 +1516,8 @@ private:
         auto& _Al      = _Getal();
         auto& _My_data = _Mypair._Myval2;
         _My_data._Orphan_all();
-        _Node::_Free_non_head(_Al, _My_data._Myhead);
-        _Node::_Freenode0(_Al, _My_data._Myhead);
+        _节点::_Free_non_head(_Al, _My_data._Myhead);
+        _节点::_Freenode0(_Al, _My_data._Myhead);
     }
 
 public:

@@ -57,116 +57,116 @@ public:
     static_assert(is_object_v<_Kty>, "The C++ Standard forbids containers of non-object types "
                                      "because of [container.requirements].");
 
-    using _Mybase                = _Tree<_集合特征<_Kty, _Pr, _Alloc, false>>;
+    using _我的基类                = _Tree<_集合特征<_Kty, _Pr, _Alloc, false>>;
     using key_type               = _Kty;
     using key_compare            = _Pr;
-    using value_compare          = typename _Mybase::value_compare;
-    using value_type             = typename _Mybase::value_type;
-    using allocator_type         = typename _Mybase::allocator_type;
-    using size_type              = typename _Mybase::size_type;
-    using difference_type        = typename _Mybase::difference_type;
-    using pointer                = typename _Mybase::pointer;
-    using const_pointer          = typename _Mybase::const_pointer;
+    using value_compare          = typename _我的基类::value_compare;
+    using value_type             = typename _我的基类::value_type;
+    using allocator_type         = typename _我的基类::allocator_type;
+    using size_type              = typename _我的基类::size_type;
+    using difference_type        = typename _我的基类::difference_type;
+    using pointer                = typename _我的基类::pointer;
+    using const_pointer          = typename _我的基类::const_pointer;
     using reference              = value_type&;
     using const_reference        = const value_type&;
-    using iterator               = typename _Mybase::iterator;
-    using const_iterator         = typename _Mybase::const_iterator;
-    using reverse_iterator       = typename _Mybase::reverse_iterator;
-    using const_reverse_iterator = typename _Mybase::const_reverse_iterator;
+    using iterator               = typename _我的基类::iterator;
+    using const_iterator         = typename _我的基类::const_iterator;
+    using reverse_iterator       = typename _我的基类::reverse_iterator;
+    using const_reverse_iterator = typename _我的基类::const_reverse_iterator;
 
-    using _Alnode        = typename _Mybase::_Alnode;
-    using _Alnode_traits = typename _Mybase::_Alnode_traits;
+    using _Alnode        = typename _我的基类::_Alnode;
+    using _Alnode_traits = typename _我的基类::_Alnode_traits;
 
 #if _HAS_CXX17
-    using insert_return_type = _Insert_return_type<iterator, typename _Mybase::node_type>;
+    using insert_return_type = _Insert_return_type<iterator, typename _我的基类::node_type>;
 #endif // _HAS_CXX17
 
-    集合实现() : _Mybase(key_compare()) {}
+    集合实现() : _我的基类(key_compare()) {}
 
-    explicit 集合实现(const allocator_type& _Al) : _Mybase(key_compare(), _Al) {}
+    explicit 集合实现(const allocator_type& _Al) : _我的基类(key_compare(), _Al) {}
 
-    集合实现(const 集合实现& _Right) : _Mybase(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._Getal())) {}
+    集合实现(const 集合实现& _Right) : _我的基类(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._Getal())) {}
 
-    集合实现(const 集合实现& _Right, const allocator_type& _Al) : _Mybase(_Right, _Al) {}
+    集合实现(const 集合实现& _Right, const allocator_type& _Al) : _我的基类(_Right, _Al) {}
 
-    explicit 集合实现(const key_compare& _Pred) : _Mybase(_Pred) {}
+    explicit 集合实现(const key_compare& _Pred) : _我的基类(_Pred) {}
 
-    集合实现(const key_compare& _Pred, const allocator_type& _Al) : _Mybase(_Pred, _Al) {}
+    集合实现(const key_compare& _Pred, const allocator_type& _Al) : _我的基类(_Pred, _Al) {}
 
     template <class _Iter>
-    集合实现(_Iter _First, _Iter _Last) : _Mybase(key_compare()) {
+    集合实现(_Iter _First, _Iter _Last) : _我的基类(key_compare()) {
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
-    集合实现(_Iter _First, _Iter _Last, const key_compare& _Pred) : _Mybase(_Pred) {
+    集合实现(_Iter _First, _Iter _Last, const key_compare& _Pred) : _我的基类(_Pred) {
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
-    集合实现(_Iter _First, _Iter _Last, const allocator_type& _Al) : _Mybase(key_compare(), _Al) {
+    集合实现(_Iter _First, _Iter _Last, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
-    集合实现(_Iter _First, _Iter _Last, const key_compare& _Pred, const allocator_type& _Al) : _Mybase(_Pred, _Al) {
+    集合实现(_Iter _First, _Iter _Last, const key_compare& _Pred, const allocator_type& _Al) : _我的基类(_Pred, _Al) {
         this->insert(_First, _Last);
     }
 
 #if _HAS_CXX23
     template <_Container_compatible_range<value_type> _Rng>
-    集合实现(from_range_t, _Rng&& _Range) : _Mybase(key_compare()) {
+    集合实现(from_range_t, _Rng&& _Range) : _我的基类(key_compare()) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    集合实现(from_range_t, _Rng&& _Range, const key_compare& _Pred) : _Mybase(_Pred) {
+    集合实现(from_range_t, _Rng&& _Range, const key_compare& _Pred) : _我的基类(_Pred) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    集合实现(from_range_t, _Rng&& _Range, const key_compare& _Pred, const allocator_type& _Al) : _Mybase(_Pred, _Al) {
+    集合实现(from_range_t, _Rng&& _Range, const key_compare& _Pred, const allocator_type& _Al) : _我的基类(_Pred, _Al) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    集合实现(from_range_t, _Rng&& _Range, const allocator_type& _Al) : _Mybase(key_compare(), _Al) {
+    集合实现(from_range_t, _Rng&& _Range, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 #endif // _HAS_CXX23
 
     集合实现& operator=(const 集合实现& _Right) {
-        _Mybase::operator=(_Right);
+        _我的基类::operator=(_Right);
         return *this;
     }
 
-    集合实现(集合实现&& _Right) : _Mybase(_STD move(_Right)) {}
+    集合实现(集合实现&& _Right) : _我的基类(_STD move(_Right)) {}
 
-    集合实现(集合实现&& _Right, const allocator_type& _Al) : _Mybase(_STD move(_Right), _Al) {}
+    集合实现(集合实现&& _Right, const allocator_type& _Al) : _我的基类(_STD move(_Right), _Al) {}
 
     集合实现& operator=(集合实现&& _Right) noexcept(_Alnode_traits::is_always_equal::value && is_nothrow_move_assignable_v<_Pr>) {
-        _Mybase::operator=(_STD move(_Right));
+        _我的基类::operator=(_STD move(_Right));
         return *this;
     }
 
-    void swap(集合实现& _Right) noexcept(noexcept(_Mybase::swap(_Right))) {
-        _Mybase::swap(_Right);
+    void swap(集合实现& _Right) noexcept(noexcept(_我的基类::swap(_Right))) {
+        _我的基类::swap(_Right);
     }
 
-    集合实现(initializer_list<value_type> _Ilist) : _Mybase(key_compare()) {
+    集合实现(initializer_list<value_type> _Ilist) : _我的基类(key_compare()) {
         this->insert(_Ilist);
     }
 
-    集合实现(initializer_list<value_type> _Ilist, const key_compare& _Pred) : _Mybase(_Pred) {
+    集合实现(initializer_list<value_type> _Ilist, const key_compare& _Pred) : _我的基类(_Pred) {
         this->insert(_Ilist);
     }
 
-    集合实现(initializer_list<value_type> _Ilist, const allocator_type& _Al) : _Mybase(key_compare(), _Al) {
+    集合实现(initializer_list<value_type> _Ilist, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
         this->insert(_Ilist);
     }
 
     集合实现(initializer_list<value_type> _Ilist, const key_compare& _Pred, const allocator_type& _Al)
-        : _Mybase(_Pred, _Al) {
+        : _我的基类(_Pred, _Al) {
         this->insert(_Ilist);
     }
 
@@ -176,8 +176,8 @@ public:
         return *this;
     }
 
-    using _Mybase::_Unchecked_begin;
-    using _Mybase::_Unchecked_end;
+    using _我的基类::_Unchecked_begin;
+    using _我的基类::_Unchecked_end;
 };
 
 #if _HAS_CXX17
@@ -268,119 +268,119 @@ public:
     static_assert(is_object_v<_Kty>, "The C++ Standard forbids containers of non-object types "
                                      "because of [container.requirements].");
 
-    using _Mybase                = _Tree<_集合特征<_Kty, _Pr, _Alloc, true>>;
+    using _我的基类                = _Tree<_集合特征<_Kty, _Pr, _Alloc, true>>;
     using key_type               = _Kty;
     using key_compare            = _Pr;
-    using value_compare          = typename _Mybase::value_compare;
-    using value_type             = typename _Mybase::value_type;
-    using allocator_type         = typename _Mybase::allocator_type;
-    using size_type              = typename _Mybase::size_type;
-    using difference_type        = typename _Mybase::difference_type;
-    using pointer                = typename _Mybase::pointer;
-    using const_pointer          = typename _Mybase::const_pointer;
+    using value_compare          = typename _我的基类::value_compare;
+    using value_type             = typename _我的基类::value_type;
+    using allocator_type         = typename _我的基类::allocator_type;
+    using size_type              = typename _我的基类::size_type;
+    using difference_type        = typename _我的基类::difference_type;
+    using pointer                = typename _我的基类::pointer;
+    using const_pointer          = typename _我的基类::const_pointer;
     using reference              = value_type&;
     using const_reference        = const value_type&;
-    using iterator               = typename _Mybase::iterator;
-    using const_iterator         = typename _Mybase::const_iterator;
-    using reverse_iterator       = typename _Mybase::reverse_iterator;
-    using const_reverse_iterator = typename _Mybase::const_reverse_iterator;
+    using iterator               = typename _我的基类::iterator;
+    using const_iterator         = typename _我的基类::const_iterator;
+    using reverse_iterator       = typename _我的基类::reverse_iterator;
+    using const_reverse_iterator = typename _我的基类::const_reverse_iterator;
 
-    using _Alnode        = typename _Mybase::_Alnode;
-    using _Alnode_traits = typename _Mybase::_Alnode_traits;
+    using _Alnode        = typename _我的基类::_Alnode;
+    using _Alnode_traits = typename _我的基类::_Alnode_traits;
 
-    多重集合实现() : _Mybase(key_compare()) {}
+    多重集合实现() : _我的基类(key_compare()) {}
 
-    explicit 多重集合实现(const allocator_type& _Al) : _Mybase(key_compare(), _Al) {}
+    explicit 多重集合实现(const allocator_type& _Al) : _我的基类(key_compare(), _Al) {}
 
     多重集合实现(const 多重集合实现& _Right)
-        : _Mybase(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._Getal())) {}
+        : _我的基类(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._Getal())) {}
 
-    多重集合实现(const 多重集合实现& _Right, const allocator_type& _Al) : _Mybase(_Right, _Al) {}
+    多重集合实现(const 多重集合实现& _Right, const allocator_type& _Al) : _我的基类(_Right, _Al) {}
 
-    explicit 多重集合实现(const key_compare& _Pred) : _Mybase(_Pred) {}
+    explicit 多重集合实现(const key_compare& _Pred) : _我的基类(_Pred) {}
 
-    多重集合实现(const key_compare& _Pred, const allocator_type& _Al) : _Mybase(_Pred, _Al) {}
+    多重集合实现(const key_compare& _Pred, const allocator_type& _Al) : _我的基类(_Pred, _Al) {}
 
     template <class _Iter>
-    多重集合实现(_Iter _First, _Iter _Last) : _Mybase(key_compare()) {
+    多重集合实现(_Iter _First, _Iter _Last) : _我的基类(key_compare()) {
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
-    多重集合实现(_Iter _First, _Iter _Last, const key_compare& _Pred) : _Mybase(_Pred) {
+    多重集合实现(_Iter _First, _Iter _Last, const key_compare& _Pred) : _我的基类(_Pred) {
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
-    多重集合实现(_Iter _First, _Iter _Last, const allocator_type& _Al) : _Mybase(key_compare(), _Al) {
+    多重集合实现(_Iter _First, _Iter _Last, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
-    多重集合实现(_Iter _First, _Iter _Last, const key_compare& _Pred, const allocator_type& _Al) : _Mybase(_Pred, _Al) {
+    多重集合实现(_Iter _First, _Iter _Last, const key_compare& _Pred, const allocator_type& _Al) : _我的基类(_Pred, _Al) {
         this->insert(_First, _Last);
     }
 
 #if _HAS_CXX23
     template <_Container_compatible_range<value_type> _Rng>
-    多重集合实现(from_range_t, _Rng&& _Range) : _Mybase(key_compare()) {
+    多重集合实现(from_range_t, _Rng&& _Range) : _我的基类(key_compare()) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    多重集合实现(from_range_t, _Rng&& _Range, const key_compare& _Pred) : _Mybase(_Pred) {
+    多重集合实现(from_range_t, _Rng&& _Range, const key_compare& _Pred) : _我的基类(_Pred) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    多重集合实现(from_range_t, _Rng&& _Range, const key_compare& _Pred, const allocator_type& _Al) : _Mybase(_Pred, _Al) {
+    多重集合实现(from_range_t, _Rng&& _Range, const key_compare& _Pred, const allocator_type& _Al) : _我的基类(_Pred, _Al) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    多重集合实现(from_range_t, _Rng&& _Range, const allocator_type& _Al) : _Mybase(key_compare(), _Al) {
+    多重集合实现(from_range_t, _Rng&& _Range, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 #endif // _HAS_CXX23
 
     多重集合实现& operator=(const 多重集合实现& _Right) {
-        _Mybase::operator=(_Right);
+        _我的基类::operator=(_Right);
         return *this;
     }
 
-    多重集合实现(多重集合实现&& _Right) : _Mybase(_STD move(_Right)) {}
+    多重集合实现(多重集合实现&& _Right) : _我的基类(_STD move(_Right)) {}
 
-    多重集合实现(多重集合实现&& _Right, const allocator_type& _Al) : _Mybase(_STD move(_Right), _Al) {}
+    多重集合实现(多重集合实现&& _Right, const allocator_type& _Al) : _我的基类(_STD move(_Right), _Al) {}
 
     多重集合实现& operator=(多重集合实现&& _Right)
         noexcept(_Alnode_traits::is_always_equal::value && is_nothrow_move_assignable_v<_Pr>) {
-        _Mybase::operator=(_STD move(_Right));
+        _我的基类::operator=(_STD move(_Right));
         return *this;
     }
 
     template <class... _Valty>
     iterator 就地构造(_Valty&&... _Val) {
-        return _Mybase::就地构造(_STD forward<_Valty>(_Val)...).first;
+        return _我的基类::就地构造(_STD forward<_Valty>(_Val)...).first;
     }
 
-    void swap(多重集合实现& _Right) noexcept(noexcept(_Mybase::swap(_Right))) {
-        _Mybase::swap(_Right);
+    void swap(多重集合实现& _Right) noexcept(noexcept(_我的基类::swap(_Right))) {
+        _我的基类::swap(_Right);
     }
 
-    多重集合实现(initializer_list<value_type> _Ilist) : _Mybase(key_compare()) {
+    多重集合实现(initializer_list<value_type> _Ilist) : _我的基类(key_compare()) {
         this->insert(_Ilist);
     }
 
-    多重集合实现(initializer_list<value_type> _Ilist, const key_compare& _Pred) : _Mybase(_Pred) {
+    多重集合实现(initializer_list<value_type> _Ilist, const key_compare& _Pred) : _我的基类(_Pred) {
         this->insert(_Ilist);
     }
 
-    多重集合实现(initializer_list<value_type> _Ilist, const allocator_type& _Al) : _Mybase(key_compare(), _Al) {
+    多重集合实现(initializer_list<value_type> _Ilist, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
         this->insert(_Ilist);
     }
 
     多重集合实现(initializer_list<value_type> _Ilist, const key_compare& _Pred, const allocator_type& _Al)
-        : _Mybase(_Pred, _Al) {
+        : _我的基类(_Pred, _Al) {
         this->insert(_Ilist);
     }
 
@@ -390,8 +390,8 @@ public:
         return *this;
     }
 
-    using _Mybase::_Unchecked_begin;
-    using _Mybase::_Unchecked_end;
+    using _我的基类::_Unchecked_begin;
+    using _我的基类::_Unchecked_end;
 };
 
 #if _HAS_CXX17

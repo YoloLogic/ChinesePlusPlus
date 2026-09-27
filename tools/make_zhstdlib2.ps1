@@ -1383,7 +1383,36 @@ foreach ($ns in $nested) {
 
 # 步 3/4：类型名、成员名、数据成员名（按 \b 边界，逐条替换）
 $nT = 0; $nM = 0; $nD = 0
-foreach ($k in $spec.types.Keys)   { $c = ([regex]::Matches($text, "\b$([regex]::Escape($k))\b")).Count; if ($c) { $text = [regex]::Replace($text, "\b$([regex]::Escape($k))\b", $spec.types[$k]); $nT += $c } }
+# ---------------------------------------------------------------------------
+#  全库共享：【我们自己引入的】内部名一键替换（方案 §十三 第①类）
+#
+#  为什么这类可以"一键替换"而没有二义：
+#    它们在【抄来那层的正文里是有定义的】（`using _Mybase = ...` / 模板参数），
+#    所以全文出现的 `_Mybase` 都是我们自己那个，不存在"我们的 vs std 的"歧义。
+#    （反例是 reverse_iterator：`std::reverse_iterator` 与我们的别名同名 —— 那种不能盲替。）
+#
+#  ⚠ 第②类（真正借来的 std 内部件：_Alty_traits/_Alnode_traits/_Pocma_values…）
+#     不能只靠替换：它们【在 std 里有定义】，替换后需要我们自己也有那份定义
+#     —— 那要先抄（步骤 1）。所以这里只放第①类。
+# ---------------------------------------------------------------------------
+$INTERNAL_NAMES = [ordered]@{
+    '_Mybase'    = '_我的基类'
+    '_Mylist'    = '_我的链表'
+    '_Myvec'     = '_我的向量'
+    '_Mydeque'   = '_我的双端队列'
+    '_Val_types' = '_值类型集'
+    '_Node'      = '_节点'
+}
+$nI = 0
+foreach ($k in $INTERNAL_NAMES.Keys) {
+    if ($spec.types.Contains($k)) { continue }
+    $c = ([regex]::Matches($text, "\b$([regex]::Escape($k))\b")).Count
+    if ($c) {
+        $text = [regex]::Replace($text, "\b$([regex]::Escape($k))\b", $INTERNAL_NAMES[$k])
+        $nI += $c
+    }
+}
+if ($nI) { Write-Host "  步3/4b 内部名一键替换 $nI 处" }foreach ($k in $spec.types.Keys)   { $c = ([regex]::Matches($text, "\b$([regex]::Escape($k))\b")).Count; if ($c) { $text = [regex]::Replace($text, "\b$([regex]::Escape($k))\b", $spec.types[$k]); $nT += $c } }
 foreach ($k in $spec.members.Keys) { $c = ([regex]::Matches($text, "\b$([regex]::Escape($k))\b")).Count; if ($c) { $text = [regex]::Replace($text, "\b$([regex]::Escape($k))\b", $spec.members[$k]); $nM += $c } }
 foreach ($k in $spec.data.Keys)    { $c = ([regex]::Matches($text, "\b$([regex]::Escape($k))\b")).Count; if ($c) { $text = [regex]::Replace($text, "\b$([regex]::Escape($k))\b", $spec.data[$k]); $nD += $c } }
 Write-Host "  步3/4 类型 $nT 处 / 成员 $nM 处 / 数据 $nD 处"

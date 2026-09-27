@@ -22,25 +22,25 @@ _STL_DISABLE_CLANG_WARNINGS
 
 名域 标准 { 名域 细节 {
 使用 名域 std;
-template <class _Mydeque>
+template <class _我的双端队列>
 class _Deque_unchecked_const_iterator {
 private:
-    using _Size_type = typename _Mydeque::size_type;
+    using _Size_type = typename _我的双端队列::size_type;
 
-    static constexpr int _Block_size = _Mydeque::_Block_size;
+    static constexpr int _Block_size = _我的双端队列::_Block_size;
 
 public:
     using iterator_category = random_access_iterator_tag;
 
-    using value_type      = typename _Mydeque::value_type;
-    using difference_type = typename _Mydeque::difference_type;
-    using pointer         = typename _Mydeque::const_pointer;
+    using value_type      = typename _我的双端队列::value_type;
+    using difference_type = typename _我的双端队列::difference_type;
+    using pointer         = typename _我的双端队列::const_pointer;
     using reference       = const value_type&;
 
     _Deque_unchecked_const_iterator() noexcept : _Mycont(), _Myoff(0) {}
 
     _Deque_unchecked_const_iterator(_Size_type _Off, const _Container_base12* _Pdeque) noexcept
-        : _Mycont(static_cast<const _Mydeque*>(_Pdeque)), _Myoff(_Off) {}
+        : _Mycont(static_cast<const _我的双端队列*>(_Pdeque)), _Myoff(_Off) {}
 
     _NODISCARD reference operator*() const noexcept {
         return _Mycont->_Subscript(_Myoff);
@@ -142,28 +142,28 @@ public:
         return _Mycont;
     }
 
-    const _Mydeque* _Mycont;
+    const _我的双端队列* _Mycont;
     _Size_type _Myoff; // offset of element in 双端队列实现
 };
 
-template <class _Mydeque>
-class _Deque_unchecked_iterator : public _Deque_unchecked_const_iterator<_Mydeque> {
+template <class _我的双端队列>
+class _Deque_unchecked_iterator : public _Deque_unchecked_const_iterator<_我的双端队列> {
 private:
-    using _Size_type = typename _Mydeque::size_type;
-    using _Mybase    = _Deque_unchecked_const_iterator<_Mydeque>;
+    using _Size_type = typename _我的双端队列::size_type;
+    using _我的基类    = _Deque_unchecked_const_iterator<_我的双端队列>;
 
 public:
     using iterator_category = random_access_iterator_tag;
 
-    using value_type      = typename _Mydeque::value_type;
-    using difference_type = typename _Mydeque::difference_type;
-    using pointer         = typename _Mydeque::pointer;
+    using value_type      = typename _我的双端队列::value_type;
+    using difference_type = typename _我的双端队列::difference_type;
+    using pointer         = typename _我的双端队列::pointer;
     using reference       = value_type&;
 
-    using _Mybase::_Mybase;
+    using _我的基类::_我的基类;
 
     _NODISCARD reference operator*() const noexcept {
-        return const_cast<reference>(_Mybase::operator*());
+        return const_cast<reference>(_我的基类::operator*());
     }
 
     _NODISCARD pointer operator->() const noexcept {
@@ -171,29 +171,29 @@ public:
     }
 
     _Deque_unchecked_iterator& operator++() noexcept {
-        _Mybase::operator++();
+        _我的基类::operator++();
         return *this;
     }
 
     _Deque_unchecked_iterator operator++(int) noexcept {
         _Deque_unchecked_iterator _Tmp = *this;
-        _Mybase::operator++();
+        _我的基类::operator++();
         return _Tmp;
     }
 
     _Deque_unchecked_iterator& operator--() noexcept {
-        _Mybase::operator--();
+        _我的基类::operator--();
         return *this;
     }
 
     _Deque_unchecked_iterator operator--(int) noexcept {
         _Deque_unchecked_iterator _Tmp = *this;
-        _Mybase::operator--();
+        _我的基类::operator--();
         return _Tmp;
     }
 
     _Deque_unchecked_iterator& operator+=(const difference_type _Off) noexcept {
-        _Mybase::operator+=(_Off);
+        _我的基类::operator+=(_Off);
         return *this;
     }
 
@@ -210,7 +210,7 @@ public:
     }
 
     _Deque_unchecked_iterator& operator-=(const difference_type _Off) noexcept {
-        _Mybase::operator-=(_Off);
+        _我的基类::operator-=(_Off);
         return *this;
     }
 
@@ -220,42 +220,42 @@ public:
         return _Tmp;
     }
 
-    _NODISCARD difference_type operator-(const _Mybase& _Right) const noexcept {
-        return _Mybase::operator-(_Right);
+    _NODISCARD difference_type operator-(const _我的基类& _Right) const noexcept {
+        return _我的基类::operator-(_Right);
     }
 
     _NODISCARD reference operator[](const difference_type _Off) const noexcept {
-        return const_cast<reference>(_Mybase::operator[](_Off));
+        return const_cast<reference>(_我的基类::operator[](_Off));
     }
 };
 
-template <class _Mydeque>
+template <class _我的双端队列>
 class _Deque_const_iterator : public _Iterator_base12 {
 private:
-    using _Size_type = typename _Mydeque::size_type;
+    using _Size_type = typename _我的双端队列::size_type;
 
-    static constexpr int _Block_size = _Mydeque::_Block_size;
+    static constexpr int _Block_size = _我的双端队列::_Block_size;
 
 public:
     using iterator_category = random_access_iterator_tag;
 
-    using value_type      = typename _Mydeque::value_type;
-    using difference_type = typename _Mydeque::difference_type;
-    using pointer         = typename _Mydeque::const_pointer;
+    using value_type      = typename _我的双端队列::value_type;
+    using difference_type = typename _我的双端队列::difference_type;
+    using pointer         = typename _我的双端队列::const_pointer;
     using reference       = const value_type&;
 
-    using _Mydeque_t = _Mydeque; // helper for expression evaluator
+    using _Mydeque_t = _我的双端队列; // helper for expression evaluator
     enum { _EEN_DS = _Block_size }; // helper for expression evaluator
     _Deque_const_iterator() noexcept : _Myoff(0) {
         _Setcont(nullptr);
     }
 
     _Deque_const_iterator(_Size_type _Off, const _Container_base12* _Pdeque) noexcept : _Myoff(_Off) {
-        _Setcont(static_cast<const _Mydeque*>(_Pdeque));
+        _Setcont(static_cast<const _我的双端队列*>(_Pdeque));
     }
 
     _NODISCARD reference operator*() const noexcept {
-        const auto _Mycont = static_cast<const _Mydeque*>(this->_Getcont());
+        const auto _Mycont = static_cast<const _我的双端队列*>(this->_Getcont());
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(_Mycont, "cannot dereference value-initialized 双端队列实现 iterator");
         _STL_VERIFY(_Mycont->_Myoff <= this->_Myoff && this->_Myoff < _Mycont->_Myoff + _Mycont->_Mysize,
@@ -271,7 +271,7 @@ public:
 
     _Deque_const_iterator& operator++() noexcept {
 #if _ITERATOR_DEBUG_LEVEL != 0
-        const auto _Mycont = static_cast<const _Mydeque*>(this->_Getcont());
+        const auto _Mycont = static_cast<const _我的双端队列*>(this->_Getcont());
         _STL_VERIFY(_Mycont, "cannot increment value-initialized 双端队列实现 iterator");
         _STL_VERIFY(this->_Myoff < _Mycont->_Myoff + _Mycont->_Mysize, "cannot increment 双端队列实现 iterator past 结束");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
@@ -288,7 +288,7 @@ public:
 
     _Deque_const_iterator& operator--() noexcept {
 #if _ITERATOR_DEBUG_LEVEL != 0
-        const auto _Mycont = static_cast<const _Mydeque*>(this->_Getcont());
+        const auto _Mycont = static_cast<const _我的双端队列*>(this->_Getcont());
         _STL_VERIFY(_Mycont, "cannot decrement value-initialized 双端队列实现 iterator");
         _STL_VERIFY(_Mycont->_Myoff < this->_Myoff, "cannot decrement 双端队列实现 iterator before 开始");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
@@ -306,7 +306,7 @@ public:
     _Deque_const_iterator& operator+=(const difference_type _Off) noexcept {
 #if _ITERATOR_DEBUG_LEVEL != 0
         if (_Off != 0) {
-            const auto _Mycont = static_cast<const _Mydeque*>(this->_Getcont());
+            const auto _Mycont = static_cast<const _我的双端队列*>(this->_Getcont());
             _STL_VERIFY(_Mycont, "cannot seek value-initialized 双端队列实现 iterator");
             _STL_VERIFY(
                 _Mycont->_Myoff <= this->_Myoff + _Off && this->_Myoff + _Off <= _Mycont->_Myoff + _Mycont->_Mysize,
@@ -390,13 +390,13 @@ public:
 #endif
     }
 
-    void _Setcont(const _Mydeque* _Pdeque) noexcept { // set container pointer
+    void _Setcont(const _我的双端队列* _Pdeque) noexcept { // set container pointer
         this->_Adopt(_Pdeque);
     }
 
     using _Prevent_inheriting_unwrap = _Deque_const_iterator;
 
-    _NODISCARD _Deque_unchecked_const_iterator<_Mydeque> _Unwrapped() const noexcept {
+    _NODISCARD _Deque_unchecked_const_iterator<_我的双端队列> _Unwrapped() const noexcept {
         return {this->_Myoff, this->_Getcont()};
     }
 
@@ -405,7 +405,7 @@ public:
         (void) _Off;
 #else // ^^^ _ITERATOR_DEBUG_LEVEL == 0 / _ITERATOR_DEBUG_LEVEL != 0 vvv
         if (_Off != 0) {
-            const auto _Mycont = static_cast<const _Mydeque*>(this->_Getcont());
+            const auto _Mycont = static_cast<const _我的双端队列*>(this->_Getcont());
             _STL_VERIFY(_Mycont, "cannot use value-initialized 双端队列实现 iterator");
             _STL_VERIFY(
                 _Mycont->_Myoff <= this->_Myoff + _Off && this->_Myoff + _Off <= _Mycont->_Myoff + _Mycont->_Mysize,
@@ -421,31 +421,31 @@ public:
     }
 #endif // _ITERATOR_DEBUG_LEVEL != 0
 
-    void _Seek_to(const _Deque_unchecked_const_iterator<_Mydeque>& _UIt) noexcept {
+    void _Seek_to(const _Deque_unchecked_const_iterator<_我的双端队列>& _UIt) noexcept {
         _Myoff = _UIt._Myoff;
     }
 
     _Size_type _Myoff; // offset of element in 双端队列实现
 };
 
-template <class _Mydeque>
-class _Deque_iterator : public _Deque_const_iterator<_Mydeque> {
+template <class _我的双端队列>
+class _Deque_iterator : public _Deque_const_iterator<_我的双端队列> {
 private:
-    using _Size_type = typename _Mydeque::size_type;
-    using _Mybase    = _Deque_const_iterator<_Mydeque>;
+    using _Size_type = typename _我的双端队列::size_type;
+    using _我的基类    = _Deque_const_iterator<_我的双端队列>;
 
 public:
     using iterator_category = random_access_iterator_tag;
 
-    using value_type      = typename _Mydeque::value_type;
-    using difference_type = typename _Mydeque::difference_type;
-    using pointer         = typename _Mydeque::pointer;
+    using value_type      = typename _我的双端队列::value_type;
+    using difference_type = typename _我的双端队列::difference_type;
+    using pointer         = typename _我的双端队列::pointer;
     using reference       = value_type&;
 
-    using _Mybase::_Mybase;
+    using _我的基类::_我的基类;
 
     _NODISCARD reference operator*() const noexcept {
-        return const_cast<reference>(_Mybase::operator*());
+        return const_cast<reference>(_我的基类::operator*());
     }
 
     _NODISCARD pointer operator->() const noexcept {
@@ -453,29 +453,29 @@ public:
     }
 
     _Deque_iterator& operator++() noexcept {
-        _Mybase::operator++();
+        _我的基类::operator++();
         return *this;
     }
 
     _Deque_iterator operator++(int) noexcept {
         _Deque_iterator _Tmp = *this;
-        _Mybase::operator++();
+        _我的基类::operator++();
         return _Tmp;
     }
 
     _Deque_iterator& operator--() noexcept {
-        _Mybase::operator--();
+        _我的基类::operator--();
         return *this;
     }
 
     _Deque_iterator operator--(int) noexcept {
         _Deque_iterator _Tmp = *this;
-        _Mybase::operator--();
+        _我的基类::operator--();
         return _Tmp;
     }
 
     _Deque_iterator& operator+=(const difference_type _Off) noexcept {
-        _Mybase::operator+=(_Off);
+        _我的基类::operator+=(_Off);
         return *this;
     }
 
@@ -491,11 +491,11 @@ public:
     }
 
     _Deque_iterator& operator-=(const difference_type _Off) noexcept {
-        _Mybase::operator-=(_Off);
+        _我的基类::operator-=(_Off);
         return *this;
     }
 
-    using _Mybase::operator-;
+    using _我的基类::operator-;
 
     _NODISCARD _Deque_iterator operator-(const difference_type _Off) const noexcept {
         _Deque_iterator _Tmp = *this;
@@ -504,12 +504,12 @@ public:
     }
 
     _NODISCARD reference operator[](const difference_type _Off) const noexcept {
-        return const_cast<reference>(_Mybase::operator[](_Off));
+        return const_cast<reference>(_我的基类::operator[](_Off));
     }
 
     using _Prevent_inheriting_unwrap = _Deque_iterator;
 
-    _NODISCARD _Deque_unchecked_iterator<_Mydeque> _Unwrapped() const noexcept {
+    _NODISCARD _Deque_unchecked_iterator<_我的双端队列> _Unwrapped() const noexcept {
         return {this->_Myoff, this->_Getcont()};
     }
 };
@@ -530,17 +530,17 @@ struct _Deque_simple_types : _Simple_types<_Ty> {
     using _Mapptr = _Ty**;
 };
 
-template <class _Val_types>
+template <class _值类型集>
 class _Deque_val : public _Container_base12 {
 public:
-    using value_type      = typename _Val_types::value_type;
-    using size_type       = typename _Val_types::size_type;
-    using difference_type = typename _Val_types::difference_type;
-    using pointer         = typename _Val_types::pointer;
-    using const_pointer   = typename _Val_types::const_pointer;
+    using value_type      = typename _值类型集::value_type;
+    using size_type       = typename _值类型集::size_type;
+    using difference_type = typename _值类型集::difference_type;
+    using pointer         = typename _值类型集::pointer;
+    using const_pointer   = typename _值类型集::const_pointer;
     using reference       = value_type&;
     using const_reference = const value_type&;
-    using _Mapptr         = typename _Val_types::_Mapptr;
+    using _Mapptr         = typename _值类型集::_Mapptr;
 
 private:
     using _Map_difference_type = typename iterator_traits<_Mapptr>::difference_type;

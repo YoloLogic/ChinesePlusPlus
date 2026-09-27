@@ -28,19 +28,19 @@ _STL_DISABLE_CLANG_WARNINGS
 
 名域 标准 { 名域 细节 {
 使用 名域 std;
-template <class _Myvec>
+template <class _我的向量>
 class _Vector_const_iterator : public _Iterator_base {
 public:
 #if _HAS_CXX20
     using iterator_concept = contiguous_iterator_tag;
 #endif // _HAS_CXX20
     using iterator_category = random_access_iterator_tag;
-    using value_type        = typename _Myvec::value_type;
-    using difference_type   = typename _Myvec::difference_type;
-    using pointer           = typename _Myvec::const_pointer;
+    using value_type        = typename _我的向量::value_type;
+    using difference_type   = typename _我的向量::difference_type;
+    using pointer           = typename _我的向量::const_pointer;
     using reference         = const value_type&;
 
-    using _Tptr = typename _Myvec::pointer;
+    using _Tptr = typename _我的向量::pointer;
 
     _CONSTEXPR20 _Vector_const_iterator() noexcept : _Ptr() {}
 
@@ -50,7 +50,7 @@ public:
 
     _NODISCARD _CONSTEXPR20 reference operator*() const noexcept {
 #if _ITERATOR_DEBUG_LEVEL != 0
-        const auto _Mycont = static_cast<const _Myvec*>(this->_Getcont());
+        const auto _Mycont = static_cast<const _我的向量*>(this->_Getcont());
         _STL_VERIFY(_Ptr, "can't dereference value-initialized 向量实现 iterator");
         _STL_VERIFY(_Mycont, "can't dereference invalidated 向量实现 iterator");
         _STL_VERIFY(
@@ -62,7 +62,7 @@ public:
 
     _NODISCARD _CONSTEXPR20 pointer operator->() const noexcept {
 #if _ITERATOR_DEBUG_LEVEL != 0
-        const auto _Mycont = static_cast<const _Myvec*>(this->_Getcont());
+        const auto _Mycont = static_cast<const _我的向量*>(this->_Getcont());
         _STL_VERIFY(_Ptr, "can't dereference value-initialized 向量实现 iterator");
         _STL_VERIFY(_Mycont, "can't dereference invalidated 向量实现 iterator");
         _STL_VERIFY(
@@ -74,7 +74,7 @@ public:
 
     _CONSTEXPR20 _Vector_const_iterator& operator++() noexcept {
 #if _ITERATOR_DEBUG_LEVEL != 0
-        const auto _Mycont = static_cast<const _Myvec*>(this->_Getcont());
+        const auto _Mycont = static_cast<const _我的向量*>(this->_Getcont());
         _STL_VERIFY(_Ptr, "can't increment value-initialized 向量实现 iterator");
         _STL_VERIFY(_Mycont, "can't increment invalidated 向量实现 iterator");
         _STL_VERIFY(_Ptr < _Mycont->_Mylast, "can't increment 向量实现 iterator past 结束");
@@ -92,7 +92,7 @@ public:
 
     _CONSTEXPR20 _Vector_const_iterator& operator--() noexcept {
 #if _ITERATOR_DEBUG_LEVEL != 0
-        const auto _Mycont = static_cast<const _Myvec*>(this->_Getcont());
+        const auto _Mycont = static_cast<const _我的向量*>(this->_Getcont());
         _STL_VERIFY(_Ptr, "can't decrement value-initialized 向量实现 iterator");
         _STL_VERIFY(_Mycont, "can't decrement invalidated 向量实现 iterator");
         _STL_VERIFY(_Mycont->_Myfirst < _Ptr, "can't decrement 向量实现 iterator before 开始");
@@ -112,7 +112,7 @@ public:
 #if _ITERATOR_DEBUG_LEVEL == 0
         (void) _Off;
 #else // ^^^ _ITERATOR_DEBUG_LEVEL == 0 / _ITERATOR_DEBUG_LEVEL != 0 vvv
-        const auto _Mycont = static_cast<const _Myvec*>(this->_Getcont());
+        const auto _Mycont = static_cast<const _我的向量*>(this->_Getcont());
         _STL_VERIFY(_Off == 0 || _Ptr, "cannot seek value-initialized 向量实现 iterator");
         _STL_VERIFY(_Off == 0 || _Mycont, "cannot seek invalidated 向量实现 iterator");
         if (_Off < 0) {
@@ -226,9 +226,9 @@ public:
 };
 
 #if _HAS_CXX20
-template <class _Myvec>
-struct pointer_traits<_Vector_const_iterator<_Myvec>> {
-    using pointer         = _Vector_const_iterator<_Myvec>;
+template <class _我的向量>
+struct pointer_traits<_Vector_const_iterator<_我的向量>> {
+    using pointer         = _Vector_const_iterator<_我的向量>;
     using element_type    = const pointer::value_type;
     using difference_type = pointer::difference_type;
 
@@ -238,7 +238,7 @@ struct pointer_traits<_Vector_const_iterator<_Myvec>> {
         // 容量() of 0 is not. This function cannot distinguish those two cases, so it incorrectly does not diagnose
         // the latter. In practice, this isn't a significant problem since to_address returns nullptr for such an
         // iterator.
-        const auto _Mycont = static_cast<const _Myvec*>(_Iter._Getcont());
+        const auto _Mycont = static_cast<const _我的向量*>(_Iter._Getcont());
         if (_Mycont) {
             _STL_VERIFY(_Mycont->_Myfirst <= _Iter._Ptr && _Iter._Ptr <= _Mycont->_Mylast,
                 "can't convert out-of-range 向量实现 iterator to pointer");
@@ -252,29 +252,29 @@ struct pointer_traits<_Vector_const_iterator<_Myvec>> {
 };
 #endif // _HAS_CXX20
 
-template <class _Myvec>
-class _Vector_iterator : public _Vector_const_iterator<_Myvec> {
+template <class _我的向量>
+class _Vector_iterator : public _Vector_const_iterator<_我的向量> {
 public:
-    using _Mybase = _Vector_const_iterator<_Myvec>;
+    using _我的基类 = _Vector_const_iterator<_我的向量>;
 
 #if _HAS_CXX20
     using iterator_concept = contiguous_iterator_tag;
 #endif // _HAS_CXX20
     using iterator_category = random_access_iterator_tag;
-    using value_type        = typename _Myvec::value_type;
-    using difference_type   = typename _Myvec::difference_type;
-    using pointer           = typename _Myvec::pointer;
+    using value_type        = typename _我的向量::value_type;
+    using difference_type   = typename _我的向量::difference_type;
+    using pointer           = typename _我的向量::pointer;
     using reference         = value_type&;
 
-    using _Mybase::_Mybase;
+    using _我的基类::_我的基类;
 
     _NODISCARD _CONSTEXPR20 reference operator*() const noexcept {
-        return const_cast<reference>(_Mybase::operator*());
+        return const_cast<reference>(_我的基类::operator*());
     }
 
     _NODISCARD _CONSTEXPR20 pointer operator->() const noexcept {
 #if _ITERATOR_DEBUG_LEVEL != 0
-        const auto _Mycont = static_cast<const _Myvec*>(this->_Getcont());
+        const auto _Mycont = static_cast<const _我的向量*>(this->_Getcont());
         _STL_VERIFY(this->_Ptr, "can't dereference value-initialized 向量实现 iterator");
         _STL_VERIFY(_Mycont, "can't dereference invalidated 向量实现 iterator");
         _STL_VERIFY(_Mycont->_Myfirst <= this->_Ptr && this->_Ptr < _Mycont->_Mylast,
@@ -285,29 +285,29 @@ public:
     }
 
     _CONSTEXPR20 _Vector_iterator& operator++() noexcept {
-        _Mybase::operator++();
+        _我的基类::operator++();
         return *this;
     }
 
     _CONSTEXPR20 _Vector_iterator operator++(int) noexcept {
         _Vector_iterator _Tmp = *this;
-        _Mybase::operator++();
+        _我的基类::operator++();
         return _Tmp;
     }
 
     _CONSTEXPR20 _Vector_iterator& operator--() noexcept {
-        _Mybase::operator--();
+        _我的基类::operator--();
         return *this;
     }
 
     _CONSTEXPR20 _Vector_iterator operator--(int) noexcept {
         _Vector_iterator _Tmp = *this;
-        _Mybase::operator--();
+        _我的基类::operator--();
         return _Tmp;
     }
 
     _CONSTEXPR20 _Vector_iterator& operator+=(const difference_type _Off) noexcept {
-        _Mybase::operator+=(_Off);
+        _我的基类::operator+=(_Off);
         return *this;
     }
 
@@ -324,11 +324,11 @@ public:
     }
 
     _CONSTEXPR20 _Vector_iterator& operator-=(const difference_type _Off) noexcept {
-        _Mybase::operator-=(_Off);
+        _我的基类::operator-=(_Off);
         return *this;
     }
 
-    using _Mybase::operator-;
+    using _我的基类::operator-;
 
     _NODISCARD _CONSTEXPR20 _Vector_iterator operator-(const difference_type _Off) const noexcept {
         _Vector_iterator _Tmp = *this;
@@ -337,7 +337,7 @@ public:
     }
 
     _NODISCARD _CONSTEXPR20 reference operator[](const difference_type _Off) const noexcept {
-        return const_cast<reference>(_Mybase::operator[](_Off));
+        return const_cast<reference>(_我的基类::operator[](_Off));
     }
 
     using _Prevent_inheriting_unwrap = _Vector_iterator;
@@ -348,9 +348,9 @@ public:
 };
 
 #if _HAS_CXX20
-template <class _Myvec>
-struct pointer_traits<_Vector_iterator<_Myvec>> {
-    using pointer         = _Vector_iterator<_Myvec>;
+template <class _我的向量>
+struct pointer_traits<_Vector_iterator<_我的向量>> {
+    using pointer         = _Vector_iterator<_我的向量>;
     using element_type    = pointer::value_type;
     using difference_type = pointer::difference_type;
 
@@ -360,7 +360,7 @@ struct pointer_traits<_Vector_iterator<_Myvec>> {
         // 容量() of 0 is not. This function cannot distinguish those two cases, so it incorrectly does not diagnose
         // the latter. In practice, this isn't a significant problem since to_address returns nullptr for such an
         // iterator.
-        const auto _Mycont = static_cast<const _Myvec*>(_Iter._Getcont());
+        const auto _Mycont = static_cast<const _我的向量*>(_Iter._Getcont());
         if (_Mycont) {
             _STL_VERIFY(_Mycont->_Myfirst <= _Iter._Ptr && _Iter._Ptr <= _Mycont->_Mylast,
                 "can't convert out-of-range 向量实现 iterator to pointer");
@@ -387,14 +387,14 @@ struct _Value_init_tag { // tag to request value-initialization
     explicit _Value_init_tag() = default;
 };
 
-template <class _Val_types>
+template <class _值类型集>
 class _Vector_val : public _Container_base {
 public:
-    using value_type      = typename _Val_types::value_type;
-    using size_type       = typename _Val_types::size_type;
-    using difference_type = typename _Val_types::difference_type;
-    using pointer         = typename _Val_types::pointer;
-    using const_pointer   = typename _Val_types::const_pointer;
+    using value_type      = typename _值类型集::value_type;
+    using size_type       = typename _值类型集::size_type;
+    using difference_type = typename _值类型集::difference_type;
+    using pointer         = typename _值类型集::pointer;
+    using const_pointer   = typename _值类型集::const_pointer;
     using reference       = value_type&;
     using const_reference = const value_type&;
 
@@ -550,28 +550,28 @@ private:
         _Asan_extend_guard& operator=(const _Asan_extend_guard&) = delete;
 
         constexpr explicit _Asan_extend_guard(向量实现* _Myvec_, size_type _Target_size_) noexcept
-            : _Myvec(_Myvec_), _Target_size(_Target_size_) {
-            _STL_INTERNAL_CHECK(_Myvec != nullptr);
-            auto& _My_data = _Myvec->_Mypair._Myval2;
+            : _我的向量(_Myvec_), _Target_size(_Target_size_) {
+            _STL_INTERNAL_CHECK(_我的向量 != nullptr);
+            auto& _My_data = _我的向量->_Mypair._Myval2;
             _Apply_annotation(_My_data._Myfirst, _My_data._Myend, _My_data._Mylast, _My_data._Myfirst + _Target_size);
         }
 
         _CONSTEXPR20 ~_Asan_extend_guard() {
-            if (!_Myvec) { // Operation succeeded, no modification to the shadow memory required.
+            if (!_我的向量) { // Operation succeeded, no modification to the shadow memory required.
                 return;
             }
 
             // Shrinks the shadow memory to the current 尺寸 of the 向量实现.
-            auto& _My_data = _Myvec->_Mypair._Myval2;
+            auto& _My_data = _我的向量->_Mypair._Myval2;
             _Apply_annotation(_My_data._Myfirst, _My_data._Myend, _My_data._Myfirst + _Target_size, _My_data._Mylast);
         }
 
         _CONSTEXPR20 void _Release() noexcept {
-            _Myvec = nullptr;
+            _我的向量 = nullptr;
         }
 
     private:
-        向量实现* _Myvec;
+        向量实现* _我的向量;
         size_type _Target_size;
     };
 
@@ -580,14 +580,14 @@ private:
         _Asan_create_guard(const _Asan_create_guard&)            = delete;
         _Asan_create_guard& operator=(const _Asan_create_guard&) = delete;
 
-        constexpr explicit _Asan_create_guard(const 向量实现& _Myvec_) noexcept : _Myvec(_Myvec_) {}
+        constexpr explicit _Asan_create_guard(const 向量实现& _Myvec_) noexcept : _我的向量(_Myvec_) {}
 
         _CONSTEXPR20 ~_Asan_create_guard() {
-            _Myvec._Create_annotation();
+            _我的向量._Create_annotation();
         }
 
     private:
-        const 向量实现& _Myvec;
+        const 向量实现& _我的向量;
     };
 
 #define _ASAN_VECTOR_MODIFY(n)       _Modify_annotation((n))
@@ -2271,7 +2271,7 @@ _NODISCARD _CONSTEXPR20 bool operator==(const 向量实现<_Ty, _Alloc>& _Left, 
 
     if constexpr (is_same_v<_Ty, bool>) {
         return _STD equal(
-            _Left._Myvec._Unchecked_begin(), _Left._Myvec._Unchecked_end(), _Right._Myvec._Unchecked_begin());
+            _Left._我的向量._Unchecked_begin(), _Left._我的向量._Unchecked_end(), _Right._我的向量._Unchecked_begin());
     } else {
         return _STD equal(_Left._Unchecked_begin(), _Left._Unchecked_end(), _Right._Unchecked_begin());
     }
@@ -2291,7 +2291,7 @@ _NODISCARD bool operator!=(const 向量实现<_Ty, _Alloc>& _Left, const 向量�
 //   as a sequence of bytes. While all of our supported architectures are little-endian,
 //   that's irrelevant as long as we avoid reinterpreting unsigned int as a sequence of bytes.)
 // * Appending bits to 向量实现<bool> eventually appends words to its underlying storage.
-//   For example, vb[10] is stored within vb._Myvec[0], while vb[100] is stored within vb._Myvec[3].
+//   For example, vb[10] is stored within vb._我的向量[0], while vb[100] is stored within vb._我的向量[3].
 //   This allows us to translate lexicographical comparisons from theoretical bits to physical words.
 // * Unsigned integers are written and compared as big-endian (most significant bit first).
 //   For example, 0x10u > 0x07u.
@@ -2333,9 +2333,9 @@ _NODISCARD constexpr _Synth_three_way_result<_Ty> operator<=>(
     const 向量实现<_Ty, _Alloc>& _Left, const 向量实现<_Ty, _Alloc>& _Right) {
     if constexpr (is_same_v<_Ty, bool>) {
         // This optimization works because 向量实现<bool> "trims" its underlying storage by zeroing out unused bits.
-        const auto _Min_word_size = (_STD min)(_Left._Myvec.尺寸(), _Right._Myvec.尺寸());
-        const auto _Left_words    = _Left._Myvec._Unchecked_begin();
-        const auto _Right_words   = _Right._Myvec._Unchecked_begin();
+        const auto _Min_word_size = (_STD min)(_Left._我的向量.尺寸(), _Right._我的向量.尺寸());
+        const auto _Left_words    = _Left._我的向量._Unchecked_begin();
+        const auto _Right_words   = _Right._我的向量._Unchecked_begin();
 
         using _Comp = _Vbase_compare_three_way<strong_ordering>;
 
@@ -2357,10 +2357,10 @@ template <class _Ty, class _Alloc>
 _NODISCARD _CONSTEXPR20 bool operator<(const 向量实现<_Ty, _Alloc>& _Left, const 向量实现<_Ty, _Alloc>& _Right) {
     if constexpr (is_same_v<_Ty, bool>) {
         // This optimization works because 向量实现<bool> "trims" its underlying storage by zeroing out unused bits.
-        auto _First = _Left._Myvec._Unchecked_begin();
-        auto _Other = _Right._Myvec._Unchecked_begin();
+        auto _First = _Left._我的向量._Unchecked_begin();
+        auto _Other = _Right._我的向量._Unchecked_begin();
 
-        const auto _Last = _First + (_STD min)(_Left._Myvec.尺寸(), _Right._Myvec.尺寸());
+        const auto _Last = _First + (_STD min)(_Left._我的向量.尺寸(), _Right._我的向量.尺寸());
 
         for (; _First != _Last; ++_First, (void) ++_Other) {
             using _Comp        = _Vbase_compare_three_way<signed char>;
@@ -2444,7 +2444,7 @@ public:
 
 #if _ITERATOR_DEBUG_LEVEL != 0
     _CONSTEXPR20 _Difference_type _Total_off(const _Mycont* _Cont) const noexcept {
-        return static_cast<_Difference_type>(_VBITS_DIFF * (_Myptr - _Cont->_Myvec.数据()) + _Myoff);
+        return static_cast<_Difference_type>(_VBITS_DIFF * (_Myptr - _Cont->_我的向量.数据()) + _Myoff);
     }
 #endif // _ITERATOR_DEBUG_LEVEL != 0
 
@@ -2456,15 +2456,15 @@ template <class _Alvbase_wrapped>
 class _Vb_reference : public _Vb_iter_base<_Alvbase_wrapped> {
     // reference to a bit within a base word
 private:
-    using _Mybase          = _Vb_iter_base<_Alvbase_wrapped>;
-    using _Mycont          = typename _Mybase::_Mycont;
-    using _Difference_type = typename _Mybase::_Difference_type;
+    using _我的基类          = _Vb_iter_base<_Alvbase_wrapped>;
+    using _Mycont          = typename _我的基类::_Mycont;
+    using _Difference_type = typename _我的基类::_Difference_type;
 
 public:
     _CONSTEXPR20 _Vb_reference(const _Vb_reference&) = default;
 
-    _CONSTEXPR20 _Vb_reference(const _Mybase& _Right) noexcept
-        : _Mybase(_Right._Myptr, _Right._Myoff, _Right._Getcont()) {}
+    _CONSTEXPR20 _Vb_reference(const _我的基类& _Right) noexcept
+        : _我的基类(_Right._Myptr, _Right._Myoff, _Right._Getcont()) {}
 
     _CONSTEXPR20 _Vb_reference& operator=(const _Vb_reference& _Right) noexcept {
         return *this = static_cast<bool>(_Right);
@@ -2526,22 +2526,22 @@ protected:
 template <class _Alvbase_wrapped>
 class _Vb_const_iterator : public _Vb_iter_base<_Alvbase_wrapped> {
 public:
-    using _Mybase         = _Vb_iter_base<_Alvbase_wrapped>;
-    using _Mycont         = typename _Mybase::_Mycont;
-    using _Size_type      = typename _Mybase::_Size_type;
+    using _我的基类         = _Vb_iter_base<_Alvbase_wrapped>;
+    using _Mycont         = typename _我的基类::_Mycont;
+    using _Size_type      = typename _我的基类::_Size_type;
     using _Reft           = _Vb_reference<_Alvbase_wrapped>;
     using const_reference = bool;
 
     using iterator_category = random_access_iterator_tag;
     using value_type        = bool;
-    using difference_type   = typename _Mybase::_Difference_type;
+    using difference_type   = typename _我的基类::_Difference_type;
     using pointer           = const_reference*;
     using reference         = const_reference;
 
     _CONSTEXPR20 _Vb_const_iterator() = default;
 
     _CONSTEXPR20 _Vb_const_iterator(const _Vbase* _Ptr, const _Container_base* _Mypvbool) noexcept
-        : _Mybase(_Ptr, 0, _Mypvbool) {}
+        : _我的基类(_Ptr, 0, _Mypvbool) {}
 
     _NODISCARD _CONSTEXPR20 const_reference operator*() const noexcept {
 #if _ITERATOR_DEBUG_LEVEL != 0
@@ -2627,7 +2627,7 @@ public:
 
     _NODISCARD _CONSTEXPR20 difference_type operator-(const _Vb_const_iterator& _Right) const noexcept {
         _Compat(_Right);
-        return static_cast<difference_type>(_Mybase::_VBITS_DIFF * (this->_Myptr - _Right._Myptr))
+        return static_cast<difference_type>(_我的基类::_VBITS_DIFF * (this->_Myptr - _Right._Myptr))
              + static_cast<difference_type>(this->_Myoff) - static_cast<difference_type>(_Right._Myoff);
     }
 
@@ -2724,19 +2724,19 @@ public:
 template <class _Alvbase_wrapped>
 class _Vb_iterator : public _Vb_const_iterator<_Alvbase_wrapped> {
 public:
-    using _Mybase = _Vb_const_iterator<_Alvbase_wrapped>;
-    using _Mycont = typename _Mybase::_Mycont;
+    using _我的基类 = _Vb_const_iterator<_Alvbase_wrapped>;
+    using _Mycont = typename _我的基类::_Mycont;
 
     using _Reft           = _Vb_reference<_Alvbase_wrapped>;
     using const_reference = bool;
 
     using iterator_category = random_access_iterator_tag;
     using value_type        = bool;
-    using difference_type   = typename _Mybase::difference_type;
+    using difference_type   = typename _我的基类::difference_type;
     using pointer           = _Reft*;
     using reference         = _Reft;
 
-    using _Mybase::_Mybase;
+    using _我的基类::_我的基类;
 
     _NODISCARD _CONSTEXPR20 reference operator*() const noexcept {
 #if _ITERATOR_DEBUG_LEVEL != 0
@@ -2750,29 +2750,29 @@ public:
     }
 
     _CONSTEXPR20 _Vb_iterator& operator++() noexcept {
-        _Mybase::operator++();
+        _我的基类::operator++();
         return *this;
     }
 
     _CONSTEXPR20 _Vb_iterator operator++(int) noexcept {
         _Vb_iterator _Tmp = *this;
-        _Mybase::operator++();
+        _我的基类::operator++();
         return _Tmp;
     }
 
     _CONSTEXPR20 _Vb_iterator& operator--() noexcept {
-        _Mybase::operator--();
+        _我的基类::operator--();
         return *this;
     }
 
     _CONSTEXPR20 _Vb_iterator operator--(int) noexcept {
         _Vb_iterator _Tmp = *this;
-        _Mybase::operator--();
+        _我的基类::operator--();
         return _Tmp;
     }
 
     _CONSTEXPR20 _Vb_iterator& operator+=(const difference_type _Off) noexcept {
-        _Mybase::operator+=(_Off);
+        _我的基类::operator+=(_Off);
         return *this;
     }
 
@@ -2788,11 +2788,11 @@ public:
     }
 
     _CONSTEXPR20 _Vb_iterator& operator-=(const difference_type _Off) noexcept {
-        _Mybase::operator-=(_Off);
+        _我的基类::operator-=(_Off);
         return *this;
     }
 
-    using _Mybase::operator-;
+    using _我的基类::operator-;
 
     _NODISCARD _CONSTEXPR20 _Vb_iterator operator-(const difference_type _Off) const noexcept {
         _Vb_iterator _Tmp = *this;
@@ -2816,42 +2816,42 @@ public:
     using _Alvbase_wrapped = _Wrap_alloc<_Alvbase>;
     using size_type        = typename _Alvbase_traits::size_type;
 
-    _CONSTEXPR20 _Vb_val() noexcept(is_nothrow_default_constructible_v<_Vectype>) : _Myvec(), _Mysize(0) {
+    _CONSTEXPR20 _Vb_val() noexcept(is_nothrow_default_constructible_v<_Vectype>) : _我的向量(), _Mysize(0) {
         this->_Alloc_proxy(_GET_PROXY_ALLOCATOR(_Alvbase, _Getal()));
     }
 
-    _CONSTEXPR20 _Vb_val(const _Alloc& _Al) noexcept : _Myvec(static_cast<_Alvbase>(_Al)), _Mysize(0) {
+    _CONSTEXPR20 _Vb_val(const _Alloc& _Al) noexcept : _我的向量(static_cast<_Alvbase>(_Al)), _Mysize(0) {
         this->_Alloc_proxy(_GET_PROXY_ALLOCATOR(_Alvbase, _Getal()));
     }
 
     _CONSTEXPR20 _Vb_val(size_type _Count, const bool& _Val)
-        : _Myvec(_Nw(_Count), static_cast<_Vbase>(_Val ? -1 : 0)), _Mysize(0) {
+        : _我的向量(_Nw(_Count), static_cast<_Vbase>(_Val ? -1 : 0)), _Mysize(0) {
         this->_Alloc_proxy(_GET_PROXY_ALLOCATOR(_Alvbase, _Getal()));
     }
 
     _CONSTEXPR20 _Vb_val(size_type _Count, const bool& _Val, const _Alloc& _Al)
-        : _Myvec(_Nw(_Count), static_cast<_Vbase>(_Val ? -1 : 0), static_cast<_Alvbase>(_Al)), _Mysize(0) {
+        : _我的向量(_Nw(_Count), static_cast<_Vbase>(_Val ? -1 : 0), static_cast<_Alvbase>(_Al)), _Mysize(0) {
         this->_Alloc_proxy(_GET_PROXY_ALLOCATOR(_Alvbase, _Getal()));
     }
 
-    _CONSTEXPR20 _Vb_val(const _Vb_val& _Right) : _Myvec(_Right._Myvec), _Mysize(_Right._Mysize) {
+    _CONSTEXPR20 _Vb_val(const _Vb_val& _Right) : _我的向量(_Right._我的向量), _Mysize(_Right._Mysize) {
         this->_Alloc_proxy(_GET_PROXY_ALLOCATOR(_Alvbase, _Getal()));
     }
 
     _CONSTEXPR20 _Vb_val(const _Vb_val& _Right, const _Alloc& _Al)
-        : _Myvec(_Right._Myvec, static_cast<_Alvbase>(_Al)), _Mysize(_Right._Mysize) {
+        : _我的向量(_Right._我的向量, static_cast<_Alvbase>(_Al)), _Mysize(_Right._Mysize) {
         this->_Alloc_proxy(_GET_PROXY_ALLOCATOR(_Alvbase, _Getal()));
     }
 
     _CONSTEXPR20 _Vb_val(_Vb_val&& _Right) noexcept(is_nothrow_move_constructible_v<_Vectype>)
-        : _Myvec(_STD move(_Right._Myvec)), _Mysize(_STD exchange(_Right._Mysize, size_type{0})) {
+        : _我的向量(_STD move(_Right._我的向量)), _Mysize(_STD exchange(_Right._Mysize, size_type{0})) {
         this->_Alloc_proxy(_GET_PROXY_ALLOCATOR(_Alvbase, _Getal()));
     }
 
     _CONSTEXPR20 _Vb_val(_Vb_val&& _Right, const _Alloc& _Al)
         noexcept(is_nothrow_constructible_v<_Vectype, _Vectype, _Alvbase>)
-        : _Myvec(_STD move(_Right._Myvec), static_cast<_Alvbase>(_Al)), _Mysize(_Right._Mysize) {
-        if (_Right._Myvec.为空()) {
+        : _我的向量(_STD move(_Right._我的向量), static_cast<_Alvbase>(_Al)), _Mysize(_Right._Mysize) {
+        if (_Right._我的向量.为空()) {
             // we took _Right's buffer, so zero out 尺寸
             _Right._Mysize = 0;
         }
@@ -2867,18 +2867,18 @@ public:
 #endif // _ITERATOR_DEBUG_LEVEL != 0
 
 #if _MSVC_STL_DESTRUCTOR_TOMBSTONES
-        // Destroying _Myvec will store tombstones in its pointers, setting its apparent 尺寸 to 0.
+        // Destroying _我的向量 will store tombstones in its pointers, setting its apparent 尺寸 to 0.
         // We should also set our _Mysize to 0 for consistency, allowing precondition hardening to detect UB earlier.
         _Mysize = 0;
 #endif
     }
 
     _CONSTEXPR20 _Alvbase& _Getal() noexcept {
-        return _Myvec._Getal();
+        return _我的向量._Getal();
     }
 
     _CONSTEXPR20 const _Alvbase& _Getal() const noexcept {
-        return _Myvec._Getal();
+        return _我的向量._Getal();
     }
 
     static _CONSTEXPR20 size_type _Nw(size_type _Count) noexcept {
@@ -2886,11 +2886,11 @@ public:
     }
 
     _CONSTEXPR20 void _Emplace_back_unchecked(const _Vbase _Val) noexcept {
-        _STL_INTERNAL_CHECK(_Myvec.尺寸() < _Myvec.容量());
-        _Myvec._Emplace_back_with_unused_capacity(_Val);
+        _STL_INTERNAL_CHECK(_我的向量.尺寸() < _我的向量.容量());
+        _我的向量._Emplace_back_with_unused_capacity(_Val);
     }
 
-    _Vectype _Myvec; // base 向量实现 of words
+    _Vectype _我的向量; // base 向量实现 of words
     size_type _Mysize; // current length of sequence
 };
 
@@ -2900,10 +2900,10 @@ public:
     static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<bool, typename _Alloc::value_type>,
         _MISMATCHED_ALLOCATOR_MESSAGE("向量实现<bool, Allocator>", "bool"));
 
-    using _Mybase          = _Vb_val<_Alloc>;
-    using _Alvbase_wrapped = typename _Mybase::_Alvbase_wrapped;
-    using _Alvbase         = typename _Mybase::_Alvbase;
-    using _Alvbase_traits  = typename _Mybase::_Alvbase_traits;
+    using _我的基类          = _Vb_val<_Alloc>;
+    using _Alvbase_wrapped = typename _我的基类::_Alvbase_wrapped;
+    using _Alvbase         = typename _我的基类::_Alvbase;
+    using _Alvbase_traits  = typename _我的基类::_Alvbase_traits;
 
     using size_type       = typename _Alvbase_traits::size_type;
     using difference_type = typename _Alvbase_traits::difference_type;
@@ -2924,32 +2924,32 @@ public:
 
     enum { _EEN_VBITS = _VBITS }; // helper for expression evaluator
 
-    _CONSTEXPR20 向量实现() noexcept(is_nothrow_default_constructible_v<_Alloc>) : _Mybase(_Alloc()) {}
+    _CONSTEXPR20 向量实现() noexcept(is_nothrow_default_constructible_v<_Alloc>) : _我的基类(_Alloc()) {}
 
-    _CONSTEXPR20 explicit 向量实现(const _Alloc& _Al) noexcept : _Mybase(_Al) {}
+    _CONSTEXPR20 explicit 向量实现(const _Alloc& _Al) noexcept : _我的基类(_Al) {}
 
     _CONSTEXPR20 explicit 向量实现(_CRT_GUARDOVERFLOW size_type _Count, const _Alloc& _Al = _Alloc())
-        : _Mybase(_Count, false, _Al) {
+        : _我的基类(_Count, false, _Al) {
         _Trim(_Count);
     }
 
     _CONSTEXPR20 向量实现(_CRT_GUARDOVERFLOW size_type _Count, const bool& _Val, const _Alloc& _Al = _Alloc())
-        : _Mybase(_Count, _Val, _Al) {
+        : _我的基类(_Count, _Val, _Al) {
         _Trim(_Count);
     }
 
-    _CONSTEXPR20 向量实现(const 向量实现& _Right) : _Mybase(_Right) {}
+    _CONSTEXPR20 向量实现(const 向量实现& _Right) : _我的基类(_Right) {}
 
-    _CONSTEXPR20 向量实现(const 向量实现& _Right, const _Identity_t<_Alloc>& _Al) : _Mybase(_Right, _Al) {}
+    _CONSTEXPR20 向量实现(const 向量实现& _Right, const _Identity_t<_Alloc>& _Al) : _我的基类(_Right, _Al) {}
 
     template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
-    _CONSTEXPR20 向量实现(_Iter _First, _Iter _Last, const _Alloc& _Al = _Alloc()) : _Mybase(_Al) {
+    _CONSTEXPR20 向量实现(_Iter _First, _Iter _Last, const _Alloc& _Al = _Alloc()) : _我的基类(_Al) {
         插入(开始(), _First, _Last);
     }
 
 #if _HAS_CXX23
     template <_Container_compatible_range<bool> _Rng>
-    constexpr 向量实现(from_range_t, _Rng&& _Range, const _Alloc& _Al = _Alloc()) : _Mybase(_Al) {
+    constexpr 向量实现(from_range_t, _Rng&& _Range, const _Alloc& _Al = _Alloc()) : _我的基类(_Al) {
         if constexpr (_RANGES forward_range<_Rng> || _RANGES sized_range<_Rng>) {
             const auto _Length = _To_unsigned_like(_RANGES distance(_Range));
             const auto _Count  = _Convert_size<size_type>(_Length);
@@ -2960,13 +2960,13 @@ public:
     }
 #endif // _HAS_CXX23
 
-    _CONSTEXPR20 向量实现(向量实现&& _Right) noexcept : _Mybase(_STD move(_Right)) {
+    _CONSTEXPR20 向量实现(向量实现&& _Right) noexcept : _我的基类(_STD move(_Right)) {
         this->_Swap_proxy_and_iterators(_Right);
     }
 
     _CONSTEXPR20 向量实现(向量实现&& _Right, const _Identity_t<_Alloc>& _Al)
-        noexcept(is_nothrow_constructible_v<_Mybase, _Mybase, const _Alloc&>) // strengthened
-        : _Mybase(_STD move(_Right), _Al) {
+        noexcept(is_nothrow_constructible_v<_我的基类, _我的基类, const _Alloc&>) // strengthened
+        : _我的基类(_STD move(_Right), _Al) {
         if constexpr (!_Alvbase_traits::is_always_equal::value) {
             if (this->_Getal() != _Right._Getal()) {
                 return;
@@ -2983,7 +2983,7 @@ public:
         }
 
 #if _ITERATOR_DEBUG_LEVEL == 0
-        this->_Myvec  = _STD move(_Right._Myvec);
+        this->_我的向量  = _STD move(_Right._我的向量);
         this->_Mysize = _STD exchange(_Right._Mysize, size_type{0});
 #else // ^^^ _ITERATOR_DEBUG_LEVEL == 0 / _ITERATOR_DEBUG_LEVEL != 0 vvv
         this->_Orphan_all();
@@ -2997,16 +2997,16 @@ public:
                 _Alproxy_type _Oldal(_Al);
                 _Alproxy_type _Right_proxy_al(_Right_al);
                 _Container_proxy_ptr<_Alvbase> _Proxy(_Right_proxy_al, _Leave_proxy_unbound{});
-                this->_Myvec  = _STD move(_Right._Myvec);
+                this->_我的向量  = _STD move(_Right._我的向量);
                 this->_Mysize = _STD exchange(_Right._Mysize, size_type{0});
                 _Proxy._Bind(_Oldal, this);
                 this->_Swap_proxy_and_iterators(_Right);
                 return *this;
             }
         } else if constexpr (_Pocma_val == _Pocma_values::_No_propagate_allocators) {
-            this->_Myvec  = _STD move(_Right._Myvec);
+            this->_我的向量  = _STD move(_Right._我的向量);
             this->_Mysize = _Right._Mysize;
-            if (_Right._Myvec.为空()) {
+            if (_Right._我的向量.为空()) {
                 // we took _Right's buffer, so zero out 尺寸
                 _Right._Mysize = 0;
             }
@@ -3017,7 +3017,7 @@ public:
             return *this;
         }
 
-        this->_Myvec  = _STD move(_Right._Myvec);
+        this->_我的向量  = _STD move(_Right._我的向量);
         this->_Mysize = _STD exchange(_Right._Mysize, size_type{0});
         this->_Swap_proxy_and_iterators(_Right);
 
@@ -3041,7 +3041,7 @@ public:
         return 插入(_Where, _Tmp);
     }
 
-    _CONSTEXPR20 向量实现(initializer_list<bool> _Ilist, const _Alloc& _Al = allocator_type()) : _Mybase(0, false, _Al) {
+    _CONSTEXPR20 向量实现(initializer_list<bool> _Ilist, const _Alloc& _Al = allocator_type()) : _我的基类(0, false, _Al) {
         插入(开始(), _Ilist.begin(), _Ilist.end());
     }
 
@@ -3066,7 +3066,7 @@ public:
         }
 
 #if _ITERATOR_DEBUG_LEVEL == 0
-        this->_Myvec  = _Right._Myvec;
+        this->_我的向量  = _Right._我的向量;
         this->_Mysize = _Right._Mysize;
 #else // ^^^ _ITERATOR_DEBUG_LEVEL == 0 / _ITERATOR_DEBUG_LEVEL != 0 vvv
         this->_Orphan_all();
@@ -3079,14 +3079,14 @@ public:
                 _Alproxy_type _Oldal(_Al);
                 _Alproxy_type _Right_proxy_al(_Right_al);
                 _Container_proxy_ptr<_Alvbase> _Proxy(_Right_proxy_al, _Leave_proxy_unbound{});
-                this->_Myvec  = _Right._Myvec;
+                this->_我的向量  = _Right._我的向量;
                 this->_Mysize = _Right._Mysize;
                 _Proxy._Bind(_Oldal, this);
                 return *this;
             }
         }
 
-        this->_Myvec  = _Right._Myvec;
+        this->_我的向量  = _Right._我的向量;
         this->_Mysize = _Right._Mysize;
 #endif // ^^^ _ITERATOR_DEBUG_LEVEL != 0 ^^^
 
@@ -3094,19 +3094,19 @@ public:
     }
 
     _CONSTEXPR20 void 预留(_CRT_GUARDOVERFLOW size_type _Count) {
-        this->_Myvec.预留(this->_Nw(_Count));
+        this->_我的向量.预留(this->_Nw(_Count));
     }
 
     _NODISCARD _CONSTEXPR20 size_type 容量() const noexcept {
-        return this->_Myvec.容量() * _VBITS;
+        return this->_我的向量.容量() * _VBITS;
     }
 
     _NODISCARD _CONSTEXPR20 iterator 开始() noexcept {
-        return iterator(this->_Myvec.数据(), this);
+        return iterator(this->_我的向量.数据(), this);
     }
 
     _NODISCARD _CONSTEXPR20 const_iterator 开始() const noexcept {
-        return const_iterator(this->_Myvec.数据(), this);
+        return const_iterator(this->_我的向量.数据(), this);
     }
 
     _NODISCARD _CONSTEXPR20 iterator 结束() noexcept {
@@ -3134,11 +3134,11 @@ public:
     }
 
     _NODISCARD _CONSTEXPR20 iterator _Unchecked_begin() noexcept {
-        return iterator(this->_Myvec.数据(), this);
+        return iterator(this->_我的向量.数据(), this);
     }
 
     _NODISCARD _CONSTEXPR20 const_iterator _Unchecked_begin() const noexcept {
-        return const_iterator(this->_Myvec.数据(), this);
+        return const_iterator(this->_我的向量.数据(), this);
     }
 
     _NODISCARD _CONSTEXPR20 iterator _Unchecked_end() noexcept {
@@ -3150,9 +3150,9 @@ public:
     }
 
     _CONSTEXPR20 void 收缩至适应() {
-        if (this->_Myvec.容量() != this->_Myvec.尺寸()) {
+        if (this->_我的向量.容量() != this->_我的向量.尺寸()) {
             this->_Orphan_all();
-            this->_Myvec.收缩至适应();
+            this->_我的向量.收缩至适应();
         }
     }
 
@@ -3195,7 +3195,7 @@ public:
 
     _NODISCARD _CONSTEXPR20 size_type 最大尺寸() const noexcept {
         constexpr auto _Diff_max  = static_cast<size_type>(_STD _Max_limit<difference_type>());
-        const size_type _Ints_max = this->_Myvec.最大尺寸();
+        const size_type _Ints_max = this->_我的向量.最大尺寸();
         if (_Ints_max > _Diff_max / _VBITS) { // 最大尺寸 bound by difference_type limits
             return _Diff_max;
         }
@@ -3209,7 +3209,7 @@ public:
     }
 
     _NODISCARD _CONSTEXPR20 allocator_type 取分配器() const noexcept {
-        return static_cast<allocator_type>(this->_Myvec.取分配器());
+        return static_cast<allocator_type>(this->_我的向量.取分配器());
     }
 
     _NODISCARD _CONSTEXPR20 const_reference 取值(size_type _Off) const {
@@ -3308,8 +3308,8 @@ public:
 #if _HAS_CXX23
     template <class _Iter>
     constexpr void _Assign_counted_range(_Iter _First, const size_type _Count) {
-        _STL_INTERNAL_CHECK(this->_Myvec.为空());
-        this->_Myvec.预留(this->_Nw(_Count));
+        _STL_INTERNAL_CHECK(this->_我的向量.为空());
+        this->_我的向量.预留(this->_Nw(_Count));
         _Vbase _Accum = 0;
         _Vbase _Mask  = 1;
         for (size_type _Idx = 0; _Idx < _Count; ++_Idx) {
@@ -3331,7 +3331,7 @@ public:
 
     template <class _Iter, class _Sent>
     constexpr void _Assign_uncounted_range(_Iter _First, const _Sent _Last) {
-        _STL_INTERNAL_CHECK(this->_Myvec.为空());
+        _STL_INTERNAL_CHECK(this->_我的向量.为空());
         size_type _Count = 0;
         _Vbase _Accum    = 0;
         _Vbase _Mask     = 1;
@@ -3340,14 +3340,14 @@ public:
             ++_First;
             _Accum |= _Tmp ? _Mask : _Vbase{0};
             if ((_Mask <<= 1) == 0) {
-                this->_Myvec.尾插(_Accum);
+                this->_我的向量.尾插(_Accum);
                 _Accum = 0;
                 _Mask  = 1;
             }
         }
 
         if (_Count % _VBITS != 0) {
-            this->_Myvec.尾插(_Accum);
+            this->_我的向量.尾插(_Accum);
         }
         this->_Mysize = _Count;
     }
@@ -3483,12 +3483,12 @@ public:
 
     _CONSTEXPR20 void 清空() noexcept {
         this->_Orphan_all();
-        this->_Myvec.清空();
+        this->_我的向量.清空();
         this->_Mysize = 0;
     }
 
     _CONSTEXPR20 void flip() noexcept { // toggle all elements
-        for (auto& _Elem : this->_Myvec) {
+        for (auto& _Elem : this->_我的向量) {
             _Elem = ~_Elem;
         }
 
@@ -3498,7 +3498,7 @@ public:
     _CONSTEXPR20 void swap(向量实现& _Right) noexcept /* strengthened */ {
         if (this != _STD addressof(_Right)) {
             this->_Swap_proxy_and_iterators(_Right);
-            this->_Myvec.swap(_Right._Myvec);
+            this->_我的向量.swap(_Right._我的向量);
             _STD swap(this->_Mysize, _Right._Mysize);
         }
     }
@@ -3534,7 +3534,7 @@ public:
 #if _ITERATOR_DEBUG_LEVEL == 2
             _Orphan_range(static_cast<size_type>(_Realloc ? 0 : _Off), this->_Mysize);
 #endif // _ITERATOR_DEBUG_LEVEL == 2
-            this->_Myvec.调整尺寸(this->_Nw(尺寸() + _Count), 0);
+            this->_我的向量.调整尺寸(this->_Nw(尺寸() + _Count), 0);
             if (为空()) {
                 this->_Mysize += _Count;
             } else { // make room and copy down suffix
@@ -3549,11 +3549,11 @@ public:
 
 #if _ITERATOR_DEBUG_LEVEL == 2
     _CONSTEXPR20 void _Orphan_range_unlocked(size_type _Offlo, size_type _Offhi) const {
-        const auto _Base = this->_Myvec.数据();
+        const auto _Base = this->_我的向量.数据();
 
         _Iterator_base12** _Pnext = &this->_Myproxy->_Myfirstiter;
         while (*_Pnext) { // test offset from beginning of 向量实现
-            const auto& _Pnextiter = static_cast<typename const_iterator::_Mybase&>(**_Pnext);
+            const auto& _Pnextiter = static_cast<typename const_iterator::_我的基类&>(**_Pnext);
             const auto _Temp       = *_Pnext;
             if (!_Pnextiter._Myptr) { // orphan the iterator
                 _Temp->_Myproxy = nullptr;
@@ -3594,14 +3594,14 @@ public:
         }
 
         const size_type _Words = this->_Nw(_Size);
-        if (_Words < this->_Myvec.尺寸()) {
-            this->_Myvec.擦除(this->_Myvec.开始() + static_cast<difference_type>(_Words), this->_Myvec.结束());
+        if (_Words < this->_我的向量.尺寸()) {
+            this->_我的向量.擦除(this->_我的向量.开始() + static_cast<difference_type>(_Words), this->_我的向量.结束());
         }
 
         this->_Mysize = _Size;
         _Size %= _VBITS;
         if (0 < _Size) {
-            this->_Myvec[_Words - 1] &= (static_cast<_Vbase>(1) << _Size) - 1;
+            this->_我的向量[_Words - 1] &= (static_cast<_Vbase>(1) << _Size) - 1;
         }
     }
 
@@ -3621,7 +3621,7 @@ struct hash<向量实现<bool, _Alloc>> {
 
     _NODISCARD _STATIC_CALL_OPERATOR size_t operator()(
         const 向量实现<bool, _Alloc>& _Keyval) _CONST_CALL_OPERATOR noexcept {
-        return _Hash_array_representation(_Keyval._Myvec.数据(), _Keyval._Myvec.尺寸());
+        return _Hash_array_representation(_Keyval._我的向量.数据(), _Keyval._我的向量.尺寸());
     }
 };
 

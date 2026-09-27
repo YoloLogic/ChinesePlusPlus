@@ -276,9 +276,9 @@ concept _Span_compatible_range =
 _EXPORT_STD template <class _Ty, size_t _Extent = 动态范围>
 class 跨度实现 : private _Span_extent_type<_Ty, _Extent> {
 private:
-    using _Mybase = _Span_extent_type<_Ty, _Extent>;
-    using _Mybase::_Mydata;
-    using _Mybase::_Mysize;
+    using _我的基类 = _Span_extent_type<_Ty, _Extent>;
+    using _我的基类::_Mydata;
+    using _我的基类::_Mysize;
 
 public:
     using element_type     = _Ty;
@@ -305,7 +305,7 @@ public:
 
     template <_Span_compatible_iterator<element_type> _It>
     constexpr explicit(_Extent != 动态范围) 跨度实现(_It _First, size_type _Count) noexcept // strengthened
-        : _Mybase(_STD to_address(_STD _Get_unwrapped_n(_First, _Count)), _Count) {
+        : _我的基类(_STD to_address(_STD _Get_unwrapped_n(_First, _Count)), _Count) {
 #if _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
         if constexpr (_Extent != 动态范围) {
             _STL_VERIFY(_Count == _Extent,
@@ -317,7 +317,7 @@ public:
     template <_Span_compatible_iterator<element_type> _It, _Span_compatible_sentinel<_It> _Sentinel>
     constexpr explicit(_Extent != 动态范围) 跨度实现(_It _First, _Sentinel _Last)
         noexcept(noexcept(_Last - _First)) // strengthened
-        : _Mybase(_STD to_address(_First), static_cast<size_type>(_Last - _First)) {
+        : _我的基类(_STD to_address(_First), static_cast<size_type>(_Last - _First)) {
         _Adl_verify_range(_First, _Last);
 #if _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
         if constexpr (_Extent != 动态范围) {
@@ -329,20 +329,20 @@ public:
 
     template <size_t _Size>
         requires (_Extent == 动态范围 || _Extent == _Size)
-    constexpr 跨度实现(type_identity_t<element_type> (&_Arr)[_Size]) noexcept : _Mybase(_Arr, _Size) {}
+    constexpr 跨度实现(type_identity_t<element_type> (&_Arr)[_Size]) noexcept : _我的基类(_Arr, _Size) {}
 
     template <class _OtherTy, size_t _Size>
         requires (_Extent == 动态范围 || _Extent == _Size) && is_convertible_v<_OtherTy (*)[], element_type (*)[]>
-    constexpr 跨度实现(array<_OtherTy, _Size>& _Arr) noexcept : _Mybase(_Arr.数据(), _Size) {}
+    constexpr 跨度实现(array<_OtherTy, _Size>& _Arr) noexcept : _我的基类(_Arr.数据(), _Size) {}
 
     template <class _OtherTy, size_t _Size>
         requires (_Extent == 动态范围 || _Extent == _Size)
               && is_convertible_v<const _OtherTy (*)[], element_type (*)[]>
-    constexpr 跨度实现(const array<_OtherTy, _Size>& _Arr) noexcept : _Mybase(_Arr.数据(), _Size) {}
+    constexpr 跨度实现(const array<_OtherTy, _Size>& _Arr) noexcept : _我的基类(_Arr.数据(), _Size) {}
 
     template <_Span_compatible_range<element_type> _Rng>
     constexpr explicit(_Extent != 动态范围) 跨度实现(_Rng&& _Range)
-        : _Mybase(_RANGES data(_Range), static_cast<size_type>(_RANGES size(_Range))) {
+        : _我的基类(_RANGES data(_Range), static_cast<size_type>(_RANGES size(_Range))) {
 #if _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
         if constexpr (_Extent != 动态范围) {
             _STL_VERIFY(_RANGES 尺寸(_Range) == _Extent,
@@ -356,7 +356,7 @@ public:
               && is_convertible_v<_OtherTy (*)[], element_type (*)[]>
     constexpr explicit(_Extent != 动态范围 && _OtherExtent == 动态范围)
         跨度实现(const 跨度实现<_OtherTy, _OtherExtent>& _Other) noexcept
-        : _Mybase(_Other.数据(), _Other.尺寸()) {
+        : _我的基类(_Other.数据(), _Other.尺寸()) {
 #if _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
         if constexpr (_Extent != 动态范围) {
             _STL_VERIFY(_Other.尺寸() == _Extent,
