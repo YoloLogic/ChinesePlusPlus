@@ -475,6 +475,53 @@ $H = @{
       @('多重映射 + 就地构造','#包含 <映射>`n整数 主函数(){ 标准::多重映射<整数, 整数> 甲; 甲.插入({1, 1}); 甲.插入({1, 2}); 标准::映射<整数, 整数> 乙; 乙.try_emplace(5, 6); 返回 (整数)甲.计数(1) + (整数)乙.尺寸() - 3; }')
     )
   }
+  'optional' = @{
+    zh      = '可选'
+    types   = [ordered]@{ 'optional' = '可选实现'
+                          'nullopt_t' = '空值类型' }
+    # 步 0b：把【真 <optional>】也包含进来 —— 为了让 std::bad_optional_access 真的存在。
+    # 抄来的那份异常类定义要删掉（dropTypes），否则 _Throw_bad_optional_access()
+    # 抛的是我们抄的那个类，用户 catch (std::bad_optional_access&) 永远抓不到。
+    # 值类型 optional 可以抄+派生（能有中文成员名），异常类型只能别名 —— 铁律 4。
+    realInclude = @('optional')
+    dropTypes   = @('bad_optional_access')
+    members = [ordered]@{
+      'has_value' = '有值'; 'value' = '取值'; 'value_or' = '取值或'
+      'reset' = '重置'; 'emplace' = '就地构造'
+      'and_then' = '且则'; 'transform' = '变换'; 'or_else' = '或则'
+      # ⚠ swap 照旧不改名（§3.12）
+    }
+    data    = [ordered]@{}
+    derive  = @( @('has_value','有值'), @('value','取值'), @('value_or','取值或'),
+                 @('reset','重置'), @('emplace','就地构造'),
+                 @('and_then','且则'), @('transform','变换'), @('or_else','或则') )
+    deriveTypes = @( @('值类型','value_type') )
+    stdHash = $false
+    tparam  = @{ decl = '模板 <类型名 值>'; args = '<值>' }
+    extra = @'
+
+名域 标准 {
+
+// 坏可选访问异常（std::bad_optional_access）—— 只能是 std 的那个（铁律 4）
+使用 坏可选访问 = std::bad_optional_access;
+
+// 顶层 tag 类型也要能在 标准 里写
+使用 空值类型 = 细节::空值类型;
+
+// 无值（std::nullopt）—— 全局常量，成员转发管不到，手写
+// ⚠ MSVC 的 nullopt_t 取的是嵌套的 _Tag，不是 int（我照 cppreference 写 {42} 是错的）：
+//     struct nullopt_t { struct _Tag {}; constexpr explicit nullopt_t(_Tag) {} };
+内联 常量表达式 空值类型 无值{细节::空值类型::_Tag{}};
+
+}  // 名域 标准
+'@
+    tests = @(
+      @('只引中文头','#包含 <可选>`n整数 主函数(){ 标准::可选<整数> 甲; 布尔 有 = 甲.有值(); 甲 = 5; 返回 (有 ? 1 : 0) + 甲.取值() - 5; }'),
+      @('异常必须是同一个类型（与 <optional> 并存）','#包含 <可选>`n#包含 <optional>`n静态断言(std::is_same<标准::坏可选访问, std::bad_optional_access>::value, "");`n整数 主函数(){ 标准::可选<整数> 甲; 尝试 { (空型)甲.取值(); } 捕获 (常量 std::bad_optional_access&) { std::optional<int> 乙; 乙 = 3; 返回 乙.value() - 3; } 返回 1; }'),
+      @('无值 / 就地构造 / 取值或','#包含 <可选>`n整数 主函数(){ 标准::可选<整数> 甲(标准::无值); 甲.就地构造(7); 整数 值 = 甲.取值或(0); 甲.重置(); 返回 (整数)甲.有值() + 值 - 7; }'),
+      @('英文名与中文名并用','#包含 <可选>`n整数 主函数(){ 标准::可选<整数> 甲(9); 布尔 有 = 甲.has_value(); 整数 值 = 甲.value(); 返回 (有 ? 值 : 0) - 9; }')
+    )
+  }
   'scoped_allocator' = @{
     zh      = '作用域分配器'
     types   = [ordered]@{ 'scoped_allocator_adaptor' = '作用域分配器适配器实现'
@@ -662,7 +709,8 @@ $H = @{
 #     但豁免要写理由 —— 默认是"必须一致"。
 # ---------------------------------------------------------------------------
 $ZH_NAME_EXCEPTIONS = @{
-    # '类型名' = '为什么两个头里可以是不同译名'
+    # 登记必须写理由 —— 默认是"同一个英文名必须同一个译名"。
+    'members/reset' = 'bitset::reset 是"把某一位清零"（复位）；optional::reset 是"销毁所存的值"（重置）。同名不同义，允许两个译名。'
 }
 $zhSeen  = @{}
 $zhClash = @()
@@ -775,6 +823,62 @@ if ($spec.zhIncludes) {
         }
     }
 }
+# ---------------------------------------------------------------------------
+#  步 0b：真头包含（realInclude）+ 丢掉抄来的异常类（dropTypes）
+#
+#  为什么需要（<optional> 是第一个用户）：
+#    一个头里常常【混着两类东西】：
+#      · 值类型（std::optional）                 -> 可以抄+派生，能有中文成员名
+#      · 异常类型（std::bad_optional_access）    -> 身份参与语义，铁律 4 要求必须是 std 的那个
+#    整个头都抄的话，_Throw_bad_optional_access() 抛的是【我们抄来那个类】，
+#    用户写 catch (std::bad_optional_access&) 永远抓不到。
+#
+#  办法两步：
+#    realInclude  把【微软原头】也包含进来 -> 真的 std::bad_optional_access 存在了
+#    dropTypes    把抄来那份【异常类的定义删掉】-> 本文件里的 bad_optional_access
+#                 就靠 `使用 名域 std;` 解析到真的那个，异常自然就是同一个类型
+#
+#  ⚠ dropTypes 只适合"简单异常类"。删除用花括号配对实现，
+#     不处理字符串/注释里的花括号 —— 对异常类足够，别拿它删大东西。
+# ---------------------------------------------------------------------------
+function Remove-ClassDef {
+    param([string]$Text, [string]$Name, [ref]$Count)
+    $rx = [regex]('(?m)^[^\r\n]*\b(?:class|struct)\s+' + [regex]::Escape($Name) + '\b[^\r\n]*\{')
+    $m = $rx.Match($Text)
+    if (-not $m.Success) { return $Text }
+    $i = $Text.IndexOf('{', $m.Index)
+    $depth = 0; $j = $i
+    while ($j -lt $Text.Length) {
+        $ch = $Text[$j]
+        if ($ch -eq '{') { $depth++ }
+        elseif ($ch -eq '}') { $depth--; if ($depth -eq 0) { break } }
+        $j++
+    }
+    if ($j -ge $Text.Length) { return $Text }
+    $end = $j + 1
+    while ($end -lt $Text.Length -and ($Text[$end] -eq ';' -or $Text[$end] -eq ' ' -or $Text[$end] -eq "`r" -or $Text[$end] -eq "`n")) { $end++ }
+    $Count.Value++
+    $note = "// [dropTypes] 这里删掉了抄来的 " + $Name + " 定义。`n" +
+            "// 它的身份必须是 std 的那个（铁律 4：捕获按类型匹配），所以改用真头的 std::" + $Name + "。`n"
+    return $Text.Substring(0, $m.Index) + $note + $Text.Substring($end)
+}
+
+
+if ($spec.dropTypes) {
+    foreach ($dn in @($spec.dropTypes)) {
+        if ($spec.types -and $spec.types.Contains($dn)) {
+            throw "dropTypes 与 types 冲突：'$dn' 既被删又被改名 —— 删掉就不该再登记改名"
+        }
+        $nDrop = 0
+        $text = Remove-ClassDef -Text $text -Name $dn -Count ([ref]$nDrop)
+        if ($nDrop -eq 0) {
+            Write-Host "  步0b ⚠ dropTypes 没找到类定义 '$dn'" -ForegroundColor Yellow
+        } else {
+            Write-Host "  步0b 丢掉抄来的类定义 '$dn'（改用真头的 std::$dn）"
+        }
+    }
+}
+
 
 # 步 1：换守卫
 $gm = [regex]::Match($text, '(?m)^#ifndef\s+([A-Za-z_][A-Za-z0-9_]*)\s*\r?\n#define\s+\1\b')
@@ -821,6 +925,16 @@ foreach ($k in $spec.types.Keys)   { $c = ([regex]::Matches($text, "\b$([regex]:
 foreach ($k in $spec.members.Keys) { $c = ([regex]::Matches($text, "\b$([regex]::Escape($k))\b")).Count; if ($c) { $text = [regex]::Replace($text, "\b$([regex]::Escape($k))\b", $spec.members[$k]); $nM += $c } }
 foreach ($k in $spec.data.Keys)    { $c = ([regex]::Matches($text, "\b$([regex]::Escape($k))\b")).Count; if ($c) { $text = [regex]::Replace($text, "\b$([regex]::Escape($k))\b", $spec.data[$k]); $nD += $c } }
 Write-Host "  步3/4 类型 $nT 处 / 成员 $nM 处 / 数据 $nD 处"
+# ⚠ realInclude 必须插在【改名之后】：否则 `#include <optional>` 里的 optional
+#   会被类型改名改成 `#include <可选实现>` -> fatal error: 找不到文件 '可选实现'。
+#   （dropTypes 相反，必须在改名【之前】，因为要匹配英文类名。）
+if ($spec.realInclude) {
+    $pos = $text.IndexOf('_STD_BEGIN')
+    if ($pos -lt 0) { $pos = 0 }
+    $inc = (@($spec.realInclude) | ForEach-Object { "#include <$_>" }) -join "`n"
+    $text = $text.Substring(0, $pos) + $inc + "`n" + $text.Substring($pos)
+    Write-Host ("  步0b 真头包含（改名后插）: {0}" -f (@($spec.realInclude) -join ', '))
+}
 
 # ---------------------------------------------------------------------------
 #  步 4c：把 `_STD <本文件自己定义的东西>` 的限定去掉
