@@ -30,11 +30,11 @@ _EXPORT_STD struct 一次标志实现 { // opaque data structure for 一次调�
 };
 
 template <class _Ty>
-union _Immortalizer_impl { // constructs _Ty, never destroys
-    constexpr _Immortalizer_impl() noexcept : _Storage{} {}
-    _Immortalizer_impl(const _Immortalizer_impl&)            = delete;
-    _Immortalizer_impl& operator=(const _Immortalizer_impl&) = delete;
-    ~_Immortalizer_impl() {
+union _永不析构实现 { // constructs _Ty, never destroys
+    constexpr _永不析构实现() noexcept : _Storage{} {}
+    _永不析构实现(const _永不析构实现&)            = delete;
+    _永不析构实现& operator=(const _永不析构实现&) = delete;
+    ~_永不析构实现() {
         // do nothing
     }
 

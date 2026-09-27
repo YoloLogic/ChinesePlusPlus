@@ -24,7 +24,7 @@ _STL_DISABLE_CLANG_WARNINGS
 名域 标准 { 名域 细节 {
 使用 名域 std;
 template <class _我的链表, class _Base = _Iterator_base0>
-class _Flist_unchecked_const_iterator : public _Base {
+class _单向链表非检查常量迭代器 : public _Base {
 public:
     using iterator_category = forward_iterator_tag;
 
@@ -34,9 +34,9 @@ public:
     using pointer         = typename _我的链表::const_pointer;
     using reference       = const value_type&;
 
-    _Flist_unchecked_const_iterator() noexcept : _Ptr() {}
+    _单向链表非检查常量迭代器() noexcept : _Ptr() {}
 
-    _Flist_unchecked_const_iterator(_Nodeptr _Pnode, const _我的链表* _Plist) noexcept : _Ptr(_Pnode) {
+    _单向链表非检查常量迭代器(_Nodeptr _Pnode, const _我的链表* _Plist) noexcept : _Ptr(_Pnode) {
         this->_Adopt(_Plist);
     }
 
@@ -48,23 +48,23 @@ public:
         return pointer_traits<pointer>::pointer_to(**this);
     }
 
-    _Flist_unchecked_const_iterator& operator++() noexcept {
+    _单向链表非检查常量迭代器& operator++() noexcept {
         _Ptr = _Ptr->_Next;
         return *this;
     }
 
-    _Flist_unchecked_const_iterator operator++(int) noexcept {
-        _Flist_unchecked_const_iterator _Tmp = *this;
+    _单向链表非检查常量迭代器 operator++(int) noexcept {
+        _单向链表非检查常量迭代器 _Tmp = *this;
         _Ptr                                 = _Ptr->_Next;
         return _Tmp;
     }
 
-    _NODISCARD bool operator==(const _Flist_unchecked_const_iterator& _Right) const noexcept {
+    _NODISCARD bool operator==(const _单向链表非检查常量迭代器& _Right) const noexcept {
         return _Ptr == _Right._Ptr;
     }
 
 #if !_HAS_CXX20
-    _NODISCARD bool operator!=(const _Flist_unchecked_const_iterator& _Right) const noexcept {
+    _NODISCARD bool operator!=(const _单向链表非检查常量迭代器& _Right) const noexcept {
         return !(*this == _Right);
     }
 #endif // !_HAS_CXX20
@@ -83,9 +83,9 @@ public:
 };
 
 template <class _我的链表>
-class _Flist_unchecked_iterator : public _Flist_unchecked_const_iterator<_我的链表> {
+class _单向链表非检查迭代器 : public _单向链表非检查常量迭代器<_我的链表> {
 public:
-    using _我的基类           = _Flist_unchecked_const_iterator<_我的链表>;
+    using _我的基类           = _单向链表非检查常量迭代器<_我的链表>;
     using iterator_category = forward_iterator_tag;
 
     using _Nodeptr        = typename _我的链表::_Nodeptr;
@@ -104,22 +104,22 @@ public:
         return pointer_traits<pointer>::pointer_to(**this);
     }
 
-    _Flist_unchecked_iterator& operator++() noexcept {
+    _单向链表非检查迭代器& operator++() noexcept {
         _我的基类::operator++();
         return *this;
     }
 
-    _Flist_unchecked_iterator operator++(int) noexcept {
-        _Flist_unchecked_iterator _Tmp = *this;
+    _单向链表非检查迭代器 operator++(int) noexcept {
+        _单向链表非检查迭代器 _Tmp = *this;
         _我的基类::operator++();
         return _Tmp;
     }
 };
 
 template <class _我的链表>
-class _Flist_const_iterator : public _Flist_unchecked_const_iterator<_我的链表, _Iterator_base> {
+class _单向链表常量迭代器 : public _单向链表非检查常量迭代器<_我的链表, _Iterator_base> {
 public:
-    using _我的基类           = _Flist_unchecked_const_iterator<_我的链表, _Iterator_base>;
+    using _我的基类           = _单向链表非检查常量迭代器<_我的链表, _Iterator_base>;
     using iterator_category = forward_iterator_tag;
 
     using _Nodeptr        = typename _我的链表::_Nodeptr;
@@ -140,7 +140,7 @@ public:
         return this->_Ptr->_Myval;
     }
 
-    _Flist_const_iterator& operator++() noexcept {
+    _单向链表常量迭代器& operator++() noexcept {
 #if _ITERATOR_DEBUG_LEVEL == 2
         _STL_VERIFY(this->_Getcont(), "单向链表实现 iterator not incrementable");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
@@ -149,13 +149,13 @@ public:
         return *this;
     }
 
-    _Flist_const_iterator operator++(int) noexcept {
-        _Flist_const_iterator _Tmp = *this;
+    _单向链表常量迭代器 operator++(int) noexcept {
+        _单向链表常量迭代器 _Tmp = *this;
         this->_Ptr                 = this->_Ptr->_Next;
         return _Tmp;
     }
 
-    _NODISCARD bool operator==(const _Flist_const_iterator& _Right) const noexcept {
+    _NODISCARD bool operator==(const _单向链表常量迭代器& _Right) const noexcept {
 #if _ITERATOR_DEBUG_LEVEL == 2
         _STL_VERIFY(this->_Getcont() == _Right._Getcont(), "单向链表实现 iterators incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
@@ -164,33 +164,33 @@ public:
     }
 
 #if !_HAS_CXX20
-    _NODISCARD bool operator!=(const _Flist_const_iterator& _Right) const noexcept {
+    _NODISCARD bool operator!=(const _单向链表常量迭代器& _Right) const noexcept {
         return !(*this == _Right);
     }
 #endif // !_HAS_CXX20
 
 #if _ITERATOR_DEBUG_LEVEL == 2
-    friend void _Verify_range(const _Flist_const_iterator& _First, const _Flist_const_iterator& _Last) noexcept {
+    friend void _Verify_range(const _单向链表常量迭代器& _First, const _单向链表常量迭代器& _Last) noexcept {
         _STL_VERIFY(
             _First._Getcont() == _Last._Getcont(), "单向链表实现 iterators in range are from different containers");
     }
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
-    using _Prevent_inheriting_unwrap = _Flist_const_iterator;
+    using _Prevent_inheriting_unwrap = _单向链表常量迭代器;
 
-    _NODISCARD _Flist_unchecked_const_iterator<_我的链表> _Unwrapped() const noexcept {
-        return _Flist_unchecked_const_iterator<_我的链表>(this->_Ptr, static_cast<const _我的链表*>(this->_Getcont()));
+    _NODISCARD _单向链表非检查常量迭代器<_我的链表> _Unwrapped() const noexcept {
+        return _单向链表非检查常量迭代器<_我的链表>(this->_Ptr, static_cast<const _我的链表*>(this->_Getcont()));
     }
 
-    void _Seek_to(const _Flist_unchecked_const_iterator<_我的链表> _It) noexcept {
+    void _Seek_to(const _单向链表非检查常量迭代器<_我的链表> _It) noexcept {
         this->_Ptr = _It._Ptr;
     }
 };
 
 template <class _我的链表>
-class _Flist_iterator : public _Flist_const_iterator<_我的链表> {
+class _单向链表迭代器 : public _单向链表常量迭代器<_我的链表> {
 public:
-    using _我的基类           = _Flist_const_iterator<_我的链表>;
+    using _我的基类           = _单向链表常量迭代器<_我的链表>;
     using iterator_category = forward_iterator_tag;
 
     using _Nodeptr        = typename _我的链表::_Nodeptr;
@@ -209,27 +209,27 @@ public:
         return pointer_traits<pointer>::pointer_to(**this);
     }
 
-    _Flist_iterator& operator++() noexcept {
+    _单向链表迭代器& operator++() noexcept {
         _我的基类::operator++();
         return *this;
     }
 
-    _Flist_iterator operator++(int) noexcept {
-        _Flist_iterator _Tmp = *this;
+    _单向链表迭代器 operator++(int) noexcept {
+        _单向链表迭代器 _Tmp = *this;
         _我的基类::operator++();
         return _Tmp;
     }
 
-    using _Prevent_inheriting_unwrap = _Flist_iterator;
+    using _Prevent_inheriting_unwrap = _单向链表迭代器;
 
-    _NODISCARD _Flist_unchecked_iterator<_我的链表> _Unwrapped() const noexcept {
-        return _Flist_unchecked_iterator<_我的链表>(this->_Ptr, static_cast<const _我的链表*>(this->_Getcont()));
+    _NODISCARD _单向链表非检查迭代器<_我的链表> _Unwrapped() const noexcept {
+        return _单向链表非检查迭代器<_我的链表>(this->_Ptr, static_cast<const _我的链表*>(this->_Getcont()));
     }
 };
 
 template <class _Value_type, class _Size_type, class _Difference_type, class _Pointer, class _Const_pointer,
     class _Nodeptr_type>
-struct _Flist_iter_types {
+struct _单向链表迭代类型集 {
     using value_type      = _Value_type;
     using size_type       = _Size_type;
     using difference_type = _Difference_type;
@@ -239,15 +239,15 @@ struct _Flist_iter_types {
 };
 
 template <class _Value_type, class _Voidptr>
-struct _Flist_node { // 单向链表实现 node
-    using _Nodeptr = _Rebind_pointer_t<_Voidptr, _Flist_node>;
+struct _单向链表节点 { // 单向链表实现 node
+    using _Nodeptr = _Rebind_pointer_t<_Voidptr, _单向链表节点>;
 
     _Nodeptr _Next;
     _Value_type _Myval = _Returns_exactly<_Value_type>(); // fake a viable constructor to workaround GH-2749
 
-    _Flist_node()                              = default;
-    _Flist_node(const _Flist_node&)            = delete;
-    _Flist_node& operator=(const _Flist_node&) = delete;
+    _单向链表节点()                              = default;
+    _单向链表节点(const _单向链表节点&)            = delete;
+    _单向链表节点& operator=(const _单向链表节点&) = delete;
 
     template <class _Alnode>
     static void _Freenode(_Alnode& _Al, _Nodeptr _Pnode) noexcept {
@@ -258,13 +258,13 @@ struct _Flist_node { // 单向链表实现 node
 };
 
 template <class _Ty>
-struct _Flist_simple_types : _Simple_types<_Ty> {
-    using _节点    = _Flist_node<_Ty, void*>;
+struct _单向链表简单类型集 : _Simple_types<_Ty> {
+    using _节点    = _单向链表节点<_Ty, void*>;
     using _Nodeptr = _节点*;
 };
 
 template <class _值类型集>
-class _Flist_val : public _Container_base {
+class _单向链表值 : public _Container_base {
 public:
     using _Nodeptr = typename _值类型集::_Nodeptr;
     using _节点    = typename pointer_traits<_Nodeptr>::element_type;
@@ -277,10 +277,10 @@ public:
     using reference       = value_type&;
     using const_reference = const value_type&;
 
-    _Flist_val() noexcept : _Myhead() {} // initialize data
+    _单向链表值() noexcept : _Myhead() {} // initialize data
 
 #if _MSVC_STL_DESTRUCTOR_TOMBSTONES
-    ~_Flist_val() noexcept {
+    ~_单向链表值() noexcept {
         if constexpr (is_pointer_v<_Nodeptr>) {
             const auto _Tombstone{reinterpret_cast<_Nodeptr>(_MSVC_STL_UINTPTR_TOMBSTONE_VALUE)};
             _Myhead = _Tombstone;
@@ -298,7 +298,7 @@ public:
         _Lockit _Lock(_LOCK_DEBUG);
         _Iterator_base12** _Pnext = &this->_Myproxy->_Myfirstiter;
         while (*_Pnext) {
-            const auto _Pnextptr = static_cast<_Flist_const_iterator<_Flist_val>&>(**_Pnext)._Ptr;
+            const auto _Pnextptr = static_cast<_单向链表常量迭代器<_单向链表值>&>(**_Pnext)._Ptr;
             if (_Pnextptr == _BHead || (_Ptr != nullptr && _Pnextptr != _Ptr)) {
                 _Pnext = &(*_Pnext)->_Mynextiter;
             } else { // orphan the iterator
@@ -420,16 +420,16 @@ public:
 };
 
 template <class _Alnode>
-struct _Flist_insert_after_op2 {
+struct _单向链表后插操作2 {
     // 单向链表实现 insert-after operation which maintains exception safety
     using _Alnode_traits = allocator_traits<_Alnode>;
     using pointer        = typename _Alnode_traits::pointer;
     using value_type     = typename _Alnode_traits::value_type;
 
-    explicit _Flist_insert_after_op2(_Alnode& _Al_) : _Al(_Al_), _Tail() {}
+    explicit _单向链表后插操作2(_Alnode& _Al_) : _Al(_Al_), _Tail() {}
 
-    _Flist_insert_after_op2(const _Flist_insert_after_op2&)            = delete;
-    _Flist_insert_after_op2& operator=(const _Flist_insert_after_op2&) = delete;
+    _单向链表后插操作2(const _单向链表后插操作2&)            = delete;
+    _单向链表后插操作2& operator=(const _单向链表后插操作2&) = delete;
 
     template <class... _CArgT>
     void _Append_n(typename _Alnode_traits::size_type _Count, const _CArgT&... _Carg) {
@@ -498,7 +498,7 @@ struct _Flist_insert_after_op2 {
         return _Local_tail;
     }
 
-    ~_Flist_insert_after_op2() {
+    ~_单向链表后插操作2() {
         if (_Tail == pointer{}) {
             return;
         }
@@ -522,7 +522,7 @@ class 单向链表实现 { // singly linked list
 private:
     using _Alty          = _Rebind_alloc_t<_Alloc, _Ty>;
     using _Alty_traits   = allocator_traits<_Alty>;
-    using _节点          = _Flist_node<_Ty, typename _Alty_traits::void_pointer>;
+    using _节点          = _单向链表节点<_Ty, typename _Alty_traits::void_pointer>;
     using _Alnode        = _Rebind_alloc_t<_Alloc, _节点>;
     using _Alnode_traits = allocator_traits<_Alnode>;
     using _Nodeptr       = typename _Alnode_traits::pointer;
@@ -532,8 +532,8 @@ private:
     static_assert(is_object_v<_Ty>, "The C++ Standard forbids containers of non-object types "
                                     "because of [container.requirements].");
 
-    using _Scary_val = _Flist_val<conditional_t<_Is_simple_alloc_v<_Alnode>, _Flist_simple_types<_Ty>,
-        _Flist_iter_types<_Ty, typename _Alty_traits::size_type, typename _Alty_traits::difference_type,
+    using _Scary_val = _单向链表值<conditional_t<_Is_simple_alloc_v<_Alnode>, _单向链表简单类型集<_Ty>,
+        _单向链表迭代类型集<_Ty, typename _Alty_traits::size_type, typename _Alty_traits::difference_type,
             typename _Alty_traits::pointer, typename _Alty_traits::const_pointer, _Nodeptr>>>;
 
 public:
@@ -546,10 +546,10 @@ public:
     using reference       = value_type&;
     using const_reference = const value_type&;
 
-    using iterator                  = _Flist_iterator<_Scary_val>;
-    using const_iterator            = _Flist_const_iterator<_Scary_val>;
-    using _Unchecked_iterator       = _Flist_unchecked_iterator<_Scary_val>;
-    using _Unchecked_const_iterator = _Flist_unchecked_const_iterator<_Scary_val>;
+    using iterator                  = _单向链表迭代器<_Scary_val>;
+    using const_iterator            = _单向链表常量迭代器<_Scary_val>;
+    using _Unchecked_iterator       = _单向链表非检查迭代器<_Scary_val>;
+    using _Unchecked_const_iterator = _单向链表非检查常量迭代器<_Scary_val>;
 
     单向链表实现() noexcept(is_nothrow_default_constructible_v<_Alnode>) // strengthened
         : _Mypair(_Zero_then_variadic_args_t{}) {
@@ -558,7 +558,7 @@ public:
 
     explicit 单向链表实现(_CRT_GUARDOVERFLOW size_type _Count, const _Alloc& _Al = _Alloc())
         : _Mypair(_One_then_variadic_args_t{}, _Al) { // construct list from _Count * _Ty(), optional allocator
-        _Flist_insert_after_op2<_Alnode> _Insert_op(_Getal());
+        _单向链表后插操作2<_Alnode> _Insert_op(_Getal());
         _Insert_op._Append_n(_Count);
         _Alloc_proxy();
         _Insert_op._Attach_after(_Mypair._Myval2._Before_head());
@@ -566,7 +566,7 @@ public:
 
     单向链表实现(_CRT_GUARDOVERFLOW size_type _Count, const _Ty& _Val)
         : _Mypair(_Zero_then_variadic_args_t{}) { // construct list from _Count * _Val
-        _Flist_insert_after_op2<_Alnode> _Insert_op(_Getal());
+        _单向链表后插操作2<_Alnode> _Insert_op(_Getal());
         _Insert_op._Append_n(_Count, _Val);
         _Alloc_proxy();
         _Insert_op._Attach_after(_Mypair._Myval2._Before_head());
@@ -577,7 +577,7 @@ public:
 #endif // _HAS_CXX17
     单向链表实现(_CRT_GUARDOVERFLOW size_type _Count, const _Ty& _Val, const _Alloc& _Al)
         : _Mypair(_One_then_variadic_args_t{}, _Al) { // construct list from _Count * _Val, allocator
-        _Flist_insert_after_op2<_Alnode> _Insert_op(_Getal());
+        _单向链表后插操作2<_Alnode> _Insert_op(_Getal());
         _Insert_op._Append_n(_Count, _Val);
         _Alloc_proxy();
         _Insert_op._Attach_after(_Mypair._Myval2._Before_head());
@@ -590,7 +590,7 @@ public:
 
     单向链表实现(const 单向链表实现& _Right)
         : _Mypair(_One_then_variadic_args_t{}, _Alnode_traits::select_on_container_copy_construction(_Right._Getal())) {
-        _Flist_insert_after_op2<_Alnode> _Insert_op(_Getal());
+        _单向链表后插操作2<_Alnode> _Insert_op(_Getal());
         _Insert_op._Append_range_unchecked(_Right._Unchecked_begin(), _Right._Unchecked_end());
         _Alloc_proxy();
         _Insert_op._Attach_after(_Mypair._Myval2._Before_head());
@@ -598,7 +598,7 @@ public:
 
     单向链表实现(const 单向链表实现& _Right, const _Identity_t<_Alloc>& _Al)
         : _Mypair(_One_then_variadic_args_t{}, _Al) {
-        _Flist_insert_after_op2<_Alnode> _Insert_op(_Getal());
+        _单向链表后插操作2<_Alnode> _Insert_op(_Getal());
         _Insert_op._Append_range_unchecked(_Right._Unchecked_begin(), _Right._Unchecked_end());
         _Alloc_proxy();
         _Insert_op._Attach_after(_Mypair._Myval2._Before_head());
@@ -607,7 +607,7 @@ public:
     template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
     单向链表实现(_Iter _First, _Iter _Last) : _Mypair(_Zero_then_variadic_args_t{}) {
         _Adl_verify_range(_First, _Last);
-        _Flist_insert_after_op2<_Alnode> _Insert_op(_Getal());
+        _单向链表后插操作2<_Alnode> _Insert_op(_Getal());
         _Insert_op._Append_range_unchecked(_STD _Get_unwrapped(_First), _STD _Get_unwrapped(_Last));
         _Alloc_proxy();
         _Insert_op._Attach_after(_Mypair._Myval2._Before_head());
@@ -616,7 +616,7 @@ public:
     template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
     单向链表实现(_Iter _First, _Iter _Last, const _Alloc& _Al) : _Mypair(_One_then_variadic_args_t{}, _Al) {
         _Adl_verify_range(_First, _Last);
-        _Flist_insert_after_op2<_Alnode> _Insert_op(_Getal());
+        _单向链表后插操作2<_Alnode> _Insert_op(_Getal());
         _Insert_op._Append_range_unchecked(_STD _Get_unwrapped(_First), _STD _Get_unwrapped(_Last));
         _Alloc_proxy();
         _Insert_op._Attach_after(_Mypair._Myval2._Before_head());
@@ -625,7 +625,7 @@ public:
 #if _HAS_CXX23
     template <_Container_compatible_range<_Ty> _Rng>
     单向链表实现(from_range_t, _Rng&& _Range) : _Mypair(_Zero_then_variadic_args_t{}) {
-        _Flist_insert_after_op2<_Alnode> _Insert_op(_Getal());
+        _单向链表后插操作2<_Alnode> _Insert_op(_Getal());
         _Insert_op._Append_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
         _Alloc_proxy();
         _Insert_op._Attach_after(_Mypair._Myval2._Before_head());
@@ -633,7 +633,7 @@ public:
 
     template <_Container_compatible_range<_Ty> _Rng>
     单向链表实现(from_range_t, _Rng&& _Range, const _Alloc& _Al) : _Mypair(_One_then_variadic_args_t{}, _Al) {
-        _Flist_insert_after_op2<_Alnode> _Insert_op(_Getal());
+        _单向链表后插操作2<_Alnode> _Insert_op(_Getal());
         _Insert_op._Append_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
         _Alloc_proxy();
         _Insert_op._Attach_after(_Mypair._Myval2._Before_head());
@@ -651,7 +651,7 @@ public:
         : _Mypair(_One_then_variadic_args_t{}, _Al) {
         if constexpr (!_Alty_traits::is_always_equal::value) {
             if (_Getal() != _Right._Getal()) {
-                _Flist_insert_after_op2<_Alnode> _Insert_op(_Getal());
+                _单向链表后插操作2<_Alnode> _Insert_op(_Getal());
                 _Insert_op._Append_range_unchecked(
                     _STD make_move_iterator(_Right._Unchecked_begin()), _Default_sentinel{});
                 _Alloc_proxy();
@@ -862,7 +862,7 @@ private:
             auto _Next = _Ptr->_Next;
             if (!_Next) {
                 // list too short, insert remaining _Newsize objects initialized from _Vals...
-                _Flist_insert_after_op2<_Alnode> _Insert_op(_Al);
+                _单向链表后插操作2<_Alnode> _Insert_op(_Al);
                 _Insert_op._Append_n(_Newsize, _Vals...);
                 _Insert_op._Attach_after(_Ptr);
                 return;
@@ -952,7 +952,7 @@ private:
         for (; _UFirst != _ULast; ++_UFirst) {
             const auto _Next = _Myfirst->_Next;
             if (!_Next) {
-                _Flist_insert_after_op2<_Alnode> _Insert_op(_Getal());
+                _单向链表后插操作2<_Alnode> _Insert_op(_Getal());
                 _Insert_op._Append_range_unchecked(_STD move(_UFirst), _ULast);
                 _Insert_op._Attach_after(_Myfirst);
                 return;
@@ -1010,7 +1010,7 @@ public:
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
         if (_Count != 0) {
-            _Flist_insert_after_op2<_Alnode> _Insert_op(_Getal());
+            _单向链表后插操作2<_Alnode> _Insert_op(_Getal());
             _Insert_op._Append_n(_Count, _Val);
             _Where._Ptr = _Insert_op._Attach_after(_Where._Ptr);
         }
@@ -1026,7 +1026,7 @@ private:
             return _Make_iter(_Pnode);
         }
 
-        _Flist_insert_after_op2<_Alnode> _Insert_op(_Getal());
+        _单向链表后插操作2<_Alnode> _Insert_op(_Getal());
         _Insert_op._Append_range_unchecked(_STD move(_First), _Last);
         return _Make_iter(_Insert_op._Attach_after(_Pnode));
     }

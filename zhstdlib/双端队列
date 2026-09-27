@@ -24,7 +24,7 @@ _STL_DISABLE_CLANG_WARNINGS
 名域 标准 { 名域 细节 {
 使用 名域 std;
 template <class _我的双端队列>
-class _Deque_unchecked_const_iterator {
+class _双端队列非检查常量迭代器 {
 private:
     using _Size_type = typename _我的双端队列::size_type;
 
@@ -38,9 +38,9 @@ public:
     using pointer         = typename _我的双端队列::const_pointer;
     using reference       = const value_type&;
 
-    _Deque_unchecked_const_iterator() noexcept : _Mycont(), _Myoff(0) {}
+    _双端队列非检查常量迭代器() noexcept : _Mycont(), _Myoff(0) {}
 
-    _Deque_unchecked_const_iterator(_Size_type _Off, const _Container_base12* _Pdeque) noexcept
+    _双端队列非检查常量迭代器(_Size_type _Off, const _Container_base12* _Pdeque) noexcept
         : _Mycont(static_cast<const _我的双端队列*>(_Pdeque)), _Myoff(_Off) {}
 
     _NODISCARD reference operator*() const noexcept {
@@ -51,57 +51,57 @@ public:
         return pointer_traits<pointer>::pointer_to(**this);
     }
 
-    _Deque_unchecked_const_iterator& operator++() noexcept {
+    _双端队列非检查常量迭代器& operator++() noexcept {
         ++_Myoff;
         return *this;
     }
 
-    _Deque_unchecked_const_iterator operator++(int) noexcept {
-        _Deque_unchecked_const_iterator _Tmp = *this;
+    _双端队列非检查常量迭代器 operator++(int) noexcept {
+        _双端队列非检查常量迭代器 _Tmp = *this;
         ++_Myoff;
         return _Tmp;
     }
 
-    _Deque_unchecked_const_iterator& operator--() noexcept {
+    _双端队列非检查常量迭代器& operator--() noexcept {
         --_Myoff;
         return *this;
     }
 
-    _Deque_unchecked_const_iterator operator--(int) noexcept {
-        _Deque_unchecked_const_iterator _Tmp = *this;
+    _双端队列非检查常量迭代器 operator--(int) noexcept {
+        _双端队列非检查常量迭代器 _Tmp = *this;
         --_Myoff;
         return _Tmp;
     }
 
-    _Deque_unchecked_const_iterator& operator+=(const difference_type _Off) noexcept {
+    _双端队列非检查常量迭代器& operator+=(const difference_type _Off) noexcept {
         _Myoff = static_cast<_Size_type>(_Myoff + _Off);
         return *this;
     }
 
-    _NODISCARD _Deque_unchecked_const_iterator operator+(const difference_type _Off) const noexcept {
-        _Deque_unchecked_const_iterator _Tmp = *this;
+    _NODISCARD _双端队列非检查常量迭代器 operator+(const difference_type _Off) const noexcept {
+        _双端队列非检查常量迭代器 _Tmp = *this;
         _Tmp += _Off;
         return _Tmp;
     }
 
-    _NODISCARD friend _Deque_unchecked_const_iterator operator+(
-        const difference_type _Off, _Deque_unchecked_const_iterator _Next) noexcept {
+    _NODISCARD friend _双端队列非检查常量迭代器 operator+(
+        const difference_type _Off, _双端队列非检查常量迭代器 _Next) noexcept {
         _Next += _Off;
         return _Next;
     }
 
-    _Deque_unchecked_const_iterator& operator-=(const difference_type _Off) noexcept {
+    _双端队列非检查常量迭代器& operator-=(const difference_type _Off) noexcept {
         _Myoff = static_cast<_Size_type>(_Myoff - _Off);
         return *this;
     }
 
-    _NODISCARD _Deque_unchecked_const_iterator operator-(const difference_type _Off) const noexcept {
-        _Deque_unchecked_const_iterator _Tmp = *this;
+    _NODISCARD _双端队列非检查常量迭代器 operator-(const difference_type _Off) const noexcept {
+        _双端队列非检查常量迭代器 _Tmp = *this;
         _Tmp -= _Off;
         return _Tmp;
     }
 
-    _NODISCARD difference_type operator-(const _Deque_unchecked_const_iterator& _Right) const noexcept {
+    _NODISCARD difference_type operator-(const _双端队列非检查常量迭代器& _Right) const noexcept {
         return static_cast<difference_type>(_Myoff - _Right._Myoff);
     }
 
@@ -109,32 +109,32 @@ public:
         return *(*this + _Off);
     }
 
-    _NODISCARD bool operator==(const _Deque_unchecked_const_iterator& _Right) const noexcept {
+    _NODISCARD bool operator==(const _双端队列非检查常量迭代器& _Right) const noexcept {
         return _Myoff == _Right._Myoff;
     }
 
 #if _HAS_CXX20
-    _NODISCARD strong_ordering operator<=>(const _Deque_unchecked_const_iterator& _Right) const noexcept {
+    _NODISCARD strong_ordering operator<=>(const _双端队列非检查常量迭代器& _Right) const noexcept {
         return _Myoff <=> _Right._Myoff;
     }
 #else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
-    _NODISCARD bool operator!=(const _Deque_unchecked_const_iterator& _Right) const noexcept {
+    _NODISCARD bool operator!=(const _双端队列非检查常量迭代器& _Right) const noexcept {
         return !(*this == _Right);
     }
 
-    _NODISCARD bool operator<(const _Deque_unchecked_const_iterator& _Right) const noexcept {
+    _NODISCARD bool operator<(const _双端队列非检查常量迭代器& _Right) const noexcept {
         return _Myoff < _Right._Myoff;
     }
 
-    _NODISCARD bool operator>(const _Deque_unchecked_const_iterator& _Right) const noexcept {
+    _NODISCARD bool operator>(const _双端队列非检查常量迭代器& _Right) const noexcept {
         return _Right < *this;
     }
 
-    _NODISCARD bool operator<=(const _Deque_unchecked_const_iterator& _Right) const noexcept {
+    _NODISCARD bool operator<=(const _双端队列非检查常量迭代器& _Right) const noexcept {
         return !(_Right < *this);
     }
 
-    _NODISCARD bool operator>=(const _Deque_unchecked_const_iterator& _Right) const noexcept {
+    _NODISCARD bool operator>=(const _双端队列非检查常量迭代器& _Right) const noexcept {
         return !(*this < _Right);
     }
 #endif // ^^^ !_HAS_CXX20 ^^^
@@ -148,10 +148,10 @@ public:
 };
 
 template <class _我的双端队列>
-class _Deque_unchecked_iterator : public _Deque_unchecked_const_iterator<_我的双端队列> {
+class _双端队列非检查迭代器 : public _双端队列非检查常量迭代器<_我的双端队列> {
 private:
     using _Size_type = typename _我的双端队列::size_type;
-    using _我的基类    = _Deque_unchecked_const_iterator<_我的双端队列>;
+    using _我的基类    = _双端队列非检查常量迭代器<_我的双端队列>;
 
 public:
     using iterator_category = random_access_iterator_tag;
@@ -171,52 +171,52 @@ public:
         return pointer_traits<pointer>::pointer_to(**this);
     }
 
-    _Deque_unchecked_iterator& operator++() noexcept {
+    _双端队列非检查迭代器& operator++() noexcept {
         _我的基类::operator++();
         return *this;
     }
 
-    _Deque_unchecked_iterator operator++(int) noexcept {
-        _Deque_unchecked_iterator _Tmp = *this;
+    _双端队列非检查迭代器 operator++(int) noexcept {
+        _双端队列非检查迭代器 _Tmp = *this;
         _我的基类::operator++();
         return _Tmp;
     }
 
-    _Deque_unchecked_iterator& operator--() noexcept {
+    _双端队列非检查迭代器& operator--() noexcept {
         _我的基类::operator--();
         return *this;
     }
 
-    _Deque_unchecked_iterator operator--(int) noexcept {
-        _Deque_unchecked_iterator _Tmp = *this;
+    _双端队列非检查迭代器 operator--(int) noexcept {
+        _双端队列非检查迭代器 _Tmp = *this;
         _我的基类::operator--();
         return _Tmp;
     }
 
-    _Deque_unchecked_iterator& operator+=(const difference_type _Off) noexcept {
+    _双端队列非检查迭代器& operator+=(const difference_type _Off) noexcept {
         _我的基类::operator+=(_Off);
         return *this;
     }
 
-    _NODISCARD _Deque_unchecked_iterator operator+(const difference_type _Off) const noexcept {
-        _Deque_unchecked_iterator _Tmp = *this;
+    _NODISCARD _双端队列非检查迭代器 operator+(const difference_type _Off) const noexcept {
+        _双端队列非检查迭代器 _Tmp = *this;
         _Tmp += _Off;
         return _Tmp;
     }
 
-    _NODISCARD friend _Deque_unchecked_iterator operator+(
-        const difference_type _Off, _Deque_unchecked_iterator _Next) noexcept {
+    _NODISCARD friend _双端队列非检查迭代器 operator+(
+        const difference_type _Off, _双端队列非检查迭代器 _Next) noexcept {
         _Next += _Off;
         return _Next;
     }
 
-    _Deque_unchecked_iterator& operator-=(const difference_type _Off) noexcept {
+    _双端队列非检查迭代器& operator-=(const difference_type _Off) noexcept {
         _我的基类::operator-=(_Off);
         return *this;
     }
 
-    _NODISCARD _Deque_unchecked_iterator operator-(const difference_type _Off) const noexcept {
-        _Deque_unchecked_iterator _Tmp = *this;
+    _NODISCARD _双端队列非检查迭代器 operator-(const difference_type _Off) const noexcept {
+        _双端队列非检查迭代器 _Tmp = *this;
         _Tmp -= _Off;
         return _Tmp;
     }
@@ -231,7 +231,7 @@ public:
 };
 
 template <class _我的双端队列>
-class _Deque_const_iterator : public _Iterator_base12 {
+class _双端队列常量迭代器 : public _Iterator_base12 {
 private:
     using _Size_type = typename _我的双端队列::size_type;
 
@@ -247,11 +247,11 @@ public:
 
     using _Mydeque_t = _我的双端队列; // helper for expression evaluator
     enum { _EEN_DS = _Block_size }; // helper for expression evaluator
-    _Deque_const_iterator() noexcept : _Myoff(0) {
+    _双端队列常量迭代器() noexcept : _Myoff(0) {
         _Setcont(nullptr);
     }
 
-    _Deque_const_iterator(_Size_type _Off, const _Container_base12* _Pdeque) noexcept : _Myoff(_Off) {
+    _双端队列常量迭代器(_Size_type _Off, const _Container_base12* _Pdeque) noexcept : _Myoff(_Off) {
         _Setcont(static_cast<const _我的双端队列*>(_Pdeque));
     }
 
@@ -270,7 +270,7 @@ public:
         return pointer_traits<pointer>::pointer_to(**this);
     }
 
-    _Deque_const_iterator& operator++() noexcept {
+    _双端队列常量迭代器& operator++() noexcept {
 #if _ITERATOR_DEBUG_LEVEL != 0
         const auto _Mycont = static_cast<const _我的双端队列*>(this->_Getcont());
         _STL_VERIFY(_Mycont, "cannot increment value-initialized 双端队列实现 iterator");
@@ -281,13 +281,13 @@ public:
         return *this;
     }
 
-    _Deque_const_iterator operator++(int) noexcept {
-        _Deque_const_iterator _Tmp = *this;
+    _双端队列常量迭代器 operator++(int) noexcept {
+        _双端队列常量迭代器 _Tmp = *this;
         ++*this;
         return _Tmp;
     }
 
-    _Deque_const_iterator& operator--() noexcept {
+    _双端队列常量迭代器& operator--() noexcept {
 #if _ITERATOR_DEBUG_LEVEL != 0
         const auto _Mycont = static_cast<const _我的双端队列*>(this->_Getcont());
         _STL_VERIFY(_Mycont, "cannot decrement value-initialized 双端队列实现 iterator");
@@ -298,13 +298,13 @@ public:
         return *this;
     }
 
-    _Deque_const_iterator operator--(int) noexcept {
-        _Deque_const_iterator _Tmp = *this;
+    _双端队列常量迭代器 operator--(int) noexcept {
+        _双端队列常量迭代器 _Tmp = *this;
         --*this;
         return _Tmp;
     }
 
-    _Deque_const_iterator& operator+=(const difference_type _Off) noexcept {
+    _双端队列常量迭代器& operator+=(const difference_type _Off) noexcept {
 #if _ITERATOR_DEBUG_LEVEL != 0
         if (_Off != 0) {
             const auto _Mycont = static_cast<const _我的双端队列*>(this->_Getcont());
@@ -319,29 +319,29 @@ public:
         return *this;
     }
 
-    _NODISCARD _Deque_const_iterator operator+(const difference_type _Off) const noexcept {
-        _Deque_const_iterator _Tmp = *this;
+    _NODISCARD _双端队列常量迭代器 operator+(const difference_type _Off) const noexcept {
+        _双端队列常量迭代器 _Tmp = *this;
         _Tmp += _Off;
         return _Tmp;
     }
 
-    _NODISCARD friend _Deque_const_iterator operator+(
-        const difference_type _Off, _Deque_const_iterator _Next) noexcept {
+    _NODISCARD friend _双端队列常量迭代器 operator+(
+        const difference_type _Off, _双端队列常量迭代器 _Next) noexcept {
         _Next += _Off;
         return _Next;
     }
 
-    _Deque_const_iterator& operator-=(const difference_type _Off) noexcept {
+    _双端队列常量迭代器& operator-=(const difference_type _Off) noexcept {
         return *this += -_Off;
     }
 
-    _NODISCARD _Deque_const_iterator operator-(const difference_type _Off) const noexcept {
-        _Deque_const_iterator _Tmp = *this;
+    _NODISCARD _双端队列常量迭代器 operator-(const difference_type _Off) const noexcept {
+        _双端队列常量迭代器 _Tmp = *this;
         _Tmp -= _Off;
         return _Tmp;
     }
 
-    _NODISCARD difference_type operator-(const _Deque_const_iterator& _Right) const noexcept {
+    _NODISCARD difference_type operator-(const _双端队列常量迭代器& _Right) const noexcept {
         _Compat(_Right);
         return static_cast<difference_type>(this->_Myoff - _Right._Myoff);
     }
@@ -350,40 +350,40 @@ public:
         return *(*this + _Off);
     }
 
-    _NODISCARD bool operator==(const _Deque_const_iterator& _Right) const noexcept {
+    _NODISCARD bool operator==(const _双端队列常量迭代器& _Right) const noexcept {
         _Compat(_Right);
         return this->_Myoff == _Right._Myoff;
     }
 
 #if _HAS_CXX20
-    _NODISCARD strong_ordering operator<=>(const _Deque_const_iterator& _Right) const noexcept {
+    _NODISCARD strong_ordering operator<=>(const _双端队列常量迭代器& _Right) const noexcept {
         _Compat(_Right);
         return this->_Myoff <=> _Right._Myoff;
     }
 #else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
-    _NODISCARD bool operator!=(const _Deque_const_iterator& _Right) const noexcept {
+    _NODISCARD bool operator!=(const _双端队列常量迭代器& _Right) const noexcept {
         return !(*this == _Right);
     }
 
-    _NODISCARD bool operator<(const _Deque_const_iterator& _Right) const noexcept {
+    _NODISCARD bool operator<(const _双端队列常量迭代器& _Right) const noexcept {
         _Compat(_Right);
         return this->_Myoff < _Right._Myoff;
     }
 
-    _NODISCARD bool operator>(const _Deque_const_iterator& _Right) const noexcept {
+    _NODISCARD bool operator>(const _双端队列常量迭代器& _Right) const noexcept {
         return _Right < *this;
     }
 
-    _NODISCARD bool operator<=(const _Deque_const_iterator& _Right) const noexcept {
+    _NODISCARD bool operator<=(const _双端队列常量迭代器& _Right) const noexcept {
         return !(_Right < *this);
     }
 
-    _NODISCARD bool operator>=(const _Deque_const_iterator& _Right) const noexcept {
+    _NODISCARD bool operator>=(const _双端队列常量迭代器& _Right) const noexcept {
         return !(*this < _Right);
     }
 #endif // ^^^ !_HAS_CXX20 ^^^
 
-    void _Compat(const _Deque_const_iterator& _Right) const noexcept { // test for compatible iterator pair
+    void _Compat(const _双端队列常量迭代器& _Right) const noexcept { // test for compatible iterator pair
 #if _ITERATOR_DEBUG_LEVEL == 0
         (void) _Right;
 #else
@@ -395,9 +395,9 @@ public:
         this->_Adopt(_Pdeque);
     }
 
-    using _Prevent_inheriting_unwrap = _Deque_const_iterator;
+    using _Prevent_inheriting_unwrap = _双端队列常量迭代器;
 
-    _NODISCARD _Deque_unchecked_const_iterator<_我的双端队列> _Unwrapped() const noexcept {
+    _NODISCARD _双端队列非检查常量迭代器<_我的双端队列> _Unwrapped() const noexcept {
         return {this->_Myoff, this->_Getcont()};
     }
 
@@ -416,13 +416,13 @@ public:
     }
 
 #if _ITERATOR_DEBUG_LEVEL != 0
-    friend void _Verify_range(const _Deque_const_iterator& _First, const _Deque_const_iterator& _Last) noexcept {
+    friend void _Verify_range(const _双端队列常量迭代器& _First, const _双端队列常量迭代器& _Last) noexcept {
         // note _Compat check inside operator<=
         _STL_VERIFY(_First <= _Last, "双端队列实现 iterators transposed");
     }
 #endif // _ITERATOR_DEBUG_LEVEL != 0
 
-    void _Seek_to(const _Deque_unchecked_const_iterator<_我的双端队列>& _UIt) noexcept {
+    void _Seek_to(const _双端队列非检查常量迭代器<_我的双端队列>& _UIt) noexcept {
         _Myoff = _UIt._Myoff;
     }
 
@@ -430,10 +430,10 @@ public:
 };
 
 template <class _我的双端队列>
-class _Deque_iterator : public _Deque_const_iterator<_我的双端队列> {
+class _双端队列迭代器 : public _双端队列常量迭代器<_我的双端队列> {
 private:
     using _Size_type = typename _我的双端队列::size_type;
-    using _我的基类    = _Deque_const_iterator<_我的双端队列>;
+    using _我的基类    = _双端队列常量迭代器<_我的双端队列>;
 
 public:
     using iterator_category = random_access_iterator_tag;
@@ -453,53 +453,53 @@ public:
         return pointer_traits<pointer>::pointer_to(**this);
     }
 
-    _Deque_iterator& operator++() noexcept {
+    _双端队列迭代器& operator++() noexcept {
         _我的基类::operator++();
         return *this;
     }
 
-    _Deque_iterator operator++(int) noexcept {
-        _Deque_iterator _Tmp = *this;
+    _双端队列迭代器 operator++(int) noexcept {
+        _双端队列迭代器 _Tmp = *this;
         _我的基类::operator++();
         return _Tmp;
     }
 
-    _Deque_iterator& operator--() noexcept {
+    _双端队列迭代器& operator--() noexcept {
         _我的基类::operator--();
         return *this;
     }
 
-    _Deque_iterator operator--(int) noexcept {
-        _Deque_iterator _Tmp = *this;
+    _双端队列迭代器 operator--(int) noexcept {
+        _双端队列迭代器 _Tmp = *this;
         _我的基类::operator--();
         return _Tmp;
     }
 
-    _Deque_iterator& operator+=(const difference_type _Off) noexcept {
+    _双端队列迭代器& operator+=(const difference_type _Off) noexcept {
         _我的基类::operator+=(_Off);
         return *this;
     }
 
-    _NODISCARD _Deque_iterator operator+(const difference_type _Off) const noexcept {
-        _Deque_iterator _Tmp = *this;
+    _NODISCARD _双端队列迭代器 operator+(const difference_type _Off) const noexcept {
+        _双端队列迭代器 _Tmp = *this;
         _Tmp += _Off;
         return _Tmp;
     }
 
-    _NODISCARD friend _Deque_iterator operator+(const difference_type _Off, _Deque_iterator _Next) noexcept {
+    _NODISCARD friend _双端队列迭代器 operator+(const difference_type _Off, _双端队列迭代器 _Next) noexcept {
         _Next += _Off;
         return _Next;
     }
 
-    _Deque_iterator& operator-=(const difference_type _Off) noexcept {
+    _双端队列迭代器& operator-=(const difference_type _Off) noexcept {
         _我的基类::operator-=(_Off);
         return *this;
     }
 
     using _我的基类::operator-;
 
-    _NODISCARD _Deque_iterator operator-(const difference_type _Off) const noexcept {
-        _Deque_iterator _Tmp = *this;
+    _NODISCARD _双端队列迭代器 operator-(const difference_type _Off) const noexcept {
+        _双端队列迭代器 _Tmp = *this;
         _Tmp -= _Off;
         return _Tmp;
     }
@@ -508,16 +508,16 @@ public:
         return const_cast<reference>(_我的基类::operator[](_Off));
     }
 
-    using _Prevent_inheriting_unwrap = _Deque_iterator;
+    using _Prevent_inheriting_unwrap = _双端队列迭代器;
 
-    _NODISCARD _Deque_unchecked_iterator<_我的双端队列> _Unwrapped() const noexcept {
+    _NODISCARD _双端队列非检查迭代器<_我的双端队列> _Unwrapped() const noexcept {
         return {this->_Myoff, this->_Getcont()};
     }
 };
 
 template <class _Value_type, class _Size_type, class _Difference_type, class _Pointer, class _Const_pointer,
     class _Mapptr_type>
-struct _Deque_iter_types {
+struct _双端队列迭代类型集 {
     using value_type      = _Value_type;
     using size_type       = _Size_type;
     using difference_type = _Difference_type;
@@ -527,12 +527,12 @@ struct _Deque_iter_types {
 };
 
 template <class _Ty>
-struct _Deque_simple_types : _Simple_types<_Ty> {
+struct _双端队列简单类型集 : _Simple_types<_Ty> {
     using _Mapptr = _Ty**;
 };
 
 template <class _值类型集>
-class _Deque_val : public _Container_base12 {
+class _双端队列值 : public _Container_base12 {
 public:
     using value_type      = typename _值类型集::value_type;
     using size_type       = typename _值类型集::size_type;
@@ -555,10 +555,10 @@ public:
                                      : _Bytes <= 8 ? 2
                                                    : 1; // elements per block (a power of 2)
 
-    _Deque_val() noexcept : _Map(), _Mapsize(0), _Myoff(0), _Mysize(0) {}
+    _双端队列值() noexcept : _Map(), _Mapsize(0), _Myoff(0), _Mysize(0) {}
 
 #if _MSVC_STL_DESTRUCTOR_TOMBSTONES
-    ~_Deque_val() noexcept {
+    ~_双端队列值() noexcept {
         if constexpr (is_pointer_v<_Mapptr>) {
             const auto _Tombstone{reinterpret_cast<_Mapptr>(_MSVC_STL_UINTPTR_TOMBSTONE_VALUE)};
             _Map     = _Tombstone;
@@ -616,8 +616,8 @@ private:
 
     using _Map_difference_type = typename iterator_traits<_Mapptr>::difference_type;
 
-    using _Scary_val = _Deque_val<conditional_t<_Is_simple_alloc_v<_Alty>, _Deque_simple_types<_Ty>,
-        _Deque_iter_types<_Ty, typename _Alty_traits::size_type, typename _Alty_traits::difference_type,
+    using _Scary_val = _双端队列值<conditional_t<_Is_simple_alloc_v<_Alty>, _双端队列简单类型集<_Ty>,
+        _双端队列迭代类型集<_Ty, typename _Alty_traits::size_type, typename _Alty_traits::difference_type,
             typename _Alty_traits::pointer, typename _Alty_traits::const_pointer, _Mapptr>>>;
 
     static constexpr int _Minimum_map_size = 8;
@@ -633,10 +633,10 @@ public:
     using reference       = _Ty&;
     using const_reference = const _Ty&;
 
-    using iterator                  = _Deque_iterator<_Scary_val>;
-    using const_iterator            = _Deque_const_iterator<_Scary_val>;
-    using _Unchecked_iterator       = _Deque_unchecked_iterator<_Scary_val>;
-    using _Unchecked_const_iterator = _Deque_unchecked_const_iterator<_Scary_val>;
+    using iterator                  = _双端队列迭代器<_Scary_val>;
+    using const_iterator            = _双端队列常量迭代器<_Scary_val>;
+    using _Unchecked_iterator       = _双端队列非检查迭代器<_Scary_val>;
+    using _Unchecked_const_iterator = _双端队列非检查常量迭代器<_Scary_val>;
 
     using reverse_iterator       = _STD reverse_iterator<iterator>;
     using const_reverse_iterator = _STD reverse_iterator<const_iterator>;

@@ -305,6 +305,10 @@ $H = @{
       'jthread'      = '可停线程实现'
       # 嵌套名域 this_thread 也是标识符，照样改名；派生层里用 名域 本线程 补英文
       'this_thread'  = '本线程'
+      # §16.34：内部件（长名，无二义）。
+      # ⚠ `id` 【不】登记：见方案 §3.13 表第 732 行 —— `id` 太短，
+      #   全局 \bid\b 替换有二义，属【有理由的边界】，与上面这些都不同。
+      '_Clamped_rel_time_ms_count_result' = '_钳位相对时间毫秒计数结果'
       # 跨头类型名（<停止令牌> 定下的译名）
       'stop_token'   = '停止令牌实现'
       'stop_source'  = '停止源实现'
@@ -546,7 +550,19 @@ $H = @{
                           'nullopt_t' = '空值类型'
                           # 嵌套类型名也汉化（用户要求：抄来那层也要全中文）
                           'value_type' = '值类型'
-                          '_SMF_control' = '_特殊成员控制' }
+                          '_SMF_control' = '_特殊成员控制'
+                          # §16.34：本文件自己定义的内部件，按 §六第 6 条翻
+                          '_Optional_destruct_base'  = '_可选析构基类'
+                          '_Optional_construct_base' = '_可选构造基类'
+                          '_Nontrivial_dummy_type'   = '_非平凡哑类型'
+                          '_Construct_from_invoke_result_tag' = '_由调用结果构造标记'
+                          '_Enable_if_bool_convertible' = '_启用若可转布尔'
+                          '_Enable_if_comparable_with_equal' = '_启用若可与相等比较'
+                          '_Enable_if_comparable_with_not_equal' = '_启用若可与不等比较'
+                          '_Enable_if_comparable_with_less' = '_启用若可与小于比较'
+                          '_Enable_if_comparable_with_less_equal' = '_启用若可与小于等于比较'
+                          '_Enable_if_comparable_with_greater' = '_启用若可与大于比较'
+                          '_Enable_if_comparable_with_greater_equal' = '_启用若可与大于等于比较' }
     # 步 0b：把【真 <optional>】也包含进来 —— 为了让 std::bad_optional_access 真的存在。
     # 抄来的那份异常类定义要删掉（dropTypes），否则 _Throw_bad_optional_access()
     # 抛的是我们抄的那个类，用户 catch (std::bad_optional_access&) 永远抓不到。
@@ -664,9 +680,21 @@ $H = @{
   'deque' = @{
     zh      = '双端队列'
     realInclude = @('deque')   # §16.29「乙」
-    types   = [ordered]@{ 'deque' = '双端队列实现' }
-    # 迭代器类是【本文件自己定义的】（不像 set/map 借用 _Tree），
-    # 故意不改名：它们是内部件，跟着派生一起继承即可（§2.2.1 的"内部件暂不翻"）。
+    types   = [ordered]@{ 'deque' = '双端队列实现'
+                          # ⚠ 2026-09-28 更正（§16.34）：这里原来写
+                          #   "故意不改名：它们是内部件，跟着派生一起继承即可（§2.2.1 的"内部件暂不翻"）"
+                          #   —— 两处都错：
+                          #     ① §2.2.1 讲的是"同一个中文名在整个 标准 里只能有一个定义"，
+                          #        根本没有"内部件暂不翻"这句话，**引用是错的**；
+                          #     ② §六第 6 条（用户 2026-09-27 定）明确要求内部件【也要翻】。
+                          #   这些名字都是本文件自己定义的长名，无 §10.2 那种歧义 -> 必须翻。
+                          '_Deque_val'            = '_双端队列值'
+                          '_Deque_iterator'       = '_双端队列迭代器'
+                          '_Deque_const_iterator' = '_双端队列常量迭代器'
+                          '_Deque_unchecked_iterator' = '_双端队列非检查迭代器'
+                          '_Deque_unchecked_const_iterator' = '_双端队列非检查常量迭代器'
+                          '_Deque_iter_types'     = '_双端队列迭代类型集'
+                          '_Deque_simple_types'   = '_双端队列简单类型集' }
     members = [ordered]@{
       'size' = '尺寸'; 'empty' = '为空'
       'begin' = '开始'; 'end' = '结束'
@@ -711,7 +739,25 @@ $H = @{
   'list' = @{
     zh      = '链表'
     realInclude = @('list')   # §16.29「乙」
-    types   = [ordered]@{ 'list' = '链表实现' }
+    types   = [ordered]@{ 'list' = '链表实现'
+                          # §16.34：本文件自己定义的内部件，按 §六第 6 条翻。
+                          # ⚠ `_Hash` 在本文件只是【前向声明】（定义在 <xhash>）：
+                          #   原文 `template <class _Traits> class _Hash;` + `friend class _Hash;`。
+                          #   搬进 细节 后它已经成了"我们自己的前向声明"，所以一并翻，
+                          #   等将来抄 <xhash> 时两边的 `_哈希` 正好对上（§16.7 判据：
+                          #   C++ 实现类型要抄要翻，不是 ABI 身份）。
+                          '_List_val'             = '_链表值'
+                          '_List_node'            = '_链表节点'
+                          '_List_iterator'        = '_链表迭代器'
+                          '_List_const_iterator'  = '_链表常量迭代器'
+                          '_List_unchecked_iterator' = '_链表非检查迭代器'
+                          '_List_unchecked_const_iterator' = '_链表非检查常量迭代器'
+                          '_List_iter_types'      = '_链表迭代类型集'
+                          '_List_simple_types'    = '_链表简单类型集'
+                          '_List_node_insert_op2' = '_链表节点插入操作2'
+                          '_List_node_emplace_op2' = '_链表节点就地构造操作2'
+                          '_Move_allocator_tag'   = '_移动分配器标记'
+                          '_Hash'                 = '_哈希' }
     members = [ordered]@{
       'size' = '尺寸'; 'empty' = '为空'
       'begin' = '开始'; 'end' = '结束'
@@ -857,7 +903,17 @@ $H = @{
   'forward_list' = @{
     zh      = '单向链表'
     realInclude = @('forward_list')   # §16.29「乙」
-    types   = [ordered]@{ 'forward_list' = '单向链表实现' }
+    types   = [ordered]@{ 'forward_list' = '单向链表实现'
+                          # §16.34：本文件自己定义的内部件，按 §六第 6 条翻
+                          '_Flist_val'            = '_单向链表值'
+                          '_Flist_node'           = '_单向链表节点'
+                          '_Flist_iterator'       = '_单向链表迭代器'
+                          '_Flist_const_iterator' = '_单向链表常量迭代器'
+                          '_Flist_unchecked_iterator' = '_单向链表非检查迭代器'
+                          '_Flist_unchecked_const_iterator' = '_单向链表非检查常量迭代器'
+                          '_Flist_iter_types'     = '_单向链表迭代类型集'
+                          '_Flist_simple_types'   = '_单向链表简单类型集'
+                          '_Flist_insert_after_op2' = '_单向链表后插操作2' }
     # ⚠ forward_list 【没有 size()】（标准如此，取尺寸是 O(n) 所以不提供）——
     #   所以这里刻意不登记 size，免得改名遍去动文件里别处的 size。
     members = [ordered]@{
@@ -1148,7 +1204,10 @@ $H = @{
     #   译名必须与 <mutex> 条目一致（跨头译名检查会强制）：一次标志实现 / 一次调用。
     pub     = '一次标志'
     types   = [ordered]@{ 'once_flag' = '一次标志实现'
-                          '_Init_once_completer' = '_一次初始化完成器' }
+                          '_Init_once_completer' = '_一次初始化完成器'
+                          # §16.34：原文注释是 "constructs _Ty, never destroys" ——
+                          #   它构造了 _Ty 却故意不析构，所以取「永不析构」而不是音译。
+                          '_Immortalizer_impl' = '_永不析构实现' }
     members = [ordered]@{ 'call_once' = '一次调用' }
     data    = [ordered]@{}
     derive  = @()
@@ -1177,7 +1236,13 @@ $H = @{
                           '_Non_trivial_move' = '_非平凡移动'
                           '_Deleted_move' = '_删除移动'
                           '_SMF_control_move' = '_特殊成员控制移动'
-                          '_Non_trivial_copy_assign' = '_非平凡复制赋值' }
+                          '_Non_trivial_copy_assign' = '_非平凡复制赋值'
+                          # §16.34：同一族的 assign 变体原来漏登记了（审计台账照出来的）
+                          '_Deleted_copy_assign' = '_删除复制赋值'
+                          '_Deleted_move_assign' = '_删除移动赋值'
+                          '_Non_trivial_move_assign' = '_非平凡移动赋值'
+                          '_SMF_control_copy_assign' = '_特殊成员控制复制赋值'
+                          '_SMF_control_move_assign' = '_特殊成员控制移动赋值' }
     members = [ordered]@{}
     data    = [ordered]@{}
     derive  = @()

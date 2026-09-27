@@ -100,36 +100,36 @@ struct _非平凡复制赋值 : _特殊成员控制移动<_Base, _Types...> { //
 };
 
 template <class _Base, class... _Types>
-struct _Deleted_copy_assign : _特殊成员控制移动<_Base, _Types...> { // deleted copy assignment facade
+struct _删除复制赋值 : _特殊成员控制移动<_Base, _Types...> { // deleted copy assignment facade
     using _我的基类 = _特殊成员控制移动<_Base, _Types...>;
     using _我的基类::_我的基类;
 
-    _Deleted_copy_assign()                                       = default;
-    _Deleted_copy_assign(const _Deleted_copy_assign&)            = default;
-    _Deleted_copy_assign(_Deleted_copy_assign&&)                 = default;
-    _Deleted_copy_assign& operator=(const _Deleted_copy_assign&) = delete;
-    _Deleted_copy_assign& operator=(_Deleted_copy_assign&&)      = default;
+    _删除复制赋值()                                       = default;
+    _删除复制赋值(const _删除复制赋值&)            = default;
+    _删除复制赋值(_删除复制赋值&&)                 = default;
+    _删除复制赋值& operator=(const _删除复制赋值&) = delete;
+    _删除复制赋值& operator=(_删除复制赋值&&)      = default;
 };
 
 template <class _Base, class... _Types>
-using _SMF_control_copy_assign =
+using _特殊成员控制复制赋值 =
     conditional_t<conjunction_v<is_trivially_destructible<_Types>..., is_trivially_copy_constructible<_Types>...,
                       is_trivially_copy_assignable<_Types>...>,
         _特殊成员控制移动<_Base, _Types...>,
         conditional_t<conjunction_v<is_copy_constructible<_Types>..., is_copy_assignable<_Types>...>,
-            _非平凡复制赋值<_Base, _Types...>, _Deleted_copy_assign<_Base, _Types...>>>;
+            _非平凡复制赋值<_Base, _Types...>, _删除复制赋值<_Base, _Types...>>>;
 
 template <class _Base, class... _Types>
-struct _Non_trivial_move_assign : _SMF_control_copy_assign<_Base, _Types...> { // non-trivial move assignment facade
-    using _我的基类 = _SMF_control_copy_assign<_Base, _Types...>;
+struct _非平凡移动赋值 : _特殊成员控制复制赋值<_Base, _Types...> { // non-trivial move assignment facade
+    using _我的基类 = _特殊成员控制复制赋值<_Base, _Types...>;
     using _我的基类::_我的基类;
 
-    _Non_trivial_move_assign()                                           = default;
-    _Non_trivial_move_assign(const _Non_trivial_move_assign&)            = default;
-    _Non_trivial_move_assign(_Non_trivial_move_assign&&)                 = default;
-    _Non_trivial_move_assign& operator=(const _Non_trivial_move_assign&) = default;
+    _非平凡移动赋值()                                           = default;
+    _非平凡移动赋值(const _非平凡移动赋值&)            = default;
+    _非平凡移动赋值(_非平凡移动赋值&&)                 = default;
+    _非平凡移动赋值& operator=(const _非平凡移动赋值&) = default;
 
-    _CONSTEXPR20 _Non_trivial_move_assign& operator=(_Non_trivial_move_assign&& _That)
+    _CONSTEXPR20 _非平凡移动赋值& operator=(_非平凡移动赋值&& _That)
         noexcept(noexcept(_我的基类::_Assign_from(static_cast<_Base&&>(_That)))) {
         _我的基类::_Assign_from(static_cast<_Base&&>(_That));
         return *this;
@@ -137,27 +137,27 @@ struct _Non_trivial_move_assign : _SMF_control_copy_assign<_Base, _Types...> { /
 };
 
 template <class _Base, class... _Types>
-struct _Deleted_move_assign : _SMF_control_copy_assign<_Base, _Types...> { // deleted move assignment facade
-    using _我的基类 = _SMF_control_copy_assign<_Base, _Types...>;
+struct _删除移动赋值 : _特殊成员控制复制赋值<_Base, _Types...> { // deleted move assignment facade
+    using _我的基类 = _特殊成员控制复制赋值<_Base, _Types...>;
     using _我的基类::_我的基类;
 
-    _Deleted_move_assign()                                       = default;
-    _Deleted_move_assign(const _Deleted_move_assign&)            = default;
-    _Deleted_move_assign(_Deleted_move_assign&&)                 = default;
-    _Deleted_move_assign& operator=(const _Deleted_move_assign&) = default;
-    _Deleted_move_assign& operator=(_Deleted_move_assign&&)      = delete;
+    _删除移动赋值()                                       = default;
+    _删除移动赋值(const _删除移动赋值&)            = default;
+    _删除移动赋值(_删除移动赋值&&)                 = default;
+    _删除移动赋值& operator=(const _删除移动赋值&) = default;
+    _删除移动赋值& operator=(_删除移动赋值&&)      = delete;
 };
 
 template <class _Base, class... _Types>
-using _SMF_control_move_assign =
+using _特殊成员控制移动赋值 =
     conditional_t<conjunction_v<is_trivially_destructible<_Types>..., is_trivially_move_constructible<_Types>...,
                       is_trivially_move_assignable<_Types>...>,
-        _SMF_control_copy_assign<_Base, _Types...>,
+        _特殊成员控制复制赋值<_Base, _Types...>,
         conditional_t<conjunction_v<is_move_constructible<_Types>..., is_move_assignable<_Types>...>,
-            _Non_trivial_move_assign<_Base, _Types...>, _Deleted_move_assign<_Base, _Types...>>>;
+            _非平凡移动赋值<_Base, _Types...>, _删除移动赋值<_Base, _Types...>>>;
 
 template <class _Base, class... _Types>
-using _特殊成员控制 = _SMF_control_move_assign<_Base, _Types...>;
+using _特殊成员控制 = _特殊成员控制移动赋值<_Base, _Types...>;
 
 } }
 
