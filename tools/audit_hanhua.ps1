@@ -185,7 +185,14 @@ $memBoundary = @('length', 'assign', 'copy', 'compare', 'find', 'max_size', 'swa
                  '_Mycnd', '_Pred',
                  # ---- §16.76 形参名噪声（本尺子的已知偏差：它会把模板形参当成成员）----
                  #   `_Fn`（<scoped_allocator> 的模板形参）、`_Rep`、`_Ty`、`_Pred` 同类。
-                 '_Fn', '_Rep')
+                 '_Fn', '_Rep',
+                 # ---- §16.78 "本头成员名 × 借用对象上的同名调用"（第四类边界）再两例 ----
+                 #   `hash_code` / `name`：<类型索引>（std::type_index）里，正文是
+                 #     `_Target->hash_code()` / `_Target->name()` —— 调的是**借来的**
+                 #     std::type_info 的成员（§16.30.3 实测："type_info 中没有名为 '哈希值' 的成员"）。
+                 #   中文名由 deriveExtra 手写转发补出（所以**用户能写 `甲.哈希值()`**），
+                 #   抄来那层留英文是边界，不是欠账。
+                 'hash_code', 'name')
 function Get-NestedNames([string] $text) {    $names = @{}
     foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+using\s+([A-Za-z_]\w*)\s*=')) { $names[$m.Groups[1].Value] = $true }
     foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+typedef\s+[^;\r\n]*?\b([A-Za-z_]\w*)\s*;')) { $names[$m.Groups[1].Value] = $true }
