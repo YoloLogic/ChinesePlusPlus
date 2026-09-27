@@ -1900,7 +1900,56 @@ $H = @{
       '_List_head_construct_ptr'      = '_链表头构造指针'
       '_Is_hasher'                    = '_是哈希器'
     }
-    members = [ordered]@{}
+    members = [ordered]@{
+      # §16.48 成员层第一批：**确认属于 `_Hash` 自己**的那一批（同 §16.43.3 的做法）。
+      # ⚠ 不含借用自 <xutility>/<xmemory> 的自由函数与宏：
+      #   _Adl_verify_range / _Construct_in_place / _Destroy_in_place / _Delete_plain_internal /
+      #   _Xlength_error / _STL_VERIFY / _STL_INTERNAL_CHECK / _STL_ASSERT /
+      #   _Destroy_range（xmemory 里有 7 处定义）/ _Hash_array_representation（xstring 里也有）
+      # ⚠ 也不含命中的**类型名与数据成员**（_Hash/_Hash_vec/_List/_Mypair/_Vec/_Buckets/
+      #   _Pocca/_Pocma/_Pocs … 它们是 types 或 data，不是成员函数）
+      # ⚠ `_Extract` / `_Release` 【保守排除】：它们在借用类型上同名出现过（§3.12 同名两个主人）。
+      '_Assign_grow'              = '_赋值扩容'
+      '_Bump_erased'              = '_递增已擦除'
+      '_Check_max_size'           = '_检查最大尺寸'
+      '_Check_rehash_required_1'  = '_检查需重哈希1'
+      '_Check_container_invariants_guard' = '_检查容器不变式守卫'
+      '_Clear_guard'              = '_清空守卫'
+      '_Desired_grow_bucket_count' = '_期望扩容桶数'
+      '_Equal_range'              = '_等值区间'
+      '_Erase'                    = '_擦除'
+      '_Erase_bucket'             = '_擦除桶'
+      '_Find'                     = '_查找'
+      '_Find_first'               = '_查找首个'
+      '_Find_hint'                = '_按提示查找'
+      '_Find_last'                = '_查找最后'
+      '_Forced_rehash'            = '_强制重哈希'
+      '_Get_max_bucket_size'      = '_取最大桶尺寸'
+      '_Getal'                    = '_取分配器'
+      '_Hash_equal'               = '_哈希相等'
+      '_Insert_new_node_before'   = '_在之前插入新节点'
+      '_Insert_range_unchecked'   = '_插入范围非检查'
+      '_Max_bucket_size'          = '_最大桶尺寸'
+      '_Min_load_factor_buckets'  = '_最小负载因子桶数'
+      '_Move_construct_equal_alloc' = '_移动构造相等分配器'
+      '_Multi_equal'              = '_多重相等'
+      '_Multi_equal_check_equal_range' = '_多重相等检查等值区间'
+      '_Newnode'                  = '_新节点'
+      '_Noexcept_heterogeneous_erasure' = '_无异构擦除异常'
+      '_Pocca_both'               = '_传播复制赋值两者'
+      '_Pocma_both'               = '_传播移动赋值两者'
+      '_Range_eraser'             = '_范围擦除器'
+      '_Rehash_for_1'             = '_为1重哈希'
+      '_Reinsert_with_invalid_vec' = '_用失效向量重插'
+      '_Stl_internal_check_container_invariants' = '_标准库内部检查容器不变式'
+      '_Swap_val'                 = '_交换值'
+      '_Tidy'                     = '_清理'
+      '_Try_emplace'              = '_尝试就地构造'
+      '_Try_emplace_hint'         = '_按提示尝试就地构造'
+      '_Unchecked_begin'          = '_非检查开始'
+      '_Unchecked_end'            = '_非检查结束'
+      '_Unchecked_erase'          = '_非检查擦除'
+    }
     data    = [ordered]@{}
     derive  = @()
     stdHash = $false
