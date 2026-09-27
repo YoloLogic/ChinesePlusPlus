@@ -130,6 +130,7 @@ function Get-MemberNames([string] $text) {
     $kw = @('if', 'for', 'while', 'switch', 'return', 'sizeof', 'static_cast', 'reinterpret_cast',
             'const_cast', 'dynamic_cast', 'decltype', 'noexcept', 'operator', 'static_assert',
             'alignof', 'typeid', 'catch', 'throw', 'new', 'delete', 'and', 'or', 'not',
+            'constexpr', 'consteval', 'requires', '__declspec', '__cdecl', '__stdcall',
             'enable_if', 'is_same', 'conjunction', 'disjunction', 'declval', 'conditional',
             'move', 'forward', 'exchange', 'max', 'min', 'begin', 'end', 'size', 'data', 'empty')
     foreach ($m in [regex]::Matches($text, '(?m)^[ \t]{4,10}(?:\[\[[^\]]*\]\]\s*)?(?:constexpr\s+|inline\s+|static\s+|virtual\s+|friend\s+|explicit\s+)*[A-Za-z_][\w:<>,\s\*&]*?\b([a-z_]\w*)\s*\(')) {
@@ -154,7 +155,15 @@ $memBoundary = @('length', 'assign', 'copy', 'compare', 'find', 'max_size', 'swa
                  'duration', 'time_point', 'error_code', 'exception', 'type_info',
                  # ---- MSVC 自己带 `__` 前缀的内部件（借用的）----
                  '__std_atomic_wait_get_deadline', '__std_atomic_wait', '__std_atomic_wait_direct',
-                 '_Completion', '_Wait', '_Hash', '_Node', '_List_node')
+                 '_Completion', '_Wait', '_Hash', '_Node', '_List_node',
+                 # ---- §16.68 借用的自由函数（定义在 <xutility>/<xmemory> 之外，我们没抄）----
+                 '_Adl_verify_range', '_Seek_wrapped', 'address', 'addressof', 'apply',
+                 'construct_at', 'destroy_at', 'make_tuple', 'forward_as_tuple',
+                 'pointer_to', 'elements_of', 'from_range_t',
+                 # ---- §16.68 allocator 契约名（`allocator_traits<我们的分配器>` 会读它们，
+                 #      第 ③ 类；消除路径 = 连 allocator_traits 也一起抄成我们自己的）----
+                 'allocate', 'allocate_at_least', 'deallocate', 'construct', 'destroy',
+                 'select_on_container_copy_construction')
 function Get-NestedNames([string] $text) {    $names = @{}
     foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+using\s+([A-Za-z_]\w*)\s*=')) { $names[$m.Groups[1].Value] = $true }
     foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+typedef\s+[^;\r\n]*?\b([A-Za-z_]\w*)\s*;')) { $names[$m.Groups[1].Value] = $true }

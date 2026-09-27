@@ -50,15 +50,15 @@ public:
 protected:
     // if _Token is _已请求停止, calls the callback;
     // otherwise, inserts *this into the callback list if stop is possible
-    inline void _Attach(const 停止令牌实现& _Token) noexcept;
-    inline void _Attach(停止令牌实现&& _Token) noexcept;
+    inline void _附着(const 停止令牌实现& _Token) noexcept;
+    inline void _附着(停止令牌实现&& _Token) noexcept;
 
     // if *this is in a callback list, removes it
-    inline void _Detach() noexcept;
+    inline void _脱离() noexcept;
 
 private:
     template <bool _Transfer_ownership>
-    void _Do_attach(conditional_t<_Transfer_ownership, _停止状态*&, _停止状态* const> _State) noexcept;
+    void _执行附着(conditional_t<_Transfer_ownership, _停止状态*&, _停止状态* const> _State) noexcept;
 
 protected:
     _停止状态* _Parent       = nullptr;
@@ -247,7 +247,7 @@ private:
 };
 
 template <bool _Transfer_ownership>
-void _停止回调基类::_Do_attach(
+void _停止回调基类::_执行附着(
     conditional_t<_Transfer_ownership, _停止状态*&, _停止状态* const> _State_raw) noexcept {
     const auto _State = _State_raw; // avoid an indirection in all of the below
     if (_State == nullptr) {
@@ -297,15 +297,15 @@ void _停止回调基类::_Do_attach(
     _State->_Callbacks._Store_and_unlock(_Head);
 }
 
-inline void _停止回调基类::_Attach(const 停止令牌实现& _Token) noexcept {
-    this->_Do_attach<false>(_Token._State);
+inline void _停止回调基类::_附着(const 停止令牌实现& _Token) noexcept {
+    this->_执行附着<false>(_Token._State);
 }
 
-inline void _停止回调基类::_Attach(停止令牌实现&& _Token) noexcept {
-    this->_Do_attach<true>(_Token._State);
+inline void _停止回调基类::_附着(停止令牌实现&& _Token) noexcept {
+    this->_执行附着<true>(_Token._State);
 }
 
-inline void _停止回调基类::_Detach() noexcept {
+inline void _停止回调基类::_脱离() noexcept {
     停止令牌实现 _Token{_Parent}; // transfers ownership
     if (_Token._State == nullptr) {
         // callback was never inserted into the list
@@ -363,24 +363,24 @@ public:
         requires is_constructible_v<_Callback, _CbInitTy>
     explicit 停止回调实现(const 停止令牌实现& _Token, _CbInitTy&& _Cb_)
         noexcept(is_nothrow_constructible_v<_Callback, _CbInitTy>)
-        : _停止回调基类{_Invoke_by_stop}, _Cb(_STD forward<_CbInitTy>(_Cb_)) {
-        _Attach(_Token);
+        : _停止回调基类{_按停止调用}, _Cb(_STD forward<_CbInitTy>(_Cb_)) {
+        _附着(_Token);
     }
 
     template <class _CbInitTy>
         requires is_constructible_v<_Callback, _CbInitTy>
     explicit 停止回调实现(停止令牌实现&& _Token, _CbInitTy&& _Cb_)
         noexcept(is_nothrow_constructible_v<_Callback, _CbInitTy>)
-        : _停止回调基类{_Invoke_by_stop}, _Cb(_STD forward<_CbInitTy>(_Cb_)) {
-        _Attach(_STD move(_Token));
+        : _停止回调基类{_按停止调用}, _Cb(_STD forward<_CbInitTy>(_Cb_)) {
+        _附着(_STD move(_Token));
     }
 
     ~停止回调实现() {
-        _Detach();
+        _脱离();
     }
 
 private:
-    static void __cdecl _Invoke_by_stop(_停止回调基类* const _This) noexcept // terminates
+    static void __cdecl _按停止调用(_停止回调基类* const _This) noexcept // terminates
     {
         _STD forward<_Callback>(static_cast<停止回调实现*>(_This)->_Cb)();
     }

@@ -241,6 +241,12 @@ $H = @{
       'stop_requested' = '已请求停止'
       'stop_possible'  = '可停止'
       'get_token'      = '取令牌'
+      # §16.68 本头**自己定义**的 `_Stop_state` / `_Stop_callback_base` 内部助手
+      #   （实测只有 stop_token 有定义）-> 翻；它们不是公开 API，不需要派生层补英文。
+      '_Attach'        = '_附着'
+      '_Detach'        = '_脱离'
+      '_Do_attach'     = '_执行附着'
+      '_Invoke_by_stop' = '_按停止调用'
       # ⚠ `swap` 故意【不】改名（实测踩到）：
       #   原文 `_STD swap(_State, _Other._State)` 要的是 std::swap（交换内部指针）。
       #   一旦把 swap 改成 交换，步 4c 会把 `_STD 交换(...)` 去限定成 `交换(...)`，
