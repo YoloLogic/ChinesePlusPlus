@@ -143,7 +143,18 @@ function Get-MemberNames([string] $text) {
 # 但**不是永久边界**：消除路径 = 把 char_traits / basic_string_view 也抄成我们的内部件。
 $memBoundary = @('length', 'assign', 'copy', 'compare', 'find', 'max_size', 'swap',
                  'starts_with', 'ends_with', 'contains', 'remove_prefix', 'remove_suffix',
-                 'to_char_type', 'to_int_type', 'eq', 'lt', 'not_eof', 'eof')
+                 'to_char_type', 'to_int_type', 'eq', 'lt', 'not_eof', 'eof',
+                 # ---- 借用的 C / std 名字（不是我们的成员，翻不了）----
+                 'abort', 'invoke', 'strcmp', 'memcpy', 'memmove', 'memset', 'strlen',
+                 # ---- 类型名噪声（构造函数调用、形参类型被本尺子误当成成员）----
+                 'ptrdiff_t', 'size_t', 'intptr_t', 'uintptr_t', 'barrier', 'latch',
+                 'semaphore', 'thread', 'mutex', 'shared_mutex', 'condition_variable',
+                 'stop_token', 'atomic', 'string', 'wstring', 'vector', 'unique_ptr',
+                 'shared_ptr', 'function', 'optional', 'variant', 'tuple', 'pair',
+                 'duration', 'time_point', 'error_code', 'exception', 'type_info',
+                 # ---- MSVC 自己带 `__` 前缀的内部件（借用的）----
+                 '__std_atomic_wait_get_deadline', '__std_atomic_wait', '__std_atomic_wait_direct',
+                 '_Completion', '_Wait', '_Hash', '_Node', '_List_node')
 function Get-NestedNames([string] $text) {    $names = @{}
     foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+using\s+([A-Za-z_]\w*)\s*=')) { $names[$m.Groups[1].Value] = $true }
     foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+typedef\s+[^;\r\n]*?\b([A-Za-z_]\w*)\s*;')) { $names[$m.Groups[1].Value] = $true }
