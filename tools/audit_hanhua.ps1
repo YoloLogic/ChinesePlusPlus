@@ -169,7 +169,14 @@ $memBoundary = @('length', 'assign', 'copy', 'compare', 'find', 'max_size', 'swa
                  #   —— 改名就不再覆盖（静默错误，编译照样过）。属边界。
                  #   `_Construct_in_place` / `_Destroy_in_place` / `_Cast`：定义在 xmemory/xutility。
                  #   `_Ty`：模板形参名（本尺子把它当成成员是已知偏差）。
-                 'what', '_Construct_in_place', '_Destroy_in_place', '_Cast', '_Ty')
+                 'what', '_Construct_in_place', '_Destroy_in_place', '_Cast', '_Ty',
+                 # ---- §16.71 "同一个词两个主人"（本头成员名 × 借用对象上的调用）----
+                 #   `wait`：<门闩> 的 `latch::wait` 是我们自己的成员，但正文里
+                 #     `_My_cond.wait(...)` 调的是**借来的** std::condition_variable::wait
+                 #     —— 按词替换必然误伤（§16.30.3 已实测）。中文名由 deriveExtra 手写给出，
+                 #     所以**用户能写 `甲.等待()`**，只是抄来那层留着英文。
+                 #   `lexicographical_compare*`：std 算法（借来的）。
+                 'wait', 'lexicographical_compare', 'lexicographical_compare_three_way')
 function Get-NestedNames([string] $text) {    $names = @{}
     foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+using\s+([A-Za-z_]\w*)\s*=')) { $names[$m.Groups[1].Value] = $true }
     foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+typedef\s+[^;\r\n]*?\b([A-Za-z_]\w*)\s*;')) { $names[$m.Groups[1].Value] = $true }
