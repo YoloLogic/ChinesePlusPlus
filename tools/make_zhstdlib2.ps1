@@ -664,6 +664,51 @@ $H = @{
       @('中英并用 + 迭代器','#包含 <链表>`n整数 主函数(){ 标准::链表<整数> 甲; 甲.尾插(1); 甲.尾插(2); 标准::链表<整数>::迭代器 头 = 甲.开始(); 整数 和 = 0; for (; 头 != 甲.结束(); ++头) { 和 += *头; } 甲.erase(甲.begin()); 返回 和 + (整数)甲.尺寸() - 4; }')
     )
   }
+  'vector' = @{
+    zh      = '向量'
+    types   = [ordered]@{ 'vector' = '向量实现' }
+    # 迭代器类（_Vector_iterator / _Vb_iterator 等）都是本文件内部件，故意不改名。
+    # vector<bool> 特化也定义在本文件里，同一个 types 改名会一起覆盖 ——
+    # 于是 细节::向量实现<bool, 分配器> 自动指到那个特化，派生层不用特殊处理。
+    members = [ordered]@{
+      'size' = '尺寸'; 'empty' = '为空'; 'max_size' = '最大尺寸'
+      'capacity' = '容量'; 'reserve' = '预留'; 'data' = '数据'
+      'begin' = '开始'; 'end' = '结束'
+      'cbegin' = '常量开始'; 'cend' = '常量结束'
+      'rbegin' = '反向开始'; 'rend' = '反向结束'
+      'crbegin' = '常量反向开始'; 'crend' = '常量反向结束'
+      'at' = '取值'; 'front' = '前'; 'back' = '后'
+      'push_back' = '尾插'; 'pop_back' = '尾删'
+      'emplace' = '就地构造'; 'emplace_back' = '尾部就地构造'
+      'insert' = '插入'; 'erase' = '擦除'; 'assign' = '赋值'
+      'resize' = '调整尺寸'; 'shrink_to_fit' = '收缩至适应'
+      'clear' = '清空'; 'get_allocator' = '取分配器'
+      'append_range' = '追加范围'; 'assign_range' = '范围赋值'; 'insert_range' = '范围插入'
+      # ⚠ swap 照旧不改名（§3.12）
+    }
+    data    = [ordered]@{}
+    derive  = @( @('size','尺寸'), @('empty','为空'), @('max_size','最大尺寸'),
+                 @('capacity','容量'), @('reserve','预留'), @('data','数据'),
+                 @('begin','开始'), @('end','结束'),
+                 @('at','取值'), @('front','前'), @('back','后'),
+                 @('push_back','尾插'), @('pop_back','尾删'),
+                 @('emplace','就地构造'), @('emplace_back','尾部就地构造'),
+                 @('insert','插入'), @('erase','擦除'), @('assign','赋值'),
+                 @('resize','调整尺寸'), @('shrink_to_fit','收缩至适应'),
+                 @('clear','清空'), @('get_allocator','取分配器') )
+    deriveTypes = @( @('迭代器','iterator'), @('常量迭代器','const_iterator'),
+                     @('反向迭代器','reverse_iterator'), @('常量反向迭代器','const_reverse_iterator'),
+                     @('值类型','value_type'), @('尺寸类型','size_type'),
+                     @('引用','reference'), @('常量引用','const_reference') )
+    stdHash = $false
+    tparam  = @{ decl = '模板 <类型名 元素, 类型名 分配器 = std::allocator<元素>>'; args = '<元素, 分配器>' }
+    tests = @(
+      @('只引中文头','#包含 <向量>`n整数 主函数(){ 标准::向量<整数> 表; 表.尾插(1); 表.尾插(2); 表.尾部就地构造(3); 返回 表.前() + (整数)表.尺寸() - 4; }'),
+      @('与微软原头并存','#包含 <向量>`n#包含 <vector>`n整数 主函数(){ 标准::向量<整数> 表; 表.push_back(1); std::vector<int> 乙; 乙.push_back(1); 返回 (整数)表.尺寸() - (整数)乙.size(); }'),
+      @('中英并用 + 容量 / 预留 / 下标','#包含 <向量>`n整数 主函数(){ 标准::向量<整数> 表(3, 7); 表.reserve(10); 表[0] = 1; 整数 和 = 表[0] + 表.at(1); 布尔 够 = 表.容量() >= 10; 返回 和 + (够 ? 0 : 1) - 8; }'),
+      @('迭代器 + vector<bool> 特化','#包含 <向量>`n整数 主函数(){ 标准::向量<bool> 位(3, true); 位.尾插(false); 整数 数 = 0; for (标准::向量<bool>::迭代器 头 = 位.开始(); 头 != 位.结束(); ++头) { if (*头) { ++数; } } 返回 数 - 3; }')
+    )
+  }
   'scoped_allocator' = @{
     zh      = '作用域分配器'
     types   = [ordered]@{ 'scoped_allocator_adaptor' = '作用域分配器适配器实现'
