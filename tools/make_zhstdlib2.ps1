@@ -1277,6 +1277,14 @@ $H = @{
     members = [ordered]@{
       'emplace' = '就地构造'; 'pop' = '弹出'
       'push' = '压入'; 'push_range' = '范围压入'
+      # §16.74 与 `<栈>` **同批**的协调改名（两个条目同译名，跨头译名守卫强制）：
+      #   `_Get_container`（本头定义 1 处）/ `_Make_heap`（本头定义 17 处）都是
+      #   本头自己的内部助手 —— 都翻。
+      #   ⚠ `back` / `front` **不翻**：它们调的是【借来的容器】的 `c.back()`/`c.front()`
+      #     （§15.10 形态②，与 `size`/`empty` 同一类）-> 登记为边界。
+      #   ⚠ `make_heap` / `pop_heap` / `push_heap` 是 std 算法（借来的）-> 边界。
+      '_Get_container' = '_取容器'
+      '_Make_heap' = '_造堆'
       # ⚠ swap 【不登记】（§3.12 + §16.30.3）：正文是
       #     `using _STD swap; swap(c, _Right.c); // intentional ADL`
       #   —— 那是有意的 ADL 自由函数调用。改名 + 步4c 去限定之后，
