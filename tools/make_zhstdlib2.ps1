@@ -1298,6 +1298,33 @@ if ($kwBad.Count) {
     throw "中文名撞关键词，先改名再生成"
 }
 
+# ---------------------------------------------------------------------------
+#  守卫（§16.1②）：extra 里【手写的对外类】必须覆盖条目的 members 表。
+#  实测 5 次栽在这：shared_mutex 编造了不存在的成员、unordered_set 漏了 桶数/负载因子、
+#  set 根本没写转发、thread 名域没再出口中文名、span 名字不一致。
+#  extra 是手写层，不受任何机制约束 —— 所以在这里把它和 members 表对一遍。
+#  ⚠ 只警告不 throw：有些类（如 多重集合）语义上不需要全部成员，要人看一眼。
+# ---------------------------------------------------------------------------
+foreach ($h2 in $H.Keys) {
+    $sp = $H[$h2]
+    if (-not $sp.ContainsKey('extra')) { continue }
+    $ex = [string]$sp.extra
+    # extra 里每个"类型 X : 公开 细节::..."的类，检查它是否覆盖 members 的中文名
+    foreach ($cm in [regex]::Matches($ex, '(?m)^\s*类型\s+(\S+)\s*:\s*公开')) {
+        $cls = $cm.Groups[1].Value
+        $start = $cm.Index
+        $end = $ex.IndexOf("`n};", $start); if ($end -lt 0) { $end = $ex.Length }
+        $body = $ex.Substring($start, $end - $start)
+        $missing = @()
+        foreach ($k in $sp.members.Keys) {
+            $zhN = $sp.members[$k]
+            if ($body -notmatch [regex]::Escape($zhN)) { $missing += $zhN }
+        }
+        if ($missing.Count) {
+            Write-Host ("  · 差异清单[手写层] {0} 的 extra 类 {1} 缺: {2}" -f $h2, $cls, ($missing -join ' '))
+        }
+    }
+}
 $spec = $H[$Header]
 if (-not $spec) { throw "表里没有 $Header —— 先在 make_zhstdlib2.ps1 的表里加一条" }
 
