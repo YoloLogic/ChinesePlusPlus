@@ -709,6 +709,49 @@ $H = @{
       @('迭代器 + vector<bool> 特化','#包含 <向量>`n整数 主函数(){ 标准::向量<bool> 位(3, true); 位.尾插(false); 整数 数 = 0; for (标准::向量<bool>::迭代器 头 = 位.开始(); 头 != 位.结束(); ++头) { if (*头) { ++数; } } 返回 数 - 3; }')
     )
   }
+  'forward_list' = @{
+    zh      = '单向链表'
+    types   = [ordered]@{ 'forward_list' = '单向链表实现' }
+    # ⚠ forward_list 【没有 size()】（标准如此，取尺寸是 O(n) 所以不提供）——
+    #   所以这里刻意不登记 size，免得改名遍去动文件里别处的 size。
+    members = [ordered]@{
+      'empty' = '为空'; 'max_size' = '最大尺寸'
+      'before_begin' = '首前'; 'cbefore_begin' = '常量首前'
+      'begin' = '开始'; 'end' = '结束'; 'cbegin' = '常量开始'; 'cend' = '常量结束'
+      'front' = '前'
+      'push_front' = '头插'; 'pop_front' = '头删'; 'emplace_front' = '头部就地构造'
+      'insert_after' = '后插'; 'emplace_after' = '后就地构造'; 'erase_after' = '后擦除'
+      'assign' = '赋值'; 'resize' = '调整尺寸'; 'clear' = '清空'; 'get_allocator' = '取分配器'
+      'sort' = '排序'; 'merge' = '归并'; 'splice_after' = '后接合'
+      'remove' = '移除'; 'remove_if' = '按条件移除'; 'unique' = '去重'; 'reverse' = '反转'
+      'assign_range' = '范围赋值'; 'prepend_range' = '前置范围'
+      'insert_range_after' = '范围后插'
+      # ⚠ swap 照旧不改名（§3.12）
+    }
+    data    = [ordered]@{}
+    derive  = @( @('empty','为空'), @('max_size','最大尺寸'),
+                 @('before_begin','首前'), @('begin','开始'), @('end','结束'),
+                 @('front','前'),
+                 @('push_front','头插'), @('pop_front','头删'),
+                 @('emplace_front','头部就地构造'),
+                 @('insert_after','后插'), @('emplace_after','后就地构造'),
+                 @('erase_after','后擦除'),
+                 @('assign','赋值'), @('resize','调整尺寸'), @('clear','清空'),
+                 @('get_allocator','取分配器'),
+                 @('sort','排序'), @('merge','归并'), @('splice_after','后接合'),
+                 @('remove','移除'), @('remove_if','按条件移除'),
+                 @('unique','去重'), @('reverse','反转') )
+    deriveTypes = @( @('迭代器','iterator'), @('常量迭代器','const_iterator'),
+                     @('值类型','value_type'), @('尺寸类型','size_type') )
+    stdHash = $false
+    tparam  = @{ decl = '模板 <类型名 元素, 类型名 分配器 = std::allocator<元素>>'; args = '<元素, 分配器>' }
+    tests = @(
+      @('只引中文头','#包含 <单向链表>`n整数 主函数(){ 标准::单向链表<整数> 甲; 甲.头插(1); 甲.头插(0); 布尔 空 = 甲.为空(); 返回 甲.前() + (空 ? 1 : 0); }'),
+      @('与微软原头并存','#包含 <单向链表>`n#包含 <forward_list>`n整数 主函数(){ 标准::单向链表<整数> 甲; 甲.push_front(1); std::forward_list<int> 乙; 乙.push_front(1); 返回 甲.前() - 乙.front(); }'),
+      @('后插 / 后擦除 / 迭代器','#包含 <单向链表>`n整数 主函数(){ 标准::单向链表<整数> 甲; 甲.头插(2); 甲.后插(甲.首前(), 1); 甲.后擦除(甲.首前()); 整数 和 = 0; for (标准::单向链表<整数>::迭代器 头 = 甲.开始(); 头 != 甲.结束(); ++头) { 和 += *头; } 返回 和 - 2; }'),
+      @('排序 / 去重 / 反转','#包含 <单向链表>`n整数 主函数(){ 标准::单向链表<整数> 甲; 甲.头插(1); 甲.头插(3); 甲.头插(1); 甲.排序(); 甲.去重(); 甲.反转(); 返回 甲.前() - 3; }')
+    )
+  }
   'scoped_allocator' = @{
     zh      = '作用域分配器'
     types   = [ordered]@{ 'scoped_allocator_adaptor' = '作用域分配器适配器实现'
