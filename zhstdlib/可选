@@ -32,10 +32,10 @@ _STL_DISABLE_CLANG_WARNINGS
 使用 名域 std;
 
 _EXPORT_STD struct 空值类型 { // no-value state indicator
-    struct _Tag {};
-    constexpr explicit 空值类型(_Tag) {}
+    struct _标记 {};
+    constexpr explicit 空值类型(_标记) {}
 };
-_EXPORT_STD inline constexpr 空值类型 nullopt{空值类型::_Tag{}};
+_EXPORT_STD inline constexpr 空值类型 nullopt{空值类型::_标记{}};
 
 // [dropTypes] 这里删掉了抄来的 bad_optional_access 定义。
 // 它的身份必须是 std 的那个（铁律 4：捕获按类型匹配），所以改用真头的 std::bad_optional_access。
@@ -223,9 +223,9 @@ private:
 
 #if _HAS_CXX23
     template <class _Fn, class _Ux>
-    constexpr 可选实现(_由调用结果构造标记 _Tag, _Fn&& _Func, _Ux&& _Arg)
+    constexpr 可选实现(_由调用结果构造标记 _标记, _Fn&& _Func, _Ux&& _Arg)
         noexcept(noexcept(static_cast<_Ty>(_STD invoke(_STD forward<_Fn>(_Func), _STD forward<_Ux>(_Arg)))))
-        : _我的基类(_Tag, _STD forward<_Fn>(_Func), _STD forward<_Ux>(_Arg)) {}
+        : _我的基类(_标记, _STD forward<_Fn>(_Func), _STD forward<_Ux>(_Arg)) {}
 #endif // _HAS_CXX23
 
 public:
@@ -251,18 +251,18 @@ public:
         : _我的基类(in_place, _Ilist, _STD forward<_Types>(_Args)...) {}
 
     template <class _Ty2>
-    using _AllowDirectConversion = bool_constant<conjunction_v<negation<is_same<_Remove_cvref_t<_Ty2>, 可选实现>>,
+    using _允许直接转换 = bool_constant<conjunction_v<negation<is_same<_Remove_cvref_t<_Ty2>, 可选实现>>,
         negation<is_same<_Remove_cvref_t<_Ty2>, in_place_t>>,
         negation<conjunction<is_same<remove_cv_t<_Ty>, bool>, _Is_specialization<_Remove_cvref_t<_Ty2>, 可选实现>>>,
         is_constructible<_Ty, _Ty2>>>;
 
-    template <class _Ty2 = remove_cv_t<_Ty>, enable_if_t<_AllowDirectConversion<_Ty2>::value, int> = 0>
+    template <class _Ty2 = remove_cv_t<_Ty>, enable_if_t<_允许直接转换<_Ty2>::value, int> = 0>
     constexpr explicit(!is_convertible_v<_Ty2, _Ty>) 可选实现(_Ty2&& _Right)
         noexcept(is_nothrow_constructible_v<_Ty, _Ty2>) // strengthened
         : _我的基类(in_place, _STD forward<_Ty2>(_Right)) {}
 
     template <class _Ty2>
-    struct _AllowUnwrapping
+    struct _允许解包
         : bool_constant<disjunction_v<is_same<remove_cv_t<_Ty>, bool>,
               negation<disjunction<is_same<_Ty, _Ty2>, is_constructible<_Ty, 可选实现<_Ty2>&>,
                   is_constructible<_Ty, const 可选实现<_Ty2>&>, is_constructible<_Ty, const 可选实现<_Ty2>>,
@@ -271,7 +271,7 @@ public:
                   is_convertible<可选实现<_Ty2>, _Ty>>>>> {};
 
     template <class _Ty2,
-        enable_if_t<conjunction_v<_AllowUnwrapping<_Ty2>, is_constructible<_Ty, const _Ty2&>>, int> = 0>
+        enable_if_t<conjunction_v<_允许解包<_Ty2>, is_constructible<_Ty, const _Ty2&>>, int> = 0>
     _CONSTEXPR20 explicit(!is_convertible_v<const _Ty2&, _Ty>) 可选实现(const 可选实现<_Ty2>& _Right)
         noexcept(is_nothrow_constructible_v<_Ty, const _Ty2&>) /* strengthened */ {
         if (_Right) {
@@ -279,7 +279,7 @@ public:
         }
     }
 
-    template <class _Ty2, enable_if_t<conjunction_v<_AllowUnwrapping<_Ty2>, is_constructible<_Ty, _Ty2>>, int> = 0>
+    template <class _Ty2, enable_if_t<conjunction_v<_允许解包<_Ty2>, is_constructible<_Ty, _Ty2>>, int> = 0>
     _CONSTEXPR20 explicit(!is_convertible_v<_Ty2, _Ty>) 可选实现(可选实现<_Ty2>&& _Right)
         noexcept(is_nothrow_constructible_v<_Ty, _Ty2>) /* strengthened */ {
         if (_Right) {
@@ -304,12 +304,12 @@ public:
     }
 
     template <class _Ty2>
-    struct _AllowUnwrappingAssignment
+    struct _允许解包赋值
         : bool_constant<!disjunction_v<is_same<_Ty, _Ty2>, is_assignable<_Ty&, 可选实现<_Ty2>&>,
               is_assignable<_Ty&, const 可选实现<_Ty2>&>, is_assignable<_Ty&, const 可选实现<_Ty2>>,
               is_assignable<_Ty&, 可选实现<_Ty2>>>> {};
 
-    template <class _Ty2, enable_if_t<conjunction_v<_AllowUnwrappingAssignment<_Ty2>,
+    template <class _Ty2, enable_if_t<conjunction_v<_允许解包赋值<_Ty2>,
                                           is_constructible<_Ty, const _Ty2&>, is_assignable<_Ty&, const _Ty2&>>,
                               int> = 0>
     _CONSTEXPR20 可选实现& operator=(const 可选实现<_Ty2>& _Right) noexcept(
@@ -323,7 +323,7 @@ public:
         return *this;
     }
 
-    template <class _Ty2, enable_if_t<conjunction_v<_AllowUnwrappingAssignment<_Ty2>, is_constructible<_Ty, _Ty2>,
+    template <class _Ty2, enable_if_t<conjunction_v<_允许解包赋值<_Ty2>, is_constructible<_Ty, _Ty2>,
                                           is_assignable<_Ty&, _Ty2>>,
                               int> = 0>
     _CONSTEXPR20 可选实现& operator=(可选实现<_Ty2>&& _Right)
@@ -362,8 +362,8 @@ public:
         }
         using _STD swap;
         if constexpr (_Is_trivially_swappable_v<_Ty>) {
-            using _TrivialBaseTy = _可选析构基类<_Ty>;
-            _STD swap(static_cast<_TrivialBaseTy&>(*this), static_cast<_TrivialBaseTy&>(_Right));
+            using _平凡基类型 = _可选析构基类<_Ty>;
+            _STD swap(static_cast<_平凡基类型&>(*this), static_cast<_平凡基类型&>(_Right));
         } else {
             const bool _Engaged = this->_Has_value;
             if (_Engaged == _Right._Has_value) {
@@ -466,137 +466,137 @@ public:
 #if _HAS_CXX23
     template <class _Fn>
     constexpr auto 且则(_Fn&& _Func) & {
-        using _Uty = invoke_result_t<_Fn, _Ty&>;
+        using _结果类型 = invoke_result_t<_Fn, _Ty&>;
 
-        static_assert(_Is_specialization_v<remove_cvref_t<_Uty>, 可选实现>,
+        static_assert(_Is_specialization_v<remove_cvref_t<_结果类型>, 可选实现>,
             "可选实现<T>::且则(F) requires the return type of F to be a specialization of 可选实现 "
             "(N4950 [可选实现.monadic]/2).");
 
         if (this->_Has_value) {
             return _STD invoke(_STD forward<_Fn>(_Func), static_cast<_Ty&>(this->_Value));
         } else {
-            return remove_cvref_t<_Uty>{};
+            return remove_cvref_t<_结果类型>{};
         }
     }
 
     template <class _Fn>
     constexpr auto 且则(_Fn&& _Func) const& {
-        using _Uty = invoke_result_t<_Fn, const _Ty&>;
+        using _结果类型 = invoke_result_t<_Fn, const _Ty&>;
 
-        static_assert(_Is_specialization_v<remove_cvref_t<_Uty>, 可选实现>,
+        static_assert(_Is_specialization_v<remove_cvref_t<_结果类型>, 可选实现>,
             "可选实现<T>::且则(F) requires the return type of F to be a specialization of 可选实现 "
             "(N4950 [可选实现.monadic]/2).");
 
         if (this->_Has_value) {
             return _STD invoke(_STD forward<_Fn>(_Func), static_cast<const _Ty&>(this->_Value));
         } else {
-            return remove_cvref_t<_Uty>{};
+            return remove_cvref_t<_结果类型>{};
         }
     }
 
     template <class _Fn>
     constexpr auto 且则(_Fn&& _Func) && {
-        using _Uty = invoke_result_t<_Fn, _Ty>;
+        using _结果类型 = invoke_result_t<_Fn, _Ty>;
 
-        static_assert(_Is_specialization_v<remove_cvref_t<_Uty>, 可选实现>,
+        static_assert(_Is_specialization_v<remove_cvref_t<_结果类型>, 可选实现>,
             "可选实现<T>::且则(F) requires the return type of F to be a specialization of 可选实现 "
             "(N4950 [可选实现.monadic]/5).");
 
         if (this->_Has_value) {
             return _STD invoke(_STD forward<_Fn>(_Func), static_cast<_Ty&&>(this->_Value));
         } else {
-            return remove_cvref_t<_Uty>{};
+            return remove_cvref_t<_结果类型>{};
         }
     }
 
     template <class _Fn>
     constexpr auto 且则(_Fn&& _Func) const&& {
-        using _Uty = invoke_result_t<_Fn, const _Ty>;
+        using _结果类型 = invoke_result_t<_Fn, const _Ty>;
 
-        static_assert(_Is_specialization_v<remove_cvref_t<_Uty>, 可选实现>,
+        static_assert(_Is_specialization_v<remove_cvref_t<_结果类型>, 可选实现>,
             "可选实现<T>::且则(F) requires the return type of F to be a specialization of 可选实现 "
             "(N4950 [可选实现.monadic]/5).");
 
         if (this->_Has_value) {
             return _STD invoke(_STD forward<_Fn>(_Func), static_cast<const _Ty&&>(this->_Value));
         } else {
-            return remove_cvref_t<_Uty>{};
+            return remove_cvref_t<_结果类型>{};
         }
     }
 
     template <class _Fn>
     constexpr auto 变换(_Fn&& _Func) & {
-        using _Uty = remove_cv_t<invoke_result_t<_Fn, _Ty&>>;
+        using _结果类型 = remove_cv_t<invoke_result_t<_Fn, _Ty&>>;
 
-        static_assert(!_Is_any_of_v<_Uty, 空值类型, in_place_t>,
+        static_assert(!_Is_any_of_v<_结果类型, 空值类型, in_place_t>,
             "可选实现<T>::变换(F) requires the return type of F to be a type other than 空值类型 or in_place_t "
             "(N4950 [可选实现.monadic]/8).");
-        static_assert(is_object_v<_Uty> && !is_array_v<_Uty>,
+        static_assert(is_object_v<_结果类型> && !is_array_v<_结果类型>,
             "可选实现<T>::变换(F) requires the return type of F to be a non-array object type "
             "(N4950 [可选实现.monadic]/8).");
 
         if (this->_Has_value) {
-            return 可选实现<_Uty>{
+            return 可选实现<_结果类型>{
                 _由调用结果构造标记{}, _STD forward<_Fn>(_Func), static_cast<_Ty&>(this->_Value)};
         } else {
-            return 可选实现<_Uty>{};
+            return 可选实现<_结果类型>{};
         }
     }
 
     template <class _Fn>
     constexpr auto 变换(_Fn&& _Func) const& {
-        using _Uty = remove_cv_t<invoke_result_t<_Fn, const _Ty&>>;
+        using _结果类型 = remove_cv_t<invoke_result_t<_Fn, const _Ty&>>;
 
-        static_assert(!_Is_any_of_v<_Uty, 空值类型, in_place_t>,
+        static_assert(!_Is_any_of_v<_结果类型, 空值类型, in_place_t>,
             "可选实现<T>::变换(F) requires the return type of F to be a type other than 空值类型 or in_place_t "
             "(N4950 [可选实现.monadic]/8).");
-        static_assert(is_object_v<_Uty> && !is_array_v<_Uty>,
+        static_assert(is_object_v<_结果类型> && !is_array_v<_结果类型>,
             "可选实现<T>::变换(F) requires the return type of F to be a non-array object type "
             "(N4950 [可选实现.monadic]/8).");
 
         if (this->_Has_value) {
-            return 可选实现<_Uty>{
+            return 可选实现<_结果类型>{
                 _由调用结果构造标记{}, _STD forward<_Fn>(_Func), static_cast<const _Ty&>(this->_Value)};
         } else {
-            return 可选实现<_Uty>{};
+            return 可选实现<_结果类型>{};
         }
     }
 
     template <class _Fn>
     constexpr auto 变换(_Fn&& _Func) && {
-        using _Uty = remove_cv_t<invoke_result_t<_Fn, _Ty>>;
+        using _结果类型 = remove_cv_t<invoke_result_t<_Fn, _Ty>>;
 
-        static_assert(!_Is_any_of_v<_Uty, 空值类型, in_place_t>,
+        static_assert(!_Is_any_of_v<_结果类型, 空值类型, in_place_t>,
             "可选实现<T>::变换(F) requires the return type of F to be a type other than 空值类型 or in_place_t "
             "(N4950 [可选实现.monadic]/11).");
-        static_assert(is_object_v<_Uty> && !is_array_v<_Uty>,
+        static_assert(is_object_v<_结果类型> && !is_array_v<_结果类型>,
             "可选实现<T>::变换(F) requires the return type of F to be a non-array object type "
             "(N4950 [可选实现.monadic]/11).");
 
         if (this->_Has_value) {
-            return 可选实现<_Uty>{
+            return 可选实现<_结果类型>{
                 _由调用结果构造标记{}, _STD forward<_Fn>(_Func), static_cast<_Ty&&>(this->_Value)};
         } else {
-            return 可选实现<_Uty>{};
+            return 可选实现<_结果类型>{};
         }
     }
 
     template <class _Fn>
     constexpr auto 变换(_Fn&& _Func) const&& {
-        using _Uty = remove_cv_t<invoke_result_t<_Fn, const _Ty>>;
+        using _结果类型 = remove_cv_t<invoke_result_t<_Fn, const _Ty>>;
 
-        static_assert(!_Is_any_of_v<_Uty, 空值类型, in_place_t>,
+        static_assert(!_Is_any_of_v<_结果类型, 空值类型, in_place_t>,
             "可选实现<T>::变换(F) requires the return type of F to be a type other than 空值类型 or in_place_t "
             "(N4950 [可选实现.monadic]/11).");
-        static_assert(is_object_v<_Uty> && !is_array_v<_Uty>,
+        static_assert(is_object_v<_结果类型> && !is_array_v<_结果类型>,
             "可选实现<T>::变换(F) requires the return type of F to be a non-array object type "
             "(N4950 [可选实现.monadic]/11).");
 
         if (this->_Has_value) {
-            return 可选实现<_Uty>{
+            return 可选实现<_结果类型>{
                 _由调用结果构造标记{}, _STD forward<_Fn>(_Func), static_cast<const _Ty&&>(this->_Value)};
         } else {
-            return 可选实现<_Uty>{};
+            return 可选实现<_结果类型>{};
         }
     }
 
@@ -1055,7 +1055,11 @@ _STL_RESTORE_CLANG_WARNINGS
 // 无值（std::nullopt）—— 全局常量，成员转发管不到，手写
 // ⚠ MSVC 的 nullopt_t 取的是嵌套的 _Tag，不是 int（我照 cppreference 写 {42} 是错的）：
 //     struct nullopt_t { struct _Tag {}; constexpr explicit nullopt_t(_Tag) {} };
-内联 常量表达式 空值类型 无值{细节::空值类型::_Tag{}};
+// ⚠⚠ §16.38：这行是【手写层引用拷贝层的名字】—— 拷贝层把 _Tag 翻成了 _标记，
+//     手写层必须跟着改（否则 '空值类型' 里没有名为 '_Tag' 的成员）。
+//     判据：**手写 extra/deriveExtra 里凡是 `细节::X::Y` 形态的引用，
+//     都要在 X/Y 被登记改名时一并核对** —— 编译器会报，但没有守卫会替你记住。
+内联 常量表达式 空值类型 无值{细节::空值类型::_标记{}};
 
 }  // 名域 标准
 

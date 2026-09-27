@@ -68,9 +68,9 @@ private:
 
 _EXPORT_STD class 限时共享互斥量实现 { // class for mutual exclusion shared across threads
 private:
-    using _Read_cnt_t = unsigned int;
+    using _读计数类型 = unsigned int;
 
-    static constexpr _Read_cnt_t _Max_readers = static_cast<_Read_cnt_t>(-1);
+    static constexpr _读计数类型 _Max_readers = static_cast<_读计数类型>(-1);
 
 public:
     限时共享互斥量实现() = default;
@@ -182,7 +182,7 @@ public:
     }
 
     void 共享解锁() { // 解锁 non-exclusive
-        _Read_cnt_t _Local_readers;
+        _读计数类型 _Local_readers;
         bool _Local_writing;
 
         { // 解锁 before notifying, for efficiency
@@ -203,7 +203,7 @@ private:
     互斥量实现 _Mymtx{};
     条件变量实现 _Read_queue{};
     条件变量实现 _Write_queue{};
-    _Read_cnt_t _Readers = 0;
+    _读计数类型 _Readers = 0;
     bool _Writing        = false;
 };
 

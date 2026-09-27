@@ -266,27 +266,27 @@ void 交换(独占锁实现<_Mutex>& _Left, 独占锁实现<_Mutex>& _Right) noe
     _Left.交换(_Right);
 }
 
-template <size_t... _Indices, class... _LockN>
-void _Lock_from_locks(const int _Target, index_sequence<_Indices...>, _LockN&... _LkN) { // 加锁 _LkN[_Target]
-    int _Ignored[] = {((static_cast<int>(_Indices) == _Target ? (void) _LkN.加锁() : void()), 0)...};
+template <size_t... _下标集, class... _LockN>
+void _Lock_from_locks(const int _Target, index_sequence<_下标集...>, _LockN&... _LkN) { // 加锁 _LkN[_Target]
+    int _Ignored[] = {((static_cast<int>(_下标集) == _Target ? (void) _LkN.加锁() : void()), 0)...};
     (void) _Ignored;
 }
 
-template <size_t... _Indices, class... _LockN>
+template <size_t... _下标集, class... _LockN>
 bool _从各锁尝试加锁(
-    const int _Target, index_sequence<_Indices...>, _LockN&... _LkN) { // try to 加锁 _LkN[_Target]
+    const int _Target, index_sequence<_下标集...>, _LockN&... _LkN) { // try to 加锁 _LkN[_Target]
     bool _Result{};
-    int _Ignored[] = {((static_cast<int>(_Indices) == _Target ? (void) (_Result = _LkN.尝试加锁()) : void()), 0)...};
+    int _Ignored[] = {((static_cast<int>(_下标集) == _Target ? (void) (_Result = _LkN.尝试加锁()) : void()), 0)...};
     (void) _Ignored;
     return _Result;
 }
 
-template <size_t... _Indices, class... _LockN>
-void _解锁各锁(const int _First, const int _Last, index_sequence<_Indices...>, _LockN&... _LkN) noexcept
+template <size_t... _下标集, class... _LockN>
+void _解锁各锁(const int _First, const int _Last, index_sequence<_下标集...>, _LockN&... _LkN) noexcept
 /* terminates */ {
     // 解锁 locks in _LkN[_First, _Last)
     int _Ignored[] = {
-        ((_First <= static_cast<int>(_Indices) && static_cast<int>(_Indices) < _Last ? (void) _LkN.解锁() : void()),
+        ((_First <= static_cast<int>(_下标集) && static_cast<int>(_下标集) < _Last ? (void) _LkN.解锁() : void()),
             0)...};
     (void) _Ignored;
 }
@@ -329,14 +329,14 @@ struct _NODISCARD _解锁单个守卫 {
 
 template <class... _LockN>
 int _Try_lock_range(const int _First, const int _Last, _LockN&... _LkN) {
-    using _Indices = index_sequence_for<_LockN...>;
+    using _下标集 = index_sequence_for<_LockN...>;
     int _Next      = _First;
 
-    auto _Unlocker = [_First, &_Next, &_LkN...]() noexcept { _解锁各锁(_First, _Next, _Indices{}, _LkN...); };
+    auto _Unlocker = [_First, &_Next, &_LkN...]() noexcept { _解锁各锁(_First, _Next, _下标集{}, _LkN...); };
     _解锁调用守卫<decltype(_Unlocker)> _Guard{_Unlocker};
 
     for (; _Next != _Last; ++_Next) {
-        if (!_从各锁尝试加锁(_Next, _Indices{}, _LkN...)) { // 尝试加锁 failed, backout
+        if (!_从各锁尝试加锁(_Next, _下标集{}, _LkN...)) { // 尝试加锁 failed, backout
             return _Next;
         }
     }
@@ -374,14 +374,14 @@ _NODISCARD_TRY_CHANGE_STATE int 尝试加锁(_Lock0& _Lk0, _Lock1& _Lk1, _LockN&
 template <class... _LockN>
 int _Lock_attempt(const int _Hard_lock, _LockN&... _LkN) {
     // attempt to 加锁 3 or more locks, starting by locking _LkN[_Hard_lock] and trying to 加锁 the rest
-    using _Indices = index_sequence_for<_LockN...>;
-    _Lock_from_locks(_Hard_lock, _Indices{}, _LkN...);
+    using _下标集 = index_sequence_for<_LockN...>;
+    _Lock_from_locks(_Hard_lock, _下标集{}, _LkN...);
     int _Failed        = -1;
     int _Backout_start = _Hard_lock; // that is, 解锁 _Hard_lock
 
     {
         auto _Unlocker = [&_Backout_start, _Hard_lock, &_LkN...]() noexcept {
-            _解锁各锁(_Backout_start, _Hard_lock + 1, _Indices{}, _LkN...);
+            _解锁各锁(_Backout_start, _Hard_lock + 1, _下标集{}, _LkN...);
         };
         _解锁调用守卫<decltype(_Unlocker)> _Guard{_Unlocker};
 

@@ -54,28 +54,28 @@ private:
     friend 可停线程实现;
 #endif // _HAS_CXX20
 
-    template <class _Tuple, size_t... _Indices>
+    template <class _元组, size_t... _Indices>
     static unsigned int __stdcall _Invoke(void* _RawVals) noexcept /* terminates */ {
         // adapt invoke of user's callable object to _beginthreadex's 线程实现 procedure
-        const unique_ptr<_Tuple> _FnVals(static_cast<_Tuple*>(_RawVals));
-        _Tuple& _Tup = *_FnVals.get(); // avoid ADL, handle incomplete types
+        const unique_ptr<_元组> _FnVals(static_cast<_元组*>(_RawVals));
+        _元组& _Tup = *_FnVals.get(); // avoid ADL, handle incomplete types
         _STD invoke(_STD move(_STD get<_Indices>(_Tup))...);
         _Cnd_do_broadcast_at_thread_exit(); // TRANSITION, ABI
         return 0;
     }
 
-    template <class _Tuple, size_t... _Indices>
+    template <class _元组, size_t... _Indices>
     _NODISCARD static constexpr auto _Get_invoke(index_sequence<_Indices...>) noexcept {
-        return &_Invoke<_Tuple, _Indices...>;
+        return &_Invoke<_元组, _Indices...>;
     }
 
 #pragma warning(push) // pointer or reference to potentially throwing function passed to 'extern "C"' function under
 #pragma warning(disable : 5039) // -EHc. Undefined behavior may occur if this function throws an exception. (/Wall)
     template <class _Fn, class... _Args>
     void _Start(_Fn&& _Fx, _Args&&... _Ax) {
-        using _Tuple                 = tuple<decay_t<_Fn>, decay_t<_Args>...>;
-        auto _Decay_copied           = _STD make_unique<_Tuple>(_STD forward<_Fn>(_Fx), _STD forward<_Args>(_Ax)...);
-        constexpr auto _Invoker_proc = _Get_invoke<_Tuple>(make_index_sequence<1 + sizeof...(_Args)>{});
+        using _元组                 = tuple<decay_t<_Fn>, decay_t<_Args>...>;
+        auto _Decay_copied           = _STD make_unique<_元组>(_STD forward<_Fn>(_Fx), _STD forward<_Args>(_Ax)...);
+        constexpr auto _Invoker_proc = _Get_invoke<_元组>(make_index_sequence<1 + sizeof...(_Args)>{});
 
         _Thr._Hnd =
             reinterpret_cast<void*>(_CSTD _beginthreadex(nullptr, 0, _Invoker_proc, _Decay_copied.get(), 0, &_Thr._Id));

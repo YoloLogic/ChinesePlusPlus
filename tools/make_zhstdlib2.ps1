@@ -35,6 +35,8 @@ $H = @{
     realInclude = @('mutex')
     types   = [ordered]@{
       '_Mutex_base'            = '_互斥量基类'
+      # §16.38 第 ① 类（类内别名）
+      '_Indices'               = '_下标集'
       'mutex'                  = '互斥量实现'
       'condition_variable'     = '条件变量实现'
       'condition_variable_any' = '条件变量任意实现'
@@ -140,6 +142,8 @@ $H = @{
     # ⚠ types 的【第一个】= 派生层的基类（生成器 $cls = types.Values | Select -First 1）
     types   = [ordered]@{
       'shared_mutex'          = '共享互斥量实现'
+      # §16.38 第 ① 类（类内别名）
+      '_Read_cnt_t'           = '_读计数类型'
       'shared_timed_mutex'    = '限时共享互斥量实现'
       'shared_lock'           = '共享锁实现'
       # 跨头类型名：这几个译名是 <互斥量> / <条件变量> 定下的（方案 §3.8.2）
@@ -229,6 +233,8 @@ $H = @{
       'nostopstate_t'        = '无停止状态类型'
       '_Stop_state'          = '_停止状态'
       '_Stop_callback_base'  = '_停止回调基类'
+      # §16.38 第 ① 类（类内别名）
+      '_Callback_fn'         = '_回调函数指针'
     }
     members = [ordered]@{
       'request_stop'   = '请求停止'
@@ -302,6 +308,8 @@ $H = @{
     # types 第一个 = 派生层基类
     types   = [ordered]@{
       'thread'       = '线程实现'
+      # §16.38 第 ① 类（类内别名）
+      '_Tuple'       = '_元组'
       'jthread'      = '可停线程实现'
       # 嵌套名域 this_thread 也是标识符，照样改名；派生层里用 名域 本线程 补英文
       'this_thread'  = '本线程'
@@ -380,6 +388,10 @@ $H = @{
     #   全局 \breference\b 替换不安全（同 §3.13 的 thread::id，§六第 8 条）。
     #   它跟着派生一起继承，所以 标准::位集<8>::reference 照样能写。
     types   = [ordered]@{ 'bitset' = '位集实现'
+                          # §16.38 第 ① 类（本头类内别名，std 不读它们）
+                          '_Ty'         = '_类型'
+                          '_Ctype'      = '_字符类型'
+                          '_Istr_t'     = '_输入流类型'
                           # §16.27：自有内部件也要翻（长名、无二义，不是边界）
                           '_Buffer_for_bitset' = '_位缓冲' }
     members = [ordered]@{
@@ -561,6 +573,13 @@ $H = @{
   'optional' = @{
     zh      = '可选'
     types   = [ordered]@{ 'optional' = '可选实现'
+                          # §16.38 第 ① 类（本头类内别名/内部结构，std 不读它们）
+                          '_Tag'                    = '_标记'
+                          '_AllowDirectConversion'  = '_允许直接转换'
+                          '_AllowUnwrapping'        = '_允许解包'
+                          '_AllowUnwrappingAssignment' = '_允许解包赋值'
+                          '_TrivialBaseTy'          = '_平凡基类型'
+                          '_Uty'                    = '_结果类型'
                           'nullopt_t' = '空值类型'
                           # 嵌套类型名也汉化（用户要求：抄来那层也要全中文）
                           'value_type' = '值类型'
@@ -628,7 +647,11 @@ $H = @{
 // 无值（std::nullopt）—— 全局常量，成员转发管不到，手写
 // ⚠ MSVC 的 nullopt_t 取的是嵌套的 _Tag，不是 int（我照 cppreference 写 {42} 是错的）：
 //     struct nullopt_t { struct _Tag {}; constexpr explicit nullopt_t(_Tag) {} };
-内联 常量表达式 空值类型 无值{细节::空值类型::_Tag{}};
+// ⚠⚠ §16.38：这行是【手写层引用拷贝层的名字】—— 拷贝层把 _Tag 翻成了 _标记，
+//     手写层必须跟着改（否则 '空值类型' 里没有名为 '_Tag' 的成员）。
+//     判据：**手写 extra/deriveExtra 里凡是 `细节::X::Y` 形态的引用，
+//     都要在 X/Y 被登记改名时一并核对** —— 编译器会报，但没有守卫会替你记住。
+内联 常量表达式 空值类型 无值{细节::空值类型::_标记{}};
 
 }  // 名域 标准
 '@
@@ -1515,6 +1538,11 @@ $H = @{
     zh      = '作用域分配器'
     realInclude = @('scoped_allocator')   # §16.29「乙」
     types   = [ordered]@{ 'scoped_allocator_adaptor' = '作用域分配器适配器实现'
+                          # §16.38 第 ① 类（本头类内别名）
+                          '_Myadaptor'     = '_我的适配器'
+                          '_Outer_alloc'   = '_外层分配器'
+                          '_Outer_traits'  = '_外层特征'
+                          '_Other_alloc'   = '_另一分配器'
                           '_Scoped_base' = '_作用域基类'
                           '_Scoped_outermost' = '_作用域最外层'
                           '_Scoped_outermost_helper' = '_作用域最外层助手'

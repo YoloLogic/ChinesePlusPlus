@@ -75,7 +75,7 @@ class 位集实现 { // store fixed-length sequence of Boolean elements
 private:
 #pragma warning(push)
 #pragma warning(disable : 4296) // expression is always true (/Wall)
-    using _Ty = conditional_t<_Bits <= sizeof(unsigned long) * CHAR_BIT, unsigned long, unsigned long long>;
+    using _类型 = conditional_t<_Bits <= sizeof(unsigned long) * CHAR_BIT, unsigned long, unsigned long long>;
 #pragma warning(pop)
 
 public:
@@ -119,7 +119,7 @@ public:
 
 private:
     constexpr bool _Subscript(size_t _Pos) const noexcept {
-        return (_Array[_Pos / _Bitsperword] & (_Ty{1} << _Pos % _Bitsperword)) != 0;
+        return (_Array[_Pos / _Bitsperword] & (_类型{1} << _Pos % _Bitsperword)) != 0;
     }
 
     static constexpr bool _Need_mask          = _Bits < CHAR_BIT * sizeof(unsigned long long);
@@ -144,7 +144,7 @@ public:
 
     constexpr 位集实现() noexcept : _Array() {} // construct with 全为真 false values
 
-    constexpr 位集实现(unsigned long long _Val) noexcept : _Array{static_cast<_Ty>(_Need_mask ? _Val & _Mask : _Val)} {}
+    constexpr 位集实现(unsigned long long _Val) noexcept : _Array{static_cast<_类型>(_Need_mask ? _Val & _Mask : _Val)} {}
 
 private:
     template <class _Traits, class _Elem>
@@ -188,11 +188,11 @@ private:
         if (_Count != 0) {
             size_t _Bits_used_in_word = 0;
             auto _Last                = _Ptr + _Count;
-            _Ty _This_word            = 0;
+            _类型 _This_word            = 0;
             do {
                 --_Last;
                 const auto _Ch = *_Last;
-                _This_word |= static_cast<_Ty>(_Traits::eq(_Elem1, _Ch)) << _Bits_used_in_word;
+                _This_word |= static_cast<_类型>(_Traits::eq(_Elem1, _Ch)) << _Bits_used_in_word;
                 if (!_Traits::eq(_Elem1, _Ch) && !_Traits::eq(_Elem0, _Ch)) {
                     _Xinv();
                 }
@@ -310,7 +310,7 @@ public:
 #if _HAS_CXX23
         if (_STD is_constant_evaluated()) {
             for (auto& _El : _Array) {
-                _El = static_cast<_Ty>(-1);
+                _El = static_cast<_类型>(-1);
             }
         } else
 #endif // _HAS_CXX23
@@ -426,7 +426,7 @@ public:
     }
 
     _NODISCARD _CONSTEXPR23 size_t 计数() const noexcept { // 计数 number of 置位 bits
-        return _Select_popcount_impl<_Ty>([this](auto _Popcount_impl) {
+        return _Select_popcount_impl<_类型>([this](auto _Popcount_impl) {
             size_t _Val = 0;
             for (size_t _Wpos = 0; _Wpos <= _Words; ++_Wpos) {
                 _Val += _Popcount_impl(_Array[_Wpos]);
@@ -492,12 +492,12 @@ public:
 
         constexpr bool _No_padding = _Bits % _Bitsperword == 0;
         for (size_t _Wpos = 0; _Wpos < _Words + _No_padding; ++_Wpos) {
-            if (_Array[_Wpos] != ~static_cast<_Ty>(0)) {
+            if (_Array[_Wpos] != ~static_cast<_类型>(0)) {
                 return false;
             }
         }
 
-        return _No_padding || _Array[_Words] == (static_cast<_Ty>(1) << (_Bits % _Bitsperword)) - 1;
+        return _No_padding || _Array[_Words] == (static_cast<_类型>(1) << (_Bits % _Bitsperword)) - 1;
     }
 
     _NODISCARD _CONSTEXPR23 位集实现 operator<<(const size_t _Pos) const noexcept {
@@ -512,7 +512,7 @@ public:
         return _Tmp;
     }
 
-    _NODISCARD _Ty _Getword(size_t _Wpos) const noexcept { // nonstandard extension; get underlying word
+    _NODISCARD _类型 _Getword(size_t _Wpos) const noexcept { // nonstandard extension; get underlying word
         return _Array[_Wpos];
     }
 
@@ -545,20 +545,20 @@ public:
 private:
     friend hash<位集实现<_Bits>>;
 
-    static constexpr ptrdiff_t _Bitsperword = CHAR_BIT * sizeof(_Ty);
+    static constexpr ptrdiff_t _Bitsperword = CHAR_BIT * sizeof(_类型);
     static constexpr ptrdiff_t _Words       = _Bits == 0 ? 0 : (_Bits - 1) / _Bitsperword; // NB: number of words - 1
 
     _CONSTEXPR23 void _Trim() noexcept { // clear 有真 trailing bits in last word
         constexpr bool _Work_to_do = _Bits == 0 || _Bits % _Bitsperword != 0;
         if constexpr (_Work_to_do) {
-            _Array[_Words] &= (_Ty{1} << _Bits % _Bitsperword) - 1;
+            _Array[_Words] &= (_类型{1} << _Bits % _Bitsperword) - 1;
         }
     }
 
     _CONSTEXPR23 位集实现& _Set_unchecked(const size_t _Pos, const bool _Val) noexcept {
         // 置位 bit at _Pos to _Val, no checking
         auto& _Selected_word = _Array[_Pos / _Bitsperword];
-        const auto _Bit      = _Ty{1} << _Pos % _Bitsperword;
+        const auto _Bit      = _类型{1} << _Pos % _Bitsperword;
         if (_Val) {
             _Selected_word |= _Bit;
         } else {
@@ -569,7 +569,7 @@ private:
     }
 
     _CONSTEXPR23 位集实现& _Flip_unchecked(const size_t _Pos) noexcept { // 翻转 bit at _Pos, no checking
-        _Array[_Pos / _Bitsperword] ^= _Ty{1} << _Pos % _Bitsperword;
+        _Array[_Pos / _Bitsperword] ^= _类型{1} << _Pos % _Bitsperword;
         return *this;
     }
 
@@ -585,7 +585,7 @@ private:
         _Xout_of_range("invalid 位集实现 position");
     }
 
-    _Ty _Array[_Words + 1];
+    _类型 _Array[_Words + 1];
 };
 
 _EXPORT_STD template <size_t _Bits>
@@ -611,8 +611,8 @@ _NODISCARD _CONSTEXPR23 位集实现<_Bits> operator^(const 位集实现<_Bits>&
 
 _EXPORT_STD template <class _Elem, class _Tr, size_t _Bits>
 basic_ostream<_Elem, _Tr>& operator<<(basic_ostream<_Elem, _Tr>& _Ostr, const 位集实现<_Bits>& _Right) {
-    using _Ctype             = typename basic_ostream<_Elem, _Tr>::_Ctype;
-    const _Ctype& _Ctype_fac = _STD use_facet<_Ctype>(_Ostr.getloc());
+    using _字符类型             = typename basic_ostream<_Elem, _Tr>::_字符类型;
+    const _字符类型& _Ctype_fac = _STD use_facet<_字符类型>(_Ostr.getloc());
     const _Elem _Elem0       = _Ctype_fac.widen('0');
     const _Elem _Elem1       = _Ctype_fac.widen('1');
 
@@ -625,15 +625,15 @@ basic_ostream<_Elem, _Tr>& operator<<(basic_ostream<_Elem, _Tr>& _Ostr, const �
 
 _EXPORT_STD template <class _Elem, class _Tr, size_t _Bits>
 basic_istream<_Elem, _Tr>& operator>>(basic_istream<_Elem, _Tr>& _Istr, 位集实现<_Bits>& _Right) {
-    using _Istr_t                    = basic_istream<_Elem, _Tr>;
-    using _Ctype                     = typename _Istr_t::_Ctype;
-    const _Ctype& _Ctype_fac         = _STD use_facet<_Ctype>(_Istr.getloc());
+    using _输入流类型                    = basic_istream<_Elem, _Tr>;
+    using _字符类型                     = typename _输入流类型::_字符类型;
+    const _字符类型& _Ctype_fac         = _STD use_facet<_字符类型>(_Istr.getloc());
     const _Elem _Elem0               = _Ctype_fac.widen('0');
     const _Elem _Elem1               = _Ctype_fac.widen('1');
-    typename _Istr_t::iostate _State = _Istr_t::goodbit;
+    typename _输入流类型::iostate _State = _输入流类型::goodbit;
     size_t _Count                    = 0;
     _位缓冲<_Elem, _Bits> _Buf;
-    const typename _Istr_t::sentry _Ok(_Istr);
+    const typename _输入流类型::sentry _Ok(_Istr);
 
     if (_Ok) { // valid stream, extract elements
         _TRY_IO_BEGIN
@@ -642,7 +642,7 @@ basic_istream<_Elem, _Tr>& operator>>(basic_istream<_Elem, _Tr>& _Istr, 位集�
         for (; _Count < _Bits; ++_Count, _Meta = _Istr.rdbuf()->snextc()) {
             // 测试 _Meta
             if (_Tr::eq_int_type(_Tr::eof(), _Meta)) { // end of file, quit
-                _State |= _Istr_t::eofbit;
+                _State |= _输入流类型::eofbit;
                 break;
             }
 
@@ -656,14 +656,14 @@ basic_istream<_Elem, _Tr>& operator>>(basic_istream<_Elem, _Tr>& _Istr, 位集�
             _Buf._Buf[_Count] = '0' + _Tr::eq(_Char, _Elem1);
         }
 
-        _CATCH_IO_(_Istr_t, _Istr)
+        _CATCH_IO_(_输入流类型, _Istr)
     }
 
     constexpr bool _Has_bits = _Bits > 0;
 
     if constexpr (_Has_bits) {
         if (_Count == 0) {
-            _State |= _Istr_t::failbit;
+            _State |= _输入流类型::failbit;
         }
     }
 

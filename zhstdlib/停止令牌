@@ -39,10 +39,10 @@ class _停止回调基类 {
     friend _停止状态;
 
 private:
-    using _Callback_fn = void(__cdecl*)(_停止回调基类*) _NOEXCEPT_FNPTR;
+    using _回调函数指针 = void(__cdecl*)(_停止回调基类*) _NOEXCEPT_FNPTR;
 
 public:
-    explicit _停止回调基类(const _Callback_fn _Fn_) noexcept : _Fn{_Fn_} {}
+    explicit _停止回调基类(const _回调函数指针 _Fn_) noexcept : _Fn{_Fn_} {}
 
     _停止回调基类(const _停止回调基类&)            = delete;
     _停止回调基类& operator=(const _停止回调基类&) = delete;
@@ -64,7 +64,7 @@ protected:
     _停止状态* _Parent       = nullptr;
     _停止回调基类* _Next = nullptr;
     _停止回调基类* _Prev = nullptr;
-    _Callback_fn _Fn;
+    _回调函数指针 _Fn;
 };
 
 struct _停止状态 {
