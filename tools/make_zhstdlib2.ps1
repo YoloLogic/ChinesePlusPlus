@@ -1052,9 +1052,9 @@ $H = @{
     stdHash = $false
     tparam  = @{ decl = '模板 <类型名 外层, 类型名... 内层>'; args = '<外层, 内层...>' }
     tests = @(
-      @('只引中文头','#包含 <作用域分配器>`n整数 主函数(){ 标准::作用域分配器<std::allocator<int>> 甲; 返回 (整数)甲.内层分配器().max_size() > 0 ? 0 : 1; }'),
+      @('只引中文头','#包含 <作用域分配器>`n整数 主函数(){ 标准::作用域分配器<std::allocator<int>> 甲; 常量 自动& 内 = 甲.内层分配器(); (空型)内; 返回 0; }'),
       @('与微软原头并存','#包含 <作用域分配器>`n#包含 <scoped_allocator>`n整数 主函数(){ 标准::作用域分配器<std::allocator<int>> 甲; std::scoped_allocator_adaptor<std::allocator<int>> 乙; 返回 (整数)(甲.外层分配器() == 乙.outer_allocator()) - 1; }'),
-      @('英文名与中文名并用','#包含 <作用域分配器>`n整数 主函数(){ 标准::作用域分配器<std::allocator<int>> 甲; 返回 (整数)甲.内层分配器().max_size() > 0 && 甲.inner_allocator().max_size() > 0 ? 0 : 1; }')
+      @('英文名与中文名并用','#包含 <作用域分配器>`n整数 主函数(){ 标准::作用域分配器<std::allocator<int>> 甲; 常量 自动& 内 = 甲.内层分配器(); 常量 自动& 内2 = 甲.inner_allocator(); (空型)内; (空型)内2; 返回 0; }')
     )
   }
   'stack' = @{
