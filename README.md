@@ -5,7 +5,7 @@
 
 编译器：`build\Release\bin\chinese++.exe`
 
-**发行包**：`dist\Chinese++-0.1-win64.zip`（77.8 MB）→ 解压 → 双击 `一键安装.cmd`
+**发行包**：Chinese++ **0.1**（win64）—— `dist\Chinese++-0.1-win64.zip`（77.8 MB）→ 解压 → 双击 `一键安装.cmd`
 
 ```cpp
 整数 main() {
