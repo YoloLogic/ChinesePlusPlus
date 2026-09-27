@@ -39,7 +39,7 @@ public:
     using reference       = typename _Container::reference;
     using const_reference = typename _Container::const_reference;
     using size_type       = typename _Container::size_type;
-    using container_type  = _Container;
+    using 容器类型  = _Container;
 
     static_assert(is_same_v<_Ty, value_type>, "container adaptors require consistent types");
     static_assert(is_object_v<_Ty>, "The C++ Standard forbids container adaptors of non-object types "
@@ -241,8 +241,8 @@ public:
     using reference       = typename _Container::reference;
     using const_reference = typename _Container::const_reference;
     using size_type       = typename _Container::size_type;
-    using container_type  = _Container;
-    using value_compare   = _Pr;
+    using 容器类型  = _Container;
+    using 值比较   = _Pr;
 
     static_assert(is_same_v<_Ty, value_type>, "container adaptors require consistent types");
     static_assert(is_object_v<_Ty>, "The C++ Standard forbids container adaptors of non-object types "
@@ -252,7 +252,7 @@ public:
 
     explicit 优先队列实现(const _Pr& _Pred)
         noexcept(is_nothrow_default_constructible_v<_Container>
-                 && is_nothrow_copy_constructible_v<value_compare>) // strengthened
+                 && is_nothrow_copy_constructible_v<值比较>) // strengthened
         : c(), comp(_Pred) {}
 
     优先队列实现(const _Pr& _Pred, const _Container& _Cont) : c(_Cont), comp(_Pred) {
@@ -296,13 +296,13 @@ public:
     template <class _Alloc, enable_if_t<uses_allocator_v<_Container, _Alloc>, int> = 0>
     explicit 优先队列实现(const _Alloc& _Al)
         noexcept(is_nothrow_constructible_v<_Container, const _Alloc&>
-                 && is_nothrow_default_constructible_v<value_compare>) // strengthened
+                 && is_nothrow_default_constructible_v<值比较>) // strengthened
         : c(_Al), comp() {}
 
     template <class _Alloc, enable_if_t<uses_allocator_v<_Container, _Alloc>, int> = 0>
     优先队列实现(const _Pr& _Pred, const _Alloc& _Al)
         noexcept(is_nothrow_constructible_v<_Container, const _Alloc&>
-                 && is_nothrow_copy_constructible_v<value_compare>) // strengthened
+                 && is_nothrow_copy_constructible_v<值比较>) // strengthened
         : c(_Al), comp(_Pred) {}
 
     template <class _Alloc, enable_if_t<uses_allocator_v<_Container, _Alloc>, int> = 0>
@@ -321,7 +321,7 @@ public:
     template <class _Alloc, enable_if_t<uses_allocator_v<_Container, _Alloc>, int> = 0>
     优先队列实现(优先队列实现&& _Right, const _Alloc& _Al)
         noexcept(is_nothrow_constructible_v<_Container, _Container, const _Alloc&>
-                 && is_nothrow_move_constructible_v<value_compare>) // strengthened
+                 && is_nothrow_move_constructible_v<值比较>) // strengthened
         : c(_STD move(_Right.c), _Al), comp(_STD move(_Right.comp)) {}
 
     template <class _InIt, class _Alloc,
@@ -530,7 +530,7 @@ _STL_RESTORE_CLANG_WARNINGS
     使用 基类::基类;
 
     // 嵌套类型名也要补回英文（数据成员不行 —— 那会改布局）
-
+    使用 container_type = 基类::容器类型;
 
     // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
     模板 <类型名... 参数> 自动 emplace(参数&&... 值) { 返回 基类::就地构造(static_cast<参数&&>(值)...); }
@@ -561,6 +561,12 @@ _STL_RESTORE_CLANG_WARNINGS
 公开:
     使用 基类 = 细节::优先队列实现<元素, 容器, 比较>;
     使用 基类::基类;
+    // ⚠ §16.41：派生层的 deriveTypes 只管【主类 队列】，管不到这里。
+    //   抄来那层已经把 container_type / value_compare 翻成汉语，
+    //   所以这两个类的英文原名必须【在这里手写补回】——
+    //   不写就是"翻一半"：原来能用的 `标准::优先队列<T>::container_type` 会消失（回归）。
+    使用 container_type = 基类::容器类型;
+    使用 value_compare  = 基类::值比较;
     模板 <类型名... 参数> 自动 push(参数&&... 值) { 返回 基类::压入(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 pop(参数&&... 值) { 返回 基类::弹出(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 top(参数&&... 值) 常量 { 返回 基类::堆顶(static_cast<参数&&>(值)...); }

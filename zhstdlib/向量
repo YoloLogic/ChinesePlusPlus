@@ -440,24 +440,24 @@ public:
     pointer _Myend; // pointer to 结束 of array
 };
 
-_EXPORT_STD template <class _Ty, class _Alloc = allocator<_Ty>>
+_EXPORT_STD template <class _Ty, class _分配器 = allocator<_Ty>>
 class 向量实现 { // varying 尺寸 array of values
 private:
     template <class>
     friend class _位向量值;
     friend _Tidy_guard<向量实现>;
 
-    using _分配器类型        = _Rebind_alloc_t<_Alloc, _Ty>;
+    using _分配器类型        = _Rebind_alloc_t<_分配器, _Ty>;
     using _分配器特征 = allocator_traits<_分配器类型>;
 
 public:
-    static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<_Ty, typename _Alloc::value_type>,
+    static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<_Ty, typename _分配器::value_type>,
         _MISMATCHED_ALLOCATOR_MESSAGE("向量实现<T, Allocator>", "T"));
     static_assert(is_object_v<_Ty>, "The C++ Standard forbids containers of non-object types "
                                     "because of [container.requirements].");
 
     using value_type      = _Ty;
-    using allocator_type  = _Alloc;
+    using allocator_type  = _分配器;
     using pointer         = typename _分配器特征::pointer;
     using const_pointer   = typename _分配器特征::const_pointer;
     using reference       = _Ty&;
@@ -610,7 +610,7 @@ private:
         _向量迭代类型集<_Ty, size_type, difference_type, pointer, const_pointer>>>;
 
     struct _NODISCARD _重分配守卫 {
-        _Alloc& _Al;
+        _分配器& _Al;
         pointer _New_begin;
         size_type _New_capacity;
         pointer _Constructed_first;
@@ -628,7 +628,7 @@ private:
     };
 
     struct _NODISCARD _简单重分配守卫 {
-        _Alloc& _Al;
+        _分配器& _Al;
         pointer _New_begin;
         size_type _New_capacity;
 
@@ -673,25 +673,25 @@ public:
         _Mypair._Myval2._Alloc_proxy(_GET_PROXY_ALLOCATOR(_分配器类型, _Getal()));
     }
 
-    _CONSTEXPR20 explicit 向量实现(const _Alloc& _Al) noexcept : _Mypair(_One_then_variadic_args_t{}, _Al) {
+    _CONSTEXPR20 explicit 向量实现(const _分配器& _Al) noexcept : _Mypair(_One_then_variadic_args_t{}, _Al) {
         _Mypair._Myval2._Alloc_proxy(_GET_PROXY_ALLOCATOR(_分配器类型, _Getal()));
     }
 
-    _CONSTEXPR20 explicit 向量实现(_CRT_GUARDOVERFLOW const size_type _Count, const _Alloc& _Al = _Alloc())
+    _CONSTEXPR20 explicit 向量实现(_CRT_GUARDOVERFLOW const size_type _Count, const _分配器& _Al = _分配器())
         : _Mypair(_One_then_variadic_args_t{}, _Al) {
         _Construct_n(_Count);
     }
 
 #if _HAS_CXX17
-    template <class _Alloc2 = _Alloc, enable_if_t<_Is_allocator<_Alloc2>::value, int> = 0>
+    template <class _Alloc2 = _分配器, enable_if_t<_Is_allocator<_Alloc2>::value, int> = 0>
 #endif // _HAS_CXX17
-    _CONSTEXPR20 向量实现(_CRT_GUARDOVERFLOW const size_type _Count, const _Ty& _Val, const _Alloc& _Al = _Alloc())
+    _CONSTEXPR20 向量实现(_CRT_GUARDOVERFLOW const size_type _Count, const _Ty& _Val, const _分配器& _Al = _分配器())
         : _Mypair(_One_then_variadic_args_t{}, _Al) {
         _Construct_n(_Count, _Val);
     }
 
     template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
-    _CONSTEXPR20 向量实现(_Iter _First, _Iter _Last, const _Alloc& _Al = _Alloc())
+    _CONSTEXPR20 向量实现(_Iter _First, _Iter _Last, const _分配器& _Al = _分配器())
         : _Mypair(_One_then_variadic_args_t{}, _Al) {
         _Adl_verify_range(_First, _Last);
         auto _UFirst = _Get_unwrapped(_First);
@@ -718,14 +718,14 @@ public:
         }
     }
 
-    _CONSTEXPR20 向量实现(initializer_list<_Ty> _Ilist, const _Alloc& _Al = _Alloc())
+    _CONSTEXPR20 向量实现(initializer_list<_Ty> _Ilist, const _分配器& _Al = _分配器())
         : _Mypair(_One_then_variadic_args_t{}, _Al) {
         _Construct_n(_Convert_size<size_type>(_Ilist.尺寸()), _Ilist.开始(), _Ilist.结束());
     }
 
 #if _HAS_CXX23
     template <_Container_compatible_range<_Ty> _Rng>
-    constexpr 向量实现(from_range_t, _Rng&& _Range, const _Alloc& _Al = _Alloc())
+    constexpr 向量实现(from_range_t, _Rng&& _Range, const _分配器& _Al = _分配器())
         : _Mypair(_One_then_variadic_args_t{}, _Al) {
         if constexpr (_RANGES sized_range<_Rng> || _RANGES forward_range<_Rng>) {
             const auto _Length = _To_unsigned_like(_RANGES distance(_Range));
@@ -751,7 +751,7 @@ public:
         _Construct_n(_Count, _Right_data._Myfirst, _Right_data._Mylast);
     }
 
-    _CONSTEXPR20 向量实现(const 向量实现& _Right, const _Identity_t<_Alloc>& _Al)
+    _CONSTEXPR20 向量实现(const 向量实现& _Right, const _Identity_t<_分配器>& _Al)
         : _Mypair(_One_then_variadic_args_t{}, _Al) {
         const auto& _Right_data = _Right._Mypair._Myval2;
         const auto _Count       = static_cast<size_type>(_Right_data._Mylast - _Right_data._Myfirst);
@@ -767,7 +767,7 @@ public:
         _Mypair._Myval2._Swap_proxy_and_iterators(_Right._Mypair._Myval2);
     }
 
-    _CONSTEXPR20 向量实现(向量实现&& _Right, const _Identity_t<_Alloc>& _Al_)
+    _CONSTEXPR20 向量实现(向量实现&& _Right, const _Identity_t<_分配器>& _Al_)
         noexcept(_分配器特征::is_always_equal::value) // strengthened
         : _Mypair(_One_then_variadic_args_t{}, _Al_) {
         _分配器类型& _Al        = _Getal();
@@ -857,7 +857,7 @@ private:
         pointer& _Mylast = _My_data._Mylast;
         _STL_INTERNAL_CHECK(_Mylast != _My_data._Myend); // check that we have unused 容量
         if constexpr (conjunction_v<is_nothrow_constructible<_Ty, _Valty...>,
-                          _Uses_default_construct<_Alloc, _Ty*, _Valty...>>) {
+                          _Uses_default_construct<_分配器, _Ty*, _Valty...>>) {
             _ASAN_VECTOR_MODIFY(1);
             _Construct_in_place(*_Mylast, _STD forward<_Valty>(_Val)...);
         } else {
@@ -1353,7 +1353,7 @@ public:
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
         constexpr bool _Nothrow_construct =
-            conjunction_v<is_nothrow_copy_constructible<_Ty>, _Uses_default_construct<_Alloc, _Ty*, const _Ty&>>;
+            conjunction_v<is_nothrow_copy_constructible<_Ty>, _Uses_default_construct<_分配器, _Ty*, const _Ty&>>;
 
         _My_data._Orphan_all();
         const auto _Oldcapacity = static_cast<size_type>(_My_data._Myend - _Myfirst);
@@ -1428,7 +1428,7 @@ private:
         pointer& _Myend   = _My_data._Myend;
 
         constexpr bool _Nothrow_construct = conjunction_v<is_nothrow_constructible<_Ty, _Iter_ref_t<_Iter>>,
-            _Uses_default_construct<_Alloc, _Ty*, _Iter_ref_t<_Iter>>>;
+            _Uses_default_construct<_分配器, _Ty*, _Iter_ref_t<_Iter>>>;
 
         _My_data._Orphan_all();
         const auto _Oldcapacity = static_cast<size_type>(_Myend - _Myfirst);
@@ -2143,7 +2143,7 @@ private:
         pointer& _Mylast  = _My_data._Mylast;
 
         constexpr bool _Nothrow_construct =
-            conjunction_v<is_nothrow_move_constructible<_Ty>, _Uses_default_construct<_Alloc, _Ty*, _Ty>>;
+            conjunction_v<is_nothrow_move_constructible<_Ty>, _Uses_default_construct<_分配器, _Ty*, _Ty>>;
 
         _My_data._Orphan_all();
         const auto _Oldcapacity = static_cast<size_type>(_My_data._Myend - _Myfirst);
@@ -2247,25 +2247,25 @@ private:
 };
 
 #if _HAS_CXX17
-template <class _Iter, class _Alloc = allocator<_Iter_value_t<_Iter>>,
-    enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_allocator<_Alloc>>, int> = 0>
-向量实现(_Iter, _Iter, _Alloc = _Alloc()) -> 向量实现<_Iter_value_t<_Iter>, _Alloc>;
+template <class _Iter, class _分配器 = allocator<_Iter_value_t<_Iter>>,
+    enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_allocator<_分配器>>, int> = 0>
+向量实现(_Iter, _Iter, _分配器 = _分配器()) -> 向量实现<_Iter_value_t<_Iter>, _分配器>;
 #endif // _HAS_CXX17
 
 #if _HAS_CXX23
-template <_RANGES input_range _Rng, _Allocator_for_container _Alloc = allocator<_RANGES range_value_t<_Rng>>>
-向量实现(from_range_t, _Rng&&, _Alloc = _Alloc()) -> 向量实现<_RANGES range_value_t<_Rng>, _Alloc>;
+template <_RANGES input_range _Rng, _Allocator_for_container _分配器 = allocator<_RANGES range_value_t<_Rng>>>
+向量实现(from_range_t, _Rng&&, _分配器 = _分配器()) -> 向量实现<_RANGES range_value_t<_Rng>, _分配器>;
 #endif // _HAS_CXX23
 
-template <class _Alloc>
-class 向量实现<bool, _Alloc>;
+template <class _分配器>
+class 向量实现<bool, _分配器>;
 
 using _位基 = unsigned int; // word type for 向量实现<bool> representation
 
 _INLINE_VAR constexpr int _VBITS = 8 * sizeof(_位基); // 取值 least CHAR_BITS bits per word
 
-_EXPORT_STD template <class _Ty, class _Alloc>
-_NODISCARD _CONSTEXPR20 bool operator==(const 向量实现<_Ty, _Alloc>& _Left, const 向量实现<_Ty, _Alloc>& _Right) {
+_EXPORT_STD template <class _Ty, class _分配器>
+_NODISCARD _CONSTEXPR20 bool operator==(const 向量实现<_Ty, _分配器>& _Left, const 向量实现<_Ty, _分配器>& _Right) {
     if (_Left.尺寸() != _Right.尺寸()) {
         return false;
     }
@@ -2279,8 +2279,8 @@ _NODISCARD _CONSTEXPR20 bool operator==(const 向量实现<_Ty, _Alloc>& _Left, 
 }
 
 #if !_HAS_CXX20
-template <class _Ty, class _Alloc>
-_NODISCARD bool operator!=(const 向量实现<_Ty, _Alloc>& _Left, const 向量实现<_Ty, _Alloc>& _Right) {
+template <class _Ty, class _分配器>
+_NODISCARD bool operator!=(const 向量实现<_Ty, _分配器>& _Left, const 向量实现<_Ty, _分配器>& _Right) {
     return !(_Left == _Right);
 }
 #endif // !_HAS_CXX20
@@ -2329,9 +2329,9 @@ struct _位基三路比较 {
 };
 
 #if _HAS_CXX20
-_EXPORT_STD template <class _Ty, class _Alloc>
+_EXPORT_STD template <class _Ty, class _分配器>
 _NODISCARD constexpr _Synth_three_way_result<_Ty> operator<=>(
-    const 向量实现<_Ty, _Alloc>& _Left, const 向量实现<_Ty, _Alloc>& _Right) {
+    const 向量实现<_Ty, _分配器>& _Left, const 向量实现<_Ty, _分配器>& _Right) {
     if constexpr (is_same_v<_Ty, bool>) {
         // This optimization works because 向量实现<bool> "trims" its underlying storage by zeroing out unused bits.
         const auto _Min_word_size = (_STD min)(_Left._我的向量.尺寸(), _Right._我的向量.尺寸());
@@ -2354,8 +2354,8 @@ _NODISCARD constexpr _Synth_three_way_result<_Ty> operator<=>(
     }
 }
 #else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
-template <class _Ty, class _Alloc>
-_NODISCARD _CONSTEXPR20 bool operator<(const 向量实现<_Ty, _Alloc>& _Left, const 向量实现<_Ty, _Alloc>& _Right) {
+template <class _Ty, class _分配器>
+_NODISCARD _CONSTEXPR20 bool operator<(const 向量实现<_Ty, _分配器>& _Left, const 向量实现<_Ty, _分配器>& _Right) {
     if constexpr (is_same_v<_Ty, bool>) {
         // This optimization works because 向量实现<bool> "trims" its underlying storage by zeroing out unused bits.
         auto _First = _Left._我的向量._Unchecked_begin();
@@ -2381,49 +2381,49 @@ _NODISCARD _CONSTEXPR20 bool operator<(const 向量实现<_Ty, _Alloc>& _Left, c
     }
 }
 
-template <class _Ty, class _Alloc>
-_NODISCARD _CONSTEXPR20 bool operator>(const 向量实现<_Ty, _Alloc>& _Left, const 向量实现<_Ty, _Alloc>& _Right) {
+template <class _Ty, class _分配器>
+_NODISCARD _CONSTEXPR20 bool operator>(const 向量实现<_Ty, _分配器>& _Left, const 向量实现<_Ty, _分配器>& _Right) {
     return _Right < _Left;
 }
 
-template <class _Ty, class _Alloc>
-_NODISCARD _CONSTEXPR20 bool operator<=(const 向量实现<_Ty, _Alloc>& _Left, const 向量实现<_Ty, _Alloc>& _Right) {
+template <class _Ty, class _分配器>
+_NODISCARD _CONSTEXPR20 bool operator<=(const 向量实现<_Ty, _分配器>& _Left, const 向量实现<_Ty, _分配器>& _Right) {
     return !(_Right < _Left);
 }
 
-template <class _Ty, class _Alloc>
-_NODISCARD _CONSTEXPR20 bool operator>=(const 向量实现<_Ty, _Alloc>& _Left, const 向量实现<_Ty, _Alloc>& _Right) {
+template <class _Ty, class _分配器>
+_NODISCARD _CONSTEXPR20 bool operator>=(const 向量实现<_Ty, _分配器>& _Left, const 向量实现<_Ty, _分配器>& _Right) {
     return !(_Left < _Right);
 }
 #endif // ^^^ !_HAS_CXX20 ^^^
 
-_EXPORT_STD template <class _Ty, class _Alloc>
-_CONSTEXPR20 void swap(向量实现<_Ty, _Alloc>& _Left, 向量实现<_Ty, _Alloc>& _Right) noexcept /* strengthened */ {
+_EXPORT_STD template <class _Ty, class _分配器>
+_CONSTEXPR20 void swap(向量实现<_Ty, _分配器>& _Left, 向量实现<_Ty, _分配器>& _Right) noexcept /* strengthened */ {
     _Left.swap(_Right);
 }
 
 #if _HAS_CXX20
-_EXPORT_STD template <class _Ty, class _Alloc, class _Uty>
-constexpr 向量实现<_Ty, _Alloc>::size_type 擦除(向量实现<_Ty, _Alloc>& _Cont, const _Uty& _Val) {
+_EXPORT_STD template <class _Ty, class _分配器, class _Uty>
+constexpr 向量实现<_Ty, _分配器>::size_type 擦除(向量实现<_Ty, _分配器>& _Cont, const _Uty& _Val) {
     return _Erase_remove(_Cont, _Val);
 }
 
-_EXPORT_STD template <class _Ty, class _Alloc, class _Pr>
-constexpr 向量实现<_Ty, _Alloc>::size_type erase_if(向量实现<_Ty, _Alloc>& _Cont, _Pr _Pred) {
+_EXPORT_STD template <class _Ty, class _分配器, class _Pr>
+constexpr 向量实现<_Ty, _分配器>::size_type erase_if(向量实现<_Ty, _分配器>& _Cont, _Pr _Pred) {
     return _Erase_remove_if(_Cont, _STD _Pass_fn(_Pred));
 }
 #endif // _HAS_CXX20
 
 template <class _Alloc0>
 struct _包装分配器 { // TRANSITION, ABI compat, preserves symbol names of 向量实现<bool>::iterator
-    using _Alloc = _Alloc0;
+    using _分配器 = _Alloc0;
 };
 
 template <class _位向量基分配器包装>
 class _位向量迭代基类 : public _Iterator_base {
     // store information common to reference and iterators
 public:
-    using _位向量基分配器         = typename _位向量基分配器包装::_Alloc;
+    using _位向量基分配器         = typename _位向量基分配器包装::_分配器;
     using _尺寸类型       = typename allocator_traits<_位向量基分配器>::size_type;
     using _差异类型 = typename allocator_traits<_位向量基分配器>::difference_type;
     using _我的容器          = 向量实现<bool, _Rebind_alloc_t<_位向量基分配器, bool>>;
@@ -2808,10 +2808,10 @@ public:
     using _阻止继承解包 = _位向量迭代器;
 };
 
-template <class _Alloc>
+template <class _分配器>
 class _位向量值 : public _Container_base {
 public:
-    using _位向量基分配器         = _Rebind_alloc_t<_Alloc, _位基>;
+    using _位向量基分配器         = _Rebind_alloc_t<_分配器, _位基>;
     using _位向量基分配器特征  = allocator_traits<_位向量基分配器>;
     using _向量类型         = 向量实现<_位基, _位向量基分配器>;
     using _位向量基分配器包装 = _包装分配器<_位向量基分配器>;
@@ -2821,7 +2821,7 @@ public:
         this->_Alloc_proxy(_GET_PROXY_ALLOCATOR(_位向量基分配器, _Getal()));
     }
 
-    _CONSTEXPR20 _位向量值(const _Alloc& _Al) noexcept : _我的向量(static_cast<_位向量基分配器>(_Al)), _Mysize(0) {
+    _CONSTEXPR20 _位向量值(const _分配器& _Al) noexcept : _我的向量(static_cast<_位向量基分配器>(_Al)), _Mysize(0) {
         this->_Alloc_proxy(_GET_PROXY_ALLOCATOR(_位向量基分配器, _Getal()));
     }
 
@@ -2830,7 +2830,7 @@ public:
         this->_Alloc_proxy(_GET_PROXY_ALLOCATOR(_位向量基分配器, _Getal()));
     }
 
-    _CONSTEXPR20 _位向量值(size_type _Count, const bool& _Val, const _Alloc& _Al)
+    _CONSTEXPR20 _位向量值(size_type _Count, const bool& _Val, const _分配器& _Al)
         : _我的向量(_Nw(_Count), static_cast<_位基>(_Val ? -1 : 0), static_cast<_位向量基分配器>(_Al)), _Mysize(0) {
         this->_Alloc_proxy(_GET_PROXY_ALLOCATOR(_位向量基分配器, _Getal()));
     }
@@ -2839,7 +2839,7 @@ public:
         this->_Alloc_proxy(_GET_PROXY_ALLOCATOR(_位向量基分配器, _Getal()));
     }
 
-    _CONSTEXPR20 _位向量值(const _位向量值& _Right, const _Alloc& _Al)
+    _CONSTEXPR20 _位向量值(const _位向量值& _Right, const _分配器& _Al)
         : _我的向量(_Right._我的向量, static_cast<_位向量基分配器>(_Al)), _Mysize(_Right._Mysize) {
         this->_Alloc_proxy(_GET_PROXY_ALLOCATOR(_位向量基分配器, _Getal()));
     }
@@ -2849,7 +2849,7 @@ public:
         this->_Alloc_proxy(_GET_PROXY_ALLOCATOR(_位向量基分配器, _Getal()));
     }
 
-    _CONSTEXPR20 _位向量值(_位向量值&& _Right, const _Alloc& _Al)
+    _CONSTEXPR20 _位向量值(_位向量值&& _Right, const _分配器& _Al)
         noexcept(is_nothrow_constructible_v<_向量类型, _向量类型, _位向量基分配器>)
         : _我的向量(_STD move(_Right._我的向量), static_cast<_位向量基分配器>(_Al)), _Mysize(_Right._Mysize) {
         if (_Right._我的向量.为空()) {
@@ -2895,20 +2895,20 @@ public:
     size_type _Mysize; // current length of sequence
 };
 
-template <class _Alloc>
-class 向量实现<bool, _Alloc> : public _位向量值<_Alloc> {
+template <class _分配器>
+class 向量实现<bool, _分配器> : public _位向量值<_分配器> {
 public:
-    static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<bool, typename _Alloc::value_type>,
+    static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<bool, typename _分配器::value_type>,
         _MISMATCHED_ALLOCATOR_MESSAGE("向量实现<bool, Allocator>", "bool"));
 
-    using _我的基类          = _位向量值<_Alloc>;
+    using _我的基类          = _位向量值<_分配器>;
     using _位向量基分配器包装 = typename _我的基类::_位向量基分配器包装;
     using _位向量基分配器         = typename _我的基类::_位向量基分配器;
     using _位向量基分配器特征  = typename _我的基类::_位向量基分配器特征;
 
     using size_type       = typename _位向量基分配器特征::size_type;
     using difference_type = typename _位向量基分配器特征::difference_type;
-    using allocator_type  = _Alloc;
+    using allocator_type  = _分配器;
 
     using reference       = _位引用<_位向量基分配器包装>;
     using const_reference = bool;
@@ -2925,32 +2925,32 @@ public:
 
     enum { _EEN_VBITS = _VBITS }; // helper for expression evaluator
 
-    _CONSTEXPR20 向量实现() noexcept(is_nothrow_default_constructible_v<_Alloc>) : _我的基类(_Alloc()) {}
+    _CONSTEXPR20 向量实现() noexcept(is_nothrow_default_constructible_v<_分配器>) : _我的基类(_分配器()) {}
 
-    _CONSTEXPR20 explicit 向量实现(const _Alloc& _Al) noexcept : _我的基类(_Al) {}
+    _CONSTEXPR20 explicit 向量实现(const _分配器& _Al) noexcept : _我的基类(_Al) {}
 
-    _CONSTEXPR20 explicit 向量实现(_CRT_GUARDOVERFLOW size_type _Count, const _Alloc& _Al = _Alloc())
+    _CONSTEXPR20 explicit 向量实现(_CRT_GUARDOVERFLOW size_type _Count, const _分配器& _Al = _分配器())
         : _我的基类(_Count, false, _Al) {
         _Trim(_Count);
     }
 
-    _CONSTEXPR20 向量实现(_CRT_GUARDOVERFLOW size_type _Count, const bool& _Val, const _Alloc& _Al = _Alloc())
+    _CONSTEXPR20 向量实现(_CRT_GUARDOVERFLOW size_type _Count, const bool& _Val, const _分配器& _Al = _分配器())
         : _我的基类(_Count, _Val, _Al) {
         _Trim(_Count);
     }
 
     _CONSTEXPR20 向量实现(const 向量实现& _Right) : _我的基类(_Right) {}
 
-    _CONSTEXPR20 向量实现(const 向量实现& _Right, const _Identity_t<_Alloc>& _Al) : _我的基类(_Right, _Al) {}
+    _CONSTEXPR20 向量实现(const 向量实现& _Right, const _Identity_t<_分配器>& _Al) : _我的基类(_Right, _Al) {}
 
     template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
-    _CONSTEXPR20 向量实现(_Iter _First, _Iter _Last, const _Alloc& _Al = _Alloc()) : _我的基类(_Al) {
+    _CONSTEXPR20 向量实现(_Iter _First, _Iter _Last, const _分配器& _Al = _分配器()) : _我的基类(_Al) {
         插入(开始(), _First, _Last);
     }
 
 #if _HAS_CXX23
     template <_Container_compatible_range<bool> _Rng>
-    constexpr 向量实现(from_range_t, _Rng&& _Range, const _Alloc& _Al = _Alloc()) : _我的基类(_Al) {
+    constexpr 向量实现(from_range_t, _Rng&& _Range, const _分配器& _Al = _分配器()) : _我的基类(_Al) {
         if constexpr (_RANGES forward_range<_Rng> || _RANGES sized_range<_Rng>) {
             const auto _Length = _To_unsigned_like(_RANGES distance(_Range));
             const auto _Count  = _Convert_size<size_type>(_Length);
@@ -2965,8 +2965,8 @@ public:
         this->_Swap_proxy_and_iterators(_Right);
     }
 
-    _CONSTEXPR20 向量实现(向量实现&& _Right, const _Identity_t<_Alloc>& _Al)
-        noexcept(is_nothrow_constructible_v<_我的基类, _我的基类, const _Alloc&>) // strengthened
+    _CONSTEXPR20 向量实现(向量实现&& _Right, const _Identity_t<_分配器>& _Al)
+        noexcept(is_nothrow_constructible_v<_我的基类, _我的基类, const _分配器&>) // strengthened
         : _我的基类(_STD move(_Right), _Al) {
         if constexpr (!_位向量基分配器特征::is_always_equal::value) {
             if (this->_Getal() != _Right._Getal()) {
@@ -3042,7 +3042,7 @@ public:
         return 插入(_Where, _Tmp);
     }
 
-    _CONSTEXPR20 向量实现(initializer_list<bool> _Ilist, const _Alloc& _Al = allocator_type()) : _我的基类(0, false, _Al) {
+    _CONSTEXPR20 向量实现(initializer_list<bool> _Ilist, const _分配器& _Al = allocator_type()) : _我的基类(0, false, _Al) {
         插入(开始(), _Ilist.begin(), _Ilist.end());
     }
 
@@ -3510,7 +3510,7 @@ public:
         _Right    = _Val;
     }
 
-    friend hash<向量实现<bool, _Alloc>>;
+    friend hash<向量实现<bool, _分配器>>;
 
     _CONSTEXPR20 iterator _Insert_n(const_iterator _Where, size_type _Count, const bool& _Val) {
         size_type _Off     = _Insert_x(_Where, _Count);
@@ -3615,13 +3615,13 @@ public:
     }
 };
 
-template <class _Alloc>
-struct hash<向量实现<bool, _Alloc>> {
-    using _ARGUMENT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS = 向量实现<bool, _Alloc>;
+template <class _分配器>
+struct hash<向量实现<bool, _分配器>> {
+    using _ARGUMENT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS = 向量实现<bool, _分配器>;
     using _RESULT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS   = size_t;
 
     _NODISCARD _STATIC_CALL_OPERATOR size_t operator()(
-        const 向量实现<bool, _Alloc>& _Keyval) _CONST_CALL_OPERATOR noexcept {
+        const 向量实现<bool, _分配器>& _Keyval) _CONST_CALL_OPERATOR noexcept {
         return _Hash_array_representation(_Keyval._我的向量.数据(), _Keyval._我的向量.尺寸());
     }
 };
@@ -3660,11 +3660,11 @@ template <class _Ty>
 constexpr bool enable_nonlocking_formatter_optimization<_Ty> = true;
 #endif // _HAS_CXX23
 
-template <class _Alloc, bool _RequiresMutable>
-constexpr bool _Is_vb_iterator<_位向量迭代器<_Alloc>, _RequiresMutable> = true;
+template <class _分配器, bool _RequiresMutable>
+constexpr bool _Is_vb_iterator<_位向量迭代器<_分配器>, _RequiresMutable> = true;
 
-template <class _Alloc>
-constexpr bool _Is_vb_iterator<_位向量常量迭代器<_Alloc>, false> = true;
+template <class _分配器>
+constexpr bool _Is_vb_iterator<_位向量常量迭代器<_分配器>, false> = true;
 
 template <class _VbIt>
 _CONSTEXPR20 void _Fill_vbool(_VbIt _First, const _VbIt _Last, const bool _Val) noexcept {
