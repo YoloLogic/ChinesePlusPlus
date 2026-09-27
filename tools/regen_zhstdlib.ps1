@@ -35,12 +35,28 @@ function Get-Entries([string]$file) {
 }
 
 $jobs = @(
+    # make_zhc.ps1 一次生成【全部 26 个 C 包装头】，没有 -Header 参数 —— 单独一次。
+    # ⚠ 它是 2026-09-27 才补进来的：在此之前 26 个甲类头【不在】本脚本名单里，
+    #   也就是"改了生成器但没人重生成它们"（正是本脚本存在的理由，却漏了一半）。
+    @{ Script = 'make_zhc.ps1';        Once    = $true },
     @{ Script = 'make_zhalias.ps1';    Entries = (Get-Entries (Join-Path $root 'tools\make_zhalias.ps1'))    },
     @{ Script = 'make_zhstdlib2.ps1';  Entries = (Get-Entries (Join-Path $root 'tools\make_zhstdlib2.ps1'))  }
 )
 
 $fail = 0
 foreach ($j in $jobs) {
+    if ($j.Once) {
+        Write-Host ("=== {0}  (一次生成全部) ===" -f $j.Script) -ForegroundColor Cyan
+        $o = & pwsh -NoProfile -File (Join-Path $root "tools\$($j.Script)") 2>&1
+        $last = ([string]($o | Select-Object -Last 1)).Trim()
+        # make_zhc.ps1 的收尾行是「  通过 25 / 25」，带前缀 —— 所以取行尾的 N / M
+        $ok = ($last -match '(\d+)\s*/\s*(\d+)\s*$') -and ($Matches[1] -eq $Matches[2])
+        if (-not $ok) { $fail++ }
+        Write-Host ("  {0,-22} {1}   {2}" -f $j.Script, $(if ($ok) { 'ok  ' } else { 'FAIL' }), $last) `
+            -ForegroundColor $(if ($ok) { 'Gray' } else { 'Yellow' })
+        Write-Host ''
+        continue
+    }
     $list = @($j.Entries | Where-Object { $Exclude -notcontains $_ } | Sort-Object)
     Write-Host ("=== {0}  ({1} 个表项) ===" -f $j.Script, $list.Count) -ForegroundColor Cyan
     foreach ($h in $list) {

@@ -53,11 +53,42 @@ foreach ($f in $files) {
 }
 Remove-Item -Recurse -Force $d -ErrorAction SilentlyContinue
 
+# ---------------------------------------------------------------------------
+#  组合探针：把【全部】汉语头放进同一个 TU 一起引。
+#
+#  为什么必须有（实测抓到的第一个真问题，见方案 §3.14）：
+#  汉语别名全都落在同一个 `标准` 里 —— 两个头声明同一个中文名就是【重定义】。
+#  而 C 库在标准里是故意重叠的：std::abs 既属于 <cstdlib> 也属于 <cmath>，
+#  于是 <C标准库> 与 <C数学> 都想声明 标准::绝对值：
+#      error: 重定义（名字）'绝对值'
+#  单头探针永远照不出来（每个头自己都好好的）。
+#  同理它也能照出抄+派生轨道里"两个头都定义了 标准::细节::X"这类跨头撞名。
+# ---------------------------------------------------------------------------
+$all = Join-Path $d 'all.cpp'
+New-Item -ItemType Directory -Force $d | Out-Null   # 上面刚把 $d 删了，这里要重建
+$lines = (Get-ChildItem $inc -File | Sort-Object Name | ForEach-Object { "#包含 <$($_.Name)>" }) -join "`n"
+[System.IO.File]::WriteAllText($all, $lines + "`n整数 主函数(){ 返回 0; }`n", $utf8)
+$allOk = $true; $allErr = ''
+& cmd /c "`"$cxx`" -std=c++20 -isystem`"$inc`" -fsyntax-only `"$all`" > `"$d\all_o.txt`" 2>&1"
+if ($LASTEXITCODE -ne 0) {
+    $allOk = $false
+    $allErr = ([string]((Get-Content "$d\all_o.txt" -ErrorAction SilentlyContinue |
+                Where-Object { $_ -match 'error:' } | Select-Object -First 1))).Trim()
+}
+Remove-Item -Recurse -Force $d -ErrorAction SilentlyContinue
+
 Write-Host ""
 Write-Host ("=== zhstdlib 全量验证: 通过 {0} / {1} ===" -f $ok, $files.Count) -ForegroundColor Cyan
+if ($allOk) {
+    Write-Host ("  组合探针（全部 {0} 个头一起引）: 通过" -f $files.Count) -ForegroundColor Green
+} else {
+    Write-Host "  组合探针（全部头一起引）: FAIL" -ForegroundColor Yellow
+    Write-Host ("    {0}" -f $allErr) -ForegroundColor Yellow
+}
 if ($bad.Count) {
     $bad | ForEach-Object { Write-Host ("  [FAIL] {0,-16} {1}" -f $_.H, $_.E) -ForegroundColor Yellow }
     exit 1
 }
+if (-not $allOk) { exit 1 }
 Write-Host "  全部通过" -ForegroundColor Green
 exit 0

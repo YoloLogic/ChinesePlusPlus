@@ -71,6 +71,61 @@ $H = [ordered]@{
       @('洁净 / new_handler','#包含 <新建>`n整数 主函数(){ 整数 存储; 整数* 甲 = 标准::洁净(&存储); 标准::分配失败处理函数 旧 = 标准::设分配失败处理函数(空指针); 标准::设分配失败处理函数(旧); 返回 0; }')
     )
   }
+  'exception' = @{ zh = '异常'; src = 'exception'; a = @(
+      # 只能别名（铁律 4）：异常类型的【身份】参与语义 —— 捕获是按类型匹配的。
+      # 抄一份再派生等于造了第二个异常体系：catch (std::exception&) 抓不到它。
+      @('原样','使用 异常 = std::exception;'),
+      @('原样','使用 坏异常 = std::bad_exception;'),
+      @('原样','使用 变体访问失败 = std::bad_variant_access;'),
+      @('原样','使用 异常指针 = std::exception_ptr;'),
+      @('原样','使用 嵌套异常 = std::nested_exception;'),
+      @('原样','使用 终止处理 = std::terminate_handler;'),
+      # ⚠ 分配失败 / 数组长度分配失败 已经在 <新建> 里别名过了，这里【不能】再声明：
+      #   汉语别名都落在同一个 标准 里，同名二次声明就是重定义（方案 §3.14）。
+      @('函数','当前异常','current_exception'),
+      @('函数','造异常指针','make_exception_ptr'),
+      @('函数','重抛异常','rethrow_exception'),
+      @('函数','抛出并嵌套','throw_with_nested'),
+      @('函数','若有嵌套则重抛','rethrow_if_nested'),
+      @('函数','终止','terminate'),
+      @('函数','取终止函数','get_terminate'),
+      @('函数','设置终止函数','set_terminate'),
+      @('函数','有未捕获异常','uncaught_exception'),
+      @('函数','未捕获异常数','uncaught_exceptions')
+  )
+    tests = @(
+      @('只引中文头 + 异常必须是同一类型（铁律 4）','#包含 <异常>`n静态断言(std::is_same<标准::异常, std::exception>::value, "");`n整数 主函数(){ 尝试 { 抛出 标准::异常(); } 捕获 (常量 标准::异常&) { 返回 0; } 返回 1; }'),
+      @('与 <exception> 并存','#包含 <异常>`n#包含 <exception>`n整数 主函数(){ 标准::异常指针 甲 = 标准::当前异常(); std::exception_ptr 乙 = 标准::当前异常(); 布尔 无 = (甲 == 空指针) && (乙 == nullptr); 返回 (整数)无 - 1; }'),
+      @('终止 / 未捕获异常数','#包含 <异常>`n整数 主函数(){ 标准::终止处理 旧 = 标准::取终止函数(); 标准::设置终止函数(旧); 整数 数 = 标准::未捕获异常数(); 布尔 有 = 标准::有未捕获异常(); (空型)有; 返回 数; }')
+    )
+  }
+  'system_error' = @{ zh = '系统错误'; src = 'system_error'; a = @(
+      # 只能别名（铁律 4）：错误【类别】是 DLL 里的单例，错误码要和返回
+      # std::error_code 的英文接口（如 <filesystem>）互通 —— 换类型就断。
+      @('原样','使用 错误类别 = std::error_category;'),
+      @('原样','使用 错误码 = std::error_code;'),
+      @('原样','使用 错误条件 = std::error_condition;'),
+      @('原样','使用 系统错误 = std::system_error;'),
+      # ⚠ `枚举` 是关键词，所以 errc 不能叫「错误枚举」
+      @('原样','使用 错误码值 = std::errc;'),
+      @('原样','使用 输入输出错误码 = std::io_errc;'),
+      @('函数','造错误码','make_error_code'),
+      @('函数','造错误条件','make_error_condition'),
+      @('函数','通用类别','generic_category'),
+      @('函数','系统类别','system_category'),
+      @('函数','输入输出类别','iostream_category')
+      # ⚠ 别名层只管【类型名 + 自由函数】，成员名（.value()/.message()）仍是英文 ——
+      #   这是别名轨道与抄+派生轨道的分工（方案铁律 4 那一半）。
+      #   枚举量（std::errc::invalid_argument 等）也仍是英文，记为妥协。
+      # ⚠ 本头还定义了 std::is_error_code_enum / is_error_condition_enum 的特化，
+      #   那些是 std 里的模板特化，别名后仍指向真实类型，不需要重发。
+  )
+    tests = @(
+      @('只引中文头 + 错误码必须是同一类型（铁律 4）','#包含 <系统错误>`n静态断言(std::is_same<标准::错误码, std::error_code>::value, "");`n整数 主函数(){ 标准::错误码 码 = 标准::造错误码(标准::错误码值::no_such_file_or_directory); 返回 码.value() == 0 ? 1 : 0; }'),
+      @('与 <system_error> 并存','#包含 <系统错误>`n#包含 <system_error>`n整数 主函数(){ 标准::错误码 甲 = 标准::造错误码(std::errc::invalid_argument); std::error_code 乙 = 甲; 标准::错误条件 丙 = 标准::造错误条件(std::errc::invalid_argument); 返回 乙.value() == 丙.value() ? 0 : 1; }'),
+      @('系统错误异常 + 三种类别','#包含 <系统错误>`n整数 主函数(){ 标准::错误类别& 类 = 标准::通用类别(); 标准::错误类别& 类2 = 标准::系统类别(); 标准::错误类别& 类3 = 标准::输入输出类别(); 布尔 同 = (&类 != &类2) && (&类2 != &类3); 尝试 { 抛出 标准::系统错误(标准::错误码值::invalid_argument); } 捕获 (常量 标准::系统错误& 错) { 返回 同 ? 错.code().value() : 1; } 返回 1; }')
+    )
+  }
   'concepts' = @{ zh = '概念'; src = 'concepts'; a = @(
       # ⚠ 命名必须与 <类型特征> 区分开：那边是 traits 用 `是…类型`，
       #   这边是 concepts 用 `…于` / `可…` / `…型`。两者一起 #包含 不能重名（见方案 §2.2.1）。
