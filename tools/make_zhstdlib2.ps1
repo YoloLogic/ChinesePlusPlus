@@ -346,7 +346,9 @@ $H = @{
     # ⚠ 嵌套代理类 `bitset::reference` 【不改名】：`reference` 太通用，
     #   全局 \breference\b 替换不安全（同 §3.13 的 thread::id，§六第 8 条）。
     #   它跟着派生一起继承，所以 标准::位集<8>::reference 照样能写。
-    types   = [ordered]@{ 'bitset' = '位集实现' }
+    types   = [ordered]@{ 'bitset' = '位集实现'
+                          # §16.27：自有内部件也要翻（长名、无二义，不是边界）
+                          '_Buffer_for_bitset' = '_位缓冲' }
     members = [ordered]@{
       'set' = '置位'; 'reset' = '复位'; 'flip' = '翻转'; 'test' = '测试'
       'count' = '计数'; 'size' = '尺寸'
@@ -578,7 +580,11 @@ $H = @{
   }
   'any' = @{
     zh      = '任意'
-    types   = [ordered]@{ 'any' = '任意实现' }
+    types   = [ordered]@{ 'any' = '任意实现'
+                          # §16.27：自有内部件也要翻
+                          '_Any_representation' = '_任意表示'
+                          '_Any_big_RTTI'       = '_任意大对象类型信息'
+                          '_Any_small_RTTI'     = '_任意小对象类型信息' }
     # 步 0b：真头 + 丢掉抄来的异常类（铁律 4，见 §3.18）
     realInclude = @('any')
     dropTypes   = @('bad_any_cast')
@@ -990,7 +996,10 @@ $H = @{
   }
   'span' = @{
     zh      = '跨度'
-    types   = [ordered]@{ 'span' = '跨度实现' }
+    types   = [ordered]@{ 'span' = '跨度实现'
+                          # §16.27：自有内部件也要翻
+                          '_Span_extent_type' = '_跨度范围类型'
+                          '_Span_iterator'    = '_跨度迭代器' }
     # ⚠ dynamic_extent 是【变量】不是类型/成员 —— 登记进 data 表，
     #   这样既改名、又会被步 4c 去限定（4c 遍历 types/members/data）。
     #   实测漏了它：error: namespace 'std' 中没有名为 'dynamic_extent' 的成员；
@@ -1207,6 +1216,9 @@ $H = @{
                           '_Scoped_base' = '_作用域基类'
                           '_Scoped_outermost' = '_作用域最外层'
                           '_Scoped_outermost_helper' = '_作用域最外层助手'
+                          # §16.27：自有内部件也要翻（长名，二义风险为零）
+                          '_Scoped_outermost_t'       = '_作用域最外层类型'
+                          '_Scoped_outermost_traits'  = '_作用域最外层特征'
                           '_Secret_scoped_allocator_construct_tag' = '_作用域构造内部标号' }
     # ⚠ 不翻 allocator_traits / rebind / enable_if_t 等 std 的名字
     members = [ordered]@{ 'inner_allocator' = '内层分配器'
@@ -1746,17 +1758,38 @@ $INTERNAL_NAMES = [ordered]@{
     '_Node'      = '_节点'
 }
 $nI = 0
+# ---------------------------------------------------------------------------
+#  ⚠ `_RANGES X` 里的 X 是【借来的】std::ranges 名字，**绝不能被改名**（§16.27）。
+#
+#  `_RANGES` 展开成 `::std::ranges::`（Microsoft yvals_core.h:1930），
+#  所以 `_RANGES size(...)` 永远是 std::ranges::size，不是我们的成员 ——
+#  这就是 §10.2 第 1 条「同一个英文名在同一个文件里属于不同的类」的又一面，
+#  只不过这次的另一个主人根本不在本文件里。
+#
+#  实测（<跨度>）：members 表里的 `data -> 数据` / `size -> 尺寸` 把
+#  `_RANGES data(_Range)` / `_RANGES size(_Range)` 一起改了。
+#     · `_RANGES data(_Range)` 被编译到 -> 编译器回退救回来了（并且因为回退现在
+#       【会响亮报出来】，才发现这里有问题）；
+#     · `_RANGES 尺寸(_Range)` 落在 `#if _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0`
+#       分支里 -> **那一支没被编译** -> 回退机制看不见 -> 静默留在产品里，
+#       一旦有人开调试迭代器/强化检查就炸。
+#  **不能靠"改了再等编译器回退"**：回退只对【被编译到】的位置有效。
+#  所以从源头用负向后顾挡住（.NET 支持变长后顾，`\s+` 可跨行缩进）。
+# ---------------------------------------------------------------------------
+function Get-RenamePattern([string] $name) {
+    return '(?<!_RANGES\s+)\b' + [regex]::Escape($name) + '\b'
+}
 foreach ($k in $INTERNAL_NAMES.Keys) {
     if ($spec.types.Contains($k)) { continue }
-    $c = ([regex]::Matches($text, "\b$([regex]::Escape($k))\b")).Count
+    $c = ([regex]::Matches($text, (Get-RenamePattern $k))).Count
     if ($c) {
-        $text = [regex]::Replace($text, "\b$([regex]::Escape($k))\b", $INTERNAL_NAMES[$k])
+        $text = [regex]::Replace($text, (Get-RenamePattern $k), $INTERNAL_NAMES[$k])
         $nI += $c
     }
 }
-if ($nI) { Write-Host "  步3/4b 内部名一键替换 $nI 处" }foreach ($k in $spec.types.Keys)   { $c = ([regex]::Matches($text, "\b$([regex]::Escape($k))\b")).Count; if ($c) { $text = [regex]::Replace($text, "\b$([regex]::Escape($k))\b", $spec.types[$k]); $nT += $c } }
-foreach ($k in $spec.members.Keys) { $c = ([regex]::Matches($text, "\b$([regex]::Escape($k))\b")).Count; if ($c) { $text = [regex]::Replace($text, "\b$([regex]::Escape($k))\b", $spec.members[$k]); $nM += $c } }
-foreach ($k in $spec.data.Keys)    { $c = ([regex]::Matches($text, "\b$([regex]::Escape($k))\b")).Count; if ($c) { $text = [regex]::Replace($text, "\b$([regex]::Escape($k))\b", $spec.data[$k]); $nD += $c } }
+if ($nI) { Write-Host "  步3/4b 内部名一键替换 $nI 处" }foreach ($k in $spec.types.Keys)   { $c = ([regex]::Matches($text, (Get-RenamePattern $k))).Count; if ($c) { $text = [regex]::Replace($text, (Get-RenamePattern $k), $spec.types[$k]); $nT += $c } }
+foreach ($k in $spec.members.Keys) { $c = ([regex]::Matches($text, (Get-RenamePattern $k))).Count; if ($c) { $text = [regex]::Replace($text, (Get-RenamePattern $k), $spec.members[$k]); $nM += $c } }
+foreach ($k in $spec.data.Keys)    { $c = ([regex]::Matches($text, (Get-RenamePattern $k))).Count; if ($c) { $text = [regex]::Replace($text, (Get-RenamePattern $k), $spec.data[$k]); $nD += $c } }
 Write-Host "  步3/4 类型 $nT 处 / 成员 $nM 处 / 数据 $nD 处"
 # ⚠ realInclude 必须插在【改名之后】：否则 `#include <optional>` 里的 optional
 #   会被类型改名改成 `#include <可选实现>` -> fatal error: 找不到文件 '可选实现'。

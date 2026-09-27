@@ -48,9 +48,9 @@ template <class _Ty>
 constexpr bool _Any_is_small = alignof(_Ty) <= alignof(max_align_t)
                             && is_nothrow_move_constructible_v<_Ty> && sizeof(_Ty) <= _Any_small_space_size;
 
-enum class _Any_representation : uintptr_t { _Trivial, _Big, _Small };
+enum class _任意表示 : uintptr_t { _Trivial, _Big, _Small };
 
-struct _Any_big_RTTI { // Hand-rolled vtable for types that must be heap allocated in an 任意实现
+struct _任意大对象类型信息 { // Hand-rolled vtable for types that must be heap allocated in an 任意实现
     using _Destroy_fn = void __CLRCALL_PURE_OR_CDECL(void*) _NOEXCEPT_FNPTR;
     using _Copy_fn    = void* __CLRCALL_PURE_OR_CDECL(const void*);
 
@@ -68,7 +68,7 @@ struct _Any_big_RTTI { // Hand-rolled vtable for types that must be heap allocat
     _Copy_fn* _Copy;
 };
 
-struct _Any_small_RTTI { // Hand-rolled vtable for nontrivial types that can be stored internally in an 任意实现
+struct _任意小对象类型信息 { // Hand-rolled vtable for nontrivial types that can be stored internally in an 任意实现
     using _Destroy_fn = void __CLRCALL_PURE_OR_CDECL(void*) _NOEXCEPT_FNPTR;
     using _Copy_fn    = void __CLRCALL_PURE_OR_CDECL(void*, const void*);
     using _Move_fn    = void __CLRCALL_PURE_OR_CDECL(void*, void*) _NOEXCEPT_FNPTR;
@@ -94,11 +94,11 @@ struct _Any_small_RTTI { // Hand-rolled vtable for nontrivial types that can be 
 };
 
 template <class _Ty>
-constexpr _Any_big_RTTI _Any_big_RTTI_obj = {&_Any_big_RTTI::_Destroy_impl<_Ty>, &_Any_big_RTTI::_Copy_impl<_Ty>};
+constexpr _任意大对象类型信息 _Any_big_RTTI_obj = {&_任意大对象类型信息::_Destroy_impl<_Ty>, &_任意大对象类型信息::_Copy_impl<_Ty>};
 
 template <class _Ty>
-constexpr _Any_small_RTTI _Any_small_RTTI_obj = {
-    &_Any_small_RTTI::_Destroy_impl<_Ty>, &_Any_small_RTTI::_Copy_impl<_Ty>, &_Any_small_RTTI::_Move_impl<_Ty>};
+constexpr _任意小对象类型信息 _Any_small_RTTI_obj = {
+    &_任意小对象类型信息::_Destroy_impl<_Ty>, &_任意小对象类型信息::_Copy_impl<_Ty>, &_任意小对象类型信息::_Move_impl<_Ty>};
 
 _EXPORT_STD class 任意实现 { // storage for 任意实现 (CopyConstructible) 所属类型
 public:
@@ -108,15 +108,15 @@ public:
     任意实现(const 任意实现& _That) {
         _Storage._TypeData = _That._Storage._TypeData;
         switch (_Rep()) {
-        case _Any_representation::_Small:
+        case _任意表示::_Small:
             _Storage._SmallStorage._RTTI = _That._Storage._SmallStorage._RTTI;
             _Storage._SmallStorage._RTTI->_Copy(&_Storage._SmallStorage._Data, &_That._Storage._SmallStorage._Data);
             break;
-        case _Any_representation::_Big:
+        case _任意表示::_Big:
             _Storage._BigStorage._RTTI = _That._Storage._BigStorage._RTTI;
             _Storage._BigStorage._Ptr  = _Storage._BigStorage._RTTI->_Copy(_That._Storage._BigStorage._Ptr);
             break;
-        case _Any_representation::_Trivial:
+        case _任意表示::_Trivial:
         default:
             _CSTD memcpy(_Storage._TrivialData, _That._Storage._TrivialData, sizeof(_Storage._TrivialData));
             break;
@@ -165,9 +165,9 @@ public:
         // _Big mode wouldn't use the pseudo-vtable for _Move, and _Trivial mode doesn't have a pseudo-vtable at all.
         const uintptr_t _Tombstone_value{_MSVC_STL_UINTPTR_TOMBSTONE_VALUE};
         // Set the pseudo-vtable pointer:
-        _Storage._SmallStorage._RTTI = reinterpret_cast<const _Any_small_RTTI*>(_Tombstone_value);
+        _Storage._SmallStorage._RTTI = reinterpret_cast<const _任意小对象类型信息*>(_Tombstone_value);
         // Set the combined type_info pointer and representation mode bits:
-        _Storage._TypeData = (_Tombstone_value & ~_Rep_mask) | static_cast<uintptr_t>(_Any_representation::_Small);
+        _Storage._TypeData = (_Tombstone_value & ~_Rep_mask) | static_cast<uintptr_t>(_任意表示::_Small);
 #endif // _MSVC_STL_DESTRUCTOR_TOMBSTONES
     }
 
@@ -213,13 +213,13 @@ public:
 
     void 重置() noexcept { // transition to the empty state
         switch (_Rep()) {
-        case _Any_representation::_Small:
+        case _任意表示::_Small:
             _Storage._SmallStorage._RTTI->_Destroy(&_Storage._SmallStorage._Data);
             break;
-        case _Any_representation::_Big:
+        case _任意表示::_Big:
             _Storage._BigStorage._RTTI->_Destroy(_Storage._BigStorage._Ptr);
             break;
-        case _Any_representation::_Trivial:
+        case _任意表示::_Trivial:
         default:
             break;
         }
@@ -273,8 +273,8 @@ public:
 private:
     static constexpr uintptr_t _Rep_mask = 3;
 
-    _NODISCARD _Any_representation _Rep() const noexcept { // extract the representation format from _TypeData
-        return static_cast<_Any_representation>(_Storage._TypeData & _Rep_mask);
+    _NODISCARD _任意表示 _Rep() const noexcept { // extract the representation format from _TypeData
+        return static_cast<_任意表示>(_Storage._TypeData & _Rep_mask);
     }
     _NODISCARD const type_info* _TypeInfo() const noexcept { // extract the type_info from _TypeData
         return reinterpret_cast<const type_info*>(_Storage._TypeData & ~_Rep_mask);
@@ -283,16 +283,16 @@ private:
     void _Move_from(任意实现& _That) noexcept {
         _Storage._TypeData = _That._Storage._TypeData;
         switch (_Rep()) {
-        case _Any_representation::_Small:
+        case _任意表示::_Small:
             _Storage._SmallStorage._RTTI = _That._Storage._SmallStorage._RTTI;
             _Storage._SmallStorage._RTTI->_Move(&_Storage._SmallStorage._Data, &_That._Storage._SmallStorage._Data);
             break;
-        case _Any_representation::_Big:
+        case _任意表示::_Big:
             _Storage._BigStorage._RTTI = _That._Storage._BigStorage._RTTI;
             _Storage._BigStorage._Ptr  = _That._Storage._BigStorage._Ptr;
             _That._Storage._TypeData   = 0;
             break;
-        case _Any_representation::_Trivial:
+        case _任意表示::_Trivial:
         default:
             _CSTD memcpy(_Storage._TrivialData, _That._Storage._TrivialData, sizeof(_Storage._TrivialData));
             break;
@@ -311,7 +311,7 @@ private:
             auto& _Obj = reinterpret_cast<_Decayed&>(_Storage._TrivialData);
             _Construct_in_place(_Obj, _STD forward<_Types>(_Args)...);
             _Storage._TypeData =
-                reinterpret_cast<uintptr_t>(&typeid(_Decayed)) | static_cast<uintptr_t>(_Any_representation::_Trivial);
+                reinterpret_cast<uintptr_t>(&typeid(_Decayed)) | static_cast<uintptr_t>(_任意表示::_Trivial);
             return _Obj;
         } else if constexpr (_Any_is_small<_Decayed>) {
             // using the _Small representation
@@ -319,7 +319,7 @@ private:
             _Construct_in_place(_Obj, _STD forward<_Types>(_Args)...);
             _Storage._SmallStorage._RTTI = &_Any_small_RTTI_obj<_Decayed>;
             _Storage._TypeData =
-                reinterpret_cast<uintptr_t>(&typeid(_Decayed)) | static_cast<uintptr_t>(_Any_representation::_Small);
+                reinterpret_cast<uintptr_t>(&typeid(_Decayed)) | static_cast<uintptr_t>(_任意表示::_Small);
             return _Obj;
         } else {
             // using the _Big representation
@@ -327,14 +327,14 @@ private:
             _Storage._BigStorage._Ptr  = _Ptr;
             _Storage._BigStorage._RTTI = &_Any_big_RTTI_obj<_Decayed>;
             _Storage._TypeData =
-                reinterpret_cast<uintptr_t>(&typeid(_Decayed)) | static_cast<uintptr_t>(_Any_representation::_Big);
+                reinterpret_cast<uintptr_t>(&typeid(_Decayed)) | static_cast<uintptr_t>(_任意表示::_Big);
             return *_Ptr;
         }
     }
 
     struct _Small_storage_t {
         unsigned char _Data[_Any_small_space_size];
-        const _Any_small_RTTI* _RTTI;
+        const _任意小对象类型信息* _RTTI;
     };
     static_assert(sizeof(_Small_storage_t) == _Any_trivial_space_size);
 
@@ -342,7 +342,7 @@ private:
         // Pad so that _Ptr and _RTTI might share _TypeData's cache line
         unsigned char _Padding[_Any_small_space_size - sizeof(void*)];
         void* _Ptr;
-        const _Any_big_RTTI* _RTTI;
+        const _任意大对象类型信息* _RTTI;
     };
     static_assert(sizeof(_Big_storage_t) == _Any_trivial_space_size);
 

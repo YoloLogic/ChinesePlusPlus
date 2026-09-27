@@ -42,12 +42,12 @@ __declspec(noalias) bool __stdcall __std_bitset_from_string_2(void* _Dest, const
 名域 标准 { 名域 细节 {
 使用 名域 std;
 template <class _Elem, size_t _Bits, bool _Dynamic = (_Bits * sizeof(_Elem) > _STD_BITSET_TO_STREAM_STACK_RESERVATION)>
-struct _Buffer_for_bitset {
-    _Buffer_for_bitset() noexcept                            = default;
-    _Buffer_for_bitset(const _Buffer_for_bitset&)            = delete;
-    _Buffer_for_bitset& operator=(const _Buffer_for_bitset&) = delete;
+struct _位缓冲 {
+    _位缓冲() noexcept                            = default;
+    _位缓冲(const _位缓冲&)            = delete;
+    _位缓冲& operator=(const _位缓冲&) = delete;
 
-    ~_Buffer_for_bitset() {
+    ~_位缓冲() {
         delete[] _Buf;
     }
 
@@ -59,10 +59,10 @@ struct _Buffer_for_bitset {
 };
 
 template <class _Elem, size_t _Bits>
-struct _Buffer_for_bitset<_Elem, _Bits, false> {
-    _Buffer_for_bitset() noexcept { /* intentionally not initializing _Buf */ }
-    _Buffer_for_bitset(const _Buffer_for_bitset&)            = delete;
-    _Buffer_for_bitset& operator=(const _Buffer_for_bitset&) = delete;
+struct _位缓冲<_Elem, _Bits, false> {
+    _位缓冲() noexcept { /* intentionally not initializing _Buf */ }
+    _位缓冲(const _位缓冲&)            = delete;
+    _位缓冲& operator=(const _位缓冲&) = delete;
 
     void _Allocate() noexcept {}
 
@@ -615,7 +615,7 @@ basic_ostream<_Elem, _Tr>& operator<<(basic_ostream<_Elem, _Tr>& _Ostr, const �
     const _Elem _Elem0       = _Ctype_fac.widen('0');
     const _Elem _Elem1       = _Ctype_fac.widen('1');
 
-    _Buffer_for_bitset<_Elem, _Bits> _Buf;
+    _位缓冲<_Elem, _Bits> _Buf;
     _Buf._Allocate();
     _Right._To_string(_Buf._Buf, _Bits, _Elem0, _Elem1);
     _Ostr.write(_Buf._Buf, _Bits);
@@ -631,7 +631,7 @@ basic_istream<_Elem, _Tr>& operator>>(basic_istream<_Elem, _Tr>& _Istr, 位集�
     const _Elem _Elem1               = _Ctype_fac.widen('1');
     typename _Istr_t::iostate _State = _Istr_t::goodbit;
     size_t _Count                    = 0;
-    _Buffer_for_bitset<_Elem, _Bits> _Buf;
+    _位缓冲<_Elem, _Bits> _Buf;
     const typename _Istr_t::sentry _Ok(_Istr);
 
     if (_Ok) { // valid stream, extract elements

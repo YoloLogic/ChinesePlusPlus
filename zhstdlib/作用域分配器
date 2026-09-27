@@ -41,10 +41,10 @@ decltype(auto) _作用域最外层(_Alloc& _Al) { // gets the outermost allocato
 }
 
 template <class _Alloc>
-using _Scoped_outermost_t = remove_reference_t<decltype(_作用域最外层(_STD declval<_Alloc&>()))>;
+using _作用域最外层类型 = remove_reference_t<decltype(_作用域最外层(_STD declval<_Alloc&>()))>;
 
 template <class _Alloc>
-using _Scoped_outermost_traits = allocator_traits<_Scoped_outermost_t<_Alloc>>;
+using _作用域最外层特征 = allocator_traits<_作用域最外层类型<_Alloc>>;
 
 _EXPORT_STD template <class _Outer, class... _Inner>
 class 作用域分配器适配器实现;
@@ -229,7 +229,7 @@ public:
 #if _HAS_CXX20
         _STD apply(
             [_Ptr, this](auto&&... _New_args) {
-                _Scoped_outermost_traits<作用域分配器适配器实现>::构造(
+                _作用域最外层特征<作用域分配器适配器实现>::构造(
                     _作用域最外层(*this), _Ptr, _STD forward<decltype(_New_args)>(_New_args)...);
             },
             _STD uses_allocator_construction_args<_Ty>(内层分配器(), _STD forward<_Types>(_Args)...));
@@ -246,7 +246,7 @@ public:
 
     template <class _Ty>
     void 析构(_Ty* _Ptr) { // 析构 object at _Ptr
-        _Scoped_outermost_traits<作用域分配器适配器实现>::析构(_作用域最外层(*this), _Ptr);
+        _作用域最外层特征<作用域分配器适配器实现>::析构(_作用域最外层(*this), _Ptr);
     }
 
     // 复制时选择 comes from _作用域基类

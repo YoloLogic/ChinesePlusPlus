@@ -29,7 +29,7 @@ _STL_DISABLE_CLANG_WARNINGS
 _EXPORT_STD inline constexpr size_t 动态范围 = static_cast<size_t>(-1);
 
 template <class _Ty>
-struct _Span_iterator {
+struct _跨度迭代器 {
     using iterator_concept  = contiguous_iterator_tag;
     using iterator_category = random_access_iterator_tag;
     using value_type        = remove_cv_t<_Ty>;
@@ -53,7 +53,7 @@ struct _Span_iterator {
         return _Myptr;
     }
 
-    constexpr _Span_iterator& operator++() noexcept {
+    constexpr _跨度迭代器& operator++() noexcept {
 #if _ITERATOR_DEBUG_LEVEL >= 1
         _STL_VERIFY(_Mybegin, "cannot increment value-initialized 跨度实现 iterator");
         _STL_VERIFY(_Myptr < _Myend, "cannot increment 跨度实现 iterator past 结束");
@@ -62,13 +62,13 @@ struct _Span_iterator {
         return *this;
     }
 
-    constexpr _Span_iterator operator++(int) noexcept {
-        _Span_iterator _Tmp{*this};
+    constexpr _跨度迭代器 operator++(int) noexcept {
+        _跨度迭代器 _Tmp{*this};
         ++*this;
         return _Tmp;
     }
 
-    constexpr _Span_iterator& operator--() noexcept {
+    constexpr _跨度迭代器& operator--() noexcept {
 #if _ITERATOR_DEBUG_LEVEL >= 1
         _STL_VERIFY(_Mybegin, "cannot decrement value-initialized 跨度实现 iterator");
         _STL_VERIFY(_Mybegin < _Myptr, "cannot decrement 跨度实现 iterator before 开始");
@@ -77,8 +77,8 @@ struct _Span_iterator {
         return *this;
     }
 
-    constexpr _Span_iterator operator--(int) noexcept {
-        _Span_iterator _Tmp{*this};
+    constexpr _跨度迭代器 operator--(int) noexcept {
+        _跨度迭代器 _Tmp{*this};
         --*this;
         return _Tmp;
     }
@@ -99,7 +99,7 @@ struct _Span_iterator {
 #endif // _ITERATOR_DEBUG_LEVEL >= 1
     }
 
-    constexpr _Span_iterator& operator+=(const difference_type _Off) noexcept {
+    constexpr _跨度迭代器& operator+=(const difference_type _Off) noexcept {
 #if _ITERATOR_DEBUG_LEVEL >= 1
         _Verify_offset(_Off);
 #endif // _ITERATOR_DEBUG_LEVEL >= 1
@@ -108,18 +108,18 @@ struct _Span_iterator {
         return *this;
     }
 
-    _NODISCARD constexpr _Span_iterator operator+(const difference_type _Off) const noexcept {
-        _Span_iterator _Tmp{*this};
+    _NODISCARD constexpr _跨度迭代器 operator+(const difference_type _Off) const noexcept {
+        _跨度迭代器 _Tmp{*this};
         _Tmp += _Off;
         return _Tmp;
     }
 
-    _NODISCARD friend constexpr _Span_iterator operator+(const difference_type _Off, _Span_iterator _Next) noexcept {
+    _NODISCARD friend constexpr _跨度迭代器 operator+(const difference_type _Off, _跨度迭代器 _Next) noexcept {
         _Next += _Off;
         return _Next;
     }
 
-    constexpr _Span_iterator& operator-=(const difference_type _Off) noexcept {
+    constexpr _跨度迭代器& operator-=(const difference_type _Off) noexcept {
 #if _ITERATOR_DEBUG_LEVEL >= 1
         _STL_VERIFY(_Off != _Min_possible_v<difference_type>, "integer overflow");
         _Verify_offset(-_Off);
@@ -129,13 +129,13 @@ struct _Span_iterator {
         return *this;
     }
 
-    _NODISCARD constexpr _Span_iterator operator-(const difference_type _Off) const noexcept {
-        _Span_iterator _Tmp{*this};
+    _NODISCARD constexpr _跨度迭代器 operator-(const difference_type _Off) const noexcept {
+        _跨度迭代器 _Tmp{*this};
         _Tmp -= _Off;
         return _Tmp;
     }
 
-    _NODISCARD constexpr difference_type operator-(const _Span_iterator& _Right) const noexcept {
+    _NODISCARD constexpr difference_type operator-(const _跨度迭代器& _Right) const noexcept {
 #if _ITERATOR_DEBUG_LEVEL >= 1
         _STL_VERIFY(
             _Mybegin == _Right._Mybegin && _Myend == _Right._Myend, "cannot subtract incompatible 跨度实现 iterators");
@@ -147,7 +147,7 @@ struct _Span_iterator {
         return *(*this + _Off);
     }
 
-    _NODISCARD constexpr bool operator==(const _Span_iterator& _Right) const noexcept {
+    _NODISCARD constexpr bool operator==(const _跨度迭代器& _Right) const noexcept {
 #if _ITERATOR_DEBUG_LEVEL >= 1
         _STL_VERIFY(_Mybegin == _Right._Mybegin && _Myend == _Right._Myend,
             "cannot compare incompatible 跨度实现 iterators for equality");
@@ -155,7 +155,7 @@ struct _Span_iterator {
         return _Myptr == _Right._Myptr;
     }
 
-    _NODISCARD constexpr strong_ordering operator<=>(const _Span_iterator& _Right) const noexcept {
+    _NODISCARD constexpr strong_ordering operator<=>(const _跨度迭代器& _Right) const noexcept {
 #if _ITERATOR_DEBUG_LEVEL >= 1
         _STL_VERIFY(
             _Mybegin == _Right._Mybegin && _Myend == _Right._Myend, "cannot compare incompatible 跨度实现 iterators");
@@ -164,14 +164,14 @@ struct _Span_iterator {
     }
 
 #if _ITERATOR_DEBUG_LEVEL >= 1
-    friend constexpr void _Verify_range(const _Span_iterator& _First, const _Span_iterator& _Last) noexcept {
+    friend constexpr void _Verify_range(const _跨度迭代器& _First, const _跨度迭代器& _Last) noexcept {
         _STL_VERIFY(_First._Mybegin == _Last._Mybegin && _First._Myend == _Last._Myend,
             "跨度实现 iterators from different views do not form a range");
         _STL_VERIFY(_First._Myptr <= _Last._Myptr, "跨度实现 iterator range transposed");
     }
 #endif // _ITERATOR_DEBUG_LEVEL >= 1
 
-    using _Prevent_inheriting_unwrap = _Span_iterator;
+    using _Prevent_inheriting_unwrap = _跨度迭代器;
 
     _NODISCARD constexpr pointer _Unwrapped() const noexcept {
         return _Myptr;
@@ -191,8 +191,8 @@ struct _Span_iterator {
 };
 
 template <class _Ty>
-struct pointer_traits<_Span_iterator<_Ty>> {
-    using pointer         = _Span_iterator<_Ty>;
+struct pointer_traits<_跨度迭代器<_Ty>> {
+    using pointer         = _跨度迭代器<_Ty>;
     using element_type    = _Ty;
     using difference_type = ptrdiff_t;
 
@@ -202,12 +202,12 @@ struct pointer_traits<_Span_iterator<_Ty>> {
 };
 
 template <class _Ty, size_t _Extent>
-struct _Span_extent_type {
+struct _跨度范围类型 {
     using pointer = _Ty*;
 
-    constexpr _Span_extent_type() noexcept = default;
+    constexpr _跨度范围类型() noexcept = default;
 
-    constexpr explicit _Span_extent_type(const pointer _Data, size_t) noexcept : _Mydata{_Data} {
+    constexpr explicit _跨度范围类型(const pointer _Data, size_t) noexcept : _Mydata{_Data} {
         // Verify that later calls to 字节尺寸() won't overflow:
         static_assert(
             _Mysize <= 动态范围 / sizeof(_Ty), "尺寸 of 跨度实现 in bytes exceeds numeric_limits<size_t>::max()");
@@ -218,12 +218,12 @@ struct _Span_extent_type {
 };
 
 template <class _Ty>
-struct _Span_extent_type<_Ty, 动态范围> {
+struct _跨度范围类型<_Ty, 动态范围> {
     using pointer = _Ty*;
 
-    constexpr _Span_extent_type() noexcept = default;
+    constexpr _跨度范围类型() noexcept = default;
 
-    constexpr explicit _Span_extent_type(const pointer _Data, const size_t _Size) noexcept
+    constexpr explicit _跨度范围类型(const pointer _Data, const size_t _Size) noexcept
         : _Mydata{_Data}, _Mysize{_Size} {
 #if _ITERATOR_DEBUG_LEVEL != 0
         // Verify that later calls to 字节尺寸() won't overflow:
@@ -274,9 +274,9 @@ concept _Span_compatible_range =
 
 // [views.跨度实现]
 _EXPORT_STD template <class _Ty, size_t _Extent = 动态范围>
-class 跨度实现 : private _Span_extent_type<_Ty, _Extent> {
+class 跨度实现 : private _跨度范围类型<_Ty, _Extent> {
 private:
-    using _我的基类 = _Span_extent_type<_Ty, _Extent>;
+    using _我的基类 = _跨度范围类型<_Ty, _Extent>;
     using _我的基类::_Mydata;
     using _我的基类::_Mysize;
 
@@ -289,7 +289,7 @@ public:
     using const_pointer    = const _Ty*;
     using reference        = _Ty&;
     using const_reference  = const _Ty&;
-    using iterator         = _Span_iterator<_Ty>;
+    using iterator         = _跨度迭代器<_Ty>;
     using reverse_iterator = _STD reverse_iterator<iterator>;
 #if _HAS_CXX23
     using const_iterator         = _STD const_iterator<iterator>;
@@ -345,7 +345,7 @@ public:
         : _我的基类(_RANGES data(_Range), static_cast<size_type>(_RANGES size(_Range))) {
 #if _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
         if constexpr (_Extent != 动态范围) {
-            _STL_VERIFY(_RANGES 尺寸(_Range) == _Extent,
+            _STL_VERIFY(_RANGES size(_Range) == _Extent,
                 "Cannot construct 跨度实现 with static extent from range r as std::ranges::尺寸(r) != extent");
         }
 #endif // _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
