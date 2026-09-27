@@ -242,25 +242,25 @@ struct _哈希查找最后结果 {
     _结点指针 _Duplicate;
 };
 
-template <class _Aliter>
+template <class _分配器迭代器>
 struct _哈希向量 {
     // TRANSITION, ABI: "vector" for ABI compatibility that doesn't call allocator::construct
-    using _Aliter_traits    = allocator_traits<_Aliter>;
-    using value_type        = typename _Aliter::value_type;
-    using size_type         = typename _Aliter_traits::size_type;
-    using difference_type   = typename _Aliter_traits::difference_type;
-    using pointer           = typename _Aliter_traits::pointer;
-    using _Aliter_scary_val = _Vector_val<conditional_t<_Is_simple_alloc_v<_Aliter>, _Simple_types<value_type>,
-        _Vec_iter_types<value_type, size_type, difference_type, pointer, typename _Aliter_traits::const_pointer>>>;
+    using _分配器迭代器特征    = allocator_traits<_分配器迭代器>;
+    using value_type        = typename _分配器迭代器::value_type;
+    using size_type         = typename _分配器迭代器特征::size_type;
+    using difference_type   = typename _分配器迭代器特征::difference_type;
+    using pointer           = typename _分配器迭代器特征::pointer;
+    using _分配器迭代器检查值 = _Vector_val<conditional_t<_Is_simple_alloc_v<_分配器迭代器>, _Simple_types<value_type>,
+        _Vec_iter_types<value_type, size_type, difference_type, pointer, typename _分配器迭代器特征::const_pointer>>>;
 
     _哈希向量() : _Mypair(_Zero_then_variadic_args_t{}) {
-        _Mypair._Myval2._Alloc_proxy(_GET_PROXY_ALLOCATOR(_Aliter, _Mypair._Get_first()));
+        _Mypair._Myval2._Alloc_proxy(_GET_PROXY_ALLOCATOR(_分配器迭代器, _Mypair._Get_first()));
     }
 
     template <class _Any_alloc, enable_if_t<!is_same_v<_Remove_cvref_t<_Any_alloc>, _哈希向量>, int> = 0>
     explicit _哈希向量(_Any_alloc&& _Al) noexcept
         : _Mypair(_One_then_variadic_args_t{}, _STD forward<_Any_alloc>(_Al)) { // construct 为空 vector, allocator
-        _Mypair._Myval2._Alloc_proxy(_GET_PROXY_ALLOCATOR(_Aliter, _Mypair._Get_first()));
+        _Mypair._Myval2._Alloc_proxy(_GET_PROXY_ALLOCATOR(_分配器迭代器, _Mypair._Get_first()));
     }
 
     _哈希向量(const _哈希向量&)            = delete;
@@ -272,7 +272,7 @@ struct _哈希向量 {
 
     _NODISCARD size_type max_size() const noexcept {
         return (_STD min)(
-            static_cast<size_type>(_STD _Max_limit<difference_type>()), _Aliter_traits::max_size(_Mypair._Get_first()));
+            static_cast<size_type>(_STD _Max_limit<difference_type>()), _分配器迭代器特征::max_size(_Mypair._Get_first()));
     }
 
     _NODISCARD size_type capacity() const noexcept {
@@ -318,12 +318,12 @@ struct _哈希向量 {
     ~_哈希向量() {
         _清理();
 #if _ITERATOR_DEBUG_LEVEL != 0
-        auto&& _Alproxy = _GET_PROXY_ALLOCATOR(_Aliter, _Mypair._Get_first());
+        auto&& _Alproxy = _GET_PROXY_ALLOCATOR(_分配器迭代器, _Mypair._Get_first());
         _Delete_plain_internal(_Alproxy, _STD exchange(_Mypair._Myval2._Myproxy, nullptr));
 #endif // _ITERATOR_DEBUG_LEVEL != 0
     }
 
-    _Compressed_pair<_Aliter, _Aliter_scary_val> _Mypair;
+    _Compressed_pair<_分配器迭代器, _分配器迭代器检查值> _Mypair;
 };
 
 template <class _Traits>
@@ -337,7 +337,7 @@ protected:
     using _Mutable_value_type = typename _Traits::_Mutable_value_type;
 
     using _Key_compare   = typename _Traits::key_compare;
-    using _Value_compare = typename _Traits::value_compare;
+    using _值比较器 = typename _Traits::value_compare;
 
 public:
     using key_type = typename _Traits::key_type;
@@ -359,7 +359,7 @@ public:
               typename _我的链表::_非检查常量迭代器, typename _我的链表::_非检查迭代器>;
     using _非检查常量迭代器 = typename _我的链表::_非检查常量迭代器;
 
-    using _Aliter = _Rebind_alloc_t<_Alnode, _非检查迭代器>;
+    using _分配器迭代器 = _Rebind_alloc_t<_Alnode, _非检查迭代器>;
 
     static constexpr size_type _Bucket_size = _Key_compare::bucket_size;
     static constexpr size_type _Min_buckets = 8; // must be a positive power of 2
@@ -456,17 +456,17 @@ private:
         _STD swap(_Maxidx, _Right._Maxidx);
     }
 
-    struct _Min_buckets_construct_ptr {
-        using pointer = typename allocator_traits<_Aliter>::pointer;
-        _Aliter& _Al;
+    struct _最小桶数构造指针 {
+        using pointer = typename allocator_traits<_分配器迭代器>::pointer;
+        _分配器迭代器& _Al;
         pointer _Base;
-        _Min_buckets_construct_ptr(_Aliter& _Al_) : _Al(_Al_), _Base(_Al.allocate(_Min_buckets * 2)) {}
-        _Min_buckets_construct_ptr(const _Min_buckets_construct_ptr&) = delete;
+        _最小桶数构造指针(_分配器迭代器& _Al_) : _Al(_Al_), _Base(_Al.allocate(_Min_buckets * 2)) {}
+        _最小桶数构造指针(const _最小桶数构造指针&) = delete;
         _NODISCARD pointer _Release(_非检查迭代器 _Newend) noexcept {
             _STD uninitialized_fill(_Base, _Base + _Min_buckets * 2, _Newend);
             return _STD exchange(_Base, nullptr);
         }
-        ~_Min_buckets_construct_ptr() {
+        ~_最小桶数构造指针() {
             if (_Base) {
                 _Al.deallocate(_Base, _Min_buckets * 2);
             }
@@ -530,7 +530,7 @@ public:
                 _Container_proxy_ptr<_Alnode> _List_proxy(_Right_alproxy, _Leave_proxy_unbound{});
                 _Container_proxy_ptr<_Alnode> _Vec_proxy(_Right_alproxy, _Leave_proxy_unbound{});
                 _链表头构造指针<_Alnode> _Newhead(_Right_al);
-                _Min_buckets_construct_ptr _Buckets(_Right._Vec._Mypair._Get_first());
+                _最小桶数构造指针 _Buckets(_Right._Vec._Mypair._Get_first());
 
                 // assign the hash/compare ops; we have no control over whether this throws, and if it does we want
                 // to do nothing
@@ -574,9 +574,9 @@ public:
             if (_Al != _Right_al) {
                 _清空守卫 _Guard{this};
                 _Traitsobj     = _Right._Traitsobj;
-                using _Adapter = _重解释移动迭代器<typename _我的链表::_非检查迭代器, _Mutable_value_type>;
+                using _适配器 = _重解释移动迭代器<typename _我的链表::_非检查迭代器, _Mutable_value_type>;
                 _List.template _Assign_cast<_Mutable_value_type&>(
-                    _Adapter{_Right._List._非检查开始()}, _Adapter{_Right._List._非检查结束()});
+                    _适配器{_Right._List._非检查开始()}, _适配器{_Right._List._非检查结束()});
                 _用失效向量重插();
                 _Guard._Target = nullptr;
 
@@ -1287,14 +1287,14 @@ public:
 #endif // _HAS_CXX20
 
 private:
-    struct _Equal_range_result {
+    struct _等值区间结果 {
         _非检查常量迭代器 _First;
         _非检查常量迭代器 _Last;
         size_type _Distance;
     };
 
     template <class _Keyty>
-    _NODISCARD _Equal_range_result _等值区间(const _Keyty& _Keyval, const size_t _Hashval) const
+    _NODISCARD _等值区间结果 _等值区间(const _Keyty& _Keyval, const size_t _Hashval) const
         noexcept(_Nothrow_compare<_Traits, key_type, _Keyty> && _Nothrow_compare<_Traits, _Keyty, key_type>) {
         const size_type _Bucket              = _Hashval & _Mask;
         _非检查常量迭代器 _Where     = _Vec._Mypair._Myval2._Myfirst[_Bucket << 1];
@@ -1834,12 +1834,12 @@ protected:
         return _List._取分配器();
     }
 
-    struct _Multi_equal_check_result {
+    struct _多重相等检查结果 {
         bool _Equal_possible = false;
         _非检查常量迭代器 _Subsequent_first{}; // only useful if _Equal_possible
     };
 
-    _NODISCARD _Multi_equal_check_result _多重相等检查等值区间(
+    _NODISCARD _多重相等检查结果 _多重相等检查等值区间(
         const _哈希& _Right, _非检查常量迭代器 _First1) const {
         // check that an equal_range of elements starting with *_First1 are a permutation of the corresponding
         // equal_range of elements in _Right
@@ -1961,7 +1961,7 @@ public:
 #ifdef _USE_HETEROGENEOUS_ALLOCATOR_COMPARE_IN_INTERNAL_CHECK
         _STL_INTERNAL_CHECK(_List._取分配器() == _Vec._Mypair._Get_first());
 #else
-        _STL_INTERNAL_CHECK(static_cast<_Aliter>(_List._取分配器()) == _Vec._Mypair._Get_first());
+        _STL_INTERNAL_CHECK(static_cast<_分配器迭代器>(_List._取分配器()) == _Vec._Mypair._Get_first());
 #endif
 #ifdef _STL_INTERNAL_CHECK_EXHAUSTIVE
         size_type _Elements = 0;
@@ -2013,7 +2013,7 @@ protected:
 
     _Traits _Traitsobj; // traits to customize behavior
     _我的链表 _List; // 链表实现 of elements, must initialize before _Vec
-    _哈希向量<_Aliter> _Vec; // "vector" of 链表实现 iterators for buckets:
+    _哈希向量<_分配器迭代器> _Vec; // "vector" of 链表实现 iterators for buckets:
                              // each bucket is 2 iterators denoting the closed range of elements in the bucket,
                              // or both iterators set to _非检查结束() if the bucket is 为空.
     size_type _Mask; // the key mask
