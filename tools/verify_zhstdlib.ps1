@@ -77,6 +77,53 @@ if ($LASTEXITCODE -ne 0) {
 }
 Remove-Item -Recurse -Force $d -ErrorAction SilentlyContinue
 
+# ---------------------------------------------------------------------------
+#  §16.63 调试/硬化配置探针：同一个组合 TU，换 `_ITERATOR_DEBUG_LEVEL` 再编两遍。
+#
+#  为什么必须有：我们所有产品【一直只在默认配置下被编译过】，而
+#  `_ITERATOR_DEBUG_LEVEL` 在 std 里切换的是**结构不同的分支**：
+#      `_Container_base12` / `_Iterator_base12`（带代理与迭代器链）
+#   与 `_Container_base0` / `_Iterator_base0`（空基类、无链）。
+#  这些名字在 `内存内部件` 里都被翻成汉语了，而 `#if _ITERATOR_DEBUG_LEVEL == 0`
+#  那一支【从来没被编译过】—— 典型的"隐形规矩"（§16.42 的老教训）。
+#  另外开源项目常带 `/D_ITERATOR_DEBUG_LEVEL=0`（Release 配置）编译，
+#  铁律②要求"随便拿一个开源项目也必须照样编得过"，这一条正是它的机器保证。
+#
+#  ⚠ 用 `-fsyntax-only` 且**只换这一个宏**：改动面越小，报出来的就越是真问题。
+#  ⚠ 只测 0 与 1：`_ITERATOR_DEBUG_LEVEL=2` 在 release 模式下是 `yvals.h:66`
+#    自己拒的（"not supported in release mode"），那要连 `-D_DEBUG` 一起给，
+#    会把别的开关也带进来 —— 而 **0 与 1 已经覆盖了我们真正关心的两条分支**
+#    （`_Container_base0`/`_Iterator_base0` 与 `_Container_base12`/`_Iterator_base12`，
+#     见 xmemory 里那句 `#if _ITERATOR_DEBUG_LEVEL == 0`）。
+#  ⚠ 先做【报告】而不是直接判失败：配置相关的失败往往要单独修一轮，
+#    把它显式打出来（按 §16.42：守卫必须可见），有失败就计入退出码。
+# ---------------------------------------------------------------------------
+$d2 = Join-Path $root 'build\_zhverify_cfg'
+New-Item -ItemType Directory -Force $d2 | Out-Null
+$cfg = @()
+foreach ($lvl in @('0', '1')) {
+    $src = Join-Path $d2 "all_idl$lvl.cpp"
+    [System.IO.File]::WriteAllText($src, $lines + "`n整数 主函数(){ 返回 0; }`n", $utf8)
+    & cmd /c "`"$cxx`" -std=c++20 -isystem`"$inc`" -D_ITERATOR_DEBUG_LEVEL=$lvl -fsyntax-only `"$src`" > `"$d2\o$lvl.txt`" 2>&1"
+    $e = ''
+    if ($LASTEXITCODE -ne 0) {
+        $e = ([string]((Get-Content "$d2\o$lvl.txt" -ErrorAction SilentlyContinue |
+                    Where-Object { $_ -match 'error:' } | Select-Object -First 1))).Trim()
+    }
+    $cfg += [pscustomobject]@{ Lvl = $lvl; Ok = ($LASTEXITCODE -eq 0); Err = $e }
+}
+Remove-Item -Recurse -Force $d2 -ErrorAction SilentlyContinue
+$cfgOk = @($cfg | Where-Object { -not $_.Ok }).Count -eq 0
+Write-Host ""
+if ($cfgOk) {
+    Write-Host ("  调试配置探针（_ITERATOR_DEBUG_LEVEL = 0 / 1，全部 {0} 个头一起引）: 通过" -f $files.Count) -ForegroundColor Green
+} else {
+    Write-Host "  调试配置探针: FAIL（我们的产品只在默认配置下被编译过）" -ForegroundColor Yellow
+    $cfg | Where-Object { -not $_.Ok } | ForEach-Object {
+        Write-Host ("    _ITERATOR_DEBUG_LEVEL={0}: {1}" -f $_.Lvl, $_.Err) -ForegroundColor Yellow
+    }
+}
+
 Write-Host ""
 Write-Host ("=== zhstdlib 全量验证: 通过 {0} / {1} ===" -f $ok, $files.Count) -ForegroundColor Cyan
 if ($allOk) {
@@ -90,5 +137,6 @@ if ($bad.Count) {
     exit 1
 }
 if (-not $allOk) { exit 1 }
+if (-not $cfgOk) { exit 1 }
 Write-Host "  全部通过" -ForegroundColor Green
 exit 0

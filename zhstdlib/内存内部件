@@ -1150,7 +1150,7 @@ _CONSTEXPR20 void _Deallocate_plain(_Alloc& _Al, typename _Alloc::value_type* co
 }
 
 template <class _Alloc>
-_CONSTEXPR20 void _Delete_plain_internal(_Alloc& _Al, typename _Alloc::value_type* const _Ptr) noexcept {
+_CONSTEXPR20 void _删除原生内部(_Alloc& _Al, typename _Alloc::value_type* const _Ptr) noexcept {
     // destroy *_Ptr in place, then deallocate _Ptr using _Al; used for internal container types the user didn't name
     using _类型 = typename _Alloc::value_type;
     _Ptr->~_类型();
@@ -1235,7 +1235,7 @@ public:
         _容器代理* const _New_proxy = _Unfancy(_New_alloc.allocate(1));
         _Construct_in_place(*_New_proxy, this);
         _New_proxy->_Mycont = this;
-        _Delete_plain_internal(_Old_alloc, _STD exchange(_Myproxy, _New_proxy));
+        _删除原生内部(_Old_alloc, _STD exchange(_Myproxy, _New_proxy));
     }
 
     _容器代理* _Myproxy = nullptr;
@@ -1495,12 +1495,12 @@ struct _容器代理指针12 : _基本容器代理指针12 {
         // Attach the proxy stored in *this to _Mycont, and destroy _Mycont's existing proxy
         // with _Old_alloc. Requires that no iterators are alive referring to _Mycont.
         _Ptr->_Mycont = _Mycont;
-        _Delete_plain_internal(_Old_alloc, _STD exchange(_Mycont->_Myproxy, _STD exchange(_Ptr, nullptr)));
+        _删除原生内部(_Old_alloc, _STD exchange(_Mycont->_Myproxy, _STD exchange(_Ptr, nullptr)));
     }
 
     _CONSTEXPR20 ~_容器代理指针12() {
         if (_Ptr) {
-            _Delete_plain_internal(_Al, _Ptr);
+            _删除原生内部(_Al, _Ptr);
         }
     }
 };
