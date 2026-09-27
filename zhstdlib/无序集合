@@ -1,0 +1,837 @@
+// 无序集合实现 standard header
+
+// Copyright (c) Microsoft Corporation.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#ifndef _ZH_UNORDERED_SET_
+#define _ZH_UNORDERED_SET_
+#include <yvals_core.h>
+#if _STL_COMPILER_PREPROCESSOR
+#include <xhash>
+
+#if _HAS_CXX17
+#include <xpolymorphic_allocator.h>
+#endif // _HAS_CXX17
+
+#pragma pack(push, _CRT_PACKING)
+#pragma warning(push, _STL_WARNING_LEVEL)
+#pragma warning(disable : _STL_DISABLED_WARNINGS)
+_STL_DISABLE_CLANG_WARNINGS
+#pragma push_macro("new")
+#undef new
+
+名域 标准 { 名域 细节 {
+使用 名域 std;
+template <class _Kty, // key type (same as value type)
+    class _Tr, // comparator predicate type
+    class _Alloc, // actual allocator type (should be value allocator)
+    bool _Mfl> // true if multiple equivalent keys are permitted
+class _无序集合特征 : public _Tr { // traits required to make _Hash behave like a set
+public:
+    using key_type            = _Kty;
+    using value_type          = _Kty;
+    using _Mutable_value_type = _Kty;
+    using key_compare         = _Tr;
+    using allocator_type      = _Alloc;
+#if _HAS_CXX17
+    using node_type = _Node_handle<_List_node<value_type, typename allocator_traits<_Alloc>::void_pointer>, _Alloc,
+        _Node_handle_set_base, _Kty>;
+#endif // _HAS_CXX17
+
+    static constexpr bool _Multi    = _Mfl;
+    static constexpr bool _Standard = true;
+
+    template <class... _Args>
+    using _In_place_key_extractor = _In_place_key_extract_set<_Kty, _Args...>;
+
+    _无序集合特征() = default;
+
+    explicit _无序集合特征(const _Tr& _Traits) noexcept(is_nothrow_copy_constructible_v<_Tr>) : _Tr(_Traits) {}
+
+    using value_compare = void; // TRANSITION, remove when _Standard becomes unconditionally true
+
+    static const _Kty& _Kfn(const value_type& _Val) noexcept {
+        return _Val;
+    }
+};
+
+_EXPORT_STD template <class _Kty, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>,
+    class _Alloc = allocator<_Kty>>
+class 无序集合实现 : public _Hash<_无序集合特征<_Kty, _Uhash_compare<_Kty, _Hasher, _Keyeq>, _Alloc, false>> {
+    // hash table of key-values, unique keys
+public:
+    static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<_Kty, typename _Alloc::value_type>,
+        _MISMATCHED_ALLOCATOR_MESSAGE("无序集合实现<T, Hasher, Eq, Allocator>", "T"));
+    static_assert(is_object_v<_Kty>, "The C++ Standard forbids containers of non-object types "
+                                     "because of [container.requirements].");
+
+private:
+    using _Mytraits      = _Uhash_compare<_Kty, _Hasher, _Keyeq>;
+    using _Mybase        = _Hash<_无序集合特征<_Kty, _Mytraits, _Alloc, false>>;
+    using _Alnode        = typename _Mybase::_Alnode;
+    using _Alnode_traits = typename _Mybase::_Alnode_traits;
+    using _Key_compare   = typename _Mybase::_Key_compare;
+
+public:
+    using hasher    = _Hasher;
+    using key_type  = _Kty;
+    using key_equal = _Keyeq;
+
+    using value_type      = typename _Mybase::value_type;
+    using allocator_type  = typename _Mybase::allocator_type;
+    using size_type       = typename _Mybase::size_type;
+    using difference_type = typename _Mybase::difference_type;
+    using pointer         = typename _Mybase::pointer;
+    using const_pointer   = typename _Mybase::const_pointer;
+    using reference       = value_type&;
+    using const_reference = const value_type&;
+    using iterator        = typename _Mybase::iterator;
+    using const_iterator  = typename _Mybase::const_iterator;
+
+    using local_iterator       = typename _Mybase::iterator;
+    using const_local_iterator = typename _Mybase::const_iterator;
+
+#if _HAS_CXX17
+    using insert_return_type = _Insert_return_type<iterator, typename _Mybase::node_type>;
+#endif // _HAS_CXX17
+
+    无序集合实现() : _Mybase(_Key_compare(), allocator_type()) {}
+
+    explicit 无序集合实现(const allocator_type& _Al) : _Mybase(_Key_compare(), _Al) {}
+
+    无序集合实现(const 无序集合实现& _Right)
+        : _Mybase(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._Getal())) {}
+
+    无序集合实现(const 无序集合实现& _Right, const allocator_type& _Al) : _Mybase(_Right, _Al) {}
+
+    explicit 无序集合实现(size_type _Buckets) : _Mybase(_Key_compare(), allocator_type()) {
+        this->rehash(_Buckets);
+    }
+
+    无序集合实现(size_type _Buckets, const allocator_type& _Al) : _Mybase(_Key_compare(), _Al) {
+        this->rehash(_Buckets);
+    }
+
+    无序集合实现(size_type _Buckets, const hasher& _Hasharg) : _Mybase(_Key_compare(_Hasharg), allocator_type()) {
+        this->rehash(_Buckets);
+    }
+
+    无序集合实现(size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
+        : _Mybase(_Key_compare(_Hasharg), _Al) {
+        this->rehash(_Buckets);
+    }
+
+    无序集合实现(size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
+        : _Mybase(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
+        this->rehash(_Buckets);
+    }
+
+    无序集合实现(size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg, const allocator_type& _Al)
+        : _Mybase(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
+        this->rehash(_Buckets);
+    }
+
+    template <class _Iter>
+    无序集合实现(_Iter _First, _Iter _Last) : _Mybase(_Key_compare(), allocator_type()) {
+        this->insert(_First, _Last);
+    }
+
+    template <class _Iter>
+    无序集合实现(_Iter _First, _Iter _Last, const allocator_type& _Al) : _Mybase(_Key_compare(), _Al) {
+        this->insert(_First, _Last);
+    }
+
+    template <class _Iter>
+    无序集合实现(_Iter _First, _Iter _Last, size_type _Buckets) : _Mybase(_Key_compare(), allocator_type()) {
+        this->rehash(_Buckets);
+        this->insert(_First, _Last);
+    }
+
+    template <class _Iter>
+    无序集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const allocator_type& _Al)
+        : _Mybase(_Key_compare(), _Al) {
+        this->rehash(_Buckets);
+        this->insert(_First, _Last);
+    }
+
+    template <class _Iter>
+    无序集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg)
+        : _Mybase(_Key_compare(_Hasharg), allocator_type()) {
+        this->rehash(_Buckets);
+        this->insert(_First, _Last);
+    }
+
+    template <class _Iter>
+    无序集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
+        : _Mybase(_Key_compare(_Hasharg), _Al) {
+        this->rehash(_Buckets);
+        this->insert(_First, _Last);
+    }
+
+    template <class _Iter>
+    无序集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
+        : _Mybase(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
+        this->rehash(_Buckets);
+        this->insert(_First, _Last);
+    }
+
+    template <class _Iter>
+    无序集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg,
+        const allocator_type& _Al)
+        : _Mybase(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
+        this->rehash(_Buckets);
+        this->insert(_First, _Last);
+    }
+
+#if _HAS_CXX23
+    template <_Container_compatible_range<value_type> _Rng>
+    无序集合实现(from_range_t, _Rng&& _Range) : _Mybase(_Key_compare(), allocator_type()) {
+        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序集合实现(from_range_t, _Rng&& _Range, const allocator_type& _Al) : _Mybase(_Key_compare(), _Al) {
+        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets) : _Mybase(_Key_compare(), allocator_type()) {
+        _Mybase::rehash(_Buckets);
+        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const allocator_type& _Al)
+        : _Mybase(_Key_compare(), _Al) {
+        _Mybase::rehash(_Buckets);
+        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg)
+        : _Mybase(_Key_compare(_Hasharg), allocator_type()) {
+        _Mybase::rehash(_Buckets);
+        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
+        : _Mybase(_Key_compare(_Hasharg), _Al) {
+        _Mybase::rehash(_Buckets);
+        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
+        : _Mybase(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
+        _Mybase::rehash(_Buckets);
+        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg,
+        const allocator_type& _Al)
+        : _Mybase(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
+        _Mybase::rehash(_Buckets);
+        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+    }
+#endif // _HAS_CXX23
+
+    无序集合实现& operator=(const 无序集合实现& _Right) {
+        _Mybase::operator=(_Right);
+        return *this;
+    }
+
+    无序集合实现(无序集合实现&& _Right) : _Mybase(_STD move(_Right)) {}
+
+    无序集合实现(无序集合实现&& _Right, const allocator_type& _Al) : _Mybase(_STD move(_Right), _Al) {}
+
+    无序集合实现& operator=(无序集合实现&& _Right)
+        noexcept(_Alnode_traits::is_always_equal::value
+                 && is_nothrow_move_assignable_v<_Hasher> && is_nothrow_move_assignable_v<_Keyeq>) {
+        _Mybase::operator=(_STD move(_Right));
+        return *this;
+    }
+
+    void swap(无序集合实现& _Right) noexcept(noexcept(_Mybase::swap(_Right))) {
+        _Mybase::swap(_Right);
+    }
+
+    无序集合实现(initializer_list<value_type> _Ilist) : _Mybase(_Key_compare(), allocator_type()) {
+        this->insert(_Ilist);
+    }
+
+    无序集合实现(initializer_list<value_type> _Ilist, const allocator_type& _Al) : _Mybase(_Key_compare(), _Al) {
+        this->insert(_Ilist);
+    }
+
+    无序集合实现(initializer_list<value_type> _Ilist, size_type _Buckets) : _Mybase(_Key_compare(), allocator_type()) {
+        this->rehash(_Buckets);
+        this->insert(_Ilist);
+    }
+
+    无序集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const allocator_type& _Al)
+        : _Mybase(_Key_compare(), _Al) {
+        this->rehash(_Buckets);
+        this->insert(_Ilist);
+    }
+
+    无序集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg)
+        : _Mybase(_Key_compare(_Hasharg), allocator_type()) {
+        this->rehash(_Buckets);
+        this->insert(_Ilist);
+    }
+
+    无序集合实现(
+        initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
+        : _Mybase(_Key_compare(_Hasharg), _Al) {
+        this->rehash(_Buckets);
+        this->insert(_Ilist);
+    }
+
+    无序集合实现(
+        initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
+        : _Mybase(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
+        this->rehash(_Buckets);
+        this->insert(_Ilist);
+    }
+
+    无序集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg,
+        const _Keyeq& _Keyeqarg, const allocator_type& _Al)
+        : _Mybase(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
+        this->rehash(_Buckets);
+        this->insert(_Ilist);
+    }
+
+    无序集合实现& operator=(initializer_list<value_type> _Ilist) {
+        this->clear();
+        this->insert(_Ilist);
+        return *this;
+    }
+
+    _NODISCARD hasher hash_function() const {
+        return this->_Traitsobj._Mypair._Get_first();
+    }
+
+    _NODISCARD key_equal key_eq() const {
+        return this->_Traitsobj._Mypair._Myval2._Get_first();
+    }
+
+    using _Mybase::_Unchecked_begin;
+    using _Mybase::_Unchecked_end;
+};
+
+#if _HAS_CXX17
+template <class _Iter, class _Hasher = hash<_Iter_value_t<_Iter>>, class _Keyeq = equal_to<_Iter_value_t<_Iter>>,
+    class _Alloc = allocator<_Iter_value_t<_Iter>>,
+    enable_if_t<
+        conjunction_v<_Is_iterator<_Iter>, _Is_hasher<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_Alloc>>,
+        int> = 0>
+无序集合实现(_Iter, _Iter, _Guide_size_type_t<_Alloc> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(), _Alloc = _Alloc())
+    -> 无序集合实现<_Iter_value_t<_Iter>, _Hasher, _Keyeq, _Alloc>;
+
+template <class _Kty, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>, class _Alloc = allocator<_Kty>,
+    enable_if_t<conjunction_v<_Is_hasher<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_Alloc>>, int> = 0>
+无序集合实现(initializer_list<_Kty>, _Guide_size_type_t<_Alloc> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(),
+    _Alloc = _Alloc()) -> 无序集合实现<_Kty, _Hasher, _Keyeq, _Alloc>;
+
+template <class _Iter, class _Alloc, enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_allocator<_Alloc>>, int> = 0>
+无序集合实现(_Iter, _Iter, _Guide_size_type_t<_Alloc>, _Alloc)
+    -> 无序集合实现<_Iter_value_t<_Iter>, hash<_Iter_value_t<_Iter>>, equal_to<_Iter_value_t<_Iter>>, _Alloc>;
+
+template <class _Iter, class _Hasher, class _Alloc,
+    enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_hasher<_Hasher>, _Is_allocator<_Alloc>>, int> = 0>
+无序集合实现(_Iter, _Iter, _Guide_size_type_t<_Alloc>, _Hasher, _Alloc)
+    -> 无序集合实现<_Iter_value_t<_Iter>, _Hasher, equal_to<_Iter_value_t<_Iter>>, _Alloc>;
+
+template <class _Kty, class _Alloc, enable_if_t<_Is_allocator<_Alloc>::value, int> = 0>
+无序集合实现(initializer_list<_Kty>, _Guide_size_type_t<_Alloc>, _Alloc)
+    -> 无序集合实现<_Kty, hash<_Kty>, equal_to<_Kty>, _Alloc>;
+
+template <class _Kty, class _Hasher, class _Alloc,
+    enable_if_t<conjunction_v<_Is_hasher<_Hasher>, _Is_allocator<_Alloc>>, int> = 0>
+无序集合实现(initializer_list<_Kty>, _Guide_size_type_t<_Alloc>, _Hasher, _Alloc)
+    -> 无序集合实现<_Kty, _Hasher, equal_to<_Kty>, _Alloc>;
+
+#if _HAS_CXX23
+template <_RANGES input_range _Rng, _Hasher_for_container _Hasher = hash<_RANGES range_value_t<_Rng>>,
+    class _Keyeq                    = equal_to<_RANGES range_value_t<_Rng>>,
+    _Allocator_for_container _Alloc = allocator<_RANGES range_value_t<_Rng>>>
+    requires (!_Allocator_for_container<_Keyeq>)
+无序集合实现(from_range_t, _Rng&&, _Guide_size_type_t<_Alloc> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(),
+    _Alloc = _Alloc()) -> 无序集合实现<_RANGES range_value_t<_Rng>, _Hasher, _Keyeq, _Alloc>;
+
+template <_RANGES input_range _Rng, _Allocator_for_container _Alloc>
+无序集合实现(from_range_t, _Rng&&, _Guide_size_type_t<_Alloc>, _Alloc) -> 无序集合实现<_RANGES range_value_t<_Rng>,
+    hash<_RANGES range_value_t<_Rng>>, equal_to<_RANGES range_value_t<_Rng>>, _Alloc>;
+
+template <_RANGES input_range _Rng, _Allocator_for_container _Alloc>
+无序集合实现(from_range_t, _Rng&&, _Alloc) -> 无序集合实现<_RANGES range_value_t<_Rng>,
+    hash<_RANGES range_value_t<_Rng>>, equal_to<_RANGES range_value_t<_Rng>>, _Alloc>;
+
+template <_RANGES input_range _Rng, _Hasher_for_container _Hasher, _Allocator_for_container _Alloc>
+无序集合实现(from_range_t, _Rng&&, _Guide_size_type_t<_Alloc>, _Hasher, _Alloc)
+    -> 无序集合实现<_RANGES range_value_t<_Rng>, _Hasher, equal_to<_RANGES range_value_t<_Rng>>, _Alloc>;
+#endif // _HAS_CXX23
+#endif // _HAS_CXX17
+
+_EXPORT_STD template <class _Kty, class _Hasher, class _Keyeq, class _Alloc>
+void swap(无序集合实现<_Kty, _Hasher, _Keyeq, _Alloc>& _Left, 无序集合实现<_Kty, _Hasher, _Keyeq, _Alloc>& _Right)
+    noexcept(noexcept(_Left.swap(_Right))) {
+    _Left.swap(_Right);
+}
+
+#if _HAS_CXX20
+_EXPORT_STD template <class _Kty, class _Hasher, class _Keyeq, class _Alloc, class _Pr>
+无序集合实现<_Kty, _Hasher, _Keyeq, _Alloc>::size_type erase_if(
+    无序集合实现<_Kty, _Hasher, _Keyeq, _Alloc>& _Cont, _Pr _Pred) {
+    return _Erase_nodes_if(_Cont, _STD _Pass_fn(_Pred));
+}
+#endif // _HAS_CXX20
+
+_EXPORT_STD template <class _Kty, class _Hasher, class _Keyeq, class _Alloc>
+_NODISCARD bool operator==(const 无序集合实现<_Kty, _Hasher, _Keyeq, _Alloc>& _Left,
+    const 无序集合实现<_Kty, _Hasher, _Keyeq, _Alloc>& _Right) {
+    return _Hash_equal(_Left, _Right);
+}
+
+#if !_HAS_CXX20
+template <class _Kty, class _Hasher, class _Keyeq, class _Alloc>
+_NODISCARD bool operator!=(const 无序集合实现<_Kty, _Hasher, _Keyeq, _Alloc>& _Left,
+    const 无序集合实现<_Kty, _Hasher, _Keyeq, _Alloc>& _Right) {
+    return !(_Left == _Right);
+}
+#endif // !_HAS_CXX20
+
+_EXPORT_STD template <class _Kty, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>,
+    class _Alloc = allocator<_Kty>>
+class 无序多重集合实现 : public _Hash<_无序集合特征<_Kty, _Uhash_compare<_Kty, _Hasher, _Keyeq>, _Alloc, true>> {
+    // hash table of key-values, non-unique keys
+public:
+    static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<_Kty, typename _Alloc::value_type>,
+        _MISMATCHED_ALLOCATOR_MESSAGE("无序多重集合实现<T, Hasher, Eq, Allocator>", "T"));
+    static_assert(is_object_v<_Kty>, "The C++ Standard forbids containers of non-object types "
+                                     "because of [container.requirements].");
+
+private:
+    using _Mytraits      = _Uhash_compare<_Kty, _Hasher, _Keyeq>;
+    using _Mybase        = _Hash<_无序集合特征<_Kty, _Mytraits, _Alloc, true>>;
+    using _Alnode        = typename _Mybase::_Alnode;
+    using _Alnode_traits = typename _Mybase::_Alnode_traits;
+    using _Key_compare   = typename _Mybase::_Key_compare;
+
+public:
+    using hasher    = _Hasher;
+    using key_type  = _Kty;
+    using key_equal = _Keyeq;
+
+    using value_type      = typename _Mybase::value_type;
+    using allocator_type  = typename _Mybase::allocator_type;
+    using size_type       = typename _Mybase::size_type;
+    using difference_type = typename _Mybase::difference_type;
+    using pointer         = typename _Mybase::pointer;
+    using const_pointer   = typename _Mybase::const_pointer;
+    using reference       = value_type&;
+    using const_reference = const value_type&;
+    using iterator        = typename _Mybase::iterator;
+    using const_iterator  = typename _Mybase::const_iterator;
+
+    无序多重集合实现() : _Mybase(_Key_compare(), allocator_type()) {}
+
+    explicit 无序多重集合实现(const allocator_type& _Al) : _Mybase(_Key_compare(), _Al) {}
+
+    无序多重集合实现(const 无序多重集合实现& _Right)
+        : _Mybase(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._Getal())) {}
+
+    无序多重集合实现(const 无序多重集合实现& _Right, const allocator_type& _Al) : _Mybase(_Right, _Al) {}
+
+    explicit 无序多重集合实现(size_type _Buckets) : _Mybase(_Key_compare(), allocator_type()) {
+        this->rehash(_Buckets);
+    }
+
+    无序多重集合实现(size_type _Buckets, const allocator_type& _Al) : _Mybase(_Key_compare(), _Al) {
+        this->rehash(_Buckets);
+    }
+
+    无序多重集合实现(size_type _Buckets, const hasher& _Hasharg) : _Mybase(_Key_compare(_Hasharg), allocator_type()) {
+        this->rehash(_Buckets);
+    }
+
+    无序多重集合实现(size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
+        : _Mybase(_Key_compare(_Hasharg), _Al) {
+        this->rehash(_Buckets);
+    }
+
+    无序多重集合实现(size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
+        : _Mybase(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
+        this->rehash(_Buckets);
+    }
+
+    无序多重集合实现(size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg, const allocator_type& _Al)
+        : _Mybase(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
+        this->rehash(_Buckets);
+    }
+
+    template <class _Iter>
+    无序多重集合实现(_Iter _First, _Iter _Last) : _Mybase(_Key_compare(), allocator_type()) {
+        this->insert(_First, _Last);
+    }
+
+    template <class _Iter>
+    无序多重集合实现(_Iter _First, _Iter _Last, const allocator_type& _Al) : _Mybase(_Key_compare(), _Al) {
+        this->insert(_First, _Last);
+    }
+
+    template <class _Iter>
+    无序多重集合实现(_Iter _First, _Iter _Last, size_type _Buckets) : _Mybase(_Key_compare(), allocator_type()) {
+        this->rehash(_Buckets);
+        this->insert(_First, _Last);
+    }
+
+    template <class _Iter>
+    无序多重集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const allocator_type& _Al)
+        : _Mybase(_Key_compare(), _Al) {
+        this->rehash(_Buckets);
+        this->insert(_First, _Last);
+    }
+
+    template <class _Iter>
+    无序多重集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg)
+        : _Mybase(_Key_compare(_Hasharg), allocator_type()) {
+        this->rehash(_Buckets);
+        this->insert(_First, _Last);
+    }
+
+    template <class _Iter>
+    无序多重集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
+        : _Mybase(_Key_compare(_Hasharg), _Al) {
+        this->rehash(_Buckets);
+        this->insert(_First, _Last);
+    }
+
+    template <class _Iter>
+    无序多重集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
+        : _Mybase(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
+        this->rehash(_Buckets);
+        this->insert(_First, _Last);
+    }
+
+    template <class _Iter>
+    无序多重集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg,
+        const allocator_type& _Al)
+        : _Mybase(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
+        this->rehash(_Buckets);
+        this->insert(_First, _Last);
+    }
+
+    无序多重集合实现& operator=(const 无序多重集合实现& _Right) {
+        _Mybase::operator=(_Right);
+        return *this;
+    }
+
+    无序多重集合实现(无序多重集合实现&& _Right) : _Mybase(_STD move(_Right)) {}
+
+    无序多重集合实现(无序多重集合实现&& _Right, const allocator_type& _Al) : _Mybase(_STD move(_Right), _Al) {}
+
+#if _HAS_CXX23
+    template <_Container_compatible_range<value_type> _Rng>
+    无序多重集合实现(from_range_t, _Rng&& _Range) : _Mybase(_Key_compare(), allocator_type()) {
+        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序多重集合实现(from_range_t, _Rng&& _Range, const allocator_type& _Al) : _Mybase(_Key_compare(), _Al) {
+        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序多重集合实现(from_range_t, _Rng&& _Range, size_type _Buckets) : _Mybase(_Key_compare(), allocator_type()) {
+        _Mybase::rehash(_Buckets);
+        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序多重集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const allocator_type& _Al)
+        : _Mybase(_Key_compare(), _Al) {
+        _Mybase::rehash(_Buckets);
+        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序多重集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg)
+        : _Mybase(_Key_compare(_Hasharg), allocator_type()) {
+        _Mybase::rehash(_Buckets);
+        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序多重集合实现(
+        from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
+        : _Mybase(_Key_compare(_Hasharg), _Al) {
+        _Mybase::rehash(_Buckets);
+        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序多重集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
+        : _Mybase(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
+        _Mybase::rehash(_Buckets);
+        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序多重集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg,
+        const allocator_type& _Al)
+        : _Mybase(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
+        _Mybase::rehash(_Buckets);
+        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+    }
+#endif // _HAS_CXX23
+
+    无序多重集合实现& operator=(无序多重集合实现&& _Right)
+        noexcept(_Alnode_traits::is_always_equal::value
+                 && is_nothrow_move_assignable_v<_Hasher> && is_nothrow_move_assignable_v<_Keyeq>) {
+        _Mybase::operator=(_STD move(_Right));
+        return *this;
+    }
+
+    void swap(无序多重集合实现& _Right) noexcept(noexcept(_Mybase::swap(_Right))) {
+        _Mybase::swap(_Right);
+    }
+
+    无序多重集合实现(initializer_list<value_type> _Ilist) : _Mybase(_Key_compare(), allocator_type()) {
+        this->insert(_Ilist);
+    }
+
+    无序多重集合实现(initializer_list<value_type> _Ilist, const allocator_type& _Al) : _Mybase(_Key_compare(), _Al) {
+        this->insert(_Ilist);
+    }
+
+    无序多重集合实现(initializer_list<value_type> _Ilist, size_type _Buckets)
+        : _Mybase(_Key_compare(), allocator_type()) {
+        this->rehash(_Buckets);
+        this->insert(_Ilist);
+    }
+
+    无序多重集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const allocator_type& _Al)
+        : _Mybase(_Key_compare(), _Al) {
+        this->rehash(_Buckets);
+        this->insert(_Ilist);
+    }
+
+    无序多重集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg)
+        : _Mybase(_Key_compare(_Hasharg), allocator_type()) {
+        this->rehash(_Buckets);
+        this->insert(_Ilist);
+    }
+
+    无序多重集合实现(
+        initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
+        : _Mybase(_Key_compare(_Hasharg), _Al) {
+        this->rehash(_Buckets);
+        this->insert(_Ilist);
+    }
+
+    无序多重集合实现(
+        initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
+        : _Mybase(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
+        this->rehash(_Buckets);
+        this->insert(_Ilist);
+    }
+
+    无序多重集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg,
+        const _Keyeq& _Keyeqarg, const allocator_type& _Al)
+        : _Mybase(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
+        this->rehash(_Buckets);
+        this->insert(_Ilist);
+    }
+
+    无序多重集合实现& operator=(initializer_list<value_type> _Ilist) {
+        this->clear();
+        this->insert(_Ilist);
+        return *this;
+    }
+
+    _NODISCARD hasher hash_function() const {
+        return this->_Traitsobj._Mypair._Get_first();
+    }
+
+    _NODISCARD key_equal key_eq() const {
+        return this->_Traitsobj._Mypair._Myval2._Get_first();
+    }
+
+    using _Mybase::_Unchecked_begin;
+    using _Mybase::_Unchecked_end;
+};
+
+#if _HAS_CXX17
+template <class _Iter, class _Hasher = hash<_Iter_value_t<_Iter>>, class _Keyeq = equal_to<_Iter_value_t<_Iter>>,
+    class _Alloc = allocator<_Iter_value_t<_Iter>>,
+    enable_if_t<
+        conjunction_v<_Is_iterator<_Iter>, _Is_hasher<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_Alloc>>,
+        int> = 0>
+无序多重集合实现(_Iter, _Iter, _Guide_size_type_t<_Alloc> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(),
+    _Alloc = _Alloc()) -> 无序多重集合实现<_Iter_value_t<_Iter>, _Hasher, _Keyeq, _Alloc>;
+
+template <class _Kty, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>, class _Alloc = allocator<_Kty>,
+    enable_if_t<conjunction_v<_Is_hasher<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_Alloc>>, int> = 0>
+无序多重集合实现(initializer_list<_Kty>, _Guide_size_type_t<_Alloc> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(),
+    _Alloc = _Alloc()) -> 无序多重集合实现<_Kty, _Hasher, _Keyeq, _Alloc>;
+
+template <class _Iter, class _Alloc, enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_allocator<_Alloc>>, int> = 0>
+无序多重集合实现(_Iter, _Iter, _Guide_size_type_t<_Alloc>, _Alloc)
+    -> 无序多重集合实现<_Iter_value_t<_Iter>, hash<_Iter_value_t<_Iter>>, equal_to<_Iter_value_t<_Iter>>, _Alloc>;
+
+template <class _Iter, class _Hasher, class _Alloc,
+    enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_hasher<_Hasher>, _Is_allocator<_Alloc>>, int> = 0>
+无序多重集合实现(_Iter, _Iter, _Guide_size_type_t<_Alloc>, _Hasher, _Alloc)
+    -> 无序多重集合实现<_Iter_value_t<_Iter>, _Hasher, equal_to<_Iter_value_t<_Iter>>, _Alloc>;
+
+template <class _Kty, class _Alloc, enable_if_t<_Is_allocator<_Alloc>::value, int> = 0>
+无序多重集合实现(initializer_list<_Kty>, _Guide_size_type_t<_Alloc>, _Alloc)
+    -> 无序多重集合实现<_Kty, hash<_Kty>, equal_to<_Kty>, _Alloc>;
+
+template <class _Kty, class _Hasher, class _Alloc,
+    enable_if_t<conjunction_v<_Is_hasher<_Hasher>, _Is_allocator<_Alloc>>, int> = 0>
+无序多重集合实现(initializer_list<_Kty>, _Guide_size_type_t<_Alloc>, _Hasher, _Alloc)
+    -> 无序多重集合实现<_Kty, _Hasher, equal_to<_Kty>, _Alloc>;
+
+#if _HAS_CXX23
+template <_RANGES input_range _Rng, _Hasher_for_container _Hasher = hash<_RANGES range_value_t<_Rng>>,
+    class _Keyeq                    = equal_to<_RANGES range_value_t<_Rng>>,
+    _Allocator_for_container _Alloc = allocator<_RANGES range_value_t<_Rng>>>
+    requires (!_Allocator_for_container<_Keyeq>)
+无序多重集合实现(from_range_t, _Rng&&, _Guide_size_type_t<_Alloc> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(),
+    _Alloc = _Alloc()) -> 无序多重集合实现<_RANGES range_value_t<_Rng>, _Hasher, _Keyeq, _Alloc>;
+
+template <_RANGES input_range _Rng, _Allocator_for_container _Alloc>
+无序多重集合实现(from_range_t, _Rng&&, _Guide_size_type_t<_Alloc>, _Alloc)
+    -> 无序多重集合实现<_RANGES range_value_t<_Rng>, hash<_RANGES range_value_t<_Rng>>,
+        equal_to<_RANGES range_value_t<_Rng>>, _Alloc>;
+
+template <_RANGES input_range _Rng, _Allocator_for_container _Alloc>
+无序多重集合实现(from_range_t, _Rng&&, _Alloc) -> 无序多重集合实现<_RANGES range_value_t<_Rng>,
+    hash<_RANGES range_value_t<_Rng>>, equal_to<_RANGES range_value_t<_Rng>>, _Alloc>;
+
+template <_RANGES input_range _Rng, _Hasher_for_container _Hasher, _Allocator_for_container _Alloc>
+无序多重集合实现(from_range_t, _Rng&&, _Guide_size_type_t<_Alloc>, _Hasher, _Alloc)
+    -> 无序多重集合实现<_RANGES range_value_t<_Rng>, _Hasher, equal_to<_RANGES range_value_t<_Rng>>, _Alloc>;
+#endif // _HAS_CXX23
+#endif // _HAS_CXX17
+
+_EXPORT_STD template <class _Kty, class _Hasher, class _Keyeq, class _Alloc>
+void swap(无序多重集合实现<_Kty, _Hasher, _Keyeq, _Alloc>& _Left,
+    无序多重集合实现<_Kty, _Hasher, _Keyeq, _Alloc>& _Right) noexcept(noexcept(_Left.swap(_Right))) {
+    _Left.swap(_Right);
+}
+
+#if _HAS_CXX20
+_EXPORT_STD template <class _Kty, class _Hasher, class _Keyeq, class _Alloc, class _Pr>
+无序多重集合实现<_Kty, _Hasher, _Keyeq, _Alloc>::size_type erase_if(
+    无序多重集合实现<_Kty, _Hasher, _Keyeq, _Alloc>& _Cont, _Pr _Pred) {
+    return _Erase_nodes_if(_Cont, _STD _Pass_fn(_Pred));
+}
+#endif // _HAS_CXX20
+
+_EXPORT_STD template <class _Kty, class _Hasher, class _Keyeq, class _Alloc>
+_NODISCARD bool operator==(const 无序多重集合实现<_Kty, _Hasher, _Keyeq, _Alloc>& _Left,
+    const 无序多重集合实现<_Kty, _Hasher, _Keyeq, _Alloc>& _Right) {
+    return _Hash_equal(_Left, _Right);
+}
+
+#if !_HAS_CXX20
+template <class _Kty, class _Hasher, class _Keyeq, class _Alloc>
+_NODISCARD bool operator!=(const 无序多重集合实现<_Kty, _Hasher, _Keyeq, _Alloc>& _Left,
+    const 无序多重集合实现<_Kty, _Hasher, _Keyeq, _Alloc>& _Right) {
+    return !(_Left == _Right);
+}
+#endif // !_HAS_CXX20
+
+#if _HAS_TR1_NAMESPACE
+namespace _DEPRECATE_TR1_NAMESPACE tr1 {
+    using _STD 无序多重集合实现;
+    using _STD 无序集合实现;
+} // namespace _DEPRECATE_TR1_NAMESPACE tr1
+#endif // _HAS_TR1_NAMESPACE
+
+#if _HAS_CXX17
+namespace pmr {
+    使用 名域 std::pmr;   // pmr 暂不翻，但里面的名字要靠它找到（步 2b）
+    _EXPORT_STD template <class _Kty, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>>
+    using 无序集合实现 = 无序集合实现<_Kty, _Hasher, _Keyeq, polymorphic_allocator<_Kty>>;
+
+    _EXPORT_STD template <class _Kty, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>>
+    using 无序多重集合实现 = 无序多重集合实现<_Kty, _Hasher, _Keyeq, polymorphic_allocator<_Kty>>;
+} // namespace pmr
+#endif // _HAS_CXX17
+} }
+#pragma pop_macro("new")
+_STL_RESTORE_CLANG_WARNINGS
+#pragma warning(pop)
+#pragma pack(pop)
+#endif // _STL_COMPILER_PREPROCESSOR
+// ============================================================================
+//  第二层：在【中文的基础上】派生，把英文原名补回来
+//  · 第一层 标准::细节::无序集合实现 是抄自微软的中文实现，成员名全中文
+//  · 本层加回英文原名，所以两种名字在【同一个对象】上都能用
+//  · 与微软的原类型并存：它是【另一个类型】，不碰 std 里的定义
+// ============================================================================
+名域 标准 {
+模板 <类型名 键, 类型名 散列 = std::hash<键>, 类型名 相等 = std::equal_to<键>, 类型名 分配器 = std::allocator<键>>
+类型 无序集合 : 公开 细节::无序集合实现<键, 散列, 相等, 分配器> {
+公开:
+    使用 基类 = 细节::无序集合实现<键, 散列, 相等, 分配器>;
+    使用 基类::基类;
+
+    // 嵌套类型名也要补回英文（数据成员不行 —— 那会改布局）
+    使用 迭代器 = 基类::iterator;
+    使用 常量迭代器 = 基类::const_iterator;
+    使用 键类型 = 基类::key_type;
+    使用 尺寸类型 = 基类::size_type;
+
+    // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
+    模板 <类型名... 参数> 自动 e(参数&&... 值) { 返回 基类::m(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 e(参数&&... 值) 常量 { 返回 基类::m(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 就(参数&&... 值) { 返回 基类::地(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 就(参数&&... 值) 常量 { 返回 基类::地(static_cast<参数&&>(值)...); }
+
+    // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
+    // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
+    模板 <类型名... 参数> 自动 插入(参数&&... 值) { 返回 基类::insert(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 擦除(参数&&... 值) { 返回 基类::erase(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 查找(参数&&... 值) { 返回 基类::find(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 计数(参数&&... 值) 常量 { 返回 基类::count(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 尺寸(参数&&... 值) 常量 { 返回 基类::size(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 为空(参数&&... 值) 常量 { 返回 基类::empty(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 清空(参数&&... 值) { 返回 基类::clear(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 包含(参数&&... 值) 常量 { 返回 基类::contains(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 开始(参数&&... 值) { 返回 基类::begin(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 结束(参数&&... 值) { 返回 基类::end(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 桶数(参数&&... 值) 常量 { 返回 基类::bucket_count(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 负载因子(参数&&... 值) 常量 { 返回 基类::load_factor(static_cast<参数&&>(值)...); }
+};
+}
+
+名域 标准 {
+
+// 无序多重集合（std::unordered_multiset）—— 与 <集合>/<多重集合> 的分工一致
+模板 <类型名 键, 类型名 散列 = std::hash<键>, 类型名 相等 = std::equal_to<键>,
+      类型名 分配器 = std::allocator<键>>
+类型 无序多重集合 : 公开 细节::无序多重集合实现<键, 散列, 相等, 分配器> {
+公开:
+    使用 基类 = 细节::无序多重集合实现<键, 散列, 相等, 分配器>;
+    使用 基类::基类;
+    模板 <类型名... 参数> 自动 插入(参数&&... 值) { 返回 基类::insert(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 擦除(参数&&... 值) { 返回 基类::erase(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 查找(参数&&... 值) { 返回 基类::find(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 计数(参数&&... 值) 常量 { 返回 基类::count(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 尺寸(参数&&... 值) 常量 { 返回 基类::size(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 为空(参数&&... 值) 常量 { 返回 基类::empty(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 清空(参数&&... 值) { 返回 基类::clear(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 开始(参数&&... 值) { 返回 基类::begin(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 结束(参数&&... 值) { 返回 基类::end(static_cast<参数&&>(值)...); }
+};
+
+}  // 名域 标准
+
+#endif // _UNORDERED_SET_
