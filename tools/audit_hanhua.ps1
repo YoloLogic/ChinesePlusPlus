@@ -131,6 +131,7 @@ function Get-MemberNames([string] $text) {
             'const_cast', 'dynamic_cast', 'decltype', 'noexcept', 'operator', 'static_assert',
             'alignof', 'typeid', 'catch', 'throw', 'new', 'delete', 'and', 'or', 'not',
             'constexpr', 'consteval', 'requires', '__declspec', '__cdecl', '__stdcall',
+            'bool', 'explicit', 'virtual', 'friend', 'mutable', 'typename', 'class',
             'enable_if', 'is_same', 'conjunction', 'disjunction', 'declval', 'conditional',
             'move', 'forward', 'exchange', 'max', 'min', 'begin', 'end', 'size', 'data', 'empty')
     foreach ($m in [regex]::Matches($text, '(?m)^[ \t]{4,10}(?:\[\[[^\]]*\]\]\s*)?(?:constexpr\s+|inline\s+|static\s+|virtual\s+|friend\s+|explicit\s+)*[A-Za-z_][\w:<>,\s\*&]*?\b([a-z_]\w*)\s*\(')) {
@@ -181,7 +182,10 @@ $memBoundary = @('length', 'assign', 'copy', 'compare', 'find', 'max_size', 'swa
                  #   `_Mycnd`：<condition_variable> 正文里只有 `_Mycnd()` 这种**调用**，
                  #     定义在借来的线程核心头（goals 里 xthreads.h 那一类，属"判定的边界"）。
                  #   `_Pred`：模板形参名（本尺子的已知偏差，同 `_Ty`）。
-                 '_Mycnd', '_Pred')
+                 '_Mycnd', '_Pred',
+                 # ---- §16.76 形参名噪声（本尺子的已知偏差：它会把模板形参当成成员）----
+                 #   `_Fn`（<scoped_allocator> 的模板形参）、`_Rep`、`_Ty`、`_Pred` 同类。
+                 '_Fn', '_Rep')
 function Get-NestedNames([string] $text) {    $names = @{}
     foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+using\s+([A-Za-z_]\w*)\s*=')) { $names[$m.Groups[1].Value] = $true }
     foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+typedef\s+[^;\r\n]*?\b([A-Za-z_]\w*)\s*;')) { $names[$m.Groups[1].Value] = $true }
