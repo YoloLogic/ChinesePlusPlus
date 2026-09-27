@@ -615,6 +615,55 @@ $H = @{
       @('擦除 / 插入 / 前后','#包含 <双端队列>`n整数 主函数(){ 标准::双端队列<整数> 甲; 甲.尾插(1); 甲.尾插(2); 甲.尾插(3); 甲.擦除(甲.开始()); 甲.插入(甲.开始(), 9); 返回 甲.前() + 甲.后() - 12; }')
     )
   }
+  'list' = @{
+    zh      = '链表'
+    types   = [ordered]@{ 'list' = '链表实现' }
+    members = [ordered]@{
+      'size' = '尺寸'; 'empty' = '为空'; 'max_size' = '最大尺寸'
+      'begin' = '开始'; 'end' = '结束'
+      'cbegin' = '常量开始'; 'cend' = '常量结束'
+      'rbegin' = '反向开始'; 'rend' = '反向结束'
+      'crbegin' = '常量反向开始'; 'crend' = '常量反向结束'
+      'front' = '前'; 'back' = '后'
+      'push_back' = '尾插'; 'push_front' = '头插'
+      'pop_back' = '尾删'; 'pop_front' = '头删'
+      'emplace' = '就地构造'; 'emplace_back' = '尾部就地构造'; 'emplace_front' = '头部就地构造'
+      'insert' = '插入'; 'erase' = '擦除'; 'assign' = '赋值'
+      'resize' = '调整尺寸'; 'shrink_to_fit' = '收缩至适应'
+      'clear' = '清空'; 'get_allocator' = '取分配器'
+      'append_range' = '追加范围'; 'prepend_range' = '前置范围'
+      'assign_range' = '范围赋值'; 'insert_range' = '范围插入'
+      'sort' = '排序'; 'merge' = '归并'; 'splice' = '接合'
+      'remove' = '移除'; 'remove_if' = '按条件移除'
+      'unique' = '去重'; 'reverse' = '反转'
+      # ⚠ swap 照旧不改名（§3.12）
+    }
+    data    = [ordered]@{}
+    derive  = @( @('size','尺寸'), @('empty','为空'), @('max_size','最大尺寸'),
+                 @('begin','开始'), @('end','结束'),
+                 @('front','前'), @('back','后'),
+                 @('push_back','尾插'), @('push_front','头插'),
+                 @('pop_back','尾删'), @('pop_front','头删'),
+                 @('emplace','就地构造'), @('emplace_back','尾部就地构造'),
+                 @('emplace_front','头部就地构造'),
+                 @('insert','插入'), @('erase','擦除'), @('assign','赋值'),
+                 @('resize','调整尺寸'), @('shrink_to_fit','收缩至适应'),
+                 @('clear','清空'), @('get_allocator','取分配器'),
+                 @('sort','排序'), @('merge','归并'), @('splice','接合'),
+                 @('remove','移除'), @('remove_if','按条件移除'),
+                 @('unique','去重'), @('reverse','反转') )
+    deriveTypes = @( @('迭代器','iterator'), @('常量迭代器','const_iterator'),
+                     @('反向迭代器','reverse_iterator'), @('常量反向迭代器','const_reverse_iterator'),
+                     @('值类型','value_type'), @('尺寸类型','size_type') )
+    stdHash = $false
+    tparam  = @{ decl = '模板 <类型名 元素, 类型名 分配器 = std::allocator<元素>>'; args = '<元素, 分配器>' }
+    tests = @(
+      @('只引中文头','#包含 <链表>`n整数 主函数(){ 标准::链表<整数> 甲; 甲.尾插(1); 甲.头插(0); 甲.尾部就地构造(2); 返回 甲.前() + (整数)甲.尺寸() - 3; }'),
+      @('与微软原头并存','#包含 <链表>`n#包含 <list>`n整数 主函数(){ 标准::链表<整数> 甲; 甲.push_back(1); std::list<int> 乙; 乙.push_back(1); 返回 (整数)甲.尺寸() - (整数)乙.size(); }'),
+      @('排序 / 去重 / 反转','#包含 <链表>`n整数 主函数(){ 标准::链表<整数> 甲; 甲.尾插(3); 甲.尾插(1); 甲.尾插(1); 甲.尾插(2); 甲.排序(); 甲.去重(); 甲.反转(); 返回 甲.前() + 甲.后() - 4; }'),
+      @('中英并用 + 迭代器','#包含 <链表>`n整数 主函数(){ 标准::链表<整数> 甲; 甲.尾插(1); 甲.尾插(2); 标准::链表<整数>::迭代器 头 = 甲.开始(); 整数 和 = 0; for (; 头 != 甲.结束(); ++头) { 和 += *头; } 甲.erase(甲.begin()); 返回 和 + (整数)甲.尺寸() - 4; }')
+    )
+  }
   'scoped_allocator' = @{
     zh      = '作用域分配器'
     types   = [ordered]@{ 'scoped_allocator_adaptor' = '作用域分配器适配器实现'
