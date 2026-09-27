@@ -68,6 +68,51 @@ $H = @{
       @('英文名与中文名并用','#包含 <屏障>`n整数 主函数(){ 标准::屏障<> 甲(3); 甲.到达(); 甲.arrive(); 返回 0; }')
     )
   }
+  'semaphore' = @{
+    zh      = '信号量'
+    types   = [ordered]@{ 'counting_semaphore' = '计数信号量实现'
+                          '_Semaphore_max' = '_信号量最大值'
+                          '_Semaphore_least_max_value' = '_信号量最小最大值' }
+    members = [ordered]@{ 'acquire' = '获取'; 'try_acquire' = '尝试获取'
+                          'try_acquire_for' = '尝试限时获取'
+                          'try_acquire_until' = '尝试获取至时刻'
+                          'release' = '释放'; 'max' = '最大' }
+    data    = [ordered]@{}
+    derive  = @( @('acquire','获取'), @('try_acquire','尝试获取'),
+                 @('try_acquire_for','尝试限时获取'),
+                 @('try_acquire_until','尝试获取至时刻'),
+                 @('release','释放'), @('max','最大') )
+    stdHash = $false
+    # 非类型模板形参（ptrdiff_t）—— 形参名也要中文
+    tparam  = @{ decl = '模板 <ptrdiff_t 最小最大值 = 细节::_信号量最大值>'; args = '<最小最大值>' }
+    tests = @(
+      @('只引中文头','#包含 <信号量>`n整数 主函数(){ 标准::计数信号量<2> 甲(0); 甲.释放(); 返回 0; }'),
+      @('与微软原头并存','#包含 <信号量>`n#包含 <semaphore>`n整数 主函数(){ 标准::计数信号量<2> 甲(0); 甲.释放(); std::counting_semaphore<2> 乙(0); 乙.release(); 返回 0; }'),
+      @('英文名与中文名并用','#包含 <信号量>`n整数 主函数(){ 标准::计数信号量<2> 甲(0); 甲.释放(); 甲.release(); 返回 0; }')
+    )
+  }
+  'condition_variable' = @{
+    zh      = '条件变量'
+    # ⚠ std::condition_variable（非 _any）其实定义在 <mutex> 里；这个头只有 _any
+    pub     = '条件变量任意'
+    types   = [ordered]@{ 'condition_variable_any' = '条件变量任意实现'
+                          '_Unlock_guard' = '_解锁卫兵'
+                          '_Cv_any_notify_all' = '_条件变量任意通知全部' }
+    members = [ordered]@{ 'notify_all' = '通知全部'; 'notify_one' = '通知一个'
+                          'wait' = '等待'; 'wait_for' = '限时等待'
+                          'wait_until' = '等待至时刻' }
+    data    = [ordered]@{}
+    derive  = @( @('notify_all','通知全部'), @('notify_one','通知一个'),
+                 @('wait','等待'), @('wait_for','限时等待'),
+                 @('wait_until','等待至时刻') )
+    stdHash = $false
+    tparam  = @{ decl = ''; args = '' }
+    tests = @(
+      @('只引中文头','#包含 <条件变量>`n整数 主函数(){ 标准::条件变量任意 甲; 甲.通知全部(); 返回 0; }'),
+      @('与微软原头并存','#包含 <条件变量>`n#包含 <condition_variable>`n整数 主函数(){ 标准::条件变量任意 甲; 甲.通知全部(); std::condition_variable_any 乙; 乙.notify_all(); 返回 0; }'),
+      @('英文名与中文名并用','#包含 <条件变量>`n整数 主函数(){ 标准::条件变量任意 甲; 甲.通知一个(); 甲.notify_one(); 返回 0; }')
+    )
+  }
   'latch' = @{
     zh      = '门闩'
     types   = [ordered]@{ 'latch' = '门闩实现' }
@@ -119,7 +164,8 @@ Write-Host "  步3/4 类型 $nT 处 / 成员 $nM 处 / 数据 $nD 处"
 # 步 6：派生层（在中文的基础上派生，补回英文原名）
 $cls = ($spec.types.Values | Select-Object -First 1)   # 实现类名
 $origType = ($spec.types.Keys | Select-Object -First 1) # 原本的类型名（供测试用）
-$pub = $spec.zh
+# 头名与对外类名不一定相同（例：<条件变量> 里只有 condition_variable_any）
+$pub = if ($spec.ContainsKey('pub')) { $spec.pub } else { $spec.zh }
 $fwd = @()
 foreach ($p in $spec.derive) {
     # 发两个转发：非 const 一个、const 一个。
@@ -173,13 +219,13 @@ $($fwd -join "`n")
 "@
 #$text = $text + $layer    # ← 派生层改到"编译器校对之后"再追加，见下
 New-Item -ItemType Directory -Force $out | Out-Null
-$outPath = Join-Path $out $pub
+$outPath = Join-Path $out $spec.zh
 [System.IO.File]::WriteAllText($outPath, $text, $utf8)
 Write-Host ("  输出: {0}  ({1} 行)" -f $outPath, ([System.IO.File]::ReadAllLines($outPath)).Count)
 
 # --- 编译器当改名校对 ---
 $probe = Join-Path $env:TEMP ('zh2_' + [guid]::NewGuid().ToString('N').Substring(0,8) + '.cpp')
-[System.IO.File]::WriteAllText($probe, "#包含 <$pub>`n整数 主函数(){ 返回 0; }`n", $utf8)
+[System.IO.File]::WriteAllText($probe, "#包含 <$($spec.zh)>`n整数 主函数(){ 返回 0; }`n", $utf8)
 $rev = @{}
 foreach ($k in $spec.members.Keys) { $rev[$spec.members[$k]] = $k }
 foreach ($k in $spec.data.Keys)    { $rev[$spec.data[$k]] = $k }
@@ -187,7 +233,7 @@ for ($round = 1; $round -le 8; $round++) {
     $raw = & cmd /c "`"$cxx`" -std=c++20 -isystem`"$out`" -ferror-limit=0 -fsyntax-only `"$probe`" 2>&1"
     $hits = @()
     foreach ($l in @($raw)) {
-        if ([string]$l -match "$pub`:(\d+):(\d+): error: .*没有名为（成员名） '([^']+)' 的成员") {
+        if ([string]$l -match "$($spec.zh)`:(\d+):(\d+): error: .*没有名为（成员名） '([^']+)' 的成员") {
             $hits += [pscustomobject]@{ Line=[int]$Matches[1]; Col=[int]$Matches[2]; Name=$Matches[3] }
         }
     }
