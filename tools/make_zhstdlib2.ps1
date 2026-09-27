@@ -224,11 +224,28 @@ $H = @{
     # ⚠ std::condition_variable（非 _any）其实定义在 <mutex> 里；这个头只有 _any
     pub     = '条件变量任意'
     types   = [ordered]@{ 'condition_variable_any' = '条件变量任意实现'
+                          # 这个头里 `shared_ptr<mutex>` / `_Ptr->_Mymtx()` 必须落到
+                          # 【我们自己那份 <互斥量>】的家族里，否则碰到 std 的私有成员
+                          # （微软只对真实的 std::condition_variable_any 开友元，见步 0）
+                          'mutex'                = '互斥量实现'
+                          'condition_variable'   = '条件变量实现'
+                          '_Mutex_base'          = '_互斥量基类'
+                          # lock_guard / unique_lock 也定义在 <mutex> 里（就是现在我们包含的那份）
+                          'lock_guard'           = '锁守卫实现'
+                          'unique_lock'          = '独占锁实现'
                           '_Unlock_guard' = '_解锁卫兵'
                           '_Cv_any_notify_all' = '_条件变量任意通知全部' }
+    # 已经抄完的头才开这个开关（见步 0 的长注释）
+    zhIncludes = @{ 'mutex' = '互斥量' }
     members = [ordered]@{ 'notify_all' = '通知全部'; 'notify_one' = '通知一个'
                           'wait' = '等待'; 'wait_for' = '限时等待'
-                          'wait_until' = '等待至时刻' }
+                          'wait_until' = '等待至时刻'
+                          # 跨头成员名：这两个是 <互斥量> 里定下的译名，
+                          # 本文件对 独占锁实现 调 .unlock() 必须跟着叫「解锁」，
+                          # 否则 error: '独占锁实现<互斥量实现>' 中没有名为 'unlock' 的成员。
+                          # ⚠ 这就是方案 §3.6.1 说的"译名必须全库共享"——
+                          #   现在还是按头抄一遍，最终要提成一张全局表。
+                          'lock' = '加锁'; 'unlock' = '解锁'; 'try_lock' = '尝试加锁' }
     data    = [ordered]@{}
     derive  = @( @('notify_all','通知全部'), @('notify_one','通知一个'),
                  @('wait','等待'), @('wait_for','限时等待'),
@@ -238,7 +255,10 @@ $H = @{
     tests = @(
       @('只引中文头','#包含 <条件变量>`n整数 主函数(){ 标准::条件变量任意 甲; 甲.通知全部(); 返回 0; }'),
       @('与微软原头并存','#包含 <条件变量>`n#包含 <condition_variable>`n整数 主函数(){ 标准::条件变量任意 甲; 甲.通知全部(); std::condition_variable_any 乙; 乙.notify_all(); 返回 0; }'),
-      @('英文名与中文名并用','#包含 <条件变量>`n整数 主函数(){ 标准::条件变量任意 甲; 甲.通知一个(); 甲.notify_one(); 返回 0; }')
+      @('英文名与中文名并用','#包含 <条件变量>`n整数 主函数(){ 标准::条件变量任意 甲; 甲.通知一个(); 甲.notify_one(); 返回 0; }'),
+      # 方案 §3.6：<mutex> 里 `friend condition_variable_any;` 与本头的类必须成对改名。
+      # 两个头一起引，才能证明友元真的对上了（<互斥量> 里的 条件变量任意实现 是同一个类）。
+      @('与互斥量并存（friend 成对）','#包含 <互斥量>`n#包含 <条件变量>`n整数 主函数(){ 标准::互斥量 甲; 标准::条件变量任意 乙; 标准::独占锁<标准::互斥量> 锁(甲); 乙.等待(锁); 乙.通知全部(); 返回 0; }')
     )
   }
   'latch' = @{
@@ -266,6 +286,35 @@ $srcPath = Join-Path $vsInc $Header
 $text = [System.IO.File]::ReadAllText($srcPath)
 $origLines = ([System.IO.File]::ReadAllLines($srcPath)).Count
 Write-Host "=== 步骤 2：<$($spec.zh)>（源 <$Header>, $origLines 行）===" -ForegroundColor Cyan
+
+# ---------------------------------------------------------------------------
+#  步 0：把 `#include <英文头>` 换成我们【已经抄好】的 `#include <汉语头>`
+#
+#  为什么必须这么做（实测，<condition_variable>）：MSVC 的 <condition_variable> 里
+#  `_Ptr->_Mymtx()` 的 `_Ptr` 是 `shared_ptr<mutex>`，而 `mutex::_Mymtx()` 是【私有】的，
+#  微软只对【真实的 std::condition_variable_any】开友元。我们那个头第 17 行
+#  `#include <mutex>` 拉进来的是微软的真 <mutex>，于是我们的类碰到了人家的私有成员：
+#      error: '_Mymtx' 是 'std::_Mutex_base' 的私有成员
+#  这是方案 §3.6 那个 friend 问题的【反向形态】：不是"我的 friend 指不到对方"，
+#  而是"我引用了别人家的类型，人家的 friend 不认识我"。
+#  修法：让它包含【我们自己的】<互斥量> —— 那一份里的 friend 已经跟着改成了
+#  `friend 条件变量任意实现;`，两边同处 标准::细节，友元自然对上。
+#
+#  ⚠ 只对【已经抄完并通过验证】的头开这个开关（否则会 include 到不存在的文件）。
+#     所以这是按条目选择的 `zhIncludes` 表，不是全局替换。
+# ---------------------------------------------------------------------------
+if ($spec.zhIncludes) {
+    foreach ($en in @($spec.zhIncludes.Keys)) {
+        $zhInc = $spec.zhIncludes[$en]
+        $before0 = $text
+        $text = $text.Replace("#include <$en>", "#include <$zhInc>")
+        if ($text -ne $before0) {
+            Write-Host "  步0 包含改名 <$en> -> <$zhInc>"
+        } else {
+            Write-Host "  步0 ⚠ 未找到 #include <$en>" -ForegroundColor Yellow
+        }
+    }
+}
 
 # 步 1：换守卫
 $gm = [regex]::Match($text, '(?m)^#ifndef\s+([A-Za-z_][A-Za-z0-9_]*)\s*\r?\n#define\s+\1\b')

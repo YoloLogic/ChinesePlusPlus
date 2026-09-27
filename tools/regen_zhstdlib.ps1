@@ -12,8 +12,13 @@
 #  用法：
 #      powershell -File tools\regen_zhstdlib.ps1
 #      powershell -File tools\regen_zhstdlib.ps1 -Exclude condition_variable
+#
+#  历史：`condition_variable` 曾长期挂在默认 -Exclude 里 —— 因为 <condition_variable>
+#  里 `condition_variable_any` 与 <mutex> 里的 `friend condition_variable_any;` 是
+#  跨头的一对名字，<mutex> 没抄下来之前，friend 指不到东西（见方案 §3.6）。
+#  <mutex> 完成后（commit c25e03b），两者同处 `标准::细节`，friend 自动对上，故解封。
 # ============================================================================
-param([string[]] $Exclude = @('condition_variable'))
+param([string[]] $Exclude = @())
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
