@@ -163,7 +163,13 @@ $memBoundary = @('length', 'assign', 'copy', 'compare', 'find', 'max_size', 'swa
                  # ---- §16.68 allocator 契约名（`allocator_traits<我们的分配器>` 会读它们，
                  #      第 ③ 类；消除路径 = 连 allocator_traits 也一起抄成我们自己的）----
                  'allocate', 'allocate_at_least', 'deallocate', 'construct', 'destroy',
-                 'select_on_container_copy_construction')
+                 'select_on_container_copy_construction',
+                 # ---- §16.69 借来的虚函数覆盖 + 类型名噪声 ----
+                 #   `what`：`bad_any_cast` 对借来的 `std::exception::what()` 的**虚函数覆盖**
+                 #   —— 改名就不再覆盖（静默错误，编译照样过）。属边界。
+                 #   `_Construct_in_place` / `_Destroy_in_place` / `_Cast`：定义在 xmemory/xutility。
+                 #   `_Ty`：模板形参名（本尺子把它当成成员是已知偏差）。
+                 'what', '_Construct_in_place', '_Destroy_in_place', '_Cast', '_Ty')
 function Get-NestedNames([string] $text) {    $names = @{}
     foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+using\s+([A-Za-z_]\w*)\s*=')) { $names[$m.Groups[1].Value] = $true }
     foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+typedef\s+[^;\r\n]*?\b([A-Za-z_]\w*)\s*;')) { $names[$m.Groups[1].Value] = $true }

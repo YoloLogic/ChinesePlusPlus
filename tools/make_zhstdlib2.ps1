@@ -834,6 +834,22 @@ $H = @{
       # 重载全带上、返回引用也不丢 —— 泛型转发用 auto 会把 T& 退化成 T）
       'any_cast' = '任意转换'; 'make_any' = '造任意'
       # ⚠ swap 照旧不改名（§3.12）
+      # §16.69 本头**自己定义**的内部助手（实测只有 <any> 有定义）-> 翻：
+      #   `_Assign` / `_Copy_impl` / `_Destroy_impl` / `_Emplace` / `_Move_from` /
+      #   `_Move_impl` / `_Rep` / `_TypeInfo`。
+      #   ⚠ `what` **不翻**：它是 `bad_any_cast` 对**借来的** `std::exception::what()`
+      #     的**虚函数覆盖** —— 改名就不再覆盖，`catch (常量 std::exception&) e { e.what(); }`
+      #     会拿到基类的实现（静默错误，不是编译错误）。
+      #   ⚠ `_Cast` / `_Construct_in_place` / `_Destroy_in_place` 定义在 <xutility>/<xmemory>
+      #     -> 借用的，留英文。
+      '_Assign'       = '_赋值'
+      '_Copy_impl'    = '_复制实现'
+      '_Destroy_impl' = '_析构实现'
+      '_Emplace'      = '_就地构造'
+      '_Move_from'    = '_由之移动'
+      '_Move_impl'    = '_移动实现'
+      '_Rep'          = '_表示'
+      '_TypeInfo'     = '_类型信息'
     }
     data    = [ordered]@{}
     derive  = @( @('reset','重置'), @('has_value','有值'),

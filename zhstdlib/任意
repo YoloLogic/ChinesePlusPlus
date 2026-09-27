@@ -55,12 +55,12 @@ struct _任意大对象类型信息 { // Hand-rolled vtable for types that must 
     using _复制函数指针    = void* __CLRCALL_PURE_OR_CDECL(const void*);
 
     template <class _Ty>
-    static void __CLRCALL_PURE_OR_CDECL _Destroy_impl(void* const _Target) noexcept {
+    static void __CLRCALL_PURE_OR_CDECL _析构实现(void* const _Target) noexcept {
         ::delete static_cast<_Ty*>(_Target);
     }
 
     template <class _Ty>
-    _NODISCARD static void* __CLRCALL_PURE_OR_CDECL _Copy_impl(const void* const _Source) {
+    _NODISCARD static void* __CLRCALL_PURE_OR_CDECL _复制实现(const void* const _Source) {
         return ::new _Ty(*static_cast<const _Ty*>(_Source));
     }
 
@@ -74,17 +74,17 @@ struct _任意小对象类型信息 { // Hand-rolled vtable for nontrivial types
     using _移动函数指针    = void __CLRCALL_PURE_OR_CDECL(void*, void*) _NOEXCEPT_FNPTR;
 
     template <class _Ty>
-    static void __CLRCALL_PURE_OR_CDECL _Destroy_impl(void* const _Target) noexcept {
+    static void __CLRCALL_PURE_OR_CDECL _析构实现(void* const _Target) noexcept {
         _Destroy_in_place(*static_cast<_Ty*>(_Target));
     }
 
     template <class _Ty>
-    static void __CLRCALL_PURE_OR_CDECL _Copy_impl(void* const _Target, const void* const _Source) {
+    static void __CLRCALL_PURE_OR_CDECL _复制实现(void* const _Target, const void* const _Source) {
         _Construct_in_place(*static_cast<_Ty*>(_Target), *static_cast<const _Ty*>(_Source));
     }
 
     template <class _Ty>
-    static void __CLRCALL_PURE_OR_CDECL _Move_impl(void* const _Target, void* const _Source) noexcept {
+    static void __CLRCALL_PURE_OR_CDECL _移动实现(void* const _Target, void* const _Source) noexcept {
         _Construct_in_place(*static_cast<_Ty*>(_Target), _STD move(*static_cast<_Ty*>(_Source)));
     }
 
@@ -94,11 +94,11 @@ struct _任意小对象类型信息 { // Hand-rolled vtable for nontrivial types
 };
 
 template <class _Ty>
-constexpr _任意大对象类型信息 _Any_big_RTTI_obj = {&_任意大对象类型信息::_Destroy_impl<_Ty>, &_任意大对象类型信息::_Copy_impl<_Ty>};
+constexpr _任意大对象类型信息 _Any_big_RTTI_obj = {&_任意大对象类型信息::_析构实现<_Ty>, &_任意大对象类型信息::_复制实现<_Ty>};
 
 template <class _Ty>
 constexpr _任意小对象类型信息 _Any_small_RTTI_obj = {
-    &_任意小对象类型信息::_Destroy_impl<_Ty>, &_任意小对象类型信息::_Copy_impl<_Ty>, &_任意小对象类型信息::_Move_impl<_Ty>};
+    &_任意小对象类型信息::_析构实现<_Ty>, &_任意小对象类型信息::_复制实现<_Ty>, &_任意小对象类型信息::_移动实现<_Ty>};
 
 _EXPORT_STD class 任意实现 { // storage for 任意实现 (CopyConstructible) 所属类型
 public:
@@ -107,7 +107,7 @@ public:
 
     任意实现(const 任意实现& _That) {
         _Storage._TypeData = _That._Storage._TypeData;
-        switch (_Rep()) {
+        switch (_表示()) {
         case _任意表示::_Small:
             _Storage._SmallStorage._RTTI = _That._Storage._SmallStorage._RTTI;
             _Storage._SmallStorage._RTTI->_Copy(&_Storage._SmallStorage._Data, &_That._Storage._SmallStorage._Data);
@@ -124,7 +124,7 @@ public:
     }
 
     任意实现(任意实现&& _That) noexcept {
-        _Move_from(_That);
+        _由之移动(_That);
     }
 
     template <class _ValueType, enable_if_t<conjunction_v<negation<is_same<decay_t<_ValueType>, 任意实现>>,
@@ -132,7 +132,7 @@ public:
                                                 is_copy_constructible<decay_t<_ValueType>>>,
                                     int> = 0>
     任意实现(_ValueType&& _Value) { // initialize with _Value
-        _Emplace<decay_t<_ValueType>>(_STD forward<_ValueType>(_Value));
+        _就地构造<decay_t<_ValueType>>(_STD forward<_ValueType>(_Value));
     }
 
     template <class _ValueType, class... _Types,
@@ -141,7 +141,7 @@ public:
             int> = 0>
     explicit 任意实现(in_place_type_t<_ValueType>, _Types&&... _Args) {
         // in-place initialize a value of 所属类型 decay_t<_ValueType> with _Args...
-        _Emplace<decay_t<_ValueType>>(_STD forward<_Types>(_Args)...);
+        _就地构造<decay_t<_ValueType>>(_STD forward<_Types>(_Args)...);
     }
 
     template <class _ValueType, class _Elem, class... _Types,
@@ -150,7 +150,7 @@ public:
             int> = 0>
     explicit 任意实现(in_place_type_t<_ValueType>, initializer_list<_Elem> _Ilist, _Types&&... _Args) {
         // in-place initialize a value of 所属类型 decay_t<_ValueType> with _Ilist and _Args...
-        _Emplace<decay_t<_ValueType>>(_Ilist, _STD forward<_Types>(_Args)...);
+        _就地构造<decay_t<_ValueType>>(_Ilist, _STD forward<_Types>(_Args)...);
     }
 
     ~任意实现() noexcept {
@@ -158,8 +158,8 @@ public:
 
 #if _MSVC_STL_DESTRUCTOR_TOMBSTONES
         // The two least significant bits (LSBs) of _Storage._TypeData encode whether we're in _Small, _Big,
-        // or _Trivial mode; see _Rep(). The rest of the bits encode the type_info pointer that's used
-        // to remember what 所属类型 of object we're storing; see _TypeInfo(). So, we'll take the tombstone value,
+        // or _Trivial mode; see _表示(). The rest of the bits encode the type_info pointer that's used
+        // to remember what 所属类型 of object we're storing; see _类型信息(). So, we'll take the tombstone value,
         // clear out the two LSBs with the _Rep_mask, then set the bits for _Small mode.
         // _Small mode will prevent the most misuse, as the pseudo-vtable will be used for _Destroy, _Copy, and _Move.
         // _Big mode wouldn't use the pseudo-vtable for _Move, and _Trivial mode doesn't have a pseudo-vtable at all.
@@ -173,12 +173,12 @@ public:
 
     // Assignment [任意实现.assign]
     任意实现& operator=(const 任意实现& _That) {
-        _Assign(_That);
+        _赋值(_That);
         return *this;
     }
 
     任意实现& operator=(任意实现&& _That) noexcept {
-        _Assign(_STD move(_That));
+        _赋值(_STD move(_That));
         return *this;
     }
 
@@ -187,7 +187,7 @@ public:
                                     int> = 0>
     任意实现& operator=(_ValueType&& _Value) {
         // replace contained value with an object of 所属类型 decay_t<_ValueType> initialized from _Value
-        _Assign(_STD forward<_ValueType>(_Value));
+        _赋值(_STD forward<_ValueType>(_Value));
         return *this;
     }
 
@@ -199,7 +199,7 @@ public:
     decay_t<_ValueType>& 就地构造(_Types&&... _Args) {
         // replace contained value with an object of 所属类型 decay_t<_ValueType> initialized from _Args...
         重置();
-        return _Emplace<decay_t<_ValueType>>(_STD forward<_Types>(_Args)...);
+        return _就地构造<decay_t<_ValueType>>(_STD forward<_Types>(_Args)...);
     }
     template <class _ValueType, class _Elem, class... _Types,
         enable_if_t<conjunction_v<is_constructible<decay_t<_ValueType>, initializer_list<_Elem>&, _Types...>,
@@ -208,11 +208,11 @@ public:
     decay_t<_ValueType>& 就地构造(initializer_list<_Elem> _Ilist, _Types&&... _Args) {
         // replace contained value with an object of 所属类型 decay_t<_ValueType> initialized from _Ilist and _Args...
         重置();
-        return _Emplace<decay_t<_ValueType>>(_Ilist, _STD forward<_Types>(_Args)...);
+        return _就地构造<decay_t<_ValueType>>(_Ilist, _STD forward<_Types>(_Args)...);
     }
 
     void 重置() noexcept { // transition to the empty state
-        switch (_Rep()) {
+        switch (_表示()) {
         case _任意表示::_Small:
             _Storage._SmallStorage._RTTI->_Destroy(&_Storage._SmallStorage._Data);
             break;
@@ -237,7 +237,7 @@ public:
 
     _NODISCARD const type_info& 所属类型() const noexcept {
         // if *this contains a value of 所属类型 T, return typeid(T); otherwise typeid(void)
-        const type_info* const _Info = _TypeInfo();
+        const type_info* const _Info = _类型信息();
         if (_Info) {
             return *_Info;
         }
@@ -248,7 +248,7 @@ public:
     template <class _Decayed>
     _NODISCARD const _Decayed* _Cast() const noexcept {
         // if *this contains a value of 所属类型 _Decayed, return a pointer to it
-        const type_info* const _Info = _TypeInfo();
+        const type_info* const _Info = _类型信息();
         if (!_Info || *_Info != typeid(_Decayed)) {
             return nullptr;
         }
@@ -273,16 +273,16 @@ public:
 private:
     static constexpr uintptr_t _Rep_mask = 3;
 
-    _NODISCARD _任意表示 _Rep() const noexcept { // extract the representation format from _TypeData
+    _NODISCARD _任意表示 _表示() const noexcept { // extract the representation format from _TypeData
         return static_cast<_任意表示>(_Storage._TypeData & _Rep_mask);
     }
-    _NODISCARD const type_info* _TypeInfo() const noexcept { // extract the type_info from _TypeData
+    _NODISCARD const type_info* _类型信息() const noexcept { // extract the type_info from _TypeData
         return reinterpret_cast<const type_info*>(_Storage._TypeData & ~_Rep_mask);
     }
 
-    void _Move_from(任意实现& _That) noexcept {
+    void _由之移动(任意实现& _That) noexcept {
         _Storage._TypeData = _That._Storage._TypeData;
-        switch (_Rep()) {
+        switch (_表示()) {
         case _任意表示::_Small:
             _Storage._SmallStorage._RTTI = _That._Storage._SmallStorage._RTTI;
             _Storage._SmallStorage._RTTI->_Move(&_Storage._SmallStorage._Data, &_That._Storage._SmallStorage._Data);
@@ -299,13 +299,13 @@ private:
         }
     }
 
-    void _Assign(任意实现 _That) noexcept { // intentionally pass by value
+    void _赋值(任意实现 _That) noexcept { // intentionally pass by value
         重置();
-        _Move_from(_That);
+        _由之移动(_That);
     }
 
     template <class _Decayed, class... _Types>
-    _Decayed& _Emplace(_Types&&... _Args) { // 就地构造 construct _Decayed
+    _Decayed& _就地构造(_Types&&... _Args) { // 就地构造 construct _Decayed
         if constexpr (_Any_is_trivial<_Decayed>) {
             // using the _Trivial representation
             auto& _Obj = reinterpret_cast<_Decayed&>(_Storage._TrivialData);
