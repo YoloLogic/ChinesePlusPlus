@@ -18,7 +18,7 @@ _EMIT_STL_WARNING(STL4038, "The contents of <可选实现> are available only wi
 #include <initializer_list>
 #include <type_traits>
 #include <utility>
-#include <xsmf_control.h>
+#include <特殊成员控制>
 #include <xutility>
 
 #pragma pack(push, _CRT_PACKING)
@@ -136,7 +136,7 @@ struct _Optional_destruct_base<_Ty, false> { // either contains a value of _Ty o
 
 template <class _Ty>
 struct _Optional_construct_base : _Optional_destruct_base<_Ty> {
-    // Provide non-trivial SMF implementations for the _SMF_control machinery
+    // Provide non-trivial SMF implementations for the _特殊成员控制 machinery
     using _Optional_destruct_base<_Ty>::_Optional_destruct_base;
 
     template <class... _Types>
@@ -214,9 +214,9 @@ struct _Optional_construct_base : _Optional_destruct_base<_Ty> {
 };
 
 _EXPORT_STD template <class _Ty>
-class 可选实现 : private _SMF_control<_Optional_construct_base<_Ty>, _Ty> {
+class 可选实现 : private _特殊成员控制<_Optional_construct_base<_Ty>, _Ty> {
 private:
-    using _我的基类 = _SMF_control<_Optional_construct_base<_Ty>, _Ty>;
+    using _我的基类 = _特殊成员控制<_Optional_construct_base<_Ty>, _Ty>;
 
     template <class>
     friend class 可选实现;

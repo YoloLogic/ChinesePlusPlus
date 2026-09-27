@@ -512,13 +512,17 @@ $H = @{
     types   = [ordered]@{ 'optional' = '可选实现'
                           'nullopt_t' = '空值类型'
                           # 嵌套类型名也汉化（用户要求：抄来那层也要全中文）
-                          'value_type' = '值类型' }
+                          'value_type' = '值类型'
+                          '_SMF_control' = '_特殊成员控制' }
     # 步 0b：把【真 <optional>】也包含进来 —— 为了让 std::bad_optional_access 真的存在。
     # 抄来的那份异常类定义要删掉（dropTypes），否则 _Throw_bad_optional_access()
     # 抛的是我们抄的那个类，用户 catch (std::bad_optional_access&) 永远抓不到。
     # 值类型 optional 可以抄+派生（能有中文成员名），异常类型只能别名 —— 铁律 4。
     realInclude = @('optional')
     dropTypes   = @('bad_optional_access')
+    # §15.6 销账：<optional> 正文包含 <xsmf_control.h>，这里指向我们自己的汉语件；
+    # 并把 _SMF_control 改成汉语名 _特殊成员控制（细节 里那份是我们自己的）。
+    zhIncludes = @{ 'xsmf_control.h' = '特殊成员控制' }
     members = [ordered]@{
       'has_value' = '有值'; 'value_or' = '取值或'   # ⚠ value 故意【不】登记：
       #   它作为 ::value 出现在借来的 bool_constant<...>::value 里，改名会让约束恒假、
