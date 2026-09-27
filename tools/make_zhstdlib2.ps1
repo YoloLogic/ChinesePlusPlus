@@ -1045,7 +1045,7 @@ $H = @{
                           'max_size' = '最大尺寸'
                           'allocate' = '分配'; 'deallocate' = '释放' }
     data    = [ordered]@{}
-    derive  = @( @('inner_allocator','内层分配器'), @('outer_allocator','外层分配器'),
+    derive  = @(@('inner_allocator','内层分配器'), @('outer_allocator','外层分配器'),
                  @('select_on_container_copy_construction','复制时选择'),
                  @('construct','构造'), @('destroy','析构'),
                  @('max_size','最大尺寸'), @('allocate','分配'), @('deallocate','释放') )
@@ -1064,11 +1064,13 @@ $H = @{
     # ⚠ 不翻 uses_allocator / formatter —— 它们是 std 的模板，改名会断
     members = [ordered]@{ 'emplace' = '就地构造'; 'empty' = '为空'; 'pop' = '弹出'
                           'push' = '压入'; 'push_range' = '范围压入'
-                          'size' = '尺寸'; 'swap' = '交换'; 'top' = '栈顶' }
+                          'swap' = '交换'; 'top' = '栈顶' }   # ⚠ size/empty 不改名：调的是【借来的容器】c.size()/c.empty()（§15.10 形态②）
     data    = [ordered]@{}
     derive  = @( @('emplace','就地构造'), @('empty','为空'), @('pop','弹出'),
-                 @('push','压入'), @('push_range','范围压入'), @('size','尺寸'),
+                 @('push','压入'), @('push_range','范围压入'),
                  @('swap','交换'), @('top','栈顶') )
+    deriveExtra = '    模板 <类型名... 参数> 自动 尺寸(参数&&... 值) 常量 { 返回 基类::size(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 为空(参数&&... 值) 常量 { 返回 基类::empty(static_cast<参数&&>(值)...); }'
     stdHash = $false
     tparam  = @{ decl = '模板 <类型名 元素, 类型名 容器 = std::deque<元素>>'; args = '<元素, 容器>' }
     # stack 的 uses_allocator 特化必须挂在【对外那个类型】上，
@@ -1138,9 +1140,9 @@ $H = @{
     # 非类型模板形参（ptrdiff_t）—— 形参名也要中文
     tparam  = @{ decl = '模板 <ptrdiff_t 最小最大值 = 细节::_信号量最大值>'; args = '<最小最大值>' }
     tests = @(
-      @('只引中文头','#包含 <信号量>`n整数 主函数(){ 标准::计数信号量<2> 甲(0); 甲.释放(); 返回 0; }'),
-      @('与微软原头并存','#包含 <信号量>`n#包含 <semaphore>`n整数 主函数(){ 标准::计数信号量<2> 甲(0); 甲.释放(); std::counting_semaphore<2> 乙(0); 乙.release(); 返回 0; }'),
-      @('英文名与中文名并用','#包含 <信号量>`n整数 主函数(){ 标准::计数信号量<2> 甲(0); 甲.释放(); 甲.release(); 返回 0; }')
+      @('只引中文头','#包含 <信号量>`n整数 主函数(){ 标准::信号量<2> 甲(0); 甲.释放(); 返回 0; }'),
+      @('与微软原头并存','#包含 <信号量>`n#包含 <semaphore>`n整数 主函数(){ 标准::信号量<2> 甲(0); 甲.释放(); std::counting_semaphore<2> 乙(0); 乙.release(); 返回 0; }'),
+      @('英文名与中文名并用','#包含 <信号量>`n整数 主函数(){ 标准::信号量<2> 甲(0); 甲.释放(); 甲.release(); 返回 0; }')
     )
   }
   'condition_variable' = @{
