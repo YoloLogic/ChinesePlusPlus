@@ -1616,7 +1616,52 @@ $H = @{
       '_Tree_temp_node_alloc'          = '_树临时节点分配器'
       '_Tree_temp_node'                = '_树临时节点'
     }
-    members = [ordered]@{}
+    members = [ordered]@{
+      # §16.43 成员层第一批：**确认属于 `_Tree` 自己**的那一批。
+      # ⚠ 不含借用自 <xutility>/<xmemory> 的自由函数与宏
+      #   （_Adl_verify_range / _Construct_in_place / _Destroy_in_place /
+      #    _Delete_plain_internal / _Xlength_error / _STL_VERIFY / _STL_INTERNAL_CHECK）——
+      #   那些改了名会变成"我们自己的同名函数"，调用点直接报未声明（§15.8/§15.9 那一类）。
+      '_Buyheadnode'      = '_建头节点'
+      '_Buynode'          = '_建节点'
+      '_Newnode'          = '_新节点'
+      '_Freenode'         = '_释放节点'
+      '_Freenode0'        = '_释放节点0'
+      '_Erase_head'       = '_擦除头'
+      '_Erase_tree'       = '_擦除树'
+      '_Erase_tree_and_orphan' = '_擦除树并孤立'
+      '_Orphan_ptr'       = '_孤立指针'
+      '_Lrotate'          = '_左旋'
+      '_Rrotate'          = '_右旋'
+      '_Max'              = '_最大'
+      '_Min'              = '_最小'
+      '_Getal'            = '_取分配器'
+      '_Getcomp'          = '_取比较器'
+      '_Get_scary'        = '_取检查值'
+      '_Find_hint'        = '_按提示查找'
+      '_Find_lower_bound' = '_查找下界'
+      '_Find_upper_bound' = '_查找上界'
+      '_Find'             = '_查找'
+      '_Lower_bound_duplicate' = '_下界重复项'
+      '_Eqrange'          = '_等值区间'
+      '_Insert_node'      = '_插入节点'
+      '_Insert_range_unchecked' = '_插入范围非检查'
+      '_Erase'            = '_擦除'
+      '_Erase_unchecked'  = '_擦除非检查'
+      '_Emplace'          = '_就地构造'
+      '_Emplace_hint'     = '_按提示就地构造'
+      '_Extract'          = '_摘除'
+      '_Check_grow_by_1'  = '_检查增一'
+      '_Check_node_allocator' = '_检查节点分配器'
+      '_Swap_val_excluding_comp' = '_交换值不含比较器'
+      '_Throw_tree_length_error' = '_抛树长度错误'
+      '_Seek_to'          = '_定位到'
+      '_First'            = '_首个'
+      '_Last'             = '_最后'
+      '_Unchecked_begin'  = '_非检查开始'
+      '_Unchecked_end'    = '_非检查结束'
+      '_Unchecked_end_iter' = '_非检查结束迭代器'
+    }
     data    = [ordered]@{}
     derive  = @()
     stdHash = $false
