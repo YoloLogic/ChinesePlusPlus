@@ -96,24 +96,24 @@ public:
         return c.为空();
     }
 
-    _NODISCARD size_type size() const noexcept(noexcept(c.size())) /* strengthened */ {
-        return c.size();
+    _NODISCARD size_type 尺寸() const noexcept(noexcept(c.尺寸())) /* strengthened */ {
+        return c.尺寸();
     }
 
-    _NODISCARD reference front() noexcept(noexcept(c.front())) /* strengthened */ {
-        return c.front();
+    _NODISCARD reference 前() noexcept(noexcept(c.前())) /* strengthened */ {
+        return c.前();
     }
 
-    _NODISCARD const_reference front() const noexcept(noexcept(c.front())) /* strengthened */ {
-        return c.front();
+    _NODISCARD const_reference 前() const noexcept(noexcept(c.前())) /* strengthened */ {
+        return c.前();
     }
 
-    _NODISCARD reference back() noexcept(noexcept(c.back())) /* strengthened */ {
-        return c.back();
+    _NODISCARD reference 后() noexcept(noexcept(c.后())) /* strengthened */ {
+        return c.后();
     }
 
-    _NODISCARD const_reference back() const noexcept(noexcept(c.back())) /* strengthened */ {
-        return c.back();
+    _NODISCARD const_reference 后() const noexcept(noexcept(c.后())) /* strengthened */ {
+        return c.后();
     }
 
     void 压入(const value_type& _Val) {
@@ -372,12 +372,12 @@ public:
         return c.为空();
     }
 
-    _NODISCARD size_type size() const noexcept(noexcept(c.size())) /* strengthened */ {
-        return c.size();
+    _NODISCARD size_type 尺寸() const noexcept(noexcept(c.尺寸())) /* strengthened */ {
+        return c.尺寸();
     }
 
-    _NODISCARD const_reference 堆顶() const noexcept(noexcept(c.front())) /* strengthened */ {
-        return c.front();
+    _NODISCARD const_reference 堆顶() const noexcept(noexcept(c.前())) /* strengthened */ {
+        return c.前();
     }
 
     void 压入(const value_type& _Val) {
@@ -393,7 +393,7 @@ public:
 #if _HAS_CXX23
     template <_Container_compatible_range<_Ty> _Rng>
     void 范围压入(_Rng&& _Range) {
-        const size_type _Old_size = c.size();
+        const size_type _Old_size = c.尺寸();
 
         if constexpr (requires { c.append_range(_STD forward<_Rng>(_Range)); }) {
             c.append_range(_STD forward<_Rng>(_Range));
@@ -401,7 +401,7 @@ public:
             _RANGES copy(_Range, back_insert_iterator{c});
         }
 
-        const size_type _New_size = c.size();
+        const size_type _New_size = c.尺寸();
         if (_New_size / 2 > _Old_size) { // threshold chosen for performance
             _Make_heap();
         } else {
@@ -568,8 +568,8 @@ _STL_RESTORE_CLANG_WARNINGS
     模板 <类型名... 参数> 自动 push(参数&&... 值) { 返回 基类::压入(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 pop(参数&&... 值) { 返回 基类::弹出(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 top(参数&&... 值) 常量 { 返回 基类::堆顶(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 empty(参数&&... 值) 常量 { 返回 基类::empty(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 size(参数&&... 值) 常量 { 返回 基类::size(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 empty(参数&&... 值) 常量 { 返回 基类::为空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 size(参数&&... 值) 常量 { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 emplace(参数&&... 值) { 返回 基类::就地构造(static_cast<参数&&>(值)...); }
 };
 
