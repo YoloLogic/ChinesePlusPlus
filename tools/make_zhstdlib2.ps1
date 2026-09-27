@@ -362,6 +362,51 @@ $H = @{
   }
 }
 
+# ---------------------------------------------------------------------------
+#  跨头译名一致性检查（方案 §3.6.1 / §3.8.2，为什么要有它）
+#
+#  现实：译名目前按头各抄一遍（"共享表"还是过渡形态）。同一个英文名出现在多个条目里时，
+#  只要有人在一处改了译名、别处忘了改，就会在【很后面】才以"某某里没有名为某某的成员"
+#  的形式报出来 —— 实测已经连续踩了三例（<mutex> -> <condition_variable> -> <shared_mutex>）。
+#
+#  与其靠人记得同步，不如让机器开口：同一个英文名（同一类：types / members）
+#  在任意两个条目里的中文译名必须【一模一样】。
+#
+#  ⚠ 确实有"同名不同义"的合法情形，允许在 $ZH_NAME_EXCEPTIONS 里登记豁免，
+#     但豁免要写理由 —— 默认是"必须一致"。
+# ---------------------------------------------------------------------------
+$ZH_NAME_EXCEPTIONS = @{
+    # '类型名' = '为什么两个头里可以是不同译名'
+}
+$zhSeen  = @{}
+$zhClash = @()
+foreach ($en in ($H.Keys | Sort-Object)) {
+    foreach ($kind in @('types', 'members', 'data')) {
+        if (-not $H[$en].ContainsKey($kind)) { continue }
+        foreach ($k in $H[$en][$kind].Keys) {
+            $zh = $H[$en][$kind][$k]
+            $id = "$kind/$k"
+            if ($ZH_NAME_EXCEPTIONS.ContainsKey($id)) { continue }
+            if (-not $zhSeen.ContainsKey($id)) {
+                $zhSeen[$id] = @{ zh = $zh; owners = @($en) }
+            } elseif ($zhSeen[$id].zh -ne $zh) {
+                $zhClash += ("  [$kind] '{0}': {1} 译作 '{2}'，但 {3} 译作 '{4}'" -f `
+                    $k, ($zhSeen[$id].owners -join '/'), $zhSeen[$id].zh, $en, $zh)
+            } else {
+                if ($zhSeen[$id].owners -notcontains $en) { $zhSeen[$id].owners += $en }
+            }
+        }
+    }
+}
+$shared = @($zhSeen.Values | Where-Object { $_.owners.Count -gt 1 })
+Write-Host ("跨头译名检查: 共 {0} 个英文名，其中 {1} 个跨了多个头" -f $zhSeen.Count, $shared.Count)
+if ($zhClash.Count) {
+    Write-Host "❌ 跨头译名不一致（同一个英文名、两个译名）:" -ForegroundColor Red
+    $zhClash | ForEach-Object { Write-Host $_ -ForegroundColor Red }
+    Write-Host "  修法：统一成同一个译名；若确实同名不同义，到 \$ZH_NAME_EXCEPTIONS 登记并写理由。" -ForegroundColor Yellow
+    throw "跨头译名不一致，先修表再生成"
+}
+
 $spec = $H[$Header]
 if (-not $spec) { throw "表里没有 $Header —— 先在 make_zhstdlib2.ps1 的表里加一条" }
 

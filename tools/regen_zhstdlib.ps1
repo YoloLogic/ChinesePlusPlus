@@ -46,6 +46,12 @@ foreach ($j in $jobs) {
     foreach ($h in $list) {
         $o = & pwsh -NoProfile -File (Join-Path $root "tools\$($j.Script)") -Header $h 2>&1
         $last = ([string]($o | Select-Object -Last 1)).Trim()
+        # 生成器里的"跨头译名一致性检查"（方案 §3.11）输出会被这里捕获而看不见，
+        # 隐形规矩等于没有规矩 —— 所以对每个脚本的第一个头把它显式打出来一行。
+        if ($h -eq $list[0]) {
+            $ck = @($o | Where-Object { $_ -match '跨头译名检查|跨头译名不一致' }) | Select-Object -First 1
+            if ($ck) { Write-Host ("  {0}" -f ([string]$ck).Trim()) }
+        }
         $ok = ($last -match '^(\d+) / \1$') -or ($last -match '全部通过') -or ($last -match '^([0-9]+) / ([0-9]+)$' -and $Matches[1] -eq $Matches[2])
         if (-not $ok) { $fail++ }
         Write-Host ("  {0,-22} {1}   {2}" -f $h, $(if ($ok) { 'ok  ' } else { 'FAIL' }), $last) `
