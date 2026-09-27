@@ -806,18 +806,23 @@ $H = @{
                           'priority_queue' = '优先队列实现' }
     # ⚠ 不翻 uses_allocator / formatter —— 它们是 std 的模板，改名会断（同 <栈>）
     members = [ordered]@{
-      'emplace' = '就地构造'; 'empty' = '为空'; 'pop' = '弹出'
+      'emplace' = '就地构造'; 'pop' = '弹出'
       'push' = '压入'; 'push_range' = '范围压入'
-      'size' = '尺寸'; 'swap' = '交换'
-      'front' = '前'; 'back' = '后'
-      # ⚠ top 同名不同义：stack 是"栈顶"，priority_queue 是"堆顶"
-      #   （已登记进 $ZH_NAME_EXCEPTIONS，见该表）
+      'swap' = '交换'
+      # ⚠ empty/size/front/back 故意【不】登记改名：queue 正文里 c.front()/c.size() 调的是
+      #   【借来的容器】std::deque（成员是英文），改名会报 deque 中没有 '前'/'尺寸'（§15.9）。
+      #   中文名改在派生层手写。
       'top' = '堆顶'
     }
     data    = [ordered]@{}
-    derive  = @( @('emplace','就地构造'), @('empty','为空'), @('pop','弹出'),
-                 @('push','压入'), @('push_range','范围压入'), @('size','尺寸'),
-                 @('swap','交换'), @('front','前'), @('back','后') )
+    derive  = @( @('emplace','就地构造'), @('pop','弹出'),
+                 @('push','压入'), @('push_range','范围压入'), @('swap','交换') )
+    deriveExtra = @'
+    模板 <类型名... 参数> 自动 尺寸(参数&&... 值) 常量 { 返回 基类::size(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 为空(参数&&... 值) 常量 { 返回 基类::empty(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 前(参数&&... 值) { 返回 基类::front(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 后(参数&&... 值) { 返回 基类::back(static_cast<参数&&>(值)...); }
+'@
     stdHash = $false
     tparam  = @{ decl = '模板 <类型名 元素, 类型名 容器 = std::deque<元素>>'; args = '<元素, 容器>' }
     extra = @'
@@ -834,8 +839,8 @@ $H = @{
     模板 <类型名... 参数> 自动 push(参数&&... 值) { 返回 基类::压入(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 pop(参数&&... 值) { 返回 基类::弹出(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 top(参数&&... 值) 常量 { 返回 基类::堆顶(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 empty(参数&&... 值) 常量 { 返回 基类::为空(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 size(参数&&... 值) 常量 { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 为空(参数&&... 值) 常量 { 返回 基类::empty(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 尺寸(参数&&... 值) 常量 { 返回 基类::size(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 emplace(参数&&... 值) { 返回 基类::就地构造(static_cast<参数&&>(值)...); }
 };
 
