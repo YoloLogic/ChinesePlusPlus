@@ -29,6 +29,33 @@ $utf8  = New-Object System.Text.UTF8Encoding($false)
 #  表：每个头一条。加新头 = 加一条。
 # ---------------------------------------------------------------------------
 $H = @{
+  'scoped_allocator' = @{
+    zh      = '作用域分配器'
+    types   = [ordered]@{ 'scoped_allocator_adaptor' = '作用域分配器适配器实现'
+                          '_Scoped_base' = '_作用域基类'
+                          '_Scoped_outermost' = '_作用域最外层'
+                          '_Scoped_outermost_helper' = '_作用域最外层助手'
+                          '_Secret_scoped_allocator_construct_tag' = '_作用域构造内部标号' }
+    # ⚠ 不翻 allocator_traits / rebind / enable_if_t 等 std 的名字
+    members = [ordered]@{ 'inner_allocator' = '内层分配器'
+                          'outer_allocator' = '外层分配器'
+                          'select_on_container_copy_construction' = '复制时选择'
+                          'construct' = '构造'; 'destroy' = '析构'
+                          'max_size' = '最大尺寸'
+                          'allocate' = '分配'; 'deallocate' = '释放' }
+    data    = [ordered]@{}
+    derive  = @( @('inner_allocator','内层分配器'), @('outer_allocator','外层分配器'),
+                 @('select_on_container_copy_construction','复制时选择'),
+                 @('construct','构造'), @('destroy','析构'),
+                 @('max_size','最大尺寸'), @('allocate','分配'), @('deallocate','释放') )
+    stdHash = $false
+    tparam  = @{ decl = '模板 <类型名 外层, 类型名... 内层>'; args = '<外层, 内层...>' }
+    tests = @(
+      @('只引中文头','#包含 <作用域分配器>`n整数 主函数(){ 标准::作用域分配器<std::allocator<int>> 甲; 返回 (整数)甲.内层分配器().max_size() > 0 ? 0 : 1; }'),
+      @('与微软原头并存','#包含 <作用域分配器>`n#包含 <scoped_allocator>`n整数 主函数(){ 标准::作用域分配器<std::allocator<int>> 甲; std::scoped_allocator_adaptor<std::allocator<int>> 乙; 返回 (整数)(甲.外层分配器() == 乙.outer_allocator()) - 1; }'),
+      @('英文名与中文名并用','#包含 <作用域分配器>`n整数 主函数(){ 标准::作用域分配器<std::allocator<int>> 甲; 返回 (整数)甲.内层分配器().max_size() > 0 && 甲.inner_allocator().max_size() > 0 ? 0 : 1; }')
+    )
+  }
   'stack' = @{
     zh      = '栈'
     types   = [ordered]@{ 'stack' = '栈实现'
@@ -184,6 +211,26 @@ foreach ($k in $spec.types.Keys)   { $c = ([regex]::Matches($text, "\b$([regex]:
 foreach ($k in $spec.members.Keys) { $c = ([regex]::Matches($text, "\b$([regex]::Escape($k))\b")).Count; if ($c) { $text = [regex]::Replace($text, "\b$([regex]::Escape($k))\b", $spec.members[$k]); $nM += $c } }
 foreach ($k in $spec.data.Keys)    { $c = ([regex]::Matches($text, "\b$([regex]::Escape($k))\b")).Count; if ($c) { $text = [regex]::Replace($text, "\b$([regex]::Escape($k))\b", $spec.data[$k]); $nD += $c } }
 Write-Host "  步3/4 类型 $nT 处 / 成员 $nM 处 / 数据 $nD 处"
+
+# ---------------------------------------------------------------------------
+#  步 4c：把 `_STD <本文件自己定义的东西>` 的限定去掉
+#
+#  `_STD` 展开成 `std::`。文件里有地方写 `_STD X` 来引用【它自己】定义的 X
+#  （例：scoped_allocator 里的 `_STD _Scoped_outermost`）。本文件的内容已经搬进
+#  `标准::细节`，X 就不在 `std` 里了 —— 于是报「namespace 'std' 中没有名为 X 的成员」。
+#  这与 §3.3 记的 `cstddef` 的 `using _STD max_align_t` 那条"桥"是同一类问题。
+#  修法：改名完成后，把 `_STD <改后的名字>` 还原成不带限定的 `<改后的名字>`。
+# ---------------------------------------------------------------------------
+$nq = 0
+foreach ($m in @($spec.types, $spec.members, $spec.data)) {
+    foreach ($k in $m.Keys) {
+        $newName = $m[$k]
+        $before2 = $text
+        $text = $text.Replace("_STD $newName", $newName)
+        if ($text -ne $before2) { $nq++ }
+    }
+}
+Write-Host "  步4c 去限定 `_STD <本文件的实体>`: $nq 个"
 
 # 步 6：派生层（在中文的基础上派生，补回英文原名）
 $cls = ($spec.types.Values | Select-Object -First 1)   # 实现类名
