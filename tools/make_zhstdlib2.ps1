@@ -1685,6 +1685,24 @@ $H = @{
       '_Alnode_traits'         = '_结点分配器特征'
       '_Nodeptr'               = '_结点指针'
       '_In_place_key_extractor' = '_就地键提取器'
+      # §16.46 树内部件 自己还欠的 ① 类名（实测：这些名字【只在 xtree 里】，set/map 不引用）
+      #   前 6 个在 <向量>/<链表>/<双端队列> 已有定译名，跨头一致性检查会强制沿用同一个中文名。
+      '_Alty'                    = '_分配器类型'
+      '_Alty_traits'             = '_分配器特征'
+      '_Scary_val'               = '_迭代器检查值'
+      '_Prevent_inheriting_unwrap' = '_阻止继承解包'
+      '_Unchecked_iterator'      = '_非检查迭代器'
+      '_Unchecked_const_iterator' = '_非检查常量迭代器'
+      # 这三个是 xtree 特有的
+      '_Erase_tree_and_orphan_guard' = '_擦树并孤立守卫'
+      '_Redbl'                   = '_红黑'
+      '_Strategy'                = '_策略'
+      # 枚举量也是名字（§16.2 欠账清单里点过"enum values"）：
+      #   _Redbl 的 _Red/_Black、_Strategy 的 _Copy/_Move。
+      #   ⚠ `_Copy`/`_Move` 这一批【没做】—— 它们与 _Tree 的同名成员函数撞名
+      #     （同一个文件里两个主人），要单独判定；`_Red`/`_Black` 没有这个问题。
+      '_Red'                     = '_红'
+      '_Black'                   = '_黑'
     }
     members = [ordered]@{
       # §16.43 成员层第一批：**确认属于 `_Tree` 自己**的那一批。
