@@ -28,7 +28,9 @@ foreach ($h in $headers) {
     $lines = ([System.IO.File]::ReadAllLines((Join-Path $vsInc $h))).Count
 
     $stdBegin = ([regex]::Matches($text, '_STD_BEGIN')).Count
-    $classes  = ([regex]::Matches($text, '(?m)^\s*(class|struct)\s+[A-Za-z_]')).Count
+    # ⚠ 正则必须容许前缀（_EXPORT_STD 等）。第一版写成 ^\s*(class|struct)，
+    #   于是 `_EXPORT_STD class latch {` 这种被漏掉，把乙类误判成丁类。
+    $classes  = ([regex]::Matches($text, '(?m)^\s*(?:_EXPORT_STD\s+|_CRTIMP2_PURE\s+)?(?:class|struct)\s+[A-Za-z_]')).Count
     $uses     = ([regex]::Matches($text, '(?m)^\s*using\s')).Count
     $incX     = ([regex]::Matches($text, '#include\s*<x[A-Za-z0-9_]*>')).Count
     $sib = ''

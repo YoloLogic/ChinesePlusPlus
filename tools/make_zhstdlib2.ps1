@@ -38,6 +38,51 @@ $H = @{
     derive  = @( @('hash_code','哈希值'), @('name','名称') )
     # 额外要在 std 里补的特化（派生类型也需要 std::hash）
     stdHash = $true
+    tparam  = @{ decl = ''; args = '' }
+    tests = @(
+      @('只引中文头','#包含 <类型索引>`n整数 主函数(){ 标准::类型索引 甲(类型标识(整数)); 返回 0; }'),
+      @('与微软原头并存','#包含 <类型索引>`n#包含 <typeindex>`n整数 主函数(){ 标准::类型索引 甲(类型标识(整数)); std::type_index 乙(类型标识(整数)); 返回 0; }'),
+      @('英文名与中文名并用','#包含 <类型索引>`n整数 主函数(){ 标准::类型索引 甲(类型标识(整数)); 返回 (整数)甲.hash_code() * 0 + (整数)甲.哈希值() * 0 + (整数)甲.name()[0] * 0; }')
+    )
+  }
+  # ---- C++20 并发原语：与别的 std 接口没有类型交互，适合"抄一份 + 派生" ----
+  'barrier' = @{
+    zh      = '屏障'
+    types   = [ordered]@{ 'barrier' = '屏障实现'
+                          '_No_completion_function' = '_无完成函数'
+                          '_Arrival_token' = '_到达令牌'
+                          '_Counter_t' = '_计数器类型'
+                          'arrival_token' = '到达令牌' }
+    members = [ordered]@{ 'arrive' = '到达'; 'arrive_and_drop' = '到达并退出'
+                          'arrive_and_wait' = '到达并等待'; 'wait' = '等待' }
+    data    = [ordered]@{}
+    derive  = @( @('arrive','到达'), @('arrive_and_drop','到达并退出'),
+                 @('arrive_and_wait','到达并等待'), @('wait','等待') )
+    deriveTypes = @( @('arrival_token','到达令牌') )
+    stdHash = $false
+    # barrier 是【类模板】，派生层必须重复模板形参（第一版没给 -> "需要模板实参"）
+    tparam = @{ decl = '模板 <类型名 完成函数 = 细节::_无完成函数>'; args = '<完成函数>' }
+    tests = @(
+      @('只引中文头','#包含 <屏障>`n整数 主函数(){ 标准::屏障<> 甲(3); 甲.到达(); 返回 0; }'),
+      @('与微软原头并存','#包含 <屏障>`n#包含 <barrier>`n整数 主函数(){ 标准::屏障<> 甲(3); 甲.到达(); std::barrier<> 乙(3); 乙.arrive(); 返回 0; }'),
+      @('英文名与中文名并用','#包含 <屏障>`n整数 主函数(){ 标准::屏障<> 甲(3); 甲.到达(); 甲.arrive(); 返回 0; }')
+    )
+  }
+  'latch' = @{
+    zh      = '门闩'
+    types   = [ordered]@{ 'latch' = '门闩实现' }
+    members = [ordered]@{ 'count_down' = '递减'; 'try_wait' = '尝试等待'
+                          'wait' = '等待'; 'arrive_and_wait' = '到达并等待' }
+    data    = [ordered]@{}
+    derive  = @( @('count_down','递减'), @('try_wait','尝试等待'),
+                 @('wait','等待'), @('arrive_and_wait','到达并等待') )
+    stdHash = $false
+    tparam  = @{ decl = ''; args = '' }
+    tests = @(
+      @('只引中文头','#包含 <门闩>`n整数 主函数(){ 标准::门闩 甲(1); 甲.递减(); 返回 0; }'),
+      @('与微软原头并存','#包含 <门闩>`n#包含 <latch>`n整数 主函数(){ 标准::门闩 甲(1); 甲.递减(); std::latch 乙(1); 乙.count_down(); 返回 0; }'),
+      @('英文名与中文名并用','#包含 <门闩>`n整数 主函数(){ 标准::门闩 甲(2); 甲.递减(); 甲.count_down(); 返回 0; }')
+    )
   }
 }
 
@@ -85,6 +130,10 @@ foreach ($p in $spec.derive) {
     $fwd += ("    模板 <类型名... 参数> 自动 {0}(参数&&... 值) {{ 返回 基类::{1}(static_cast<参数&&>(值)...); }}" -f $p[0], $p[1])
     $fwd += ("    模板 <类型名... 参数> 自动 {0}(参数&&... 值) 常量 {{ 返回 基类::{1}(static_cast<参数&&>(值)...); }}" -f $p[0], $p[1])
 }
+$fwdT = @()
+if ($spec.ContainsKey('deriveTypes')) {
+    foreach ($p in $spec.deriveTypes) { $fwdT += ("    使用 {0} = 基类::{1};" -f $p[0], $p[1]) }
+}
 $hashSpec = if ($spec.stdHash) { @"
 
 // std::hash 的特化必须挂在【对外那个类型】上（派生层之后），所以放在这里
@@ -108,19 +157,21 @@ $layer = @"
 //  · 与微软的原类型并存：它是【另一个类型】，不碰 std 里的定义
 // ============================================================================
 名域 标准 {
-类型 $pub : 公开 细节::$cls {
+$($spec.tparam.decl)
+类型 $pub : 公开 细节::$cls$($spec.tparam.args) {
 公开:
-    使用 基类 = 细节::$cls;
+    使用 基类 = 细节::$cls$($spec.tparam.args);
     使用 基类::基类;
+
+    // 嵌套类型名也要补回英文（数据成员不行 —— 那会改布局）
+$($fwdT -join "`n")
 
     // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
 $($fwd -join "`n")
 };
 }$hashSpec
 "@
-$text = $text + $layer
-Write-Host "  步6 派生层 + 英文转发 $($spec.derive.Count) 条$(if ($spec.stdHash) { ' + std::hash 特化' })"
-
+#$text = $text + $layer    # ← 派生层改到"编译器校对之后"再追加，见下
 New-Item -ItemType Directory -Force $out | Out-Null
 $outPath = Join-Path $out $pub
 [System.IO.File]::WriteAllText($outPath, $text, $utf8)
@@ -142,8 +193,13 @@ for ($round = 1; $round -le 8; $round++) {
     }
     if ($hits.Count -eq 0) { Write-Host ("  校对第 {0} 轮: 无同名冲突" -f $round) -ForegroundColor Green; break }
     $lines = [System.IO.File]::ReadAllLines($outPath); $fixed = 0
+    $doneLines = @{}
     foreach ($h in ($hits | Sort-Object Line,Col -Descending)) {
         if (-not $rev.ContainsKey($h.Name)) { continue }
+        # 同一行一轮只改一处：坐标是按【改之前】那一行算的，改完长度就变了，
+        # 同一行再改第二处会用错坐标（这也是坏掉派生层那个 bug 的成因之一）。
+        # 剩下的下一轮再来，循环会兜住。
+        if ($doneLines.ContainsKey($h.Line)) { continue }
         $idx = $h.Line - 1; $line = $lines[$idx]
         $lb = [System.Text.Encoding]::UTF8.GetBytes($line); $nb = [System.Text.Encoding]::UTF8.GetBytes($h.Name)
         $off = $h.Col - 1
@@ -152,6 +208,7 @@ for ($round = 1; $round -le 8; $round++) {
         if (-not $ok) { continue }
         $ci = [System.Text.Encoding]::UTF8.GetString($lb,0,$off).Length
         $lines[$idx] = $line.Remove($ci,$h.Name.Length).Insert($ci,$rev[$h.Name]); $fixed++
+        $doneLines[$h.Line] = $true
     }
     [System.IO.File]::WriteAllLines($outPath, $lines, $utf8)
     Write-Host ("  校对第 {0} 轮: 指出 {1} 处，改回英文 {2} 处" -f $round,$hits.Count,$fixed)
@@ -159,17 +216,21 @@ for ($round = 1; $round -le 8; $round++) {
 }
 Remove-Item $probe -Force -ErrorAction SilentlyContinue
 
+# ---------------------------------------------------------------------------
+#  派生层必须在【编译器校对之后】才追加。
+#  为什么：校对是按编译器给的【字节坐标】直接改文件，如果派生层已经在那儿，
+#  它的中文标识符会被误当冲突位置改坏 —— 实测把「到达令牌」改成了「到」「达」碎片。
+# ---------------------------------------------------------------------------
+[System.IO.File]::AppendAllText($outPath, $layer, $utf8)
+Write-Host "  步6 派生层 + 英文转发 $($spec.derive.Count) 条$(if ($spec.deriveTypes) { " + 嵌套类型 $($spec.deriveTypes.Count) 条" })$(if ($spec.stdHash) { ' + std::hash 特化' })"
+
 # --- 最终验证：中文名 / 英文名 / 与 std 并存 ---
 Write-Host ""
 Write-Host "=== 验证 ===" -ForegroundColor Cyan
 $t = Join-Path $root 'build\_zh2'
 if (Test-Path $t) { Remove-Item -Recurse -Force $t }
 New-Item -ItemType Directory -Force $t | Out-Null
-$cases = @(
-  @('只引中文头',        "#包含 <$pub>`n整数 主函数(){ 标准::$pub 甲(类型标识(整数)); 返回 0; }"),
-  @('与微软原头并存',    "#包含 <$pub>`n`n#包含 <$Header>`n整数 主函数(){ 标准::$pub 甲(类型标识(整数)); std::$origType 乙(类型标识(整数)); 返回 0; }"),
-  @('英文名与中文名并用',"#包含 <$pub>`n整数 主函数(){ 标准::$pub 甲(类型标识(整数)); 返回 (整数)甲.hash_code() - (整数)甲.哈希值() + (整数)甲.name()[0] * 0; }")
-)
+$cases = $spec.tests
 $pass = 0
 foreach ($c in $cases) {
     $src = Join-Path $t 't.cpp'
