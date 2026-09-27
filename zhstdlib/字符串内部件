@@ -53,7 +53,7 @@ public:
         const auto _Contptr = _Mycont->_Myptr();
         const auto _Rawptr  = _Unfancy(_Ptr);
         _STL_VERIFY(_Contptr <= _Rawptr && _Rawptr < _Contptr + _Mycont->_Mysize,
-            "cannot dereference string iterator because it is out of range (e.g. an end iterator)");
+            "cannot dereference string iterator because it is out of range (e.g. an 结束 iterator)");
 #endif // _ITERATOR_DEBUG_LEVEL >= 1
 
         _Analysis_assume_(_Ptr);
@@ -70,7 +70,7 @@ public:
         const auto _Mycont = static_cast<const _我的字符串*>(this->_Getcont());
         _STL_VERIFY(_Mycont, "cannot increment string iterator because the iterator was "
                              "invalidated (e.g. reallocation occurred, or the string was destroyed)");
-        _STL_VERIFY(_Unfancy(_Ptr) < _Mycont->_Myptr() + _Mycont->_Mysize, "cannot increment string iterator past end");
+        _STL_VERIFY(_Unfancy(_Ptr) < _Mycont->_Myptr() + _Mycont->_Mysize, "cannot increment string iterator past 结束");
 #endif // _ITERATOR_DEBUG_LEVEL >= 1
 
         ++_Ptr;
@@ -89,7 +89,7 @@ public:
         const auto _Mycont = static_cast<const _我的字符串*>(this->_Getcont());
         _STL_VERIFY(_Mycont, "cannot decrement string iterator because the iterator was "
                              "invalidated (e.g. reallocation occurred, or the string was destroyed)");
-        _STL_VERIFY(_Mycont->_Myptr() < _Unfancy(_Ptr), "cannot decrement string iterator before begin");
+        _STL_VERIFY(_Mycont->_Myptr() < _Unfancy(_Ptr), "cannot decrement string iterator before 开始");
 #endif // _ITERATOR_DEBUG_LEVEL >= 1
 
         --_Ptr;
@@ -116,13 +116,13 @@ public:
         const auto _Rawptr  = _Unfancy(_Ptr);
 
         if (_Off < 0) {
-            _STL_VERIFY(_Contptr - _Rawptr <= _Off, "cannot seek string iterator before begin");
+            _STL_VERIFY(_Contptr - _Rawptr <= _Off, "cannot seek string iterator before 开始");
         }
 
         if (_Off > 0) {
             using _Size_type = typename _我的字符串::size_type;
             const auto _Left = _Mycont->_Mysize - static_cast<_Size_type>(_Rawptr - _Contptr);
-            _STL_VERIFY(static_cast<_Size_type>(_Off) <= _Left, "cannot seek string iterator after end");
+            _STL_VERIFY(static_cast<_Size_type>(_Off) <= _Left, "cannot seek string iterator after 结束");
         }
 #else // ^^^ _ITERATOR_DEBUG_LEVEL >= 1 / _ITERATOR_DEBUG_LEVEL == 0 vvv
         (void) _Off;
@@ -410,13 +410,13 @@ public:
                 const auto _Tombstone{reinterpret_cast<pointer>(_MSVC_STL_UINTPTR_TOMBSTONE_VALUE)};
                 _Bx._Ptr = _Tombstone;
                 _Mysize  = 0;
-                _Myres   = (_Small_string_capacity + 1) | _Alloc_mask; // first capacity when entering large mode
+                _Myres   = (_Small_string_capacity + 1) | _Alloc_mask; // first 容量 when entering large mode
 
-                // The capacity indicates whether we're in small mode or large mode; see _Large_mode_engaged().
+                // The 容量 indicates whether we're in small mode or large mode; see _Large_mode_engaged().
                 // The string would be usable in small mode, so we need large mode for the tombstone to be effective.
                 // `_Small_string_capacity + 1` would be sufficient to make _Large_mode_engaged() return true. However,
                 // 基础字符串实现 uses a "roundup mask" when allocating; see _Calculate_growth(). So to avoid confusing
-                // the SSO logic, we use the first capacity that would normally be used when entering large mode.
+                // the SSO logic, we use the first 容量 that would normally be used when entering large mode.
             }
         }
     }
@@ -430,7 +430,7 @@ public:
                                            : sizeof(value_type) <= 4 ? 3
                                            : sizeof(value_type) <= 8 ? 1
                                                                      : 0;
-    // capacity in small mode
+    // 容量 in small mode
     static constexpr size_type _Small_string_capacity = _BUF_SIZE - 1;
 
     _NODISCARD _CONSTEXPR20 value_type* _Myptr() noexcept {
@@ -467,14 +467,14 @@ public:
     }
 
     _CONSTEXPR20 void _Check_offset(const size_type _Off) const {
-        // checks whether _Off is in the bounds of [0, size()]
+        // checks whether _Off is in the bounds of [0, 尺寸()]
         if (_Mysize < _Off) {
             _Xran();
         }
     }
 
     _CONSTEXPR20 void _Check_offset_exclusive(const size_type _Off) const {
-        // checks whether _Off is in the bounds of [0, size())
+        // checks whether _Off is in the bounds of [0, 尺寸())
         if (_Mysize <= _Off) {
             _Xran();
         }
@@ -485,7 +485,7 @@ public:
     }
 
     _NODISCARD _CONSTEXPR20 size_type _Clamp_suffix_size(const size_type _Off, const size_type _Size) const noexcept {
-        // trims _Size to the longest it can be assuming a string at/after _Off
+        // trims _Size to the longest it can be assuming a string 取值/after _Off
         return (_STD min)(_Size, _Mysize - _Off);
     }
 
@@ -516,11 +516,11 @@ public:
 
     // invariant: _Myres >= _Mysize, and _Myres >= _Small_string_capacity (after string's construction)
     // neither _Mysize nor _Myres takes account of the extra null terminator
-    size_type _Mysize = 0; // current length of string (size)
-    size_type _Myres  = 0; // current storage reserved for string (capacity)
+    size_type _Mysize = 0; // current length of string (尺寸)
+    size_type _Myres  = 0; // current storage reserved for string (容量)
 };
 
-// get _Ty's size after being EBCO'd
+// get _Ty's 尺寸 after being EBCO'd
 template <class _Ty>
 constexpr size_t _Size_after_ebco_v = is_empty_v<_Ty> ? 0 : sizeof(_Ty);
 
@@ -587,7 +587,7 @@ private:
     static constexpr size_type _Alloc_mask            = _迭代器检查值::_Alloc_mask;
     static constexpr size_type _Small_string_capacity = _迭代器检查值::_Small_string_capacity;
 
-    // least real allocation size, including space reserved for terminating null
+    // least real allocation 尺寸, including space reserved for terminating null
     static constexpr size_type _Least_allocation_size = _Small_string_capacity + 1 + 1;
 
     // When doing _字符串值 operations by memcpy, we are touching:
@@ -607,7 +607,7 @@ private:
     static constexpr size_t _Memcpy_val_size   = sizeof(_迭代器检查值) - _Memcpy_val_offset;
 
     template <class _Iter>
-    // TRANSITION, /clr:pure is incompatible with templated static constexpr data members
+    // TRANSITION, /clr:pure is incompatible with templated static constexpr 数据 members
     // static constexpr bool _是元素字符指针 =_Is_any_of_v<_Iter, const _Elem* const, _Elem* const, const _Elem*, _Elem*>;
     using _是元素字符指针 = bool_constant<_Is_any_of_v<_Iter, const _Elem* const, _Elem* const, const _Elem*, _Elem*>>;
 
@@ -663,8 +663,8 @@ private:
             constexpr bool _Large_string_always_asan_aligned =
                 (_Container_allocation_minimum_asan_alignment<基础字符串实现>) >= _Asan_granularity;
 
-            // for the non-aligned buffer options, the buffer must always have size >= 9 bytes,
-            // so it will always end at least one shadow memory section.
+            // for the non-aligned buffer options, the buffer must always have 尺寸 >= 9 bytes,
+            // so it will always 结束 取值 least one shadow memory section.
 
             _Asan_aligned_pointers _Aligned;
             if constexpr (_Large_string_always_asan_aligned) {
@@ -726,7 +726,7 @@ public:
     }
 
     _CONSTEXPR20 基础字符串实现(const 基础字符串实现& _Right, const size_type _Roff, const _Alloc& _Al = _Alloc())
-        : _Mypair(_One_then_variadic_args_t{}, _Al) { // construct from _Right [_Roff, <end>)
+        : _Mypair(_One_then_variadic_args_t{}, _Al) { // construct from _Right [_Roff, <结束>)
         _Right._Mypair._Myval2._Check_offset(_Roff);
         _Construct<_Construct_strategy::_From_ptr>(
             _Right._Mypair._Myval2._Myptr() + _Roff, _Right._Mypair._Myval2._Clamp_suffix_size(_Roff, npos));
@@ -742,7 +742,7 @@ public:
 
 #if _HAS_CXX23
     constexpr 基础字符串实现(基础字符串实现&& _Right, const size_type _Roff, const _Alloc& _Al = _Alloc())
-        : _Mypair(_One_then_variadic_args_t{}, _Al) { // construct from _Right [_Roff, <end>), potentially move
+        : _Mypair(_One_then_variadic_args_t{}, _Al) { // construct from _Right [_Roff, <结束>), potentially move
         _Move_construct_from_substr(_Right, _Roff, npos);
     }
 
@@ -858,7 +858,7 @@ private:
         auto& _My_data = _Mypair._Myval2;
         _My_data._Alloc_proxy(_GET_PROXY_ALLOCATOR(_分配器类型, _Getal()));
 
-        // initialize 基础字符串实现 data members
+        // initialize 基础字符串实现 数据 members
         _My_data._Mysize = 0;
         _My_data._Myres  = _Small_string_capacity;
         _My_data._Activate_SSO_buffer();
@@ -1112,9 +1112,9 @@ public:
             // therefore: (by De Morgan's Laws)
             // (!_Fits_in_left || _Right_capacity > _Left_capacity) && _Fits_in_right
             // therefore: (by the distributive property)
-            // (!_Fits_in_left && _Fits_in_right)  // implying _Right has more capacity
-            //     || (_Right_capacity > _Left_capacity && _Fits_in_right)  // tests that _Right has more capacity
-            // therefore: _Right must have more than the minimum capacity, so it must be _Large_mode_engaged()
+            // (!_Fits_in_left && _Fits_in_right)  // implying _Right has more 容量
+            //     || (_Right_capacity > _Left_capacity && _Fits_in_right)  // tests that _Right has more 容量
+            // therefore: _Right must have more than the minimum 容量, so it must be _Large_mode_engaged()
             _STL_INTERNAL_CHECK(_Right_data._Large_mode_engaged());
             _My_data._Alloc_proxy(_GET_PROXY_ALLOCATOR(_分配器类型, _Getal())); // throws, hereafter nothrow in this block
             _Take_contents(_Right);
@@ -1152,7 +1152,7 @@ public:
     _CONSTEXPR20 explicit 基础字符串实现(const _StringViewIsh& _Right, const _Alloc& _Al = _Alloc())
         : _Mypair(_One_then_variadic_args_t{}, _Al) {
         const basic_string_view<_Elem, _Traits> _As_view = _Right;
-        _Construct<_Construct_strategy::_From_ptr>(_As_view.data(), _Convert_size<size_type>(_As_view.size()));
+        _Construct<_Construct_strategy::_From_ptr>(_As_view.数据(), _Convert_size<size_type>(_As_view.尺寸()));
     }
 
     template <class _Ty, enable_if_t<is_convertible_v<const _Ty&, basic_string_view<_Elem, _Traits>>, int> = 0>
@@ -1160,8 +1160,8 @@ public:
         const _Ty& _Right, const size_type _Roff, const size_type _Count, const _Alloc& _Al = _Alloc())
         : _Mypair(_One_then_variadic_args_t{}, _Al) { // construct from _Right [_Roff, _Roff + _Count) using _Al
         const basic_string_view<_Elem, _Traits> _As_view = _Right;
-        const auto _As_sub_view                          = _As_view.substr(_Roff, _Count);
-        _Construct<_Construct_strategy::_From_ptr>(_As_sub_view.data(), _Convert_size<size_type>(_As_sub_view.size()));
+        const auto _As_sub_view                          = _As_view.子串(_Roff, _Count);
+        _Construct<_Construct_strategy::_From_ptr>(_As_sub_view.数据(), _Convert_size<size_type>(_As_sub_view.尺寸()));
     }
 #endif // _HAS_CXX17
 
@@ -1210,7 +1210,7 @@ public:
 
             _My_data._Bx._Switch_to_buf();
         } else {
-            // use _Least_allocation_size to avoid small mode, if the buffer is assigned back
+            // use _Least_allocation_size to avoid small mode, if the buffer is assigned 后
             size_type _Allocated = _Least_allocation_size;
             _Result._Ptr         = _Allocate_at_least_helper(_Al, _Allocated);
             _Traits::copy(_Unfancy(_Result._Ptr), _My_data._Bx._Buf, _BUF_SIZE);
@@ -1341,44 +1341,44 @@ private:
 public:
     _CONSTEXPR20 基础字符串实现(initializer_list<_Elem> _Ilist, const _Alloc& _Al = 分配器类型())
         : _Mypair(_One_then_variadic_args_t{}, _Al) {
-        _Construct<_Construct_strategy::_From_ptr>(_Ilist.begin(), _Convert_size<size_type>(_Ilist.size()));
+        _Construct<_Construct_strategy::_From_ptr>(_Ilist.开始(), _Convert_size<size_type>(_Ilist.尺寸()));
     }
 
     _CONSTEXPR20 基础字符串实现& operator=(initializer_list<_Elem> _Ilist) {
-        return assign(_Ilist.begin(), _Convert_size<size_type>(_Ilist.size()));
+        return assign(_Ilist.开始(), _Convert_size<size_type>(_Ilist.尺寸()));
     }
 
     _CONSTEXPR20 基础字符串实现& operator+=(initializer_list<_Elem> _Ilist) {
-        return append(_Ilist.begin(), _Convert_size<size_type>(_Ilist.size()));
+        return 追加(_Ilist.开始(), _Convert_size<size_type>(_Ilist.尺寸()));
     }
 
     _CONSTEXPR20 基础字符串实现& assign(initializer_list<_Elem> _Ilist) {
-        return assign(_Ilist.begin(), _Convert_size<size_type>(_Ilist.size()));
+        return assign(_Ilist.开始(), _Convert_size<size_type>(_Ilist.尺寸()));
     }
 
-    _CONSTEXPR20 基础字符串实现& append(initializer_list<_Elem> _Ilist) {
-        return append(_Ilist.begin(), _Convert_size<size_type>(_Ilist.size()));
+    _CONSTEXPR20 基础字符串实现& 追加(initializer_list<_Elem> _Ilist) {
+        return 追加(_Ilist.开始(), _Convert_size<size_type>(_Ilist.尺寸()));
     }
 
-    _CONSTEXPR20 iterator insert(const const_iterator _Where, const initializer_list<_Elem> _Ilist) {
+    _CONSTEXPR20 iterator 插入(const const_iterator _Where, const initializer_list<_Elem> _Ilist) {
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(_Where._Getcont() == _STD addressof(_Mypair._Myval2), "string iterator incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
         const auto _Off = static_cast<size_type>(_Unfancy(_Where._Ptr) - _Mypair._Myval2._Myptr());
-        insert(_Off, _Ilist.begin(), _Convert_size<size_type>(_Ilist.size()));
-        return begin() + static_cast<difference_type>(_Off);
+        插入(_Off, _Ilist.开始(), _Convert_size<size_type>(_Ilist.尺寸()));
+        return 开始() + static_cast<difference_type>(_Off);
     }
 
-    _CONSTEXPR20 基础字符串实现& replace(
+    _CONSTEXPR20 基础字符串实现& 替换(
         const const_iterator _First, const const_iterator _Last, const initializer_list<_Elem> _Ilist) {
-        // replace with initializer_list
+        // 替换 with initializer_list
         _Adl_verify_range(_First, _Last);
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(_First._Getcont() == _STD addressof(_Mypair._Myval2), "string iterators incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
         const auto _Offset = static_cast<size_type>(_Unfancy(_First._Ptr) - _Mypair._Myval2._Myptr());
         const auto _Length = static_cast<size_type>(_Last._Ptr - _First._Ptr);
-        return replace(_Offset, _Length, _Ilist.begin(), _Convert_size<size_type>(_Ilist.size()));
+        return 替换(_Offset, _Length, _Ilist.开始(), _Convert_size<size_type>(_Ilist.尺寸()));
     }
 
     _CONSTEXPR20 ~基础字符串实现() noexcept {
@@ -1462,55 +1462,55 @@ public:
     }
 
     _CONSTEXPR20 基础字符串实现& operator+=(const 基础字符串实现& _Right) {
-        return append(_Right);
+        return 追加(_Right);
     }
 
 #if _HAS_CXX17
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
     _CONSTEXPR20 基础字符串实现& operator+=(const _StringViewIsh& _Right) {
-        return append(_Right);
+        return 追加(_Right);
     }
 #endif // _HAS_CXX17
 
-    _CONSTEXPR20 基础字符串实现& operator+=(_In_z_ const _Elem* const _Ptr) { // append [_Ptr, <null>)
-        return append(_Ptr);
+    _CONSTEXPR20 基础字符串实现& operator+=(_In_z_ const _Elem* const _Ptr) { // 追加 [_Ptr, <null>)
+        return 追加(_Ptr);
     }
 
     _CONSTEXPR20 基础字符串实现& operator+=(_Elem _Ch) {
-        push_back(_Ch);
+        尾插(_Ch);
         return *this;
     }
 
-    _CONSTEXPR20 基础字符串实现& append(const 基础字符串实现& _Right) {
-        return append(_Right._Mypair._Myval2._Myptr(), _Right._Mypair._Myval2._Mysize);
+    _CONSTEXPR20 基础字符串实现& 追加(const 基础字符串实现& _Right) {
+        return 追加(_Right._Mypair._Myval2._Myptr(), _Right._Mypair._Myval2._Mysize);
     }
 
-    _CONSTEXPR20 基础字符串实现& append(const 基础字符串实现& _Right, const size_type _Roff, size_type _Count = npos) {
-        // append _Right [_Roff, _Roff + _Count)
+    _CONSTEXPR20 基础字符串实现& 追加(const 基础字符串实现& _Right, const size_type _Roff, size_type _Count = npos) {
+        // 追加 _Right [_Roff, _Roff + _Count)
         _Right._Mypair._Myval2._Check_offset(_Roff);
         _Count = _Right._Mypair._Myval2._Clamp_suffix_size(_Roff, _Count);
-        return append(_Right._Mypair._Myval2._Myptr() + _Roff, _Count);
+        return 追加(_Right._Mypair._Myval2._Myptr() + _Roff, _Count);
     }
 
 #if _HAS_CXX17
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
-    _CONSTEXPR20 基础字符串实现& append(const _StringViewIsh& _Right) {
+    _CONSTEXPR20 基础字符串实现& 追加(const _StringViewIsh& _Right) {
         const basic_string_view<_Elem, _Traits> _As_view = _Right;
-        return append(_As_view.data(), _Convert_size<size_type>(_As_view.size()));
+        return 追加(_As_view.数据(), _Convert_size<size_type>(_As_view.尺寸()));
     }
 
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
-    _CONSTEXPR20 基础字符串实现& append(
+    _CONSTEXPR20 基础字符串实现& 追加(
         const _StringViewIsh& _Right, const size_type _Roff, const size_type _Count = npos) {
-        // append _Right [_Roff, _Roff + _Count)
+        // 追加 _Right [_Roff, _Roff + _Count)
         basic_string_view<_Elem, _Traits> _As_view = _Right;
-        return append(_As_view.substr(_Roff, _Count));
+        return 追加(_As_view.子串(_Roff, _Count));
     }
 #endif // _HAS_CXX17
 
-    _CONSTEXPR20 基础字符串实现& append(
+    _CONSTEXPR20 基础字符串实现& 追加(
         _In_reads_(_Count) const _Elem* const _Ptr, _CRT_GUARDOVERFLOW const size_type _Count) {
-        // append [_Ptr, _Ptr + _Count)
+        // 追加 [_Ptr, _Ptr + _Count)
         const size_type _Old_size = _Mypair._Myval2._Mysize;
         if (_Count <= _Mypair._Myval2._Myres - _Old_size) {
             _ASAN_STRING_MODIFY(*this, _Old_size, _Old_size + _Count);
@@ -1532,12 +1532,12 @@ public:
             _Ptr, _Count);
     }
 
-    _CONSTEXPR20 基础字符串实现& append(_In_z_ const _Elem* const _Ptr) { // append [_Ptr, <null>)
-        return append(_Ptr, _Convert_size<size_type>(_Traits::length(_Ptr)));
+    _CONSTEXPR20 基础字符串实现& 追加(_In_z_ const _Elem* const _Ptr) { // 追加 [_Ptr, <null>)
+        return 追加(_Ptr, _Convert_size<size_type>(_Traits::length(_Ptr)));
     }
 
-    _CONSTEXPR20 基础字符串实现& append(_CRT_GUARDOVERFLOW const size_type _Count, const _Elem _Ch) {
-        // append _Count * _Ch
+    _CONSTEXPR20 基础字符串实现& 追加(_CRT_GUARDOVERFLOW const size_type _Count, const _Elem _Ch) {
+        // 追加 _Count * _Ch
         const size_type _Old_size = _Mypair._Myval2._Mysize;
         if (_Count <= _Mypair._Myval2._Myres - _Old_size) {
             _ASAN_STRING_MODIFY(*this, _Old_size, _Old_size + _Count);
@@ -1560,28 +1560,28 @@ public:
     }
 
     template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
-    _CONSTEXPR20 基础字符串实现& append(const _Iter _First, const _Iter _Last) {
-        // append [_First, _Last), input iterators
+    _CONSTEXPR20 基础字符串实现& 追加(const _Iter _First, const _Iter _Last) {
+        // 追加 [_First, _Last), input iterators
         _Adl_verify_range(_First, _Last);
         const auto _UFirst = _Get_unwrapped(_First);
         const auto _ULast  = _Get_unwrapped(_Last);
         if constexpr (_是元素字符指针<decltype(_UFirst)>::value) {
-            return append(_UFirst, _STD _Convert_size<size_type>(static_cast<size_t>(_ULast - _UFirst)));
+            return 追加(_UFirst, _STD _Convert_size<size_type>(static_cast<size_t>(_ULast - _UFirst)));
         } else {
-            const 基础字符串实现 _Right(_UFirst, _ULast, get_allocator());
-            return append(_Right._Mypair._Myval2._Myptr(), _Right._Mypair._Myval2._Mysize);
+            const 基础字符串实现 _Right(_UFirst, _ULast, 取分配器());
+            return 追加(_Right._Mypair._Myval2._Myptr(), _Right._Mypair._Myval2._Mysize);
         }
     }
 
 #if _HAS_CXX23
     template <_Container_compatible_range<_Elem> _Rng>
-    constexpr 基础字符串实现& append_range(_Rng&& _Range) {
+    constexpr 基础字符串实现& 追加范围(_Rng&& _Range) {
         if constexpr (_RANGES sized_range<_Rng> && _Contiguous_range_of<_Rng, _Elem>) {
             const auto _Count = _Convert_size<size_type>(_To_unsigned_like(_RANGES size(_Range)));
-            return append(_RANGES data(_Range), _Count);
+            return 追加(_RANGES data(_Range), _Count);
         } else {
-            const 基础字符串实现 _Right(from_range, _Range, get_allocator());
-            return append(_Right._Mypair._Myval2._Myptr(), _Right._Mypair._Myval2._Mysize);
+            const 基础字符串实现 _Right(from_range, _Range, 取分配器());
+            return 追加(_Right._Mypair._Myval2._Myptr(), _Right._Mypair._Myval2._Mysize);
         }
     }
 #endif // _HAS_CXX23
@@ -1602,7 +1602,7 @@ public:
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
     _CONSTEXPR20 基础字符串实现& assign(const _StringViewIsh& _Right) {
         const basic_string_view<_Elem, _Traits> _As_view = _Right;
-        return assign(_As_view.data(), _Convert_size<size_type>(_As_view.size()));
+        return assign(_As_view.数据(), _Convert_size<size_type>(_As_view.尺寸()));
     }
 
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
@@ -1610,7 +1610,7 @@ public:
         const _StringViewIsh& _Right, const size_type _Roff, const size_type _Count = npos) {
         // assign _Right [_Roff, _Roff + _Count)
         basic_string_view<_Elem, _Traits> _As_view = _Right;
-        return assign(_As_view.substr(_Roff, _Count));
+        return assign(_As_view.子串(_Roff, _Count));
     }
 #endif // _HAS_CXX17
 
@@ -1668,7 +1668,7 @@ public:
         if constexpr (_是元素字符指针<decltype(_UFirst)>::value) {
             return assign(_UFirst, _STD _Convert_size<size_type>(static_cast<size_t>(_ULast - _UFirst)));
         } else {
-            基础字符串实现 _Right(_UFirst, _ULast, get_allocator());
+            基础字符串实现 _Right(_UFirst, _ULast, 取分配器());
             if (_Mypair._Myval2._Myres < _Right._Mypair._Myval2._Myres) {
                 _Mypair._Myval2._Orphan_all();
                 _Swap_data(_Right);
@@ -1681,12 +1681,12 @@ public:
 
 #if _HAS_CXX23
     template <_Container_compatible_range<_Elem> _Rng>
-    constexpr 基础字符串实现& assign_range(_Rng&& _Range) {
+    constexpr 基础字符串实现& 范围赋值(_Rng&& _Range) {
         if constexpr (_RANGES sized_range<_Rng> && _Contiguous_range_of<_Rng, _Elem>) {
             const auto _Count = _Convert_size<size_type>(_To_unsigned_like(_RANGES size(_Range)));
             return assign(_RANGES data(_Range), _Count);
         } else {
-            基础字符串实现 _Right(from_range, _Range, get_allocator());
+            基础字符串实现 _Right(from_range, _Range, 取分配器());
             if (_Mypair._Myval2._Myres < _Right._Mypair._Myval2._Myres) {
                 _Mypair._Myval2._Orphan_all();
                 _Swap_data(_Right);
@@ -1698,39 +1698,39 @@ public:
     }
 #endif // _HAS_CXX23
 
-    _CONSTEXPR20 基础字符串实现& insert(const size_type _Off, const 基础字符串实现& _Right) {
-        // insert _Right at _Off
-        return insert(_Off, _Right._Mypair._Myval2._Myptr(), _Right._Mypair._Myval2._Mysize);
+    _CONSTEXPR20 基础字符串实现& 插入(const size_type _Off, const 基础字符串实现& _Right) {
+        // 插入 _Right 取值 _Off
+        return 插入(_Off, _Right._Mypair._Myval2._Myptr(), _Right._Mypair._Myval2._Mysize);
     }
 
-    _CONSTEXPR20 基础字符串实现& insert(
+    _CONSTEXPR20 基础字符串实现& 插入(
         const size_type _Off, const 基础字符串实现& _Right, const size_type _Roff, size_type _Count = npos) {
-        // insert _Right [_Roff, _Roff + _Count) at _Off
+        // 插入 _Right [_Roff, _Roff + _Count) 取值 _Off
         _Right._Mypair._Myval2._Check_offset(_Roff);
         _Count = _Right._Mypair._Myval2._Clamp_suffix_size(_Roff, _Count);
-        return insert(_Off, _Right._Mypair._Myval2._Myptr() + _Roff, _Count);
+        return 插入(_Off, _Right._Mypair._Myval2._Myptr() + _Roff, _Count);
     }
 
 #if _HAS_CXX17
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
-    _CONSTEXPR20 基础字符串实现& insert(const size_type _Off, const _StringViewIsh& _Right) {
-        // insert _Right at _Off
+    _CONSTEXPR20 基础字符串实现& 插入(const size_type _Off, const _StringViewIsh& _Right) {
+        // 插入 _Right 取值 _Off
         const basic_string_view<_Elem, _Traits> _As_view = _Right;
-        return insert(_Off, _As_view.data(), _Convert_size<size_type>(_As_view.size()));
+        return 插入(_Off, _As_view.数据(), _Convert_size<size_type>(_As_view.尺寸()));
     }
 
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
-    _CONSTEXPR20 基础字符串实现& insert(
+    _CONSTEXPR20 基础字符串实现& 插入(
         const size_type _Off, const _StringViewIsh& _Right, const size_type _Roff, const size_type _Count = npos) {
-        // insert _Right [_Roff, _Roff + _Count) at _Off
+        // 插入 _Right [_Roff, _Roff + _Count) 取值 _Off
         basic_string_view<_Elem, _Traits> _As_view = _Right;
-        return insert(_Off, _As_view.substr(_Roff, _Count));
+        return 插入(_Off, _As_view.子串(_Roff, _Count));
     }
 #endif // _HAS_CXX17
 
-    _CONSTEXPR20 基础字符串实现& insert(
+    _CONSTEXPR20 基础字符串实现& 插入(
         const size_type _Off, _In_reads_(_Count) const _Elem* const _Ptr, _CRT_GUARDOVERFLOW const size_type _Count) {
-        // insert [_Ptr, _Ptr + _Count) at _Off
+        // 插入 [_Ptr, _Ptr + _Count) 取值 _Off
         _Mypair._Myval2._Check_offset(_Off);
         const size_type _Old_size = _Mypair._Myval2._Mysize;
 
@@ -1752,7 +1752,7 @@ public:
             size_type _Ptr_shifted_after;
             if (_Ptr + _Count <= _Insert_at || _Ptr > _Old_ptr + _Old_size) {
                 // inserted content is before the shifted region, or does not alias
-                _Ptr_shifted_after = _Count; // none of _Ptr's data shifts
+                _Ptr_shifted_after = _Count; // none of _Ptr's 数据 shifts
             } else if (_Insert_at <= _Ptr) { // all of [_Ptr, _Ptr + _Count) shifts
                 _Ptr_shifted_after = 0;
             } else { // [_Ptr, _Ptr + _Count) contains _Insert_at, so only the part after _Insert_at shifts
@@ -1777,14 +1777,14 @@ public:
             _Off, _Ptr, _Count);
     }
 
-    _CONSTEXPR20 基础字符串实现& insert(const size_type _Off, _In_z_ const _Elem* const _Ptr) {
-        // insert [_Ptr, <null>) at _Off
-        return insert(_Off, _Ptr, _Convert_size<size_type>(_Traits::length(_Ptr)));
+    _CONSTEXPR20 基础字符串实现& 插入(const size_type _Off, _In_z_ const _Elem* const _Ptr) {
+        // 插入 [_Ptr, <null>) 取值 _Off
+        return 插入(_Off, _Ptr, _Convert_size<size_type>(_Traits::length(_Ptr)));
     }
 
-    _CONSTEXPR20 基础字符串实现& insert(
+    _CONSTEXPR20 基础字符串实现& 插入(
         const size_type _Off, _CRT_GUARDOVERFLOW const size_type _Count, const _Elem _Ch) {
-        // insert _Count * _Ch at _Off
+        // 插入 _Count * _Ch 取值 _Off
         _Mypair._Myval2._Check_offset(_Off);
         const size_type _Old_size = _Mypair._Myval2._Mysize;
         if (_Count <= _Mypair._Myval2._Myres - _Old_size) {
@@ -1808,29 +1808,29 @@ public:
             _Off, _Count, _Ch);
     }
 
-    _CONSTEXPR20 iterator insert(const const_iterator _Where, const _Elem _Ch) { // insert _Ch at _Where
+    _CONSTEXPR20 iterator 插入(const const_iterator _Where, const _Elem _Ch) { // 插入 _Ch 取值 _Where
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(_Where._Getcont() == _STD addressof(_Mypair._Myval2), "string iterator incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
         const auto _Off = static_cast<size_type>(_Unfancy(_Where._Ptr) - _Mypair._Myval2._Myptr());
-        insert(_Off, 1, _Ch);
-        return begin() + static_cast<difference_type>(_Off);
+        插入(_Off, 1, _Ch);
+        return 开始() + static_cast<difference_type>(_Off);
     }
 
-    _CONSTEXPR20 iterator insert(
+    _CONSTEXPR20 iterator 插入(
         const const_iterator _Where, _CRT_GUARDOVERFLOW const size_type _Count, const _Elem _Ch) {
-        // insert _Count * _Elem at _Where
+        // 插入 _Count * _Elem 取值 _Where
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(_Where._Getcont() == _STD addressof(_Mypair._Myval2), "string iterator incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
         const auto _Off = static_cast<size_type>(_Unfancy(_Where._Ptr) - _Mypair._Myval2._Myptr());
-        insert(_Off, _Count, _Ch);
-        return begin() + static_cast<difference_type>(_Off);
+        插入(_Off, _Count, _Ch);
+        return 开始() + static_cast<difference_type>(_Off);
     }
 
     template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
-    _CONSTEXPR20 iterator insert(const const_iterator _Where, const _Iter _First, const _Iter _Last) {
-        // insert [_First, _Last) at _Where, input iterators
+    _CONSTEXPR20 iterator 插入(const const_iterator _Where, const _Iter _First, const _Iter _Last) {
+        // 插入 [_First, _Last) 取值 _Where, input iterators
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(_Where._Getcont() == _STD addressof(_Mypair._Myval2), "string iterator incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
@@ -1839,18 +1839,18 @@ public:
         const auto _UFirst = _Get_unwrapped(_First);
         const auto _ULast  = _Get_unwrapped(_Last);
         if constexpr (_是元素字符指针<decltype(_UFirst)>::value) {
-            insert(_Off, _UFirst, _STD _Convert_size<size_type>(static_cast<size_t>(_ULast - _UFirst)));
+            插入(_Off, _UFirst, _STD _Convert_size<size_type>(static_cast<size_t>(_ULast - _UFirst)));
         } else {
-            const 基础字符串实现 _Right(_UFirst, _ULast, get_allocator());
-            insert(_Off, _Right._Mypair._Myval2._Myptr(), _Right._Mypair._Myval2._Mysize);
+            const 基础字符串实现 _Right(_UFirst, _ULast, 取分配器());
+            插入(_Off, _Right._Mypair._Myval2._Myptr(), _Right._Mypair._Myval2._Mysize);
         }
 
-        return begin() + static_cast<difference_type>(_Off);
+        return 开始() + static_cast<difference_type>(_Off);
     }
 
 #if _HAS_CXX23
     template <_Container_compatible_range<_Elem> _Rng>
-    constexpr iterator insert_range(const const_iterator _Where, _Rng&& _Range) {
+    constexpr iterator 范围插入(const const_iterator _Where, _Rng&& _Range) {
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(_Where._Getcont() == _STD addressof(_Mypair._Myval2), "string iterator incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
@@ -1858,17 +1858,17 @@ public:
 
         if constexpr (_RANGES sized_range<_Rng> && _Contiguous_range_of<_Rng, _Elem>) {
             const auto _Count = _Convert_size<size_type>(_To_unsigned_like(_RANGES size(_Range)));
-            insert(_Off, _RANGES data(_Range), _Count);
+            插入(_Off, _RANGES data(_Range), _Count);
         } else {
-            const 基础字符串实现 _Right(from_range, _Range, get_allocator());
-            insert(_Off, _Right._Mypair._Myval2._Myptr(), _Right._Mypair._Myval2._Mysize);
+            const 基础字符串实现 _Right(from_range, _Range, 取分配器());
+            插入(_Off, _Right._Mypair._Myval2._Myptr(), _Right._Mypair._Myval2._Mysize);
         }
 
-        return begin() + static_cast<difference_type>(_Off);
+        return 开始() + static_cast<difference_type>(_Off);
     }
 #endif // _HAS_CXX23
 
-    _CONSTEXPR20 基础字符串实现& erase(const size_type _Off = 0) { // erase elements [_Off, ...)
+    _CONSTEXPR20 基础字符串实现& 擦除(const size_type _Off = 0) { // 擦除 elements [_Off, ...)
         _Mypair._Myval2._Check_offset(_Off);
         _Eos(_Off);
         return *this;
@@ -1888,22 +1888,22 @@ private:
     }
 
 public:
-    _CONSTEXPR20 基础字符串实现& erase(const size_type _Off, const size_type _Count) {
-        // erase elements [_Off, _Off + _Count)
+    _CONSTEXPR20 基础字符串实现& 擦除(const size_type _Off, const size_type _Count) {
+        // 擦除 elements [_Off, _Off + _Count)
         _Mypair._Myval2._Check_offset(_Off);
         return _Erase_noexcept(_Off, _Count);
     }
 
-    _CONSTEXPR20 iterator erase(const const_iterator _Where) noexcept /* strengthened */ {
+    _CONSTEXPR20 iterator 擦除(const const_iterator _Where) noexcept /* strengthened */ {
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(_Where._Getcont() == _STD addressof(_Mypair._Myval2), "string iterator incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
         const auto _Off = static_cast<size_type>(_Unfancy(_Where._Ptr) - _Mypair._Myval2._Myptr());
         _Erase_noexcept(_Off, 1);
-        return begin() + static_cast<difference_type>(_Off);
+        return 开始() + static_cast<difference_type>(_Off);
     }
 
-    _CONSTEXPR20 iterator erase(const const_iterator _First, const const_iterator _Last) noexcept
+    _CONSTEXPR20 iterator 擦除(const const_iterator _First, const const_iterator _Last) noexcept
     /* strengthened */ {
         _Adl_verify_range(_First, _Last);
 #if _ITERATOR_DEBUG_LEVEL != 0
@@ -1911,49 +1911,49 @@ public:
 #endif // _ITERATOR_DEBUG_LEVEL != 0
         const auto _Off = static_cast<size_type>(_Unfancy(_First._Ptr) - _Mypair._Myval2._Myptr());
         _Erase_noexcept(_Off, static_cast<size_type>(_Last._Ptr - _First._Ptr));
-        return begin() + static_cast<difference_type>(_Off);
+        return 开始() + static_cast<difference_type>(_Off);
     }
 
-    _CONSTEXPR20 void clear() noexcept { // erase all
+    _CONSTEXPR20 void 清空() noexcept { // 擦除 all
         _Eos(0);
     }
 
-    _CONSTEXPR20 基础字符串实现& replace(const size_type _Off, const size_type _Nx, const 基础字符串实现& _Right) {
-        // replace [_Off, _Off + _Nx) with _Right
-        return replace(_Off, _Nx, _Right._Mypair._Myval2._Myptr(), _Right._Mypair._Myval2._Mysize);
+    _CONSTEXPR20 基础字符串实现& 替换(const size_type _Off, const size_type _Nx, const 基础字符串实现& _Right) {
+        // 替换 [_Off, _Off + _Nx) with _Right
+        return 替换(_Off, _Nx, _Right._Mypair._Myval2._Myptr(), _Right._Mypair._Myval2._Mysize);
     }
 
-    _CONSTEXPR20 基础字符串实现& replace(const size_type _Off, size_type _Nx, const 基础字符串实现& _Right,
+    _CONSTEXPR20 基础字符串实现& 替换(const size_type _Off, size_type _Nx, const 基础字符串实现& _Right,
         const size_type _Roff, size_type _Count = npos) {
-        // replace [_Off, _Off + _Nx) with _Right [_Roff, _Roff + _Count)
+        // 替换 [_Off, _Off + _Nx) with _Right [_Roff, _Roff + _Count)
         _Right._Mypair._Myval2._Check_offset(_Roff);
         _Count = _Right._Mypair._Myval2._Clamp_suffix_size(_Roff, _Count);
-        return replace(_Off, _Nx, _Right._Mypair._Myval2._Myptr() + _Roff, _Count);
+        return 替换(_Off, _Nx, _Right._Mypair._Myval2._Myptr() + _Roff, _Count);
     }
 
 #if _HAS_CXX17
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
-    _CONSTEXPR20 基础字符串实现& replace(const size_type _Off, const size_type _Nx, const _StringViewIsh& _Right) {
-        // replace [_Off, _Off + _Nx) with _Right
+    _CONSTEXPR20 基础字符串实现& 替换(const size_type _Off, const size_type _Nx, const _StringViewIsh& _Right) {
+        // 替换 [_Off, _Off + _Nx) with _Right
         basic_string_view<_Elem, _Traits> _As_view = _Right;
-        return replace(_Off, _Nx, _As_view.data(), _Convert_size<size_type>(_As_view.size()));
+        return 替换(_Off, _Nx, _As_view.数据(), _Convert_size<size_type>(_As_view.尺寸()));
     }
 
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
-    _CONSTEXPR20 基础字符串实现& replace(const size_type _Off, const size_type _Nx, const _StringViewIsh& _Right,
+    _CONSTEXPR20 基础字符串实现& 替换(const size_type _Off, const size_type _Nx, const _StringViewIsh& _Right,
         const size_type _Roff, const size_type _Count = npos) {
-        // replace [_Off, _Off + _Nx) with _Right [_Roff, _Roff + _Count)
+        // 替换 [_Off, _Off + _Nx) with _Right [_Roff, _Roff + _Count)
         basic_string_view<_Elem, _Traits> _As_view = _Right;
-        return replace(_Off, _Nx, _As_view.substr(_Roff, _Count));
+        return 替换(_Off, _Nx, _As_view.子串(_Roff, _Count));
     }
 #endif // _HAS_CXX17
 
-    _CONSTEXPR20 基础字符串实现& replace(
+    _CONSTEXPR20 基础字符串实现& 替换(
         const size_type _Off, size_type _Nx, _In_reads_(_Count) const _Elem* const _Ptr, const size_type _Count) {
-        // replace [_Off, _Off + _Nx) with [_Ptr, _Ptr + _Count)
+        // 替换 [_Off, _Off + _Nx) with [_Ptr, _Ptr + _Count)
         _Mypair._Myval2._Check_offset(_Off);
         _Nx = _Mypair._Myval2._Clamp_suffix_size(_Off, _Nx);
-        if (_Nx == _Count) { // size doesn't change, so a single move does the trick
+        if (_Nx == _Count) { // 尺寸 doesn't change, so a single move does the trick
             _Traits::move(_Mypair._Myval2._Myptr() + _Off, _Ptr, _Count);
             return *this;
         }
@@ -1987,7 +1987,7 @@ public:
                 _Elem* const _Insert_at = _Old_ptr + _Off;
                 _Elem* const _Suffix_at = _Insert_at + _Nx;
 
-                size_type _Ptr_shifted_after; // see rationale in insert
+                size_type _Ptr_shifted_after; // see rationale in 插入
                 if (_Ptr + _Count <= _Insert_at || _Ptr > _Old_ptr + _Old_size) {
                     _Ptr_shifted_after = _Count;
                 } else if (_Suffix_at <= _Ptr) {
@@ -1998,8 +1998,8 @@ public:
 
                 _Traits::move(_Suffix_at + _Growth, _Suffix_at, _Suffix_size);
                 // next case must be move, in case _Ptr begins before _Insert_at and contains part of the hole;
-                // this case doesn't occur in insert because the new content must come from outside the removed
-                // content there (because in insert there is no removed content)
+                // this case doesn't occur in 插入 because the new content must come from outside the removed
+                // content there (because in 插入 there is no removed content)
                 _Traits::move(_Insert_at, _Ptr, _Ptr_shifted_after);
                 // the next case can be copy, because it comes from the chunk moved out of the way in the
                 // first move, and the hole we're filling can't alias the chunk we moved out of the way
@@ -2020,13 +2020,13 @@ public:
             _Off, _Nx, _Ptr, _Count);
     }
 
-    _CONSTEXPR20 基础字符串实现& replace(const size_type _Off, const size_type _Nx, _In_z_ const _Elem* const _Ptr) {
-        // replace [_Off, _Off + _Nx) with [_Ptr, <null>)
-        return replace(_Off, _Nx, _Ptr, _Convert_size<size_type>(_Traits::length(_Ptr)));
+    _CONSTEXPR20 基础字符串实现& 替换(const size_type _Off, const size_type _Nx, _In_z_ const _Elem* const _Ptr) {
+        // 替换 [_Off, _Off + _Nx) with [_Ptr, <null>)
+        return 替换(_Off, _Nx, _Ptr, _Convert_size<size_type>(_Traits::length(_Ptr)));
     }
 
-    _CONSTEXPR20 基础字符串实现& replace(const size_type _Off, size_type _Nx, const size_type _Count, const _Elem _Ch) {
-        // replace [_Off, _Off + _Nx) with _Count * _Ch
+    _CONSTEXPR20 基础字符串实现& 替换(const size_type _Off, size_type _Nx, const size_type _Count, const _Elem _Ch) {
+        // 替换 [_Off, _Off + _Nx) with _Count * _Ch
         _Mypair._Myval2._Check_offset(_Off);
         _Nx = _Mypair._Myval2._Clamp_suffix_size(_Off, _Nx);
         if (_Count == _Nx) {
@@ -2060,68 +2060,68 @@ public:
             _Off, _Nx, _Count, _Ch);
     }
 
-    _CONSTEXPR20 基础字符串实现& replace(
+    _CONSTEXPR20 基础字符串实现& 替换(
         const const_iterator _First, const const_iterator _Last, const 基础字符串实现& _Right) {
-        // replace [_First, _Last) with _Right
+        // 替换 [_First, _Last) with _Right
         _Adl_verify_range(_First, _Last);
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(_First._Getcont() == _STD addressof(_Mypair._Myval2), "string iterators incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
-        return replace(static_cast<size_type>(_Unfancy(_First._Ptr) - _Mypair._Myval2._Myptr()),
+        return 替换(static_cast<size_type>(_Unfancy(_First._Ptr) - _Mypair._Myval2._Myptr()),
             static_cast<size_type>(_Last._Ptr - _First._Ptr), _Right);
     }
 
 #if _HAS_CXX17
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
-    _CONSTEXPR20 基础字符串实现& replace(
+    _CONSTEXPR20 基础字符串实现& 替换(
         const const_iterator _First, const const_iterator _Last, const _StringViewIsh& _Right) {
-        // replace [_First, _Last) with _Right
+        // 替换 [_First, _Last) with _Right
         _Adl_verify_range(_First, _Last);
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(_First._Getcont() == _STD addressof(_Mypair._Myval2), "string iterators incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
-        return replace(static_cast<size_type>(_Unfancy(_First._Ptr) - _Mypair._Myval2._Myptr()),
+        return 替换(static_cast<size_type>(_Unfancy(_First._Ptr) - _Mypair._Myval2._Myptr()),
             static_cast<size_type>(_Last._Ptr - _First._Ptr), _Right);
     }
 #endif // _HAS_CXX17
 
-    _CONSTEXPR20 基础字符串实现& replace(const const_iterator _First, const const_iterator _Last,
+    _CONSTEXPR20 基础字符串实现& 替换(const const_iterator _First, const const_iterator _Last,
         _In_reads_(_Count) const _Elem* const _Ptr, const size_type _Count) {
-        // replace [_First, _Last) with [_Ptr, _Ptr + _Count)
+        // 替换 [_First, _Last) with [_Ptr, _Ptr + _Count)
         _Adl_verify_range(_First, _Last);
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(_First._Getcont() == _STD addressof(_Mypair._Myval2), "string iterators incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
-        return replace(static_cast<size_type>(_Unfancy(_First._Ptr) - _Mypair._Myval2._Myptr()),
+        return 替换(static_cast<size_type>(_Unfancy(_First._Ptr) - _Mypair._Myval2._Myptr()),
             static_cast<size_type>(_Last._Ptr - _First._Ptr), _Ptr, _Count);
     }
 
-    _CONSTEXPR20 基础字符串实现& replace(
+    _CONSTEXPR20 基础字符串实现& 替换(
         const const_iterator _First, const const_iterator _Last, _In_z_ const _Elem* const _Ptr) {
-        // replace [_First, _Last) with [_Ptr, <null>)
+        // 替换 [_First, _Last) with [_Ptr, <null>)
         _Adl_verify_range(_First, _Last);
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(_First._Getcont() == _STD addressof(_Mypair._Myval2), "string iterators incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
-        return replace(static_cast<size_type>(_Unfancy(_First._Ptr) - _Mypair._Myval2._Myptr()),
+        return 替换(static_cast<size_type>(_Unfancy(_First._Ptr) - _Mypair._Myval2._Myptr()),
             static_cast<size_type>(_Last._Ptr - _First._Ptr), _Ptr);
     }
 
-    _CONSTEXPR20 基础字符串实现& replace(
+    _CONSTEXPR20 基础字符串实现& 替换(
         const const_iterator _First, const const_iterator _Last, const size_type _Count, const _Elem _Ch) {
-        // replace [_First, _Last) with _Count * _Ch
+        // 替换 [_First, _Last) with _Count * _Ch
         _Adl_verify_range(_First, _Last);
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(_First._Getcont() == _STD addressof(_Mypair._Myval2), "string iterators incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
-        return replace(static_cast<size_type>(_Unfancy(_First._Ptr) - _Mypair._Myval2._Myptr()),
+        return 替换(static_cast<size_type>(_Unfancy(_First._Ptr) - _Mypair._Myval2._Myptr()),
             static_cast<size_type>(_Last._Ptr - _First._Ptr), _Count, _Ch);
     }
 
     template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
-    _CONSTEXPR20 基础字符串实现& replace(
+    _CONSTEXPR20 基础字符串实现& 替换(
         const const_iterator _First, const const_iterator _Last, const _Iter _First2, const _Iter _Last2) {
-        // replace [_First, _Last) with [_First2, _Last2), input iterators
+        // 替换 [_First, _Last) with [_First2, _Last2), input iterators
         _Adl_verify_range(_First, _Last);
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(_First._Getcont() == _STD addressof(_Mypair._Myval2), "string iterators incompatible");
@@ -2132,17 +2132,17 @@ public:
         const auto _UFirst2 = _Get_unwrapped(_First2);
         const auto _ULast2  = _Get_unwrapped(_Last2);
         if constexpr (_是元素字符指针<decltype(_UFirst2)>::value) {
-            return replace(
+            return 替换(
                 _Off, _Length, _UFirst2, _STD _Convert_size<size_type>(static_cast<size_t>(_ULast2 - _UFirst2)));
         } else {
-            const 基础字符串实现 _Right(_UFirst2, _ULast2, get_allocator());
-            return replace(_Off, _Length, _Right._Mypair._Myval2._Myptr(), _Right._Mypair._Myval2._Mysize);
+            const 基础字符串实现 _Right(_UFirst2, _ULast2, 取分配器());
+            return 替换(_Off, _Length, _Right._Mypair._Myval2._Myptr(), _Right._Mypair._Myval2._Mysize);
         }
     }
 
 #if _HAS_CXX23
     template <_Container_compatible_range<_Elem> _Rng>
-    constexpr 基础字符串实现& replace_with_range(const const_iterator _First, const const_iterator _Last, _Rng&& _Range) {
+    constexpr 基础字符串实现& 按范围替换(const const_iterator _First, const const_iterator _Last, _Rng&& _Range) {
         _Adl_verify_range(_First, _Last);
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(_First._Getcont() == _STD addressof(_Mypair._Myval2), "string iterators incompatible");
@@ -2152,29 +2152,29 @@ public:
 
         if constexpr (_RANGES sized_range<_Rng> && _Contiguous_range_of<_Rng, _Elem>) {
             const auto _Count = _Convert_size<size_type>(_To_unsigned_like(_RANGES size(_Range)));
-            return replace(_Off, _Length, _RANGES data(_Range), _Count);
+            return 替换(_Off, _Length, _RANGES data(_Range), _Count);
         } else {
-            const 基础字符串实现 _Right(from_range, _Range, get_allocator());
-            return replace(_Off, _Length, _Right._Mypair._Myval2._Myptr(), _Right._Mypair._Myval2._Mysize);
+            const 基础字符串实现 _Right(from_range, _Range, 取分配器());
+            return 替换(_Off, _Length, _Right._Mypair._Myval2._Myptr(), _Right._Mypair._Myval2._Mysize);
         }
     }
 #endif // _HAS_CXX23
 
-    _NODISCARD _CONSTEXPR20 iterator begin() noexcept {
+    _NODISCARD _CONSTEXPR20 iterator 开始() noexcept {
         return iterator(_Refancy<pointer>(_Mypair._Myval2._Myptr()), _STD addressof(_Mypair._Myval2));
     }
 
-    _NODISCARD _CONSTEXPR20 const_iterator begin() const noexcept {
+    _NODISCARD _CONSTEXPR20 const_iterator 开始() const noexcept {
         return const_iterator(_Refancy<const_pointer>(_Mypair._Myval2._Myptr()), _STD addressof(_Mypair._Myval2));
     }
 
-    _NODISCARD _CONSTEXPR20 iterator end() noexcept {
+    _NODISCARD _CONSTEXPR20 iterator 结束() noexcept {
         return iterator(
             _Refancy<pointer>(_Mypair._Myval2._Myptr()) + static_cast<difference_type>(_Mypair._Myval2._Mysize),
             _STD addressof(_Mypair._Myval2));
     }
 
-    _NODISCARD _CONSTEXPR20 const_iterator end() const noexcept {
+    _NODISCARD _CONSTEXPR20 const_iterator 结束() const noexcept {
         return const_iterator(
             _Refancy<const_pointer>(_Mypair._Myval2._Myptr()) + static_cast<difference_type>(_Mypair._Myval2._Mysize),
             _STD addressof(_Mypair._Myval2));
@@ -2196,39 +2196,39 @@ public:
         return _Mypair._Myval2._Myptr() + _Mypair._Myval2._Mysize;
     }
 
-    _NODISCARD _CONSTEXPR20 reverse_iterator rbegin() noexcept {
-        return reverse_iterator(end());
+    _NODISCARD _CONSTEXPR20 reverse_iterator 反向开始() noexcept {
+        return reverse_iterator(结束());
     }
 
-    _NODISCARD _CONSTEXPR20 常量反向迭代器 rbegin() const noexcept {
-        return 常量反向迭代器(end());
+    _NODISCARD _CONSTEXPR20 常量反向迭代器 反向开始() const noexcept {
+        return 常量反向迭代器(结束());
     }
 
-    _NODISCARD _CONSTEXPR20 reverse_iterator rend() noexcept {
-        return reverse_iterator(begin());
+    _NODISCARD _CONSTEXPR20 reverse_iterator 反向结束() noexcept {
+        return reverse_iterator(开始());
     }
 
-    _NODISCARD _CONSTEXPR20 常量反向迭代器 rend() const noexcept {
-        return 常量反向迭代器(begin());
+    _NODISCARD _CONSTEXPR20 常量反向迭代器 反向结束() const noexcept {
+        return 常量反向迭代器(开始());
     }
 
-    _NODISCARD _CONSTEXPR20 const_iterator cbegin() const noexcept {
-        return begin();
+    _NODISCARD _CONSTEXPR20 const_iterator 常量开始() const noexcept {
+        return 开始();
     }
 
-    _NODISCARD _CONSTEXPR20 const_iterator cend() const noexcept {
-        return end();
+    _NODISCARD _CONSTEXPR20 const_iterator 常量结束() const noexcept {
+        return 结束();
     }
 
-    _NODISCARD _CONSTEXPR20 常量反向迭代器 crbegin() const noexcept {
-        return rbegin();
+    _NODISCARD _CONSTEXPR20 常量反向迭代器 常量反向开始() const noexcept {
+        return 反向开始();
     }
 
-    _NODISCARD _CONSTEXPR20 常量反向迭代器 crend() const noexcept {
-        return rend();
+    _NODISCARD _CONSTEXPR20 常量反向迭代器 常量反向结束() const noexcept {
+        return 反向结束();
     }
 
-    _CONSTEXPR20 void shrink_to_fit() { // reduce capacity
+    _CONSTEXPR20 void 收缩至适应() { // reduce 容量
         auto& _My_data = _Mypair._Myval2;
 
         if (!_My_data._Large_mode_engaged()) { // can't shrink from small mode
@@ -2256,12 +2256,12 @@ public:
         }
     }
 
-    _NODISCARD _CONSTEXPR20 reference at(const size_type _Off) {
+    _NODISCARD _CONSTEXPR20 reference 取值(const size_type _Off) {
         _Mypair._Myval2._Check_offset_exclusive(_Off);
         return _Mypair._Myval2._Myptr()[_Off];
     }
 
-    _NODISCARD _CONSTEXPR20 const_reference at(const size_type _Off) const {
+    _NODISCARD _CONSTEXPR20 const_reference 取值(const size_type _Off) const {
         _Mypair._Myval2._Check_offset_exclusive(_Off);
         return _Mypair._Myval2._Myptr()[_Off];
     }
@@ -2290,7 +2290,7 @@ public:
     }
 #endif // _HAS_CXX17
 
-    _CONSTEXPR20 void push_back(const _Elem _Ch) { // insert element at end
+    _CONSTEXPR20 void 尾插(const _Elem _Ch) { // 插入 element 取值 结束
         const size_type _Old_size = _Mypair._Myval2._Mysize;
         if (_Old_size < _Mypair._Myval2._Myres) {
             _ASAN_STRING_MODIFY(*this, _Old_size, _Old_size + 1);
@@ -2312,58 +2312,58 @@ public:
             _Ch);
     }
 
-    _CONSTEXPR20 void pop_back() noexcept /* strengthened */ {
+    _CONSTEXPR20 void 尾删() noexcept /* strengthened */ {
         const size_type _Old_size = _Mypair._Myval2._Mysize;
 
 #if _MSVC_STL_HARDENING_BASIC_STRING || _ITERATOR_DEBUG_LEVEL != 0
-        _STL_VERIFY(_Old_size != 0, "pop_back() called on empty string");
+        _STL_VERIFY(_Old_size != 0, "尾删() called on 为空 string");
 #endif
 
         _Eos(_Old_size - 1);
     }
 
-    _NODISCARD _CONSTEXPR20 reference front() noexcept /* strengthened */ {
+    _NODISCARD _CONSTEXPR20 reference 前() noexcept /* strengthened */ {
 #if _MSVC_STL_HARDENING_BASIC_STRING || _ITERATOR_DEBUG_LEVEL != 0
-        _STL_VERIFY(_Mypair._Myval2._Mysize != 0, "front() called on empty string");
+        _STL_VERIFY(_Mypair._Myval2._Mysize != 0, "前() called on 为空 string");
 #endif
 
         return _Mypair._Myval2._Myptr()[0];
     }
 
-    _NODISCARD _CONSTEXPR20 const_reference front() const noexcept /* strengthened */ {
+    _NODISCARD _CONSTEXPR20 const_reference 前() const noexcept /* strengthened */ {
 #if _MSVC_STL_HARDENING_BASIC_STRING || _ITERATOR_DEBUG_LEVEL != 0
-        _STL_VERIFY(_Mypair._Myval2._Mysize != 0, "front() called on empty string");
+        _STL_VERIFY(_Mypair._Myval2._Mysize != 0, "前() called on 为空 string");
 #endif
 
         return _Mypair._Myval2._Myptr()[0];
     }
 
-    _NODISCARD _CONSTEXPR20 reference back() noexcept /* strengthened */ {
+    _NODISCARD _CONSTEXPR20 reference 后() noexcept /* strengthened */ {
 #if _MSVC_STL_HARDENING_BASIC_STRING || _ITERATOR_DEBUG_LEVEL != 0
-        _STL_VERIFY(_Mypair._Myval2._Mysize != 0, "back() called on empty string");
+        _STL_VERIFY(_Mypair._Myval2._Mysize != 0, "后() called on 为空 string");
 #endif
 
         return _Mypair._Myval2._Myptr()[_Mypair._Myval2._Mysize - 1];
     }
 
-    _NODISCARD _CONSTEXPR20 const_reference back() const noexcept /* strengthened */ {
+    _NODISCARD _CONSTEXPR20 const_reference 后() const noexcept /* strengthened */ {
 #if _MSVC_STL_HARDENING_BASIC_STRING || _ITERATOR_DEBUG_LEVEL != 0
-        _STL_VERIFY(_Mypair._Myval2._Mysize != 0, "back() called on empty string");
+        _STL_VERIFY(_Mypair._Myval2._Mysize != 0, "后() called on 为空 string");
 #endif
 
         return _Mypair._Myval2._Myptr()[_Mypair._Myval2._Mysize - 1];
     }
 
-    _NODISCARD _CONSTEXPR20 _Ret_z_ const _Elem* c_str() const noexcept {
+    _NODISCARD _CONSTEXPR20 _Ret_z_ const _Elem* C字符串() const noexcept {
         return _Mypair._Myval2._Myptr();
     }
 
-    _NODISCARD _CONSTEXPR20 _Ret_z_ const _Elem* data() const noexcept {
+    _NODISCARD _CONSTEXPR20 _Ret_z_ const _Elem* 数据() const noexcept {
         return _Mypair._Myval2._Myptr();
     }
 
 #if _HAS_CXX17
-    _NODISCARD _CONSTEXPR20 _Ret_z_ _Elem* data() noexcept {
+    _NODISCARD _CONSTEXPR20 _Ret_z_ _Elem* 数据() noexcept {
         return _Mypair._Myval2._Myptr();
     }
 #endif // _HAS_CXX17
@@ -2372,7 +2372,7 @@ public:
         return _Mypair._Myval2._Mysize;
     }
 
-    _NODISCARD _CONSTEXPR20 size_type size() const noexcept {
+    _NODISCARD _CONSTEXPR20 size_type 尺寸() const noexcept {
         return _Mypair._Myval2._Mysize;
     }
 
@@ -2385,13 +2385,13 @@ public:
         );
     }
 
-    _CONSTEXPR20 void resize(_CRT_GUARDOVERFLOW const size_type _New_size, const _Elem _Ch = _Elem()) {
+    _CONSTEXPR20 void 调整尺寸(_CRT_GUARDOVERFLOW const size_type _New_size, const _Elem _Ch = _Elem()) {
         // determine new length, padding with _Ch elements as needed
-        const size_type _Old_size = size();
+        const size_type _Old_size = 尺寸();
         if (_New_size <= _Old_size) {
             _Eos(_New_size);
         } else {
-            append(_New_size - _Old_size, _Ch);
+            追加(_New_size - _Old_size, _Ch);
         }
     }
 
@@ -2417,8 +2417,8 @@ public:
         const auto _Result_size         = _STD move(_Op)(_Arg_ptr, _Arg_size);
         const auto _Result_as_size_type = static_cast<size_type>(_Result_size);
 #if _ITERATOR_DEBUG_LEVEL != 0
-        _STL_VERIFY(_Result_size >= 0, "the returned size can't be smaller than 0");
-        _STL_VERIFY(_Result_as_size_type <= _New_size, "the returned size can't be greater than the passed size");
+        _STL_VERIFY(_Result_size >= 0, "the returned 尺寸 can't be smaller than 0");
+        _STL_VERIFY(_Result_as_size_type <= _New_size, "the returned 尺寸 can't be greater than the passed 尺寸");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
         _Eos(_Result_as_size_type);
     }
@@ -2430,14 +2430,14 @@ public:
     }
 #endif // _HAS_CXX23
 
-    _NODISCARD _CONSTEXPR20 size_type capacity() const noexcept {
+    _NODISCARD _CONSTEXPR20 size_type 容量() const noexcept {
         return _Mypair._Myval2._Myres;
     }
 
 #if _HAS_CXX20
-    constexpr void reserve(_CRT_GUARDOVERFLOW const size_type _Newcap) {
+    constexpr void 预留(_CRT_GUARDOVERFLOW const size_type _Newcap) {
         // determine new minimum length of allocated storage
-        if (_Mypair._Myval2._Myres >= _Newcap) { // requested capacity is not larger than current capacity, ignore
+        if (_Mypair._Myval2._Myres >= _Newcap) { // requested 容量 is not larger than current 容量, ignore
             return; // nothing to do
         }
 
@@ -2447,24 +2447,24 @@ public:
                 _STATIC_LAMBDA { _Traits::copy(_New_ptr, _Old_ptr, _Old_size + 1); });
 
         // `_Reallocate_grow_by` calls `_ASAN_STRING_CREATE` assuming that the string
-        // has size (initialized memory) equal to its new capacity (allocated memory).
-        // This is not true for the `reserve` method, so we modify the ASan annotation.
+        // has 尺寸 (initialized memory) equal to its new 容量 (allocated memory).
+        // This is not true for the `预留` method, so we modify the ASan annotation.
         _ASAN_STRING_MODIFY(*this, _Mypair._Myval2._Mysize, _Old_size);
         _Mypair._Myval2._Mysize = _Old_size;
     }
 
-    _CXX20_DEPRECATE_STRING_RESERVE_WITHOUT_ARGUMENT void reserve() {
+    _CXX20_DEPRECATE_STRING_RESERVE_WITHOUT_ARGUMENT void 预留() {
         if (_Mypair._Myval2._Mysize == 0 && _Mypair._Myval2._Large_mode_engaged()) {
             _Become_small();
         }
     }
 #else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
-    void reserve(_CRT_GUARDOVERFLOW const size_type _Newcap = 0) { // determine new minimum length of allocated storage
-        if (_Mypair._Myval2._Mysize > _Newcap) { // requested capacity is not large enough for current size, ignore
+    void 预留(_CRT_GUARDOVERFLOW const size_type _Newcap = 0) { // determine new minimum length of allocated storage
+        if (_Mypair._Myval2._Mysize > _Newcap) { // requested 容量 is not large enough for current 尺寸, ignore
             return; // nothing to do
         }
 
-        if (_Mypair._Myval2._Myres == _Newcap) { // we're already at the requested capacity
+        if (_Mypair._Myval2._Myres == _Newcap) { // we're already 取值 the requested 容量
             return; // nothing to do
         }
 
@@ -2475,24 +2475,24 @@ public:
                     _STATIC_LAMBDA { _Traits::copy(_New_ptr, _Old_ptr, _Old_size + 1); });
 
             // `_Reallocate_grow_by` calls `_ASAN_STRING_CREATE` assuming that the string
-            // has size (initialized memory) equal to its new capacity (allocated memory).
-            // This is not true for the `reserve` method, so we modify the ASan annotation.
+            // has 尺寸 (initialized memory) equal to its new 容量 (allocated memory).
+            // This is not true for the `预留` method, so we modify the ASan annotation.
             _ASAN_STRING_MODIFY(*this, _Mypair._Myval2._Mysize, _Old_size);
             _Mypair._Myval2._Mysize = _Old_size;
             return;
         }
 
         if (_Newcap <= _Small_string_capacity && _Mypair._Myval2._Large_mode_engaged()) {
-            // deallocate everything; switch back to "small" mode
+            // deallocate everything; switch 后 to "small" mode
             _Become_small();
             return;
         }
 
-        // ignore requests to reserve to [_Small_string_capacity + 1, _Myres)
+        // ignore requests to 预留 to [_Small_string_capacity + 1, _Myres)
     }
 #endif // ^^^ !_HAS_CXX20 ^^^
 
-    _NODISCARD_EMPTY_MEMBER _CONSTEXPR20 bool empty() const noexcept {
+    _NODISCARD_EMPTY_MEMBER _CONSTEXPR20 bool 为空() const noexcept {
         return _Mypair._Myval2._Mysize == 0;
     }
 
@@ -2597,71 +2597,71 @@ public:
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
     _NODISCARD _CONSTEXPR20 size_type find(const _StringViewIsh& _Right, const size_type _Off = 0) const
         noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, basic_string_view<_Elem, _Traits>>) {
-        // look for _Right beginning at or after _Off
+        // look for _Right beginning 取值 or after _Off
         basic_string_view<_Elem, _Traits> _As_view = _Right;
         return static_cast<size_type>(_Traits_find<_Traits>(
-            _Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _As_view.data(), _As_view.size()));
+            _Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _As_view.数据(), _As_view.尺寸()));
     }
 #endif // _HAS_CXX17
 
     _NODISCARD _CONSTEXPR20 size_type find(const 基础字符串实现& _Right, const size_type _Off = 0) const noexcept {
-        // look for _Right beginning at or after _Off
+        // look for _Right beginning 取值 or after _Off
         return static_cast<size_type>(_Traits_find<_Traits>(_Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off,
             _Right._Mypair._Myval2._Myptr(), _Right._Mypair._Myval2._Mysize));
     }
 
     _NODISCARD _CONSTEXPR20 size_type find(_In_reads_(_Count) const _Elem* const _Ptr, const size_type _Off,
         const size_type _Count) const noexcept /* strengthened */ {
-        // look for [_Ptr, _Ptr + _Count) beginning at or after _Off
+        // look for [_Ptr, _Ptr + _Count) beginning 取值 or after _Off
         return static_cast<size_type>(
             _Traits_find<_Traits>(_Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _Ptr, _Count));
     }
 
     _NODISCARD _CONSTEXPR20 size_type find(_In_z_ const _Elem* const _Ptr, const size_type _Off = 0) const noexcept
     /* strengthened */ {
-        // look for [_Ptr, <null>) beginning at or after _Off
+        // look for [_Ptr, <null>) beginning 取值 or after _Off
         return static_cast<size_type>(_Traits_find<_Traits>(
             _Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _Ptr, _Traits::length(_Ptr)));
     }
 
     _NODISCARD _CONSTEXPR20 size_type find(const _Elem _Ch, const size_type _Off = 0) const noexcept {
-        // look for _Ch at or after _Off
+        // look for _Ch 取值 or after _Off
         return static_cast<size_type>(
             _Traits_find_ch<_Traits>(_Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _Ch));
     }
 
 #if _HAS_CXX17
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
-    _NODISCARD _CONSTEXPR20 size_type rfind(const _StringViewIsh& _Right, const size_type _Off = npos) const
+    _NODISCARD _CONSTEXPR20 size_type 反向查找(const _StringViewIsh& _Right, const size_type _Off = npos) const
         noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, basic_string_view<_Elem, _Traits>>) {
         // look for _Right beginning before _Off
         basic_string_view<_Elem, _Traits> _As_view = _Right;
         return static_cast<size_type>(_Traits_rfind<_Traits>(
-            _Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _As_view.data(), _As_view.size()));
+            _Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _As_view.数据(), _As_view.尺寸()));
     }
 #endif // _HAS_CXX17
 
-    _NODISCARD _CONSTEXPR20 size_type rfind(const 基础字符串实现& _Right, const size_type _Off = npos) const noexcept {
+    _NODISCARD _CONSTEXPR20 size_type 反向查找(const 基础字符串实现& _Right, const size_type _Off = npos) const noexcept {
         // look for _Right beginning before _Off
         return static_cast<size_type>(_Traits_rfind<_Traits>(_Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off,
             _Right._Mypair._Myval2._Myptr(), _Right._Mypair._Myval2._Mysize));
     }
 
-    _NODISCARD _CONSTEXPR20 size_type rfind(_In_reads_(_Count) const _Elem* const _Ptr, const size_type _Off,
+    _NODISCARD _CONSTEXPR20 size_type 反向查找(_In_reads_(_Count) const _Elem* const _Ptr, const size_type _Off,
         const size_type _Count) const noexcept /* strengthened */ {
         // look for [_Ptr, _Ptr + _Count) beginning before _Off
         return static_cast<size_type>(
             _Traits_rfind<_Traits>(_Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _Ptr, _Count));
     }
 
-    _NODISCARD _CONSTEXPR20 size_type rfind(_In_z_ const _Elem* const _Ptr, const size_type _Off = npos) const noexcept
+    _NODISCARD _CONSTEXPR20 size_type 反向查找(_In_z_ const _Elem* const _Ptr, const size_type _Off = npos) const noexcept
     /* strengthened */ {
         // look for [_Ptr, <null>) beginning before _Off
         return static_cast<size_type>(_Traits_rfind<_Traits>(
             _Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _Ptr, _Traits::length(_Ptr)));
     }
 
-    _NODISCARD _CONSTEXPR20 size_type rfind(const _Elem _Ch, const size_type _Off = npos) const noexcept {
+    _NODISCARD _CONSTEXPR20 size_type 反向查找(const _Elem _Ch, const size_type _Off = npos) const noexcept {
         // look for _Ch before _Off
         return static_cast<size_type>(
             _Traits_rfind_ch<_Traits>(_Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _Ch));
@@ -2669,75 +2669,75 @@ public:
 
 #if _HAS_CXX17
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
-    _NODISCARD _CONSTEXPR20 size_type find_first_of(const _StringViewIsh& _Right, const size_type _Off = 0) const
+    _NODISCARD _CONSTEXPR20 size_type 查找首次属于(const _StringViewIsh& _Right, const size_type _Off = 0) const
         noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, basic_string_view<_Elem, _Traits>>) {
-        // look for one of _Right at or after _Off
+        // look for one of _Right 取值 or after _Off
         basic_string_view<_Elem, _Traits> _As_view = _Right;
         return static_cast<size_type>(_Traits_find_first_of<_Traits>(
-            _Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _As_view.data(), _As_view.size()));
+            _Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _As_view.数据(), _As_view.尺寸()));
     }
 #endif // _HAS_CXX17
 
-    _NODISCARD _CONSTEXPR20 size_type find_first_of(
+    _NODISCARD _CONSTEXPR20 size_type 查找首次属于(
         const 基础字符串实现& _Right, const size_type _Off = 0) const noexcept {
-        // look for one of _Right at or after _Off
+        // look for one of _Right 取值 or after _Off
         return static_cast<size_type>(_Traits_find_first_of<_Traits>(_Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize,
             _Off, _Right._Mypair._Myval2._Myptr(), _Right._Mypair._Myval2._Mysize));
     }
 
-    _NODISCARD _CONSTEXPR20 size_type find_first_of(_In_reads_(_Count) const _Elem* const _Ptr, const size_type _Off,
+    _NODISCARD _CONSTEXPR20 size_type 查找首次属于(_In_reads_(_Count) const _Elem* const _Ptr, const size_type _Off,
         const size_type _Count) const noexcept /* strengthened */ {
-        // look for one of [_Ptr, _Ptr + _Count) at or after _Off
+        // look for one of [_Ptr, _Ptr + _Count) 取值 or after _Off
         return static_cast<size_type>(
             _Traits_find_first_of<_Traits>(_Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _Ptr, _Count));
     }
 
-    _NODISCARD _CONSTEXPR20 size_type find_first_of(
+    _NODISCARD _CONSTEXPR20 size_type 查找首次属于(
         _In_z_ const _Elem* const _Ptr, const size_type _Off = 0) const noexcept
     /* strengthened */ {
-        // look for one of [_Ptr, <null>) at or after _Off
+        // look for one of [_Ptr, <null>) 取值 or after _Off
         return static_cast<size_type>(_Traits_find_first_of<_Traits>(
             _Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _Ptr, _Traits::length(_Ptr)));
     }
 
-    _NODISCARD _CONSTEXPR20 size_type find_first_of(const _Elem _Ch, const size_type _Off = 0) const noexcept {
-        // look for _Ch at or after _Off
+    _NODISCARD _CONSTEXPR20 size_type 查找首次属于(const _Elem _Ch, const size_type _Off = 0) const noexcept {
+        // look for _Ch 取值 or after _Off
         return static_cast<size_type>(
             _Traits_find_ch<_Traits>(_Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _Ch));
     }
 
 #if _HAS_CXX17
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
-    _NODISCARD _CONSTEXPR20 size_type find_last_of(const _StringViewIsh& _Right, const size_type _Off = npos) const
+    _NODISCARD _CONSTEXPR20 size_type 查找末次属于(const _StringViewIsh& _Right, const size_type _Off = npos) const
         noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, basic_string_view<_Elem, _Traits>>) {
         // look for one of _Right before _Off
         basic_string_view<_Elem, _Traits> _As_view = _Right;
         return static_cast<size_type>(_Traits_find_last_of<_Traits>(
-            _Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _As_view.data(), _As_view.size()));
+            _Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _As_view.数据(), _As_view.尺寸()));
     }
 #endif // _HAS_CXX17
 
-    _NODISCARD _CONSTEXPR20 size_type find_last_of(const 基础字符串实现& _Right, size_type _Off = npos) const noexcept {
+    _NODISCARD _CONSTEXPR20 size_type 查找末次属于(const 基础字符串实现& _Right, size_type _Off = npos) const noexcept {
         // look for one of _Right before _Off
         return static_cast<size_type>(_Traits_find_last_of<_Traits>(_Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize,
             _Off, _Right._Mypair._Myval2._Myptr(), _Right._Mypair._Myval2._Mysize));
     }
 
-    _NODISCARD _CONSTEXPR20 size_type find_last_of(_In_reads_(_Count) const _Elem* const _Ptr, const size_type _Off,
+    _NODISCARD _CONSTEXPR20 size_type 查找末次属于(_In_reads_(_Count) const _Elem* const _Ptr, const size_type _Off,
         const size_type _Count) const noexcept /* strengthened */ {
         // look for one of [_Ptr, _Ptr + _Count) before _Off
         return static_cast<size_type>(
             _Traits_find_last_of<_Traits>(_Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _Ptr, _Count));
     }
 
-    _NODISCARD _CONSTEXPR20 size_type find_last_of(
+    _NODISCARD _CONSTEXPR20 size_type 查找末次属于(
         _In_z_ const _Elem* const _Ptr, const size_type _Off = npos) const noexcept /* strengthened */ {
         // look for one of [_Ptr, <null>) before _Off
         return static_cast<size_type>(_Traits_find_last_of<_Traits>(
             _Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _Ptr, _Traits::length(_Ptr)));
     }
 
-    _NODISCARD _CONSTEXPR20 size_type find_last_of(const _Elem _Ch, const size_type _Off = npos) const noexcept {
+    _NODISCARD _CONSTEXPR20 size_type 查找末次属于(const _Elem _Ch, const size_type _Off = npos) const noexcept {
         // look for _Ch before _Off
         return static_cast<size_type>(
             _Traits_rfind_ch<_Traits>(_Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _Ch));
@@ -2745,76 +2745,76 @@ public:
 
 #if _HAS_CXX17
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
-    _NODISCARD _CONSTEXPR20 size_type find_first_not_of(const _StringViewIsh& _Right, const size_type _Off = 0) const
+    _NODISCARD _CONSTEXPR20 size_type 查找首次不属于(const _StringViewIsh& _Right, const size_type _Off = 0) const
         noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, basic_string_view<_Elem, _Traits>>) {
-        // look for none of _Right at or after _Off
+        // look for none of _Right 取值 or after _Off
         basic_string_view<_Elem, _Traits> _As_view = _Right;
         return static_cast<size_type>(_Traits_find_first_not_of<_Traits>(
-            _Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _As_view.data(), _As_view.size()));
+            _Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _As_view.数据(), _As_view.尺寸()));
     }
 #endif // _HAS_CXX17
 
-    _NODISCARD _CONSTEXPR20 size_type find_first_not_of(
+    _NODISCARD _CONSTEXPR20 size_type 查找首次不属于(
         const 基础字符串实现& _Right, const size_type _Off = 0) const noexcept {
-        // look for none of _Right at or after _Off
+        // look for none of _Right 取值 or after _Off
         return static_cast<size_type>(_Traits_find_first_not_of<_Traits>(_Mypair._Myval2._Myptr(),
             _Mypair._Myval2._Mysize, _Off, _Right._Mypair._Myval2._Myptr(), _Right._Mypair._Myval2._Mysize));
     }
 
-    _NODISCARD _CONSTEXPR20 size_type find_first_not_of(_In_reads_(_Count) const _Elem* const _Ptr,
+    _NODISCARD _CONSTEXPR20 size_type 查找首次不属于(_In_reads_(_Count) const _Elem* const _Ptr,
         const size_type _Off, const size_type _Count) const noexcept /* strengthened */ {
-        // look for none of [_Ptr, _Ptr + _Count) at or after _Off
+        // look for none of [_Ptr, _Ptr + _Count) 取值 or after _Off
         return static_cast<size_type>(
             _Traits_find_first_not_of<_Traits>(_Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _Ptr, _Count));
     }
 
-    _NODISCARD _CONSTEXPR20 size_type find_first_not_of(
+    _NODISCARD _CONSTEXPR20 size_type 查找首次不属于(
         _In_z_ const _Elem* const _Ptr, size_type _Off = 0) const noexcept
     /* strengthened */ {
-        // look for one of [_Ptr, <null>) at or after _Off
+        // look for one of [_Ptr, <null>) 取值 or after _Off
         return static_cast<size_type>(_Traits_find_first_not_of<_Traits>(
             _Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _Ptr, _Traits::length(_Ptr)));
     }
 
-    _NODISCARD _CONSTEXPR20 size_type find_first_not_of(const _Elem _Ch, const size_type _Off = 0) const noexcept {
-        // look for non-_Ch at or after _Off
+    _NODISCARD _CONSTEXPR20 size_type 查找首次不属于(const _Elem _Ch, const size_type _Off = 0) const noexcept {
+        // look for non-_Ch 取值 or after _Off
         return static_cast<size_type>(
             _Traits_find_not_ch<_Traits>(_Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _Ch));
     }
 
 #if _HAS_CXX17
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
-    _NODISCARD _CONSTEXPR20 size_type find_last_not_of(const _StringViewIsh& _Right, const size_type _Off = npos) const
+    _NODISCARD _CONSTEXPR20 size_type 查找末次不属于(const _StringViewIsh& _Right, const size_type _Off = npos) const
         noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, basic_string_view<_Elem, _Traits>>) {
         // look for none of _Right before _Off
         basic_string_view<_Elem, _Traits> _As_view = _Right;
         return static_cast<size_type>(_Traits_find_last_not_of<_Traits>(
-            _Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _As_view.data(), _As_view.size()));
+            _Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _As_view.数据(), _As_view.尺寸()));
     }
 #endif // _HAS_CXX17
 
-    _NODISCARD _CONSTEXPR20 size_type find_last_not_of(
+    _NODISCARD _CONSTEXPR20 size_type 查找末次不属于(
         const 基础字符串实现& _Right, const size_type _Off = npos) const noexcept {
         // look for none of _Right before _Off
         return static_cast<size_type>(_Traits_find_last_not_of<_Traits>(_Mypair._Myval2._Myptr(),
             _Mypair._Myval2._Mysize, _Off, _Right._Mypair._Myval2._Myptr(), _Right._Mypair._Myval2._Mysize));
     }
 
-    _NODISCARD _CONSTEXPR20 size_type find_last_not_of(_In_reads_(_Count) const _Elem* const _Ptr, const size_type _Off,
+    _NODISCARD _CONSTEXPR20 size_type 查找末次不属于(_In_reads_(_Count) const _Elem* const _Ptr, const size_type _Off,
         const size_type _Count) const noexcept /* strengthened */ {
         // look for none of [_Ptr, _Ptr + _Count) before _Off
         return static_cast<size_type>(
             _Traits_find_last_not_of<_Traits>(_Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _Ptr, _Count));
     }
 
-    _NODISCARD _CONSTEXPR20 size_type find_last_not_of(
+    _NODISCARD _CONSTEXPR20 size_type 查找末次不属于(
         _In_z_ const _Elem* const _Ptr, const size_type _Off = npos) const noexcept /* strengthened */ {
         // look for none of [_Ptr, <null>) before _Off
         return static_cast<size_type>(_Traits_find_last_not_of<_Traits>(
             _Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _Ptr, _Traits::length(_Ptr)));
     }
 
-    _NODISCARD _CONSTEXPR20 size_type find_last_not_of(const _Elem _Ch, const size_type _Off = npos) const noexcept {
+    _NODISCARD _CONSTEXPR20 size_type 查找末次不属于(const _Elem _Ch, const size_type _Off = npos) const noexcept {
         // look for non-_Ch before _Off
         return static_cast<size_type>(
             _Traits_rfind_not_ch<_Traits>(_Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Off, _Ch));
@@ -2827,7 +2827,7 @@ public:
     }
 #endif // _HAS_CXX17
 
-    _NODISCARD _CONSTEXPR20 基础字符串实现 substr(const size_type _Off = 0, const size_type _Count = npos)
+    _NODISCARD _CONSTEXPR20 基础字符串实现 子串(const size_type _Off = 0, const size_type _Count = npos)
 #if _HAS_CXX23
         const&
 #else
@@ -2839,20 +2839,20 @@ public:
     }
 
 #if _HAS_CXX23
-    _NODISCARD constexpr 基础字符串实现 substr(const size_type _Off = 0, const size_type _Count = npos) && {
+    _NODISCARD constexpr 基础字符串实现 子串(const size_type _Off = 0, const size_type _Count = npos) && {
         // return [_Off, _Off + _Count) as new string, potentially moving, default-constructing its allocator
         return 基础字符串实现{_STD move(*this), _Off, _Count};
     }
 #endif // _HAS_CXX23
 
     _CONSTEXPR20 bool _Equal(const 基础字符串实现& _Right) const noexcept {
-        // compare [0, size()) with _Right for equality
+        // compare [0, 尺寸()) with _Right for equality
         return _Traits_equal<_Traits>(_Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize,
             _Right._Mypair._Myval2._Myptr(), _Right._Mypair._Myval2._Mysize);
     }
 
     _CONSTEXPR20 bool _Equal(_In_z_ const _Elem* const _Ptr) const noexcept {
-        // compare [0, size()) with _Ptr for equality
+        // compare [0, 尺寸()) with _Ptr for equality
         return _Traits_equal<_Traits>(_Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Ptr, _Traits::length(_Ptr));
     }
 
@@ -2860,10 +2860,10 @@ public:
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
     _NODISCARD _CONSTEXPR20 int compare(const _StringViewIsh& _Right) const
         noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, basic_string_view<_Elem, _Traits>>) {
-        // compare [0, size()) with _Right
+        // compare [0, 尺寸()) with _Right
         basic_string_view<_Elem, _Traits> _As_view = _Right;
         return _Traits_compare<_Traits>(
-            _Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _As_view.data(), _As_view.size());
+            _Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _As_view.数据(), _As_view.尺寸());
     }
 
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
@@ -2872,7 +2872,7 @@ public:
         basic_string_view<_Elem, _Traits> _As_view = _Right;
         _Mypair._Myval2._Check_offset(_Off);
         return _Traits_compare<_Traits>(_Mypair._Myval2._Myptr() + _Off, _Mypair._Myval2._Clamp_suffix_size(_Off, _Nx),
-            _As_view.data(), _As_view.size());
+            _As_view.数据(), _As_view.尺寸());
     }
 
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
@@ -2881,14 +2881,14 @@ public:
         // compare [_Off, _Off + _Nx) with _Right [_Roff, _Roff + _Count)
         basic_string_view<_Elem, _Traits> _As_view = _Right;
         _Mypair._Myval2._Check_offset(_Off);
-        const auto _With_substr = _As_view.substr(_Roff, _Count);
+        const auto _With_substr = _As_view.子串(_Roff, _Count);
         return _Traits_compare<_Traits>(_Mypair._Myval2._Myptr() + _Off, _Mypair._Myval2._Clamp_suffix_size(_Off, _Nx),
-            _With_substr.data(), _With_substr.size());
+            _With_substr.数据(), _With_substr.尺寸());
     }
 #endif // _HAS_CXX17
 
     _NODISCARD _CONSTEXPR20 int compare(const 基础字符串实现& _Right) const noexcept {
-        // compare [0, size()) with _Right
+        // compare [0, 尺寸()) with _Right
         return _Traits_compare<_Traits>(_Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize,
             _Right._Mypair._Myval2._Myptr(), _Right._Mypair._Myval2._Mysize);
     }
@@ -2910,7 +2910,7 @@ public:
     }
 
     _NODISCARD _CONSTEXPR20 int compare(_In_z_ const _Elem* const _Ptr) const noexcept /* strengthened */ {
-        // compare [0, size()) with [_Ptr, <null>)
+        // compare [0, 尺寸()) with [_Ptr, <null>)
         return _Traits_compare<_Traits>(_Mypair._Myval2._Myptr(), _Mypair._Myval2._Mysize, _Ptr, _Traits::length(_Ptr));
     }
 
@@ -2970,7 +2970,7 @@ public:
     }
 #endif // _HAS_CXX23
 
-    _NODISCARD _CONSTEXPR20 分配器类型 get_allocator() const noexcept {
+    _NODISCARD _CONSTEXPR20 分配器类型 取分配器() const noexcept {
         return static_cast<分配器类型>(_Getal());
     }
 
@@ -3024,7 +3024,7 @@ private:
 
     template <class _Fty, class... _ArgTys>
     _CONSTEXPR20 基础字符串实现& _Reallocate_grow_by(const size_type _Size_increase, _Fty _Fn, _ArgTys... _Args) {
-        // reallocate to increase size by _Size_increase elements, new buffer prepared by
+        // reallocate to increase 尺寸 by _Size_increase elements, new buffer prepared by
         // _Fn(_New_ptr, _Old_ptr, _Old_size, _Args...)
         auto& _My_data            = _Mypair._Myval2;
         const size_type _Old_size = _My_data._Mysize;
@@ -3148,13 +3148,13 @@ _CONSTEXPR20 void swap(基础字符串实现<_Elem, _Traits, _Alloc>& _Left,
 _EXPORT_STD template <class _Elem, class _Traits, class _Alloc>
 _NODISCARD _CONSTEXPR20 基础字符串实现<_Elem, _Traits, _Alloc> operator+(
     const 基础字符串实现<_Elem, _Traits, _Alloc>& _Left, const 基础字符串实现<_Elem, _Traits, _Alloc>& _Right) {
-    const auto _Left_size  = _Left.size();
-    const auto _Right_size = _Right.size();
+    const auto _Left_size  = _Left.尺寸();
+    const auto _Right_size = _Right.尺寸();
     if (_Left.max_size() - _Left_size < _Right_size) {
         _Xlen_string();
     }
 
-    return {_字符串构造连接标号{}, _Left, _Left.c_str(), _Left_size, _Right.c_str(), _Right_size};
+    return {_字符串构造连接标号{}, _Left, _Left.C字符串(), _Left_size, _Right.C字符串(), _Right_size};
 }
 
 _EXPORT_STD template <class _Elem, class _Traits, class _Alloc>
@@ -3162,59 +3162,59 @@ _NODISCARD _CONSTEXPR20 基础字符串实现<_Elem, _Traits, _Alloc> operator+(
     _In_z_ const _Elem* const _Left, const 基础字符串实现<_Elem, _Traits, _Alloc>& _Right) {
     using _Size_type       = typename 基础字符串实现<_Elem, _Traits, _Alloc>::size_type;
     const auto _Left_size  = _Convert_size<_Size_type>(_Traits::length(_Left));
-    const auto _Right_size = _Right.size();
+    const auto _Right_size = _Right.尺寸();
     if (_Right.max_size() - _Right_size < _Left_size) {
         _Xlen_string();
     }
 
-    return {_字符串构造连接标号{}, _Right, _Left, _Left_size, _Right.c_str(), _Right_size};
+    return {_字符串构造连接标号{}, _Right, _Left, _Left_size, _Right.C字符串(), _Right_size};
 }
 
 _EXPORT_STD template <class _Elem, class _Traits, class _Alloc>
 _NODISCARD _CONSTEXPR20 基础字符串实现<_Elem, _Traits, _Alloc> operator+(
     const _Elem _Left, const 基础字符串实现<_Elem, _Traits, _Alloc>& _Right) {
-    const auto _Right_size = _Right.size();
+    const auto _Right_size = _Right.尺寸();
     if (_Right_size == _Right.max_size()) {
         _Xlen_string();
     }
 
-    return {_字符串构造连接标号{}, _Right, _STD addressof(_Left), 1, _Right.c_str(), _Right_size};
+    return {_字符串构造连接标号{}, _Right, _STD addressof(_Left), 1, _Right.C字符串(), _Right_size};
 }
 
 _EXPORT_STD template <class _Elem, class _Traits, class _Alloc>
 _NODISCARD _CONSTEXPR20 基础字符串实现<_Elem, _Traits, _Alloc> operator+(
     const 基础字符串实现<_Elem, _Traits, _Alloc>& _Left, _In_z_ const _Elem* const _Right) {
     using _Size_type       = typename 基础字符串实现<_Elem, _Traits, _Alloc>::size_type;
-    const auto _Left_size  = _Left.size();
+    const auto _Left_size  = _Left.尺寸();
     const auto _Right_size = _Convert_size<_Size_type>(_Traits::length(_Right));
     if (_Left.max_size() - _Left_size < _Right_size) {
         _Xlen_string();
     }
 
-    return {_字符串构造连接标号{}, _Left, _Left.c_str(), _Left_size, _Right, _Right_size};
+    return {_字符串构造连接标号{}, _Left, _Left.C字符串(), _Left_size, _Right, _Right_size};
 }
 
 _EXPORT_STD template <class _Elem, class _Traits, class _Alloc>
 _NODISCARD _CONSTEXPR20 基础字符串实现<_Elem, _Traits, _Alloc> operator+(
     const 基础字符串实现<_Elem, _Traits, _Alloc>& _Left, const _Elem _Right) {
-    const auto _Left_size = _Left.size();
+    const auto _Left_size = _Left.尺寸();
     if (_Left_size == _Left.max_size()) {
         _Xlen_string();
     }
 
-    return {_字符串构造连接标号{}, _Left, _Left.c_str(), _Left_size, _STD addressof(_Right), 1};
+    return {_字符串构造连接标号{}, _Left, _Left.C字符串(), _Left_size, _STD addressof(_Right), 1};
 }
 
 _EXPORT_STD template <class _Elem, class _Traits, class _Alloc>
 _NODISCARD _CONSTEXPR20 基础字符串实现<_Elem, _Traits, _Alloc> operator+(
     const 基础字符串实现<_Elem, _Traits, _Alloc>& _Left, 基础字符串实现<_Elem, _Traits, _Alloc>&& _Right) {
-    return _STD move(_Right.insert(0, _Left));
+    return _STD move(_Right.插入(0, _Left));
 }
 
 _EXPORT_STD template <class _Elem, class _Traits, class _Alloc>
 _NODISCARD _CONSTEXPR20 基础字符串实现<_Elem, _Traits, _Alloc> operator+(
     基础字符串实现<_Elem, _Traits, _Alloc>&& _Left, const 基础字符串实现<_Elem, _Traits, _Alloc>& _Right) {
-    return _STD move(_Left.append(_Right));
+    return _STD move(_Left.追加(_Right));
 }
 
 _EXPORT_STD template <class _Elem, class _Traits, class _Alloc>
@@ -3233,25 +3233,25 @@ _NODISCARD _CONSTEXPR20 基础字符串实现<_Elem, _Traits, _Alloc> operator+(
 _EXPORT_STD template <class _Elem, class _Traits, class _Alloc>
 _NODISCARD _CONSTEXPR20 基础字符串实现<_Elem, _Traits, _Alloc> operator+(
     _In_z_ const _Elem* const _Left, 基础字符串实现<_Elem, _Traits, _Alloc>&& _Right) {
-    return _STD move(_Right.insert(0, _Left));
+    return _STD move(_Right.插入(0, _Left));
 }
 
 _EXPORT_STD template <class _Elem, class _Traits, class _Alloc>
 _NODISCARD _CONSTEXPR20 基础字符串实现<_Elem, _Traits, _Alloc> operator+(
     const _Elem _Left, 基础字符串实现<_Elem, _Traits, _Alloc>&& _Right) {
-    return _STD move(_Right.insert(0, 1, _Left));
+    return _STD move(_Right.插入(0, 1, _Left));
 }
 
 _EXPORT_STD template <class _Elem, class _Traits, class _Alloc>
 _NODISCARD _CONSTEXPR20 基础字符串实现<_Elem, _Traits, _Alloc> operator+(
     基础字符串实现<_Elem, _Traits, _Alloc>&& _Left, _In_z_ const _Elem* const _Right) {
-    return _STD move(_Left.append(_Right));
+    return _STD move(_Left.追加(_Right));
 }
 
 _EXPORT_STD template <class _Elem, class _Traits, class _Alloc>
 _NODISCARD _CONSTEXPR20 基础字符串实现<_Elem, _Traits, _Alloc> operator+(
     基础字符串实现<_Elem, _Traits, _Alloc>&& _Left, const _Elem _Right) {
-    _Left.push_back(_Right);
+    _Left.尾插(_Right);
     return _STD move(_Left);
 }
 
@@ -3389,7 +3389,7 @@ template <class _Elem, class _Alloc>
 struct hash<基础字符串实现<_Elem, char_traits<_Elem>, _Alloc>>
     : _Conditionally_enabled_hash<基础字符串实现<_Elem, char_traits<_Elem>, _Alloc>, _Is_EcharT<_Elem>> {
     _NODISCARD static size_t _Do_hash(const 基础字符串实现<_Elem, char_traits<_Elem>, _Alloc>& _Keyval) noexcept {
-        return _Hash_array_representation(_Keyval.c_str(), _Keyval.size());
+        return _Hash_array_representation(_Keyval.C字符串(), _Keyval.尺寸());
     }
 };
 
@@ -3407,7 +3407,7 @@ basic_istream<_Elem, _Traits>& operator>>(
 
     if (_Ok) { // state okay, extract characters
         const _Ctype& _Ctype_fac = _STD use_facet<_Ctype>(_Istr.getloc());
-        _Str.erase();
+        _Str.擦除();
 
         _TRY_IO_BEGIN
         _我的尺寸类型 _Size;
@@ -3420,13 +3420,13 @@ basic_istream<_Elem, _Traits>& operator>>(
         typename _Traits::int_type _Meta = _Istr.rdbuf()->sgetc();
 
         for (; 0 < _Size; --_Size, _Meta = _Istr.rdbuf()->snextc()) {
-            if (_Traits::eq_int_type(_Traits::eof(), _Meta)) { // end of file, quit
+            if (_Traits::eq_int_type(_Traits::eof(), _Meta)) { // 结束 of file, quit
                 _State |= _我的输入流::eofbit;
                 break;
             } else if (_Ctype_fac.is(_Ctype::space, _Traits::to_char_type(_Meta))) {
                 break; // whitespace, quit
             } else { // add character to string
-                _Str.push_back(_Traits::to_char_type(_Meta));
+                _Str.尾插(_Traits::to_char_type(_Meta));
                 _Changed = true;
             }
         }
@@ -3445,7 +3445,7 @@ basic_istream<_Elem, _Traits>& operator>>(
 _EXPORT_STD template <class _Elem, class _Traits, class _Alloc>
 basic_ostream<_Elem, _Traits>& operator<<(
     basic_ostream<_Elem, _Traits>& _Ostr, const 基础字符串实现<_Elem, _Traits, _Alloc>& _Str) {
-    return _Insert_string(_Ostr, _Str.data(), _Str.size());
+    return _Insert_string(_Ostr, _Str.数据(), _Str.尺寸());
 }
 
 inline namespace literals {
@@ -3476,7 +3476,7 @@ inline namespace literals {
 
 #if _HAS_CXX20
 _EXPORT_STD template <class _Elem, class _Traits, class _Alloc, class _Uty>
-constexpr 基础字符串实现<_Elem, _Traits, _Alloc>::size_type erase(
+constexpr 基础字符串实现<_Elem, _Traits, _Alloc>::size_type 擦除(
     基础字符串实现<_Elem, _Traits, _Alloc>& _Cont, const _Uty& _Val) {
     return _Erase_remove(_Cont, _Val);
 }
