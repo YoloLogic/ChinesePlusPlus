@@ -1293,7 +1293,10 @@ if ($spec.zhIncludes) {
 # ---------------------------------------------------------------------------
 function Remove-ClassDef {
     param([string]$Text, [string]$Name, [ref]$Count)
-    $rx = [regex]('(?m)^[^\r\n]*\b(?:class|struct)\s+' + [regex]::Escape($Name) + '\b[^\r\n]*\{')
+    # ⚠ 类名和 class 之间常夹着宏/说明符：原文是 `class _NODISCARD bad_optional_access`。
+    #   原来写成 `class\s+NAME` 会【匹配不到】-> dropTypes 静默什么都没删（实测踩到），
+    #   于是异常类还在，_Throw_xxx() 抛的是抄来那个类 -> catch(std::xxx&) 永远抓不到。
+    $rx = [regex]('(?m)^[^\r\n]*\b(?:class|struct)\s+(?:[A-Za-z_]\w*\s+)*' + [regex]::Escape($Name) + '\b[^\r\n]*\{')
     $m = $rx.Match($Text)
     if (-not $m.Success) { return $Text }
     $i = $Text.IndexOf('{', $m.Index)
@@ -1390,6 +1393,25 @@ if ($spec.realInclude) {
     $inc = (@($spec.realInclude) | ForEach-Object { "#include <$_>" }) -join "`n"
     $text = $text.Substring(0, $pos) + $inc + "`n" + $text.Substring($pos)
     Write-Host ("  步0b 真头包含（改名后插）: {0}" -f (@($spec.realInclude) -join ', '))
+
+    # -----------------------------------------------------------------------
+    #  机器检查（§3.26 第 3 条）：realInclude 与"抄来的 std 模板特化"天生冲突。
+    #
+    #  实测（<variant>）：抄来的文本里有 `结构 hash<monostate>`；一旦 monostate
+    #  解析到 std::monostate，我们那份就成了"在 细节 里特化 std::hash<...>"，
+    #  而 realInclude 带进来的真头里【已经有一份】-> 重定义。
+    #
+    #  这里只【警告】不 throw：有些特化确实无害（比如特化的是我们自己的类型），
+    #  要人看一眼。但至少不再是"没人知道"。
+    # -----------------------------------------------------------------------
+    $stdSpecs = @()
+    $specRx = '(?m)^\s*(?:结构|struct|类型|class)\s+(hash|formatter|uses_allocator|tuple_size|tuple_element|pointer_traits|numeric_limits|iterator_traits|char_traits|is_error_code_enum|is_error_condition_enum|default_delete|allocator_traits)\s*<'
+    foreach ($m in [regex]::Matches($text, $specRx)) { $stdSpecs += $m.Groups[1].Value }
+    if ($stdSpecs.Count) {
+        Write-Host ("  ⚠ 步0b【§3.26 第3条】开了 realInclude，但抄来的文本里有 {0} 处 std 模板特化：{1}" -f `
+            $stdSpecs.Count, (($stdSpecs | Sort-Object -Unique) -join ', ')) -ForegroundColor Yellow
+        Write-Host '     它们可能与真头里的同一特化撞车（重定义）。要么 dropTypes 丢掉，要么确认无害。' -ForegroundColor Yellow
+    }
 }
 
 # ---------------------------------------------------------------------------

@@ -30,13 +30,8 @@ _STL_DISABLE_CLANG_WARNINGS
 名域 标准 { 名域 细节 {
 使用 名域 std;
 
-_EXPORT_STD class _NODISCARD bad_any_cast : public bad_cast { // thrown by failed 任意转换
-public:
-    _NODISCARD const char* __CLR_OR_THIS_CALL what() const noexcept override {
-        return "Bad 任意转换";
-    }
-};
-
+// [dropTypes] 这里删掉了抄来的 bad_any_cast 定义。
+// 它的身份必须是 std 的那个（铁律 4：捕获按类型匹配），所以改用真头的 std::bad_any_cast。
 [[noreturn]] inline void _Throw_bad_any_cast() {
     _THROW(bad_any_cast{});
 }

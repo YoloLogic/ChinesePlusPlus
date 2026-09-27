@@ -37,20 +37,8 @@ _EXPORT_STD struct 空值类型 { // no-取值 state indicator
 };
 _EXPORT_STD inline constexpr 空值类型 nullopt{空值类型::_Tag{}};
 
-_EXPORT_STD class _NODISCARD bad_optional_access : public exception {
-public:
-    _NODISCARD const char* __CLR_OR_THIS_CALL what() const noexcept override {
-        return "Bad 可选实现 access";
-    }
-
-#if !_HAS_EXCEPTIONS
-protected:
-    void _Doraise() const override { // perform class-specific exception handling
-        _RAISE(*this);
-    }
-#endif // !_HAS_EXCEPTIONS
-};
-
+// [dropTypes] 这里删掉了抄来的 bad_optional_access 定义。
+// 它的身份必须是 std 的那个（铁律 4：捕获按类型匹配），所以改用真头的 std::bad_optional_access。
 [[noreturn]] inline void _Throw_bad_optional_access() {
     _THROW(bad_optional_access{});
 }
