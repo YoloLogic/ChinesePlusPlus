@@ -25,8 +25,30 @@ $cxx  = Join-Path $root 'build\Release\bin\chinese++.exe'
 $out  = Join-Path $root 'zhstdlib'
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 
-# 表：条目 = @('常量','中文名','std::原名','类型') | @('类型','中文名','std::原名')
+# 表：条目 = @('常量','中文名','std::原名','类型')
+#            @('类型','中文名','std::原名')
+#            @('函数','中文名','std::原名')      —— 通用一模板转发
+#            @('原样','<整行代码>')              —— 原样发出（成员要转发成自由函数时用）
 $H = [ordered]@{
+  'typeinfo' = @{ zh = '类型信息'; src = 'typeinfo'; a = @(
+      # 类型：必须同一类型 —— typeid() 返回的就是 std::type_info 的引用（铁律 4）
+      @('类型','类型信息','std::type_info'),
+      # 异常类型也只能别名：捕获按类型匹配，抄一份/派生就抓不到别人抛的（铁律 4）
+      @('类型','类型转换失败','std::bad_cast'),
+      @('类型','类型标识失败','std::bad_typeid'),
+      # 成员改不了名（类型是 std 的），只能做成中文自由函数
+      @('原样','内联 常量 字符* 名称(常量 类型信息& 信息) noexcept { 返回 信息.name(); }'),
+      @('原样','内联 size_t 哈希值(常量 类型信息& 信息) noexcept { 返回 信息.hash_code(); }'),
+      @('原样','内联 布尔 先于(常量 类型信息& 甲, 常量 类型信息& 乙) noexcept { 返回 甲.before(乙); }'),
+      @('原样','内联 布尔 相等(常量 类型信息& 甲, 常量 类型信息& 乙) noexcept { 返回 甲 == 乙; }'),
+      @('原样','内联 布尔 不等(常量 类型信息& 甲, 常量 类型信息& 乙) noexcept { 返回 甲 != 乙; }')
+  )
+    tests = @(
+      @('只引中文头（类型别名 + 中文自由函数）','#包含 <类型信息>`n整数 主函数(){ 返回 (整数)标准::哈希值(类型标识(整数)) * 0; }'),
+      @('与 <typeinfo> 并存','#包含 <类型信息>`n#包含 <typeinfo>`n整数 主函数(){ 常量 std::type_info& 乙 = 类型标识(整数); 返回 (整数)标准::哈希值(类型标识(整数)) * 0 + (整数)乙.hash_code() * 0; }'),
+      @('类型身份必须相同（铁律 4）','#包含 <类型信息>`n静态断言(std::is_same<标准::类型转换失败, std::bad_cast>::value, "");`n静态断言(std::is_same<标准::类型信息, std::type_info>::value, "");`n整数 主函数(){ 返回 0; }')
+    )
+  }
   'numbers' = @{ zh = '数字'; src = 'numbers'; a = @(
       @('常量','圆周率','std::numbers::pi','双精度'),
       @('常量','自然常数','std::numbers::e','双精度'),
@@ -47,12 +69,13 @@ $H = [ordered]@{
 $spec = $H[$Header]
 if (-not $spec) { throw "表里没有 $Header" }
 
-$body = @(); $n = @{ '常量'=0; '类型'=0; '函数'=0 }
+$body = @(); $n = @{ '常量'=0; '类型'=0; '函数'=0; '原样'=0 }
 foreach ($e in $spec.a) {
     switch ($e[0]) {
         '常量' { $body += ("    内联 常量 {0} {1} = {2};" -f $e[3], $e[1], $e[2]); $n['常量']++ }
         '类型' { $body += ("    使用 {0} = {1};" -f $e[1], $e[2]); $n['类型']++ }
         '函数' { $body += ("    模板 <类型名... 参数> 自动 {0}(参数&&... 值) {{ 返回 {1}(static_cast<参数&&>(值)...); }}" -f $e[1], $e[2]); $n['函数']++ }
+        '原样' { $body += ("    " + $e[1]); $n['原样']++ }
     }
 }
 
@@ -76,17 +99,19 @@ New-Item -ItemType Directory -Force $out | Out-Null
 $outPath = Join-Path $out $spec.zh
 [System.IO.File]::WriteAllText($outPath, $text, $utf8)
 Write-Host "=== <$($spec.zh)> ===" -ForegroundColor Cyan
-Write-Host ("  生成 常量 {0} / 类型 {1} / 函数 {2}" -f $n['常量'], $n['类型'], $n['函数'])
+Write-Host ("  生成 常量 {0} / 类型 {1} / 函数 {2} / 原样 {3}" -f $n['常量'], $n['类型'], $n['函数'], $n['原样'])
 
 # 验证：能引、能用、与原名并存
 $t = Join-Path $root 'build\_zha'
 if (Test-Path $t) { Remove-Item -Recurse -Force $t }
 New-Item -ItemType Directory -Force $t | Out-Null
-$first = $spec.a | Where-Object { $_[0] -eq '常量' } | Select-Object -First 1
-$cases = @(
-  @('只引中文头', "#包含 <$($spec.zh)>`n整数 主函数(){ 返回 (整数)标准::$($first[1]); }"),
-  @('与微软原头并存', "#包含 <$($spec.zh)>`n#包含 <$($spec.src)>`n整数 主函数(){ 返回 (整数)标准::$($first[1]) + (整数)$($first[2]); }")
-)
+$cases = if ($spec.ContainsKey('tests')) { $spec.tests } else {
+    $first = $spec.a | Where-Object { $_[0] -eq '常量' } | Select-Object -First 1
+    @(
+      @('只引中文头', "#包含 <$($spec.zh)>`n整数 主函数(){ 返回 (整数)标准::$($first[1]); }"),
+      @('与微软原头并存', "#包含 <$($spec.zh)>`n#包含 <$($spec.src)>`n整数 主函数(){ 返回 (整数)标准::$($first[1]) + (整数)$($first[2]); }")
+    )
+}
 $pass = 0
 foreach ($c in $cases) {
     $src = Join-Path $t 't.cpp'
