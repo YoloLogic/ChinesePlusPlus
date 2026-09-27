@@ -1086,26 +1086,7 @@ $H = @{
       @('本体类型确实可用（模板形状对）','#包含 <特殊成员控制>`n结构 基类 { 整数 值; };`n整数 主函数(){ 标准::_特殊成员控制<基类, 整数> 甲; (空型)甲; 返回 0; }')
     )
   }
-  'xpolymorphic_allocator.h' = @{
-    zh      = '多态分配器'
-    realInclude = @('xpolymorphic_allocator.h')
-    dropTypes   = @('memory_resource')
-    noPub       = $true
-    types   = [ordered]@{ 'pmr' = 'pmr'
-                          '_Normally_bound_ref' = '_常规绑定引用'
-                          '_Deallocate_bytes_guard' = '_字节释放卫兵'
-                          'polymorphic_allocator' = '多态分配器模板'
-                          '_Pair_ref_t' = '_对引用类型' }
-    members = [ordered]@{}
-    data    = [ordered]@{}
-    derive  = @()
-    stdHash = $false
-    tparam  = @{ decl = ''; args = '' }
-    tests = @(
-      @('只引中文头','#包含 <多态分配器>`n整数 主函数(){ 返回 0; }'),
-      @('本体类型确实可用（pmr 名域里的模板）','#包含 <多态分配器>`n整数 主函数(){ 标准::细节::pmr::多态分配器模板<整数> 甲; (空型)甲; 返回 0; }')
-    )
-  }  'scoped_allocator' = @{
+  'scoped_allocator' = @{
     zh      = '作用域分配器'
     types   = [ordered]@{ 'scoped_allocator_adaptor' = '作用域分配器适配器实现'
                           '_Scoped_base' = '_作用域基类'
