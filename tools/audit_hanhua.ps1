@@ -113,8 +113,38 @@ function Get-DeclaredNames([string] $text) {
 #    · 有缩进的 `class/struct/enum class NAME`（嵌套类声明）
 #    （行首 = 顶层，已由第一把尺量过，这里靠"必须缩进"把它们排除掉。）
 # ---------------------------------------------------------------------------
-function Get-NestedNames([string] $text) {
+# ---------------------------------------------------------------------------
+#  成员名（第三把尺，§16.65）
+#
+#  提取判据：**有缩进、且标识符后面紧跟 `(`** 的行 —— 在微软原头里这几乎总是成员函数
+#  （行首的 `#define`/`template <...>` 都被"必须缩进"排除）。
+#  再排掉语言关键字与几个常见的非成员名（`if`/`for`/`sizeof`/`static_cast`/…）。
+#  ⚠ 这把尺的**已知偏差**（写在这里，免得后来人相信它比实际精确）：
+#    · 它会数到少量"函数式宏 / 局部 lambda / 自由函数"，不是严格意义的成员；
+#    · 它数的是"这个词还在不在抄来那层里"，同名两主人（借来的 char_traits /
+#      basic_string_view）已用 $memBoundary 排除 —— 那份名单是**欠账**不是边界，
+#      消除路径 = 把那些借来的邻居也抄成我们自己的内部件。
+# ---------------------------------------------------------------------------
+function Get-MemberNames([string] $text) {
     $names = @{}
+    $kw = @('if', 'for', 'while', 'switch', 'return', 'sizeof', 'static_cast', 'reinterpret_cast',
+            'const_cast', 'dynamic_cast', 'decltype', 'noexcept', 'operator', 'static_assert',
+            'alignof', 'typeid', 'catch', 'throw', 'new', 'delete', 'and', 'or', 'not',
+            'enable_if', 'is_same', 'conjunction', 'disjunction', 'declval', 'conditional',
+            'move', 'forward', 'exchange', 'max', 'min', 'begin', 'end', 'size', 'data', 'empty')
+    foreach ($m in [regex]::Matches($text, '(?m)^[ \t]{4,10}(?:\[\[[^\]]*\]\]\s*)?(?:constexpr\s+|inline\s+|static\s+|virtual\s+|friend\s+|explicit\s+)*[A-Za-z_][\w:<>,\s\*&]*?\b([a-z_]\w*)\s*\(')) {
+        $n = $m.Groups[1].Value
+        if ($kw -contains $n) { continue }
+        $names[$n] = $true
+    }
+    return $names
+}
+# 同名两主人（借来的 std 类型读的成员名）—— 见 §16.61.9：这些是边界，
+# 但**不是永久边界**：消除路径 = 把 char_traits / basic_string_view 也抄成我们的内部件。
+$memBoundary = @('length', 'assign', 'copy', 'compare', 'find', 'max_size', 'swap',
+                 'starts_with', 'ends_with', 'contains', 'remove_prefix', 'remove_suffix',
+                 'to_char_type', 'to_int_type', 'eq', 'lt', 'not_eof', 'eof')
+function Get-NestedNames([string] $text) {    $names = @{}
     foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+using\s+([A-Za-z_]\w*)\s*=')) { $names[$m.Groups[1].Value] = $true }
     foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+typedef\s+[^;\r\n]*?\b([A-Za-z_]\w*)\s*;')) { $names[$m.Groups[1].Value] = $true }
     #  ⚠ 嵌套类/枚举的名字不能写成"最后一个标识符"——实测假残留：
@@ -168,8 +198,10 @@ function Get-NestedNames([string] $text) {
 $entries = Get-Entries (Join-Path $root 'tools\make_zhstdlib2.ps1')
 $rows = @()
 $rows2 = @()
+$rows3 = @()
 $totAll = 0; $totDone = 0
 $totAll2 = 0; $totDone2 = 0
+$totAll3 = 0; $totDone3 = 0
 foreach ($e in $entries) {
     if (-not $e.Zh) { continue }
     $prod = Join-Path $root "zhstdlib\$($e.Zh)"
@@ -231,6 +263,29 @@ foreach ($e in $entries) {
             中文头 = $e.Zh; 源 = $e.H; 嵌套名 = $effTotal2; 残留 = $res2.Count; 名单 = ($res2 -join ' ')
         }
     }
+
+    # ---- 第三把尺：成员名（§16.65）----
+    #  前两把尺量的都是【类型名】。"完全是汉语书写的标准库"还包括**成员函数名**，
+    #  而这一块一直只存在于"我记得翻过"里 —— 所以量出来。
+    #  方法与前两把尺**完全一致**：从原头提候选名，再看它在【抄来那层】里还在不在。
+    $names3 = Get-MemberNames $src
+    $res3 = @()
+    foreach ($n in $names3.Keys) {
+        if ($stdSpecials -contains $n) { continue }
+        # ⚠ 边界（与前两把尺同源）：这些成员名被**借来的** std 类型读（char_traits /
+        #   basic_string_view / allocator_traits），按词替换会误伤，属第 ③ 类。
+        if ($memBoundary -contains $n) { continue }
+        if ([regex]::IsMatch($copy, "\b$([regex]::Escape($n))\b")) { $res3 += $n }
+    }
+    $res3 = @($res3 | Sort-Object)
+    $effTotal3 = @($names3.Keys | Where-Object { $stdSpecials -notcontains $_ -and $memBoundary -notcontains $_ }).Count
+    if ($effTotal3 -gt 0) {
+        $totAll3 += $effTotal3
+        $totDone3 += ($effTotal3 - $res3.Count)
+        $rows3 += [pscustomobject]@{
+            中文头 = $e.Zh; 源 = $e.H; 成员名 = $effTotal3; 残留 = $res3.Count; 名单 = ($res3 -join ' ')
+        }
+    }
 }
 
 $rows = @($rows | Sort-Object -Property @{ Expression = { $_.残留 } } -Descending)
@@ -270,4 +325,22 @@ if ($rows2.Count) {
     Write-Host "          所以这一栏量的是「§9.3 要翻转的方向」，不是「用户写不出来」。"
     Write-Host "          另有真边界：reference / value_type 这类会出现在【借用路径】上"
     Write-Host "          （allocator_traits<_Alloc>::value_type），改错必须能回退（§15.5）。"
+
+    # ---- 第三把尺：成员名（§16.65）----
+    $rows3 = @($rows3 | Sort-Object -Property @{ Expression = { $_.残留 } } -Descending)
+    Write-Host ""
+    Write-Host "=== 成员名字（抄来那层里「标识符紧跟 (」的行，含自由函数/局部函数的少量偏差）===" -ForegroundColor Cyan
+    $rows3 | Format-Table -Property 中文头, 源, 成员名, 残留 -AutoSize
+    if ($Detail) {
+        Write-Host "--- 成员名残留名单（= 欠账 + 已登记的边界）---"
+        foreach ($r in $rows3) { if ($r.残留) { Write-Host ("  {0,-14} {1}" -f $r.中文头, $r.名单) } }
+    }
+    $clean3 = @($rows3 | Where-Object { $_.残留 -eq 0 }).Count
+    Write-Host ("=== 成员名汉化率: {0} / {1} = {2:N1}% ===" -f `
+        $totDone3, $totAll3, (100 * $totDone3 / [Math]::Max($totAll3, 1))) -ForegroundColor Cyan
+    Write-Host ("    完全无残留的头: {0} / {1}" -f $clean3, $rows3.Count) -ForegroundColor Cyan
+    Write-Host "    这一栏量的是「成员函数名」—— 目标说「完全是汉语书写」，成员名也算。"
+    Write-Host "    已排除的边界（见 \$memBoundary）：char_traits / basic_string_view /"
+    Write-Host "      allocator_traits 这些**借来的** std 类型读的成员名（length/assign/copy/…）——"
+    Write-Host "      消除路径 = 把它们也抄成我们自己的内部件，然后两边一起翻。"
 }
