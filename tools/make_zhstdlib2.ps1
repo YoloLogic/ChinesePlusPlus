@@ -51,6 +51,9 @@ $H = @{
     }
     # ⚠ 注意：`mutex` 既是类名，也是 unique_lock 的成员函数名 —— 两者都变「互斥量实现」，
     #   于是 独占锁::互斥量实现() 读起来别扭但不歧义（记为妥协）。
+    # §3.7.2 销账：<mutex> 正文包含 <xcall_once.h>，这里指向我们自己的汉语内部件，
+    # 于是只用 <互斥量> 就能拿到 标准::一次标志 与 标准::一次调用。
+    zhIncludes = @{ 'xcall_once.h' = '调用一次' }
     members = [ordered]@{
       'lock' = '加锁'; 'unlock' = '解锁'; 'try_lock' = '尝试加锁'
       'try_lock_for' = '限时加锁'; 'try_lock_until' = '加锁至时刻'
