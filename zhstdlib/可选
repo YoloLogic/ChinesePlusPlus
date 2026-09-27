@@ -140,7 +140,7 @@ struct _可选构造基类 : _可选析构基类<_Ty> {
     using _可选析构基类<_Ty>::_可选析构基类;
 
     template <class... _Types>
-    _CONSTEXPR20 _Ty& _Construct(_Types&&... _Args) noexcept(is_nothrow_constructible_v<_Ty, _Types...>) {
+    _CONSTEXPR20 _Ty& _构造(_Types&&... _Args) noexcept(is_nothrow_constructible_v<_Ty, _Types...>) {
         // transition from the empty to the value-containing state
         _STL_INTERNAL_CHECK(!this->_Has_value);
         _Construct_in_place(this->_Value, _STD forward<_Types>(_Args)...);
@@ -149,32 +149,32 @@ struct _可选构造基类 : _可选析构基类<_Ty> {
     }
 
     template <class _Ty2>
-    _CONSTEXPR20 void _Assign(_Ty2&& _Right)
+    _CONSTEXPR20 void _赋值(_Ty2&& _Right)
         noexcept(is_nothrow_assignable_v<_Ty&, _Ty2> && is_nothrow_constructible_v<_Ty, _Ty2>) {
         // assign / initialize the contained value from _Right
         if (this->_Has_value) {
             static_cast<_Ty&>(this->_Value) = _STD forward<_Ty2>(_Right);
         } else {
-            _Construct(_STD forward<_Ty2>(_Right));
+            _构造(_STD forward<_Ty2>(_Right));
         }
     }
 
     template <class _Self>
-    _CONSTEXPR20 void _Construct_from(_Self&& _Right)
+    _CONSTEXPR20 void _由之构造(_Self&& _Right)
         noexcept(is_nothrow_constructible_v<_Ty, decltype(*_STD forward<_Self>(_Right))>) {
         // initialize contained value from _Right iff it contains a value
         if (_Right._Has_value) {
-            _Construct(*_STD forward<_Self>(_Right));
+            _构造(*_STD forward<_Self>(_Right));
         }
     }
 
     template <class _Self>
-    _CONSTEXPR20 void _Assign_from(_Self&& _Right)
+    _CONSTEXPR20 void _由之赋值(_Self&& _Right)
         noexcept(is_nothrow_constructible_v<_Ty, decltype(*_STD forward<_Self>(_Right))>
                  && is_nothrow_assignable_v<_Ty&, decltype(*_STD forward<_Self>(_Right))>) {
         // assign/initialize/destroy contained value from _Right
         if (_Right._Has_value) {
-            _Assign(*_STD forward<_Self>(_Right));
+            _赋值(*_STD forward<_Self>(_Right));
         } else {
             this->重置();
         }
@@ -275,7 +275,7 @@ public:
     _CONSTEXPR20 explicit(!is_convertible_v<const _Ty2&, _Ty>) 可选实现(const 可选实现<_Ty2>& _Right)
         noexcept(is_nothrow_constructible_v<_Ty, const _Ty2&>) /* strengthened */ {
         if (_Right) {
-            this->_Construct(*_Right);
+            this->_构造(*_Right);
         }
     }
 
@@ -283,7 +283,7 @@ public:
     _CONSTEXPR20 explicit(!is_convertible_v<_Ty2, _Ty>) 可选实现(可选实现<_Ty2>&& _Right)
         noexcept(is_nothrow_constructible_v<_Ty, _Ty2>) /* strengthened */ {
         if (_Right) {
-            this->_Construct(_STD move(*_Right));
+            this->_构造(_STD move(*_Right));
         }
     }
 
@@ -299,7 +299,7 @@ public:
             int>         = 0>
     _CONSTEXPR20 可选实现& operator=(_Ty2&& _Right)
         noexcept(is_nothrow_assignable_v<_Ty&, _Ty2> && is_nothrow_constructible_v<_Ty, _Ty2>) /* strengthened */ {
-        this->_Assign(_STD forward<_Ty2>(_Right));
+        this->_赋值(_STD forward<_Ty2>(_Right));
         return *this;
     }
 
@@ -315,7 +315,7 @@ public:
     _CONSTEXPR20 可选实现& operator=(const 可选实现<_Ty2>& _Right) noexcept(
         is_nothrow_assignable_v<_Ty&, const _Ty2&> && is_nothrow_constructible_v<_Ty, const _Ty2&>) /* strengthened */ {
         if (_Right) {
-            this->_Assign(*_Right);
+            this->_赋值(*_Right);
         } else {
             重置();
         }
@@ -329,7 +329,7 @@ public:
     _CONSTEXPR20 可选实现& operator=(可选实现<_Ty2>&& _Right)
         noexcept(is_nothrow_assignable_v<_Ty&, _Ty2> && is_nothrow_constructible_v<_Ty, _Ty2>) /* strengthened */ {
         if (_Right) {
-            this->_Assign(_STD move(*_Right));
+            this->_赋值(_STD move(*_Right));
         } else {
             重置();
         }
@@ -341,7 +341,7 @@ public:
     _CONSTEXPR20 _Ty& 就地构造(_Types&&... _Args)
         noexcept(is_nothrow_constructible_v<_Ty, _Types...>) /* strengthened */ {
         重置();
-        return this->_Construct(_STD forward<_Types>(_Args)...);
+        return this->_构造(_STD forward<_Types>(_Args)...);
     }
 
     template <class _Elem, class... _Types,
@@ -349,7 +349,7 @@ public:
     _CONSTEXPR20 _Ty& 就地构造(initializer_list<_Elem> _Ilist, _Types&&... _Args)
         noexcept(is_nothrow_constructible_v<_Ty, initializer_list<_Elem>&, _Types...>) /* strengthened */ {
         重置();
-        return this->_Construct(_Ilist, _STD forward<_Types>(_Args)...);
+        return this->_构造(_Ilist, _STD forward<_Types>(_Args)...);
     }
 
     _CONSTEXPR20 void swap(可选实现& _Right)
@@ -373,7 +373,7 @@ public:
             } else {
                 可选实现& _Source = _Engaged ? *this : _Right;
                 可选实现& _Target = _Engaged ? _Right : *this;
-                _Target._Construct(_STD move(*_Source));
+                _Target._构造(_STD move(*_Source));
                 _Source.重置();
             }
         }

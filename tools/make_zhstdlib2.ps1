@@ -755,6 +755,12 @@ $H = @{
       'reset' = '重置'; 'emplace' = '就地构造'
       'and_then' = '且则'; 'transform' = '变换'; 'or_else' = '或则'
       # ⚠ swap 照旧不改名（§3.12）
+      # §16.77 本头**自己定义**的 4 个内部助手（实测只有 <optional> 有定义）
+      #   -> 翻；不是公开 API，不需要派生层补英文。
+      '_Assign' = '_赋值'
+      '_Assign_from' = '_由之赋值'
+      '_Construct' = '_构造'
+      '_Construct_from' = '_由之构造'
     }
     data    = [ordered]@{}
     derive  = @( @('has_value','有值'), @('value_or','取值或'),
