@@ -111,6 +111,23 @@ Write-Host "=== 全量验证 ===" -ForegroundColor Cyan
 & pwsh -NoProfile -File (Join-Path $root 'tools\verify_zhstdlib.ps1')
 $v = $LASTEXITCODE
 
+# ---------------------------------------------------------------------------
+#  用法对照表守卫（§16.40）—— **文档也必须由机器守**。
+#
+#  为什么加它：用户 2026-09-28 问"这些库的用法的记录是否同步更新？"，
+#  一查就发现 docs\使用说明.md 还写着「`#包含 <向量>` **现在会找不到文件**」，
+#  并教读者手写一个别名头 —— 而那时 zhstdlib 里已经有 67 个产品、
+#  `#包含 <向量>` 早就能用了。
+#  **手写的用法记录一定会漂移**，而且漂移方向是"让读者相信一件已经过时的事"，
+#  比没有文档更坏（同 §16.34.2）。
+#
+#  现在用法对照表由 tools\make_zh_usage.ps1 从三张表【自动生成】，
+#  这里只核对它是否最新 —— 于是"文档忘了同步"变成一条守卫，而不是靠我记得。
+# ---------------------------------------------------------------------------
+Write-Host "=== 用法对照表守卫 ===" -ForegroundColor Cyan
+& pwsh -NoProfile -File (Join-Path $root 'tools\make_zh_usage.ps1') -Check
+$ud = $LASTEXITCODE
+
 Write-Host ''
 # ---------------------------------------------------------------------------
 #  生成器告警台账 —— 必须显式可见。
@@ -136,6 +153,9 @@ Write-Host ("=== 顺带引真头探针（§16.29「乙」）：{0} 个头通过�
 Write-Host '    这条是「乙」的机器保证：条目加了 realInclude 的都会进来，缺一个就说明那条挂了。' -ForegroundColor Gray
 Write-Host ''
 
-if ($fail -eq 0 -and $v -eq 0) { Write-Host "重新生成 + 全量验证：全部通过" -ForegroundColor Green; exit 0 }
-Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}" -f $fail, $v) -ForegroundColor Red
+if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0) {
+    Write-Host "重新生成 + 全量验证 + 用法对照表：全部通过" -ForegroundColor Green
+    exit 0
+}
+Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；用法对照表守卫退出码 {2}" -f $fail, $v, $ud) -ForegroundColor Red
 exit 1

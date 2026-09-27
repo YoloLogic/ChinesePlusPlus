@@ -17,7 +17,7 @@
 #
 #  用法：powershell -File tools\make_zhalias.ps1 -Header numbers
 # ============================================================================
-param([string] $Header = 'numbers')
+param([string] $Header = 'numbers', [switch] $ExportJson)
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
@@ -383,6 +383,10 @@ $H = [ordered]@{
       @('常量','三的平方根的倒数','std::numbers::inv_sqrt3','双精度')
   ) }
 }
+
+# -ExportJson：把整张表以 JSON 输出后退出（供 tools\make_zh_usage.ps1 生成用法对照表）。
+#   用的是【同一张表】、不靠正则扫描 —— 扫描正则会漂移（见 make_zhstdlib2.ps1 同一开关的说明）。
+if ($ExportJson) { $H | ConvertTo-Json -Depth 8; exit 0 }
 
 $spec = $H[$Header]
 if (-not $spec) { throw "表里没有 $Header" }

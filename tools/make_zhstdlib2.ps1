@@ -16,7 +16,7 @@
 #
 #  用法：powershell -File tools\make_zhstdlib2.ps1 -Header typeindex
 # ============================================================================
-param([string] $Header = 'typeindex')
+param([string] $Header = 'typeindex', [switch] $ExportJson)
 
 $ErrorActionPreference = 'Stop'
 $root  = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
@@ -1779,6 +1779,16 @@ $H = @{
 #  ⚠ 确实有"同名不同义"的合法情形，允许在 $ZH_NAME_EXCEPTIONS 里登记豁免，
 #     但豁免要写理由 —— 默认是"必须一致"。
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+#  -ExportJson：把整张表以 JSON 输出后直接退出（供 tools\make_zh_usage.ps1
+#  生成【用法对照表】用）。
+#
+#  为什么用这个开关，而不是让文档生成器去"正则扫表"：
+#    扫描正则会漂移 —— 本项目已经栽过好几次（§16.31 的键名漏 `.`、§16.36 的假残留）。
+#    这里导出的是 PowerShell **自己解析出来的同一张表** —— 单一事实来源，天然不漂移。
+# ---------------------------------------------------------------------------
+if ($ExportJson) { $H | ConvertTo-Json -Depth 8; exit 0 }
+
 $ZH_NAME_EXCEPTIONS = @{
     # 登记必须写理由 —— 默认是"同一个英文名必须同一个译名"。
     'members/reset' = 'bitset::reset 是"把某一位清零"（复位）；optional::reset 是"销毁所存的值"（重置）。同名不同义，允许两个译名。'

@@ -14,6 +14,7 @@
 #
 #  用法：powershell -File tools\make_zhc.ps1
 # ============================================================================
+param([switch] $ExportJson)   # -ExportJson：导出整张表为 JSON 后退出（供用法对照表生成器用）
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
 $cxx  = Join-Path $root 'build\Release\bin\chinese++.exe'
@@ -141,6 +142,11 @@ $n = 0; $cnt = @{ '类型'=0; '函数'=0; '宏'=0 }; $made = @()
 $SENTINEL = @{
     '绝对值' = '_ZH_ABS'   # std::abs (<cstdlib>) 与 std::fabs (<cmath>)
 }
+
+# -ExportJson：把整张表以 JSON 输出后退出（供 tools\make_zh_usage.ps1 生成用法对照表）。
+#   同一张表、不靠正则扫描 —— 扫描正则会漂移（见 make_zhstdlib2.ps1 同一开关的说明）。
+if ($ExportJson) { $T | ConvertTo-Json -Depth 8; exit 0 }
+
 foreach ($h in $T.Keys) {
     $zh = $T[$h].zh
     $body = @()
