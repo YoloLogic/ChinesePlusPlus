@@ -2118,6 +2118,20 @@ $H = @{
       '_Swap_proxy_and_iterators_locked' = '_交换代理与迭代器加锁'
       '_Swap_proxy_and_iterators_unlocked' = '_交换代理与迭代器不加锁'
       '_Uninitialized_move_unchecked' = '_未初始化移动非检查'
+      # §16.70 收尾：这 5 个也只有本头（`_Fill_memset` 另在 xutility 有定义 ->
+      #   按"定义方改本头这份"处理）。翻完本头就只剩 `_Allocate_aligned`
+      #   与 allocator 契约名那批边界了。
+      '_Copy_memcpy_common' = '_内存复制公共'
+      '_Copy_memcpy_count' = '_内存复制计数'
+      '_Copy_memcpy_distance' = '_内存复制距离'
+      '_Fill_memset' = '_填充内存'
+      '_Zero_range' = '_清零范围'
+      # ⚠ `_Allocate_aligned` 实测【是本头定义的】（xmemory:140
+      #   `__declspec(allocator) static _CLANG_CONSTEXPR20 void* _Allocate_aligned(...)`）
+      #   —— 第一遍分类的正则被 `__declspec(...)` 前缀骗了，判成了"别处没有定义"。
+      #   判据：**"谁定义它"的正则也要覆盖 `__declspec(...)` / `static` 这类前缀**，
+      #   否则会把我们自己的定义判成借用（这一条与 §16.65.1b"尺子要维护"同源）。
+      '_Allocate_aligned' = '_按对齐分配'
     }
     data    = [ordered]@{}
     derive  = @()

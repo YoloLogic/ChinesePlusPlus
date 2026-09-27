@@ -143,7 +143,7 @@ struct _默认分配特征 {
     }
 
 #ifdef __cpp_aligned_new
-    __declspec(分配器) static _CLANG_CONSTEXPR20 void* _Allocate_aligned(const size_t _Bytes, const size_t _Align) {
+    __declspec(分配器) static _CLANG_CONSTEXPR20 void* _按对齐分配(const size_t _Bytes, const size_t _Align) {
 #if defined(__clang__) && _HAS_CXX20 // Ditto, "Clang and MSVC implement P0784R7 differently"
         if (_STD is_constant_evaluated()) {
             return ::operator new(_Bytes);
@@ -249,7 +249,7 @@ __declspec(分配器) _CONSTEXPR20 void* _分配(const size_t _Bytes) {
             _Passed_align = (_STD max)(_Align, _Big_allocation_alignment);
         }
 #endif // defined(_M_IX86) || defined(_M_X64)
-        return _特征::_Allocate_aligned(_Bytes, _Passed_align);
+        return _特征::_按对齐分配(_Bytes, _Passed_align);
     } else
 #endif // defined(__cpp_aligned_new)
     {
@@ -1709,7 +1709,7 @@ namespace ranges {
     concept _No_throw_forward_range = _No_throw_input_range<_Rng> && _No_throw_forward_iterator<iterator_t<_Rng>>;
 
     template <class _InIt, class _OutIt>
-    in_out_result<_InIt, _OutIt> _Copy_memcpy_count(_InIt _IFirst, _OutIt _OFirst, const size_t _Count) noexcept {
+    in_out_result<_InIt, _OutIt> _内存复制计数(_InIt _IFirst, _OutIt _OFirst, const size_t _Count) noexcept {
         const auto _IFirstPtr     = _To_address(_IFirst);
         const auto _OFirstPtr     = _To_address(_OFirst);
         const auto _IFirst_ch     = const_cast<char*>(reinterpret_cast<const volatile char*>(_IFirstPtr));
@@ -1731,9 +1731,9 @@ namespace ranges {
     }
 
     template <class _InIt, class _OutIt, class _DistIt>
-    in_out_result<_InIt, _OutIt> _Copy_memcpy_distance(
+    in_out_result<_InIt, _OutIt> _内存复制距离(
         _InIt _IFirst, _OutIt _OFirst, const _DistIt _DFirst, const _DistIt _DLast) noexcept {
-        // equivalent to _Copy_memcpy_count(_IFirst, _OFirst, _DLast - _DFirst) but computes distance more efficiently
+        // equivalent to _内存复制计数(_IFirst, _OFirst, _DLast - _DFirst) but computes distance more efficiently
         const auto _IFirstPtr   = _To_address(_IFirst);
         const auto _OFirstPtr   = _To_address(_OFirst);
         const auto _DFirstPtr   = _To_address(_DFirst);
@@ -1759,7 +1759,7 @@ namespace ranges {
     }
 
     template <class _InIt, class _OutIt>
-    in_out_result<_InIt, _OutIt> _Copy_memcpy_common(
+    in_out_result<_InIt, _OutIt> _内存复制公共(
         _InIt _IFirst, _InIt _ILast, _OutIt _OFirst, _OutIt _OLast) noexcept {
         const auto _IFirstPtr   = _To_address(_IFirst);
         const auto _ILastPtr    = _To_address(_ILast);
@@ -2019,7 +2019,7 @@ _CONSTEXPR20 _分配器指针类型<_Alloc> _Uninitialized_fill_n(
         if (!_STD is_constant_evaluated())
 #endif // _HAS_CXX20
         {
-            _Fill_memset(_Unfancy(_First), _Val, static_cast<size_t>(_Count));
+            _填充内存(_Unfancy(_First), _Val, static_cast<size_t>(_Count));
             return _First + _Count;
         }
     } else if constexpr (_Fill_zero_memset_is_safe<_类型*, _类型> && _用默认构造<_Alloc, _类型*, _类型>::value) {
@@ -2049,7 +2049,7 @@ void uninitialized_fill(const _NoThrowFwdIt _First, const _NoThrowFwdIt _Last, c
     auto _UFirst      = _Get_unwrapped(_First);
     const auto _ULast = _Get_unwrapped(_Last);
     if constexpr (_Fill_memset_is_safe<_Unwrapped_t<const _NoThrowFwdIt&>, _Tval>) {
-        _Fill_memset(_UFirst, _Val, static_cast<size_t>(_ULast - _UFirst));
+        _填充内存(_UFirst, _Val, static_cast<size_t>(_ULast - _UFirst));
     } else {
         if constexpr (_Fill_zero_memset_is_safe<_Unwrapped_t<const _NoThrowFwdIt&>, _Tval>) {
             if (_Is_all_bits_zero(_Val)) {
@@ -2073,7 +2073,7 @@ constexpr bool _Use_memset_value_construct_v = conjunction_v<bool_constant<_Iter
     negation<is_member_pointer<_Iter_value_t<_NoThrowFwdIt>>>>;
 
 template <class _Ptr>
-_Ptr _Zero_range(const _Ptr _First, const _Ptr _Last) { // fill [_First, _Last) with zeroes
+_Ptr _清零范围(const _Ptr _First, const _Ptr _Last) { // fill [_First, _Last) with zeroes
     char* const _First_ch = reinterpret_cast<char*>(_To_address(_First));
     char* const _Last_ch  = reinterpret_cast<char*>(_To_address(_Last));
     _CSTD memset(_First_ch, 0, static_cast<size_t>(_Last_ch - _First_ch));
@@ -2091,7 +2091,7 @@ _CONSTEXPR20 _分配器指针类型<_Alloc> _Uninitialized_value_construct_n(
 #endif // _HAS_CXX20
         {
             auto _PFirst = _Unfancy(_First);
-            _Zero_range(_PFirst, _PFirst + _Count);
+            _清零范围(_PFirst, _PFirst + _Count);
             return _First + _Count;
         }
     }
@@ -2109,7 +2109,7 @@ _NoThrowFwdIt _Uninitialized_value_construct_n_unchecked1(_NoThrowFwdIt _UFirst,
     // value-initialize all elements in [_UFirst, _UFirst + _Count)
     _STL_INTERNAL_CHECK(_Count >= 0);
     if constexpr (_Use_memset_value_construct_v<_NoThrowFwdIt>) {
-        return _Zero_range(_UFirst, _UFirst + _Count);
+        return _清零范围(_UFirst, _UFirst + _Count);
     } else {
         _未初始化回退<_NoThrowFwdIt> _Backout{_UFirst};
         for (; 0 < _Count; --_Count) {
