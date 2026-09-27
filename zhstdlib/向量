@@ -30,7 +30,7 @@ _STL_DISABLE_CLANG_WARNINGS
 名域 标准 { 名域 细节 {
 使用 名域 std;
 template <class _我的向量>
-class _Vector_const_iterator : public _Iterator_base {
+class _向量常量迭代器 : public _Iterator_base {
 public:
 #if _HAS_CXX20
     using iterator_concept = contiguous_iterator_tag;
@@ -43,9 +43,9 @@ public:
 
     using _Tptr = typename _我的向量::pointer;
 
-    _CONSTEXPR20 _Vector_const_iterator() noexcept : _Ptr() {}
+    _CONSTEXPR20 _向量常量迭代器() noexcept : _Ptr() {}
 
-    _CONSTEXPR20 _Vector_const_iterator(_Tptr _Parg, const _Container_base* _Pvector) noexcept : _Ptr(_Parg) {
+    _CONSTEXPR20 _向量常量迭代器(_Tptr _Parg, const _Container_base* _Pvector) noexcept : _Ptr(_Parg) {
         this->_Adopt(_Pvector);
     }
 
@@ -73,7 +73,7 @@ public:
         return _Ptr;
     }
 
-    _CONSTEXPR20 _Vector_const_iterator& operator++() noexcept {
+    _CONSTEXPR20 _向量常量迭代器& operator++() noexcept {
 #if _ITERATOR_DEBUG_LEVEL != 0
         const auto _Mycont = static_cast<const _我的向量*>(this->_Getcont());
         _STL_VERIFY(_Ptr, "can't increment value-initialized 向量实现 iterator");
@@ -85,13 +85,13 @@ public:
         return *this;
     }
 
-    _CONSTEXPR20 _Vector_const_iterator operator++(int) noexcept {
-        _Vector_const_iterator _Tmp = *this;
+    _CONSTEXPR20 _向量常量迭代器 operator++(int) noexcept {
+        _向量常量迭代器 _Tmp = *this;
         ++*this;
         return _Tmp;
     }
 
-    _CONSTEXPR20 _Vector_const_iterator& operator--() noexcept {
+    _CONSTEXPR20 _向量常量迭代器& operator--() noexcept {
 #if _ITERATOR_DEBUG_LEVEL != 0
         const auto _Mycont = static_cast<const _我的向量*>(this->_Getcont());
         _STL_VERIFY(_Ptr, "can't decrement value-initialized 向量实现 iterator");
@@ -103,8 +103,8 @@ public:
         return *this;
     }
 
-    _CONSTEXPR20 _Vector_const_iterator operator--(int) noexcept {
-        _Vector_const_iterator _Tmp = *this;
+    _CONSTEXPR20 _向量常量迭代器 operator--(int) noexcept {
+        _向量常量迭代器 _Tmp = *this;
         --*this;
         return _Tmp;
     }
@@ -126,35 +126,35 @@ public:
 #endif // ^^^ _ITERATOR_DEBUG_LEVEL != 0 ^^^
     }
 
-    _CONSTEXPR20 _Vector_const_iterator& operator+=(const difference_type _Off) noexcept {
+    _CONSTEXPR20 _向量常量迭代器& operator+=(const difference_type _Off) noexcept {
         _Verify_offset(_Off);
         _Ptr += _Off;
         return *this;
     }
 
-    _NODISCARD _CONSTEXPR20 _Vector_const_iterator operator+(const difference_type _Off) const noexcept {
-        _Vector_const_iterator _Tmp = *this;
+    _NODISCARD _CONSTEXPR20 _向量常量迭代器 operator+(const difference_type _Off) const noexcept {
+        _向量常量迭代器 _Tmp = *this;
         _Tmp += _Off;
         return _Tmp;
     }
 
-    _NODISCARD friend _CONSTEXPR20 _Vector_const_iterator operator+(
-        const difference_type _Off, _Vector_const_iterator _Next) noexcept {
+    _NODISCARD friend _CONSTEXPR20 _向量常量迭代器 operator+(
+        const difference_type _Off, _向量常量迭代器 _Next) noexcept {
         _Next += _Off;
         return _Next;
     }
 
-    _CONSTEXPR20 _Vector_const_iterator& operator-=(const difference_type _Off) noexcept {
+    _CONSTEXPR20 _向量常量迭代器& operator-=(const difference_type _Off) noexcept {
         return *this += -_Off;
     }
 
-    _NODISCARD _CONSTEXPR20 _Vector_const_iterator operator-(const difference_type _Off) const noexcept {
-        _Vector_const_iterator _Tmp = *this;
+    _NODISCARD _CONSTEXPR20 _向量常量迭代器 operator-(const difference_type _Off) const noexcept {
+        _向量常量迭代器 _Tmp = *this;
         _Tmp -= _Off;
         return _Tmp;
     }
 
-    _NODISCARD _CONSTEXPR20 difference_type operator-(const _Vector_const_iterator& _Right) const noexcept {
+    _NODISCARD _CONSTEXPR20 difference_type operator-(const _向量常量迭代器& _Right) const noexcept {
         _Compat(_Right);
         return static_cast<difference_type>(_Ptr - _Right._Ptr);
     }
@@ -163,40 +163,40 @@ public:
         return *(*this + _Off);
     }
 
-    _NODISCARD _CONSTEXPR20 bool operator==(const _Vector_const_iterator& _Right) const noexcept {
+    _NODISCARD _CONSTEXPR20 bool operator==(const _向量常量迭代器& _Right) const noexcept {
         _Compat(_Right);
         return _Ptr == _Right._Ptr;
     }
 
 #if _HAS_CXX20
-    _NODISCARD constexpr strong_ordering operator<=>(const _Vector_const_iterator& _Right) const noexcept {
+    _NODISCARD constexpr strong_ordering operator<=>(const _向量常量迭代器& _Right) const noexcept {
         _Compat(_Right);
         return _Unfancy_maybe_null(_Ptr) <=> _Unfancy_maybe_null(_Right._Ptr);
     }
 #else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
-    _NODISCARD bool operator!=(const _Vector_const_iterator& _Right) const noexcept {
+    _NODISCARD bool operator!=(const _向量常量迭代器& _Right) const noexcept {
         return !(*this == _Right);
     }
 
-    _NODISCARD bool operator<(const _Vector_const_iterator& _Right) const noexcept {
+    _NODISCARD bool operator<(const _向量常量迭代器& _Right) const noexcept {
         _Compat(_Right);
         return _Ptr < _Right._Ptr;
     }
 
-    _NODISCARD bool operator>(const _Vector_const_iterator& _Right) const noexcept {
+    _NODISCARD bool operator>(const _向量常量迭代器& _Right) const noexcept {
         return _Right < *this;
     }
 
-    _NODISCARD bool operator<=(const _Vector_const_iterator& _Right) const noexcept {
+    _NODISCARD bool operator<=(const _向量常量迭代器& _Right) const noexcept {
         return !(_Right < *this);
     }
 
-    _NODISCARD bool operator>=(const _Vector_const_iterator& _Right) const noexcept {
+    _NODISCARD bool operator>=(const _向量常量迭代器& _Right) const noexcept {
         return !(*this < _Right);
     }
 #endif // ^^^ !_HAS_CXX20 ^^^
 
-    _CONSTEXPR20 void _Compat(const _Vector_const_iterator& _Right) const noexcept {
+    _CONSTEXPR20 void _Compat(const _向量常量迭代器& _Right) const noexcept {
         // test for compatible iterator pair
 #if _ITERATOR_DEBUG_LEVEL == 0
         (void) _Right;
@@ -207,13 +207,13 @@ public:
 
 #if _ITERATOR_DEBUG_LEVEL != 0
     friend _CONSTEXPR20 void _Verify_range(
-        const _Vector_const_iterator& _First, const _Vector_const_iterator& _Last) noexcept {
+        const _向量常量迭代器& _First, const _向量常量迭代器& _Last) noexcept {
         _STL_VERIFY(_First._Getcont() == _Last._Getcont(), "向量实现 iterators in range are from different containers");
         _STL_VERIFY(_First._Ptr <= _Last._Ptr, "向量实现 iterator range transposed");
     }
 #endif // _ITERATOR_DEBUG_LEVEL != 0
 
-    using _Prevent_inheriting_unwrap = _Vector_const_iterator;
+    using _Prevent_inheriting_unwrap = _向量常量迭代器;
 
     _NODISCARD _CONSTEXPR20 const value_type* _Unwrapped() const noexcept {
         return _Unfancy_maybe_null(_Ptr);
@@ -228,8 +228,8 @@ public:
 
 #if _HAS_CXX20
 template <class _我的向量>
-struct pointer_traits<_Vector_const_iterator<_我的向量>> {
-    using pointer         = _Vector_const_iterator<_我的向量>;
+struct pointer_traits<_向量常量迭代器<_我的向量>> {
+    using pointer         = _向量常量迭代器<_我的向量>;
     using element_type    = const pointer::value_type;
     using difference_type = pointer::difference_type;
 
@@ -254,9 +254,9 @@ struct pointer_traits<_Vector_const_iterator<_我的向量>> {
 #endif // _HAS_CXX20
 
 template <class _我的向量>
-class _Vector_iterator : public _Vector_const_iterator<_我的向量> {
+class _向量迭代器 : public _向量常量迭代器<_我的向量> {
 public:
-    using _我的基类 = _Vector_const_iterator<_我的向量>;
+    using _我的基类 = _向量常量迭代器<_我的向量>;
 
 #if _HAS_CXX20
     using iterator_concept = contiguous_iterator_tag;
@@ -285,54 +285,54 @@ public:
         return this->_Ptr;
     }
 
-    _CONSTEXPR20 _Vector_iterator& operator++() noexcept {
+    _CONSTEXPR20 _向量迭代器& operator++() noexcept {
         _我的基类::operator++();
         return *this;
     }
 
-    _CONSTEXPR20 _Vector_iterator operator++(int) noexcept {
-        _Vector_iterator _Tmp = *this;
+    _CONSTEXPR20 _向量迭代器 operator++(int) noexcept {
+        _向量迭代器 _Tmp = *this;
         _我的基类::operator++();
         return _Tmp;
     }
 
-    _CONSTEXPR20 _Vector_iterator& operator--() noexcept {
+    _CONSTEXPR20 _向量迭代器& operator--() noexcept {
         _我的基类::operator--();
         return *this;
     }
 
-    _CONSTEXPR20 _Vector_iterator operator--(int) noexcept {
-        _Vector_iterator _Tmp = *this;
+    _CONSTEXPR20 _向量迭代器 operator--(int) noexcept {
+        _向量迭代器 _Tmp = *this;
         _我的基类::operator--();
         return _Tmp;
     }
 
-    _CONSTEXPR20 _Vector_iterator& operator+=(const difference_type _Off) noexcept {
+    _CONSTEXPR20 _向量迭代器& operator+=(const difference_type _Off) noexcept {
         _我的基类::operator+=(_Off);
         return *this;
     }
 
-    _NODISCARD _CONSTEXPR20 _Vector_iterator operator+(const difference_type _Off) const noexcept {
-        _Vector_iterator _Tmp = *this;
+    _NODISCARD _CONSTEXPR20 _向量迭代器 operator+(const difference_type _Off) const noexcept {
+        _向量迭代器 _Tmp = *this;
         _Tmp += _Off;
         return _Tmp;
     }
 
-    _NODISCARD friend _CONSTEXPR20 _Vector_iterator operator+(
-        const difference_type _Off, _Vector_iterator _Next) noexcept {
+    _NODISCARD friend _CONSTEXPR20 _向量迭代器 operator+(
+        const difference_type _Off, _向量迭代器 _Next) noexcept {
         _Next += _Off;
         return _Next;
     }
 
-    _CONSTEXPR20 _Vector_iterator& operator-=(const difference_type _Off) noexcept {
+    _CONSTEXPR20 _向量迭代器& operator-=(const difference_type _Off) noexcept {
         _我的基类::operator-=(_Off);
         return *this;
     }
 
     using _我的基类::operator-;
 
-    _NODISCARD _CONSTEXPR20 _Vector_iterator operator-(const difference_type _Off) const noexcept {
-        _Vector_iterator _Tmp = *this;
+    _NODISCARD _CONSTEXPR20 _向量迭代器 operator-(const difference_type _Off) const noexcept {
+        _向量迭代器 _Tmp = *this;
         _Tmp -= _Off;
         return _Tmp;
     }
@@ -341,7 +341,7 @@ public:
         return const_cast<reference>(_我的基类::operator[](_Off));
     }
 
-    using _Prevent_inheriting_unwrap = _Vector_iterator;
+    using _Prevent_inheriting_unwrap = _向量迭代器;
 
     _NODISCARD _CONSTEXPR20 value_type* _Unwrapped() const noexcept {
         return _Unfancy_maybe_null(this->_Ptr);
@@ -350,8 +350,8 @@ public:
 
 #if _HAS_CXX20
 template <class _我的向量>
-struct pointer_traits<_Vector_iterator<_我的向量>> {
-    using pointer         = _Vector_iterator<_我的向量>;
+struct pointer_traits<_向量迭代器<_我的向量>> {
+    using pointer         = _向量迭代器<_我的向量>;
     using element_type    = pointer::value_type;
     using difference_type = pointer::difference_type;
 
@@ -376,7 +376,7 @@ struct pointer_traits<_Vector_iterator<_我的向量>> {
 #endif // _HAS_CXX20
 
 template <class _Value_type, class _Size_type, class _Difference_type, class _Pointer, class _Const_pointer>
-struct _Vec_iter_types {
+struct _向量迭代类型集 {
     using value_type      = _Value_type;
     using size_type       = _Size_type;
     using difference_type = _Difference_type;
@@ -384,12 +384,12 @@ struct _Vec_iter_types {
     using const_pointer   = _Const_pointer;
 };
 
-struct _Value_init_tag { // tag to request value-initialization
-    explicit _Value_init_tag() = default;
+struct _值初始化标记 { // tag to request value-initialization
+    explicit _值初始化标记() = default;
 };
 
 template <class _值类型集>
-class _Vector_val : public _Container_base {
+class _向量值 : public _Container_base {
 public:
     using value_type      = typename _值类型集::value_type;
     using size_type       = typename _值类型集::size_type;
@@ -399,13 +399,13 @@ public:
     using reference       = value_type&;
     using const_reference = const value_type&;
 
-    _CONSTEXPR20 _Vector_val() noexcept : _Myfirst(), _Mylast(), _Myend() {}
+    _CONSTEXPR20 _向量值() noexcept : _Myfirst(), _Mylast(), _Myend() {}
 
-    _CONSTEXPR20 _Vector_val(pointer _First, pointer _Last, pointer _End) noexcept
+    _CONSTEXPR20 _向量值(pointer _First, pointer _Last, pointer _End) noexcept
         : _Myfirst(_First), _Mylast(_Last), _Myend(_End) {}
 
 #if _MSVC_STL_DESTRUCTOR_TOMBSTONES
-    _CONSTEXPR20 ~_Vector_val() noexcept {
+    _CONSTEXPR20 ~_向量值() noexcept {
         if constexpr (is_pointer_v<pointer>) {
             if (!_Is_constant_evaluated()) {
                 const auto _Tombstone{reinterpret_cast<pointer>(_MSVC_STL_UINTPTR_TOMBSTONE_VALUE)};
@@ -417,14 +417,14 @@ public:
     }
 #endif // _MSVC_STL_DESTRUCTOR_TOMBSTONES
 
-    _CONSTEXPR20 void _Swap_val(_Vector_val& _Right) noexcept {
+    _CONSTEXPR20 void _Swap_val(_向量值& _Right) noexcept {
         this->_Swap_proxy_and_iterators(_Right);
         swap(_Myfirst, _Right._Myfirst); // intentional ADL
         swap(_Mylast, _Right._Mylast); // intentional ADL
         swap(_Myend, _Right._Myend); // intentional ADL
     }
 
-    _CONSTEXPR20 void _Take_contents(_Vector_val& _Right) noexcept {
+    _CONSTEXPR20 void _Take_contents(_向量值& _Right) noexcept {
         this->_Swap_proxy_and_iterators(_Right);
         _Myfirst = _Right._Myfirst;
         _Mylast  = _Right._Mylast;
@@ -444,7 +444,7 @@ _EXPORT_STD template <class _Ty, class _Alloc = allocator<_Ty>>
 class 向量实现 { // varying 尺寸 array of values
 private:
     template <class>
-    friend class _Vb_val;
+    friend class _位向量值;
     friend _Tidy_guard<向量实现>;
 
     using _Alty        = _Rebind_alloc_t<_Alloc, _Ty>;
@@ -606,8 +606,8 @@ private:
 #define _ASAN_VECTOR_RELEASE_GUARD
 #endif // ^^^ !_INSERT_VECTOR_ANNOTATION ^^^
 
-    using _Scary_val = _Vector_val<conditional_t<_Is_simple_alloc_v<_Alty>, _Simple_types<_Ty>,
-        _Vec_iter_types<_Ty, size_type, difference_type, pointer, const_pointer>>>;
+    using _Scary_val = _向量值<conditional_t<_Is_simple_alloc_v<_Alty>, _Simple_types<_Ty>,
+        _向量迭代类型集<_Ty, size_type, difference_type, pointer, const_pointer>>>;
 
     struct _NODISCARD _Reallocation_guard {
         _Alloc& _Al;
@@ -664,8 +664,8 @@ private:
     };
 
 public:
-    using iterator               = _Vector_iterator<_Scary_val>;
-    using const_iterator         = _Vector_const_iterator<_Scary_val>;
+    using iterator               = _向量迭代器<_Scary_val>;
+    using const_iterator         = _向量常量迭代器<_Scary_val>;
     using reverse_iterator       = _STD reverse_iterator<iterator>;
     using const_reverse_iterator = _STD reverse_iterator<const_iterator>;
 
@@ -1573,7 +1573,7 @@ private:
         if constexpr (is_same_v<_Ty2, _Ty>) {
             _Appended_last = _Uninitialized_fill_n(_Appended_first, _Newsize - _Oldsize, _Val, _Al);
         } else {
-            _STL_INTERNAL_STATIC_ASSERT(is_same_v<_Ty2, _Value_init_tag>);
+            _STL_INTERNAL_STATIC_ASSERT(is_same_v<_Ty2, _值初始化标记>);
             _Appended_last = _Uninitialized_value_construct_n(_Appended_first, _Newsize - _Oldsize, _Al);
         }
 
@@ -1616,7 +1616,7 @@ private:
             if constexpr (is_same_v<_Ty2, _Ty>) {
                 _Mylast = _Uninitialized_fill_n(_Oldlast, _Newsize - _Oldsize, _Val, _Al);
             } else {
-                _STL_INTERNAL_STATIC_ASSERT(is_same_v<_Ty2, _Value_init_tag>);
+                _STL_INTERNAL_STATIC_ASSERT(is_same_v<_Ty2, _值初始化标记>);
                 _Mylast = _Uninitialized_value_construct_n(_Oldlast, _Newsize - _Oldsize, _Al);
             }
             _ASAN_VECTOR_RELEASE_GUARD;
@@ -1629,7 +1629,7 @@ private:
 public:
     _CONSTEXPR20 void 调整尺寸(_CRT_GUARDOVERFLOW const size_type _Newsize) {
         // trim or append value-initialized elements, provide strong guarantee
-        _Resize(_Newsize, _Value_init_tag{});
+        _Resize(_Newsize, _值初始化标记{});
     }
 
     _CONSTEXPR20 void 调整尺寸(_CRT_GUARDOVERFLOW const size_type _Newsize, const _Ty& _Val) {
@@ -2260,9 +2260,9 @@ template <_RANGES input_range _Rng, _Allocator_for_container _Alloc = allocator<
 template <class _Alloc>
 class 向量实现<bool, _Alloc>;
 
-using _Vbase = unsigned int; // word type for 向量实现<bool> representation
+using _位基 = unsigned int; // word type for 向量实现<bool> representation
 
-_INLINE_VAR constexpr int _VBITS = 8 * sizeof(_Vbase); // 取值 least CHAR_BITS bits per word
+_INLINE_VAR constexpr int _VBITS = 8 * sizeof(_位基); // 取值 least CHAR_BITS bits per word
 
 _EXPORT_STD template <class _Ty, class _Alloc>
 _NODISCARD _CONSTEXPR20 bool operator==(const 向量实现<_Ty, _Alloc>& _Left, const 向量实现<_Ty, _Alloc>& _Right) {
@@ -2301,10 +2301,10 @@ _NODISCARD bool operator!=(const 向量实现<_Ty, _Alloc>& _Left, const 向量�
 // We could bit-reverse words before comparing, but we just need to find the least significant bit that differs.
 
 template <class _Ret>
-struct _Vbase_compare_three_way {
+struct _位基三路比较 {
     _NODISCARD _STATIC_CALL_OPERATOR constexpr _Ret operator()(
-        const _Vbase _Left, const _Vbase _Right) _CONST_CALL_OPERATOR noexcept {
-        const _Vbase _Differing_bits = _Left ^ _Right;
+        const _位基 _Left, const _位基 _Right) _CONST_CALL_OPERATOR noexcept {
+        const _位基 _Differing_bits = _Left ^ _Right;
 
         if (_Differing_bits == 0) { // improves _Countr_zero codegen below
 #if _HAS_CXX20
@@ -2317,7 +2317,7 @@ struct _Vbase_compare_three_way {
         const int _Bit_index = _Countr_zero(_Differing_bits); // number of least significant bits that match
         _STL_INTERNAL_CHECK(_Bit_index < _VBITS); // because we return early for equality
 
-        const _Vbase _Mask = _Vbase{1} << _Bit_index; // selects the least significant bit that differs
+        const _位基 _Mask = _位基{1} << _Bit_index; // selects the least significant bit that differs
 
         // Instead of comparing (_Left & _Mask) to (_Right & _Mask), we know that exactly one side will be zero.
 #if _HAS_CXX20
@@ -2338,7 +2338,7 @@ _NODISCARD constexpr _Synth_three_way_result<_Ty> operator<=>(
         const auto _Left_words    = _Left._我的向量._Unchecked_begin();
         const auto _Right_words   = _Right._我的向量._Unchecked_begin();
 
-        using _Comp = _Vbase_compare_three_way<strong_ordering>;
+        using _Comp = _位基三路比较<strong_ordering>;
 
         const strong_ordering _Word_comparison = _STD lexicographical_compare_three_way(
             _Left_words, _Left_words + _Min_word_size, _Right_words, _Right_words + _Min_word_size, _Comp{});
@@ -2364,7 +2364,7 @@ _NODISCARD _CONSTEXPR20 bool operator<(const 向量实现<_Ty, _Alloc>& _Left, c
         const auto _Last = _First + (_STD min)(_Left._我的向量.尺寸(), _Right._我的向量.尺寸());
 
         for (; _First != _Last; ++_First, (void) ++_Other) {
-            using _Comp        = _Vbase_compare_three_way<signed char>;
+            using _Comp        = _位基三路比较<signed char>;
             const auto _Result = _Comp{}(*_First, *_Other);
 
             if (_Result < 0) {
@@ -2415,12 +2415,12 @@ constexpr 向量实现<_Ty, _Alloc>::size_type erase_if(向量实现<_Ty, _Alloc
 #endif // _HAS_CXX20
 
 template <class _Alloc0>
-struct _Wrap_alloc { // TRANSITION, ABI compat, preserves symbol names of 向量实现<bool>::iterator
+struct _包装分配器 { // TRANSITION, ABI compat, preserves symbol names of 向量实现<bool>::iterator
     using _Alloc = _Alloc0;
 };
 
 template <class _Alvbase_wrapped>
-class _Vb_iter_base : public _Iterator_base {
+class _位向量迭代基类 : public _Iterator_base {
     // store information common to reference and iterators
 public:
     using _Alvbase         = typename _Alvbase_wrapped::_Alloc;
@@ -2430,9 +2430,9 @@ public:
 
     static constexpr _Difference_type _VBITS_DIFF = _VBITS;
 
-    _CONSTEXPR20 _Vb_iter_base() = default;
+    _CONSTEXPR20 _位向量迭代基类() = default;
 
-    _CONSTEXPR20 _Vb_iter_base(const _Vbase* _Ptr, _Size_type _Off, const _Container_base* _Mypvbool) noexcept
+    _CONSTEXPR20 _位向量迭代基类(const _位基* _Ptr, _Size_type _Off, const _Container_base* _Mypvbool) noexcept
         : _Myptr(_Ptr), _Myoff(_Off) {
         this->_Adopt(_Mypvbool);
     }
@@ -2449,44 +2449,44 @@ public:
     }
 #endif // _ITERATOR_DEBUG_LEVEL != 0
 
-    const _Vbase* _Myptr = nullptr;
+    const _位基* _Myptr = nullptr;
     _Size_type _Myoff    = 0;
 };
 
 template <class _Alvbase_wrapped>
-class _Vb_reference : public _Vb_iter_base<_Alvbase_wrapped> {
+class _位引用 : public _位向量迭代基类<_Alvbase_wrapped> {
     // reference to a bit within a base word
 private:
-    using _我的基类          = _Vb_iter_base<_Alvbase_wrapped>;
+    using _我的基类          = _位向量迭代基类<_Alvbase_wrapped>;
     using _Mycont          = typename _我的基类::_Mycont;
     using _Difference_type = typename _我的基类::_Difference_type;
 
 public:
-    _CONSTEXPR20 _Vb_reference(const _Vb_reference&) = default;
+    _CONSTEXPR20 _位引用(const _位引用&) = default;
 
-    _CONSTEXPR20 _Vb_reference(const _我的基类& _Right) noexcept
+    _CONSTEXPR20 _位引用(const _我的基类& _Right) noexcept
         : _我的基类(_Right._Myptr, _Right._Myoff, _Right._Getcont()) {}
 
-    _CONSTEXPR20 _Vb_reference& operator=(const _Vb_reference& _Right) noexcept {
+    _CONSTEXPR20 _位引用& operator=(const _位引用& _Right) noexcept {
         return *this = static_cast<bool>(_Right);
     }
 
-    _CONSTEXPR20 _Vb_reference& operator=(bool _Val) noexcept {
+    _CONSTEXPR20 _位引用& operator=(bool _Val) noexcept {
         if (_Val) {
-            *const_cast<_Vbase*>(_Getptr()) |= _Mask();
+            *const_cast<_位基*>(_Getptr()) |= _Mask();
         } else {
-            *const_cast<_Vbase*>(_Getptr()) &= ~_Mask();
+            *const_cast<_位基*>(_Getptr()) &= ~_Mask();
         }
 
         return *this;
     }
 
 #if _HAS_CXX23
-    constexpr const _Vb_reference& operator=(bool _Val) const noexcept {
+    constexpr const _位引用& operator=(bool _Val) const noexcept {
         if (_Val) {
-            *const_cast<_Vbase*>(_Getptr()) |= _Mask();
+            *const_cast<_位基*>(_Getptr()) |= _Mask();
         } else {
-            *const_cast<_Vbase*>(_Getptr()) &= ~_Mask();
+            *const_cast<_位基*>(_Getptr()) &= ~_Mask();
         }
 
         return *this;
@@ -2494,14 +2494,14 @@ public:
 #endif // _HAS_CXX23
 
     _CONSTEXPR20 void flip() noexcept {
-        *const_cast<_Vbase*>(_Getptr()) ^= _Mask();
+        *const_cast<_位基*>(_Getptr()) ^= _Mask();
     }
 
     _CONSTEXPR20 operator bool() const noexcept {
         return (*_Getptr() & _Mask()) != 0;
     }
 
-    _CONSTEXPR20 const _Vbase* _Getptr() const noexcept {
+    _CONSTEXPR20 const _位基* _Getptr() const noexcept {
 #if _ITERATOR_DEBUG_LEVEL != 0
         const auto _Cont = static_cast<const _Mycont*>(this->_Getcont());
         _STL_VERIFY(_Cont, "cannot dereference value-initialized 向量实现<bool> iterator");
@@ -2512,25 +2512,25 @@ public:
         return this->_Myptr;
     }
 
-    friend _CONSTEXPR20 void swap(_Vb_reference _Left, _Vb_reference _Right) noexcept {
+    friend _CONSTEXPR20 void swap(_位引用 _Left, _位引用 _Right) noexcept {
         bool _Val = _Left; // NOT _STD swap
         _Left     = _Right;
         _Right    = _Val;
     }
 
 protected:
-    _CONSTEXPR20 _Vbase _Mask() const noexcept {
-        return static_cast<_Vbase>(1) << this->_Myoff;
+    _CONSTEXPR20 _位基 _Mask() const noexcept {
+        return static_cast<_位基>(1) << this->_Myoff;
     }
 };
 
 template <class _Alvbase_wrapped>
-class _Vb_const_iterator : public _Vb_iter_base<_Alvbase_wrapped> {
+class _位向量常量迭代器 : public _位向量迭代基类<_Alvbase_wrapped> {
 public:
-    using _我的基类         = _Vb_iter_base<_Alvbase_wrapped>;
+    using _我的基类         = _位向量迭代基类<_Alvbase_wrapped>;
     using _Mycont         = typename _我的基类::_Mycont;
     using _Size_type      = typename _我的基类::_Size_type;
-    using _Reft           = _Vb_reference<_Alvbase_wrapped>;
+    using _Reft           = _位引用<_Alvbase_wrapped>;
     using const_reference = bool;
 
     using iterator_category = random_access_iterator_tag;
@@ -2539,9 +2539,9 @@ public:
     using pointer           = const_reference*;
     using reference         = const_reference;
 
-    _CONSTEXPR20 _Vb_const_iterator() = default;
+    _CONSTEXPR20 _位向量常量迭代器() = default;
 
-    _CONSTEXPR20 _Vb_const_iterator(const _Vbase* _Ptr, const _Container_base* _Mypvbool) noexcept
+    _CONSTEXPR20 _位向量常量迭代器(const _位基* _Ptr, const _Container_base* _Mypvbool) noexcept
         : _我的基类(_Ptr, 0, _Mypvbool) {}
 
     _NODISCARD _CONSTEXPR20 const_reference operator*() const noexcept {
@@ -2555,29 +2555,29 @@ public:
         return _Reft(*this);
     }
 
-    _CONSTEXPR20 _Vb_const_iterator& operator++() noexcept {
+    _CONSTEXPR20 _位向量常量迭代器& operator++() noexcept {
         _Inc();
         return *this;
     }
 
-    _CONSTEXPR20 _Vb_const_iterator operator++(int) noexcept {
-        _Vb_const_iterator _Tmp = *this;
+    _CONSTEXPR20 _位向量常量迭代器 operator++(int) noexcept {
+        _位向量常量迭代器 _Tmp = *this;
         _Inc();
         return _Tmp;
     }
 
-    _CONSTEXPR20 _Vb_const_iterator& operator--() noexcept {
+    _CONSTEXPR20 _位向量常量迭代器& operator--() noexcept {
         _Dec();
         return *this;
     }
 
-    _CONSTEXPR20 _Vb_const_iterator operator--(int) noexcept {
-        _Vb_const_iterator _Tmp = *this;
+    _CONSTEXPR20 _位向量常量迭代器 operator--(int) noexcept {
+        _位向量常量迭代器 _Tmp = *this;
         _Dec();
         return _Tmp;
     }
 
-    _CONSTEXPR20 _Vb_const_iterator& operator+=(const difference_type _Off) noexcept {
+    _CONSTEXPR20 _位向量常量迭代器& operator+=(const difference_type _Off) noexcept {
 #if _ITERATOR_DEBUG_LEVEL != 0
         if (_Off != 0) {
             const auto _Cont = static_cast<const _Mycont*>(this->_Getcont());
@@ -2604,29 +2604,29 @@ public:
         return *this;
     }
 
-    _NODISCARD _CONSTEXPR20 _Vb_const_iterator operator+(const difference_type _Off) const noexcept {
-        _Vb_const_iterator _Tmp = *this;
+    _NODISCARD _CONSTEXPR20 _位向量常量迭代器 operator+(const difference_type _Off) const noexcept {
+        _位向量常量迭代器 _Tmp = *this;
         _Tmp += _Off;
         return _Tmp;
     }
 
-    _NODISCARD friend _CONSTEXPR20 _Vb_const_iterator operator+(
-        const difference_type _Off, _Vb_const_iterator _Right) noexcept {
+    _NODISCARD friend _CONSTEXPR20 _位向量常量迭代器 operator+(
+        const difference_type _Off, _位向量常量迭代器 _Right) noexcept {
         _Right += _Off;
         return _Right;
     }
 
-    _CONSTEXPR20 _Vb_const_iterator& operator-=(const difference_type _Off) noexcept {
+    _CONSTEXPR20 _位向量常量迭代器& operator-=(const difference_type _Off) noexcept {
         return *this += -_Off;
     }
 
-    _NODISCARD _CONSTEXPR20 _Vb_const_iterator operator-(const difference_type _Off) const noexcept {
-        _Vb_const_iterator _Tmp = *this;
+    _NODISCARD _CONSTEXPR20 _位向量常量迭代器 operator-(const difference_type _Off) const noexcept {
+        _位向量常量迭代器 _Tmp = *this;
         _Tmp -= _Off;
         return _Tmp;
     }
 
-    _NODISCARD _CONSTEXPR20 difference_type operator-(const _Vb_const_iterator& _Right) const noexcept {
+    _NODISCARD _CONSTEXPR20 difference_type operator-(const _位向量常量迭代器& _Right) const noexcept {
         _Compat(_Right);
         return static_cast<difference_type>(_我的基类::_VBITS_DIFF * (this->_Myptr - _Right._Myptr))
              + static_cast<difference_type>(this->_Myoff) - static_cast<difference_type>(_Right._Myoff);
@@ -2636,13 +2636,13 @@ public:
         return *(*this + _Off);
     }
 
-    _NODISCARD _CONSTEXPR20 bool operator==(const _Vb_const_iterator& _Right) const noexcept {
+    _NODISCARD _CONSTEXPR20 bool operator==(const _位向量常量迭代器& _Right) const noexcept {
         _Compat(_Right);
         return this->_Myptr == _Right._Myptr && this->_Myoff == _Right._Myoff;
     }
 
 #if _HAS_CXX20
-    _NODISCARD constexpr strong_ordering operator<=>(const _Vb_const_iterator& _Right) const noexcept {
+    _NODISCARD constexpr strong_ordering operator<=>(const _位向量常量迭代器& _Right) const noexcept {
         _Compat(_Right);
         if (const auto _CmpResult = this->_Myptr <=> _Right._Myptr; _CmpResult != 0) {
             return _CmpResult;
@@ -2650,29 +2650,29 @@ public:
         return this->_Myoff <=> _Right._Myoff;
     }
 #else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
-    _NODISCARD bool operator!=(const _Vb_const_iterator& _Right) const noexcept {
+    _NODISCARD bool operator!=(const _位向量常量迭代器& _Right) const noexcept {
         return !(*this == _Right);
     }
 
-    _NODISCARD bool operator<(const _Vb_const_iterator& _Right) const noexcept {
+    _NODISCARD bool operator<(const _位向量常量迭代器& _Right) const noexcept {
         _Compat(_Right);
         return this->_Myptr < _Right._Myptr || (this->_Myptr == _Right._Myptr && this->_Myoff < _Right._Myoff);
     }
 
-    _NODISCARD bool operator>(const _Vb_const_iterator& _Right) const noexcept {
+    _NODISCARD bool operator>(const _位向量常量迭代器& _Right) const noexcept {
         return _Right < *this;
     }
 
-    _NODISCARD bool operator<=(const _Vb_const_iterator& _Right) const noexcept {
+    _NODISCARD bool operator<=(const _位向量常量迭代器& _Right) const noexcept {
         return !(_Right < *this);
     }
 
-    _NODISCARD bool operator>=(const _Vb_const_iterator& _Right) const noexcept {
+    _NODISCARD bool operator>=(const _位向量常量迭代器& _Right) const noexcept {
         return !(*this < _Right);
     }
 #endif // ^^^ !_HAS_CXX20 ^^^
 
-    _CONSTEXPR20 void _Compat(const _Vb_const_iterator& _Right) const noexcept {
+    _CONSTEXPR20 void _Compat(const _位向量常量迭代器& _Right) const noexcept {
         // test for compatible iterator pair
 #if _ITERATOR_DEBUG_LEVEL == 0
         (void) _Right;
@@ -2682,9 +2682,9 @@ public:
     }
 
 #if _ITERATOR_DEBUG_LEVEL != 0
-    using _Prevent_inheriting_unwrap = _Vb_const_iterator;
+    using _Prevent_inheriting_unwrap = _位向量常量迭代器;
 
-    friend _CONSTEXPR20 void _Verify_range(const _Vb_const_iterator& _First, const _Vb_const_iterator& _Last) noexcept {
+    friend _CONSTEXPR20 void _Verify_range(const _位向量常量迭代器& _First, const _位向量常量迭代器& _Last) noexcept {
         // note _Compat check inside <=
         _STL_VERIFY(_First <= _Last, "向量实现<bool> iterator range transposed");
     }
@@ -2723,12 +2723,12 @@ public:
 };
 
 template <class _Alvbase_wrapped>
-class _Vb_iterator : public _Vb_const_iterator<_Alvbase_wrapped> {
+class _位向量迭代器 : public _位向量常量迭代器<_Alvbase_wrapped> {
 public:
-    using _我的基类 = _Vb_const_iterator<_Alvbase_wrapped>;
+    using _我的基类 = _位向量常量迭代器<_Alvbase_wrapped>;
     using _Mycont = typename _我的基类::_Mycont;
 
-    using _Reft           = _Vb_reference<_Alvbase_wrapped>;
+    using _Reft           = _位引用<_Alvbase_wrapped>;
     using const_reference = bool;
 
     using iterator_category = random_access_iterator_tag;
@@ -2750,53 +2750,53 @@ public:
         return _Reft(*this);
     }
 
-    _CONSTEXPR20 _Vb_iterator& operator++() noexcept {
+    _CONSTEXPR20 _位向量迭代器& operator++() noexcept {
         _我的基类::operator++();
         return *this;
     }
 
-    _CONSTEXPR20 _Vb_iterator operator++(int) noexcept {
-        _Vb_iterator _Tmp = *this;
+    _CONSTEXPR20 _位向量迭代器 operator++(int) noexcept {
+        _位向量迭代器 _Tmp = *this;
         _我的基类::operator++();
         return _Tmp;
     }
 
-    _CONSTEXPR20 _Vb_iterator& operator--() noexcept {
+    _CONSTEXPR20 _位向量迭代器& operator--() noexcept {
         _我的基类::operator--();
         return *this;
     }
 
-    _CONSTEXPR20 _Vb_iterator operator--(int) noexcept {
-        _Vb_iterator _Tmp = *this;
+    _CONSTEXPR20 _位向量迭代器 operator--(int) noexcept {
+        _位向量迭代器 _Tmp = *this;
         _我的基类::operator--();
         return _Tmp;
     }
 
-    _CONSTEXPR20 _Vb_iterator& operator+=(const difference_type _Off) noexcept {
+    _CONSTEXPR20 _位向量迭代器& operator+=(const difference_type _Off) noexcept {
         _我的基类::operator+=(_Off);
         return *this;
     }
 
-    _NODISCARD _CONSTEXPR20 _Vb_iterator operator+(const difference_type _Off) const noexcept {
-        _Vb_iterator _Tmp = *this;
+    _NODISCARD _CONSTEXPR20 _位向量迭代器 operator+(const difference_type _Off) const noexcept {
+        _位向量迭代器 _Tmp = *this;
         _Tmp += _Off;
         return _Tmp;
     }
 
-    _NODISCARD friend _CONSTEXPR20 _Vb_iterator operator+(const difference_type _Off, _Vb_iterator _Right) noexcept {
+    _NODISCARD friend _CONSTEXPR20 _位向量迭代器 operator+(const difference_type _Off, _位向量迭代器 _Right) noexcept {
         _Right += _Off;
         return _Right;
     }
 
-    _CONSTEXPR20 _Vb_iterator& operator-=(const difference_type _Off) noexcept {
+    _CONSTEXPR20 _位向量迭代器& operator-=(const difference_type _Off) noexcept {
         _我的基类::operator-=(_Off);
         return *this;
     }
 
     using _我的基类::operator-;
 
-    _NODISCARD _CONSTEXPR20 _Vb_iterator operator-(const difference_type _Off) const noexcept {
-        _Vb_iterator _Tmp = *this;
+    _NODISCARD _CONSTEXPR20 _位向量迭代器 operator-(const difference_type _Off) const noexcept {
+        _位向量迭代器 _Tmp = *this;
         _Tmp -= _Off;
         return _Tmp;
     }
@@ -2805,51 +2805,51 @@ public:
         return *(*this + _Off);
     }
 
-    using _Prevent_inheriting_unwrap = _Vb_iterator;
+    using _Prevent_inheriting_unwrap = _位向量迭代器;
 };
 
 template <class _Alloc>
-class _Vb_val : public _Container_base {
+class _位向量值 : public _Container_base {
 public:
-    using _Alvbase         = _Rebind_alloc_t<_Alloc, _Vbase>;
+    using _Alvbase         = _Rebind_alloc_t<_Alloc, _位基>;
     using _Alvbase_traits  = allocator_traits<_Alvbase>;
-    using _Vectype         = 向量实现<_Vbase, _Alvbase>;
-    using _Alvbase_wrapped = _Wrap_alloc<_Alvbase>;
+    using _Vectype         = 向量实现<_位基, _Alvbase>;
+    using _Alvbase_wrapped = _包装分配器<_Alvbase>;
     using size_type        = typename _Alvbase_traits::size_type;
 
-    _CONSTEXPR20 _Vb_val() noexcept(is_nothrow_default_constructible_v<_Vectype>) : _我的向量(), _Mysize(0) {
+    _CONSTEXPR20 _位向量值() noexcept(is_nothrow_default_constructible_v<_Vectype>) : _我的向量(), _Mysize(0) {
         this->_Alloc_proxy(_GET_PROXY_ALLOCATOR(_Alvbase, _Getal()));
     }
 
-    _CONSTEXPR20 _Vb_val(const _Alloc& _Al) noexcept : _我的向量(static_cast<_Alvbase>(_Al)), _Mysize(0) {
+    _CONSTEXPR20 _位向量值(const _Alloc& _Al) noexcept : _我的向量(static_cast<_Alvbase>(_Al)), _Mysize(0) {
         this->_Alloc_proxy(_GET_PROXY_ALLOCATOR(_Alvbase, _Getal()));
     }
 
-    _CONSTEXPR20 _Vb_val(size_type _Count, const bool& _Val)
-        : _我的向量(_Nw(_Count), static_cast<_Vbase>(_Val ? -1 : 0)), _Mysize(0) {
+    _CONSTEXPR20 _位向量值(size_type _Count, const bool& _Val)
+        : _我的向量(_Nw(_Count), static_cast<_位基>(_Val ? -1 : 0)), _Mysize(0) {
         this->_Alloc_proxy(_GET_PROXY_ALLOCATOR(_Alvbase, _Getal()));
     }
 
-    _CONSTEXPR20 _Vb_val(size_type _Count, const bool& _Val, const _Alloc& _Al)
-        : _我的向量(_Nw(_Count), static_cast<_Vbase>(_Val ? -1 : 0), static_cast<_Alvbase>(_Al)), _Mysize(0) {
+    _CONSTEXPR20 _位向量值(size_type _Count, const bool& _Val, const _Alloc& _Al)
+        : _我的向量(_Nw(_Count), static_cast<_位基>(_Val ? -1 : 0), static_cast<_Alvbase>(_Al)), _Mysize(0) {
         this->_Alloc_proxy(_GET_PROXY_ALLOCATOR(_Alvbase, _Getal()));
     }
 
-    _CONSTEXPR20 _Vb_val(const _Vb_val& _Right) : _我的向量(_Right._我的向量), _Mysize(_Right._Mysize) {
+    _CONSTEXPR20 _位向量值(const _位向量值& _Right) : _我的向量(_Right._我的向量), _Mysize(_Right._Mysize) {
         this->_Alloc_proxy(_GET_PROXY_ALLOCATOR(_Alvbase, _Getal()));
     }
 
-    _CONSTEXPR20 _Vb_val(const _Vb_val& _Right, const _Alloc& _Al)
+    _CONSTEXPR20 _位向量值(const _位向量值& _Right, const _Alloc& _Al)
         : _我的向量(_Right._我的向量, static_cast<_Alvbase>(_Al)), _Mysize(_Right._Mysize) {
         this->_Alloc_proxy(_GET_PROXY_ALLOCATOR(_Alvbase, _Getal()));
     }
 
-    _CONSTEXPR20 _Vb_val(_Vb_val&& _Right) noexcept(is_nothrow_move_constructible_v<_Vectype>)
+    _CONSTEXPR20 _位向量值(_位向量值&& _Right) noexcept(is_nothrow_move_constructible_v<_Vectype>)
         : _我的向量(_STD move(_Right._我的向量)), _Mysize(_STD exchange(_Right._Mysize, size_type{0})) {
         this->_Alloc_proxy(_GET_PROXY_ALLOCATOR(_Alvbase, _Getal()));
     }
 
-    _CONSTEXPR20 _Vb_val(_Vb_val&& _Right, const _Alloc& _Al)
+    _CONSTEXPR20 _位向量值(_位向量值&& _Right, const _Alloc& _Al)
         noexcept(is_nothrow_constructible_v<_Vectype, _Vectype, _Alvbase>)
         : _我的向量(_STD move(_Right._我的向量), static_cast<_Alvbase>(_Al)), _Mysize(_Right._Mysize) {
         if (_Right._我的向量.为空()) {
@@ -2860,7 +2860,7 @@ public:
         this->_Alloc_proxy(_GET_PROXY_ALLOCATOR(_Alvbase, _Getal()));
     }
 
-    _CONSTEXPR20 ~_Vb_val() noexcept {
+    _CONSTEXPR20 ~_位向量值() noexcept {
 #if _ITERATOR_DEBUG_LEVEL != 0
         this->_Orphan_all();
         auto&& _Alproxy = _GET_PROXY_ALLOCATOR(_Alvbase, this->_Getal());
@@ -2886,7 +2886,7 @@ public:
         return (_Count + _VBITS - 1) / _VBITS;
     }
 
-    _CONSTEXPR20 void _Emplace_back_unchecked(const _Vbase _Val) noexcept {
+    _CONSTEXPR20 void _Emplace_back_unchecked(const _位基 _Val) noexcept {
         _STL_INTERNAL_CHECK(_我的向量.尺寸() < _我的向量.容量());
         _我的向量._Emplace_back_with_unused_capacity(_Val);
     }
@@ -2896,12 +2896,12 @@ public:
 };
 
 template <class _Alloc>
-class 向量实现<bool, _Alloc> : public _Vb_val<_Alloc> {
+class 向量实现<bool, _Alloc> : public _位向量值<_Alloc> {
 public:
     static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<bool, typename _Alloc::value_type>,
         _MISMATCHED_ALLOCATOR_MESSAGE("向量实现<bool, Allocator>", "bool"));
 
-    using _我的基类          = _Vb_val<_Alloc>;
+    using _我的基类          = _位向量值<_Alloc>;
     using _Alvbase_wrapped = typename _我的基类::_Alvbase_wrapped;
     using _Alvbase         = typename _我的基类::_Alvbase;
     using _Alvbase_traits  = typename _我的基类::_Alvbase_traits;
@@ -2910,13 +2910,13 @@ public:
     using difference_type = typename _Alvbase_traits::difference_type;
     using allocator_type  = _Alloc;
 
-    using reference       = _Vb_reference<_Alvbase_wrapped>;
+    using reference       = _位引用<_Alvbase_wrapped>;
     using const_reference = bool;
     using value_type      = bool;
 
     using _Reft          = reference;
-    using iterator       = _Vb_iterator<_Alvbase_wrapped>;
-    using const_iterator = _Vb_const_iterator<_Alvbase_wrapped>;
+    using iterator       = _位向量迭代器<_Alvbase_wrapped>;
+    using const_iterator = _位向量常量迭代器<_Alvbase_wrapped>;
 
     using pointer                = iterator;
     using const_pointer          = const_iterator;
@@ -3311,12 +3311,12 @@ public:
     constexpr void _Assign_counted_range(_Iter _First, const size_type _Count) {
         _STL_INTERNAL_CHECK(this->_我的向量.为空());
         this->_我的向量.预留(this->_Nw(_Count));
-        _Vbase _Accum = 0;
-        _Vbase _Mask  = 1;
+        _位基 _Accum = 0;
+        _位基 _Mask  = 1;
         for (size_type _Idx = 0; _Idx < _Count; ++_Idx) {
             const bool _Tmp = *_First;
             ++_First;
-            _Accum |= _Tmp ? _Mask : _Vbase{0};
+            _Accum |= _Tmp ? _Mask : _位基{0};
             if ((_Mask <<= 1) == 0) {
                 this->_Emplace_back_unchecked(_Accum);
                 _Accum = 0;
@@ -3334,12 +3334,12 @@ public:
     constexpr void _Assign_uncounted_range(_Iter _First, const _Sent _Last) {
         _STL_INTERNAL_CHECK(this->_我的向量.为空());
         size_type _Count = 0;
-        _Vbase _Accum    = 0;
-        _Vbase _Mask     = 1;
+        _位基 _Accum    = 0;
+        _位基 _Mask     = 1;
         for (; _First != _Last; ++_Count) {
             const bool _Tmp = *_First;
             ++_First;
-            _Accum |= _Tmp ? _Mask : _Vbase{0};
+            _Accum |= _Tmp ? _Mask : _位基{0};
             if ((_Mask <<= 1) == 0) {
                 this->_我的向量.尾插(_Accum);
                 _Accum = 0;
@@ -3602,7 +3602,7 @@ public:
         this->_Mysize = _Size;
         _Size %= _VBITS;
         if (0 < _Size) {
-            this->_我的向量[_Words - 1] &= (static_cast<_Vbase>(1) << _Size) - 1;
+            this->_我的向量[_Words - 1] &= (static_cast<_位基>(1) << _Size) - 1;
         }
     }
 
@@ -3638,7 +3638,7 @@ namespace pmr {
 // Per LWG-3997, `_CharT` in library-provided `formatter` specializations is
 // constrained to character types supported by `format`.
 template <class _Ty, _Format_supported_charT _CharT>
-    requires _Is_specialization_v<_Ty, _Vb_reference>
+    requires _Is_specialization_v<_Ty, _位引用>
 struct formatter<_Ty, _CharT> {
 private:
     formatter<bool, _CharT> _Underlying;
@@ -3656,15 +3656,15 @@ public:
 };
 
 template <class _Ty>
-    requires _Is_specialization_v<_Ty, _Vb_reference>
+    requires _Is_specialization_v<_Ty, _位引用>
 constexpr bool enable_nonlocking_formatter_optimization<_Ty> = true;
 #endif // _HAS_CXX23
 
 template <class _Alloc, bool _RequiresMutable>
-constexpr bool _Is_vb_iterator<_Vb_iterator<_Alloc>, _RequiresMutable> = true;
+constexpr bool _Is_vb_iterator<_位向量迭代器<_Alloc>, _RequiresMutable> = true;
 
 template <class _Alloc>
-constexpr bool _Is_vb_iterator<_Vb_const_iterator<_Alloc>, false> = true;
+constexpr bool _Is_vb_iterator<_位向量常量迭代器<_Alloc>, false> = true;
 
 template <class _VbIt>
 _CONSTEXPR20 void _Fill_vbool(_VbIt _First, const _VbIt _Last, const bool _Val) noexcept {
@@ -3673,16 +3673,16 @@ _CONSTEXPR20 void _Fill_vbool(_VbIt _First, const _VbIt _Last, const bool _Val) 
         return;
     }
 
-    _Vbase* _VbFirst      = const_cast<_Vbase*>(_First._Myptr);
-    _Vbase* const _VbLast = const_cast<_Vbase*>(_Last._Myptr);
+    _位基* _VbFirst      = const_cast<_位基*>(_First._Myptr);
+    _位基* const _VbLast = const_cast<_位基*>(_Last._Myptr);
 
-    const auto _FirstSourceMask = static_cast<_Vbase>(-1) << _First._Myoff;
+    const auto _FirstSourceMask = static_cast<_位基>(-1) << _First._Myoff;
     const auto _FirstDestMask   = ~_FirstSourceMask;
-    const auto _FillVal         = static_cast<_Vbase>(_Val ? -1 : 0);
+    const auto _FillVal         = static_cast<_位基>(_Val ? -1 : 0);
 
     if (_VbFirst == _VbLast) {
         // We already excluded _First == _Last, so here _Last._Myoff > 0 and the shift is safe
-        const auto _LastSourceMask = static_cast<_Vbase>(-1) >> (_VBITS - _Last._Myoff);
+        const auto _LastSourceMask = static_cast<_位基>(-1) >> (_VBITS - _Last._Myoff);
         const auto _LastDestMask   = ~_LastSourceMask;
         const auto _SourceMask     = _FirstSourceMask & _LastSourceMask;
         const auto _DestMask       = _FirstDestMask | _LastDestMask;
@@ -3710,7 +3710,7 @@ _CONSTEXPR20 void _Fill_vbool(_VbIt _First, const _VbIt _Last, const bool _Val) 
     }
 
     if (_Last._Myoff != 0) {
-        const auto _LastSourceMask = static_cast<_Vbase>(-1) >> (_VBITS - _Last._Myoff);
+        const auto _LastSourceMask = static_cast<_位基>(-1) >> (_VBITS - _Last._Myoff);
         const auto _LastDestMask   = ~_LastSourceMask;
         *_VbFirst                  = (*_VbFirst & _LastDestMask) | (_FillVal & _LastSourceMask);
     }
@@ -3723,14 +3723,14 @@ _NODISCARD _CONSTEXPR20 _VbIt _Find_vbool(_VbIt _First, const _VbIt _Last, const
         return _First;
     }
 
-    const _Vbase* _VbFirst      = _First._Myptr;
-    const _Vbase* const _VbLast = _Last._Myptr;
+    const _位基* _VbFirst      = _First._Myptr;
+    const _位基* const _VbLast = _Last._Myptr;
 
-    const auto _FirstSourceMask = static_cast<_Vbase>(-1) << _First._Myoff;
+    const auto _FirstSourceMask = static_cast<_位基>(-1) << _First._Myoff;
 
     if (_VbFirst == _VbLast) {
         // We already excluded _First == _Last, so here _Last._Myoff > 0 and the shift is safe
-        const auto _LastSourceMask = static_cast<_Vbase>(-1) >> (_VBITS - _Last._Myoff);
+        const auto _LastSourceMask = static_cast<_位基>(-1) >> (_VBITS - _Last._Myoff);
         const auto _SourceMask     = _FirstSourceMask & _LastSourceMask;
         const auto _SelectVal      = (_Val ? *_VbFirst : ~*_VbFirst) & _SourceMask;
         const auto _Count          = _Countr_zero(_SelectVal);
@@ -3754,7 +3754,7 @@ _NODISCARD _CONSTEXPR20 _VbIt _Find_vbool(_VbIt _First, const _VbIt _Last, const
     }
 
     if (_Last._Myoff != 0) {
-        const auto _LastSourceMask = static_cast<_Vbase>(-1) >> (_VBITS - _Last._Myoff);
+        const auto _LastSourceMask = static_cast<_位基>(-1) >> (_VBITS - _Last._Myoff);
         const auto _LastVal        = (_Val ? *_VbFirst : ~*_VbFirst) & _LastSourceMask;
         const auto _Count          = _Countr_zero(_LastVal);
         if (_Count != _VBITS) {
@@ -3771,20 +3771,20 @@ _NODISCARD _CONSTEXPR20 _Iter_diff_t<_VbIt> _Count_vbool(_VbIt _First, const _Vb
         return 0;
     }
 
-    const _Vbase* _VbFirst      = _First._Myptr;
-    const _Vbase* const _VbLast = _Last._Myptr;
+    const _位基* _VbFirst      = _First._Myptr;
+    const _位基* const _VbLast = _Last._Myptr;
 
-    const auto _FirstSourceMask = static_cast<_Vbase>(-1) << _First._Myoff;
+    const auto _FirstSourceMask = static_cast<_位基>(-1) << _First._Myoff;
 
     if (_VbFirst == _VbLast) {
         // We already excluded _First == _Last, so here _Last._Myoff > 0 and the shift is safe
-        const auto _LastSourceMask = static_cast<_Vbase>(-1) >> (_VBITS - _Last._Myoff);
+        const auto _LastSourceMask = static_cast<_位基>(-1) >> (_VBITS - _Last._Myoff);
         const auto _SourceMask     = _FirstSourceMask & _LastSourceMask;
         const auto _SelectVal      = (_Val ? *_VbFirst : ~*_VbFirst) & _SourceMask;
         return _Popcount(_SelectVal);
     }
 
-    return _Select_popcount_impl<_Vbase>(
+    return _Select_popcount_impl<_位基>(
         [_Last, _Val, _VbFirst, _VbLast, _FirstSourceMask](auto _Popcount_impl) mutable noexcept {
             const auto _FirstVal       = (_Val ? *_VbFirst : ~*_VbFirst) & _FirstSourceMask;
             _Iter_diff_t<_VbIt> _Count = _Popcount_impl(_FirstVal);
@@ -3796,7 +3796,7 @@ _NODISCARD _CONSTEXPR20 _Iter_diff_t<_VbIt> _Count_vbool(_VbIt _First, const _Vb
             }
 
             if (_Last._Myoff != 0) {
-                const auto _LastSourceMask = static_cast<_Vbase>(-1) >> (_VBITS - _Last._Myoff);
+                const auto _LastSourceMask = static_cast<_位基>(-1) >> (_VBITS - _Last._Myoff);
                 const auto _LastVal        = (_Val ? *_VbFirst : ~*_VbFirst) & _LastSourceMask;
                 _Count += _Popcount_impl(_LastVal);
             }
@@ -3814,13 +3814,13 @@ _CONSTEXPR20 _OutIt _Copy_vbool(_VbIt _First, _VbIt _Last, _OutIt _Dest) {
 
     auto _VbFirst       = _First._Myptr;
     const auto _VbLast  = _Last._Myptr;
-    auto _VbDest        = const_cast<_Vbase*>(_Dest._Myptr);
+    auto _VbDest        = const_cast<_位基*>(_Dest._Myptr);
     const auto _DestEnd = _Dest + (_Last - _First);
 
-    const auto _FirstSourceMask = static_cast<_Vbase>(-1) << _First._Myoff;
-    const auto _FirstDestMask   = _Dest._Myoff == 0 ? 0 : (static_cast<_Vbase>(-1) >> (_VBITS - _Dest._Myoff));
-    const auto _LastSourceMask  = static_cast<_Vbase>(-1) >> (_VBITS - _Last._Myoff);
-    const auto _LastDestMask    = static_cast<_Vbase>(-1) << _DestEnd._Myoff;
+    const auto _FirstSourceMask = static_cast<_位基>(-1) << _First._Myoff;
+    const auto _FirstDestMask   = _Dest._Myoff == 0 ? 0 : (static_cast<_位基>(-1) >> (_VBITS - _Dest._Myoff));
+    const auto _LastSourceMask  = static_cast<_位基>(-1) >> (_VBITS - _Last._Myoff);
+    const auto _LastDestMask    = static_cast<_位基>(-1) << _DestEnd._Myoff;
 
     const bool _IsSingleBlockSource = _VbFirst == _VbLast;
     const bool _IsSingleBlockDest   = _VbDest == _DestEnd._Myptr - (_DestEnd._Myoff == 0 ? 1 : 0);
@@ -3866,10 +3866,10 @@ _CONSTEXPR20 _OutIt _Copy_vbool(_VbIt _First, _VbIt _Last, _OutIt _Dest) {
 #endif
     {
         // If _First and _Dest have matching char alignment, use memmove
-        const auto _UnalignedFirstBits = _First._Myoff & _Vbase{7};
-        const auto _UnalignedDestBits  = _Dest._Myoff & _Vbase{7};
+        const auto _UnalignedFirstBits = _First._Myoff & _位基{7};
+        const auto _UnalignedDestBits  = _Dest._Myoff & _位基{7};
         if (_UnalignedFirstBits == _UnalignedDestBits) {
-            const auto _UnalignedLastBits = _Last._Myoff & _Vbase{7};
+            const auto _UnalignedLastBits = _Last._Myoff & _位基{7};
 
             auto _VbFirst_ch      = reinterpret_cast<const char*>(_VbFirst) + (_First._Myoff - _UnalignedFirstBits) / 8;
             const auto _VbLast_ch = reinterpret_cast<const char*>(_VbLast) + (_Last._Myoff - _UnalignedLastBits) / 8;
@@ -3901,7 +3901,7 @@ _CONSTEXPR20 _OutIt _Copy_vbool(_VbIt _First, _VbIt _Last, _OutIt _Dest) {
     if (_IsRightShift) {
         const auto _SourceShift = _First._Myoff - _Dest._Myoff;
         const auto _CarryShift  = _VBITS - _SourceShift;
-        const auto _CarryMask   = static_cast<_Vbase>(-1) >> _SourceShift;
+        const auto _CarryMask   = static_cast<_位基>(-1) >> _SourceShift;
         const auto _DestMask    = ~_CarryMask;
 
         const auto _FirstSourceVal = (*_VbFirst & _FirstSourceMask) >> _SourceShift;

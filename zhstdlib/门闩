@@ -59,7 +59,7 @@ public:
         return _Counter.load() == 0;
     }
 
-    void 等待() const noexcept /* strengthened */ {
+    void wait() const noexcept /* strengthened */ {
         for (;;) {
             // TRANSITION, GH-1133: should be memory_order_acquire
             const ptrdiff_t _Current = _Counter.load();
@@ -82,7 +82,7 @@ public:
         } else {
             _STL_VERIFY(_Current > 0, "Precondition: update <= counter (N4950 [thread.门闩实现.class]/7)");
             _Counter.wait(_Current, memory_order_relaxed);
-            等待();
+            wait();
         }
     }
 
@@ -121,14 +121,12 @@ _STL_RESTORE_CLANG_WARNINGS
     模板 <类型名... 参数> 自动 count_down(参数&&... 值) 常量 { 返回 基类::递减(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 try_wait(参数&&... 值) { 返回 基类::尝试等待(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 try_wait(参数&&... 值) 常量 { 返回 基类::尝试等待(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 wait(参数&&... 值) { 返回 基类::等待(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 wait(参数&&... 值) 常量 { 返回 基类::等待(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 arrive_and_wait(参数&&... 值) { 返回 基类::到达并等待(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 arrive_and_wait(参数&&... 值) 常量 { 返回 基类::到达并等待(static_cast<参数&&>(值)...); }
 
     // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
     // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
-
+    模板 <类型名... 参数> 自动 等待(参数&&... 值) 常量 { 返回 基类::wait(static_cast<参数&&>(值)...); }
 };
 }
 

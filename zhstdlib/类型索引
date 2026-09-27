@@ -28,11 +28,11 @@ _EXPORT_STD class 类型索引实现 { // wraps a typeinfo for indexing
 public:
     类型索引实现(const type_info& _Tinfo) noexcept : _类型指针(&_Tinfo) {}
 
-    _NODISCARD size_t 哈希值() const noexcept {
+    _NODISCARD size_t hash_code() const noexcept {
         return _类型指针->hash_code();
     }
 
-    _NODISCARD const char* 名称() const noexcept {
+    _NODISCARD const char* name() const noexcept {
         return _类型指针->name();
     }
 
@@ -84,7 +84,7 @@ struct hash<类型索引实现> {
     using _RESULT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS   = size_t;
 
     _NODISCARD _STATIC_CALL_OPERATOR size_t operator()(const 类型索引实现& _Keyval) _CONST_CALL_OPERATOR noexcept {
-        return _Keyval.哈希值();
+        return _Keyval.hash_code();
     }
 };
 } }
@@ -112,14 +112,12 @@ _STL_RESTORE_CLANG_WARNINGS
 
 
     // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
-    模板 <类型名... 参数> 自动 hash_code(参数&&... 值) { 返回 基类::哈希值(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 hash_code(参数&&... 值) 常量 { 返回 基类::哈希值(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 name(参数&&... 值) { 返回 基类::名称(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 name(参数&&... 值) 常量 { 返回 基类::名称(static_cast<参数&&>(值)...); }
+
 
     // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
     // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
-
+    模板 <类型名... 参数> 自动 哈希值(参数&&... 值) 常量 { 返回 基类::hash_code(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 名称(参数&&... 值) 常量 { 返回 基类::name(static_cast<参数&&>(值)...); }
 };
 }
 // std::hash 的特化必须挂在【对外那个类型】上（派生层之后），所以放在这里

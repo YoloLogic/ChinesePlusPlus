@@ -781,8 +781,33 @@ $H = @{
     #  §〇「抄来的中文实现和英文名自动免费不可兼得」的另一面。
     # -----------------------------------------------------------------------
     realInclude = @('vector')
-    types   = [ordered]@{ 'vector' = '向量实现' }
-    # 迭代器类（_Vector_iterator / _Vb_iterator 等）都是本文件内部件，故意不改名。
+    types   = [ordered]@{ 'vector' = '向量实现'
+                          # ------------------------------------------------------------------
+                          # ⚠ 2026-09-28 更正（§2.4 / §16.33）：这里原来写着
+                          #   "迭代器类（_Vector_iterator / _Vb_iterator 等）都是本文件内部件，
+                          #    故意不改名" —— **那是错的，而且没写理由**。
+                          #   §六第 6 条早就定了「内部件也翻成中文，保留前导 _ 以标示内部」，
+                          #   而这批名字都是【本文件自己定义】的长名，不存在 §10.2 那种
+                          #   "同一个名字另有主人"的歧义 -> 按判据【必须翻】。
+                          #   真正"故意不改名"的是另外两个，且都写在文档里：
+                          #     bitset::reference（第 346 行注）、thread::id（第 732 行）
+                          #     —— 理由是【名字太短、全局 \b..\b 替换有二义】。
+                          #   译名见方案 §2.4.1（该节此前被 §六第 6 条引用却根本不存在，
+                          #   本轮一并补出）。
+                          # ------------------------------------------------------------------
+                          '_Vector_val'            = '_向量值'
+                          '_Vector_iterator'       = '_向量迭代器'
+                          '_Vector_const_iterator' = '_向量常量迭代器'
+                          '_Vec_iter_types'        = '_向量迭代类型集'
+                          '_Value_init_tag'        = '_值初始化标记'
+                          '_Wrap_alloc'            = '_包装分配器'
+                          '_Vbase'                 = '_位基'
+                          '_Vbase_compare_three_way' = '_位基三路比较'
+                          '_Vb_val'                = '_位向量值'
+                          '_Vb_iterator'           = '_位向量迭代器'
+                          '_Vb_const_iterator'     = '_位向量常量迭代器'
+                          '_Vb_iter_base'          = '_位向量迭代基类'
+                          '_Vb_reference'          = '_位引用' }
     # vector<bool> 特化也定义在本文件里，同一个 types 改名会一起覆盖 ——
     # 于是 细节::向量实现<bool, 分配器> 自动指到那个特化，派生层不用特殊处理。
     members = [ordered]@{
@@ -1344,17 +1369,25 @@ $H = @{
     zh      = '类型索引'
     realInclude = @('typeindex')   # §16.29「乙」
     types   = [ordered]@{ 'type_index' = '类型索引实现' }
-    members = [ordered]@{ 'hash_code' = '哈希值'; 'name' = '名称' }
+    # ⚠ hash_code / name 【不登记】（§16.30.3）：正文里 `_Target->hash_code()` /
+    #   `_Target->name()` 调的是【借来的】std::type_info 的成员，改名会报
+    #   "type_info 中没有名为 '哈希值' 的成员"。中文名在 deriveExtra 手写、调 基类::hash_code/name。
+    members = [ordered]@{}
     data    = [ordered]@{ '_Tptr' = '_类型指针' }
     # 派生层要补回的英文名（英文 = 中文），用一模板转发，不需要签名
-    derive  = @( @('hash_code','哈希值'), @('name','名称') )
+    derive  = @()
+    deriveExtra = '    模板 <类型名... 参数> 自动 哈希值(参数&&... 值) 常量 { 返回 基类::hash_code(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 名称(参数&&... 值) 常量 { 返回 基类::name(static_cast<参数&&>(值)...); }'
     # 额外要在 std 里补的特化（派生类型也需要 std::hash）
     stdHash = $true
     tparam  = @{ decl = ''; args = '' }
     tests = @(
       @('只引中文头','#包含 <类型索引>`n整数 主函数(){ 标准::类型索引 甲(类型标识(整数)); 返回 0; }'),
       @('与微软原头并存','#包含 <类型索引>`n#包含 <typeindex>`n整数 主函数(){ 标准::类型索引 甲(类型标识(整数)); std::type_index 乙(类型标识(整数)); 返回 0; }'),
-      @('英文名与中文名并用','#包含 <类型索引>`n整数 主函数(){ 标准::类型索引 甲(类型标识(整数)); 返回 (整数)甲.hash_code() * 0 + (整数)甲.哈希值() * 0 + (整数)甲.name()[0] * 0; }')
+      @('英文名与中文名并用','#包含 <类型索引>`n整数 主函数(){ 标准::类型索引 甲(类型标识(整数)); 返回 (整数)甲.hash_code() * 0 + (整数)甲.哈希值() * 0 + (整数)甲.name()[0] * 0; }'),
+      # ⚠ 守卫：哈希值 / 名称 现在是从 members 表里【移出】、改由 deriveExtra 手写的
+      #   （因为正文里的 hash_code/name 是借来的 type_info 成员）。这条证明中文名没丢。
+      @('哈希值 / 名称 的汉语名在（派生层手写）','#包含 <类型索引>`n整数 主函数(){ 标准::类型索引 甲(类型标识(整数)); 返回 (整数)(甲.哈希值() * 0 + 甲.名称()[0] * 0); }')
     )
   }
   # ---- C++20 并发原语：与别的 std 接口没有类型交互，适合"抄一份 + 派生" ----
@@ -1453,16 +1486,26 @@ $H = @{
     realInclude = @('latch')   # §16.29「乙」
     types   = [ordered]@{ 'latch' = '门闩实现' }
     members = [ordered]@{ 'count_down' = '递减'; 'try_wait' = '尝试等待'
-                          'wait' = '等待'; 'arrive_and_wait' = '到达并等待' }
+                          'arrive_and_wait' = '到达并等待' }
+                          # ⚠ wait 【不登记】（§16.30.3 的样板）：正文里 `_My_cond.wait(...)`
+                          #   调的是【借来的】std::condition_variable 的成员，改名会报
+                          #   "condition_variable 中没有名为 '等待' 的成员"。
+                          #   中文名 等待 在 deriveExtra 里手写、调 基类::wait ——
+                          #   与 <队列>/<栈> 的 swap 同一手法（不依赖"改了再回退"）。
     data    = [ordered]@{}
     derive  = @( @('count_down','递减'), @('try_wait','尝试等待'),
-                 @('wait','等待'), @('arrive_and_wait','到达并等待') )
+                 @('arrive_and_wait','到达并等待') )
+    deriveExtra = '    模板 <类型名... 参数> 自动 等待(参数&&... 值) 常量 { 返回 基类::wait(static_cast<参数&&>(值)...); }'
     stdHash = $false
     tparam  = @{ decl = ''; args = '' }
     tests = @(
       @('只引中文头','#包含 <门闩>`n整数 主函数(){ 标准::门闩 甲(1); 甲.递减(); 返回 0; }'),
       @('与微软原头并存','#包含 <门闩>`n#包含 <latch>`n整数 主函数(){ 标准::门闩 甲(1); 甲.递减(); std::latch 乙(1); 乙.count_down(); 返回 0; }'),
-      @('英文名与中文名并用','#包含 <门闩>`n整数 主函数(){ 标准::门闩 甲(2); 甲.递减(); 甲.count_down(); 返回 0; }')
+      @('英文名与中文名并用','#包含 <门闩>`n整数 主函数(){ 标准::门闩 甲(2); 甲.递减(); 甲.count_down(); 返回 0; }'),
+      # ⚠ 守卫：`等待` 的中文名是【deriveExtra 手写】的（因为正文里的 `wait` 是借来的
+      #   condition_variable 成员，不能登记改名）。这条测试证明手写的那条真的存在 ——
+      #   否则"改成不登记"就等于把中文名弄丢了。
+      @('等待 / 尝试等待 的汉语名在（派生层手写，不靠回退）','#包含 <门闩>`n整数 主函数(){ 标准::门闩 甲(1); 甲.递减(); 甲.等待(); 布尔 好 = 甲.尝试等待(); 甲.到达并等待(); 返回 好 ? 0 : 0; }')
     )
   }
 }
@@ -1899,11 +1942,22 @@ if ($spec.realInclude) {
     #      **特化行里出现汉语标识符（或 细节::）-> 特化的目标是我们的类型 -> 无害**
     #      否则 -> 是拿 std 的类型去特化 std 的模板 -> 真会和真头撞车 -> 必须警告
     # -----------------------------------------------------------------------
+    #  ⚠ 2026-09-28 第二次修正：判据必须看【整个声明块】，不能只看那一行。
+    #    实测 <向量> 的 formatter：
+    #        template <class _Ty, _Format_supported_charT _CharT>
+    #            requires _Is_specialization_v<_Ty, _位引用>      ← 汉语标识符在【上一行】
+    #        struct formatter<_Ty, _CharT> {                      ← 匹配到的是这一行
+    #    只看匹配行 -> 看不到 _位引用 -> 误判成"拿 std 类型特化"。
+    #    所以取"从上一个空行到本行"的整块（声明通常以空行分隔）。
+    # -----------------------------------------------------------------------
     $specOurs = @(); $specStd = @()
     $specRx = '(?m)^\s*(?:结构|struct|类型|class)\s+(hash|formatter|uses_allocator|tuple_size|tuple_element|pointer_traits|numeric_limits|iterator_traits|char_traits|is_error_code_enum|is_error_condition_enum|default_delete|allocator_traits)\s*<[^\r\n]*'
     foreach ($m in [regex]::Matches($text, $specRx)) {
-        $line = $m.Value
-        if ($line -match '[\u4e00-\u9fff]' -or $line -match '细节\s*::') { $specOurs += $m.Groups[1].Value }
+        $prefix = $text.Substring(0, $m.Index)
+        $sep = [regex]::Matches($prefix, '\r?\n\r?\n')
+        $start = if ($sep.Count) { $sep[$sep.Count - 1].Index + $sep[$sep.Count - 1].Length } else { 0 }
+        $block = $text.Substring($start, $m.Index - $start + $m.Length)
+        if ($block -match '[\u4e00-\u9fff]' -or $block -match '细节\s*::') { $specOurs += $m.Groups[1].Value }
         else { $specStd += $m.Groups[1].Value }
     }
     if ($specOurs.Count) {
