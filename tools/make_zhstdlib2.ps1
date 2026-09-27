@@ -1090,21 +1090,115 @@ $H = @{
     zh      = '内存内部件'
     realInclude = @('memory', 'xutility')
     noPub   = $true
+    # -----------------------------------------------------------------------
+    #  批 A（7 个，§16.19）：上层容器欠账里点名要的那几个。
+    #  批 B（61 个，§16.23）：本头【全部】顶层类型名，一次登记完。
+    #
+    #  ⚠ 为什么要一次登记完，而不是分几批：
+    #     §16.22 实测证明"批 A 单独不足以支撑上层切换"—— 上层拷贝的正文里
+    #     还写着 _Simple_types / _Compressed_pair / _Container_base …… 只要本头
+    #     有一个名字没翻，上层就找不到它（本头 noPub，派生层不补英文），
+    #     或者解析到真 std 的那一份 -> 两边不同步 -> 编不过。
+    #     所以"能被上层引用"的前提是【本头的名字集合完整】，不是"翻了几个"。
+    #
+    #  译名依据（§2.2 的查表顺序）：分配器 / 迭代器 / 指针 / 尺寸类型 / 值类型
+    #    来自 ChineseDiagnostics.def；消毒器 同上；其余按最贴近的中文新定。
+    #  全部带前导 `_` 或非关键词（分配器 / 分配结果），故不会撞语言关键字。
+    # -----------------------------------------------------------------------
     types   = [ordered]@{ 'allocator_traits'    = '分配器特征'
                           '_Pocma_values'       = '_传播复制移动赋值取值'
                           '_Compressed_pair'    = '_压缩对'
                           '_Container_base0'    = '_容器基类0'
                           '_Iterator_base0'     = '_迭代器基类0'
                           '_Container_base'     = '_容器基类'
-                          '_Iterator_base'      = '_迭代器基类' }
+                          '_Iterator_base'      = '_迭代器基类'
+
+                          '_Tidy_guard'         = '_清理守卫'
+                          '_Tidy_deallocate_guard' = '_清理释放守卫'
+                          '_Default_allocate_traits' = '_默认分配特征'
+                          '_Rebind_pointer_t'   = '_重绑定指针类型'
+                          '_Get_pointer_type'   = '_取指针类型'
+                          '_Get_const_pointer_type' = '_取常量指针类型'
+                          '_Get_void_pointer_type' = '_取空型指针类型'
+                          '_Get_const_void_pointer_type' = '_取常量空型指针类型'
+                          '_Get_difference_type' = '_取差异类型'
+                          '_Get_size_type'      = '_取尺寸类型'
+                          '_Get_propagate_on_container_copy' = '_取容器复制时传播'
+                          '_Get_propagate_on_container_move' = '_取容器移动时传播'
+                          '_Get_propagate_on_container_swap' = '_取容器交换时传播'
+                          '_Get_is_always_equal' = '_取恒等'
+                          '_Get_rebind_type'    = '_取重绑定类型'
+                          'allocator'           = '分配器'
+                          '_Is_default_allocator' = '_是默认分配器'
+                          '_Has_no_allocator_construct' = '_无分配器构造'
+                          '_Uses_default_construct' = '_用默认构造'
+                          '_Has_no_alloc_destroy' = '_无分配器析构'
+                          '_Uses_default_destroy' = '_用默认析构'
+                          '_Has_allocate_hint'  = '_有分配提示'
+                          '_Has_max_size'       = '_有最大尺寸'
+                          '_Has_select_on_container_copy_construction' = '_有容器复制构造时选择'
+                          'allocation_result'   = '分配结果'
+                          '_Normal_allocator_traits' = '_常规分配器特征'
+                          '_Default_allocator_traits' = '_默认分配器特征'
+                          '_Rebind_alloc_t'     = '_重绑定分配器类型'
+                          '_Maybe_rebind_alloc_t' = '_可能重绑定分配器类型'
+                          '_Simple_types'       = '_简单类型集'
+                          '_Asan_aligned_pointers' = '_地址消毒对齐指针'
+                          '_Guide_size_type_t'  = '_推导尺寸类型'
+                          '_Alloc_ptr_t'        = '_分配器指针类型'
+                          '_Alloc_size_t'       = '_分配器尺寸类型'
+                          '_Alloc_construct_ptr' = '_分配器构造指针'
+                          '_Fake_allocator'     = '_假分配器'
+                          '_Container_base12'   = '_容器基类12'
+                          '_Container_proxy'    = '_容器代理'
+                          '_Iterator_base12'    = '_迭代器基类12'
+                          '_Leave_proxy_unbound' = '_离开代理未绑定'
+                          '_Fake_proxy_ptr_impl' = '_假代理指针实现'
+                          '_Basic_container_proxy_ptr12' = '_基本容器代理指针12'
+                          '_Container_proxy_ptr12' = '_容器代理指针12'
+                          '_Container_proxy_ptr' = '_容器代理指针'
+                          # ⚠ 宏名也是名字，必须一起汉化（§16.24）。
+                          #   宏【不受名域约束】—— 拷贝里改名的 `#define _GET_PROXY_ALLOCATOR`
+                          #   会把真头（list/xtree/vector）的同一个宏【劫持】掉，
+                          #   它们展开后拿到的是汉语标识符，而汉语标识符在 std 里找不到：
+                          #       list:827:27: error: 使用了未声明的标识符（名字）'_假分配器'
+                          #   批 A 时没炸，是因为当时宏体里的名字恰好一个都没改（宏体逐字相同，
+                          #   重定义无害）—— 这正是"改名越多越晚爆"的隐藏地雷。
+                          '_GET_PROXY_ALLOCATOR' = '_取代理分配器'
+                          '_Zero_then_variadic_args_t' = '_先零后变参实参'
+                          '_One_then_variadic_args_t' = '_先一后变参实参'
+                          '_Uninitialized_backout' = '_未初始化回退'
+                          '_Uninitialized_backout_al' = '_未初始化回退分配器版'
+                          '_Remove_const_ref_t' = '_去常量引用类型'
+                          '_In_place_key_extract_set_impl' = '_就地键提取集合实现'
+                          '_In_place_key_extract_set' = '_就地键提取集合'
+                          '_In_place_key_extract_map_impl' = '_就地键提取映射实现'
+                          '_In_place_key_extract_map' = '_就地键提取映射'
+                          '_Wrap'               = '_包装'
+                          '_Alloc_temporary2'   = '_分配器临时对象2'
+                          '_Normally_bound_ref' = '_常规绑定引用'
+                          '_Range_key_type'     = '_范围键类型'
+                          '_Range_mapped_type'  = '_范围映射类型'
+                          '_Range_to_alloc_type' = '_范围到分配器类型'
+                          '_Ebco_base'          = '_空基类优化基类'
+                          '_Is_transparent'     = '_是透明' }
     members = [ordered]@{}
     data    = [ordered]@{}
     derive  = @()
     stdHash = $false
     tparam  = @{ decl = ''; args = '' }
+    # ⚠ 自己抄【缺的那句前向声明】。原文靠 <xutility>:4187 的 `struct _Iterator_base12;`
+    #   撑住 `_Container_proxy::_Myfirstiter`；搬进 细节:: 后必须自己声明，
+    #   否则校对的回退会把那一处改回英文（见 §16.23）。
+    prologue = 'struct _迭代器基类12;'
     tests = @(
       @('只引中文头','#包含 <内存内部件>`n整数 主函数(){ 返回 0; }'),
-      @('批A 的汉语名可用（分配器特征）','#包含 <内存内部件>`n整数 主函数(){ 标准::细节::分配器特征<std::allocator<整数>> 甲; (空型)甲; 返回 0; }')
+      @('批A 的汉语名可用（分配器特征）','#包含 <内存内部件>`n整数 主函数(){ 标准::细节::分配器特征<std::allocator<整数>> 甲; (空型)甲; 返回 0; }'),
+      # ⚠ 这条是【批 B 的真守卫】：它把顶层的汉语类型名逐个用起来。
+      #   原来的两条测试太弱（一条是空主函数、一条只用 分配器特征），
+      #   照不出"改名只在实例化时才检查"的位置 —— 正是 §15.1/§15.3 那件事。
+      @('批B 顶层类型名的汉语名整套可用','#包含 <内存内部件>`n整数 主函数(){`n  (空型)sizeof(标准::细节::_简单类型集<整数>);`n  (空型)sizeof(标准::细节::分配器<整数>);`n  (空型)sizeof(标准::细节::_容器基类12);`n  (空型)sizeof(标准::细节::_迭代器基类12);`n  (空型)sizeof(标准::细节::_容器代理);`n  (空型)sizeof(标准::细节::_取尺寸类型<标准::细节::分配器<整数>>);`n  (空型)sizeof(标准::细节::_是默认分配器<标准::细节::分配器<整数>>);`n  (空型)sizeof(标准::细节::_空基类优化基类<整数>);`n  返回 0; }'),
+      @('批B 前向声明确实在（_容器代理 能在定义之前用 _迭代器基类12）','#包含 <内存内部件>`n整数 主函数(){ 标准::细节::_容器代理 代; (空型)代; 返回 0; }')
     )
   }
   'scoped_allocator' = @{
@@ -1581,9 +1675,23 @@ if ($gm.Success) {
 }
 
 # 步 2：搬名域
-$text = $text.Replace('_STD_BEGIN', "名域 标准 { 名域 细节 {`n使用 名域 std;")
+# ---------------------------------------------------------------------------
+#  prologue：本层【自己的前向声明】，插在名域开头（`使用 名域 std;` 之后）。
+#
+#  为什么需要它（xmemory 实测，§16.23）：
+#    微软的 xmemory 在 `_Container_proxy` 里用了 `_Iterator_base12*`，
+#    而 `_Iterator_base12` 的定义在本文件【更后面】。原文能编过，是因为
+#    `<xutility>` 第 4187 行有一句 `struct _Iterator_base12;` —— 它是【借来的】前向声明。
+#    我们把正文搬进 细节:: 之后，`_迭代器基类12` 在那一行还没有任何声明，
+#    于是编译器报「没有名为（名字）'迭代器基类12'」，校对的回退机制就把那一处
+#    【改回了英文】—— 表面通过了，实际留下一个英文标识符（静默欠账）。
+#    正确做法不是"保留英文"，而是把缺的那句前向声明【抄成自己的】。
+# ---------------------------------------------------------------------------
+$nsOpen = "名域 标准 { 名域 细节 {`n使用 名域 std;"
+if ($spec.prologue) { $nsOpen += "`n" + $spec.prologue }
+$text = $text.Replace('_STD_BEGIN', $nsOpen)
 $text = $text.Replace('_STD_END', '} }')
-Write-Host "  步2 名域 -> 标准::细节 + 使用 名域 std;"
+Write-Host "  步2 名域 -> 标准::细节 + 使用 名域 std;$(if ($spec.prologue) { ' + prologue 前向声明' })"
 
 # ---------------------------------------------------------------------------
 #  步 2b：pmr 嵌套名域（实测踩到，<set> 是第一个带它的头）
@@ -1813,6 +1921,40 @@ $($spec.deriveExtra)
 #$text = $text + $layer    # ← 派生层改到"编译器校对之后"再追加，见下
 New-Item -ItemType Directory -Force $out | Out-Null
 $outPath = Join-Path $out $spec.zh
+
+# ---------------------------------------------------------------------------
+#  守卫：宏泄漏检查（§16.24，由组合探针抓到的一次真实失败逼出来）
+#
+#  宏【不受名域约束】。我们改写名之后，拷贝里那些 `#define` 的【宏体】可能含汉语标识符；
+#  只要【宏名与原头相同】，真头（list / xtree / vector …）展开同一个宏时
+#  拿到的就是汉语标识符 —— 而汉语标识符在 std 里不存在：
+#      list:827:27: error: 使用了未声明的标识符（名字）'_假分配器'
+#  这不是"组合探针运气好"，而是一类必然问题：拷贝头只要改一个名字，
+#  就可能污染所有【共用同一个宏】的真头。
+#
+#  判据（可机器判定，不靠记性）：
+#      宏名与原头相同  &&  宏体里出现 CJK 字符   ->  泄漏，拦住
+#  正解是把【宏名也汉化】（宏名也是名字）：宏名一改，就不再与真头重名，各用各的。
+# ---------------------------------------------------------------------------
+$origText = [System.IO.File]::ReadAllText($srcPath)
+$origMacros = @{}
+foreach ($m in [regex]::Matches($origText, '(?m)^[ \t]*#\s*define\s+([A-Za-z_]\w*)')) {
+    $origMacros[$m.Groups[1].Value] = $true
+}
+$macroLeaks = @()
+# 宏体可能折行（行尾反斜杠续行）：一直吃到"不以反斜杠结尾的那一行"
+foreach ($m in [regex]::Matches($text, '(?m)^[ \t]*#\s*define\s+([A-Za-z_]\w*)((?:.*\\\r?\n)*.*)$')) {
+    $mn = $m.Groups[1].Value
+    if ($mn -like '_ZH_*') { continue }                     # 包含守卫是我们自己的，不算
+    if ($m.Groups[2].Value -notmatch '[\u4e00-\u9fff]') { continue }
+    if ($origMacros.ContainsKey($mn)) { $macroLeaks += $mn }
+}
+if ($macroLeaks.Count) {
+    Write-Host ("  ❌ 宏泄漏: {0} 个宏【宏名没改】但宏体里已有汉语标识符 —— 会劫持真头的同名宏:" -f $macroLeaks.Count) -ForegroundColor Red
+    foreach ($mn in ($macroLeaks | Sort-Object -Unique)) { Write-Host ("      {0}" -f $mn) -ForegroundColor Red }
+    throw "宏名必须一起汉化（宏不受名域约束，见 §16.24）：$($macroLeaks -join ', ')"
+}
+
 [System.IO.File]::WriteAllText($outPath, $text, $utf8)
 Write-Host ("  输出: {0}  ({1} 行)" -f $outPath, ([System.IO.File]::ReadAllLines($outPath)).Count)
 
@@ -1844,6 +1986,15 @@ for ($round = 1; $round -le 8; $round++) {
     }
     if ($hits.Count -eq 0) { Write-Host ("  校对第 {0} 轮: 无同名冲突" -f $round) -ForegroundColor Green; break }
     $lines = [System.IO.File]::ReadAllLines($outPath); $fixed = 0
+    # -----------------------------------------------------------------------
+    #  「改回英文」必须【响亮】（§16.23 的教训）。
+    #
+    #  xmemory 那次：`_Iterator_base12` 被静默改回英文，测试 2/2 照样通过，
+    #  只有一行 "改回英文 1 处" 混在输出里 —— 一个英文标识符就这样留在了产品里。
+    #  **一个"通过"如果盖住了一次回退，它就不是守卫。**
+    #  所以这里把【具体哪个名字】改回英文逐个打出来，让人看得见、能去销账。
+    # -----------------------------------------------------------------------
+    $revNames = @{}; $revWhere = @{}
     $doneLines = @{}
     foreach ($h in ($hits | Sort-Object Line,Col -Descending)) {
         if (-not $rev.ContainsKey($h.Name)) { continue }
@@ -1859,10 +2010,18 @@ for ($round = 1; $round -le 8; $round++) {
         if (-not $ok) { continue }
         $ci = [System.Text.Encoding]::UTF8.GetString($lb,0,$off).Length
         $lines[$idx] = $line.Remove($ci,$h.Name.Length).Insert($ci,$rev[$h.Name]); $fixed++
+        $revNames[$rev[$h.Name]] = $true
+        $revWhere[$rev[$h.Name]] = ("第 {0} 行" -f $h.Line)
         $doneLines[$h.Line] = $true
     }
     [System.IO.File]::WriteAllLines($outPath, $lines, $utf8)
     Write-Host ("  校对第 {0} 轮: 指出 {1} 处，改回英文 {2} 处" -f $round,$hits.Count,$fixed)
+    if ($revNames.Count) {
+        foreach ($rn in ($revNames.Keys | Sort-Object)) {
+            Write-Host ("    ⚠ 改回英文: {0}（{1}）—— 这是【欠账】，要么补前向声明/别名，要么登记进方案文档" -f `
+                $rn, $revWhere[$rn]) -ForegroundColor Yellow
+        }
+    }
     if ($fixed -eq 0) { break }
 }
 Remove-Item $probe -Force -ErrorAction SilentlyContinue

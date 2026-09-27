@@ -37,6 +37,7 @@ void* __stdcall __std_remove_8(void* _First, void* _Last, uint64_t _Val) noexcep
 
 名域 标准 { 名域 细节 {
 使用 名域 std;
+struct _迭代器基类12;
 template <class _Ty, class _TVal>
 _Ty* _Remove_vectorized(_Ty* const _First, _Ty* const _Last, const _TVal _Val) noexcept {
     if constexpr (is_pointer_v<_Ty>) {
@@ -63,6 +64,7 @@ _Ty* _Remove_vectorized(_Ty* const _First, _Ty* const _Last, const _TVal _Val) n
 
 名域 标准 { 名域 细节 {
 使用 名域 std;
+struct _迭代器基类12;
 template <class _Ptrty>
 _NODISCARD constexpr auto _Unfancy(_Ptrty _Ptr) noexcept { // converts from a fancy pointer to a plain pointer
     return _STD addressof(*_Ptr);
@@ -85,9 +87,9 @@ constexpr _Ty* _Unfancy_maybe_null(_Ty* _Ptr) noexcept { // do nothing for plain
 }
 
 template <class _Ty>
-struct _NODISCARD _Tidy_guard { // class with destructor that calls _Tidy
+struct _NODISCARD _清理守卫 { // class with destructor that calls _Tidy
     _Ty* _Target;
-    _CONSTEXPR20 ~_Tidy_guard() {
+    _CONSTEXPR20 ~_清理守卫() {
         if (_Target) {
             _Target->_Tidy();
         }
@@ -95,9 +97,9 @@ struct _NODISCARD _Tidy_guard { // class with destructor that calls _Tidy
 };
 
 template <class _Ty>
-struct _NODISCARD _Tidy_deallocate_guard { // class with destructor that calls _Tidy_deallocate
+struct _NODISCARD _清理释放守卫 { // class with destructor that calls _Tidy_deallocate
     _Ty* _Target;
-    _CONSTEXPR20 ~_Tidy_deallocate_guard() {
+    _CONSTEXPR20 ~_清理释放守卫() {
         if (_Target) {
             _Target->_Tidy_deallocate();
         }
@@ -135,13 +137,13 @@ constexpr size_t _New_alignof = (_STD max)(alignof(_Ty), __STDCPP_DEFAULT_NEW_AL
 #define _CLANG_CONSTEXPR20
 #endif // ^^^ Other ^^^
 
-struct _Default_allocate_traits {
-    __declspec(allocator) static _CLANG_CONSTEXPR20 void* _Allocate(const size_t _Bytes) {
+struct _默认分配特征 {
+    __declspec(分配器) static _CLANG_CONSTEXPR20 void* _Allocate(const size_t _Bytes) {
         return ::operator new(_Bytes);
     }
 
 #ifdef __cpp_aligned_new
-    __declspec(allocator) static _CLANG_CONSTEXPR20 void* _Allocate_aligned(const size_t _Bytes, const size_t _Align) {
+    __declspec(分配器) static _CLANG_CONSTEXPR20 void* _Allocate_aligned(const size_t _Bytes, const size_t _Align) {
 #if defined(__clang__) && _HAS_CXX20 // Ditto, "Clang and MSVC implement P0784R7 differently"
         if (_STD is_constant_evaluated()) {
             return ::operator new(_Bytes);
@@ -183,7 +185,7 @@ _INLINE_VAR constexpr size_t _Big_allocation_sentinel = 0xFAFAFAFAUL;
 #endif // ^^^ !defined(_WIN64) ^^^
 
 template <class _Traits>
-__declspec(allocator) void* _Allocate_manually_vector_aligned(const size_t _Bytes) {
+__declspec(分配器) void* _Allocate_manually_vector_aligned(const size_t _Bytes) {
     // allocate _Bytes manually aligned to at least _Big_allocation_alignment
     const size_t _Block_size = _Non_user_size + _Bytes;
     if (_Block_size <= _Bytes) {
@@ -225,8 +227,8 @@ inline void _Adjust_manually_vector_aligned(void*& _Ptr, size_t& _Bytes) {
 }
 #endif // defined(_M_IX86) || defined(_M_X64)
 
-template <size_t _Align, class _Traits = _Default_allocate_traits>
-__declspec(allocator) _CONSTEXPR20 void* _Allocate(const size_t _Bytes) {
+template <size_t _Align, class _Traits = _默认分配特征>
+__declspec(分配器) _CONSTEXPR20 void* _Allocate(const size_t _Bytes) {
     // allocate _Bytes
     if (_Bytes == 0) {
         return nullptr;
@@ -295,7 +297,7 @@ _CONSTEXPR20 void _Deallocate(void* _Ptr, size_t _Bytes) noexcept {
 }
 
 template <class _Ptr, class _Ty>
-using _Rebind_pointer_t = typename pointer_traits<_Ptr>::template rebind<_Ty>;
+using _重绑定指针类型 = typename pointer_traits<_Ptr>::template rebind<_Ty>;
 
 template <class _Pointer, enable_if_t<!is_pointer_v<_Pointer>, int> = 0>
 _CONSTEXPR20 _Pointer _Refancy(typename pointer_traits<_Pointer>::element_type* _Ptr) noexcept {
@@ -358,137 +360,137 @@ auto _Const_cast(_Ty* _Ptr) noexcept {
 }
 
 template <class _Ty, class = void>
-struct _Get_pointer_type {
+struct _取指针类型 {
     using type = typename _Ty::value_type*;
 };
 
 _STL_DISABLE_DEPRECATED_WARNING
 template <class _Ty>
-struct _Get_pointer_type<_Ty, void_t<typename _Ty::pointer>> {
+struct _取指针类型<_Ty, void_t<typename _Ty::pointer>> {
     using type = typename _Ty::pointer;
 };
 _STL_RESTORE_DEPRECATED_WARNING
 
 template <class _Ty, class = void>
-struct _Get_const_pointer_type {
-    using _Ptrty = typename _Get_pointer_type<_Ty>::type;
+struct _取常量指针类型 {
+    using _Ptrty = typename _取指针类型<_Ty>::type;
     using _Valty = typename _Ty::value_type;
     using type   = typename pointer_traits<_Ptrty>::template rebind<const _Valty>;
 };
 
 _STL_DISABLE_DEPRECATED_WARNING
 template <class _Ty>
-struct _Get_const_pointer_type<_Ty, void_t<typename _Ty::const_pointer>> {
+struct _取常量指针类型<_Ty, void_t<typename _Ty::const_pointer>> {
     using type = typename _Ty::const_pointer;
 };
 _STL_RESTORE_DEPRECATED_WARNING
 
 template <class _Ty, class = void>
-struct _Get_void_pointer_type {
-    using _Ptrty = typename _Get_pointer_type<_Ty>::type;
+struct _取空型指针类型 {
+    using _Ptrty = typename _取指针类型<_Ty>::type;
     using type   = typename pointer_traits<_Ptrty>::template rebind<void>;
 };
 
 template <class _Ty>
-struct _Get_void_pointer_type<_Ty, void_t<typename _Ty::void_pointer>> {
+struct _取空型指针类型<_Ty, void_t<typename _Ty::void_pointer>> {
     using type = typename _Ty::void_pointer;
 };
 
 template <class _Ty, class = void>
-struct _Get_const_void_pointer_type {
-    using _Ptrty = typename _Get_pointer_type<_Ty>::type;
+struct _取常量空型指针类型 {
+    using _Ptrty = typename _取指针类型<_Ty>::type;
     using type   = typename pointer_traits<_Ptrty>::template rebind<const void>;
 };
 
 template <class _Ty>
-struct _Get_const_void_pointer_type<_Ty, void_t<typename _Ty::const_void_pointer>> {
+struct _取常量空型指针类型<_Ty, void_t<typename _Ty::const_void_pointer>> {
     using type = typename _Ty::const_void_pointer;
 };
 
 template <class _Ty, class = void>
-struct _Get_difference_type {
-    using _Ptrty = typename _Get_pointer_type<_Ty>::type;
+struct _取差异类型 {
+    using _Ptrty = typename _取指针类型<_Ty>::type;
     using type   = typename pointer_traits<_Ptrty>::difference_type;
 };
 
 template <class _Ty>
-struct _Get_difference_type<_Ty, void_t<typename _Ty::difference_type>> {
+struct _取差异类型<_Ty, void_t<typename _Ty::difference_type>> {
     using type = typename _Ty::difference_type;
 };
 
 template <class _Ty, class = void>
-struct _Get_size_type {
-    using type = make_unsigned_t<typename _Get_difference_type<_Ty>::type>;
+struct _取尺寸类型 {
+    using type = make_unsigned_t<typename _取差异类型<_Ty>::type>;
 };
 
 template <class _Ty>
-struct _Get_size_type<_Ty, void_t<typename _Ty::size_type>> {
+struct _取尺寸类型<_Ty, void_t<typename _Ty::size_type>> {
     using type = typename _Ty::size_type;
 };
 
 template <class _Ty, class = void>
-struct _Get_propagate_on_container_copy {
+struct _取容器复制时传播 {
     using type = false_type;
 };
 
 template <class _Ty>
-struct _Get_propagate_on_container_copy<_Ty, void_t<typename _Ty::propagate_on_container_copy_assignment>> {
+struct _取容器复制时传播<_Ty, void_t<typename _Ty::propagate_on_container_copy_assignment>> {
     using type = typename _Ty::propagate_on_container_copy_assignment;
 };
 
 template <class _Ty, class = void>
-struct _Get_propagate_on_container_move {
+struct _取容器移动时传播 {
     using type = false_type;
 };
 
 template <class _Ty>
-struct _Get_propagate_on_container_move<_Ty, void_t<typename _Ty::propagate_on_container_move_assignment>> {
+struct _取容器移动时传播<_Ty, void_t<typename _Ty::propagate_on_container_move_assignment>> {
     using type = typename _Ty::propagate_on_container_move_assignment;
 };
 
 template <class _Ty, class = void>
-struct _Get_propagate_on_container_swap {
+struct _取容器交换时传播 {
     using type = false_type;
 };
 
 template <class _Ty>
-struct _Get_propagate_on_container_swap<_Ty, void_t<typename _Ty::propagate_on_container_swap>> {
+struct _取容器交换时传播<_Ty, void_t<typename _Ty::propagate_on_container_swap>> {
     using type = typename _Ty::propagate_on_container_swap;
 };
 
 template <class _Ty, class = void>
-struct _Get_is_always_equal {
+struct _取恒等 {
     using type = bool_constant<is_empty_v<_Ty>>;
 };
 
 _STL_DISABLE_DEPRECATED_WARNING
 template <class _Ty>
-struct _Get_is_always_equal<_Ty, void_t<typename _Ty::is_always_equal>> {
+struct _取恒等<_Ty, void_t<typename _Ty::is_always_equal>> {
     using type = typename _Ty::is_always_equal;
 };
 _STL_RESTORE_DEPRECATED_WARNING
 
 template <class _Ty, class _Other, class = void>
-struct _Get_rebind_type {
+struct _取重绑定类型 {
     using type = typename _Replace_first_parameter<_Other, _Ty>::type;
 };
 
 _STL_DISABLE_DEPRECATED_WARNING
 template <class _Ty, class _Other>
-struct _Get_rebind_type<_Ty, _Other, void_t<typename _Ty::template rebind<_Other>::other>> {
+struct _取重绑定类型<_Ty, _Other, void_t<typename _Ty::template rebind<_Other>::other>> {
     using type = typename _Ty::template rebind<_Other>::other;
 };
 _STL_RESTORE_DEPRECATED_WARNING
 
 _EXPORT_STD template <class _Ty>
-class allocator;
+class 分配器;
 
 template <class _Alloc, class = void>
-struct _Is_default_allocator : false_type {};
+struct _是默认分配器 : false_type {};
 
 template <class _Ty>
-struct _Is_default_allocator<allocator<_Ty>, void_t<typename allocator<_Ty>::_From_primary>>
-    : is_same<typename allocator<_Ty>::_From_primary, allocator<_Ty>>::type {};
+struct _是默认分配器<分配器<_Ty>, void_t<typename 分配器<_Ty>::_From_primary>>
+    : is_same<typename 分配器<_Ty>::_From_primary, 分配器<_Ty>>::type {};
 
 #if _HAS_CXX23
 template <class _Alloc, class _SizeTy>
@@ -496,59 +498,59 @@ concept _Has_member_allocate_at_least = requires(_Alloc& _Al, const _SizeTy& _Co
 #endif // _HAS_CXX23
 
 template <class _Void, class... _Types>
-struct _Has_no_allocator_construct : true_type {};
+struct _无分配器构造 : true_type {};
 
 _STL_DISABLE_DEPRECATED_WARNING
 template <class _Alloc, class _Ptr, class... _Args>
-struct _Has_no_allocator_construct<
+struct _无分配器构造<
     void_t<decltype(_STD declval<_Alloc&>().construct(_STD declval<_Ptr>(), _STD declval<_Args>()...))>, _Alloc, _Ptr,
     _Args...> : false_type {};
 _STL_RESTORE_DEPRECATED_WARNING
 
 template <class _Alloc, class _Ptr, class... _Args>
-using _Uses_default_construct =
-    disjunction<_Is_default_allocator<_Alloc>, _Has_no_allocator_construct<void, _Alloc, _Ptr, _Args...>>;
+using _用默认构造 =
+    disjunction<_是默认分配器<_Alloc>, _无分配器构造<void, _Alloc, _Ptr, _Args...>>;
 
 template <class _Alloc, class _Ptr, class = void>
-struct _Has_no_alloc_destroy : true_type {};
+struct _无分配器析构 : true_type {};
 
 _STL_DISABLE_DEPRECATED_WARNING
 template <class _Alloc, class _Ptr>
-struct _Has_no_alloc_destroy<_Alloc, _Ptr, void_t<decltype(_STD declval<_Alloc&>().destroy(_STD declval<_Ptr>()))>>
+struct _无分配器析构<_Alloc, _Ptr, void_t<decltype(_STD declval<_Alloc&>().destroy(_STD declval<_Ptr>()))>>
     : false_type {};
 _STL_RESTORE_DEPRECATED_WARNING
 
 template <class _Alloc, class _Ptr>
-using _Uses_default_destroy = disjunction<_Is_default_allocator<_Alloc>, _Has_no_alloc_destroy<_Alloc, _Ptr>>;
+using _用默认析构 = disjunction<_是默认分配器<_Alloc>, _无分配器析构<_Alloc, _Ptr>>;
 
 template <class _Alloc, class _Size_type, class _Const_void_pointer, class = void>
-struct _Has_allocate_hint : false_type {};
+struct _有分配提示 : false_type {};
 
 _STL_DISABLE_DEPRECATED_WARNING
 template <class _Alloc, class _Size_type, class _Const_void_pointer>
-struct _Has_allocate_hint<_Alloc, _Size_type, _Const_void_pointer,
+struct _有分配提示<_Alloc, _Size_type, _Const_void_pointer,
     void_t<decltype(_STD declval<_Alloc&>().allocate(
         _STD declval<const _Size_type&>(), _STD declval<const _Const_void_pointer&>()))>> : true_type {};
 _STL_RESTORE_DEPRECATED_WARNING
 
 template <class _Alloc, class = void>
-struct _Has_max_size : false_type {};
+struct _有最大尺寸 : false_type {};
 
 _STL_DISABLE_DEPRECATED_WARNING
 template <class _Alloc>
-struct _Has_max_size<_Alloc, void_t<decltype(_STD declval<const _Alloc&>().max_size())>> : true_type {};
+struct _有最大尺寸<_Alloc, void_t<decltype(_STD declval<const _Alloc&>().max_size())>> : true_type {};
 _STL_RESTORE_DEPRECATED_WARNING
 
 template <class _Alloc, class = void>
-struct _Has_select_on_container_copy_construction : false_type {};
+struct _有容器复制构造时选择 : false_type {};
 
 template <class _Alloc>
-struct _Has_select_on_container_copy_construction<_Alloc,
+struct _有容器复制构造时选择<_Alloc,
     void_t<decltype(_STD declval<const _Alloc&>().select_on_container_copy_construction())>> : true_type {};
 
 #if _HAS_CXX23
 _EXPORT_STD template <class _Ptr, class _SizeTy = size_t>
-struct allocation_result {
+struct 分配结果 {
     _Ptr ptr;
     _SizeTy count;
 };
@@ -559,37 +561,37 @@ struct 分配器特征;
 
 _STL_DISABLE_DEPRECATED_WARNING
 template <class _Alloc>
-struct _Normal_allocator_traits { // defines traits for allocators
+struct _常规分配器特征 { // defines traits for allocators
     using allocator_type = _Alloc;
     using value_type     = typename _Alloc::value_type;
 
-    using pointer            = typename _Get_pointer_type<_Alloc>::type;
-    using const_pointer      = typename _Get_const_pointer_type<_Alloc>::type;
-    using void_pointer       = typename _Get_void_pointer_type<_Alloc>::type;
-    using const_void_pointer = typename _Get_const_void_pointer_type<_Alloc>::type;
+    using pointer            = typename _取指针类型<_Alloc>::type;
+    using const_pointer      = typename _取常量指针类型<_Alloc>::type;
+    using void_pointer       = typename _取空型指针类型<_Alloc>::type;
+    using const_void_pointer = typename _取常量空型指针类型<_Alloc>::type;
 
-    using size_type       = typename _Get_size_type<_Alloc>::type;
-    using difference_type = typename _Get_difference_type<_Alloc>::type;
+    using size_type       = typename _取尺寸类型<_Alloc>::type;
+    using difference_type = typename _取差异类型<_Alloc>::type;
 
-    using propagate_on_container_copy_assignment = typename _Get_propagate_on_container_copy<_Alloc>::type;
-    using propagate_on_container_move_assignment = typename _Get_propagate_on_container_move<_Alloc>::type;
-    using propagate_on_container_swap            = typename _Get_propagate_on_container_swap<_Alloc>::type;
-    using is_always_equal                        = typename _Get_is_always_equal<_Alloc>::type;
+    using propagate_on_container_copy_assignment = typename _取容器复制时传播<_Alloc>::type;
+    using propagate_on_container_move_assignment = typename _取容器移动时传播<_Alloc>::type;
+    using propagate_on_container_swap            = typename _取容器交换时传播<_Alloc>::type;
+    using is_always_equal                        = typename _取恒等<_Alloc>::type;
 
     template <class _Other>
-    using rebind_alloc = typename _Get_rebind_type<_Alloc, _Other>::type;
+    using rebind_alloc = typename _取重绑定类型<_Alloc, _Other>::type;
 
     template <class _Other>
     using rebind_traits = 分配器特征<rebind_alloc<_Other>>;
 
-    _NODISCARD_RAW_PTR_ALLOC static _CONSTEXPR20 __declspec(allocator) pointer allocate(
+    _NODISCARD_RAW_PTR_ALLOC static _CONSTEXPR20 __declspec(分配器) pointer allocate(
         _Alloc& _Al, _CRT_GUARDOVERFLOW const size_type _Count) {
         return _Al.allocate(_Count);
     }
 
-    _NODISCARD_RAW_PTR_ALLOC static _CONSTEXPR20 __declspec(allocator) pointer allocate(
+    _NODISCARD_RAW_PTR_ALLOC static _CONSTEXPR20 __declspec(分配器) pointer allocate(
         _Alloc& _Al, _CRT_GUARDOVERFLOW const size_type _Count, const const_void_pointer _Hint) {
-        if constexpr (_Has_allocate_hint<_Alloc, size_type, const_void_pointer>::value) {
+        if constexpr (_有分配提示<_Alloc, size_type, const_void_pointer>::value) {
             return _Al.allocate(_Count, _Hint);
         } else {
             return _Al.allocate(_Count);
@@ -597,7 +599,7 @@ struct _Normal_allocator_traits { // defines traits for allocators
     }
 
 #if _HAS_CXX23
-    _NODISCARD_RAW_PTR_ALLOC static constexpr allocation_result<pointer, size_type> allocate_at_least(
+    _NODISCARD_RAW_PTR_ALLOC static constexpr 分配结果<pointer, size_type> allocate_at_least(
         _Alloc& _Al, _CRT_GUARDOVERFLOW const size_type _Count) {
         if constexpr (_Has_member_allocate_at_least<_Alloc, size_type>) {
             return _Al.allocate_at_least(_Count);
@@ -613,7 +615,7 @@ struct _Normal_allocator_traits { // defines traits for allocators
 
     template <class _Ty, class... _Types>
     static _CONSTEXPR20 void construct(_Alloc& _Al, _Ty* _Ptr, _Types&&... _Args) {
-        if constexpr (_Uses_default_construct<_Alloc, _Ty*, _Types...>::value) {
+        if constexpr (_用默认构造<_Alloc, _Ty*, _Types...>::value) {
 #if _HAS_CXX20
             _STD construct_at(_Ptr, _STD forward<_Types>(_Args)...);
 #else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
@@ -626,7 +628,7 @@ struct _Normal_allocator_traits { // defines traits for allocators
 
     template <class _Ty>
     static _CONSTEXPR20 void destroy(_Alloc& _Al, _Ty* _Ptr) {
-        if constexpr (_Uses_default_destroy<_Alloc, _Ty*>::value) {
+        if constexpr (_用默认析构<_Alloc, _Ty*>::value) {
 #if _HAS_CXX20
             _STD destroy_at(_Ptr);
 #else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
@@ -638,7 +640,7 @@ struct _Normal_allocator_traits { // defines traits for allocators
     }
 
     _NODISCARD static _CONSTEXPR20 size_type max_size(const _Alloc& _Al) noexcept {
-        if constexpr (_Has_max_size<_Alloc>::value) {
+        if constexpr (_有最大尺寸<_Alloc>::value) {
             return _Al.max_size();
         } else {
             return _STD _Max_limit<size_type>() / sizeof(value_type);
@@ -646,7 +648,7 @@ struct _Normal_allocator_traits { // defines traits for allocators
     }
 
     _NODISCARD static _CONSTEXPR20 _Alloc select_on_container_copy_construction(const _Alloc& _Al) {
-        if constexpr (_Has_select_on_container_copy_construction<_Alloc>::value) {
+        if constexpr (_有容器复制构造时选择<_Alloc>::value) {
             return _Al.select_on_container_copy_construction();
         } else {
             return _Al;
@@ -656,7 +658,7 @@ struct _Normal_allocator_traits { // defines traits for allocators
 _STL_RESTORE_DEPRECATED_WARNING
 
 template <class _Alloc>
-struct _Default_allocator_traits { // traits for std::allocator
+struct _默认分配器特征 { // traits for std::分配器
     using allocator_type = _Alloc;
     using value_type     = typename _Alloc::value_type;
 
@@ -674,12 +676,12 @@ struct _Default_allocator_traits { // traits for std::allocator
     using is_always_equal                        = true_type;
 
     template <class _Other>
-    using rebind_alloc = allocator<_Other>;
+    using rebind_alloc = 分配器<_Other>;
 
     template <class _Other>
-    using rebind_traits = 分配器特征<allocator<_Other>>;
+    using rebind_traits = 分配器特征<分配器<_Other>>;
 
-    _NODISCARD_RAW_PTR_ALLOC static _CONSTEXPR20 __declspec(allocator) pointer allocate(
+    _NODISCARD_RAW_PTR_ALLOC static _CONSTEXPR20 __declspec(分配器) pointer allocate(
         _Alloc& _Al, _CRT_GUARDOVERFLOW const size_type _Count) {
 #if _HAS_CXX20 // TRANSITION, GH-1532
         if (_STD is_constant_evaluated()) {
@@ -693,7 +695,7 @@ struct _Default_allocator_traits { // traits for std::allocator
         }
     }
 
-    _NODISCARD_RAW_PTR_ALLOC static _CONSTEXPR20 __declspec(allocator) pointer allocate(
+    _NODISCARD_RAW_PTR_ALLOC static _CONSTEXPR20 __declspec(分配器) pointer allocate(
         _Alloc& _Al, _CRT_GUARDOVERFLOW const size_type _Count, const_void_pointer) {
 #if _HAS_CXX20 // TRANSITION, GH-1532
         if (_STD is_constant_evaluated()) {
@@ -708,7 +710,7 @@ struct _Default_allocator_traits { // traits for std::allocator
     }
 
 #if _HAS_CXX23
-    _NODISCARD_RAW_PTR_ALLOC static constexpr allocation_result<pointer, size_type> allocate_at_least(
+    _NODISCARD_RAW_PTR_ALLOC static constexpr 分配结果<pointer, size_type> allocate_at_least(
         _Alloc& _Al, _CRT_GUARDOVERFLOW const size_type _Count) {
         return {_Al.allocate(_Count), _Count};
     }
@@ -756,8 +758,8 @@ struct _Default_allocator_traits { // traits for std::allocator
 };
 
 _EXPORT_STD template <class _Alloc>
-struct 分配器特征 : conditional_t<_Is_default_allocator<_Alloc>::value, _Default_allocator_traits<_Alloc>,
-                              _Normal_allocator_traits<_Alloc>> {};
+struct 分配器特征 : conditional_t<_是默认分配器<_Alloc>::value, _默认分配器特征<_Alloc>,
+                              _常规分配器特征<_Alloc>> {};
 
 // _Choose_pocca_v returns whether an attempt to propagate allocators is necessary in copy assignment operations.
 // Note that even when false_type, callers should call _Pocca as we want to assign allocators even when equal.
@@ -767,7 +769,7 @@ constexpr bool _Choose_pocca_v = 分配器特征<_Alloc>::propagate_on_container
 
 enum class _传播复制移动赋值取值 {
     _Equal_allocators, // usually allows contents to be stolen (e.g. with swap)
-    _Propagate_allocators, // usually allows the allocator to be propagated, and then contents stolen
+    _Propagate_allocators, // usually allows the 分配器 to be propagated, and then contents stolen
     _No_propagate_allocators, // usually turns moves into copies
 };
 
@@ -779,16 +781,16 @@ constexpr _传播复制移动赋值取值 _Choose_pocma_v = 分配器特征<_All
                                                       : _传播复制移动赋值取值::_No_propagate_allocators);
 
 template <class _Alloc, class _Value_type>
-using _Rebind_alloc_t = typename 分配器特征<_Alloc>::template rebind_alloc<_Value_type>;
+using _重绑定分配器类型 = typename 分配器特征<_Alloc>::template rebind_alloc<_Value_type>;
 
 // If _Alloc is already rebound appropriately, binds an lvalue reference to it, avoiding a copy. Otherwise, creates a
 // rebound copy.
 template <class _Alloc, class _Value_type>
-using _Maybe_rebind_alloc_t =
+using _可能重绑定分配器类型 =
     typename _Select<is_same_v<typename _Alloc::value_type, _Value_type>>::template _Apply<_Alloc&,
-        _Rebind_alloc_t<_Alloc, _Value_type>>;
+        _重绑定分配器类型<_Alloc, _Value_type>>;
 
-template <class _Alloc> // tests if allocator has simple addressing
+template <class _Alloc> // tests if 分配器 has simple addressing
 constexpr bool _Is_simple_alloc_v =
     is_same_v<typename 分配器特征<_Alloc>::size_type, size_t>
     && is_same_v<typename 分配器特征<_Alloc>::difference_type, ptrdiff_t>
@@ -796,7 +798,7 @@ constexpr bool _Is_simple_alloc_v =
     && is_same_v<typename 分配器特征<_Alloc>::const_pointer, const typename _Alloc::value_type*>;
 
 template <class _Value_type>
-struct _Simple_types { // wraps types from allocators with simple addressing for use in iterators
+struct _简单类型集 { // wraps types from allocators with simple addressing for use in iterators
                        // and other SCARY machinery
     using value_type      = _Value_type;
     using size_type       = size_t;
@@ -809,11 +811,11 @@ struct _Simple_types { // wraps types from allocators with simple addressing for
 _INLINE_VAR constexpr size_t _Asan_granularity      = 8;
 _INLINE_VAR constexpr size_t _Asan_granularity_mask = _Asan_granularity - 1;
 
-// Controls whether ASan `container-overflow` errors are reported for this allocator.
+// Controls whether ASan `container-overflow` errors are reported for this 分配器.
 template <class>
 constexpr bool _Disable_ASan_container_annotations_for_allocator = false;
 
-struct _Asan_aligned_pointers {
+struct _地址消毒对齐指针 {
     const void* _First;
     const void* _End;
 
@@ -907,7 +909,7 @@ struct _Asan_aligned_pointers {
 // We are allowed to assume that `&cat.meow` is valid, since otherwise `cat.buffer + [0, 4)` could not be valid.
 // We cannot poison up to `cat.buffer + 16`, since then `&purr` could not be valid.
 // Thus, this results in the shadow memory state from the second example.
-_NODISCARD inline _Asan_aligned_pointers _Get_asan_aligned_first_end(
+_NODISCARD inline _地址消毒对齐指针 _Get_asan_aligned_first_end(
     const void* const _First, const void* const _End) noexcept {
     return {
         reinterpret_cast<const void*>(reinterpret_cast<uintptr_t>(_First) & ~_Asan_granularity_mask),
@@ -915,7 +917,7 @@ _NODISCARD inline _Asan_aligned_pointers _Get_asan_aligned_first_end(
     };
 }
 
-// When we can assume that the allocator we are using will always align allocations to the 8-byte,
+// When we can assume that the 分配器 we are using will always align allocations to the 8-byte,
 // we can simply push the `_End` pointer to the end of the shadow memory section.
 // This is _not_ safe in general (see _Get_asan_aligned_first_end's comment for why).
 _NODISCARD inline const void* _Get_asan_aligned_after(const void* const _End) noexcept {
@@ -933,16 +935,16 @@ constexpr size_t _Container_allocation_minimum_asan_alignment<_Container,
         alignof(typename _Container::value_type), _Container::allocator_type::_Minimum_asan_allocation_alignment);
 
 _EXPORT_STD template <class _Ty>
-class allocator {
+class 分配器 {
 public:
     static_assert(!is_const_v<_Ty>, "The C++ Standard forbids containers of const elements "
-                                    "because allocator<const T> is ill-formed.");
+                                    "because 分配器<const T> is ill-formed.");
     static_assert(!is_function_v<_Ty>, "The C++ Standard forbids allocators for function elements "
-                                       "because of [allocator.requirements].");
+                                       "because of [分配器.requirements].");
     static_assert(!is_reference_v<_Ty>, "The C++ Standard forbids allocators for reference elements "
-                                        "because of [allocator.requirements].");
+                                        "because of [分配器.requirements].");
 
-    using _From_primary = allocator;
+    using _From_primary = 分配器;
 
     using value_type = _Ty;
 
@@ -963,7 +965,7 @@ public:
 #if _HAS_DEPRECATED_ALLOCATOR_MEMBERS
     template <class _Other>
     struct _CXX17_DEPRECATE_OLD_ALLOCATOR_MEMBERS rebind {
-        using other = allocator<_Other>;
+        using other = 分配器<_Other>;
     };
 
     _CXX17_DEPRECATE_OLD_ALLOCATOR_MEMBERS _NODISCARD _Ty* address(_Ty& _Val) const noexcept {
@@ -975,13 +977,13 @@ public:
     }
 #endif // _HAS_DEPRECATED_ALLOCATOR_MEMBERS
 
-    constexpr allocator() noexcept {}
+    constexpr 分配器() noexcept {}
 
-    constexpr allocator(const allocator&) noexcept = default;
+    constexpr 分配器(const 分配器&) noexcept = default;
     template <class _Other>
-    constexpr allocator(const allocator<_Other>&) noexcept {}
-    _CONSTEXPR20 ~allocator()                           = default;
-    _CONSTEXPR20 allocator& operator=(const allocator&) = default;
+    constexpr 分配器(const 分配器<_Other>&) noexcept {}
+    _CONSTEXPR20 ~分配器()                           = default;
+    _CONSTEXPR20 分配器& operator=(const 分配器&) = default;
 
     _CONSTEXPR20 void deallocate(_Ty* const _Ptr, const size_t _Count) noexcept /* strengthened */ {
         _STL_ASSERT(_Ptr != nullptr || _Count == 0, "null pointer cannot point to a block of non-zero size");
@@ -989,20 +991,20 @@ public:
         _Deallocate<_New_alignof<_Ty>>(_Ptr, sizeof(_Ty) * _Count);
     }
 
-    _NODISCARD_RAW_PTR_ALLOC _CONSTEXPR20 __declspec(allocator) _Ty* allocate(_CRT_GUARDOVERFLOW const size_t _Count) {
+    _NODISCARD_RAW_PTR_ALLOC _CONSTEXPR20 __declspec(分配器) _Ty* allocate(_CRT_GUARDOVERFLOW const size_t _Count) {
         static_assert(sizeof(value_type) > 0, "value_type must be complete before calling allocate.");
         return static_cast<_Ty*>(_Allocate<_New_alignof<_Ty>>(_Get_size_of_n<sizeof(_Ty)>(_Count)));
     }
 
 #if _HAS_CXX23
-    _NODISCARD_RAW_PTR_ALLOC constexpr allocation_result<_Ty*> allocate_at_least(
+    _NODISCARD_RAW_PTR_ALLOC constexpr 分配结果<_Ty*> allocate_at_least(
         _CRT_GUARDOVERFLOW const size_t _Count) {
         return {allocate(_Count), _Count};
     }
 #endif // _HAS_CXX23
 
 #if _HAS_DEPRECATED_ALLOCATOR_MEMBERS
-    _CXX17_DEPRECATE_OLD_ALLOCATOR_MEMBERS _NODISCARD_RAW_PTR_ALLOC __declspec(allocator)
+    _CXX17_DEPRECATE_OLD_ALLOCATOR_MEMBERS _NODISCARD_RAW_PTR_ALLOC __declspec(分配器)
     _Ty* allocate(_CRT_GUARDOVERFLOW const size_t _Count, const void*) {
         return allocate(_Count);
     }
@@ -1027,7 +1029,7 @@ public:
 
 #if _HAS_DEPRECATED_ALLOCATOR_VOID || _HAS_DEPRECATED_ALLOCATOR_MEMBERS
 template <>
-class allocator<void> {
+class 分配器<void> {
 public:
     using value_type = void;
 #if _HAS_DEPRECATED_ALLOCATOR_MEMBERS
@@ -1036,7 +1038,7 @@ public:
 
     template <class _Other>
     struct _CXX17_DEPRECATE_OLD_ALLOCATOR_MEMBERS rebind {
-        using other = allocator<_Other>;
+        using other = 分配器<_Other>;
     };
 #endif // _HAS_DEPRECATED_ALLOCATOR_MEMBERS
 
@@ -1051,13 +1053,13 @@ public:
 #endif // _HAS_DEPRECATED_ALLOCATOR_VOID || _HAS_DEPRECATED_ALLOCATOR_MEMBERS
 
 _EXPORT_STD template <class _Ty, class _Other>
-_NODISCARD _CONSTEXPR20 bool operator==(const allocator<_Ty>&, const allocator<_Other>&) noexcept {
+_NODISCARD _CONSTEXPR20 bool operator==(const 分配器<_Ty>&, const 分配器<_Other>&) noexcept {
     return true;
 }
 
 #if !_HAS_CXX20
 template <class _Ty, class _Other>
-_NODISCARD bool operator!=(const allocator<_Ty>&, const allocator<_Other>&) noexcept {
+_NODISCARD bool operator!=(const 分配器<_Ty>&, const 分配器<_Other>&) noexcept {
     return false;
 }
 #endif // !_HAS_CXX20
@@ -1065,15 +1067,15 @@ _NODISCARD bool operator!=(const allocator<_Ty>&, const allocator<_Other>&) noex
 #if _HAS_CXX17
 // See N4950 [unord.map.overview]/4
 template <class _Alloc>
-using _Guide_size_type_t =
-    typename 分配器特征<conditional_t<_Is_allocator<_Alloc>::value, _Alloc, allocator<int>>>::size_type;
+using _推导尺寸类型 =
+    typename 分配器特征<conditional_t<_Is_allocator<_Alloc>::value, _Alloc, 分配器<int>>>::size_type;
 #endif // _HAS_CXX17
 
 template <class _Alloc>
-using _Alloc_ptr_t = typename 分配器特征<_Alloc>::pointer;
+using _分配器指针类型 = typename 分配器特征<_Alloc>::pointer;
 
 template <class _Alloc>
-using _Alloc_size_t = typename 分配器特征<_Alloc>::size_type;
+using _分配器尺寸类型 = typename 分配器特征<_Alloc>::size_type;
 
 template <class _Alloc>
 _CONSTEXPR20 void _Pocca(_Alloc& _Left, const _Alloc& _Right) noexcept {
@@ -1099,10 +1101,10 @@ _CONSTEXPR20 void _Pocs(_Alloc& _Left, _Alloc& _Right) noexcept {
 }
 
 template <class _Alloc>
-_CONSTEXPR20 void _Destroy_range(_Alloc_ptr_t<_Alloc> _First, const _Alloc_ptr_t<_Alloc> _Last, _Alloc& _Al) noexcept {
+_CONSTEXPR20 void _Destroy_range(_分配器指针类型<_Alloc> _First, const _分配器指针类型<_Alloc> _Last, _Alloc& _Al) noexcept {
     // note that this is an optimization for debug mode codegen; in release mode the BE removes all of this
     using _Ty = typename _Alloc::value_type;
-    if constexpr (!conjunction_v<is_trivially_destructible<_Ty>, _Uses_default_destroy<_Alloc, _Ty*>>) {
+    if constexpr (!conjunction_v<is_trivially_destructible<_Ty>, _用默认析构<_Alloc, _Ty*>>) {
         for (; _First != _Last; ++_First) {
             分配器特征<_Alloc>::destroy(_Al, _Unfancy(_First));
         }
@@ -1137,12 +1139,12 @@ _NODISCARD constexpr _Size_type _Convert_size(const _Unsigned_type _Len)
 
 template <class _Alloc>
 _CONSTEXPR20 void _Deallocate_plain(_Alloc& _Al, typename _Alloc::value_type* const _Ptr) noexcept {
-    // deallocate a plain pointer using an allocator
+    // deallocate a plain pointer using an 分配器
     using _Alloc_traits = 分配器特征<_Alloc>;
-    if constexpr (is_same_v<_Alloc_ptr_t<_Alloc>, typename _Alloc::value_type*>) {
+    if constexpr (is_same_v<_分配器指针类型<_Alloc>, typename _Alloc::value_type*>) {
         _Alloc_traits::deallocate(_Al, _Ptr, 1);
     } else {
-        using _Ptr_traits = pointer_traits<_Alloc_ptr_t<_Alloc>>;
+        using _Ptr_traits = pointer_traits<_分配器指针类型<_Alloc>>;
         _Alloc_traits::deallocate(_Al, _Ptr_traits::pointer_to(*_Ptr), 1);
     }
 }
@@ -1156,12 +1158,12 @@ _CONSTEXPR20 void _Delete_plain_internal(_Alloc& _Al, typename _Alloc::value_typ
 }
 
 template <class _Alloc>
-struct _Alloc_construct_ptr { // pointer used to help construct 1 _Alloc::value_type without EH
-    using pointer = _Alloc_ptr_t<_Alloc>;
+struct _分配器构造指针 { // pointer used to help construct 1 _Alloc::value_type without EH
+    using pointer = _分配器指针类型<_Alloc>;
     _Alloc& _Al;
     pointer _Ptr;
 
-    _CONSTEXPR20 explicit _Alloc_construct_ptr(_Alloc& _Al_) : _Al(_Al_), _Ptr(nullptr) {}
+    _CONSTEXPR20 explicit _分配器构造指针(_Alloc& _Al_) : _Al(_Al_), _Ptr(nullptr) {}
 
     _NODISCARD _CONSTEXPR20 pointer _Release() noexcept { // disengage *this and return contained pointer
         return _STD exchange(_Ptr, nullptr);
@@ -1172,23 +1174,23 @@ struct _Alloc_construct_ptr { // pointer used to help construct 1 _Alloc::value_
         _Ptr = _Al.allocate(1);
     }
 
-    _CONSTEXPR20 ~_Alloc_construct_ptr() { // if this instance is engaged, deallocate storage
+    _CONSTEXPR20 ~_分配器构造指针() { // if this instance is engaged, deallocate storage
         if (_Ptr) {
             _Al.deallocate(_Ptr, 1);
         }
     }
 
-    _Alloc_construct_ptr(const _Alloc_construct_ptr&)            = delete;
-    _Alloc_construct_ptr& operator=(const _Alloc_construct_ptr&) = delete;
+    _分配器构造指针(const _分配器构造指针&)            = delete;
+    _分配器构造指针& operator=(const _分配器构造指针&) = delete;
 };
 
-struct _Fake_allocator {};
+struct _假分配器 {};
 
 struct _容器基类0 {
     _CONSTEXPR20 void _Orphan_all() noexcept {}
     _CONSTEXPR20 void _Swap_proxy_and_iterators(_容器基类0&) noexcept {}
-    _CONSTEXPR20 void _Alloc_proxy(const _Fake_allocator&) noexcept {}
-    _CONSTEXPR20 void _Reload_proxy(const _Fake_allocator&, const _Fake_allocator&) noexcept {}
+    _CONSTEXPR20 void _Alloc_proxy(const _假分配器&) noexcept {}
+    _CONSTEXPR20 void _Reload_proxy(const _假分配器&, const _假分配器&) noexcept {}
 };
 
 struct _迭代器基类0 {
@@ -1200,28 +1202,28 @@ struct _迭代器基类0 {
     static constexpr bool _Unwrap_when_unverified = true;
 };
 
-struct _Container_base12;
-struct _Container_proxy { // store head of iterator chain and back pointer
-    _CONSTEXPR20 _Container_proxy() noexcept = default;
-    _CONSTEXPR20 _Container_proxy(_Container_base12* _Mycont_) noexcept : _Mycont(_Mycont_) {}
+struct _容器基类12;
+struct _容器代理 { // store head of iterator chain and back pointer
+    _CONSTEXPR20 _容器代理() noexcept = default;
+    _CONSTEXPR20 _容器代理(_容器基类12* _Mycont_) noexcept : _Mycont(_Mycont_) {}
 
-    const _Container_base12* _Mycont       = nullptr;
-    mutable _Iterator_base12* _Myfirstiter = nullptr;
+    const _容器基类12* _Mycont       = nullptr;
+    mutable _迭代器基类12* _Myfirstiter = nullptr;
 };
 
-struct _Container_base12 {
+struct _容器基类12 {
 public:
-    _CONSTEXPR20 _Container_base12() noexcept = default;
+    _CONSTEXPR20 _容器基类12() noexcept = default;
 
-    _Container_base12(const _Container_base12&)            = delete;
-    _Container_base12& operator=(const _Container_base12&) = delete;
+    _容器基类12(const _容器基类12&)            = delete;
+    _容器基类12& operator=(const _容器基类12&) = delete;
 
     _CONSTEXPR20 void _Orphan_all() noexcept;
-    _CONSTEXPR20 void _Swap_proxy_and_iterators(_Container_base12&) noexcept;
+    _CONSTEXPR20 void _Swap_proxy_and_iterators(_容器基类12&) noexcept;
 
     template <class _Alloc>
     _CONSTEXPR20 void _Alloc_proxy(_Alloc&& _Al) {
-        _Container_proxy* const _New_proxy = _Unfancy(_Al.allocate(1));
+        _容器代理* const _New_proxy = _Unfancy(_Al.allocate(1));
         _Construct_in_place(*_New_proxy, this);
         _Myproxy            = _New_proxy;
         _New_proxy->_Mycont = this;
@@ -1230,38 +1232,38 @@ public:
     template <class _Alloc>
     _CONSTEXPR20 void _Reload_proxy(_Alloc&& _Old_alloc, _Alloc&& _New_alloc) {
         // pre: no iterators refer to the existing proxy
-        _Container_proxy* const _New_proxy = _Unfancy(_New_alloc.allocate(1));
+        _容器代理* const _New_proxy = _Unfancy(_New_alloc.allocate(1));
         _Construct_in_place(*_New_proxy, this);
         _New_proxy->_Mycont = this;
         _Delete_plain_internal(_Old_alloc, _STD exchange(_Myproxy, _New_proxy));
     }
 
-    _Container_proxy* _Myproxy = nullptr;
+    _容器代理* _Myproxy = nullptr;
 
 private:
     _CONSTEXPR20 void _Orphan_all_unlocked_v3() noexcept;
-    _CONSTEXPR20 void _Swap_proxy_and_iterators_unlocked(_Container_base12&) noexcept;
+    _CONSTEXPR20 void _Swap_proxy_and_iterators_unlocked(_容器基类12&) noexcept;
 
     void _Orphan_all_locked_v3() noexcept {
         _Lockit _Lock(_LOCK_DEBUG);
         _Orphan_all_unlocked_v3();
     }
 
-    void _Swap_proxy_and_iterators_locked(_Container_base12& _Right) noexcept {
+    void _Swap_proxy_and_iterators_locked(_容器基类12& _Right) noexcept {
         _Lockit _Lock(_LOCK_DEBUG);
         _Swap_proxy_and_iterators_unlocked(_Right);
     }
 };
 
-struct _Iterator_base12 { // store links to container proxy, next iterator
+struct _迭代器基类12 { // store links to container proxy, next iterator
 public:
-    _CONSTEXPR20 _Iterator_base12() noexcept = default; // construct orphaned iterator
+    _CONSTEXPR20 _迭代器基类12() noexcept = default; // construct orphaned iterator
 
-    _CONSTEXPR20 _Iterator_base12(const _Iterator_base12& _Right) noexcept {
+    _CONSTEXPR20 _迭代器基类12(const _迭代器基类12& _Right) noexcept {
         *this = _Right;
     }
 
-    _CONSTEXPR20 _Iterator_base12& operator=(const _Iterator_base12& _Right) noexcept {
+    _CONSTEXPR20 _迭代器基类12& operator=(const _迭代器基类12& _Right) noexcept {
 #if _ITERATOR_DEBUG_LEVEL == 2
 #if _HAS_CXX20
         if (_STD is_constant_evaluated()) {
@@ -1278,7 +1280,7 @@ public:
     }
 
 #if _ITERATOR_DEBUG_LEVEL == 2
-    _CONSTEXPR20 ~_Iterator_base12() noexcept {
+    _CONSTEXPR20 ~_迭代器基类12() noexcept {
 #if _HAS_CXX20
         if (_STD is_constant_evaluated()) {
             _Orphan_me_unlocked_v3();
@@ -1289,7 +1291,7 @@ public:
         }
     }
 
-    _CONSTEXPR20 void _Adopt(const _Container_base12* _Parent) noexcept {
+    _CONSTEXPR20 void _Adopt(const _容器基类12* _Parent) noexcept {
 #if _HAS_CXX20
         if (_STD is_constant_evaluated()) {
             _Adopt_unlocked(_Parent);
@@ -1300,7 +1302,7 @@ public:
         }
     }
 #else // ^^^ _ITERATOR_DEBUG_LEVEL == 2 / _ITERATOR_DEBUG_LEVEL != 2 vvv
-    _CONSTEXPR20 void _Adopt(const _Container_base12* _Parent) noexcept {
+    _CONSTEXPR20 void _Adopt(const _容器基类12* _Parent) noexcept {
         if (_Parent) { // have a parent, do adoption
             _Myproxy = _Parent->_Myproxy;
         } else { // no future parent, just disown current parent
@@ -1309,18 +1311,18 @@ public:
     }
 #endif // ^^^ _ITERATOR_DEBUG_LEVEL != 2 ^^^
 
-    _CONSTEXPR20 const _Container_base12* _Getcont() const noexcept {
+    _CONSTEXPR20 const _容器基类12* _Getcont() const noexcept {
         return _Myproxy ? _Myproxy->_Mycont : nullptr;
     }
 
     static constexpr bool _Unwrap_when_unverified = _ITERATOR_DEBUG_LEVEL == 0;
 
-    mutable _Container_proxy* _Myproxy    = nullptr;
-    mutable _Iterator_base12* _Mynextiter = nullptr;
+    mutable _容器代理* _Myproxy    = nullptr;
+    mutable _迭代器基类12* _Mynextiter = nullptr;
 
 #if _ITERATOR_DEBUG_LEVEL == 2
 private:
-    _CONSTEXPR20 void _Assign_unlocked(const _Iterator_base12& _Right) noexcept {
+    _CONSTEXPR20 void _Assign_unlocked(const _迭代器基类12& _Right) noexcept {
         if (_Myproxy == _Right._Myproxy) {
             return;
         }
@@ -1332,18 +1334,18 @@ private:
         }
     }
 
-    void _Assign_locked(const _Iterator_base12& _Right) noexcept {
+    void _Assign_locked(const _迭代器基类12& _Right) noexcept {
         _Lockit _Lock(_LOCK_DEBUG);
         _Assign_unlocked(_Right);
     }
 
-    _CONSTEXPR20 void _Adopt_unlocked(const _Container_base12* _Parent) noexcept {
+    _CONSTEXPR20 void _Adopt_unlocked(const _容器基类12* _Parent) noexcept {
         if (!_Parent) {
             _Orphan_me_unlocked_v3();
             return;
         }
 
-        _Container_proxy* _Parent_proxy = _Parent->_Myproxy;
+        _容器代理* _Parent_proxy = _Parent->_Myproxy;
         if (_Myproxy != _Parent_proxy) { // change parentage
             if (_Myproxy) { // adopted, remove self from list
                 _Orphan_me_unlocked_v3();
@@ -1354,7 +1356,7 @@ private:
         }
     }
 
-    void _Adopt_locked(const _Container_base12* _Parent) noexcept {
+    void _Adopt_locked(const _容器基类12* _Parent) noexcept {
         _Lockit _Lock(_LOCK_DEBUG);
         _Adopt_unlocked(_Parent);
     }
@@ -1365,7 +1367,7 @@ private:
         }
 
         // adopted, remove self from list
-        _Iterator_base12** _Pnext = &_Myproxy->_Myfirstiter;
+        _迭代器基类12** _Pnext = &_Myproxy->_Myfirstiter;
         while (*_Pnext && *_Pnext != this) {
             _Pnext = &(*_Pnext)->_Mynextiter;
         }
@@ -1382,7 +1384,7 @@ private:
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 };
 
-_CONSTEXPR20 void _Container_base12::_Orphan_all_unlocked_v3() noexcept {
+_CONSTEXPR20 void _容器基类12::_Orphan_all_unlocked_v3() noexcept {
     if (!_Myproxy) { // no proxy, already done
         return;
     }
@@ -1393,7 +1395,7 @@ _CONSTEXPR20 void _Container_base12::_Orphan_all_unlocked_v3() noexcept {
     }
 }
 
-_CONSTEXPR20 void _Container_base12::_Orphan_all() noexcept {
+_CONSTEXPR20 void _容器基类12::_Orphan_all() noexcept {
 #if _ITERATOR_DEBUG_LEVEL == 2
 #if _HAS_CXX20
     if (_STD is_constant_evaluated()) {
@@ -1406,8 +1408,8 @@ _CONSTEXPR20 void _Container_base12::_Orphan_all() noexcept {
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 }
 
-_CONSTEXPR20 void _Container_base12::_Swap_proxy_and_iterators_unlocked(_Container_base12& _Right) noexcept {
-    _Container_proxy* _Temp = _Myproxy;
+_CONSTEXPR20 void _容器基类12::_Swap_proxy_and_iterators_unlocked(_容器基类12& _Right) noexcept {
+    _容器代理* _Temp = _Myproxy;
     _Myproxy                = _Right._Myproxy;
     _Right._Myproxy         = _Temp;
 
@@ -1420,7 +1422,7 @@ _CONSTEXPR20 void _Container_base12::_Swap_proxy_and_iterators_unlocked(_Contain
     }
 }
 
-_CONSTEXPR20 void _Container_base12::_Swap_proxy_and_iterators(_Container_base12& _Right) noexcept {
+_CONSTEXPR20 void _容器基类12::_Swap_proxy_and_iterators(_容器基类12& _Right) noexcept {
 #if _ITERATOR_DEBUG_LEVEL == 2
 #if _HAS_CXX20
     if (_STD is_constant_evaluated()) {
@@ -1439,64 +1441,64 @@ _CONSTEXPR20 void _Container_base12::_Swap_proxy_and_iterators(_Container_base12
 using _容器基类 = _容器基类0;
 using _迭代器基类  = _迭代器基类0;
 #else // ^^^ _ITERATOR_DEBUG_LEVEL == 0 / _ITERATOR_DEBUG_LEVEL > 0 vvv
-using _容器基类 = _Container_base12;
-using _迭代器基类  = _Iterator_base12;
+using _容器基类 = _容器基类12;
+using _迭代器基类  = _迭代器基类12;
 #endif // ^^^ _ITERATOR_DEBUG_LEVEL > 0 ^^^
 
-struct _Leave_proxy_unbound {
-    explicit _Leave_proxy_unbound() = default;
-}; // tag to indicate that a proxy is being allocated before it is safe to bind to a _Container_base12
+struct _离开代理未绑定 {
+    explicit _离开代理未绑定() = default;
+}; // tag to indicate that a proxy is being allocated before it is safe to bind to a _容器基类12
 
-struct _Fake_proxy_ptr_impl { // fake replacement for a container proxy smart pointer when no container proxy is in use
-    _Fake_proxy_ptr_impl(const _Fake_proxy_ptr_impl&)            = delete;
-    _Fake_proxy_ptr_impl& operator=(const _Fake_proxy_ptr_impl&) = delete;
-    _CONSTEXPR20 _Fake_proxy_ptr_impl(const _Fake_allocator&, _Leave_proxy_unbound) noexcept {}
-    _CONSTEXPR20 _Fake_proxy_ptr_impl(const _Fake_allocator&, const _容器基类0&) noexcept {}
+struct _假代理指针实现 { // fake replacement for a container proxy smart pointer when no container proxy is in use
+    _假代理指针实现(const _假代理指针实现&)            = delete;
+    _假代理指针实现& operator=(const _假代理指针实现&) = delete;
+    _CONSTEXPR20 _假代理指针实现(const _假分配器&, _离开代理未绑定) noexcept {}
+    _CONSTEXPR20 _假代理指针实现(const _假分配器&, const _容器基类0&) noexcept {}
 
-    _CONSTEXPR20 void _Bind(const _Fake_allocator&, _容器基类0*) noexcept {}
+    _CONSTEXPR20 void _Bind(const _假分配器&, _容器基类0*) noexcept {}
     _CONSTEXPR20 void _Release() noexcept {}
 };
 
-struct _Basic_container_proxy_ptr12 {
-    // smart pointer components for a _Container_proxy * that don't depend on the allocator
-    _Container_proxy* _Ptr = nullptr;
+struct _基本容器代理指针12 {
+    // smart pointer components for a _容器代理 * that don't depend on the 分配器
+    _容器代理* _Ptr = nullptr;
 
-    constexpr void _Release() noexcept { // disengage this _Basic_container_proxy_ptr12
+    constexpr void _Release() noexcept { // disengage this _基本容器代理指针12
         _Ptr = nullptr;
     }
 
 protected:
-    _CONSTEXPR20 _Basic_container_proxy_ptr12()                       = default;
-    _Basic_container_proxy_ptr12(const _Basic_container_proxy_ptr12&) = delete;
-    _Basic_container_proxy_ptr12(_Basic_container_proxy_ptr12&&)      = delete;
+    _CONSTEXPR20 _基本容器代理指针12()                       = default;
+    _基本容器代理指针12(const _基本容器代理指针12&) = delete;
+    _基本容器代理指针12(_基本容器代理指针12&&)      = delete;
 };
 
 template <class _Alloc>
-struct _Container_proxy_ptr12 : _Basic_container_proxy_ptr12 {
-    // smart pointer components for a _Container_proxy * for an allocator family
+struct _容器代理指针12 : _基本容器代理指针12 {
+    // smart pointer components for a _容器代理 * for an 分配器 family
     _Alloc& _Al;
 
-    _CONSTEXPR20 _Container_proxy_ptr12(_Alloc& _Al_, _Leave_proxy_unbound) : _Al(_Al_) {
-        // create a new unbound _Container_proxy
+    _CONSTEXPR20 _容器代理指针12(_Alloc& _Al_, _离开代理未绑定) : _Al(_Al_) {
+        // create a new unbound _容器代理
         _Ptr = _Unfancy(_Al_.allocate(1));
         _Construct_in_place(*_Ptr);
     }
 
-    _CONSTEXPR20 _Container_proxy_ptr12(_Alloc& _Al_, _Container_base12& _Mycont) : _Al(_Al_) {
-        // create a new _Container_proxy pointing at _Mycont
+    _CONSTEXPR20 _容器代理指针12(_Alloc& _Al_, _容器基类12& _Mycont) : _Al(_Al_) {
+        // create a new _容器代理 pointing at _Mycont
         _Ptr = _Unfancy(_Al_.allocate(1));
         _Construct_in_place(*_Ptr, _STD addressof(_Mycont));
         _Mycont._Myproxy = _Ptr;
     }
 
-    _CONSTEXPR20 void _Bind(_Alloc& _Old_alloc, _Container_base12* _Mycont) noexcept {
+    _CONSTEXPR20 void _Bind(_Alloc& _Old_alloc, _容器基类12* _Mycont) noexcept {
         // Attach the proxy stored in *this to _Mycont, and destroy _Mycont's existing proxy
         // with _Old_alloc. Requires that no iterators are alive referring to _Mycont.
         _Ptr->_Mycont = _Mycont;
         _Delete_plain_internal(_Old_alloc, _STD exchange(_Mycont->_Myproxy, _STD exchange(_Ptr, nullptr)));
     }
 
-    _CONSTEXPR20 ~_Container_proxy_ptr12() {
+    _CONSTEXPR20 ~_容器代理指针12() {
         if (_Ptr) {
             _Delete_plain_internal(_Al, _Ptr);
         }
@@ -1504,22 +1506,22 @@ struct _Container_proxy_ptr12 : _Basic_container_proxy_ptr12 {
 };
 
 #if _ITERATOR_DEBUG_LEVEL == 0
-#define _GET_PROXY_ALLOCATOR(_Alty, _Al) \
-    _Fake_allocator {}
+#define _取代理分配器(_Alty, _Al) \
+    _假分配器 {}
 template <class _Alloc>
-using _Container_proxy_ptr = _Fake_proxy_ptr_impl;
+using _容器代理指针 = _假代理指针实现;
 #else // ^^^ _ITERATOR_DEBUG_LEVEL == 0 / _ITERATOR_DEBUG_LEVEL > 0 vvv
-#define _GET_PROXY_ALLOCATOR(_Alty, _Al) static_cast<_Rebind_alloc_t<_Alty, _Container_proxy>>(_Al)
+#define _取代理分配器(_Alty, _Al) static_cast<_重绑定分配器类型<_Alty, _容器代理>>(_Al)
 template <class _Alloc>
-using _Container_proxy_ptr = _Container_proxy_ptr12<_Rebind_alloc_t<_Alloc, _Container_proxy>>;
+using _容器代理指针 = _容器代理指针12<_重绑定分配器类型<_Alloc, _容器代理>>;
 #endif // ^^^ _ITERATOR_DEBUG_LEVEL > 0 ^^^
 
-struct _Zero_then_variadic_args_t {
-    explicit _Zero_then_variadic_args_t() = default;
+struct _先零后变参实参 {
+    explicit _先零后变参实参() = default;
 }; // tag type for value-initializing first, constructing second from remaining args
 
-struct _One_then_variadic_args_t {
-    explicit _One_then_variadic_args_t() = default;
+struct _先一后变参实参 {
+    explicit _先一后变参实参() = default;
 }; // tag type for constructing first from one arg, constructing second from remaining args
 
 template <class _Ty1, class _Ty2, bool = is_empty_v<_Ty1> && !is_final_v<_Ty1>>
@@ -1530,12 +1532,12 @@ public:
     using _我的基类 = _Ty1; // for visualization
 
     template <class... _Other2>
-    constexpr explicit _压缩对(_Zero_then_variadic_args_t, _Other2&&... _Val2)
+    constexpr explicit _压缩对(_先零后变参实参, _Other2&&... _Val2)
         noexcept(conjunction_v<is_nothrow_default_constructible<_Ty1>, is_nothrow_constructible<_Ty2, _Other2...>>)
         : _Ty1(), _Myval2(_STD forward<_Other2>(_Val2)...) {}
 
     template <class _Other1, class... _Other2>
-    constexpr _压缩对(_One_then_variadic_args_t, _Other1&& _Val1, _Other2&&... _Val2)
+    constexpr _压缩对(_先一后变参实参, _Other1&& _Val1, _Other2&&... _Val2)
         noexcept(conjunction_v<is_nothrow_constructible<_Ty1, _Other1>, is_nothrow_constructible<_Ty2, _Other2...>>)
         : _Ty1(_STD forward<_Other1>(_Val1)), _Myval2(_STD forward<_Other2>(_Val2)...) {}
 
@@ -1555,12 +1557,12 @@ public:
     _Ty2 _Myval2;
 
     template <class... _Other2>
-    constexpr explicit _压缩对(_Zero_then_variadic_args_t, _Other2&&... _Val2)
+    constexpr explicit _压缩对(_先零后变参实参, _Other2&&... _Val2)
         noexcept(conjunction_v<is_nothrow_default_constructible<_Ty1>, is_nothrow_constructible<_Ty2, _Other2...>>)
         : _Myval1(), _Myval2(_STD forward<_Other2>(_Val2)...) {}
 
     template <class _Other1, class... _Other2>
-    constexpr _压缩对(_One_then_variadic_args_t, _Other1&& _Val1, _Other2&&... _Val2)
+    constexpr _压缩对(_先一后变参实参, _Other1&& _Val1, _Other2&&... _Val2)
         noexcept(conjunction_v<is_nothrow_constructible<_Ty1, _Other1>, is_nothrow_constructible<_Ty2, _Other2...>>)
         : _Myval1(_STD forward<_Other1>(_Val1)), _Myval2(_STD forward<_Other2>(_Val2)...) {}
 
@@ -1616,19 +1618,19 @@ void _Construct_in_place_by_deref(_Ty& _Val, _InIt& _Iter)
 }
 
 template <class _NoThrowFwdIt>
-struct _NODISCARD _Uninitialized_backout {
+struct _NODISCARD _未初始化回退 {
     // struct to undo partially constructed ranges in _Uninitialized_xxx algorithms
     _NoThrowFwdIt _First;
     _NoThrowFwdIt _Last;
 
-    constexpr explicit _Uninitialized_backout(_NoThrowFwdIt _Dest) : _First(_Dest), _Last(_Dest) {}
+    constexpr explicit _未初始化回退(_NoThrowFwdIt _Dest) : _First(_Dest), _Last(_Dest) {}
 
-    constexpr _Uninitialized_backout(_NoThrowFwdIt _First_, _NoThrowFwdIt _Last_) : _First(_First_), _Last(_Last_) {}
+    constexpr _未初始化回退(_NoThrowFwdIt _First_, _NoThrowFwdIt _Last_) : _First(_First_), _Last(_Last_) {}
 
-    _Uninitialized_backout(const _Uninitialized_backout&)            = delete;
-    _Uninitialized_backout& operator=(const _Uninitialized_backout&) = delete;
+    _未初始化回退(const _未初始化回退&)            = delete;
+    _未初始化回退& operator=(const _未初始化回退&) = delete;
 
-    _CONSTEXPR20 ~_Uninitialized_backout() {
+    _CONSTEXPR20 ~_未初始化回退() {
         _Destroy_range(_First, _Last);
     }
 
@@ -1675,7 +1677,7 @@ _NoThrowFwdIt _Uninitialized_move_unchecked(_InIt _First, const _InIt _Last, _No
             return _Copy_memmove(_First, _Last, _Dest);
         }
     }
-    _Uninitialized_backout<_NoThrowFwdIt> _Backout{_Dest};
+    _未初始化回退<_NoThrowFwdIt> _Backout{_Dest};
     for (; _First != _Last; ++_First) {
         _Backout._Emplace_back_deref_move(_First);
     }
@@ -1816,7 +1818,7 @@ namespace ranges {
                 _STL_ASSERT(false, "Tried to std::uninitialized_move() two ranges with unreachable sentinels");
             }
 
-            _Uninitialized_backout _Backout{_STD move(_OFirst)};
+            _未初始化回退 _Backout{_STD move(_OFirst)};
 
             for (; _IFirst != _ILast && _Backout._Last != _OLast; ++_IFirst) {
                 _Backout._Emplace_back(_RANGES iter_move(_IFirst));
@@ -1829,18 +1831,18 @@ namespace ranges {
 #endif // _HAS_CXX20
 
 template <class _Alloc>
-class _NODISCARD _Uninitialized_backout_al {
+class _NODISCARD _未初始化回退分配器版 {
     // struct to undo partially constructed ranges in _Uninitialized_xxx_al algorithms
 private:
-    using pointer = _Alloc_ptr_t<_Alloc>;
+    using pointer = _分配器指针类型<_Alloc>;
 
 public:
-    _CONSTEXPR20 _Uninitialized_backout_al(pointer _Dest, _Alloc& _Al_) : _First(_Dest), _Last(_Dest), _Al(_Al_) {}
+    _CONSTEXPR20 _未初始化回退分配器版(pointer _Dest, _Alloc& _Al_) : _First(_Dest), _Last(_Dest), _Al(_Al_) {}
 
-    _Uninitialized_backout_al(const _Uninitialized_backout_al&)            = delete;
-    _Uninitialized_backout_al& operator=(const _Uninitialized_backout_al&) = delete;
+    _未初始化回退分配器版(const _未初始化回退分配器版&)            = delete;
+    _未初始化回退分配器版& operator=(const _未初始化回退分配器版&) = delete;
 
-    _CONSTEXPR20 ~_Uninitialized_backout_al() {
+    _CONSTEXPR20 ~_未初始化回退分配器版() {
         _Destroy_range(_First, _Last, _Al);
     }
 
@@ -1862,8 +1864,8 @@ private:
 };
 
 template <class _InIt, class _Se, class _Alloc>
-_CONSTEXPR20 _Alloc_ptr_t<_Alloc> _Uninitialized_copy(
-    _InIt _First, _Se _Last, _Alloc_ptr_t<_Alloc> _Dest, _Alloc& _Al) {
+_CONSTEXPR20 _分配器指针类型<_Alloc> _Uninitialized_copy(
+    _InIt _First, _Se _Last, _分配器指针类型<_Alloc> _Dest, _Alloc& _Al) {
     // copy [_First, _Last) to raw _Dest, using _Al
     // note: only called internally from elsewhere in the STL
     using _Ptrval = typename _Alloc::value_type*;
@@ -1883,7 +1885,7 @@ _CONSTEXPR20 _Alloc_ptr_t<_Alloc> _Uninitialized_copy(
 #endif // ^^^ !_HAS_CXX20 ^^^
 
     constexpr bool _Can_memmove = _Sent_copy_cat<decltype(_UFirst), decltype(_ULast), _Ptrval>::_Bitcopy_constructible
-                               && _Uses_default_construct<_Alloc, _Ptrval, decltype(*_UFirst)>::value;
+                               && _用默认构造<_Alloc, _Ptrval, decltype(*_UFirst)>::value;
 
     if constexpr (_Can_memmove) {
 #if _HAS_CXX20
@@ -1902,7 +1904,7 @@ _CONSTEXPR20 _Alloc_ptr_t<_Alloc> _Uninitialized_copy(
         }
     }
 
-    _Uninitialized_backout_al<_Alloc> _Backout{_Dest, _Al};
+    _未初始化回退分配器版<_Alloc> _Backout{_Dest, _Al};
     for (; _UFirst != _ULast; ++_UFirst) {
         _Backout._Emplace_back(*_UFirst);
     }
@@ -1911,8 +1913,8 @@ _CONSTEXPR20 _Alloc_ptr_t<_Alloc> _Uninitialized_copy(
 }
 
 template <class _InIt, class _Alloc>
-_CONSTEXPR20 _Alloc_ptr_t<_Alloc> _Uninitialized_copy_n(
-    _InIt _First, size_t _Count, _Alloc_ptr_t<_Alloc> _Dest, _Alloc& _Al) {
+_CONSTEXPR20 _分配器指针类型<_Alloc> _Uninitialized_copy_n(
+    _InIt _First, size_t _Count, _分配器指针类型<_Alloc> _Dest, _Alloc& _Al) {
     // copy _First + [0, _Count) to raw _Dest, using _Al
     // note: only called internally from elsewhere in the STL
     using _Ptrval = typename _Alloc::value_type*;
@@ -1925,7 +1927,7 @@ _CONSTEXPR20 _Alloc_ptr_t<_Alloc> _Uninitialized_copy_n(
 
     constexpr bool _Can_memmove =
         conjunction_v<bool_constant<_Iter_copy_cat<decltype(_UFirst), _Ptrval>::_Bitcopy_constructible>,
-            _Uses_default_construct<_Alloc, _Ptrval, decltype(*_UFirst)>>;
+            _用默认构造<_Alloc, _Ptrval, decltype(*_UFirst)>>;
 
     if constexpr (_Can_memmove) {
 #if _HAS_CXX20
@@ -1938,7 +1940,7 @@ _CONSTEXPR20 _Alloc_ptr_t<_Alloc> _Uninitialized_copy_n(
         }
     }
 
-    _Uninitialized_backout_al<_Alloc> _Backout{_Dest, _Al};
+    _未初始化回退分配器版<_Alloc> _Backout{_Dest, _Al};
     for (; _Count != 0; ++_UFirst, (void) --_Count) {
         _Backout._Emplace_back(*_UFirst);
     }
@@ -1958,7 +1960,7 @@ _NoThrowFwdIt _Uninitialized_copy_unchecked(_InIt _First, const _InIt _Last, _No
         }
     }
 
-    _Uninitialized_backout<_NoThrowFwdIt> _Backout{_Dest};
+    _未初始化回退<_NoThrowFwdIt> _Backout{_Dest};
     for (; _First != _Last; ++_First) {
         _Backout._Emplace_back_deref(_First);
     }
@@ -1978,8 +1980,8 @@ _NoThrowFwdIt uninitialized_copy(const _InIt _First, const _InIt _Last, _NoThrow
 }
 
 template <class _InIt, class _Alloc>
-_CONSTEXPR20 _Alloc_ptr_t<_Alloc> _Uninitialized_move(
-    const _InIt _First, const _InIt _Last, _Alloc_ptr_t<_Alloc> _Dest, _Alloc& _Al) {
+_CONSTEXPR20 _分配器指针类型<_Alloc> _Uninitialized_move(
+    const _InIt _First, const _InIt _Last, _分配器指针类型<_Alloc> _Dest, _Alloc& _Al) {
     // move [_First, _Last) to raw _Dest, using _Al
     // note: only called internally from elsewhere in the STL
 #ifdef _ENABLE_STL_INTERNAL_CHECK
@@ -1989,7 +1991,7 @@ _CONSTEXPR20 _Alloc_ptr_t<_Alloc> _Uninitialized_move(
     auto _UFirst      = _Get_unwrapped(_First);
     const auto _ULast = _Get_unwrapped(_Last);
     if constexpr (conjunction_v<bool_constant<_Iter_move_cat<decltype(_UFirst), _Ptrval>::_Bitcopy_constructible>,
-                      _Uses_default_construct<_Alloc, _Ptrval, decltype(_STD move(*_UFirst))>>) {
+                      _用默认构造<_Alloc, _Ptrval, decltype(_STD move(*_UFirst))>>) {
 #if _HAS_CXX20
         if (!_STD is_constant_evaluated())
 #endif // _HAS_CXX20
@@ -1999,7 +2001,7 @@ _CONSTEXPR20 _Alloc_ptr_t<_Alloc> _Uninitialized_move(
         }
     }
 
-    _Uninitialized_backout_al<_Alloc> _Backout{_Dest, _Al};
+    _未初始化回退分配器版<_Alloc> _Backout{_Dest, _Al};
     for (; _UFirst != _ULast; ++_UFirst) {
         _Backout._Emplace_back(_STD move(*_UFirst));
     }
@@ -2008,11 +2010,11 @@ _CONSTEXPR20 _Alloc_ptr_t<_Alloc> _Uninitialized_move(
 }
 
 template <class _Alloc>
-_CONSTEXPR20 _Alloc_ptr_t<_Alloc> _Uninitialized_fill_n(
-    _Alloc_ptr_t<_Alloc> _First, _Alloc_size_t<_Alloc> _Count, const typename _Alloc::value_type& _Val, _Alloc& _Al) {
+_CONSTEXPR20 _分配器指针类型<_Alloc> _Uninitialized_fill_n(
+    _分配器指针类型<_Alloc> _First, _分配器尺寸类型<_Alloc> _Count, const typename _Alloc::value_type& _Val, _Alloc& _Al) {
     // copy _Count copies of _Val to raw _First, using _Al
     using _Ty = typename _Alloc::value_type;
-    if constexpr (_Fill_memset_is_safe<_Ty*, _Ty> && _Uses_default_construct<_Alloc, _Ty*, _Ty>::value) {
+    if constexpr (_Fill_memset_is_safe<_Ty*, _Ty> && _用默认构造<_Alloc, _Ty*, _Ty>::value) {
 #if _HAS_CXX20
         if (!_STD is_constant_evaluated())
 #endif // _HAS_CXX20
@@ -2020,7 +2022,7 @@ _CONSTEXPR20 _Alloc_ptr_t<_Alloc> _Uninitialized_fill_n(
             _Fill_memset(_Unfancy(_First), _Val, static_cast<size_t>(_Count));
             return _First + _Count;
         }
-    } else if constexpr (_Fill_zero_memset_is_safe<_Ty*, _Ty> && _Uses_default_construct<_Alloc, _Ty*, _Ty>::value) {
+    } else if constexpr (_Fill_zero_memset_is_safe<_Ty*, _Ty> && _用默认构造<_Alloc, _Ty*, _Ty>::value) {
 #if _HAS_CXX20
         if (!_STD is_constant_evaluated())
 #endif // _HAS_CXX20
@@ -2032,7 +2034,7 @@ _CONSTEXPR20 _Alloc_ptr_t<_Alloc> _Uninitialized_fill_n(
         }
     }
 
-    _Uninitialized_backout_al<_Alloc> _Backout{_First, _Al};
+    _未初始化回退分配器版<_Alloc> _Backout{_First, _Al};
     for (; 0 < _Count; --_Count) {
         _Backout._Emplace_back(_Val);
     }
@@ -2056,7 +2058,7 @@ void uninitialized_fill(const _NoThrowFwdIt _First, const _NoThrowFwdIt _Last, c
             }
         }
 
-        _Uninitialized_backout<_Unwrapped_t<const _NoThrowFwdIt&>> _Backout{_UFirst};
+        _未初始化回退<_Unwrapped_t<const _NoThrowFwdIt&>> _Backout{_UFirst};
         while (_Backout._Last != _ULast) {
             _Backout._Emplace_back(_Val);
         }
@@ -2079,11 +2081,11 @@ _Ptr _Zero_range(const _Ptr _First, const _Ptr _Last) { // fill [_First, _Last) 
 }
 
 template <class _Alloc>
-_CONSTEXPR20 _Alloc_ptr_t<_Alloc> _Uninitialized_value_construct_n(
-    _Alloc_ptr_t<_Alloc> _First, _Alloc_size_t<_Alloc> _Count, _Alloc& _Al) {
+_CONSTEXPR20 _分配器指针类型<_Alloc> _Uninitialized_value_construct_n(
+    _分配器指针类型<_Alloc> _First, _分配器尺寸类型<_Alloc> _Count, _Alloc& _Al) {
     // value-initialize _Count objects to raw _First, using _Al
     using _Ptrty = typename _Alloc::value_type*;
-    if constexpr (_Use_memset_value_construct_v<_Ptrty> && _Uses_default_construct<_Alloc, _Ptrty>::value) {
+    if constexpr (_Use_memset_value_construct_v<_Ptrty> && _用默认构造<_Alloc, _Ptrty>::value) {
 #if _HAS_CXX20
         if (!_STD is_constant_evaluated())
 #endif // _HAS_CXX20
@@ -2094,7 +2096,7 @@ _CONSTEXPR20 _Alloc_ptr_t<_Alloc> _Uninitialized_value_construct_n(
         }
     }
 
-    _Uninitialized_backout_al<_Alloc> _Backout{_First, _Al};
+    _未初始化回退分配器版<_Alloc> _Backout{_First, _Al};
     for (; 0 < _Count; --_Count) {
         _Backout._Emplace_back();
     }
@@ -2109,7 +2111,7 @@ _NoThrowFwdIt _Uninitialized_value_construct_n_unchecked1(_NoThrowFwdIt _UFirst,
     if constexpr (_Use_memset_value_construct_v<_NoThrowFwdIt>) {
         return _Zero_range(_UFirst, _UFirst + _Count);
     } else {
-        _Uninitialized_backout<_NoThrowFwdIt> _Backout{_UFirst};
+        _未初始化回退<_NoThrowFwdIt> _Backout{_UFirst};
         for (; 0 < _Count; --_Count) {
             _Backout._Emplace_back();
         }
@@ -2135,17 +2137,17 @@ _CXX17_DEPRECATE_TEMPORARY_BUFFER void return_temporary_buffer(_Ty* _Pbuf) {
 // the construction from a volatile glvalue, so generally we can't perform this optimization for them.
 // See N4993 [container.alloc.reqmts]/2.3, /2.4.
 template <class _Ty>
-using _Remove_const_ref_t = remove_const_t<remove_reference_t<_Ty>>;
+using _去常量引用类型 = remove_const_t<remove_reference_t<_Ty>>;
 
-// assumes _Args have already been _Remove_const_ref_t'd
+// assumes _Args have already been _去常量引用类型'd
 template <class _Key, class... _Args>
-struct _In_place_key_extract_set_impl {
+struct _就地键提取集合实现 {
     // by default we can't extract the key in the emplace family and must construct a node we might not use
     static constexpr bool _Extractable = false;
 };
 
 template <class _Key>
-struct _In_place_key_extract_set_impl<_Key, _Key> {
+struct _就地键提取集合实现<_Key, _Key> {
     // we can extract the key in emplace if the emplaced type is identical to the key type
     static constexpr bool _Extractable = true;
     static const _Key& _Extract(const _Key& _Val) noexcept {
@@ -2154,17 +2156,17 @@ struct _In_place_key_extract_set_impl<_Key, _Key> {
 };
 
 template <class... _Valtys>
-using _In_place_key_extract_set = _In_place_key_extract_set_impl<_Remove_const_ref_t<_Valtys>...>;
+using _就地键提取集合 = _就地键提取集合实现<_去常量引用类型<_Valtys>...>;
 
-// assumes _Args have already been _Remove_const_ref_t'd
+// assumes _Args have already been _去常量引用类型'd
 template <class _Key, class... _Args>
-struct _In_place_key_extract_map_impl {
+struct _就地键提取映射实现 {
     // by default we can't extract the key in the emplace family and must construct a node we might not use
     static constexpr bool _Extractable = false;
 };
 
 template <class _Key, class _Second>
-struct _In_place_key_extract_map_impl<_Key, _Key, _Second> {
+struct _就地键提取映射实现<_Key, _Key, _Second> {
     // if we would call the pair(key, value) constructor family, we can use the first parameter as the key
     static constexpr bool _Extractable = true;
     static const _Key& _Extract(const _Key& _Val, const _Second&) noexcept {
@@ -2173,9 +2175,9 @@ struct _In_place_key_extract_map_impl<_Key, _Key, _Second> {
 };
 
 template <class _Key, class _First, class _Second>
-struct _In_place_key_extract_map_impl<_Key, pair<_First, _Second>> {
+struct _就地键提取映射实现<_Key, pair<_First, _Second>> {
     // if we would call the pair(pair<other, other>) constructor family, we can use the pair.first member as the key
-    static constexpr bool _Extractable = is_same_v<_Key, _Remove_const_ref_t<_First>>;
+    static constexpr bool _Extractable = is_same_v<_Key, _去常量引用类型<_First>>;
     static const _Key& _Extract(const pair<_First, _Second>& _Val) noexcept {
         return _Val.first;
     }
@@ -2186,7 +2188,7 @@ struct _In_place_key_extract_map_impl<_Key, pair<_First, _Second>> {
 // we can use get<0>(pair-like) as the key
 
 template <class _Key, class _Elem>
-struct _In_place_key_extract_map_impl<_Key, array<_Elem, 2>> {
+struct _就地键提取映射实现<_Key, array<_Elem, 2>> {
     static constexpr bool _Extractable = is_same_v<_Key, remove_const_t<_Elem>>;
     static const _Key& _Extract(const array<_Elem, 2>& _Val) noexcept {
         return _Val[0];
@@ -2194,8 +2196,8 @@ struct _In_place_key_extract_map_impl<_Key, array<_Elem, 2>> {
 };
 
 template <class _Key, class _First, class _Second>
-struct _In_place_key_extract_map_impl<_Key, tuple<_First, _Second>> {
-    static constexpr bool _Extractable = is_same_v<_Key, _Remove_const_ref_t<_First>>;
+struct _就地键提取映射实现<_Key, tuple<_First, _Second>> {
+    static constexpr bool _Extractable = is_same_v<_Key, _去常量引用类型<_First>>;
     static const _Key& _Extract(const tuple<_First, _Second>& _Val) noexcept {
         return _STD get<0>(_Val);
     }
@@ -2203,10 +2205,10 @@ struct _In_place_key_extract_map_impl<_Key, tuple<_First, _Second>> {
 #endif // _HAS_CXX23
 
 template <class _Key, class _First, class... _RestTypes>
-struct _In_place_key_extract_map_impl<_Key, piecewise_construct_t, tuple<_First>, tuple<_RestTypes...>> {
+struct _就地键提取映射实现<_Key, piecewise_construct_t, tuple<_First>, tuple<_RestTypes...>> {
     // if we would call the piecewise_construct_t constructor and the first argument is a 1-tuple,
     // we can use get<0>(first_tuple) as the key
-    static constexpr bool _Extractable = is_same_v<_Key, _Remove_const_ref_t<_First>>;
+    static constexpr bool _Extractable = is_same_v<_Key, _去常量引用类型<_First>>;
     static const _Key& _Extract(
         const piecewise_construct_t&, const tuple<_First>& _Tup_val, const tuple<_RestTypes...>&) noexcept {
         return _STD get<0>(_Tup_val);
@@ -2214,18 +2216,18 @@ struct _In_place_key_extract_map_impl<_Key, piecewise_construct_t, tuple<_First>
 };
 
 template <class... _Valtys>
-using _In_place_key_extract_map = _In_place_key_extract_map_impl<_Remove_const_ref_t<_Valtys>...>;
+using _就地键提取映射 = _就地键提取映射实现<_去常量引用类型<_Valtys>...>;
 
 #pragma warning(push)
 #pragma warning(disable : 4624) // '%s': destructor was implicitly defined as deleted
 template <class _Ty>
-struct _Wrap {
+struct _包装 {
     _Ty _Value; // workaround for VSO-586813 "T^ is not allowed in a union"
 };
 #pragma warning(pop)
 
 template <class _Alloc>
-struct _Alloc_temporary2 {
+struct _分配器临时对象2 {
     using value_type = typename _Alloc::value_type;
     using _Traits    = 分配器特征<_Alloc>;
 
@@ -2233,7 +2235,7 @@ struct _Alloc_temporary2 {
 
 #ifdef __cplusplus_winrt
     union {
-        _Wrap<value_type> _Storage;
+        _包装<value_type> _Storage;
     };
 
     _NODISCARD _CONSTEXPR20 value_type& _Get_value() noexcept {
@@ -2258,16 +2260,16 @@ struct _Alloc_temporary2 {
 #endif // ^^^ no workaround ^^^
 
     template <class... _Args>
-    _CONSTEXPR20 explicit _Alloc_temporary2(_Alloc& _Al_, _Args&&... _Vals)
+    _CONSTEXPR20 explicit _分配器临时对象2(_Alloc& _Al_, _Args&&... _Vals)
         noexcept(noexcept(_Traits::construct(_Al_, _STD addressof(_Get_value()), _STD forward<_Args>(_Vals)...)))
         : _Al(_Al_) {
         _Traits::construct(_Al, _STD addressof(_Get_value()), _STD forward<_Args>(_Vals)...);
     }
 
-    _Alloc_temporary2(const _Alloc_temporary2&)            = delete;
-    _Alloc_temporary2& operator=(const _Alloc_temporary2&) = delete;
+    _分配器临时对象2(const _分配器临时对象2&)            = delete;
+    _分配器临时对象2& operator=(const _分配器临时对象2&) = delete;
 
-    _CONSTEXPR20 ~_Alloc_temporary2() {
+    _CONSTEXPR20 ~_分配器临时对象2() {
         _Traits::destroy(_Al, _STD addressof(_Get_value()));
     }
 };
@@ -2285,9 +2287,9 @@ _NODISCARD constexpr bool _Allocators_equal(const _Alloc& _Lhs, const _Alloc& _R
 template <class _Ty>
 constexpr bool _Has_member_from_primary = requires { typename _Ty::_From_primary; };
 
-// Avoid using allocate_at_least when the allocator publicly derives from std::allocator:
+// Avoid using allocate_at_least when the 分配器 publicly derives from std::分配器:
 // "old" allocators might hide allocate and deallocate but fail to hide allocate_at_least.
-// Also avoid using allocate_at_least from std::allocator itself because it currently doesn't do anything useful.
+// Also avoid using allocate_at_least from std::分配器 itself because it currently doesn't do anything useful.
 template <class _Alloc>
 constexpr bool _Should_allocate_at_least =
     !_Has_member_from_primary<_Alloc>
@@ -2429,13 +2431,13 @@ template <class _Ty>
 _Ty&& _Normally_bind(_Identity_t<_Ty&&>); // not defined
 
 template <class _Ty, class _Uty>
-using _Normally_bound_ref = decltype(_Normally_bind<_Ty>(_STD declval<_Uty>()));
+using _常规绑定引用 = decltype(_Normally_bind<_Ty>(_STD declval<_Uty>()));
 
 template <class _Ty, class _Uty, class = void>
 constexpr bool _Is_normally_bindable = false;
 
 template <class _Ty, class _Uty>
-constexpr bool _Is_normally_bindable<_Ty, _Uty, void_t<_Normally_bound_ref<_Ty, _Uty>>> = true;
+constexpr bool _Is_normally_bindable<_Ty, _Uty, void_t<_常规绑定引用<_Ty, _Uty>>> = true;
 
 #if _HAS_CXX20
 template <class _Ty>
@@ -2454,7 +2456,7 @@ _NODISCARD constexpr auto uses_allocator_construction_args(const _Alloc& _Al, _T
     if constexpr (!uses_allocator_v<remove_cv_t<_Ty>, _Alloc>) {
         static_assert(is_constructible_v<_Ty, _Types...>,
             "If uses_allocator_v<remove_cv_t<T>, Alloc> is false, "
-            "T must be constructible from (Types...). (N4981 [allocator.uses.construction]/5)");
+            "T must be constructible from (Types...). (N4981 [分配器.uses.construction]/5)");
         (void) _Al;
         return _STD forward_as_tuple(_STD forward<_Types>(_Args)...);
     } else if constexpr (is_constructible_v<_Ty, allocator_arg_t, const _Alloc&, _Types...>) {
@@ -2465,7 +2467,7 @@ _NODISCARD constexpr auto uses_allocator_construction_args(const _Alloc& _Al, _T
     } else {
         static_assert(false, "If uses_allocator_v<remove_cv_t<T>, Alloc> is true, "
                              "T must be constructible from either (allocator_arg_t, const Alloc&, Types...) "
-                             "or (Types..., const Alloc&). (N4981 [allocator.uses.construction]/5)");
+                             "or (Types..., const Alloc&). (N4981 [分配器.uses.construction]/5)");
     }
 }
 
@@ -2603,7 +2605,7 @@ _NODISCARD constexpr auto uses_allocator_construction_args(const _Alloc& _Al, _U
 
                 using _Pair_first_t   = _Pair_t::first_type;
                 using _Pair_second_t  = _Pair_t::second_type;
-                using _Pair_ref_t     = _Normally_bound_ref<_Pair_t, _Uty>;
+                using _Pair_ref_t     = _常规绑定引用<_Pair_t, _Uty>;
                 _Pair_ref_t _Pair_ref = _STD forward<_Uty>(_Ux);
                 if constexpr (is_same_v<_Pair_ref_t, const _Pair_t&>) {
                     // equivalent to
@@ -2653,25 +2655,25 @@ concept _Container_compatible_range =
     (_RANGES input_range<_Rng>) && convertible_to<_RANGES range_reference_t<_Rng>, _Elem>;
 
 template <_RANGES input_range _Rng>
-using _Range_key_type = remove_const_t<typename _RANGES range_value_t<_Rng>::first_type>;
+using _范围键类型 = remove_const_t<typename _RANGES range_value_t<_Rng>::first_type>;
 
 template <_RANGES input_range _Rng>
-using _Range_mapped_type = _RANGES range_value_t<_Rng>::second_type;
+using _范围映射类型 = _RANGES range_value_t<_Rng>::second_type;
 
 template <_RANGES input_range _Rng>
-using _Range_to_alloc_type =
+using _范围到分配器类型 =
     pair<const typename _RANGES range_value_t<_Rng>::first_type, typename _RANGES range_value_t<_Rng>::second_type>;
 #endif // _HAS_CXX23
 
 template <class _Ty,
     bool = is_empty_v<_Ty> && !is_final_v<_Ty>>
-class _Ebco_base : private _Ty { // Empty Base Class Optimization, active
+class _空基类优化基类 : private _Ty { // Empty Base Class Optimization, active
 private:
     using _我的基类 = _Ty; // for visualization
 
 protected:
-    template <class _Other, enable_if_t<!is_same_v<_Remove_cvref_t<_Other>, _Ebco_base>, int> = 0>
-    constexpr explicit _Ebco_base(_Other&& _Val) noexcept(is_nothrow_constructible_v<_Ty, _Other>)
+    template <class _Other, enable_if_t<!is_same_v<_Remove_cvref_t<_Other>, _空基类优化基类>, int> = 0>
+    constexpr explicit _空基类优化基类(_Other&& _Val) noexcept(is_nothrow_constructible_v<_Ty, _Other>)
         : _Ty(_STD forward<_Other>(_Val)) {}
 
     constexpr _Ty& _Get_val() noexcept {
@@ -2684,13 +2686,13 @@ protected:
 };
 
 template <class _Ty>
-class _Ebco_base<_Ty, false> { // Empty Base Class Optimization, inactive
+class _空基类优化基类<_Ty, false> { // Empty Base Class Optimization, inactive
 private:
     _Ty _Myval;
 
 protected:
-    template <class _Other, enable_if_t<!is_same_v<_Remove_cvref_t<_Other>, _Ebco_base>, int> = 0>
-    constexpr explicit _Ebco_base(_Other&& _Val) noexcept(is_nothrow_constructible_v<_Ty, _Other>)
+    template <class _Other, enable_if_t<!is_same_v<_Remove_cvref_t<_Other>, _空基类优化基类>, int> = 0>
+    constexpr explicit _空基类优化基类(_Other&& _Val) noexcept(is_nothrow_constructible_v<_Ty, _Other>)
         : _Myval(_STD forward<_Other>(_Val)) {}
 
     constexpr _Ty& _Get_val() noexcept {
@@ -2726,7 +2728,7 @@ template <class _Ty>
 constexpr bool _Is_transparent_v<_Ty, void_t<typename _Ty::is_transparent>> = true;
 
 template <class _Ty>
-struct _Is_transparent : bool_constant<_Is_transparent_v<_Ty>> {};
+struct _是透明 : bool_constant<_Is_transparent_v<_Ty>> {};
 
 #if _HAS_CXX20
 template <class _Ty>
@@ -2737,17 +2739,17 @@ concept _Transparent = _Is_transparent_v<_Ty>;
 namespace ranges {
     使用 名域 std::ranges;   // 嵌套名域暂不翻，但里面的名字要靠它找到（步 2b）
 #if defined(__cpp_lib_byte)
-    _EXPORT_STD template <range _Rng, class _Alloc = allocator<byte>>
+    _EXPORT_STD template <range _Rng, class _Alloc = 分配器<byte>>
 #else // ^^^ defined(__cpp_lib_byte) / !defined(__cpp_lib_byte) vvv
     _EXPORT_STD template <range _Rng, class _Alloc>
 #endif // ^^^ !defined(__cpp_lib_byte) ^^^
     struct elements_of {
         /* [[no_unique_address]] */ _Rng range;
-        /* [[no_unique_address]] */ _Alloc allocator{};
+        /* [[no_unique_address]] */ _Alloc 分配器{};
     };
 
 #if defined(__cpp_lib_byte)
-    template <class _Rng, class _Alloc = allocator<byte>>
+    template <class _Rng, class _Alloc = 分配器<byte>>
     elements_of(_Rng&&, _Alloc = _Alloc()) -> elements_of<_Rng&&, _Alloc>;
 #else // ^^^ defined(__cpp_lib_byte) / !defined(__cpp_lib_byte) vvv
     template <class _Rng, class _Alloc>
