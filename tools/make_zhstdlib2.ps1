@@ -1086,6 +1086,27 @@ $H = @{
       @('本体类型确实可用（模板形状对）','#包含 <特殊成员控制>`n结构 基类 { 整数 值; };`n整数 主函数(){ 标准::_特殊成员控制<基类, 整数> 甲; (空型)甲; 返回 0; }')
     )
   }
+  'xmemory' = @{
+    zh      = '内存内部件'
+    realInclude = @('memory', 'xutility')
+    noPub   = $true
+    types   = [ordered]@{ 'allocator_traits'    = '分配器特征'
+                          '_Pocma_values'       = '_传播复制移动赋值取值'
+                          '_Compressed_pair'    = '_压缩对'
+                          '_Container_base0'    = '_容器基类0'
+                          '_Iterator_base0'     = '_迭代器基类0'
+                          '_Container_base'     = '_容器基类'
+                          '_Iterator_base'      = '_迭代器基类' }
+    members = [ordered]@{}
+    data    = [ordered]@{}
+    derive  = @()
+    stdHash = $false
+    tparam  = @{ decl = ''; args = '' }
+    tests = @(
+      @('只引中文头','#包含 <内存内部件>`n整数 主函数(){ 返回 0; }'),
+      @('批A 的汉语名可用（分配器特征）','#包含 <内存内部件>`n整数 主函数(){ 标准::细节::分配器特征<std::allocator<整数>> 甲; (空型)甲; 返回 0; }')
+    )
+  }
   'scoped_allocator' = @{
     zh      = '作用域分配器'
     types   = [ordered]@{ 'scoped_allocator_adaptor' = '作用域分配器适配器实现'
@@ -1854,6 +1875,7 @@ Remove-Item $probe -Force -ErrorAction SilentlyContinue
 # extra：原样追加在文件最末的代码。用途：一个头里有【多个对外类】时，
 # 主类由上面的机制生成，其余类与自由函数在这里手写（如 <mutex> 有 8 个公开类）。
 # 这样不必为多类重构整张表，现有条目一行都不用改。
+if ($spec.ContainsKey('noPub')) { $layer = '' }
 $layerText = $layer
 if ($spec.ContainsKey('extra')) { $layerText += "`n" + $spec.extra }
 # ---------------------------------------------------------------------------
