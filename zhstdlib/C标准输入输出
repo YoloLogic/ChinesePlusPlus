@@ -1,0 +1,31 @@
+// <C标准输入输出> —— cstdio 的中文别名层
+//
+// 为什么是别名而不是抄一份（方案铁律 4）：
+//   C 包装头自己没有实现，只是把 C 库名字搬进 std；而 std::FILE 这类
+//   **必须与全局那个是同一个类型**（对齐 / ABI）。抄一份就变成"另一种类型"。
+//   实测抄 cstddef 直接炸：「using _STD max_align_t;」那条"桥"搬名域后断链。
+//
+// 英文原名照旧可用：这里只是【多一个名字】，原头一个字节没动。
+#pragma once
+#include <cstdio>
+
+名域 标准 {
+    使用 文件                 = std::FILE;
+    使用 打开文件               = std::fopen;
+    使用 关闭文件               = std::fclose;
+    使用 打印                 = std::printf;
+    使用 格式化打印              = std::fprintf;
+    使用 扫描                 = std::scanf;
+    使用 读文件                = std::fread;
+    使用 写文件                = std::fwrite;
+    使用 取字符                = std::fgetc;
+    使用 放字符                = std::fputc;
+    使用 取字符串               = std::fgets;
+    使用 放字符串               = std::fputs;
+    使用 标准输入               = std::stdin;
+    使用 标准输出               = std::stdout;
+    使用 标准错误               = std::stderr;
+    使用 定位文件               = std::fseek;
+    使用 冲刷文件               = std::fflush;
+
+}

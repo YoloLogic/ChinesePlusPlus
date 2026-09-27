@@ -1,0 +1,23 @@
+// <C字符类别> —— cctype 的中文别名层
+//
+// 为什么是别名而不是抄一份（方案铁律 4）：
+//   C 包装头自己没有实现，只是把 C 库名字搬进 std；而 std::isalpha 这类
+//   **必须与全局那个是同一个类型**（对齐 / ABI）。抄一份就变成"另一种类型"。
+//   实测抄 cstddef 直接炸：「using _STD max_align_t;」那条"桥"搬名域后断链。
+//
+// 英文原名照旧可用：这里只是【多一个名字】，原头一个字节没动。
+#pragma once
+#include <cctype>
+
+名域 标准 {
+    使用 是字母                = std::isalpha;
+    使用 是数字                = std::isdigit;
+    使用 是空白                = std::isspace;
+    使用 是标点                = std::ispunct;
+    使用 是字母数字              = std::isalnum;
+    使用 是小写                = std::islower;
+    使用 是大写                = std::isupper;
+    使用 转大写                = std::toupper;
+    使用 转小写                = std::tolower;
+
+}

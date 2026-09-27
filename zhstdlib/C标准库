@@ -1,0 +1,28 @@
+// <C标准库> —— cstdlib 的中文别名层
+//
+// 为什么是别名而不是抄一份（方案铁律 4）：
+//   C 包装头自己没有实现，只是把 C 库名字搬进 std；而 std::malloc 这类
+//   **必须与全局那个是同一个类型**（对齐 / ABI）。抄一份就变成"另一种类型"。
+//   实测抄 cstddef 直接炸：「using _STD max_align_t;」那条"桥"搬名域后断链。
+//
+// 英文原名照旧可用：这里只是【多一个名字】，原头一个字节没动。
+#pragma once
+#include <cstdlib>
+
+名域 标准 {
+    使用 分配内存               = std::malloc;
+    使用 释放内存               = std::free;
+    使用 退出                 = std::exit;
+    使用 取环境变量              = std::getenv;
+    使用 转整数                = std::atoi;
+    使用 转长整数               = std::atol;
+    使用 转双精度               = std::atof;
+    使用 随机数                = std::rand;
+    使用 设随机种子              = std::srand;
+    使用 绝对值                = std::abs;
+    使用 快速排序               = std::qsort;
+    使用 二分查找               = std::bsearch;
+    使用 执行命令               = std::system;
+    使用 转整数串               = std::itoa;
+
+}

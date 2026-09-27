@@ -1,0 +1,25 @@
+// <C字符串> —— cstring 的中文别名层
+//
+// 为什么是别名而不是抄一份（方案铁律 4）：
+//   C 包装头自己没有实现，只是把 C 库名字搬进 std；而 std::strlen 这类
+//   **必须与全局那个是同一个类型**（对齐 / ABI）。抄一份就变成"另一种类型"。
+//   实测抄 cstddef 直接炸：「using _STD max_align_t;」那条"桥"搬名域后断链。
+//
+// 英文原名照旧可用：这里只是【多一个名字】，原头一个字节没动。
+#pragma once
+#include <cstring>
+
+名域 标准 {
+    使用 字符串长度              = std::strlen;
+    使用 复制字符串              = std::strcpy;
+    使用 连接字符串              = std::strcat;
+    使用 比较字符串              = std::strcmp;
+    使用 复制内存               = std::memcpy;
+    使用 移动内存               = std::memmove;
+    使用 填充内存               = std::memset;
+    使用 比较内存               = std::memcmp;
+    使用 查找字符               = std::strchr;
+    使用 查找子串               = std::strstr;
+    使用 反转字符串              = std::strrev;
+
+}
