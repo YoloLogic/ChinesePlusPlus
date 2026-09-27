@@ -30,6 +30,34 @@ $utf8 = New-Object System.Text.UTF8Encoding($false)
 #            @('函数','中文名','std::原名')      —— 通用一模板转发
 #            @('原样','<整行代码>')              —— 原样发出（成员要转发成自由函数时用）
 $H = [ordered]@{
+  'ratio' = @{ zh = '比'; src = 'ratio'; a = @(
+      # 必须同一类型：std::chrono 的算术依赖 ratio 的类型身份（铁律 4）
+      @('原样','模板 <整数 分子, 整数 分母 = 1>
+    使用 比 = std::ratio<分子, 分母>;'),
+      @('原样','模板 <类型名 比甲, 类型名 比乙> 使用 比相加 = std::ratio_add<比甲, 比乙>;'),
+      @('原样','模板 <类型名 比甲, 类型名 比乙> 使用 比相减 = std::ratio_subtract<比甲, 比乙>;'),
+      @('原样','模板 <类型名 比甲, 类型名 比乙> 使用 比相乘 = std::ratio_multiply<比甲, 比乙>;'),
+      @('原样','模板 <类型名 比甲, 类型名 比乙> 使用 比相除 = std::ratio_divide<比甲, 比乙>;'),
+      @('原样','模板 <类型名 比甲, 类型名 比乙> 使用 比相等 = std::ratio_equal<比甲, 比乙>;'),
+      @('原样','模板 <类型名 比甲, 类型名 比乙> 使用 比不等 = std::ratio_not_equal<比甲, 比乙>;'),
+      @('原样','模板 <类型名 比甲, 类型名 比乙> 使用 比小于 = std::ratio_less<比甲, 比乙>;'),
+      @('原样','模板 <类型名 比甲, 类型名 比乙> 使用 比小于等于 = std::ratio_less_equal<比甲, 比乙>;'),
+      @('原样','模板 <类型名 比甲, 类型名 比乙> 使用 比大于 = std::ratio_greater<比甲, 比乙>;'),
+      @('原样','模板 <类型名 比甲, 类型名 比乙> 使用 比大于等于 = std::ratio_greater_equal<比甲, 比乙>;'),
+      # SI 词头（中文标准词头）
+      @('原样','使用 阿托 = std::atto;   使用 飞托 = std::femto;  使用 皮可 = std::pico;'),
+      @('原样','使用 纳诺 = std::nano;   使用 微   = std::micro;  使用 毫   = std::milli;'),
+      @('原样','使用 厘   = std::centi;  使用 分   = std::deci;   使用 十   = std::deca;'),
+      @('原样','使用 百   = std::hecto;  使用 千   = std::kilo;   使用 兆   = std::mega;'),
+      @('原样','使用 吉   = std::giga;   使用 太   = std::tera;   使用 拍   = std::peta;'),
+      @('原样','使用 艾   = std::exa;')
+  )
+    tests = @(
+      @('只引中文头 + 类型身份相同','#包含 <比>`n静态断言(std::is_same<标准::比<1, 2>, std::ratio<1, 2>>::value, "");`n整数 主函数(){ 返回 (整数)标准::比<1, 2>::num - 1; }'),
+      @('与 <ratio> 并存 + SI 词头同类型','#包含 <比>`n#包含 <ratio>`n静态断言(std::is_same<标准::千, std::kilo>::value, "");`n静态断言(std::is_same<标准::毫, std::milli>::value, "");`n整数 主函数(){ 返回 0; }'),
+      @('比相加 与 std::ratio_add 同类型','#包含 <比>`n静态断言(std::is_same<标准::比相加<标准::比<1, 2>, 标准::比<1, 3>>, std::ratio_add<std::ratio<1, 2>, std::ratio<1, 3>>>::value, "");`n整数 主函数(){ 返回 0; }')
+    )
+  }
   'typeinfo' = @{ zh = '类型信息'; src = 'typeinfo'; a = @(
       # 类型：必须同一类型 —— typeid() 返回的就是 std::type_info 的引用（铁律 4）
       @('类型','类型信息','std::type_info'),
