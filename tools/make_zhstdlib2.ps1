@@ -965,6 +965,11 @@ $H = @{
                           '_Scary_val'            = '_迭代器检查值'
                           '_Nodeptr'              = '_结点指针'
                           '_List_node_remove_op'  = '_链表节点删除操作'
+                          # §16.49 同步改名：<list> 里有一句
+                          #   `friend bool _Hash_equal(const _Hash<_Traits>&, ...)`（给哈希表开的友元）。
+                          #   哈希内部件 已把 `_Hash_equal` 翻成 `_哈希相等`，这里必须跟着改，
+                          #   否则那句 friend 指向的名字对不上。
+                          '_Hash_equal'           = '_哈希相等'
                           '_Unchecked_iterator'   = '_非检查迭代器'
                           '_Unchecked_const_iterator' = '_非检查常量迭代器'
                           '_Prevent_inheriting_unwrap' = '_阻止继承解包' }
@@ -986,6 +991,13 @@ $H = @{
       'sort' = '排序'; 'merge' = '归并'; 'splice' = '接合'
       'remove' = '移除'; 'remove_if' = '按条件移除'
       'unique' = '去重'; 'reverse' = '反转'
+      # §16.50 与 哈希内部件 同步：这三个名字在 `list` 与 `_Hash` 上【同名两个主人】
+      #   （§3.12 那类）。哈希内部件 已按 `_Hash::X` 翻了，而它的正文里有 `_Mylist::X`
+      #   —— 所以 list 这一侧也必须翻，否则报
+      #   「'标准::细节::链表实现<int>' 中没有名为 '_取分配器' 的成员」。
+      '_Getal'            = '_取分配器'
+      '_Unchecked_begin'  = '_非检查开始'
+      '_Unchecked_end'    = '_非检查结束'
       # ⚠ swap 照旧不改名（§3.12）
     }
     data    = [ordered]@{}
@@ -1290,8 +1302,10 @@ $H = @{
   'unordered_set' = @{
     zh      = '无序集合'
     realInclude = @('unordered_set')   # §16.29「乙」
-    # ⚠ 与 <set> 同型：API 几乎全部继承自借用的 _Hash（在 <xhash>，我们没翻），
+    # ⚠ 与 <set> 同型：API 几乎全部继承自 _Hash（现在是我们自己的 哈希内部件，§16.48），
     #   所以中文名要【手写在派生层】（§3.16），members 表只登记本文件自己定义的。
+    # ⚠ §16.50 记：切换**差一步**，卡在 `_Hash` 的【公开 API 名】上 ——
+    #   详见方案 §16.50.3；那是要与派生层英文补回同步做的一批，不是这里的问题。
     types   = [ordered]@{ 'unordered_set' = '无序集合实现'
                           'unordered_multiset' = '无序多重集合实现'
                           '_Uset_traits' = '_无序集合特征'
@@ -1890,7 +1904,20 @@ $H = @{
   'xhash' = @{
     zh      = '哈希内部件'
     noPub   = $true
+    # ===========================================================================
+    #  §16.49 【销账前置】让本头用【我们自己的 list】，不用 std::list。
+    #
+    #  为什么必须这样（实测）：本头 `_Hash` 靠 `typename _Mylist::_Alnode` 拿 list 的
+    #  **私有**成员，而 `<list>:770` 只写了 `template <class> friend class _Hash;`
+    #  —— 那个友元是开给 `std::_Hash` 的，我们的 `细节::_哈希` 拿不到，报
+    #     「'_Alnode' 是 'std::list<int>' 的私有成员」。
+    #  而 `<list>` 我们自己已经抄了（zhstdlib\链表），它拷贝里那句 friend 已经指向
+    #  `细节::_哈希`（因为 `_Hash` 在 链表 条目里被翻成了 `_哈希`）——
+    #  所以只要把 `list` 指到我们自己的 `链表实现`，友元关系**自动成立**。
+    # ===========================================================================
+    zhIncludes = @{ 'list' = '链表' }
     types   = [ordered]@{
+      'list'                          = '链表实现'
       '_Hash'                         = '_哈希'
       '_Hash_vec'                     = '_哈希向量'
       '_Hash_find_last_result'        = '_哈希查找最后结果'
@@ -1899,6 +1926,16 @@ $H = @{
       '_Reinterpret_move_iter'        = '_重解释移动迭代器'
       '_List_head_construct_ptr'      = '_链表头构造指针'
       '_Is_hasher'                    = '_是哈希器'
+      # §16.50 与 <链表> 同步改名：本头正文里有 `typename _Mylist::X`
+      #   （_Mylist = 我们自己的 链表实现），而 链表 条目已把下面这些 X 翻成汉语。
+      #   不同步就报「'标准::细节::链表实现<int>' 中没有名为 '_Nodeptr' 的类型」。
+      '_Nodeptr'                      = '_结点指针'
+      '_Unchecked_iterator'           = '_非检查迭代器'
+      '_Unchecked_const_iterator'     = '_非检查常量迭代器'
+      '_Prevent_inheriting_unwrap'    = '_阻止继承解包'
+      # §16.50 与 <链表> 同步：链表 条目已把 `_Scary_val` 翻成 `_迭代器检查值`，
+      #   而本头正文里有 `typename _Mylist::_Scary_val` -> 必须跟着改。
+      '_Scary_val'                    = '_迭代器检查值'
     }
     members = [ordered]@{
       # §16.48 成员层第一批：**确认属于 `_Hash` 自己**的那一批（同 §16.43.3 的做法）。

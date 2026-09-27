@@ -8,7 +8,7 @@
 #include <yvals_core.h>
 #if _STL_COMPILER_PREPROCESSOR
 #include <cmath>
-#include <list>
+#include <链表>
 #include <tuple>
 #include <vector>
 #include <xbit_ops.h>
@@ -236,10 +236,10 @@ struct _链表头构造指针 {
     }
 };
 
-template <class _Nodeptr>
+template <class _结点指针>
 struct _哈希查找最后结果 {
-    _Nodeptr _Insert_before;
-    _Nodeptr _Duplicate;
+    _结点指针 _Insert_before;
+    _结点指针 _Duplicate;
 };
 
 template <class _Aliter>
@@ -327,13 +327,13 @@ struct _哈希向量 {
 };
 
 template <class _Traits>
-class _哈希 { // hash table -- list with vector of iterators for quick access
+class _哈希 { // hash table -- 链表实现 with vector of iterators for quick access
 protected:
-    using _我的链表             = list<typename _Traits::value_type, typename _Traits::allocator_type>;
+    using _我的链表             = 链表实现<typename _Traits::value_type, typename _Traits::allocator_type>;
     using _Alnode             = typename _我的链表::_Alnode;
     using _Alnode_traits      = typename _我的链表::_Alnode_traits;
     using _节点               = typename _我的链表::_节点;
-    using _Nodeptr            = typename _我的链表::_Nodeptr;
+    using _结点指针            = typename _我的链表::_结点指针;
     using _Mutable_value_type = typename _Traits::_Mutable_value_type;
 
     using _Key_compare   = typename _Traits::key_compare;
@@ -355,11 +355,11 @@ public:
         conditional_t<is_same_v<key_type, value_type>, typename _我的链表::const_iterator, typename _我的链表::iterator>;
     using const_iterator = typename _我的链表::const_iterator;
 
-    using _Unchecked_iterator       = conditional_t<is_same_v<key_type, value_type>,
-              typename _我的链表::_Unchecked_const_iterator, typename _我的链表::_Unchecked_iterator>;
-    using _Unchecked_const_iterator = typename _我的链表::_Unchecked_const_iterator;
+    using _非检查迭代器       = conditional_t<is_same_v<key_type, value_type>,
+              typename _我的链表::_非检查常量迭代器, typename _我的链表::_非检查迭代器>;
+    using _非检查常量迭代器 = typename _我的链表::_非检查常量迭代器;
 
-    using _Aliter = _Rebind_alloc_t<_Alnode, _Unchecked_iterator>;
+    using _Aliter = _Rebind_alloc_t<_Alnode, _非检查迭代器>;
 
     static constexpr size_type _Bucket_size = _Key_compare::bucket_size;
     static constexpr size_type _Min_buckets = 8; // must be a positive power of 2
@@ -462,7 +462,7 @@ private:
         pointer _Base;
         _Min_buckets_construct_ptr(_Aliter& _Al_) : _Al(_Al_), _Base(_Al.allocate(_Min_buckets * 2)) {}
         _Min_buckets_construct_ptr(const _Min_buckets_construct_ptr&) = delete;
-        _NODISCARD pointer _Release(_Unchecked_iterator _Newend) noexcept {
+        _NODISCARD pointer _Release(_非检查迭代器 _Newend) noexcept {
             _STD uninitialized_fill(_Base, _Base + _Min_buckets * 2, _Newend);
             return _STD exchange(_Base, nullptr);
         }
@@ -543,7 +543,7 @@ public:
                 _Vec._清理();
                 _传播移动赋值两者(_Right);
 
-                // assign the empty list to _Right._List (except the allocators), and take _Right's _List data
+                // assign the empty 链表实现 to _Right._List (except the allocators), and take _Right's _List data
                 auto& _List_data       = _List._Mypair._Myval2;
                 auto& _Right_list_data = _Right._List._Mypair._Myval2;
                 _List_data._Myhead     = _STD exchange(_Right_list_data._Myhead, _Newhead._Release());
@@ -574,7 +574,7 @@ public:
             if (_Al != _Right_al) {
                 _清空守卫 _Guard{this};
                 _Traitsobj     = _Right._Traitsobj;
-                using _Adapter = _重解释移动迭代器<typename _我的链表::_Unchecked_iterator, _Mutable_value_type>;
+                using _Adapter = _重解释移动迭代器<typename _我的链表::_非检查迭代器, _Mutable_value_type>;
                 _List.template _Assign_cast<_Mutable_value_type&>(
                     _Adapter{_Right._List._非检查开始()}, _Adapter{_Right._List._非检查结束()});
                 _用失效向量重插();
@@ -697,7 +697,7 @@ public:
 
 protected:
     template <class _Keyty, class... _Mappedty>
-    pair<_Nodeptr, bool> _尝试就地构造(_Keyty&& _Keyval_arg, _Mappedty&&... _Mapval) {
+    pair<_结点指针, bool> _尝试就地构造(_Keyty&& _Keyval_arg, _Mappedty&&... _Mapval) {
         const auto& _Keyval = _Keyval_arg;
         const auto _Hashval = _Traitsobj(_Keyval);
         auto _Target        = _查找最后(_Keyval, _Hashval);
@@ -718,7 +718,7 @@ protected:
     }
 
     template <class _Keyty, class... _Mappedty>
-    _Nodeptr _按提示尝试就地构造(const _Nodeptr _Hint, _Keyty&& _Keyval_arg, _Mappedty&&... _Mapval) {
+    _结点指针 _按提示尝试就地构造(const _结点指针 _Hint, _Keyty&& _Keyval_arg, _Mappedty&&... _Mapval) {
         const auto& _Keyval = _Keyval_arg;
         const auto _Hashval = _Traitsobj(_Keyval);
         auto _Target        = _按提示查找(_Hint, _Keyval, _Hashval);
@@ -806,19 +806,19 @@ public:
         return _List.end();
     }
 
-    _Unchecked_iterator _非检查开始() noexcept {
+    _非检查迭代器 _非检查开始() noexcept {
         return _List._非检查开始();
     }
 
-    _Unchecked_const_iterator _非检查开始() const noexcept {
+    _非检查常量迭代器 _非检查开始() const noexcept {
         return _List._非检查开始();
     }
 
-    _Unchecked_iterator _非检查结束() noexcept {
+    _非检查迭代器 _非检查结束() noexcept {
         return _List._非检查结束();
     }
 
-    _Unchecked_const_iterator _非检查结束() const noexcept {
+    _非检查常量迭代器 _非检查结束() const noexcept {
         return _List._非检查结束();
     }
 
@@ -863,7 +863,7 @@ public:
     }
 
     _NODISCARD size_type bucket_size(size_type _Bucket) const noexcept /* strengthened */ {
-        _Unchecked_iterator _Bucket_lo = _Vec._Mypair._Myval2._Myfirst[_Bucket << 1];
+        _非检查迭代器 _Bucket_lo = _Vec._Mypair._Myval2._Myfirst[_Bucket << 1];
         if (_Bucket_lo == _非检查结束()) {
             return 0;
         }
@@ -880,7 +880,7 @@ public:
     }
 
     _NODISCARD local_iterator end(size_type _Bucket) noexcept /* strengthened */ {
-        _Nodeptr _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1]._Ptr;
+        _结点指针 _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1]._Ptr;
         if (_Bucket_hi != _List._Mypair._Myval2._Myhead) {
             _Bucket_hi = _Bucket_hi->_Next;
         }
@@ -889,7 +889,7 @@ public:
     }
 
     _NODISCARD const_local_iterator end(size_type _Bucket) const noexcept /* strengthened */ {
-        _Nodeptr _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1]._Ptr;
+        _结点指针 _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1]._Ptr;
         if (_Bucket_hi != _List._Mypair._Myval2._Myhead) {
             _Bucket_hi = _Bucket_hi->_Next;
         }
@@ -902,7 +902,7 @@ public:
     }
 
     _NODISCARD const_local_iterator cend(size_type _Bucket) const noexcept /* strengthened */ {
-        _Nodeptr _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1]._Ptr;
+        _结点指针 _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1]._Ptr;
         if (_Bucket_hi != _List._Mypair._Myval2._Myhead) {
             _Bucket_hi = _Bucket_hi->_Next;
         }
@@ -980,7 +980,7 @@ public:
     }
 
 private:
-    _Nodeptr _非检查擦除(_Nodeptr _Plist) noexcept(_Nothrow_hash<_Traits, key_type>) {
+    _结点指针 _非检查擦除(_结点指针 _Plist) noexcept(_Nothrow_hash<_Traits, key_type>) {
         size_type _Bucket = bucket(_Traits::_Kfn(_Plist->_Myval));
         _擦除桶(_Plist, _Bucket);
         return _List._非检查擦除(_Plist);
@@ -991,9 +991,9 @@ private:
         _范围擦除器& operator=(const _范围擦除器&) = delete;
 
 #if _ITERATOR_DEBUG_LEVEL == 2
-        // Keep the list nodes around until we have found all those we will erase, for an O(iterators + erasures) update
+        // Keep the 链表实现 nodes around until we have found all those we will erase, for an O(iterators + erasures) update
         // of the iterator chain.
-        _范围擦除器(_我的链表& _List_, const _Nodeptr _First_) noexcept
+        _范围擦除器(_我的链表& _List_, const _结点指针 _First_) noexcept
             : _List(_List_), _First(_First_), _Next(_First_) {}
 
         void _递增已擦除() noexcept {
@@ -1005,11 +1005,11 @@ private:
         }
 
         _我的链表& _List;
-        const _Nodeptr _First;
-        _Nodeptr _Next;
+        const _结点指针 _First;
+        _结点指针 _Next;
 #else // ^^^ _ITERATOR_DEBUG_LEVEL == 2 / _ITERATOR_DEBUG_LEVEL != 2 vvv
-      // Destroy the nodes as we encounter them to avoid a second traversal of the linked list.
-        _范围擦除器(_我的链表& _List_, const _Nodeptr _First_) noexcept
+      // Destroy the nodes as we encounter them to avoid a second traversal of the linked 链表实现.
+        _范围擦除器(_我的链表& _List_, const _结点指针 _First_) noexcept
             : _List(_List_), _Predecessor(_First_->_Prev), _Next(_First_) {}
 
         void _递增已擦除() noexcept {
@@ -1025,12 +1025,12 @@ private:
         }
 
         _我的链表& _List;
-        const _Nodeptr _Predecessor;
-        _Nodeptr _Next;
+        const _结点指针 _Predecessor;
+        _结点指针 _Next;
 #endif // ^^^ _ITERATOR_DEBUG_LEVEL != 2 ^^^
     };
 
-    _Nodeptr _非检查擦除(_Nodeptr _First, const _Nodeptr _Last) noexcept(_Nothrow_hash<_Traits, key_type>) {
+    _结点指针 _非检查擦除(_结点指针 _First, const _结点指针 _Last) noexcept(_Nothrow_hash<_Traits, key_type>) {
         if (_First == _Last) {
             return _Last;
         }
@@ -1043,10 +1043,10 @@ private:
             const auto _Predecessor = _First->_Prev;
             const size_type _Bucket = bucket(_Traits::_Kfn(_Eraser._Next->_Myval)); // throws
             // nothrow hereafter this block
-            _Nodeptr& _Bucket_lo   = _Bucket_bounds[_Bucket << 1]._Ptr;
-            _Nodeptr& _Bucket_hi   = _Bucket_bounds[(_Bucket << 1) + 1]._Ptr;
+            _结点指针& _Bucket_lo   = _Bucket_bounds[_Bucket << 1]._Ptr;
+            _结点指针& _Bucket_hi   = _Bucket_bounds[(_Bucket << 1) + 1]._Ptr;
             const bool _Update_lo  = _Bucket_lo == _Eraser._Next;
-            const _Nodeptr _Old_hi = _Bucket_hi;
+            const _结点指针 _Old_hi = _Bucket_hi;
             for (;;) { // remove elements until we hit the end of the bucket
                 const bool _At_bucket_back = _Eraser._Next == _Old_hi;
                 _Eraser._递增已擦除();
@@ -1077,9 +1077,9 @@ private:
         while (_Eraser._Next != _Last) {
             const size_type _Bucket = bucket(_Traits::_Kfn(_Eraser._Next->_Myval)); // throws
             // nothrow hereafter this block
-            _Nodeptr& _Bucket_lo   = _Bucket_bounds[_Bucket << 1]._Ptr;
-            _Nodeptr& _Bucket_hi   = _Bucket_bounds[(_Bucket << 1) + 1]._Ptr;
-            const _Nodeptr _Old_hi = _Bucket_hi;
+            _结点指针& _Bucket_lo   = _Bucket_bounds[_Bucket << 1]._Ptr;
+            _结点指针& _Bucket_hi   = _Bucket_bounds[(_Bucket << 1) + 1]._Ptr;
+            const _结点指针 _Old_hi = _Bucket_hi;
             for (;;) { // remove elements until we hit the end of the bucket
                 const bool _At_bucket_back = _Eraser._Next == _Old_hi;
                 _Eraser._递增已擦除();
@@ -1185,16 +1185,16 @@ public:
 
 private:
     template <class _Keyty>
-    _NODISCARD _Nodeptr _查找首个(const _Keyty& _Keyval, const size_t _Hashval) const {
+    _NODISCARD _结点指针 _查找首个(const _Keyty& _Keyval, const size_t _Hashval) const {
         // find node pointer to first node matching _Keyval (with hash _Hashval) if it exists; otherwise, end
         const size_type _Bucket = _Hashval & _Mask;
-        _Nodeptr _Where         = _Vec._Mypair._Myval2._Myfirst[_Bucket << 1]._Ptr;
-        const _Nodeptr _End     = _List._Mypair._Myval2._Myhead;
+        _结点指针 _Where         = _Vec._Mypair._Myval2._Myfirst[_Bucket << 1]._Ptr;
+        const _结点指针 _End     = _List._Mypair._Myval2._Myhead;
         if (_Where == _End) {
             return _End;
         }
 
-        const _Nodeptr _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1]._Ptr;
+        const _结点指针 _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1]._Ptr;
         for (;;) {
             if (!_Traitsobj(_Traits::_Kfn(_Where->_Myval), _Keyval)) {
                 if constexpr (!_Traits::_Standard) {
@@ -1215,7 +1215,7 @@ private:
     }
 
     template <class _Keyty>
-    _Nodeptr _查找(const _Keyty& _Keyval, const size_t _Hashval) const {
+    _结点指针 _查找(const _Keyty& _Keyval, const size_t _Hashval) const {
         if constexpr (_Traits::_Multi) {
             return _查找首个(_Keyval, _Hashval);
         } else {
@@ -1288,8 +1288,8 @@ public:
 
 private:
     struct _Equal_range_result {
-        _Unchecked_const_iterator _First;
-        _Unchecked_const_iterator _Last;
+        _非检查常量迭代器 _First;
+        _非检查常量迭代器 _Last;
         size_type _Distance;
     };
 
@@ -1297,13 +1297,13 @@ private:
     _NODISCARD _Equal_range_result _等值区间(const _Keyty& _Keyval, const size_t _Hashval) const
         noexcept(_Nothrow_compare<_Traits, key_type, _Keyty> && _Nothrow_compare<_Traits, _Keyty, key_type>) {
         const size_type _Bucket              = _Hashval & _Mask;
-        _Unchecked_const_iterator _Where     = _Vec._Mypair._Myval2._Myfirst[_Bucket << 1];
-        const _Unchecked_const_iterator _End = _非检查结束();
+        _非检查常量迭代器 _Where     = _Vec._Mypair._Myval2._Myfirst[_Bucket << 1];
+        const _非检查常量迭代器 _End = _非检查结束();
         if (_Where == _End) {
             return {_End, _End, 0};
         }
 
-        const _Unchecked_const_iterator _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1];
+        const _非检查常量迭代器 _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1];
         for (; _Traitsobj(_Traits::_Kfn(*_Where), _Keyval); ++_Where) {
             if (_Where == _Bucket_hi) {
                 return {_End, _End, 0};
@@ -1316,7 +1316,7 @@ private:
             }
         }
 
-        const _Unchecked_const_iterator _First = _Where;
+        const _非检查常量迭代器 _First = _Where;
         if constexpr (_Multi) {
             size_type _Distance = 0;
             for (;;) {
@@ -1448,7 +1448,7 @@ public:
 
     template <class _Other_traits>
     void merge(_哈希<_Other_traits>& _That) { // transfer all nodes from _That into *this
-        static_assert(is_same_v<_Nodeptr, typename _哈希<_Other_traits>::_Nodeptr>,
+        static_assert(is_same_v<_结点指针, typename _哈希<_Other_traits>::_结点指针>,
             "merge() requires an argument with a compatible node type.");
 
         static_assert(is_same_v<allocator_type, typename _哈希<_Other_traits>::allocator_type>,
@@ -1503,7 +1503,7 @@ public:
 
     template <class _Other_traits>
     void merge(_哈希<_Other_traits>&& _That) { // transfer all nodes from _That into *this
-        static_assert(is_same_v<_Nodeptr, typename _哈希<_Other_traits>::_Nodeptr>,
+        static_assert(is_same_v<_结点指针, typename _哈希<_Other_traits>::_结点指针>,
             "merge() requires an argument with a compatible node type.");
 
         static_assert(is_same_v<allocator_type, typename _哈希<_Other_traits>::allocator_type>,
@@ -1513,25 +1513,25 @@ public:
     }
 
 protected:
-    _Nodeptr _Extract(const _Unchecked_const_iterator _Where) {
+    _结点指针 _Extract(const _非检查常量迭代器 _Where) {
         const size_type _Bucket = bucket(_Traits::_Kfn(*_Where));
         _擦除桶(_Where._Ptr, _Bucket);
         return _List._Mypair._Myval2._Unlinknode(_Where._Ptr);
     }
 
     template <class _Kx>
-    _Nodeptr _Extract(const _Kx& _Keyval) {
+    _结点指针 _Extract(const _Kx& _Keyval) {
         const size_t _Hashval = _Traitsobj(_Keyval);
-        _Nodeptr _Target;
+        _结点指针 _Target;
         if constexpr (_Traits::_Multi) {
             _Target = _查找首个(_Keyval, _Hashval);
             if (_Target == _List._Mypair._Myval2._Myhead) {
-                return _Nodeptr{};
+                return _结点指针{};
             }
         } else {
             _Target = _查找最后(_Keyval, _Hashval)._Duplicate;
             if (_Target == nullptr) {
-                return _Nodeptr{};
+                return _结点指针{};
             }
         }
 
@@ -1583,22 +1583,22 @@ public:
 
 protected:
     template <class _Keyty>
-    _NODISCARD _哈希查找最后结果<_Nodeptr> _查找最后(const _Keyty& _Keyval, const size_t _Hashval) const {
+    _NODISCARD _哈希查找最后结果<_结点指针> _查找最后(const _Keyty& _Keyval, const size_t _Hashval) const {
         // find the insertion point for _Keyval and whether an element identical to _Keyval is already in the container
         const size_type _Bucket = _Hashval & _Mask;
-        _Nodeptr _Where         = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1]._Ptr;
-        const _Nodeptr _End     = _List._Mypair._Myval2._Myhead;
+        _结点指针 _Where         = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1]._Ptr;
+        const _结点指针 _End     = _List._Mypair._Myval2._Myhead;
         if (_Where == _End) {
-            return {_End, _Nodeptr{}};
+            return {_End, _结点指针{}};
         }
 
-        const _Nodeptr _Bucket_lo = _Vec._Mypair._Myval2._Myfirst[_Bucket << 1]._Ptr;
+        const _结点指针 _Bucket_lo = _Vec._Mypair._Myval2._Myfirst[_Bucket << 1]._Ptr;
         for (;;) {
             // Search backwards to maintain sorted [_Bucket_lo, _Bucket_hi] when !_Standard
             if (!_Traitsobj(_Keyval, _Traits::_Kfn(_Where->_Myval))) {
                 if constexpr (!_Traits::_Standard) {
                     if (_Traitsobj(_Traits::_Kfn(_Where->_Myval), _Keyval)) {
-                        return {_Where->_Next, _Nodeptr{}};
+                        return {_Where->_Next, _结点指针{}};
                     }
                 }
 
@@ -1606,7 +1606,7 @@ protected:
             }
 
             if (_Where == _Bucket_lo) {
-                return {_Where, _Nodeptr{}};
+                return {_Where, _结点指针{}};
             }
 
             _Where = _Where->_Prev;
@@ -1614,8 +1614,8 @@ protected:
     }
 
     template <class _Keyty>
-    _NODISCARD _哈希查找最后结果<_Nodeptr> _按提示查找(
-        const _Nodeptr _Hint, const _Keyty& _Keyval, const size_t _Hashval) const {
+    _NODISCARD _哈希查找最后结果<_结点指针> _按提示查找(
+        const _结点指针 _Hint, const _Keyty& _Keyval, const size_t _Hashval) const {
         // if _Hint points to an element equivalent to _Keyval, returns _Hint; otherwise,
         // returns _查找最后(_Keyval, _Hashval)
         if (_Hint != _List._Mypair._Myval2._Myhead && !_Traitsobj(_Traits::_Kfn(_Hint->_Myval), _Keyval)) {
@@ -1631,9 +1631,9 @@ protected:
         return _查找最后(_Keyval, _Hashval);
     }
 
-    _Nodeptr _在之前插入新节点(
-        const size_t _Hashval, const _Nodeptr _Insert_before, const _Nodeptr _新节点) noexcept {
-        const _Nodeptr _Insert_after = _Insert_before->_Prev;
+    _结点指针 _在之前插入新节点(
+        const size_t _Hashval, const _结点指针 _Insert_before, const _结点指针 _新节点) noexcept {
+        const _结点指针 _Insert_after = _Insert_before->_Prev;
         ++_List._Mypair._Myval2._Mysize;
         _Construct_in_place(_新节点->_Next, _Insert_before);
         _Construct_in_place(_新节点->_Prev, _Insert_after);
@@ -1643,8 +1643,8 @@ protected:
         const auto _Head                = _List._Mypair._Myval2._Myhead;
         const auto _Bucket_array        = _Vec._Mypair._Myval2._Myfirst;
         const size_type _Bucket         = _Hashval & _Mask;
-        _Unchecked_iterator& _Bucket_lo = _Bucket_array[_Bucket << 1];
-        _Unchecked_iterator& _Bucket_hi = _Bucket_array[(_Bucket << 1) + 1];
+        _非检查迭代器& _Bucket_lo = _Bucket_array[_Bucket << 1];
+        _非检查迭代器& _Bucket_hi = _Bucket_array[(_Bucket << 1) + 1];
         if (_Bucket_lo._Ptr == _Head) {
             // bucket is empty, set both
             _Bucket_lo._Ptr = _新节点;
@@ -1682,10 +1682,10 @@ protected:
         _强制重哈希(_期望扩容桶数(_Newsize));
     }
 
-    void _擦除桶(_Nodeptr _Plist, size_type _Bucket) noexcept {
+    void _擦除桶(_结点指针 _Plist, size_type _Bucket) noexcept {
         // remove the node _Plist from its bucket
-        _Nodeptr& _Bucket_lo = _Vec._Mypair._Myval2._Myfirst[_Bucket << 1]._Ptr;
-        _Nodeptr& _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1]._Ptr;
+        _结点指针& _Bucket_lo = _Vec._Mypair._Myval2._Myfirst[_Bucket << 1]._Ptr;
+        _结点指针& _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1]._Ptr;
         if (_Bucket_hi == _Plist) {
             if (_Bucket_lo == _Plist) { // make bucket empty
                 const auto _End = _List._Mypair._Myval2._Myhead;
@@ -1744,7 +1744,7 @@ protected:
         // this round up to power of 2 in addition to the _Buckets > _Maxidx above means
         // we'll at least double in size (the next power of 2 above _Maxidx)
         _Buckets                       = static_cast<size_type>(1) << _Ceiling_of_log_2(static_cast<size_t>(_Buckets));
-        const _Unchecked_iterator _End = _非检查结束();
+        const _非检查迭代器 _End = _非检查结束();
 
         _Vec._赋值扩容(_Buckets << 1, _End);
         _Mask   = _Buckets - 1;
@@ -1752,10 +1752,10 @@ protected:
 
         _清空守卫 _Guard{this};
 
-        _Unchecked_iterator _Inserted = _非检查开始();
+        _非检查迭代器 _Inserted = _非检查开始();
 
         // Remember the next _Inserted value as splices will change _Inserted's position arbitrarily.
-        for (_Unchecked_iterator _Next_inserted = _Inserted; _Inserted != _End; _Inserted = _Next_inserted) {
+        for (_非检查迭代器 _Next_inserted = _Inserted; _Inserted != _End; _Inserted = _Next_inserted) {
             ++_Next_inserted;
 
             auto& _Inserted_key     = _Traits::_Kfn(*_Inserted);
@@ -1763,8 +1763,8 @@ protected:
 
             // _Bucket_lo and _Bucket_hi are the *inclusive* range of elements in the bucket, or _非检查结束() if
             // the bucket is empty; if !_Standard then [_Bucket_lo, _Bucket_hi] is a sorted range.
-            _Unchecked_iterator& _Bucket_lo = _Vec._Mypair._Myval2._Myfirst[_Bucket << 1];
-            _Unchecked_iterator& _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1];
+            _非检查迭代器& _Bucket_lo = _Vec._Mypair._Myval2._Myfirst[_Bucket << 1];
+            _非检查迭代器& _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1];
 
             if (_Bucket_lo == _End) {
                 // The bucket was empty, set it to the inserted element.
@@ -1774,13 +1774,13 @@ protected:
             }
 
             // Search the bucket for the insertion location and move element if necessary.
-            _Unchecked_const_iterator _Insert_before = _Bucket_hi;
+            _非检查常量迭代器 _Insert_before = _Bucket_hi;
             if (!_Traitsobj(_Inserted_key, _Traits::_Kfn(*_Insert_before))) {
                 // The inserted element belongs at the end of the bucket; splice it there and set _Bucket_hi to the
                 // new bucket inclusive end.
                 ++_Insert_before;
                 if (_Insert_before != _Inserted) { // avoid splice on element already in position
-                    _我的链表::_Scary_val::_Unchecked_splice(_Insert_before._Ptr, _Inserted._Ptr, _Next_inserted._Ptr);
+                    _我的链表::_迭代器检查值::_Unchecked_splice(_Insert_before._Ptr, _Inserted._Ptr, _Next_inserted._Ptr);
                 }
 
                 _Bucket_hi = _Inserted;
@@ -1795,7 +1795,7 @@ protected:
                     // Element can't be already in position here because:
                     // * (for !_Standard) _Inserted_key < *_Insert_before or
                     // * (for _Standard) _Inserted_key != *_Insert_before
-                    _我的链表::_Scary_val::_Unchecked_splice(_Insert_before._Ptr, _Inserted._Ptr, _Next_inserted._Ptr);
+                    _我的链表::_迭代器检查值::_Unchecked_splice(_Insert_before._Ptr, _Inserted._Ptr, _Next_inserted._Ptr);
                     _Bucket_lo = _Inserted;
                     break;
                 }
@@ -1805,7 +1805,7 @@ protected:
                     ++_Insert_before;
                     // Element can't be already in position here because all elements we're inserting are after all
                     // the elements already in buckets, and *_Insert_before isn't the highest element in the bucket.
-                    _我的链表::_Scary_val::_Unchecked_splice(_Insert_before._Ptr, _Inserted._Ptr, _Next_inserted._Ptr);
+                    _我的链表::_迭代器检查值::_Unchecked_splice(_Insert_before._Ptr, _Inserted._Ptr, _Next_inserted._Ptr);
                     break;
                 }
             }
@@ -1836,11 +1836,11 @@ protected:
 
     struct _Multi_equal_check_result {
         bool _Equal_possible = false;
-        _Unchecked_const_iterator _Subsequent_first{}; // only useful if _Equal_possible
+        _非检查常量迭代器 _Subsequent_first{}; // only useful if _Equal_possible
     };
 
     _NODISCARD _Multi_equal_check_result _多重相等检查等值区间(
-        const _哈希& _Right, _Unchecked_const_iterator _First1) const {
+        const _哈希& _Right, _非检查常量迭代器 _First1) const {
         // check that an equal_range of elements starting with *_First1 are a permutation of the corresponding
         // equal_range of elements in _Right
         auto& _Keyval = _Traits::_Kfn(*_First1);
@@ -1861,7 +1861,7 @@ protected:
             }
         }
 
-        _Unchecked_const_iterator _Left_stop_at;
+        _非检查常量迭代器 _Left_stop_at;
         if constexpr (_Traits::_Standard) {
             _Left_stop_at = _非检查结束();
         } else {
@@ -1967,8 +1967,8 @@ public:
         size_type _Elements = 0;
         const auto _End     = _非检查结束();
         for (size_type _Bucket = 0; _Bucket < _Maxidx; ++_Bucket) {
-            _Unchecked_const_iterator _Where           = _Vec._Mypair._Myval2._Myfirst[_Bucket << 1];
-            const _Unchecked_const_iterator _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1];
+            _非检查常量迭代器 _Where           = _Vec._Mypair._Myval2._Myfirst[_Bucket << 1];
+            const _非检查常量迭代器 _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1];
             if (_Where != _End) {
                 // check that the bucket is sorted for legacy hash_meow:
                 if constexpr (!_Traits::_Standard) {
@@ -2012,8 +2012,8 @@ protected:
 #endif // _ENABLE_STL_INTERNAL_CHECK
 
     _Traits _Traitsobj; // traits to customize behavior
-    _我的链表 _List; // list of elements, must initialize before _Vec
-    _哈希向量<_Aliter> _Vec; // "vector" of list iterators for buckets:
+    _我的链表 _List; // 链表实现 of elements, must initialize before _Vec
+    _哈希向量<_Aliter> _Vec; // "vector" of 链表实现 iterators for buckets:
                              // each bucket is 2 iterators denoting the closed range of elements in the bucket,
                              // or both iterators set to _非检查结束() if the bucket is empty.
     size_type _Mask; // the key mask
