@@ -2452,6 +2452,51 @@ if ($zhClash.Count) {
 }
 
 # ---------------------------------------------------------------------------
+#  §16.52.3 守卫：derive 的**中文目标**必须在"基类所在的抄来那层"里真的存在。
+#
+#  为什么需要（实测栽过）：`derive @('emplace','就地构造')` 发的是
+#      `声明类型(自动) emplace(参数&&... 值) { 返回 基类::就地构造(...); }`
+#  它【遮住了】基类继承来的英文 `emplace`，然后去调一个**不存在的中文名** ——
+#  于是 `甲.emplace(1)` 编不过 = 英文用法回归；而且转发器是模板，
+#  没人实例化就不查基类名 -> 一条测试不写就【完全静默】（§16.52.3）。
+#
+#  判据：中文名要么出现在**本条目抄来那层**的正文里，
+#        要么由**基类那一侧的改名表**产生（`zhIncludes` 传递闭包里的
+#        types/members/data + $INTERNAL_NAMES）。
+#        只看表、不看别的产品的生成结果 —— 这样它就【不依赖生成顺序】，
+#        不会因为"兄弟产品还是上一轮的"而误报。
+# ---------------------------------------------------------------------------
+$ZH_ENTRY_OF = @{}                       # 产品名 -> 条目键（zhIncludes 的值是产品名）
+foreach ($k in $H.Keys) { if ($H[$k].ContainsKey('zh')) { $ZH_ENTRY_OF[$H[$k].zh] = $k } }
+$ZH_SCOPE_CACHE = @{}
+function Get-ZhNameScope([string] $entryKey) {
+    if ($ZH_SCOPE_CACHE.ContainsKey($entryKey)) { return $ZH_SCOPE_CACHE[$entryKey] }
+    $scope = New-Object 'System.Collections.Generic.HashSet[string]'
+    foreach ($v in $INTERNAL_NAMES.Values) { [void]$scope.Add($v) }
+    $seen = @{}
+    $queue = New-Object System.Collections.Queue
+    $queue.Enqueue($entryKey)
+    while ($queue.Count) {
+        $e = [string]$queue.Dequeue()
+        if (-not $e -or $seen.ContainsKey($e)) { continue }
+        $seen[$e] = $true
+        if (-not $H.ContainsKey($e)) { continue }
+        foreach ($kind in @('types', 'members', 'data')) {
+            if (-not $H[$e].ContainsKey($kind)) { continue }
+            foreach ($v in $H[$e][$kind].Values) { [void]$scope.Add([string]$v) }
+        }
+        if ($H[$e].ContainsKey('zhIncludes')) {
+            foreach ($prod in $H[$e]['zhIncludes'].Values) {
+                if ($ZH_ENTRY_OF.ContainsKey($prod)) { $queue.Enqueue([string]$ZH_ENTRY_OF[$prod]) }
+            }
+        }
+    }
+    $ZH_SCOPE_CACHE[$entryKey] = $scope
+    return $scope
+}
+$derMissing = @()
+
+# ---------------------------------------------------------------------------
 #  关键词表检查：中文名绝不能是关键词（实测踩到，且极难从报错看出是命名问题）
 #
 #  <bitset> 里我把 flip 译作「取反」，而关键词表里：
@@ -2950,7 +2995,13 @@ function Repair-Pairs([object]$list) {
 }
 $derPairs = Repair-Pairs $spec.derive
 $fwd = @()
+$zhScope = Get-ZhNameScope $Header
 foreach ($p in $derPairs) {
+    # §16.52.3 守卫：中文目标必须真的存在（本条目抄来那层 / 基类那侧的改名表）
+    #   —— 否则这个英文转发器会遮住继承来的英文名，还指向一个不存在的中文名。
+    if (-not $text.Contains([string]$p[1]) -and -not $zhScope.Contains([string]$p[1])) {
+        $derMissing += ("  $Header : derive @('{0}','{1}') —— 中文名「{1}」在本条目抄来那层和基类改名表里都找不到" -f $p[0], $p[1])
+    }
     # 发两个转发：非 const 一个、const 一个。
     # 为什么两个都要：只发非 const 的话，const 对象上调用不到（实测
     # std::hash 特化里 _键.hash_code() 就是 const 引用，直接报"没有匹配的成员函数"）。
@@ -2967,6 +3018,13 @@ foreach ($p in $derPairs) {
     # ⚠ 绝不写成 `自动`：那等于悄悄把英文 API 的引用语义砍掉。
     $fwd += ("    模板 <类型名... 参数> 声明类型(自动) {0}(参数&&... 值) {{ 返回 基类::{1}(static_cast<参数&&>(值)...); }}" -f $p[0], $p[1])
     $fwd += ("    模板 <类型名... 参数> 声明类型(自动) {0}(参数&&... 值) 常量 {{ 返回 基类::{1}(static_cast<参数&&>(值)...); }}" -f $p[0], $p[1])
+}
+if ($derMissing.Count) {
+    Write-Host "❌ 派生层英文转发器指向【不存在的中文名】（它会遮住基类继承来的英文名 = 回归，§16.52.3）:" -ForegroundColor Red
+    $derMissing | ForEach-Object { Write-Host $_ -ForegroundColor Red }
+    Write-Host '  修法二选一：① 基类那侧（如 哈希内部件/链表）确实有这个成员 -> 把它的中文名登记进本表；' -ForegroundColor Yellow
+    Write-Host '              ② 该成员只继承自借用类型（没被翻）-> 从 derive 里拿掉，改在 deriveExtra 里手写中文转发。' -ForegroundColor Yellow
+    throw "派生层目标名不存在，先修表再生成"
 }
 $fwdT = @()
 if ($spec.ContainsKey('deriveTypes')) {
