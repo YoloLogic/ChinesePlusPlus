@@ -26,10 +26,15 @@ $utf8 = New-Object System.Text.UTF8Encoding($false)
 
 # 从生成器里扫表项：形如   'header' = @{   或   'header' = @{ zh = ...（单行/多行两种写法）
 # 不能用"zh 必须同行"的正则 —— make_zhstdlib2.ps1 的条目是多行的，会一个都扫不到。
+# ⚠ 键名允许带 '.' —— 内部件的键就是文件名形态（'xcall_once.h' / 'xsmf_control.h'）。
+#   原来这里写成 [a-z0-9_]* ，于是这两个条目【从来没被重生成过】：
+#   regen 报"25 个表项"，而表里实际有 27 个。这正是本脚本开头自己警告的那种故障
+#   （"改了生成器但没人重生成它们"），只不过那次漏的是 26 个 C 包装头，这次漏的是 2 个内部件。
+#   判据：**扫描用的正则必须能匹配表里所有合法的键形态**，否则"全量"就是假的。
 function Get-Entries([string]$file) {
     $out = @()
     foreach ($line in [System.IO.File]::ReadAllLines($file)) {
-        if ($line -match "^\s+'([a-z_][a-z0-9_]*)'\s*=\s*@\{") { $out += $Matches[1] }
+        if ($line -match "^\s+'([a-z_][a-z0-9_.]*)'\s*=\s*@\{") { $out += $Matches[1] }
     }
     return $out
 }
@@ -44,9 +49,10 @@ $jobs = @(
 )
 
 $fail = 0
-# 「改回英文」的台账（见循环里的说明：这是本脚本原先吞掉的东西）
-$revTotal = 0
-$revRows = @()
+# 生成器告警台账 + 「乙」探针计数（见循环里的说明：这两样原先都被本脚本吞掉）
+$warnTotal = 0
+$warnRows = @()
+$riOk = 0
 foreach ($j in $jobs) {
     if ($j.Once) {
         Write-Host ("=== {0}  (一次生成全部) ===" -f $j.Script) -ForegroundColor Cyan
@@ -66,21 +72,27 @@ foreach ($j in $jobs) {
         $o = & pwsh -NoProfile -File (Join-Path $root "tools\$($j.Script)") -Header $h 2>&1
         $last = ([string]($o | Select-Object -Last 1)).Trim()
         # -------------------------------------------------------------------
-        #  ⚠ 【守卫必须在 regen 输出里显式可见】—— 这条本脚本自己违反了。
+        #  ⚠ 【守卫必须在 regen 输出里显式可见】—— 这条本脚本自己违反了两次。
         #
-        #  原来这里只取 `Select-Object -Last 1`，于是生成器打到中间的
-        #  「⚠ 改回英文: X（第 N 行）」全被吞掉。后果是实测到的：
-        #    · 生成器里明明报了 12 处回退，regen 显示全绿；
-        #    · 我据此说"全库 0 回退"，而实际 <向量> 里 `_Ilist.begin()` /
-        #      `_Ilist.end()` 一直是英文（借来的 std::initializer_list 的成员）
-        #      —— 这就是"隐形规矩等于没有规矩"。
-        #  现在把每个头的回退逐条收上来，集中在末尾打一张表。
+        #  第一次（§16.30）：只取 `Select-Object -Last 1`，于是生成器打到中间的
+        #  「⚠ 改回英文: X（第 N 行）」全被吞掉 —— 我据此说"全库 0 回退"，
+        #  而实际 <向量> 里 `_Ilist.begin()` / `_Ilist.end()` 一直是英文。
+        #  当时我只按"改回英文"这一种消息去补。
+        #
+        #  第二次（§16.32）：接着加了「顺带引真头探针: 通过…」，**它又被吞了** ——
+        #  同一个病，我又只治了一个症状。
+        #
+        #  所以这里改成【按类别收】而不是按消息逐条补：
+        #    · 凡是生成器输出的 ⚠ / ❌ 行，一律收进"生成器告警台账"；
+        #    · 凡是通过型的守卫行（顺带引真头探针 …），计数并汇总。
+        #  判据：**新加的守卫不需要再改 regen，就能自动出现在这里。**
         # -------------------------------------------------------------------
-        $revs = @($o | Where-Object { $_ -match '⚠ 改回英文' } | ForEach-Object { ([string]$_).Trim() })
-        if ($revs.Count) {
-            $script:revTotal += $revs.Count
-            $script:revRows += ("  {0,-22} {1}" -f $h, (($revs | ForEach-Object { $_ -replace '^⚠ 改回英文:\s*', '' }) -join '  |  '))
+        $warns = @($o | Where-Object { $_ -match '⚠|❌' } | ForEach-Object { ([string]$_).Trim() })
+        if ($warns.Count) {
+            $script:warnTotal += $warns.Count
+            foreach ($w in $warns) { $script:warnRows += ("  {0,-22} {1}" -f $h, $w) }
         }
+        if (@($o | Where-Object { $_ -match '顺带引真头探针: 通过' }).Count) { $script:riOk++ }
         # 生成器里的"跨头译名一致性检查"（方案 §3.11）输出会被这里捕获而看不见，
         # 隐形规矩等于没有规矩 —— 所以对每个脚本的第一个头把它显式打出来一行。
         if ($h -eq $list[0]) {
@@ -101,23 +113,28 @@ $v = $LASTEXITCODE
 
 Write-Host ''
 # ---------------------------------------------------------------------------
-#  「改回英文」台账 —— 必须显式可见。
-#  每一条都是"抄来那层里还剩一个英文标识符"，也就是【欠账】：
-#  它没被算进 fail（产品本身编得过、测试也过），但**必须看得见**，
-#  否则就会重演"我说全库 0 回退、实际 <向量> 里 _Ilist.begin() 一直是英文"。
-#  典型成因（已查清两类）：
-#    · 成员名被改到了【借来的类型】上（std::initializer_list 的 begin/end、
-#      std::ranges 的 data/size）—— §15.8 / §15.9 那一类；
-#    · 拷贝缺了自己的前向声明（xmemory 的 _Iterator_base12）—— §16.23.1。
-#  消除路径：把提供那个名字的头也抄成汉语件（步骤 1），或从源头挡住（§16.27.1）。
+#  生成器告警台账 —— 必须显式可见。
+#  它按【类别】收集（凡 ⚠ / ❌ 行），不是按消息逐条补，所以**以后新加的守卫
+#  不需要再改本脚本就能出现在这里**（判据就写在这）。
+#
+#  为什么这么在意（两次同样的错）：
+#    · §16.30：「⚠ 改回英文」被吞 -> 我报告"全库 0 回退"，而 <向量> 里
+#      `_Ilist.begin()`/`_Ilist.end()` 一直是英文；
+#    · §16.32：「顺带引真头探针: 通过」又被吞 -> 「乙」的覆盖率成了"我记得"。
+#  典型告警的成因与消除路径：
+#    · 改回英文（借来的类型上的成员名）—— §15.8/§15.9，消除见 §16.23.1/§16.27.1；
+#    · 拷贝缺自己的前向声明 —— §16.23.1；
+#    · 步0b 的 std 模板特化警告、dropTypes 没找到类定义、没找到守卫 #endif —— 各自见 §3.26/§3.18/§3.9。
 # ---------------------------------------------------------------------------
-if ($revTotal -gt 0) {
-    Write-Host ("=== 「改回英文」台账：{0} 处（= 抄来那层还剩的英文名，属【欠账】）===" -f $revTotal) -ForegroundColor Yellow
-    foreach ($r in $revRows) { Write-Host $r -ForegroundColor Yellow }
-    Write-Host '  说明：这些位置编译与测试都通过，所以不计入失败；但它们必须被看见。' -ForegroundColor Yellow
-    Write-Host '        消除路径见方案 §16.23.1 / §16.27.1 / §16.30。' -ForegroundColor Yellow
+if ($warnTotal -gt 0) {
+    Write-Host ("=== 生成器告警台账：{0} 条（抄来那层欠账 + 生成器警告，都不计入失败，但必须被看见）===" -f $warnTotal) -ForegroundColor Yellow
+    foreach ($r in $warnRows) { Write-Host $r -ForegroundColor Yellow }
+    Write-Host '  说明：这些位置编译与测试都通过，所以不计入失败。' -ForegroundColor Yellow
     Write-Host ''
 }
+Write-Host ("=== 顺带引真头探针（§16.29「乙」）：{0} 个头通过（只写中文头，真英文头已在）===" -f $riOk) -ForegroundColor Cyan
+Write-Host '    这条是「乙」的机器保证：条目加了 realInclude 的都会进来，缺一个就说明那条挂了。' -ForegroundColor Gray
+Write-Host ''
 
 if ($fail -eq 0 -and $v -eq 0) { Write-Host "重新生成 + 全量验证：全部通过" -ForegroundColor Green; exit 0 }
 Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}" -f $fail, $v) -ForegroundColor Red

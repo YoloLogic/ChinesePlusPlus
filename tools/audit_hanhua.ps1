@@ -34,11 +34,14 @@ $inc  = 'C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\1
 $mark = '[ZH-DERIVE-LAYER]'
 
 # --- 从生成器里扫表项（不手写清单：手写的清单一定会漂移，见 regen_zhstdlib.ps1）---
+# ⚠ 键名允许带 '.'（内部件的键是文件名形态：'xcall_once.h' / 'xsmf_control.h'）。
+#   与 regen_zhstdlib.ps1 用同一个形态 —— 两处不一致就会出现"regen 覆盖了、台账没覆盖"
+#   这种最难查的偏差（§16.31）。
 function Get-Entries([string] $file) {
     $out = New-Object System.Collections.ArrayList
     $cur = $null
     foreach ($line in [System.IO.File]::ReadAllLines($file)) {
-        if ($line -match "^\s+'([a-z_][a-z0-9_]*)'\s*=\s*@\{") {
+        if ($line -match "^\s+'([a-z_][a-z0-9_.]*)'\s*=\s*@\{") {
             $cur = $Matches[1]
             [void]$out.Add([pscustomobject]@{ H = $cur; Zh = $null })
         } elseif ($cur -and $null -eq $out[$out.Count - 1].Zh -and $line -match "^\s*zh\s*=\s*'([^']+)'") {

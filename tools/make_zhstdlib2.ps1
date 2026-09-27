@@ -31,6 +31,8 @@ $utf8  = New-Object System.Text.UTF8Encoding($false)
 $H = @{
   'mutex' = @{
     zh      = '互斥量'
+    # §16.29「乙」：顺带引真头 —— 只写 `#包含 <互斥量>` 也能用 std::mutex
+    realInclude = @('mutex')
     types   = [ordered]@{
       '_Mutex_base'            = '_互斥量基类'
       'mutex'                  = '互斥量实现'
@@ -134,6 +136,7 @@ $H = @{
   }
   'shared_mutex' = @{
     zh      = '共享互斥量'
+    realInclude = @('shared_mutex')   # §16.29「乙」
     # ⚠ types 的【第一个】= 派生层的基类（生成器 $cls = types.Values | Select -First 1）
     types   = [ordered]@{
       'shared_mutex'          = '共享互斥量实现'
@@ -217,6 +220,7 @@ $H = @{
   }
   'stop_token' = @{
     zh      = '停止令牌'
+    realInclude = @('stop_token')   # §16.29「乙」
     # types 第一个 = 派生层基类（= 对外主类型）
     types   = [ordered]@{
       'stop_token'           = '停止令牌实现'
@@ -294,6 +298,7 @@ $H = @{
   }
   'thread' = @{
     zh      = '线程'
+    realInclude = @('thread')   # §16.29「乙」
     # types 第一个 = 派生层基类
     types   = [ordered]@{
       'thread'       = '线程实现'
@@ -365,6 +370,7 @@ $H = @{
   }
   'bitset' = @{
     zh      = '位集'
+    realInclude = @('bitset')   # §16.29「乙」
     # types 第一个 = 派生层基类
     # ⚠ 嵌套代理类 `bitset::reference` 【不改名】：`reference` 太通用，
     #   全局 \breference\b 替换不安全（同 §3.13 的 thread::id，§六第 8 条）。
@@ -403,6 +409,7 @@ $H = @{
   }
   'set' = @{
     zh      = '集合'
+    realInclude = @('set')   # §16.29「乙」
     # ⚠ <set> 的 API 几乎【全部继承自借用的 _Tree】（在 <xtree> 里，我们没翻），
     #   所以这个头自己定义的成员只有 ctor / emplace / swap。
     #   -> 中文名不能靠 members 表改名（那些名字根本不在本文件里），
@@ -466,6 +473,7 @@ $H = @{
   }
   'map' = @{
     zh      = '映射'
+    realInclude = @('map')   # §16.29「乙」
     types   = [ordered]@{ 'map' = '映射实现'
                           'multimap' = '多重映射实现'
                           '_Tmap_traits' = '_映射特征'
@@ -655,6 +663,7 @@ $H = @{
   }
   'deque' = @{
     zh      = '双端队列'
+    realInclude = @('deque')   # §16.29「乙」
     types   = [ordered]@{ 'deque' = '双端队列实现' }
     # 迭代器类是【本文件自己定义的】（不像 set/map 借用 _Tree），
     # 故意不改名：它们是内部件，跟着派生一起继承即可（§2.2.1 的"内部件暂不翻"）。
@@ -701,6 +710,7 @@ $H = @{
   }
   'list' = @{
     zh      = '链表'
+    realInclude = @('list')   # §16.29「乙」
     types   = [ordered]@{ 'list' = '链表实现' }
     members = [ordered]@{
       'size' = '尺寸'; 'empty' = '为空'
@@ -821,6 +831,7 @@ $H = @{
   }
   'forward_list' = @{
     zh      = '单向链表'
+    realInclude = @('forward_list')   # §16.29「乙」
     types   = [ordered]@{ 'forward_list' = '单向链表实现' }
     # ⚠ forward_list 【没有 size()】（标准如此，取尺寸是 O(n) 所以不提供）——
     #   所以这里刻意不登记 size，免得改名遍去动文件里别处的 size。
@@ -864,6 +875,7 @@ $H = @{
   }
   'queue' = @{
     zh      = '队列'
+    realInclude = @('queue')   # §16.29「乙」
     types   = [ordered]@{ 'queue' = '队列实现'
                           'priority_queue' = '优先队列实现' }
     # ⚠ 不翻 uses_allocator / formatter —— 它们是 std 的模板，改名会断（同 <栈>）
@@ -925,6 +937,7 @@ $H = @{
   }
   'unordered_set' = @{
     zh      = '无序集合'
+    realInclude = @('unordered_set')   # §16.29「乙」
     # ⚠ 与 <set> 同型：API 几乎全部继承自借用的 _Hash（在 <xhash>，我们没翻），
     #   所以中文名要【手写在派生层】（§3.16），members 表只登记本文件自己定义的。
     types   = [ordered]@{ 'unordered_set' = '无序集合实现'
@@ -987,6 +1000,7 @@ $H = @{
   }
   'unordered_map' = @{
     zh      = '无序映射'
+    realInclude = @('unordered_map')   # §16.29「乙」
     # 与 <映射> 同型：API 几乎全部继承自借用的 _Hash（在 <xhash>，我们没翻）
     types   = [ordered]@{ 'unordered_map' = '无序映射实现'
                           'unordered_multimap' = '无序多重映射实现'
@@ -1051,6 +1065,7 @@ $H = @{
   }
   'span' = @{
     zh      = '跨度'
+    realInclude = @('span')   # §16.29「乙」
     types   = [ordered]@{ 'span' = '跨度实现'
                           # §16.27：自有内部件也要翻
                           '_Span_extent_type' = '_跨度范围类型'
@@ -1267,6 +1282,7 @@ $H = @{
   }
   'scoped_allocator' = @{
     zh      = '作用域分配器'
+    realInclude = @('scoped_allocator')   # §16.29「乙」
     types   = [ordered]@{ 'scoped_allocator_adaptor' = '作用域分配器适配器实现'
                           '_Scoped_base' = '_作用域基类'
                           '_Scoped_outermost' = '_作用域最外层'
@@ -1297,6 +1313,7 @@ $H = @{
   }
   'stack' = @{
     zh      = '栈'
+    realInclude = @('stack')   # §16.29「乙」
     types   = [ordered]@{ 'stack' = '栈实现'
                           '_Adaptor_formatter_base' = '_适配器格式化基类' }
     # ⚠ 不翻 uses_allocator / formatter —— 它们是 std 的模板，改名会断
@@ -1325,6 +1342,7 @@ $H = @{
   }
   'typeindex' = @{
     zh      = '类型索引'
+    realInclude = @('typeindex')   # §16.29「乙」
     types   = [ordered]@{ 'type_index' = '类型索引实现' }
     members = [ordered]@{ 'hash_code' = '哈希值'; 'name' = '名称' }
     data    = [ordered]@{ '_Tptr' = '_类型指针' }
@@ -1342,6 +1360,7 @@ $H = @{
   # ---- C++20 并发原语：与别的 std 接口没有类型交互，适合"抄一份 + 派生" ----
   'barrier' = @{
     zh      = '屏障'
+    realInclude = @('barrier')   # §16.29「乙」
     types   = [ordered]@{ 'barrier' = '屏障实现'
                           '_No_completion_function' = '_无完成函数'
                           '_Arrival_token' = '_到达令牌'
@@ -1364,6 +1383,7 @@ $H = @{
   }
   'semaphore' = @{
     zh      = '信号量'
+    realInclude = @('semaphore')   # §16.29「乙」
     types   = [ordered]@{ 'counting_semaphore' = '计数信号量实现'
                           '_Semaphore_max' = '_信号量最大值'
                           '_Semaphore_least_max_value' = '_信号量最小最大值' }
@@ -1387,6 +1407,7 @@ $H = @{
   }
   'condition_variable' = @{
     zh      = '条件变量'
+    realInclude = @('condition_variable')   # §16.29「乙」
     # ⚠ std::condition_variable（非 _any）其实定义在 <mutex> 里；这个头只有 _any
     pub     = '条件变量任意'
     types   = [ordered]@{ 'condition_variable_any' = '条件变量任意实现'
@@ -1429,6 +1450,7 @@ $H = @{
   }
   'latch' = @{
     zh      = '门闩'
+    realInclude = @('latch')   # §16.29「乙」
     types   = [ordered]@{ 'latch' = '门闩实现' }
     members = [ordered]@{ 'count_down' = '递减'; 'try_wait' = '尝试等待'
                           'wait' = '等待'; 'arrive_and_wait' = '到达并等待' }
@@ -1867,14 +1889,36 @@ if ($spec.realInclude) {
     #
     #  这里只【警告】不 throw：有些特化确实无害（比如特化的是我们自己的类型），
     #  要人看一眼。但至少不再是"没人知道"。
+    #
+    #  ⚠ 2026-09-28 精确化（§16.32）：笼统地警告会【淹没】真问题。
+    #    铺开 realInclude 之后，13 条告警里有 8 条是这个 —— 而它们全是**误报**：
+    #       结构 hash<位集实现<位数>> : ...
+    #    它在特化 std::hash，但特化的是**我们自己的类型**（模板实参里有汉语标识符）
+    #    —— 真头里不可能有同一个特化，所以永远撞不上。
+    #    判据改成可机器判定的一条：
+    #      **特化行里出现汉语标识符（或 细节::）-> 特化的目标是我们的类型 -> 无害**
+    #      否则 -> 是拿 std 的类型去特化 std 的模板 -> 真会和真头撞车 -> 必须警告
     # -----------------------------------------------------------------------
-    $stdSpecs = @()
-    $specRx = '(?m)^\s*(?:结构|struct|类型|class)\s+(hash|formatter|uses_allocator|tuple_size|tuple_element|pointer_traits|numeric_limits|iterator_traits|char_traits|is_error_code_enum|is_error_condition_enum|default_delete|allocator_traits)\s*<'
-    foreach ($m in [regex]::Matches($text, $specRx)) { $stdSpecs += $m.Groups[1].Value }
-    if ($stdSpecs.Count) {
-        Write-Host ("  ⚠ 步0b【§3.26 第3条】开了 realInclude，但抄来的文本里有 {0} 处 std 模板特化：{1}" -f `
-            $stdSpecs.Count, (($stdSpecs | Sort-Object -Unique) -join ', ')) -ForegroundColor Yellow
-        Write-Host '     它们可能与真头里的同一特化撞车（重定义）。要么 dropTypes 丢掉，要么确认无害。' -ForegroundColor Yellow
+    $specOurs = @(); $specStd = @()
+    $specRx = '(?m)^\s*(?:结构|struct|类型|class)\s+(hash|formatter|uses_allocator|tuple_size|tuple_element|pointer_traits|numeric_limits|iterator_traits|char_traits|is_error_code_enum|is_error_condition_enum|default_delete|allocator_traits)\s*<[^\r\n]*'
+    foreach ($m in [regex]::Matches($text, $specRx)) {
+        $line = $m.Value
+        if ($line -match '[\u4e00-\u9fff]' -or $line -match '细节\s*::') { $specOurs += $m.Groups[1].Value }
+        else { $specStd += $m.Groups[1].Value }
+    }
+    if ($specOurs.Count) {
+        Write-Host ("  步0b 抄来文本里有 {0} 处 std 模板特化，但特化的都是【我们自己的类型】（含汉语标识符）-> 无害：{1}" -f `
+            $specOurs.Count, (($specOurs | Sort-Object -Unique) -join ', '))
+    }
+    if ($specStd.Count) {
+        Write-Host ("  ⚠ 步0b【§3.26 第3条】开了 realInclude，抄来文本里有 {0} 处【拿 std 类型特化 std 模板】：{1}" -f `
+            $specStd.Count, (($specStd | Sort-Object -Unique) -join ', ')) -ForegroundColor Yellow
+        Write-Host '     这一种真会与真头里的同一特化撞车（重定义）。要么 dropTypes 丢掉，要么逐条确认。' -ForegroundColor Yellow
+        # ⚠ 这三行是**解释**，故意不用 ⚠ 前缀 —— regen 的告警台账是"凡 ⚠/❌ 行"，
+        #   我第一版把提示也写成 ⚠ 开头，结果它自己变成第 7 条告警（噪声）。
+        Write-Host '     · 诊断提示：也可能是"特化其实是针对我们自己的内部件、只是那个名字还没汉化"' -ForegroundColor Yellow
+        Write-Host '       （实测 <向量> 的 formatter：约束里的 _Vb_reference 是我们自己的类）。' -ForegroundColor Yellow
+        Write-Host '       那种情况【翻掉那个名字这条告警就会自动消失】—— 告警本身即该名字的欠账标记。' -ForegroundColor Yellow
     }
 }
 
@@ -2167,6 +2211,56 @@ if ($endifs.Count -gt 0) {
     [System.IO.File]::AppendAllText($outPath, $layerText, $utf8)
 }
 Write-Host "  步6 派生层 + 英文转发 $($spec.derive.Count) 条$(if ($spec.deriveTypes) { " + 嵌套类型 $($spec.deriveTypes.Count) 条" })$(if ($spec.stdHash) { ' + std::hash 特化' })"
+
+# ---------------------------------------------------------------------------
+#  守卫：「乙」的机器判据（§16.29）—— 只写【中文头】，真英文头必须已经进来。
+#
+#  为什么必须【自动派生】而不是手写一张表：
+#    条目的 `realInclude` 是数据，而真英文头的包含守卫宏可以**从真头读出来**
+#    （与步 1 换守卫用的是同一套判据）。手写"中文头 -> 宏名"的映射一定会漂移
+#    —— 本项目已经因为手写清单栽过多次（§3.11 / §16.31）。
+#
+#  做法：对 realInclude 里的每个英文头 X，读出它的包含守卫宏 G，
+#  然后编一个【只 `#包含 <中文头>`】的探针，用 `#ifndef G -> #error` 断言 G 已定义。
+#  （`#ifndef` / `#error` 用英文写即可 —— 中文关键字是叠加的，英文照样有效。）
+#
+#  ⚠ 这条守卫是 §16.29 那件事的**唯一**机器保证：
+#    只给 <向量> 写一条专门测试是不够的，其余 20 个头的「乙」就成了"我记得"。
+# ---------------------------------------------------------------------------
+if ($spec.realInclude) {
+    $probe2 = Join-Path $env:TEMP ('zh2ri_' + [guid]::NewGuid().ToString('N').Substring(0, 8) + '.cpp')
+    $lines2 = @("#包含 <$($spec.zh)>")
+    $riChecked = 0
+    $riSkipped = @()
+    foreach ($ri in @($spec.realInclude)) {
+        $riPath = Join-Path $vsInc $ri
+        if (-not (Test-Path $riPath)) { $riSkipped += $ri; continue }
+        $riText = [System.IO.File]::ReadAllText($riPath)
+        $gm2 = [regex]::Match($riText, '(?m)^#ifndef\s+([A-Za-z_][A-Za-z0-9_]*)\s*\r?\n#define\s+\1\b')
+        if (-not $gm2.Success) { $riSkipped += "$ri(无守卫宏)"; continue }
+        $g2 = $gm2.Groups[1].Value
+        $lines2 += "#ifndef $g2"
+        $lines2 += "#error 只写 <$($spec.zh)> 没能把真 <$ri> 引进来（方案 §16.29「乙」）"
+        $lines2 += "#endif"
+        $riChecked++
+    }
+    if ($riSkipped.Count) {
+        Write-Host ("  ⚠ 顺带引真头探针: 跳过 {0}（读不出包含守卫宏，无法断言）" -f ($riSkipped -join ', ')) -ForegroundColor Yellow
+    }
+    if ($riChecked -gt 0) {
+        $lines2 += "整数 主函数(){ 返回 0; }"
+        [System.IO.File]::WriteAllText($probe2, ($lines2 -join "`n") + "`n", $utf8)
+        $raw2 = & cmd /c "`"$cxx`" -std=c++20 -isystem`"$out`" -fsyntax-only `"$probe2`" 2>&1"
+        if ($LASTEXITCODE -ne 0) {
+            Remove-Item $probe2 -Force -ErrorAction SilentlyContinue
+            Write-Host ("  ❌ 顺带引真头探针 FAIL（只写 <{0}> 时真头没进来）:" -f $spec.zh) -ForegroundColor Red
+            foreach ($l in @($raw2 | Select-Object -First 4)) { Write-Host ("      " + ([string]$l).Trim()) -ForegroundColor Red }
+            throw "「乙」探针失败：realInclude 没生效（去掉 realInclude 这条测试必须会红）"
+        }
+        Remove-Item $probe2 -Force -ErrorAction SilentlyContinue
+        Write-Host ("  顺带引真头探针: 通过（只写中文头时 {0} 个真头已在）" -f $riChecked) -ForegroundColor Green
+    }
+}
 
 # --- 最终验证：中文名 / 英文名 / 与 std 并存 ---
 Write-Host ""
