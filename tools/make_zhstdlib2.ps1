@@ -2046,7 +2046,57 @@ $H = @{
                           #     所以**单头/组合探针（默认配置）一直照不出来**。
                           #   处理同 §16.61.6：定义方改名，调用方保持英文名（指到 std 那份）。
                           '_Delete_plain_internal'    = '_删除原生内部' }
-    members = [ordered]@{}
+    # -----------------------------------------------------------------------
+    #  §16.67 成员名层（第三把尺指向的最大一块）。逐名量过"谁定义它"（§16.64 判据）：
+    #    · 本头定义（下面这 33 个）-> 翻；
+    #    · **借用的**（不在本表）-> 留英文：`_Adl_verify_range` / `_Seek_wrapped`
+    #      （定义在 <xutility>）；`address` / `addressof` / `apply` / `construct_at` /
+    #      `destroy_at` / `make_tuple` / `forward_as_tuple` / `memcpy` / `memset` /
+    #      `pointer_to` / `elements_of` / `from_range_t` -> 全是 std/C 的名字；
+    #    · **allocator 契约名**（`allocate` / `allocate_at_least` / `deallocate` /
+    #      `construct` / `destroy` / `max_size` / `select_on_container_copy_construction`）
+    #      -> 第 ③ 类：`allocator_traits<我们的分配器>` 会读它们，翻了就认不出。
+    #   ⚠ `_Construct_in_place` / `_Destroy_range` / `_Extract` / `_Release` /
+    #      `_Lock` / `_Orphan_all` / `_Swap_proxy_and_iterators` 在【别的头里也有】
+    #      （xutility/xtree/xhash/xstring）—— 那是"同名两个主人"（§3.12）。
+    #      按 §16.61.6 的规则：**本头是定义方之一就翻本头这份**，
+    #      别的头保持英文、指向 std 那一份，两边改名后不再同名、互不干扰。
+    # -----------------------------------------------------------------------
+    members = [ordered]@{
+      '_Adopt' = '_收养'
+      '_Adopt_locked' = '_收养加锁'
+      '_Adopt_unlocked' = '_收养不加锁'
+      '_Alloc_proxy' = '_分配代理'
+      '_Allocate' = '_分配'
+      '_Assign_locked' = '_赋值加锁'
+      '_Assign_unlocked' = '_赋值不加锁'
+      '_Bind' = '_绑定'
+      '_Clamp_to_end' = '_夹取至末尾'
+      '_Construct_in_place' = '_就地构造'
+      '_Construct_in_place_by_deref' = '_按解引用就地构造'
+      '_Deallocate_plain' = '_释放原生'
+      '_Destroy_range' = '_析构范围'
+      '_Emplace_back' = '_尾部就地构造'
+      '_Emplace_back_deref' = '_按解引用尾部就地构造'
+      '_Emplace_back_deref_move' = '_按解引用移动尾部就地构造'
+      '_Extract' = '_摘取'
+      '_Get_first' = '_取第一'
+      '_Get_val' = '_取本值'
+      '_Get_value' = '_取值'
+      '_Getcont' = '_取容器'
+      '_Lock' = '_加锁'
+      '_Orphan_all' = '_孤儿化全部'
+      '_Orphan_all_locked_v3' = '_孤儿化全部加锁3'
+      '_Orphan_all_unlocked_v3' = '_孤儿化全部不加锁3'
+      '_Orphan_me_locked_v3' = '_孤儿化本迭代器加锁3'
+      '_Orphan_me_unlocked_v3' = '_孤儿化本迭代器不加锁3'
+      '_Release' = '_释放'
+      '_Reload_proxy' = '_重载代理'
+      '_Swap_proxy_and_iterators' = '_交换代理与迭代器'
+      '_Swap_proxy_and_iterators_locked' = '_交换代理与迭代器加锁'
+      '_Swap_proxy_and_iterators_unlocked' = '_交换代理与迭代器不加锁'
+      '_Uninitialized_move_unchecked' = '_未初始化移动非检查'
+    }
     data    = [ordered]@{}
     derive  = @()
     stdHash = $false
