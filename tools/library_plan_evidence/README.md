@@ -97,3 +97,54 @@ B2 的错误指向**用户没写过、也改不了的那个文件**。真实项�
 它是一次**设计决定的取证**，所以不参与 `run_all.ps1` 的通过计数。
 放在 `tools\` 是因为：**文档里的断言必须能复跑** ——
 本项目栽过多次"文档说会查、而检查并不存在"。
+
+---
+
+## 七、标准库汉化方案：六个取证脚本（2026-09-27 归档）
+
+> 这六个脚本是 `docs\标准库汉化\标准库汉化方案.md` 里**每一条实测结论的产出者**。
+> 它们原先只写在 `build\` 下，而 `build\` 是 git 忽略目录（**重建编译器就没了**），
+> 2026-09-27 按用户要求归档到这里，并补上这份说明，便于后期调用。
+>
+> **每个脚本都自带断言、直接给出结论**，不需要人眼读输出；跑完自删临时目录。
+
+| 脚本 | 一句话功能 | 关键结论 | 支撑方案里的哪一条 |
+|---|---|---|---|
+| `probe_01_include_closure.ps1` | 量 `<vector>` 的**完整 include 闭包**有多大（用 `clang -H`） | 闭包 **218 个头 / 129,143 行**；其中 MSVC STL **43 头 / 32,613 行**、Windows SDK 29 头、clang 内建 146 头 | §五 规模 |
+| `probe_02_copy_into_std.ps1` | 抄一份 `<vector>`、只改类名与成员名、**留在 `std` 里** | 单独用 ✅ 0 错误；**与 `<vector>` 并存 → ❌ 20 个「重定义」**（`_Vector_const_iterator`、`_Vector_iterator` …） | **铁律 1**（必须搬进自己的名域） |
+| `probe_03_three_placements.ps1` | 三种落地位置对比：留 `std` / 搬 `标准` / 搬 `标准` ＋ `使用 名域 std;` | 留 `std` → 0 错误但撞内部名；搬 `标准` 不兜底 → **20 处**「未知的类名 `_Iterator_base`」；**搬 `标准` ＋ 兜底 → 只剩 2 处**（`pmr` 那段） | **铁律 1、2** |
+| `probe_04_two_layers.ps1` | 三层结构：抄来翻译的中文实现 ＋ 在它上面派生补英文名 | 中文名 `表.压入(1)`、英文名 `表.push_back(2)`、微软 `std::vector` **三者共存** | §〇 三层结构 |
+| `probe_05_english_boundary.ps1` | 与英文接口的边界**逐项对拍**（6 项） | 非模板 / 泛型 / 迭代器 / 范围 for / 双向转换**都过**；**只有**「把 `std::vector<T>` 写死在模板推导位置」过不了 | §4.2 边界表 |
+| `probe_06_exception_direction.ps1` | 异常捕获的**方向性** | 你的（派生的）异常**能**被第三方 `捕获 (std::exception&)` 抓到；**第三方抛的** `std::runtime_error`，用 `捕获 (标准::运行时错误&)` **抓不到**（base→derived 不通，且**不报编译错**） | **铁律 4** |
+
+### 怎么跑
+
+```powershell
+powershell -File E:\Chinese++\tools\library_plan_evidence\probe_01_include_closure.ps1
+powershell -File E:\Chinese++\tools\library_plan_evidence\probe_02_copy_into_std.ps1
+powershell -File E:\Chinese++\tools\library_plan_evidence\probe_03_three_placements.ps1
+powershell -File E:\Chinese++\tools\library_plan_evidence\probe_04_two_layers.ps1
+powershell -File E:\Chinese++\tools\library_plan_evidence\probe_05_english_boundary.ps1
+powershell -File E:\Chinese++\tools\library_plan_evidence\probe_06_exception_direction.ps1
+```
+
+### 依赖与副作用（调用前先看这段）
+
+* 只依赖两样：`build\Release\bin\chinese++.exe`（我们的编译器）＋ 机器上已装的
+  **MSVC STL**（`C:\Program Files\Microsoft Visual Studio\...\include`）。
+* ⚠️ **VS 版本号在脚本里是写死的**（`14.44.35207`）。换了 VS 版本，要改脚本顶部那个路径。
+* 临时目录建在 `build\` 下（`_closure` / `_copy` / `_copy2` / `_layer` / `_border` / `_excp`），
+  **跑完自删，不碰仓库**。
+* `probe_01` 需要几分钟（要 dump 大量头文件）；其余每个几秒到几十秒。
+
+### 与前面那批证据（`run.py` / `vec_*.h` / `lib_uses_chinese.h`）的关系
+
+| | 前面那批（2026-09-24） | 这六个（2026-09-27） |
+|---|---|---|
+| 用什么验证 | **手写的最小模拟类**（`vec_orig.h` 等，模拟 `std::vector`） | **真的 MSVC STL**（真的 `<vector>`、真的 `std::vector`） |
+| 回答什么 | 别名层 / 成员级中文**能不能做到"每个文件各选各的"** | 抄一份整段翻译**怎么落地、边界在哪、代价多大** |
+| 结论 | 别名层 ✅；成员级中文 ❌ 做不到逐文件可选 | 见上表六条 |
+
+**为什么它们不属于 `tests\`**：同本节开头那条理由 —— 它们量的是"C++ 语言与头文件
+组织方式的性质"以及"设计决定的取证"，**不是我们编译器的行为**，
+所以不参与 `run_all.ps1` 的通过计数。
