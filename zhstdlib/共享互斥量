@@ -1,0 +1,418 @@
+// 共享互斥量实现 standard header
+
+// Copyright (c) Microsoft Corporation.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#ifndef _ZH_SHARED_MUTEX_
+#define _ZH_SHARED_MUTEX_
+#include <yvals_core.h>
+#if _STL_COMPILER_PREPROCESSOR
+
+#ifdef _M_CEE_PURE
+#error <共享互斥量实现> is not supported when compiling with /clr:pure.
+#endif // defined(_M_CEE_PURE)
+
+#include <条件变量>
+#include <互斥量>
+#include <xthreads.h>
+
+#pragma pack(push, _CRT_PACKING)
+#pragma warning(push, _STL_WARNING_LEVEL)
+#pragma warning(disable : _STL_DISABLED_WARNINGS)
+_STL_DISABLE_CLANG_WARNINGS
+#pragma push_macro("new")
+#undef new
+
+名域 标准 { 名域 细节 {
+使用 名域 std;
+_EXPORT_STD class 共享互斥量实现 { // class for mutual exclusion shared across threads
+public:
+    using native_handle_type = _Smtx_t*;
+
+    共享互斥量实现()                               = default;
+    共享互斥量实现(const 共享互斥量实现&)            = delete;
+    共享互斥量实现& operator=(const 共享互斥量实现&) = delete;
+
+    void 加锁() noexcept /* strengthened */ { // 加锁 exclusive
+        _Smtx_lock_exclusive(&_Myhandle);
+    }
+
+    _NODISCARD_TRY_CHANGE_STATE bool 尝试加锁() noexcept /* strengthened */ { // try to 加锁 exclusive
+        return _Smtx_try_lock_exclusive(&_Myhandle) != 0;
+    }
+
+    void 解锁() noexcept /* strengthened */ { // 解锁 exclusive
+        _Smtx_unlock_exclusive(&_Myhandle);
+    }
+
+    void 共享加锁() noexcept /* strengthened */ { // 加锁 non-exclusive
+        _Smtx_lock_shared(&_Myhandle);
+    }
+
+    _NODISCARD_TRY_CHANGE_STATE bool 尝试共享加锁() noexcept /* strengthened */ { // try to 加锁 non-exclusive
+        return _Smtx_try_lock_shared(&_Myhandle) != 0;
+    }
+
+    void 共享解锁() noexcept /* strengthened */ { // 解锁 non-exclusive
+        _Smtx_unlock_shared(&_Myhandle);
+    }
+
+    _NODISCARD native_handle_type native_handle() noexcept /* strengthened */ { // get native handle
+        return &_Myhandle;
+    }
+
+private:
+    _Smtx_t _Myhandle = nullptr;
+};
+
+_EXPORT_STD class 限时共享互斥量实现 { // class for mutual exclusion shared across threads
+private:
+    using _Read_cnt_t = unsigned int;
+
+    static constexpr _Read_cnt_t _Max_readers = static_cast<_Read_cnt_t>(-1);
+
+public:
+    限时共享互斥量实现() = default;
+
+    限时共享互斥量实现(const 限时共享互斥量实现&)            = delete;
+    限时共享互斥量实现& operator=(const 限时共享互斥量实现&) = delete;
+
+    void 加锁() { // 加锁 exclusive
+        独占锁实现<互斥量实现> _Lock(_Mymtx);
+        while (_Writing) {
+            _Write_queue.wait(_Lock);
+        }
+
+        _Writing = true;
+        while (0 < _Readers) {
+            _Read_queue.wait(_Lock); // wait for writing, no readers
+        }
+    }
+
+    _NODISCARD_TRY_CHANGE_STATE bool 尝试加锁() { // try to 加锁 exclusive
+        锁守卫实现<互斥量实现> _Lock(_Mymtx);
+        if (_Writing || 0 < _Readers) {
+            return false;
+        } else { // set writing, no readers
+            _Writing = true;
+            return true;
+        }
+    }
+
+    template <class _Rep, class _Period>
+    _NODISCARD_TRY_CHANGE_STATE bool 限时加锁(
+        const chrono::duration<_Rep, _Period>& _Rel_time) { // try to 加锁 for duration
+        return 加锁至时刻(_To_absolute_time(_Rel_time));
+    }
+
+    template <class _Clock, class _Duration>
+    _NODISCARD_TRY_CHANGE_STATE bool 加锁至时刻(const chrono::time_point<_Clock, _Duration>& _Abs_time) {
+        // try to 加锁 until time point
+        static_assert(chrono::_Is_clock_v<_Clock>, "Clock type required");
+        auto _Not_writing  = [this] { return !_Writing; };
+        auto _Zero_readers = [this] { return _Readers == 0; };
+        独占锁实现<互斥量实现> _Lock(_Mymtx);
+
+        if (!_Write_queue.wait_until(_Lock, _Abs_time, _Not_writing)) {
+            return false;
+        }
+
+        _Writing = true;
+
+        if (!_Read_queue.wait_until(_Lock, _Abs_time, _Zero_readers)) { // timeout, leave writing state
+            _Writing = false;
+            _Lock.解锁(); // 解锁 before notifying, for efficiency
+            _Write_queue.notify_all();
+            return false;
+        }
+
+        return true;
+    }
+
+    void 解锁() { // 解锁 exclusive
+        { // 解锁 before notifying, for efficiency
+            锁守卫实现<互斥量实现> _Lock(_Mymtx);
+
+            _Writing = false;
+        }
+
+        _Write_queue.notify_all();
+    }
+
+    void 共享加锁() { // 加锁 non-exclusive
+        独占锁实现<互斥量实现> _Lock(_Mymtx);
+        while (_Writing || _Readers == _Max_readers) {
+            _Write_queue.wait(_Lock);
+        }
+
+        ++_Readers;
+    }
+
+    _NODISCARD_TRY_CHANGE_STATE bool 尝试共享加锁() { // try to 加锁 non-exclusive
+        锁守卫实现<互斥量实现> _Lock(_Mymtx);
+        if (_Writing || _Readers == _Max_readers) {
+            return false;
+        } else { // count another reader
+            ++_Readers;
+            return true;
+        }
+    }
+
+    template <class _Rep, class _Period>
+    _NODISCARD_TRY_CHANGE_STATE bool 限时共享加锁(const chrono::duration<_Rep, _Period>& _Rel_time) {
+        // try to 加锁 non-exclusive for relative time
+        return 共享加锁至时刻(_To_absolute_time(_Rel_time));
+    }
+
+    template <class _Clock, class _Duration>
+    _NODISCARD_TRY_CHANGE_STATE bool 共享加锁至时刻(const chrono::time_point<_Clock, _Duration>& _Abs_time) {
+        // try to 加锁 non-exclusive until absolute time
+        static_assert(chrono::_Is_clock_v<_Clock>, "Clock type required");
+        const auto _Can_acquire = [this] { return !_Writing && _Readers < _Max_readers; };
+
+        独占锁实现<互斥量实现> _Lock(_Mymtx);
+
+        if (!_Write_queue.wait_until(_Lock, _Abs_time, _Can_acquire)) {
+            return false;
+        }
+
+        ++_Readers;
+        return true;
+    }
+
+    void 共享解锁() { // 解锁 non-exclusive
+        _Read_cnt_t _Local_readers;
+        bool _Local_writing;
+
+        { // 解锁 before notifying, for efficiency
+            锁守卫实现<互斥量实现> _Lock(_Mymtx);
+            --_Readers;
+            _Local_readers = _Readers;
+            _Local_writing = _Writing;
+        }
+
+        if (_Local_writing && _Local_readers == 0) {
+            _Read_queue.notify_one();
+        } else if (!_Local_writing && _Local_readers == _Max_readers - 1) {
+            _Write_queue.notify_all();
+        }
+    }
+
+private:
+    互斥量实现 _Mymtx{};
+    条件变量实现 _Read_queue{};
+    条件变量实现 _Write_queue{};
+    _Read_cnt_t _Readers = 0;
+    bool _Writing        = false;
+};
+
+_EXPORT_STD template <class _Mutex>
+class 共享锁实现 { // shareable 加锁
+public:
+    using mutex_type = _Mutex;
+
+    共享锁实现() noexcept = default;
+
+    _NODISCARD_CTOR_LOCK explicit 共享锁实现(mutex_type& _Mtx)
+        : _Pmtx(_STD addressof(_Mtx)), _Owns(true) { // construct with 互斥量实现 and 加锁 shared
+        _Mtx.共享加锁();
+    }
+
+    共享锁实现(mutex_type& _Mtx, 延迟锁类型) noexcept
+        : _Pmtx(_STD addressof(_Mtx)), _Owns(false) {} // construct with unlocked 互斥量实现
+
+    _NODISCARD_CTOR_LOCK 共享锁实现(mutex_type& _Mtx, 尝试锁类型)
+        : _Pmtx(_STD addressof(_Mtx)), _Owns(_Mtx.尝试共享加锁()) {} // construct with 互斥量实现 and try to 加锁 shared
+
+    _NODISCARD_CTOR_LOCK 共享锁实现(mutex_type& _Mtx, 接管锁类型) noexcept // strengthened
+        : _Pmtx(_STD addressof(_Mtx)), _Owns(true) {} // construct with 互斥量实现 and adopt ownership
+
+    template <class _Rep, class _Period>
+    _NODISCARD_CTOR_LOCK 共享锁实现(mutex_type& _Mtx, const chrono::duration<_Rep, _Period>& _Rel_time)
+        : _Pmtx(_STD addressof(_Mtx)), _Owns(_Mtx.限时共享加锁(_Rel_time)) {
+        // construct with 互斥量实现 and try to 加锁 for relative time
+    }
+
+    template <class _Clock, class _Duration>
+    _NODISCARD_CTOR_LOCK 共享锁实现(mutex_type& _Mtx, const chrono::time_point<_Clock, _Duration>& _Abs_time)
+        : _Pmtx(_STD addressof(_Mtx)), _Owns(_Mtx.共享加锁至时刻(_Abs_time)) {
+        // construct with 互斥量实现 and try to 加锁 until absolute time
+        static_assert(chrono::_Is_clock_v<_Clock>, "Clock type required");
+    }
+
+    ~共享锁实现() noexcept {
+        if (_Owns) {
+            _Pmtx->共享解锁();
+        }
+    }
+
+    _NODISCARD_CTOR_LOCK 共享锁实现(共享锁实现&& _Other) noexcept : _Pmtx(_Other._Pmtx), _Owns(_Other._Owns) {
+        _Other._Pmtx = nullptr;
+        _Other._Owns = false;
+    }
+
+    共享锁实现& operator=(共享锁实现&& _Right) noexcept {
+        共享锁实现{_STD move(_Right)}.交换(*this);
+        return *this;
+    }
+
+    共享锁实现(const 共享锁实现&)            = delete;
+    共享锁实现& operator=(const 共享锁实现&) = delete;
+
+    void 加锁() { // 加锁 the 互斥量实现
+        _Validate();
+        _Pmtx->共享加锁();
+        _Owns = true;
+    }
+
+    _NODISCARD_TRY_CHANGE_STATE bool 尝试加锁() { // try to 加锁 the 互斥量实现
+        _Validate();
+        _Owns = _Pmtx->尝试共享加锁();
+        return _Owns;
+    }
+
+    template <class _Rep, class _Period>
+    _NODISCARD_TRY_CHANGE_STATE bool 限时加锁(const chrono::duration<_Rep, _Period>& _Rel_time) {
+        // try to 加锁 the 互斥量实现 for _Rel_time
+        _Validate();
+        _Owns = _Pmtx->限时共享加锁(_Rel_time);
+        return _Owns;
+    }
+
+    template <class _Clock, class _Duration>
+    _NODISCARD_TRY_CHANGE_STATE bool 加锁至时刻(const chrono::time_point<_Clock, _Duration>& _Abs_time) {
+        // try to 加锁 the 互斥量实现 until _Abs_time
+        static_assert(chrono::_Is_clock_v<_Clock>, "Clock type required");
+        _Validate();
+        _Owns = _Pmtx->共享加锁至时刻(_Abs_time);
+        return _Owns;
+    }
+
+    void 解锁() { // try to 解锁 the 互斥量实现
+        if (!_Pmtx || !_Owns) {
+            _Throw_system_error(errc::operation_not_permitted);
+        }
+
+        _Pmtx->共享解锁();
+        _Owns = false;
+    }
+
+    void 交换(共享锁实现& _Right) noexcept {
+        交换(_Pmtx, _Right._Pmtx);
+        交换(_Owns, _Right._Owns);
+    }
+
+    mutex_type* 释放() noexcept {
+        _Mutex* _Res = _Pmtx;
+        _Pmtx        = nullptr;
+        _Owns        = false;
+        return _Res;
+    }
+
+    _NODISCARD bool 持有锁() const noexcept {
+        return _Owns;
+    }
+
+    explicit operator bool() const noexcept {
+        return _Owns;
+    }
+
+    _NODISCARD mutex_type* 互斥量实现() const noexcept {
+        return _Pmtx;
+    }
+
+private:
+    _Mutex* _Pmtx = nullptr;
+    bool _Owns    = false;
+
+    void _Validate() const { // check if the 互斥量实现 can be locked
+        if (!_Pmtx) {
+            _Throw_system_error(errc::operation_not_permitted);
+        }
+
+        if (_Owns) {
+            _Throw_system_error(errc::resource_deadlock_would_occur);
+        }
+    }
+};
+
+_EXPORT_STD template <class _Mutex>
+void 交换(共享锁实现<_Mutex>& _Left, 共享锁实现<_Mutex>& _Right) noexcept {
+    _Left.交换(_Right);
+}
+} }
+#pragma pop_macro("new")
+_STL_RESTORE_CLANG_WARNINGS
+#pragma warning(pop)
+#pragma pack(pop)
+#endif // _STL_COMPILER_PREPROCESSOR
+// ============================================================================
+//  第二层：在【中文的基础上】派生，把英文原名补回来
+//  · 第一层 标准::细节::共享互斥量实现 是抄自微软的中文实现，成员名全中文
+//  · 本层加回英文原名，所以两种名字在【同一个对象】上都能用
+//  · 与微软的原类型并存：它是【另一个类型】，不碰 std 里的定义
+// ============================================================================
+名域 标准 {
+
+类型 共享互斥量 : 公开 细节::共享互斥量实现 {
+公开:
+    使用 基类 = 细节::共享互斥量实现;
+    使用 基类::基类;
+
+    // 嵌套类型名也要补回英文（数据成员不行 —— 那会改布局）
+
+
+    // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
+    模板 <类型名... 参数> 自动 lock(参数&&... 值) { 返回 基类::加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 lock(参数&&... 值) 常量 { 返回 基类::加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 unlock(参数&&... 值) { 返回 基类::解锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 unlock(参数&&... 值) 常量 { 返回 基类::解锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 try_lock(参数&&... 值) { 返回 基类::尝试加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 try_lock(参数&&... 值) 常量 { 返回 基类::尝试加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 lock_shared(参数&&... 值) { 返回 基类::共享加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 lock_shared(参数&&... 值) 常量 { 返回 基类::共享加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 unlock_shared(参数&&... 值) { 返回 基类::共享解锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 unlock_shared(参数&&... 值) 常量 { 返回 基类::共享解锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 try_lock_shared(参数&&... 值) { 返回 基类::尝试共享加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 try_lock_shared(参数&&... 值) 常量 { 返回 基类::尝试共享加锁(static_cast<参数&&>(值)...); }
+};
+}
+
+名域 标准 {
+
+// 限时共享互斥量（std::shared_timed_mutex）
+类型 限时共享互斥量 : 公开 细节::限时共享互斥量实现 {
+公开:
+    使用 基类 = 细节::限时共享互斥量实现;
+    使用 基类::基类;
+    模板 <类型名... 参数> 自动 lock(参数&&... 值) { 返回 基类::加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 unlock(参数&&... 值) { 返回 基类::解锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 try_lock(参数&&... 值) { 返回 基类::尝试加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 lock_shared(参数&&... 值) { 返回 基类::共享加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 unlock_shared(参数&&... 值) { 返回 基类::共享解锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 try_lock_shared(参数&&... 值) { 返回 基类::尝试共享加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 try_lock_for(参数&&... 值) { 返回 基类::限时加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 try_lock_until(参数&&... 值) { 返回 基类::加锁至时刻(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 try_lock_shared_for(参数&&... 值) { 返回 基类::限时共享加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 try_lock_shared_until(参数&&... 值) { 返回 基类::共享加锁至时刻(static_cast<参数&&>(值)...); }
+};
+
+// 共享锁（std::shared_lock）
+模板 <类型名 互斥类型>
+类型 共享锁 : 公开 细节::共享锁实现<互斥类型> {
+公开:
+    使用 基类 = 细节::共享锁实现<互斥类型>;
+    使用 基类::基类;
+    模板 <类型名... 参数> 自动 lock(参数&&... 值) { 返回 基类::加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 try_lock(参数&&... 值) { 返回 基类::尝试加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 unlock(参数&&... 值) { 返回 基类::解锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 lock_shared(参数&&... 值) { 返回 基类::共享加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 try_lock_shared(参数&&... 值) { 返回 基类::尝试共享加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 unlock_shared(参数&&... 值) { 返回 基类::共享解锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 owns_lock(参数&&... 值) 常量 { 返回 基类::持有锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 release(参数&&... 值) { 返回 基类::释放(static_cast<参数&&>(值)...); }
+};
+
+}  // 名域 标准
+
+#endif // _SHARED_MUTEX_

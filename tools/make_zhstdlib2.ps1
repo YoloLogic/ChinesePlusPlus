@@ -106,6 +106,89 @@ $H = @{
       @('英文名与中文名并用 + 独占锁','#包含 <互斥量>`n整数 主函数(){ 标准::互斥量 甲; 标准::独占锁<标准::互斥量> 锁(甲); 布尔 有 = 锁.持有锁(); 布尔 有2 = 锁.owns_lock(); 锁.解锁(); 锁.unlock(); 返回 (整数)(有 || 有2) - 1; }')
     )
   }
+  'shared_mutex' = @{
+    zh      = '共享互斥量'
+    # ⚠ types 的【第一个】= 派生层的基类（生成器 $cls = types.Values | Select -First 1）
+    types   = [ordered]@{
+      'shared_mutex'          = '共享互斥量实现'
+      'shared_timed_mutex'    = '限时共享互斥量实现'
+      'shared_lock'           = '共享锁实现'
+      # 跨头类型名：这几个译名是 <互斥量> / <条件变量> 定下的（方案 §3.8.2）
+      'mutex'                 = '互斥量实现'
+      '_Mutex_base'           = '_互斥量基类'
+      'lock_guard'            = '锁守卫实现'
+      'unique_lock'           = '独占锁实现'
+      'condition_variable'    = '条件变量实现'
+      # 三个 tag 类型也定义在 <mutex> 里
+      'adopt_lock_t'          = '接管锁类型'
+      'defer_lock_t'          = '延迟锁类型'
+      'try_to_lock_t'         = '尝试锁类型'
+    }
+    # 已经抄完的头才开（步 0，见 §3.8.1）
+    zhIncludes = @{ 'mutex' = '互斥量'; 'condition_variable' = '条件变量' }
+    members = [ordered]@{
+      'lock' = '加锁'; 'unlock' = '解锁'; 'try_lock' = '尝试加锁'
+      'lock_shared' = '共享加锁'; 'unlock_shared' = '共享解锁'
+      'try_lock_shared' = '尝试共享加锁'
+      'try_lock_for' = '限时加锁'; 'try_lock_until' = '加锁至时刻'
+      'try_lock_shared_for' = '限时共享加锁'; 'try_lock_shared_until' = '共享加锁至时刻'
+      'owns_lock' = '持有锁'; 'release' = '释放'; 'swap' = '交换'
+    }
+    # ⚠ `shared_lock::mutex()` 这个取值函数名和类型名 `mutex` 撞车：
+    #   types 表先跑，`mutex` 已被改成 `互斥量实现`，所以它读作 互斥量实现()。
+    #   与 <互斥量> 里 `unique_lock::mutex()` 是同一个妥协（方案 §六）。
+    data    = [ordered]@{}
+    derive  = @( @('lock','加锁'), @('unlock','解锁'), @('try_lock','尝试加锁'),
+                 @('lock_shared','共享加锁'), @('unlock_shared','共享解锁'),
+                 @('try_lock_shared','尝试共享加锁') )
+    stdHash = $false
+    tparam  = @{ decl = ''; args = '' }
+    extra = @'
+
+名域 标准 {
+
+// 限时共享互斥量（std::shared_timed_mutex）
+类型 限时共享互斥量 : 公开 细节::限时共享互斥量实现 {
+公开:
+    使用 基类 = 细节::限时共享互斥量实现;
+    使用 基类::基类;
+    模板 <类型名... 参数> 自动 lock(参数&&... 值) { 返回 基类::加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 unlock(参数&&... 值) { 返回 基类::解锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 try_lock(参数&&... 值) { 返回 基类::尝试加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 lock_shared(参数&&... 值) { 返回 基类::共享加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 unlock_shared(参数&&... 值) { 返回 基类::共享解锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 try_lock_shared(参数&&... 值) { 返回 基类::尝试共享加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 try_lock_for(参数&&... 值) { 返回 基类::限时加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 try_lock_until(参数&&... 值) { 返回 基类::加锁至时刻(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 try_lock_shared_for(参数&&... 值) { 返回 基类::限时共享加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 try_lock_shared_until(参数&&... 值) { 返回 基类::共享加锁至时刻(static_cast<参数&&>(值)...); }
+};
+
+// 共享锁（std::shared_lock）
+模板 <类型名 互斥类型>
+类型 共享锁 : 公开 细节::共享锁实现<互斥类型> {
+公开:
+    使用 基类 = 细节::共享锁实现<互斥类型>;
+    使用 基类::基类;
+    模板 <类型名... 参数> 自动 lock(参数&&... 值) { 返回 基类::加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 try_lock(参数&&... 值) { 返回 基类::尝试加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 unlock(参数&&... 值) { 返回 基类::解锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 lock_shared(参数&&... 值) { 返回 基类::共享加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 try_lock_shared(参数&&... 值) { 返回 基类::尝试共享加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 unlock_shared(参数&&... 值) { 返回 基类::共享解锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 owns_lock(参数&&... 值) 常量 { 返回 基类::持有锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 release(参数&&... 值) { 返回 基类::释放(static_cast<参数&&>(值)...); }
+};
+
+}  // 名域 标准
+'@
+    tests = @(
+      @('只引中文头','#包含 <共享互斥量>`n整数 主函数(){ 标准::共享互斥量 甲; 甲.加锁(); 甲.共享加锁(); 甲.共享解锁(); 甲.解锁(); 返回 0; }'),
+      @('与微软原头并存','#包含 <共享互斥量>`n#包含 <shared_mutex>`n整数 主函数(){ 标准::共享互斥量 甲; 甲.加锁(); std::shared_mutex 乙; 乙.lock(); 返回 0; }'),
+      @('英文名与中文名并用 + 共享锁','#包含 <共享互斥量>`n整数 主函数(){ 标准::共享互斥量 甲; 标准::共享锁<标准::共享互斥量> 锁(甲); 布尔 有 = 锁.持有锁(); 锁.lock_shared(); 锁.unlock_shared(); 返回 (整数)有 - 1; }'),
+      @('限时共享互斥量','#包含 <共享互斥量>`n整数 主函数(){ 标准::限时共享互斥量 甲; 甲.加锁(); 甲.共享加锁(); 布尔 好 = 甲.尝试共享加锁(); if (好) 甲.共享解锁(); 甲.解锁(); 返回 0; }')
+    )
+  }
   'scoped_allocator' = @{
     zh      = '作用域分配器'
     types   = [ordered]@{ 'scoped_allocator_adaptor' = '作用域分配器适配器实现'
@@ -494,7 +577,29 @@ Remove-Item $probe -Force -ErrorAction SilentlyContinue
 # 这样不必为多类重构整张表，现有条目一行都不用改。
 $layerText = $layer
 if ($spec.ContainsKey('extra')) { $layerText += "`n" + $spec.extra }
-[System.IO.File]::AppendAllText($outPath, $layerText, $utf8)
+# ---------------------------------------------------------------------------
+#  ⚠ 派生层必须插在【包含守卫的 #endif 之前】，不能追加到文件最末。
+#
+#  为什么（<shared_mutex> 实测踩到，一个【潜伏了很久】的 bug）：
+#  MSVC 公开头的最末一行就是守卫的 `#endif // _XXX_`。原先把派生层 Append 在它之后，
+#  于是「守卫守得住正文，守不住派生层」—— 同一个汉语头被包含两次时，
+#  正文被守卫跳过，派生层却被编译第二遍：
+#      error: 重定义（名字） '互斥量' / '独占锁' / '锁守卫'
+#  单头测试永远照不出来；<共享互斥量> 同时包含 <互斥量> 与 <条件变量>，
+#  而 <条件变量> 自己又包含 <互斥量> —— 同一头进两次，才把这个坑炸出来。
+#  规则：**凡是我们往头文件里加东西，都要问一句"它在守卫里面吗"。**
+# ---------------------------------------------------------------------------
+$cur = [System.IO.File]::ReadAllText($outPath)
+$endifs = [regex]::Matches($cur, '(?m)^[ \t]*#endif\b')
+if ($endifs.Count -gt 0) {
+    $pos = $endifs[$endifs.Count - 1].Index      # 最后一个 #endif = 包含守卫那一个
+    # 插到它前面（保留原文一切字节不变，只做插入）
+    $cur = $cur.Substring(0, $pos) + $layerText.TrimStart("`r", "`n") + "`r`n`r`n" + $cur.Substring($pos)
+    [System.IO.File]::WriteAllText($outPath, $cur, $utf8)
+} else {
+    Write-Host "  ⚠ 没找到守卫 #endif，派生层只能追加在文件末" -ForegroundColor Yellow
+    [System.IO.File]::AppendAllText($outPath, $layerText, $utf8)
+}
 Write-Host "  步6 派生层 + 英文转发 $($spec.derive.Count) 条$(if ($spec.deriveTypes) { " + 嵌套类型 $($spec.deriveTypes.Count) 条" })$(if ($spec.stdHash) { ' + std::hash 特化' })"
 
 # --- 最终验证：中文名 / 英文名 / 与 std 并存 ---
