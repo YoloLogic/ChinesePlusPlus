@@ -1555,7 +1555,14 @@ Write-Host ("  输出: {0}  ({1} 行)" -f $outPath, ([System.IO.File]::ReadAllLi
 
 # --- 编译器当改名校对 ---
 $probe = Join-Path $env:TEMP ('zh2_' + [guid]::NewGuid().ToString('N').Substring(0,8) + '.cpp')
-[System.IO.File]::WriteAllText($probe, "#包含 <$($spec.zh)>`n整数 主函数(){ 返回 0; }`n", $utf8)
+# ⚠ 探针必须用【真实用法】，不能用 主函数(){返回 0;}：
+#   后者从不实例化任何成员，于是"只有完整实例化才检查"的错误
+#   （典型：借来模板成员的调用，如 _Alty_traits::max_size）永远照不出来。
+#   实测：examples\汉语库示例.cpp 一编译就报
+#     'std::allocator_traits<...>' 中没有名为 '最大尺寸' 的成员   （见方案 §十二）
+#   这里直接用该条目的第一条测试 —— 它本来就是会真正使用这些类的程序。
+$probeBody = if ($spec.tests -and $spec.tests.Count -gt 0) { $spec.tests[0][1] } else { "整数 主函数(){ 返回 0; }" }
+[System.IO.File]::WriteAllText($probe, $probeBody + "`n", $utf8)
 $rev = @{}
 foreach ($k in $spec.members.Keys) { $rev[$spec.members[$k]] = $k }
 foreach ($k in $spec.data.Keys)    { $rev[$spec.data[$k]] = $k }
