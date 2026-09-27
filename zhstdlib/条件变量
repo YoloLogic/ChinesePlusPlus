@@ -96,8 +96,8 @@ public:
         // 等待 until time point
         static_assert(chrono::_Is_clock_v<_Clock>, "Clock type required");
         const auto _Now                  = _Clock::now();
-        using _Common_duration           = decltype(_Abs_time - _Now);
-        const _Common_duration _Rel_time = (_Abs_time <= _Now) ? _Common_duration::zero() : _Abs_time - _Now;
+        using _公共时长           = decltype(_Abs_time - _Now);
+        const _公共时长 _Rel_time = (_Abs_time <= _Now) ? _公共时长::zero() : _Abs_time - _Now;
         return 限时等待(_Lck, _Rel_time);
     }
 

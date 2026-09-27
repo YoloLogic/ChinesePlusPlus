@@ -631,7 +631,17 @@ $H = @{
                           # §16.27：自有内部件也要翻
                           '_Any_representation' = '_任意表示'
                           '_Any_big_RTTI'       = '_任意大对象类型信息'
-                          '_Any_small_RTTI'     = '_任意小对象类型信息' }
+                          '_Any_small_RTTI'     = '_任意小对象类型信息'
+                          # §16.35.7 嵌套名翻转（第 ① 类：只存在于本类，没有第二个主人）：
+                          #   这几个都是【我们自己】的私有别名/内部结构（原文 57~77 行与
+                          #   338~352 行），既不是 std 模板名、也不在 std 契约里，
+                          #   所以可以安全地改在【抄来那层】。
+                          '_Destroy_fn'         = '_析构函数指针'
+                          '_Copy_fn'            = '_复制函数指针'
+                          '_Move_fn'            = '_移动函数指针'
+                          '_Small_storage_t'    = '_小存储类型'
+                          '_Big_storage_t'      = '_大存储类型'
+                          '_Storage_t'          = '_存储类型' }
     # 步 0b：真头 + 丢掉抄来的异常类（铁律 4，见 §3.18）
     realInclude = @('any')
     dropTypes   = @('bad_any_cast')
@@ -1547,6 +1557,8 @@ $H = @{
   'condition_variable' = @{
     zh      = '条件变量'
     realInclude = @('condition_variable')   # §16.29「乙」
+    # §16.35.7 嵌套名翻转（第 ① 类）：`_Common_duration` 是
+    # `decltype(_Abs_time - _Now)` 的私有别名（原文第 97 行），只在本类用 -> 已并入下面的 types 表。
     # ⚠ std::condition_variable（非 _any）其实定义在 <mutex> 里；这个头只有 _any
     pub     = '条件变量任意'
     types   = [ordered]@{ 'condition_variable_any' = '条件变量任意实现'
@@ -1560,7 +1572,8 @@ $H = @{
                           'lock_guard'           = '锁守卫实现'
                           'unique_lock'          = '独占锁实现'
                           '_Unlock_guard' = '_解锁卫兵'
-                          '_Cv_any_notify_all' = '_条件变量任意通知全部' }
+                          '_Cv_any_notify_all' = '_条件变量任意通知全部'
+                          '_Common_duration' = '_公共时长' }
     # 已经抄完的头才开这个开关（见步 0 的长注释）
     zhIncludes = @{ 'mutex' = '互斥量' }
     members = [ordered]@{ 'notify_all' = '通知全部'; 'notify_one' = '通知一个'
