@@ -29,6 +29,30 @@ $utf8  = New-Object System.Text.UTF8Encoding($false)
 #  表：每个头一条。加新头 = 加一条。
 # ---------------------------------------------------------------------------
 $H = @{
+  'stack' = @{
+    zh      = '栈'
+    types   = [ordered]@{ 'stack' = '栈实现'
+                          '_Adaptor_formatter_base' = '_适配器格式化基类' }
+    # ⚠ 不翻 uses_allocator / formatter —— 它们是 std 的模板，改名会断
+    members = [ordered]@{ 'emplace' = '就地构造'; 'empty' = '为空'; 'pop' = '弹出'
+                          'push' = '压入'; 'push_range' = '范围压入'
+                          'size' = '尺寸'; 'swap' = '交换'; 'top' = '栈顶' }
+    data    = [ordered]@{}
+    derive  = @( @('emplace','就地构造'), @('empty','为空'), @('pop','弹出'),
+                 @('push','压入'), @('push_range','范围压入'), @('size','尺寸'),
+                 @('swap','交换'), @('top','栈顶') )
+    stdHash = $false
+    tparam  = @{ decl = '模板 <类型名 元素, 类型名 容器 = std::deque<元素>>'; args = '<元素, 容器>' }
+    # stack 的 uses_allocator 特化必须挂在【对外那个类型】上，
+    # 所以要在 std 里为重发一份（抄来的那份挂在内层实现类型上，对外类型用不上）
+    stdExtra = '模板 <类型名 元素, 类型名 容器, 类型名 分配器>
+    结构 uses_allocator<标准::栈<元素, 容器>, 分配器> : std::uses_allocator<容器, 分配器>::type {};'
+    tests = @(
+      @('只引中文头','#包含 <栈>`n整数 主函数(){ 标准::栈<整数> 甲; 甲.压入(1); 返回 (整数)甲.尺寸() - 1; }'),
+      @('与微软原头并存','#包含 <栈>`n#包含 <stack>`n整数 主函数(){ 标准::栈<整数> 甲; 甲.压入(1); std::stack<int> 乙; 乙.push(1); 返回 (整数)甲.尺寸() + (整数)乙.size() - 2; }'),
+      @('英文名与中文名并用 + 栈顶','#包含 <栈>`n整数 主函数(){ 标准::栈<整数> 甲; 甲.压入(2); 甲.push(3); 返回 甲.栈顶() + 甲.top() - 6; }')
+    )
+  }
   'typeindex' = @{
     zh      = '类型索引'
     types   = [ordered]@{ 'type_index' = '类型索引实现' }
@@ -192,6 +216,12 @@ $hashSpec = if ($spec.stdHash) { @"
     };
 }
 "@ } else { '' }
+
+# 额外要在 std 里补的特化（除 std::hash 之外的，按头给原始文本）
+# 例：<stack> 的 std::uses_allocator / std::formatter 都要认识我们的类型。
+if ($spec.ContainsKey('stdExtra')) {
+    $hashSpec += "`n`n// 表里给的额外 std 特化 —— 这些 std 模板也必须认识我们的类型`n名域 std {`n$($spec.stdExtra)`n}"
+}
 
 $layer = @"
 
