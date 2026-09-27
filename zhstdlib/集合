@@ -40,7 +40,7 @@ public:
     static constexpr bool _Multi = _Mfl;
 
     template <class... _Args>
-    using _In_place_key_extractor = _In_place_key_extract_set<_Kty, _Args...>;
+    using _就地键提取器 = _In_place_key_extract_set<_Kty, _Args...>;
 
     using value_compare = key_compare;
 
@@ -75,8 +75,8 @@ public:
     using reverse_iterator       = typename _我的基类::reverse_iterator;
     using const_reverse_iterator = typename _我的基类::const_reverse_iterator;
 
-    using _Alnode        = typename _我的基类::_Alnode;
-    using _Alnode_traits = typename _我的基类::_Alnode_traits;
+    using _结点分配器        = typename _我的基类::_结点分配器;
+    using _结点分配器特征 = typename _我的基类::_结点分配器特征;
 
 #if _HAS_CXX17
     using insert_return_type = _Insert_return_type<iterator, typename _我的基类::node_type>;
@@ -86,7 +86,7 @@ public:
 
     explicit 集合实现(const allocator_type& _Al) : _我的基类(key_compare(), _Al) {}
 
-    集合实现(const 集合实现& _Right) : _我的基类(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._Getal())) {}
+    集合实现(const 集合实现& _Right) : _我的基类(_Right, _结点分配器特征::select_on_container_copy_construction(_Right._Getal())) {}
 
     集合实现(const 集合实现& _Right, const allocator_type& _Al) : _我的基类(_Right, _Al) {}
 
@@ -145,7 +145,7 @@ public:
 
     集合实现(集合实现&& _Right, const allocator_type& _Al) : _我的基类(_STD move(_Right), _Al) {}
 
-    集合实现& operator=(集合实现&& _Right) noexcept(_Alnode_traits::is_always_equal::value && is_nothrow_move_assignable_v<_Pr>) {
+    集合实现& operator=(集合实现&& _Right) noexcept(_结点分配器特征::is_always_equal::value && is_nothrow_move_assignable_v<_Pr>) {
         _我的基类::operator=(_STD move(_Right));
         return *this;
     }
@@ -286,15 +286,15 @@ public:
     using reverse_iterator       = typename _我的基类::reverse_iterator;
     using const_reverse_iterator = typename _我的基类::const_reverse_iterator;
 
-    using _Alnode        = typename _我的基类::_Alnode;
-    using _Alnode_traits = typename _我的基类::_Alnode_traits;
+    using _结点分配器        = typename _我的基类::_结点分配器;
+    using _结点分配器特征 = typename _我的基类::_结点分配器特征;
 
     多重集合实现() : _我的基类(key_compare()) {}
 
     explicit 多重集合实现(const allocator_type& _Al) : _我的基类(key_compare(), _Al) {}
 
     多重集合实现(const 多重集合实现& _Right)
-        : _我的基类(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._Getal())) {}
+        : _我的基类(_Right, _结点分配器特征::select_on_container_copy_construction(_Right._Getal())) {}
 
     多重集合实现(const 多重集合实现& _Right, const allocator_type& _Al) : _我的基类(_Right, _Al) {}
 
@@ -354,7 +354,7 @@ public:
     多重集合实现(多重集合实现&& _Right, const allocator_type& _Al) : _我的基类(_STD move(_Right), _Al) {}
 
     多重集合实现& operator=(多重集合实现&& _Right)
-        noexcept(_Alnode_traits::is_always_equal::value && is_nothrow_move_assignable_v<_Pr>) {
+        noexcept(_结点分配器特征::is_always_equal::value && is_nothrow_move_assignable_v<_Pr>) {
         _我的基类::operator=(_STD move(_Right));
         return *this;
     }

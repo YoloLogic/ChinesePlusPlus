@@ -43,7 +43,7 @@ public:
     static constexpr bool _Multi = _Mfl;
 
     template <class... _Args>
-    using _In_place_key_extractor = _In_place_key_extract_map<_Kty, _Args...>;
+    using _就地键提取器 = _In_place_key_extract_map<_Kty, _Args...>;
 
     class value_compare {
     public:
@@ -80,7 +80,7 @@ public:
                                      "because of [container.requirements].");
 
     using _我的基类                = _树<_映射特征<_Kty, _Ty, _Pr, _Alloc, false>>;
-    using _Nodeptr               = typename _我的基类::_Nodeptr;
+    using _结点指针               = typename _我的基类::_结点指针;
     using key_type               = _Kty;
     using mapped_type            = _Ty;
     using key_compare            = _Pr;
@@ -98,8 +98,8 @@ public:
     using reverse_iterator       = typename _我的基类::reverse_iterator;
     using const_reverse_iterator = typename _我的基类::const_reverse_iterator;
 
-    using _Alnode        = typename _我的基类::_Alnode;
-    using _Alnode_traits = typename _我的基类::_Alnode_traits;
+    using _结点分配器        = typename _我的基类::_结点分配器;
+    using _结点分配器特征 = typename _我的基类::_结点分配器特征;
 
 #if _HAS_CXX17
     using insert_return_type = _Insert_return_type<iterator, typename _我的基类::node_type>;
@@ -109,7 +109,7 @@ public:
 
     explicit 映射实现(const allocator_type& _Al) : _我的基类(key_compare(), _Al) {}
 
-    映射实现(const 映射实现& _Right) : _我的基类(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._取分配器())) {}
+    映射实现(const 映射实现& _Right) : _我的基类(_Right, _结点分配器特征::select_on_container_copy_construction(_Right._取分配器())) {}
 
     映射实现(const 映射实现& _Right, const allocator_type& _Al) : _我的基类(_Right, _Al) {}
 
@@ -168,7 +168,7 @@ public:
 
     映射实现(映射实现&& _Right, const allocator_type& _Al) : _我的基类(_STD move(_Right), _Al) {}
 
-    映射实现& operator=(映射实现&& _Right) noexcept(_Alnode_traits::is_always_equal::value && is_nothrow_move_assignable_v<_Pr>) {
+    映射实现& operator=(映射实现&& _Right) noexcept(_结点分配器特征::is_always_equal::value && is_nothrow_move_assignable_v<_Pr>) {
         _我的基类::operator=(_STD move(_Right));
         return *this;
     }
@@ -195,7 +195,7 @@ public:
 
 private:
     template <class _Keyty, class... _Mappedty>
-    pair<_Nodeptr, bool> _Try_emplace(_Keyty&& _Keyval, _Mappedty&&... _Mapval) {
+    pair<_结点指针, bool> _Try_emplace(_Keyty&& _Keyval, _Mappedty&&... _Mapval) {
         const auto _Loc = _我的基类::_查找下界(_Keyval);
         if (_我的基类::_下界重复项(_Loc._Bound, _Keyval)) {
             return {_Loc._Bound, false};
@@ -204,7 +204,7 @@ private:
         _我的基类::_检查增一();
 
         const auto _Scary    = _我的基类::_取检查值();
-        const auto _Inserted = _树临时节点<_Alnode>(_我的基类::_取分配器(), _Scary->_Myhead, piecewise_construct,
+        const auto _Inserted = _树临时节点<_结点分配器>(_我的基类::_取分配器(), _Scary->_Myhead, piecewise_construct,
             _STD forward_as_tuple(_STD forward<_Keyty>(_Keyval)),
             _STD forward_as_tuple(_STD forward<_Mappedty>(_Mapval)...))
                                    ._Release();
@@ -214,7 +214,7 @@ private:
     }
 
     template <class _Keyty, class... _Mappedty>
-    _Nodeptr _Try_emplace_hint(const _Nodeptr _Hint, _Keyty&& _Keyval, _Mappedty&&... _Mapval) {
+    _结点指针 _Try_emplace_hint(const _结点指针 _Hint, _Keyty&& _Keyval, _Mappedty&&... _Mapval) {
         const auto _Loc = _我的基类::_按提示查找(_Hint, _Keyval);
         if (_Loc._Duplicate) {
             return _Loc._Location._Parent;
@@ -223,7 +223,7 @@ private:
         _我的基类::_检查增一();
 
         const auto _Scary    = _我的基类::_取检查值();
-        const auto _Inserted = _树临时节点<_Alnode>(_我的基类::_取分配器(), _Scary->_Myhead, piecewise_construct,
+        const auto _Inserted = _树临时节点<_结点分配器>(_我的基类::_取分配器(), _Scary->_Myhead, piecewise_construct,
             _STD forward_as_tuple(_STD forward<_Keyty>(_Keyval)),
             _STD forward_as_tuple(_STD forward<_Mappedty>(_Mapval)...))
                                    ._Release();
@@ -259,7 +259,7 @@ public:
 
 private:
     template <class _Keyty, class _Mappedty>
-    pair<_Nodeptr, bool> _Insert_or_assign(_Keyty&& _Keyval, _Mappedty&& _Mapval) {
+    pair<_结点指针, bool> _Insert_or_assign(_Keyty&& _Keyval, _Mappedty&& _Mapval) {
         const auto _Loc = _我的基类::_查找下界(_Keyval);
         if (_我的基类::_下界重复项(_Loc._Bound, _Keyval)) {
             _Loc._Bound->_Myval.second = _STD forward<_Mappedty>(_Mapval);
@@ -269,7 +269,7 @@ private:
         _我的基类::_检查增一();
 
         const auto _Scary    = _我的基类::_取检查值();
-        const auto _Inserted = _树临时节点<_Alnode>(
+        const auto _Inserted = _树临时节点<_结点分配器>(
             _我的基类::_取分配器(), _Scary->_Myhead, _STD forward<_Keyty>(_Keyval), _STD forward<_Mappedty>(_Mapval))
                                    ._Release();
 
@@ -278,7 +278,7 @@ private:
     }
 
     template <class _Keyty, class _Mappedty>
-    _Nodeptr _Insert_or_assign_hint(const _Nodeptr _Hint, _Keyty&& _Keyval, _Mappedty&& _Mapval) {
+    _结点指针 _Insert_or_assign_hint(const _结点指针 _Hint, _Keyty&& _Keyval, _Mappedty&& _Mapval) {
         const auto _Loc = _我的基类::_按提示查找(_Hint, _Keyval);
         if (_Loc._Duplicate) {
             _Loc._Location._Parent->_Myval.second = _STD forward<_Mappedty>(_Mapval);
@@ -288,7 +288,7 @@ private:
         _我的基类::_检查增一();
 
         const auto _Scary    = _我的基类::_取检查值();
-        const auto _Inserted = _树临时节点<_Alnode>(
+        const auto _Inserted = _树临时节点<_结点分配器>(
             _我的基类::_取分配器(), _Scary->_Myhead, _STD forward<_Keyty>(_Keyval), _STD forward<_Mappedty>(_Mapval))
                                    ._Release();
 
@@ -479,15 +479,15 @@ public:
     using reverse_iterator       = typename _我的基类::reverse_iterator;
     using const_reverse_iterator = typename _我的基类::const_reverse_iterator;
 
-    using _Alnode        = typename _我的基类::_Alnode;
-    using _Alnode_traits = typename _我的基类::_Alnode_traits;
+    using _结点分配器        = typename _我的基类::_结点分配器;
+    using _结点分配器特征 = typename _我的基类::_结点分配器特征;
 
     多重映射实现() : _我的基类(key_compare()) {}
 
     explicit 多重映射实现(const allocator_type& _Al) : _我的基类(key_compare(), _Al) {}
 
     多重映射实现(const 多重映射实现& _Right)
-        : _我的基类(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._取分配器())) {}
+        : _我的基类(_Right, _结点分配器特征::select_on_container_copy_construction(_Right._取分配器())) {}
 
     多重映射实现(const 多重映射实现& _Right, const allocator_type& _Al) : _我的基类(_Right, _Al) {}
 
@@ -547,7 +547,7 @@ public:
     多重映射实现(多重映射实现&& _Right, const allocator_type& _Al) : _我的基类(_STD move(_Right), _Al) {}
 
     多重映射实现& operator=(多重映射实现&& _Right)
-        noexcept(_Alnode_traits::is_always_equal::value && is_nothrow_move_assignable_v<_Pr>) {
+        noexcept(_结点分配器特征::is_always_equal::value && is_nothrow_move_assignable_v<_Pr>) {
         _我的基类::operator=(_STD move(_Right));
         return *this;
     }

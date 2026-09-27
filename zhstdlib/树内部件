@@ -27,7 +27,7 @@ class _树非检查常量迭代器 : public _Base {
 public:
     using iterator_category = bidirectional_iterator_tag;
 
-    using _Nodeptr        = typename _Mytree::_Nodeptr;
+    using _结点指针        = typename _Mytree::_结点指针;
     using value_type      = typename _Mytree::value_type;
     using difference_type = typename _Mytree::difference_type;
     using pointer         = typename _Mytree::const_pointer;
@@ -35,7 +35,7 @@ public:
 
     _树非检查常量迭代器() noexcept : _Ptr() {}
 
-    _树非检查常量迭代器(_Nodeptr _Pnode, const _Mytree* _Plist) noexcept : _Ptr(_Pnode) {
+    _树非检查常量迭代器(_结点指针 _Pnode, const _Mytree* _Plist) noexcept : _Ptr(_Pnode) {
         this->_Adopt(_Plist);
     }
 
@@ -49,7 +49,7 @@ public:
 
     _树非检查常量迭代器& operator++() noexcept {
         if (_Ptr->_Right->_Isnil) { // climb looking for right subtree
-            _Nodeptr _Pnode;
+            _结点指针 _Pnode;
             while (!(_Pnode = _Ptr->_Parent)->_Isnil && _Ptr == _Pnode->_Right) {
                 _Ptr = _Pnode; // ==> parent while right subtree
             }
@@ -72,7 +72,7 @@ public:
         if (_Ptr->_Isnil) {
             _Ptr = _Ptr->_Right; // end() ==> rightmost
         } else if (_Ptr->_Left->_Isnil) { // climb looking for left subtree
-            _Nodeptr _Pnode;
+            _结点指针 _Pnode;
             while (!(_Pnode = _Ptr->_Parent)->_Isnil && _Ptr == _Pnode->_Left) {
                 _Ptr = _Pnode; // ==> parent while left subtree
             }
@@ -114,7 +114,7 @@ public:
     }
 #endif // !_HAS_CXX20
 
-    _Nodeptr _Ptr; // pointer to node
+    _结点指针 _Ptr; // pointer to node
 };
 
 template <class _Mytree>
@@ -123,7 +123,7 @@ public:
     using _我的基类           = _树非检查常量迭代器<_Mytree>;
     using iterator_category = bidirectional_iterator_tag;
 
-    using _Nodeptr        = typename _Mytree::_Nodeptr;
+    using _结点指针        = typename _Mytree::_结点指针;
     using value_type      = typename _Mytree::value_type;
     using difference_type = typename _Mytree::difference_type;
     using pointer         = typename _Mytree::pointer;
@@ -168,7 +168,7 @@ public:
     using _我的基类           = _树非检查常量迭代器<_Mytree, _Iterator_base>;
     using iterator_category = bidirectional_iterator_tag;
 
-    using _Nodeptr        = typename _Mytree::_Nodeptr;
+    using _结点指针        = typename _Mytree::_结点指针;
     using value_type      = typename _Mytree::value_type;
     using difference_type = typename _Mytree::difference_type;
     using pointer         = typename _Mytree::const_pointer;
@@ -209,7 +209,7 @@ public:
     _树常量迭代器& operator--() noexcept {
 #if _ITERATOR_DEBUG_LEVEL == 2
         _STL_VERIFY(this->_Getcont(), "cannot decrement value-initialized map/set iterator");
-        _Nodeptr _Ptrsav = this->_Ptr;
+        _结点指针 _Ptrsav = this->_Ptr;
         _我的基类::operator--();
         _STL_VERIFY(_Ptrsav != this->_Ptr, "cannot decrement begin map/set iterator");
 #else // ^^^ _ITERATOR_DEBUG_LEVEL == 2 / _ITERATOR_DEBUG_LEVEL != 2 vvv
@@ -262,7 +262,7 @@ public:
     using _我的基类           = _树常量迭代器<_Mytree>;
     using iterator_category = bidirectional_iterator_tag;
 
-    using _Nodeptr        = typename _Mytree::_Nodeptr;
+    using _结点指针        = typename _Mytree::_结点指针;
     using value_type      = typename _Mytree::value_type;
     using difference_type = typename _Mytree::difference_type;
 
@@ -316,16 +316,16 @@ struct _树迭代类型集 {
     using difference_type = _Difference_type;
     using pointer         = _Pointer;
     using const_pointer   = _Const_pointer;
-    using _Nodeptr        = _Nodeptr_type;
+    using _结点指针        = _Nodeptr_type;
 };
 
 template <class _Value_type, class _Voidptr>
 struct _树节点 {
-    using _Nodeptr   = _Rebind_pointer_t<_Voidptr, _树节点>;
+    using _结点指针   = _Rebind_pointer_t<_Voidptr, _树节点>;
     using value_type = _Value_type;
-    _Nodeptr _Left; // left subtree, or smallest element if head
-    _Nodeptr _Parent; // parent, or root of tree if head
-    _Nodeptr _Right; // right subtree, or largest element if head
+    _结点指针 _Left; // left subtree, or smallest element if head
+    _结点指针 _Parent; // parent, or root of tree if head
+    _结点指针 _Right; // right subtree, or largest element if head
     char _Color; // _Red or _Black, _Black if head
     char _Isnil; // true only if head (also nil) node; TRANSITION, should be bool
     value_type _Myval = // the stored value, unused if head
@@ -341,7 +341,7 @@ struct _树节点 {
     _树节点& operator=(const _树节点&) = delete;
 
     template <class _Alloc>
-    static _Nodeptr _建头节点(_Alloc& _Al) {
+    static _结点指针 _建头节点(_Alloc& _Al) {
         static_assert(is_same_v<typename _Alloc::value_type, _树节点>, "Bad _建头节点 call");
         const auto _Pnode = _Al.allocate(1);
         _Construct_in_place(_Pnode->_Left, _Pnode);
@@ -353,7 +353,7 @@ struct _树节点 {
     }
 
     template <class _Alloc, class... _Valty>
-    static _Nodeptr _建节点(_Alloc& _Al, _Nodeptr _Myhead, _Valty&&... _Val) {
+    static _结点指针 _建节点(_Alloc& _Al, _结点指针 _Myhead, _Valty&&... _Val) {
         // allocate a node with defaults and set links and value
         static_assert(is_same_v<typename _Alloc::value_type, _树节点>, "Bad _建节点 call");
         _Alloc_construct_ptr<_Alloc> _新节点(_Al);
@@ -368,7 +368,7 @@ struct _树节点 {
     }
 
     template <class _Alloc>
-    static void _释放节点0(_Alloc& _Al, _Nodeptr _Ptr) noexcept {
+    static void _释放节点0(_Alloc& _Al, _结点指针 _Ptr) noexcept {
         static_assert(is_same_v<typename _Alloc::value_type, _树节点>, "Bad _释放节点0 call");
         _Destroy_in_place(_Ptr->_Left);
         _Destroy_in_place(_Ptr->_Parent);
@@ -377,7 +377,7 @@ struct _树节点 {
     }
 
     template <class _Alloc>
-    static void _释放节点(_Alloc& _Al, _Nodeptr _Ptr) noexcept {
+    static void _释放节点(_Alloc& _Al, _结点指针 _Ptr) noexcept {
         static_assert(is_same_v<typename _Alloc::value_type, _树节点>, "Bad _释放节点 call");
         allocator_traits<_Alloc>::destroy(_Al, _STD addressof(_Ptr->_Myval));
         _释放节点0(_Al, _Ptr);
@@ -387,7 +387,7 @@ struct _树节点 {
 template <class _Ty>
 struct _树简单类型集 : _Simple_types<_Ty> {
     using _节点    = _树节点<_Ty, void*>;
-    using _Nodeptr = _节点*;
+    using _结点指针 = _节点*;
 };
 
 enum class _树子向 {
@@ -396,21 +396,21 @@ enum class _树子向 {
     _Unused // indicates that tree child should never be used for insertion
 };
 
-template <class _Nodeptr>
+template <class _结点指针>
 struct _树标识 {
-    _Nodeptr _Parent; // the leaf node under which a new node should be inserted
+    _结点指针 _Parent; // the leaf node under which a new node should be inserted
     _树子向 _Child;
 };
 
-template <class _Nodeptr>
+template <class _结点指针>
 struct _树查找结果 {
-    _树标识<_Nodeptr> _Location;
-    _Nodeptr _Bound;
+    _树标识<_结点指针> _Location;
+    _结点指针 _Bound;
 };
 
-template <class _Nodeptr>
+template <class _结点指针>
 struct _树查找提示结果 {
-    _树标识<_Nodeptr> _Location;
+    _树标识<_结点指针> _Location;
     bool _Duplicate;
 };
 
@@ -421,7 +421,7 @@ struct _树查找提示结果 {
 template <class _值类型集>
 class _树值 : public _Container_base {
 public:
-    using _Nodeptr = typename _值类型集::_Nodeptr;
+    using _结点指针 = typename _值类型集::_结点指针;
 
     using value_type      = typename _值类型集::value_type;
     using size_type       = typename _值类型集::size_type;
@@ -434,11 +434,11 @@ public:
     using _Unchecked_const_iterator = _树非检查常量迭代器<_树值>;
     using const_iterator            = _树常量迭代器<_树值>;
 
-    template <class _Alnode>
+    template <class _结点分配器>
     struct _NODISCARD _Erase_tree_and_orphan_guard {
         _树值* _Val_ptr;
-        _Alnode& _Al;
-        _Nodeptr _New_root;
+        _结点分配器& _Al;
+        _结点指针 _New_root;
 
         _Erase_tree_and_orphan_guard& operator=(const _Erase_tree_and_orphan_guard&) = delete;
         ~_Erase_tree_and_orphan_guard() noexcept {
@@ -452,8 +452,8 @@ public:
 
 #if _MSVC_STL_DESTRUCTOR_TOMBSTONES
     ~_树值() noexcept {
-        if constexpr (is_pointer_v<_Nodeptr>) {
-            const auto _Tombstone{reinterpret_cast<_Nodeptr>(_MSVC_STL_UINTPTR_TOMBSTONE_VALUE)};
+        if constexpr (is_pointer_v<_结点指针>) {
+            const auto _Tombstone{reinterpret_cast<_结点指针>(_MSVC_STL_UINTPTR_TOMBSTONE_VALUE)};
             _Myhead = _Tombstone;
             _Mysize = 0;
         }
@@ -465,7 +465,7 @@ public:
         _Black
     };
 
-    static _Nodeptr _最大(_Nodeptr _Pnode) noexcept { // return rightmost node in subtree at _Pnode
+    static _结点指针 _最大(_结点指针 _Pnode) noexcept { // return rightmost node in subtree at _Pnode
         while (!_Pnode->_Right->_Isnil) {
             _Pnode = _Pnode->_Right;
         }
@@ -473,7 +473,7 @@ public:
         return _Pnode;
     }
 
-    static _Nodeptr _最小(_Nodeptr _Pnode) noexcept { // return leftmost node in subtree at _Pnode
+    static _结点指针 _最小(_结点指针 _Pnode) noexcept { // return leftmost node in subtree at _Pnode
         while (!_Pnode->_Left->_Isnil) {
             _Pnode = _Pnode->_Left;
         }
@@ -481,8 +481,8 @@ public:
         return _Pnode;
     }
 
-    void _左旋(_Nodeptr _Wherenode) noexcept { // promote right node to root of subtree
-        _Nodeptr _Pnode    = _Wherenode->_Right;
+    void _左旋(_结点指针 _Wherenode) noexcept { // promote right node to root of subtree
+        _结点指针 _Pnode    = _Wherenode->_Right;
         _Wherenode->_Right = _Pnode->_Left;
 
         if (!_Pnode->_Left->_Isnil) {
@@ -503,8 +503,8 @@ public:
         _Wherenode->_Parent = _Pnode;
     }
 
-    void _右旋(_Nodeptr _Wherenode) noexcept { // promote left node to root of subtree
-        _Nodeptr _Pnode   = _Wherenode->_Left;
+    void _右旋(_结点指针 _Wherenode) noexcept { // promote left node to root of subtree
+        _结点指针 _Pnode   = _Wherenode->_Left;
         _Wherenode->_Left = _Pnode->_Right;
 
         if (!_Pnode->_Right->_Isnil) {
@@ -525,13 +525,13 @@ public:
         _Wherenode->_Parent = _Pnode;
     }
 
-    _Nodeptr _Extract(_Unchecked_const_iterator _Where) noexcept {
-        _Nodeptr _Erasednode = _Where._Ptr; // node to erase
+    _结点指针 _Extract(_Unchecked_const_iterator _Where) noexcept {
+        _结点指针 _Erasednode = _Where._Ptr; // node to erase
         ++_Where; // save successor iterator for return
 
-        _Nodeptr _Fixnode; // the node to recolor as needed
-        _Nodeptr _Fixnodeparent; // parent of _Fixnode (which may be nil)
-        _Nodeptr _Pnode = _Erasednode;
+        _结点指针 _Fixnode; // the node to recolor as needed
+        _结点指针 _Fixnodeparent; // parent of _Fixnode (which may be nil)
+        _结点指针 _Pnode = _Erasednode;
 
         if (_Pnode->_Left->_Isnil) {
             _Fixnode = _Pnode->_Right; // stitch up right subtree
@@ -667,7 +667,7 @@ public:
         return _Erasednode;
     }
 
-    _Nodeptr _插入节点(const _树标识<_Nodeptr> _Loc, const _Nodeptr _新节点) noexcept {
+    _结点指针 _插入节点(const _树标识<_结点指针> _Loc, const _结点指针 _新节点) noexcept {
         ++_Mysize;
         const auto _Head  = _Myhead;
         _新节点->_Parent = _Loc._Parent;
@@ -694,7 +694,7 @@ public:
             }
         }
 
-        for (_Nodeptr _Pnode = _新节点; _Pnode->_Parent->_Color == _Red;) {
+        for (_结点指针 _Pnode = _新节点; _Pnode->_Parent->_Color == _Red;) {
             if (_Pnode->_Parent == _Pnode->_Parent->_Parent->_Left) { // fixup red-red in left subtree
                 const auto _Parent_sibling = _Pnode->_Parent->_Parent->_Right;
                 if (_Parent_sibling->_Color == _Red) { // parent's sibling has two red children, blacken both
@@ -736,7 +736,7 @@ public:
         return _新节点;
     }
 
-    void _孤立指针(const _Nodeptr _Ptr) noexcept {
+    void _孤立指针(const _结点指针 _Ptr) noexcept {
 #if _ITERATOR_DEBUG_LEVEL == 2
         _Lockit _Lock(_LOCK_DEBUG);
         _Iterator_base12** _Pnext = &this->_Myproxy->_Myfirstiter;
@@ -754,42 +754,42 @@ public:
 #endif // ^^^ _ITERATOR_DEBUG_LEVEL != 2 ^^^
     }
 
-    template <class _Alnode>
-    void _擦除树并孤立(_Alnode& _Al, _Nodeptr _Rootnode) noexcept {
+    template <class _结点分配器>
+    void _擦除树并孤立(_结点分配器& _Al, _结点指针 _Rootnode) noexcept {
         while (!_Rootnode->_Isnil) { // free subtrees, then node
             _擦除树并孤立(_Al, _Rootnode->_Right);
             auto _To_delete = _STD exchange(_Rootnode, _Rootnode->_Left);
             _孤立指针(_To_delete);
-            _Alnode::value_type::_释放节点(_Al, _To_delete);
+            _结点分配器::value_type::_释放节点(_Al, _To_delete);
         }
     }
 
-    template <class _Alnode>
-    void _擦除树(_Alnode& _Al, _Nodeptr _Rootnode) noexcept {
+    template <class _结点分配器>
+    void _擦除树(_结点分配器& _Al, _结点指针 _Rootnode) noexcept {
         while (!_Rootnode->_Isnil) { // free subtrees, then node
             _擦除树(_Al, _Rootnode->_Right);
-            _Alnode::value_type::_释放节点(_Al, _STD exchange(_Rootnode, _Rootnode->_Left));
+            _结点分配器::value_type::_释放节点(_Al, _STD exchange(_Rootnode, _Rootnode->_Left));
         }
     }
 
-    template <class _Alnode>
-    void _擦除头(_Alnode& _Al) noexcept {
+    template <class _结点分配器>
+    void _擦除头(_结点分配器& _Al) noexcept {
         this->_Orphan_all();
         _擦除树(_Al, _Myhead->_Parent);
-        _Alnode::value_type::_释放节点0(_Al, _Myhead);
+        _结点分配器::value_type::_释放节点0(_Al, _Myhead);
     }
 
-    _Nodeptr _Myhead; // pointer to head node
+    _结点指针 _Myhead; // pointer to head node
     size_type _Mysize; // number of elements
 };
 
-template <class _Alnode, class _Scary_val>
+template <class _结点分配器, class _Scary_val>
 struct _树头作用域指针 { // temporary storage for allocated node pointers to ensure exception safety
-    _Alnode& _Al;
+    _结点分配器& _Al;
     _Scary_val* _Mycont;
 
-    _树头作用域指针(_Alnode& _Al_, _Scary_val& _Mycont_) : _Al(_Al_), _Mycont(_STD addressof(_Mycont_)) {
-        _Mycont->_Myhead = _Alnode::value_type::_建头节点(_Al);
+    _树头作用域指针(_结点分配器& _Al_, _Scary_val& _Mycont_) : _Al(_Al_), _Mycont(_STD addressof(_Mycont_)) {
+        _Mycont->_Myhead = _结点分配器::value_type::_建头节点(_Al);
     }
 
     void _Release() noexcept {
@@ -803,22 +803,22 @@ struct _树头作用域指针 { // temporary storage for allocated node pointers
     }
 };
 
-template <class _Alnode>
-struct _树临时节点分配器 : _Alloc_construct_ptr<_Alnode> {
+template <class _结点分配器>
+struct _树临时节点分配器 : _Alloc_construct_ptr<_结点分配器> {
     // EH helper for _树临时节点
-    explicit _树临时节点分配器(_Alnode& _Al_) : _Alloc_construct_ptr<_Alnode>(_Al_) {
-        _Alloc_construct_ptr<_Alnode>::_Allocate();
+    explicit _树临时节点分配器(_结点分配器& _Al_) : _Alloc_construct_ptr<_结点分配器>(_Al_) {
+        _Alloc_construct_ptr<_结点分配器>::_Allocate();
     }
 
     _树临时节点分配器(const _树临时节点分配器&)            = delete;
     _树临时节点分配器& operator=(const _树临时节点分配器&) = delete;
 };
 
-template <class _Alnode>
-struct _树临时节点 : _树临时节点分配器<_Alnode> {
+template <class _结点分配器>
+struct _树临时节点 : _树临时节点分配器<_结点分配器> {
     // temporarily stores a constructed tree node
-    using _Alnode_traits = allocator_traits<_Alnode>;
-    using _Nodeptr       = typename _Alnode_traits::pointer;
+    using _结点分配器特征 = allocator_traits<_结点分配器>;
+    using _结点指针       = typename _结点分配器特征::pointer;
 
     enum _Redbl { // colors for link to parent
         _Red,
@@ -826,9 +826,9 @@ struct _树临时节点 : _树临时节点分配器<_Alnode> {
     };
 
     template <class... _Valtys>
-    explicit _树临时节点(_Alnode& _Al_, _Nodeptr _Myhead, _Valtys&&... _Vals)
-        : _树临时节点分配器<_Alnode>(_Al_) {
-        _Alnode_traits::construct(this->_Al, _STD addressof(this->_Ptr->_Myval), _STD forward<_Valtys>(_Vals)...);
+    explicit _树临时节点(_结点分配器& _Al_, _结点指针 _Myhead, _Valtys&&... _Vals)
+        : _树临时节点分配器<_结点分配器>(_Al_) {
+        _结点分配器特征::construct(this->_Al, _STD addressof(this->_Ptr->_Myval), _STD forward<_Valtys>(_Vals)...);
         _Construct_in_place(this->_Ptr->_Left, _Myhead);
         _Construct_in_place(this->_Ptr->_Parent, _Myhead);
         _Construct_in_place(this->_Ptr->_Right, _Myhead);
@@ -844,7 +844,7 @@ struct _树临时节点 : _树临时节点分配器<_Alnode> {
             _Destroy_in_place(this->_Ptr->_Left);
             _Destroy_in_place(this->_Ptr->_Parent);
             _Destroy_in_place(this->_Ptr->_Right);
-            _Alnode_traits::destroy(this->_Al, _STD addressof(this->_Ptr->_Myval));
+            _结点分配器特征::destroy(this->_Al, _STD addressof(this->_Ptr->_Myval));
         }
     }
 };
@@ -860,13 +860,13 @@ protected:
     using _Alty          = _Rebind_alloc_t<allocator_type, value_type>;
     using _Alty_traits   = allocator_traits<_Alty>;
     using _节点          = _树节点<value_type, typename _Alty_traits::void_pointer>;
-    using _Alnode        = _Rebind_alloc_t<allocator_type, _节点>;
-    using _Alnode_traits = allocator_traits<_Alnode>;
-    using _Nodeptr       = typename _Alnode_traits::pointer;
+    using _结点分配器        = _Rebind_alloc_t<allocator_type, _节点>;
+    using _结点分配器特征 = allocator_traits<_结点分配器>;
+    using _结点指针       = typename _结点分配器特征::pointer;
 
-    using _Scary_val = _树值<conditional_t<_Is_simple_alloc_v<_Alnode>, _树简单类型集<value_type>,
+    using _Scary_val = _树值<conditional_t<_Is_simple_alloc_v<_结点分配器>, _树简单类型集<value_type>,
         _树迭代类型集<value_type, typename _Alty_traits::size_type, typename _Alty_traits::difference_type,
-            typename _Alty_traits::pointer, typename _Alty_traits::const_pointer, _Nodeptr>>>;
+            typename _Alty_traits::pointer, typename _Alty_traits::const_pointer, _结点指针>>>;
 
     static constexpr bool _Multi  = _Traits::_Multi;
     static constexpr bool _Is_set = is_same_v<key_type, value_type>;
@@ -915,10 +915,10 @@ public:
     _树(const _树& _Right, _Any_alloc&& _Al)
         : _Mypair(_One_then_variadic_args_t{}, _Right.key_comp(), _One_then_variadic_args_t{},
               _STD forward<_Any_alloc>(_Al)) {
-        auto&& _Alproxy   = _GET_PROXY_ALLOCATOR(_Alnode, _取分配器());
+        auto&& _Alproxy   = _GET_PROXY_ALLOCATOR(_结点分配器, _取分配器());
         const auto _Scary = _取检查值();
         _Container_proxy_ptr<_Alty> _Proxy(_Alproxy, *_Scary);
-        _树头作用域指针<_Alnode, _Scary_val> _Sentinel(_取分配器(), *_Scary);
+        _树头作用域指针<_结点分配器, _Scary_val> _Sentinel(_取分配器(), *_Scary);
         _Copy<_Strategy::_Copy>(_Right);
         _Sentinel._Release();
         _Proxy._Release();
@@ -934,12 +934,12 @@ public:
     _树(_树&& _Right, const allocator_type& _Al)
         : _Mypair(_One_then_variadic_args_t{}, _Right.key_comp(), // intentionally copy comparator, see LWG-2227
               _One_then_variadic_args_t{}, _Al) {
-        if constexpr (!_Alnode_traits::is_always_equal::value) {
+        if constexpr (!_结点分配器特征::is_always_equal::value) {
             if (_取分配器() != _Right._取分配器()) {
-                auto&& _Alproxy   = _GET_PROXY_ALLOCATOR(_Alnode, _取分配器());
+                auto&& _Alproxy   = _GET_PROXY_ALLOCATOR(_结点分配器, _取分配器());
                 const auto _Scary = _取检查值();
                 _Container_proxy_ptr<_Alty> _Proxy(_Alproxy, *_Scary);
-                _树头作用域指针<_Alnode, _Scary_val> _Sentinel(_取分配器(), *_Scary);
+                _树头作用域指针<_结点分配器, _Scary_val> _Sentinel(_取分配器(), *_Scary);
                 _Copy<_Strategy::_Move>(_Right);
                 _Sentinel._Release();
                 _Proxy._Release();
@@ -952,20 +952,20 @@ public:
     }
 
     _树& operator=(_树&& _Right)
-        noexcept(_Alnode_traits::is_always_equal::value && is_nothrow_move_assignable_v<key_compare>) {
+        noexcept(_结点分配器特征::is_always_equal::value && is_nothrow_move_assignable_v<key_compare>) {
         if (this == _STD addressof(_Right)) {
             return *this;
         }
 
         auto& _Al                 = _取分配器();
         auto& _Right_al           = _Right._取分配器();
-        constexpr auto _Pocma_val = _Choose_pocma_v<_Alnode>;
+        constexpr auto _Pocma_val = _Choose_pocma_v<_结点分配器>;
         if constexpr (_Pocma_val == _Pocma_values::_Propagate_allocators) {
             if (_Al != _Right_al) {
                 clear();
                 _取比较器()            = _Right._取比较器(); // intentionally copy comparator, see LWG-2227
-                auto&& _Alproxy       = _GET_PROXY_ALLOCATOR(_Alnode, _Al);
-                auto&& _Right_alproxy = _GET_PROXY_ALLOCATOR(_Alnode, _Right_al);
+                auto&& _Alproxy       = _GET_PROXY_ALLOCATOR(_结点分配器, _Al);
+                auto&& _Right_alproxy = _GET_PROXY_ALLOCATOR(_结点分配器, _Right_al);
                 _Container_proxy_ptr<_Alty> _Proxy(_Right_alproxy, _Leave_proxy_unbound{});
                 const auto _Scary       = _取检查值();
                 const auto _Right_scary = _Right._取检查值();
@@ -1008,23 +1008,23 @@ private:
 
 protected:
     template <class... _Valtys>
-    pair<_Nodeptr, bool> _就地构造(_Valtys&&... _Vals) {
-        using _In_place_key_extractor = typename _Traits::template _In_place_key_extractor<_Valtys...>;
+    pair<_结点指针, bool> _就地构造(_Valtys&&... _Vals) {
+        using _就地键提取器 = typename _Traits::template _就地键提取器<_Valtys...>;
         const auto _Scary             = _取检查值();
-        _树查找结果<_Nodeptr> _Loc;
-        _Nodeptr _Inserted;
-        if constexpr (!_Multi && _In_place_key_extractor::_Extractable) {
-            const auto& _Keyval = _In_place_key_extractor::_Extract(_Vals...);
+        _树查找结果<_结点指针> _Loc;
+        _结点指针 _Inserted;
+        if constexpr (!_Multi && _就地键提取器::_Extractable) {
+            const auto& _Keyval = _就地键提取器::_Extract(_Vals...);
             _Loc                = _查找下界(_Keyval);
             if (_下界重复项(_Loc._Bound, _Keyval)) {
                 return {_Loc._Bound, false};
             }
 
             _检查增一();
-            _Inserted = _树临时节点<_Alnode>(_取分配器(), _Scary->_Myhead, _STD forward<_Valtys>(_Vals)...)._Release();
+            _Inserted = _树临时节点<_结点分配器>(_取分配器(), _Scary->_Myhead, _STD forward<_Valtys>(_Vals)...)._Release();
             // nothrow hereafter
         } else {
-            _树临时节点<_Alnode> _新节点(_取分配器(), _Scary->_Myhead, _STD forward<_Valtys>(_Vals)...);
+            _树临时节点<_结点分配器> _新节点(_取分配器(), _Scary->_Myhead, _STD forward<_Valtys>(_Vals)...);
             const auto& _Keyval = _Traits::_Kfn(_新节点._Ptr->_Myval);
             if constexpr (_Multi) { // duplicate check if unique
                 _Loc = _查找上界(_Keyval);
@@ -1052,22 +1052,22 @@ public:
 
 protected:
     template <class... _Valtys>
-    _Nodeptr _按提示就地构造(const _Nodeptr _Hint, _Valtys&&... _Vals) {
-        using _In_place_key_extractor = typename _Traits::template _In_place_key_extractor<_Valtys...>;
+    _结点指针 _按提示就地构造(const _结点指针 _Hint, _Valtys&&... _Vals) {
+        using _就地键提取器 = typename _Traits::template _就地键提取器<_Valtys...>;
         const auto _Scary             = _取检查值();
-        _树查找提示结果<_Nodeptr> _Loc;
-        _Nodeptr _Inserted;
-        if constexpr (!_Multi && _In_place_key_extractor::_Extractable) {
-            _Loc = _按提示查找(_Hint, _In_place_key_extractor::_Extract(_Vals...));
+        _树查找提示结果<_结点指针> _Loc;
+        _结点指针 _Inserted;
+        if constexpr (!_Multi && _就地键提取器::_Extractable) {
+            _Loc = _按提示查找(_Hint, _就地键提取器::_Extract(_Vals...));
             if (_Loc._Duplicate) {
                 return _Loc._Location._Parent;
             }
 
             _检查增一();
-            _Inserted = _树临时节点<_Alnode>(_取分配器(), _Scary->_Myhead, _STD forward<_Valtys>(_Vals)...)._Release();
+            _Inserted = _树临时节点<_结点分配器>(_取分配器(), _Scary->_Myhead, _STD forward<_Valtys>(_Vals)...)._Release();
             // nothrow hereafter
         } else {
-            _树临时节点<_Alnode> _新节点(_取分配器(), _Scary->_Myhead, _STD forward<_Valtys>(_Vals)...);
+            _树临时节点<_结点分配器> _新节点(_取分配器(), _Scary->_Myhead, _STD forward<_Valtys>(_Vals)...);
             _Loc = _按提示查找(_Hint, _Traits::_Kfn(_新节点._Ptr->_Myval));
             if constexpr (!_Multi) {
                 if (_Loc._Duplicate) {
@@ -1097,7 +1097,7 @@ public:
         const auto _Scary = _取检查值();
         _Scary->_擦除头(_取分配器());
 #if _ITERATOR_DEBUG_LEVEL != 0 // TRANSITION, ABI
-        auto&& _Alproxy = _GET_PROXY_ALLOCATOR(_Alnode, _取分配器());
+        auto&& _Alproxy = _GET_PROXY_ALLOCATOR(_结点分配器, _取分配器());
         _Delete_plain_internal(_Alproxy, _Scary->_Myproxy);
 #endif // _ITERATOR_DEBUG_LEVEL != 0
     }
@@ -1110,13 +1110,13 @@ public:
 
         auto& _Al       = _取分配器();
         auto& _Right_al = _Right._取分配器();
-        if constexpr (_Choose_pocca_v<_Alnode>) {
+        if constexpr (_Choose_pocca_v<_结点分配器>) {
             if (_Al != _Right_al) {
                 clear();
                 const auto _Scary = _取检查值();
                 _Scary->_Orphan_all();
-                auto&& _Alproxy       = _GET_PROXY_ALLOCATOR(_Alnode, _Al);
-                auto&& _Right_alproxy = _GET_PROXY_ALLOCATOR(_Alnode, _Right_al);
+                auto&& _Alproxy       = _GET_PROXY_ALLOCATOR(_结点分配器, _Al);
+                auto&& _Right_alproxy = _GET_PROXY_ALLOCATOR(_结点分配器, _Right_al);
                 _Container_proxy_ptr<_Alty> _Proxy(_Right_alproxy, _Leave_proxy_unbound{});
                 auto _Right_al_non_const = _Right_al;
                 auto _Newhead            = _节点::_建头节点(_Right_al_non_const);
@@ -1212,7 +1212,7 @@ public:
 
     _NODISCARD size_type max_size() const noexcept {
         return (_STD min)(
-            static_cast<size_type>(_STD _Max_limit<difference_type>()), _Alnode_traits::max_size(_取分配器()));
+            static_cast<size_type>(_STD _Max_limit<difference_type>()), _结点分配器特征::max_size(_取分配器()));
     }
 
     _NODISCARD_EMPTY_MEMBER bool empty() const noexcept {
@@ -1297,17 +1297,17 @@ public:
     }
 
 private:
-    _Nodeptr _擦除非检查(_Unchecked_const_iterator _Where) noexcept {
+    _结点指针 _擦除非检查(_Unchecked_const_iterator _Where) noexcept {
         const auto _Scary                    = _取检查值();
         _Unchecked_const_iterator _Successor = _Where;
         ++_Successor; // save successor iterator for return
-        _Nodeptr _Erasednode = _Scary->_Extract(_Where); // node to erase
+        _结点指针 _Erasednode = _Scary->_Extract(_Where); // node to erase
         _Scary->_孤立指针(_Erasednode);
         _节点::_释放节点(_取分配器(), _Erasednode); // delete erased node
         return _Successor._Ptr; // return successor nodeptr
     }
 
-    _Nodeptr _擦除非检查(_Unchecked_const_iterator _首个, _Unchecked_const_iterator _最后) noexcept {
+    _结点指针 _擦除非检查(_Unchecked_const_iterator _首个, _Unchecked_const_iterator _最后) noexcept {
         const auto _Begin = _非检查开始();
         if (_首个 == _Begin && _最后._Ptr->_Isnil) {
             // erase all
@@ -1323,7 +1323,7 @@ private:
         return _最后._Ptr;
     }
 
-    size_type _擦除(const pair<_Nodeptr, _Nodeptr> _Where) noexcept {
+    size_type _擦除(const pair<_结点指针, _结点指针> _Where) noexcept {
         const _Unchecked_const_iterator _首个(_Where.first, nullptr);
         const _Unchecked_const_iterator _最后(_Where.second, nullptr);
         const auto _Num = static_cast<size_type>(_STD distance(_首个, _最后));
@@ -1381,8 +1381,8 @@ public:
 
 private:
     template <class _Other>
-    _NODISCARD _Nodeptr _查找(const _Other& _Keyval) const {
-        const _树查找结果<_Nodeptr> _Loc = _查找下界(_Keyval);
+    _NODISCARD _结点指针 _查找(const _Other& _Keyval) const {
+        const _树查找结果<_结点指针> _Loc = _查找下界(_Keyval);
         if (_下界重复项(_Loc._Bound, _Keyval)) {
             return _Loc._Bound;
         }
@@ -1511,7 +1511,7 @@ public:
 
 protected:
     template <class _Keyty>
-    _树查找提示结果<_Nodeptr> _按提示查找(const _Nodeptr _Hint, const _Keyty& _Keyval) const {
+    _树查找提示结果<_结点指针> _按提示查找(const _结点指针 _Hint, const _Keyty& _Keyval) const {
         const auto& _Comp = _取比较器();
         const auto _Head  = _取检查值()->_Myhead;
         if constexpr (_Multi) { // insert even if duplicate
@@ -1601,10 +1601,10 @@ protected:
     }
 
     template <class _Keyty>
-    _树查找结果<_Nodeptr> _查找上界(const _Keyty& _Keyval) const {
+    _树查找结果<_结点指针> _查找上界(const _Keyty& _Keyval) const {
         const auto _Scary = _取检查值();
-        _树查找结果<_Nodeptr> _Result{{_Scary->_Myhead->_Parent, _树子向::_Right}, _Scary->_Myhead};
-        _Nodeptr _Trynode = _Result._Location._Parent;
+        _树查找结果<_结点指针> _Result{{_Scary->_Myhead->_Parent, _树子向::_Right}, _Scary->_Myhead};
+        _结点指针 _Trynode = _Result._Location._Parent;
         while (!_Trynode->_Isnil) {
             _Result._Location._Parent = _Trynode;
             if (_DEBUG_LT_PRED(_取比较器(), _Keyval, _Traits::_Kfn(_Trynode->_Myval))) {
@@ -1621,15 +1621,15 @@ protected:
     }
 
     template <class _Keyty>
-    bool _下界重复项(const _Nodeptr _Bound, const _Keyty& _Keyval) const {
+    bool _下界重复项(const _结点指针 _Bound, const _Keyty& _Keyval) const {
         return !_Bound->_Isnil && !_DEBUG_LT_PRED(_取比较器(), _Keyval, _Traits::_Kfn(_Bound->_Myval));
     }
 
     template <class _Keyty>
-    _树查找结果<_Nodeptr> _查找下界(const _Keyty& _Keyval) const {
+    _树查找结果<_结点指针> _查找下界(const _Keyty& _Keyval) const {
         const auto _Scary = _取检查值();
-        _树查找结果<_Nodeptr> _Result{{_Scary->_Myhead->_Parent, _树子向::_Right}, _Scary->_Myhead};
-        _Nodeptr _Trynode = _Result._Location._Parent;
+        _树查找结果<_结点指针> _Result{{_Scary->_Myhead->_Parent, _树子向::_Right}, _Scary->_Myhead};
+        _结点指针 _Trynode = _Result._Location._Parent;
         while (!_Trynode->_Isnil) {
             _Result._Location._Parent = _Trynode;
             if (_DEBUG_LT_PRED(_取比较器(), _Traits::_Kfn(_Trynode->_Myval), _Keyval)) {
@@ -1667,7 +1667,7 @@ protected:
     }
 
     template <_Strategy _Strat, class _Ty>
-    _Nodeptr _Copy_or_move(_Ty& _Val) {
+    _结点指针 _Copy_or_move(_Ty& _Val) {
         if constexpr (_Strat == _Strategy::_Copy) {
             return _建节点(_Val);
         } else {
@@ -1680,17 +1680,17 @@ protected:
     }
 
     template <_Strategy _Strat>
-    _Nodeptr _Copy_nodes(_Nodeptr _Rootnode, _Nodeptr _Wherenode) {
+    _结点指针 _Copy_nodes(_结点指针 _Rootnode, _结点指针 _Wherenode) {
         // copy entire subtree, recursively
         const auto _Scary = _取检查值();
-        _Nodeptr _Newroot = _Scary->_Myhead; // point at nil node
+        _结点指针 _Newroot = _Scary->_Myhead; // point at nil node
 
         if (!_Rootnode->_Isnil) { // copy or move a node, then any subtrees
             _Newroot          = _Copy_or_move<_Strat>(_Rootnode->_Myval); // memorize new root
             _Newroot->_Parent = _Wherenode;
             _Newroot->_Color  = _Rootnode->_Color;
 
-            typename _Scary_val::template _Erase_tree_and_orphan_guard<_Alnode> _Guard{_Scary, _取分配器(), _Newroot};
+            typename _Scary_val::template _Erase_tree_and_orphan_guard<_结点分配器> _Guard{_Scary, _取分配器(), _Newroot};
 
             _Newroot->_Left  = _Copy_nodes<_Strat>(_Rootnode->_Left, _Newroot);
             _Newroot->_Right = _Copy_nodes<_Strat>(_Rootnode->_Right, _Newroot);
@@ -1702,14 +1702,14 @@ protected:
     }
 
     template <class _Other>
-    pair<_Nodeptr, _Nodeptr> _等值区间(const _Other& _Keyval) const
+    pair<_结点指针, _结点指针> _等值区间(const _Other& _Keyval) const
         noexcept(_Nothrow_compare<key_compare, key_type, _Other> && _Nothrow_compare<key_compare, _Other, key_type>) {
         // find range of nodes equivalent to _Keyval
         const auto _Scary = _取检查值();
         const auto& _Comp = _取比较器();
-        _Nodeptr _Pnode   = _Scary->_Myhead->_Parent;
-        _Nodeptr _Lonode  = _Scary->_Myhead; // end() if search fails
-        _Nodeptr _Hinode  = _Scary->_Myhead; // end() if search fails
+        _结点指针 _Pnode   = _Scary->_Myhead->_Parent;
+        _结点指针 _Lonode  = _Scary->_Myhead; // end() if search fails
+        _结点指针 _Hinode  = _Scary->_Myhead; // end() if search fails
 
         while (!_Pnode->_Isnil) {
             const auto& _Nodekey = _Traits::_Kfn(_Pnode->_Myval);
@@ -1790,7 +1790,7 @@ public:
         const auto _Scary        = _取检查值();
         const auto _Attempt_node = _Handle._Getptr();
         const auto& _Keyval      = _Traits::_Kfn(_Attempt_node->_Myval);
-        _树查找结果<_Nodeptr> _Loc;
+        _树查找结果<_结点指针> _Loc;
         if constexpr (_Multi) {
             _Loc = _查找上界(_Keyval);
         } else {
@@ -1850,7 +1850,7 @@ public:
 
     template <class _Other_traits>
     void merge(_树<_Other_traits>& _That) {
-        static_assert(is_same_v<_Nodeptr, typename _树<_Other_traits>::_Nodeptr>,
+        static_assert(is_same_v<_结点指针, typename _树<_Other_traits>::_结点指针>,
             "merge() requires an argument with a compatible node type.");
 
         static_assert(is_same_v<allocator_type, typename _树<_Other_traits>::allocator_type>,
@@ -1863,7 +1863,7 @@ public:
         }
 
 #if _ITERATOR_DEBUG_LEVEL == 2
-        if constexpr (!_Alnode_traits::is_always_equal::value) {
+        if constexpr (!_结点分配器特征::is_always_equal::value) {
             _STL_VERIFY(_取分配器() == _That._取分配器(), "allocator incompatible for merge");
         }
 #endif // _ITERATOR_DEBUG_LEVEL == 2
@@ -1875,7 +1875,7 @@ public:
         while (!_首个._Ptr->_Isnil) {
             const auto _Attempt_node = _首个._Ptr;
             ++_首个;
-            _树查找结果<_Nodeptr> _Loc;
+            _树查找结果<_结点指针> _Loc;
             const auto& _Keyval = _Traits::_Kfn(_Attempt_node->_Myval);
             if constexpr (_Multi) {
                 _Loc = _查找上界(_Keyval);
@@ -1902,7 +1902,7 @@ public:
 
     template <class _Other_traits>
     void merge(_树<_Other_traits>&& _That) {
-        static_assert(is_same_v<_Nodeptr, typename _树<_Other_traits>::_Nodeptr>,
+        static_assert(is_same_v<_结点指针, typename _树<_Other_traits>::_结点指针>,
             "merge() requires an argument with a compatible node type.");
 
         static_assert(is_same_v<allocator_type, typename _树<_Other_traits>::allocator_type>,
@@ -1913,7 +1913,7 @@ public:
 
 protected:
     template <class _Other_traits>
-    void _Reparent_ptr(const _Nodeptr _Ptr, _树<_Other_traits>& _Old_parent) {
+    void _Reparent_ptr(const _结点指针 _Ptr, _树<_Other_traits>& _Old_parent) {
         (void) _Ptr;
         (void) _Old_parent;
 #if _ITERATOR_DEBUG_LEVEL == 2
@@ -1953,14 +1953,14 @@ protected:
 
     void _Alloc_sentinel_and_proxy() {
         const auto _Scary = _取检查值();
-        auto&& _Alproxy   = _GET_PROXY_ALLOCATOR(_Alnode, _取分配器());
-        _Container_proxy_ptr<_Alnode> _Proxy(_Alproxy, *_Scary);
+        auto&& _Alproxy   = _GET_PROXY_ALLOCATOR(_结点分配器, _取分配器());
+        _Container_proxy_ptr<_结点分配器> _Proxy(_Alproxy, *_Scary);
         _Scary->_Myhead = _节点::_建头节点(_取分配器());
         _Proxy._Release();
     }
 
     template <class... _Valty>
-    _Nodeptr _建节点(_Valty&&... _Val) {
+    _结点指针 _建节点(_Valty&&... _Val) {
         return _节点::_建节点(_取分配器(), _取检查值()->_Myhead, _STD forward<_Valty>(_Val)...);
     }
 
@@ -1972,11 +1972,11 @@ protected:
         return _Mypair._Get_first();
     }
 
-    _Alnode& _取分配器() noexcept {
+    _结点分配器& _取分配器() noexcept {
         return _Mypair._Myval2._Get_first();
     }
 
-    const _Alnode& _取分配器() const noexcept {
+    const _结点分配器& _取分配器() const noexcept {
         return _Mypair._Myval2._Get_first();
     }
 
@@ -1989,7 +1989,7 @@ protected:
     }
 
 private:
-    _Compressed_pair<key_compare, _Compressed_pair<_Alnode, _Scary_val>> _Mypair;
+    _Compressed_pair<key_compare, _Compressed_pair<_结点分配器, _Scary_val>> _Mypair;
 };
 } }
 

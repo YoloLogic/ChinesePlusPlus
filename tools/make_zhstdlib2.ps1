@@ -449,6 +449,13 @@ $H = @{
                           # §16.44：跟着 树内部件 一起改（跨头译名一致性检查会强制一致）
                           '_Tree'      = '_树'
                           '_Tree_node' = '_树节点'
+                          # §16.45 【销账】_Tree 是我们自己的了 -> 这一族可以同步翻：
+                          '_Alnode'                = '_结点分配器'
+                          '_Alnode_traits'         = '_结点分配器特征'
+                          # §16.37 那时判为第 ③ 类（被借来的 std::_Tree 读取）而【不能翻】；
+                          #   现在 _Tree = 细节::_树（§16.44），定义处与读取点都在我们手里，
+                          #   于是「两边一起改」成立 —— 这就把那条欠账真正销掉了。
+                          '_In_place_key_extractor' = '_就地键提取器'
                           # §16.37 【实测结论：不能翻】`_In_place_key_extractor` 是
                           #   `_Tset_traits` 里的成员，而 `_Tree` 会去读它：
                           #     xtree:1011:68: error:
@@ -533,6 +540,11 @@ $H = @{
                           '_Tree'           = '_树'
                           '_Tree_node'      = '_树节点'
                           '_Tree_temp_node' = '_树临时节点'
+                          # §16.45 【销账】与 <集合> 同批（_Tree 已是我们的，可同步翻）
+                          '_Alnode'                = '_结点分配器'
+                          '_Alnode_traits'         = '_结点分配器特征'
+                          '_Nodeptr'               = '_结点指针'
+                          '_In_place_key_extractor' = '_就地键提取器'
                           # §16.37 【实测结论：不能翻】`_In_place_key_extractor` 被 `_Tree` 读取
                           #   （xtree:1011）-> 第 ③ 类。现在 _Tree 是我们自己的了，
                           #   「两边一起改」的通路已打开，属下一批。
@@ -1664,6 +1676,15 @@ $H = @{
       '_Tree_head_scoped_ptr'          = '_树头作用域指针'
       '_Tree_temp_node_alloc'          = '_树临时节点分配器'
       '_Tree_temp_node'                = '_树临时节点'
+      # §16.45 【销账】`_Tree` 的内部成员别名 —— 现在两边都是我们的，可以同步翻了。
+      #   （它们就是 §16.2 欠账清单里的 _Alnode / _Alnode_traits / _Nodeptr。）
+      #   `_In_place_key_extractor` 是【_Tset_traits/_Tmap_traits】里的成员，
+      #   被 _Tree 读取（`_Traits::_In_place_key_extractor`）—— 定义在 set/map，
+      #   读取点在本头，所以两边必须一起翻（跨头译名检查会强制一致）。
+      '_Alnode'                = '_结点分配器'
+      '_Alnode_traits'         = '_结点分配器特征'
+      '_Nodeptr'               = '_结点指针'
+      '_In_place_key_extractor' = '_就地键提取器'
     }
     members = [ordered]@{
       # §16.43 成员层第一批：**确认属于 `_Tree` 自己**的那一批。
