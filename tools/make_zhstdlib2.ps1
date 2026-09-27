@@ -1030,6 +1030,32 @@ $H = @{
       @('字节视图 + 动态范围常量','#包含 <跨度>`n整数 主函数(){ 整数 原[2] = {1, 2}; 标准::跨度<整数> 甲(原); 自动 字节 = 标准::转字节(甲); 布尔 全 = 字节.尺寸() == 甲.字节尺寸(); 标准::跨度<整数, 标准::动态范围常量> 乙(甲); 返回 (全 ? 0 : 1) + (整数)乙.尺寸() - 2; }')
     )
   }
+  'xcall_once.h' = @{
+    zh      = '调用一次'
+    # ⚠ 内部件（步骤 1 的第一个）：它定义 std::once_flag 与 std::call_once ——
+    #   正是 §3.7.2 那条欠账的消除路径。
+    #   译名必须与 <mutex> 条目一致（跨头译名检查会强制）：一次标志实现 / 一次调用。
+    pub     = '一次标志'
+    types   = [ordered]@{ 'once_flag' = '一次标志实现'
+                          '_Init_once_completer' = '_一次初始化完成器' }
+    members = [ordered]@{ 'call_once' = '一次调用' }
+    data    = [ordered]@{}
+    derive  = @()
+    stdHash = $false
+    tparam  = @{ decl = ''; args = '' }
+    extra = @'
+
+名域 标准 {
+
+// 自由函数：抄来后落在 细节::，用 using 声明引进 标准（§3.19.1）
+使用 细节::一次调用;
+
+}  // 名域 标准
+'@
+    tests = @(
+      @('只引中文头','#包含 <调用一次>`n整数 主函数(){ 标准::一次标志 标; 标准::一次调用(标, []{}); 返回 0; }')
+    )
+  }
   'scoped_allocator' = @{
     zh      = '作用域分配器'
     types   = [ordered]@{ 'scoped_allocator_adaptor' = '作用域分配器适配器实现'
@@ -1675,7 +1701,8 @@ $probe = Join-Path $env:TEMP ('zh2_' + [guid]::NewGuid().ToString('N').Substring
 #   实测：examples\汉语库示例.cpp 一编译就报
 #     'std::allocator_traits<...>' 中没有名为 '最大尺寸' 的成员   （见方案 §十二）
 #   这里直接用该条目的第一条测试 —— 它本来就是会真正使用这些类的程序。
-$probeBody = if ($spec.tests -and $spec.tests.Count -gt 0) { $spec.tests[0][1].Replace([char]96 + 'n', "`n") } else { "整数 主函数(){ 返回 0; }" }
+$tp = Repair-Pairs $spec.tests
+$probeBody = if (@($tp).Count -gt 0) { $tp[0][1].Replace([char]96 + 'n', "`n") } else { "整数 主函数(){ 返回 0; }" }
 [System.IO.File]::WriteAllText($probe, $probeBody + "`n", $utf8)
 $rev = @{}
 foreach ($k in $spec.members.Keys) { $rev[$spec.members[$k]] = $k }
@@ -1758,7 +1785,9 @@ Write-Host "=== 验证 ===" -ForegroundColor Cyan
 $t = Join-Path $root 'build\_zh2'
 if (Test-Path $t) { Remove-Item -Recurse -Force $t }
 New-Item -ItemType Directory -Force $t | Out-Null
-$cases = $spec.tests
+$cases = Repair-Pairs $spec.tests
+Write-Host ("  测试用例数: {0}" -f @($cases).Count)
+if (@($cases).Count -le 0) { throw "用例数为 0 —— 测试没跑起来（§15.3：跑 0 条的通过不是通过）" }
 $pass = 0
 foreach ($c in $cases) {
     $src = Join-Path $t 't.cpp'
