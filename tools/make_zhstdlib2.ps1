@@ -2560,6 +2560,45 @@ $H = @{
       #   消除路径 = 把 `<字符串视图>` 也抄成我们自己的内部件，两边一起翻。
       'get_allocator' = '取分配器'
       # ⚠ `swap` 照旧不改名（§3.12）。
+      # -----------------------------------------------------------------------
+      # §16.64 本头**自己定义**的内部助手（逐个量过"谁定义它"）：
+      #   判据 = 这 31 个里，只有 `_Erase_remove`/`_Erase_remove_if` 在 xmemory 里
+      #   也有同名定义，`_Getal`/`_Unchecked_begin`/`_Unchecked_end` 在 xtree/xhash 里
+      #   也有 —— 后三个**必须用既有译名**（跨头译名守卫会强制），其余是本头独有。
+      #   ⚠ 这批不是公开 API（内部助手），所以**不需要**在公开层补英文；
+      #     它们只被本头自己的成员调用（`字符串内部件` 目前还没有消费者）。
+      # -----------------------------------------------------------------------
+      '_Activate_SSO_buffer' = '_激活小串缓冲'
+      '_Become_small' = '_转为小串'
+      '_Calculate_growth' = '_计算增长'
+      '_Check_offset' = '_检查偏移'
+      '_Check_offset_exclusive' = '_检查偏移排他'
+      '_Clamp_suffix_size' = '_夹取后缀尺寸'
+      '_Construct_empty' = '_构造为空串'
+      '_Construct_from_iter' = '_由迭代器构造'
+      '_Eos' = '_串尾'
+      '_Erase_noexcept' = '_擦除不抛出'
+      '_Erase_remove' = '_擦除并移除'
+      '_Erase_remove_if' = '_按条件擦除并移除'
+      '_Insert_string' = '_插入字符串'
+      '_Large_mode_engaged' = '_已启用大串模式'
+      '_Move_assign_from_buffer' = '_由缓冲移动赋值'
+      '_Move_construct_from_substr' = '_由子串移动构造'
+      '_Myptr' = '_我的指针'
+      '_Reallocate_for' = '_为重分配'
+      '_Reallocate_grow_by' = '_按增量重分配'
+      '_Release_to_buffer' = '_释放至缓冲'
+      '_Resize_and_overwrite' = '_调整尺寸并覆写'
+      '_Starts_with' = '_开头为'
+      '_Swap_bx_large_with_small' = '_交换大串小串缓冲'
+      '_Swap_data' = '_交换数据'
+      '_Switch_to_buf' = '_切换到缓冲'
+      '_Take_contents' = '_接管内容'
+      '_Tidy_deallocate' = '_清理释放'
+      '_Xran' = '_抛范围错'
+      '_Getal' = '_取分配器'
+      '_Unchecked_begin' = '_非检查开始'
+      '_Unchecked_end' = '_非检查结束'
     }
     data    = [ordered]@{}
     derive  = @()
