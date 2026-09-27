@@ -176,7 +176,12 @@ $memBoundary = @('length', 'assign', 'copy', 'compare', 'find', 'max_size', 'swa
                  #     —— 按词替换必然误伤（§16.30.3 已实测）。中文名由 deriveExtra 手写给出，
                  #     所以**用户能写 `甲.等待()`**，只是抄来那层留着英文。
                  #   `lexicographical_compare*`：std 算法（借来的）。
-                 'wait', 'lexicographical_compare', 'lexicographical_compare_three_way')
+                 'wait', 'lexicographical_compare', 'lexicographical_compare_three_way',
+                 # ---- §16.72 借用的线程核心件 + 模板形参噪声 ----
+                 #   `_Mycnd`：<condition_variable> 正文里只有 `_Mycnd()` 这种**调用**，
+                 #     定义在借来的线程核心头（goals 里 xthreads.h 那一类，属"判定的边界"）。
+                 #   `_Pred`：模板形参名（本尺子的已知偏差，同 `_Ty`）。
+                 '_Mycnd', '_Pred')
 function Get-NestedNames([string] $text) {    $names = @{}
     foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+using\s+([A-Za-z_]\w*)\s*=')) { $names[$m.Groups[1].Value] = $true }
     foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+typedef\s+[^;\r\n]*?\b([A-Za-z_]\w*)\s*;')) { $names[$m.Groups[1].Value] = $true }
