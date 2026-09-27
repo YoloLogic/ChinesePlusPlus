@@ -205,19 +205,19 @@ struct _重解释移动迭代器 {
 #endif // !_HAS_CXX20
 };
 
-template <class _Alnode>
+template <class _结点分配器>
 struct _链表头构造指针 {
-    using value_type = typename _Alnode::value_type;
+    using value_type = typename _结点分配器::value_type;
     static_assert(_Is_specialization_v<value_type, _List_node>, "_链表头构造指针 allocator not rebound");
-    using _Alnode_traits = allocator_traits<_Alnode>;
-    using pointer        = typename _Alnode_traits::pointer;
-    _Alnode& _Al;
+    using _结点分配器特征 = allocator_traits<_结点分配器>;
+    using pointer        = typename _结点分配器特征::pointer;
+    _结点分配器& _Al;
     pointer _Newhead;
 
-    explicit _链表头构造指针(_Alnode& _Al_) : _Al(_Al_), _Newhead(value_type::_Buyheadnode(_Al)) {}
+    explicit _链表头构造指针(_结点分配器& _Al_) : _Al(_Al_), _Newhead(value_type::_Buyheadnode(_Al)) {}
 
     template <class _值类型集>
-    _链表头构造指针(_Alnode& _Al_, _List_val<_值类型集>& _Mycont)
+    _链表头构造指针(_结点分配器& _Al_, _List_val<_值类型集>& _Mycont)
         : _Al(_Al_), _Newhead(value_type::_Buyheadnode(_Al)) {
         _Mycont._Myhead = _Newhead;
     }
@@ -330,14 +330,14 @@ template <class _Traits>
 class _哈希 { // hash table -- 链表实现 with vector of iterators for quick access
 protected:
     using _我的链表             = 链表实现<typename _Traits::value_type, typename _Traits::分配器类型>;
-    using _Alnode             = typename _我的链表::_Alnode;
-    using _Alnode_traits      = typename _我的链表::_Alnode_traits;
+    using _结点分配器             = typename _我的链表::_结点分配器;
+    using _结点分配器特征      = typename _我的链表::_结点分配器特征;
     using _节点               = typename _我的链表::_节点;
     using _结点指针            = typename _我的链表::_结点指针;
-    using _Mutable_value_type = typename _Traits::_Mutable_value_type;
+    using _可变值类型 = typename _Traits::_可变值类型;
 
-    using _Key_compare   = typename _Traits::key_compare;
-    using _值比较器 = typename _Traits::value_compare;
+    using _键比较器   = typename _Traits::键比较器;
+    using _值比较器 = typename _Traits::值比较;
 
 public:
     using 键类型 = typename _Traits::键类型;
@@ -359,9 +359,9 @@ public:
               typename _我的链表::_非检查常量迭代器, typename _我的链表::_非检查迭代器>;
     using _非检查常量迭代器 = typename _我的链表::_非检查常量迭代器;
 
-    using _分配器迭代器 = _Rebind_alloc_t<_Alnode, _非检查迭代器>;
+    using _分配器迭代器 = _Rebind_alloc_t<_结点分配器, _非检查迭代器>;
 
-    static constexpr size_type _Bucket_size = _Key_compare::bucket_size;
+    static constexpr size_type _Bucket_size = _键比较器::bucket_size;
     static constexpr size_type _Min_buckets = 8; // must be a positive power of 2
     static constexpr bool _Multi            = _Traits::_Multi;
 
@@ -369,7 +369,7 @@ public:
     friend bool _哈希相等(const _哈希<_TraitsT>& _Left, const _哈希<_TraitsT>& _Right);
 
 protected:
-    _哈希(const _Key_compare& _Parg, const 分配器类型& _Al)
+    _哈希(const _键比较器& _Parg, const 分配器类型& _Al)
         : _Traitsobj(_Parg), _List(_Al), _Vec(_Al), _Mask(_Min_buckets - 1), _Maxidx(_Min_buckets) {
         // construct 为空 hash table
         _最大桶尺寸() = _Bucket_size;
@@ -418,7 +418,7 @@ private:
 public:
     _哈希(_哈希&& _Right, const 分配器类型& _Al) : _Traitsobj(_Right._Traitsobj), _List(_Al), _Vec(_Al) {
         // construct hash table by moving _Right, allocator
-        if constexpr (_Alnode_traits::is_always_equal::value) {
+        if constexpr (_结点分配器特征::is_always_equal::value) {
             _移动构造相等分配器(_Right);
         } else if (_List._取分配器() == _Right._List._取分配器()) {
             _移动构造相等分配器(_Right);
@@ -426,7 +426,7 @@ public:
             _Maxidx            = _Min_buckets;
             const auto _Myhead = _List._Mypair._Myval2._Myhead;
             for (auto& _Val : _Right._List) {
-                _List._Emplace(_Myhead, reinterpret_cast<_Mutable_value_type&&>(_Val));
+                _List._Emplace(_Myhead, reinterpret_cast<_可变值类型&&>(_Val));
             }
             _用失效向量重插();
             _Right.清空();
@@ -521,15 +521,15 @@ public:
 
         auto& _Al                 = _取分配器();
         auto& _Right_al           = _Right._取分配器();
-        constexpr auto _Pocma_val = _Choose_pocma_v<_Alnode>;
+        constexpr auto _Pocma_val = _Choose_pocma_v<_结点分配器>;
         if constexpr (_Pocma_val == _Pocma_values::_Propagate_allocators) {
             if (_Al != _Right_al) {
                 // allocate all the parts necessary to maintain _哈希 invariants using _Right's allocator
-                auto&& _Alproxy       = _GET_PROXY_ALLOCATOR(_Alnode, _Al);
-                auto&& _Right_alproxy = _GET_PROXY_ALLOCATOR(_Alnode, _Right_al);
-                _Container_proxy_ptr<_Alnode> _List_proxy(_Right_alproxy, _Leave_proxy_unbound{});
-                _Container_proxy_ptr<_Alnode> _Vec_proxy(_Right_alproxy, _Leave_proxy_unbound{});
-                _链表头构造指针<_Alnode> _Newhead(_Right_al);
+                auto&& _Alproxy       = _GET_PROXY_ALLOCATOR(_结点分配器, _Al);
+                auto&& _Right_alproxy = _GET_PROXY_ALLOCATOR(_结点分配器, _Right_al);
+                _Container_proxy_ptr<_结点分配器> _List_proxy(_Right_alproxy, _Leave_proxy_unbound{});
+                _Container_proxy_ptr<_结点分配器> _Vec_proxy(_Right_alproxy, _Leave_proxy_unbound{});
+                _链表头构造指针<_结点分配器> _Newhead(_Right_al);
                 _最小桶数构造指针 _Buckets(_Right._Vec._Mypair._Get_first());
 
                 // assign the hash/compare ops; we have no control over whether this throws, and if it does we want
@@ -574,8 +574,8 @@ public:
             if (_Al != _Right_al) {
                 _清空守卫 _Guard{this};
                 _Traitsobj     = _Right._Traitsobj;
-                using _适配器 = _重解释移动迭代器<typename _我的链表::_非检查迭代器, _Mutable_value_type>;
-                _List.template _Assign_cast<_Mutable_value_type&>(
+                using _适配器 = _重解释移动迭代器<typename _我的链表::_非检查迭代器, _可变值类型>;
+                _List.template _Assign_cast<_可变值类型&>(
                     _适配器{_Right._List._非检查开始()}, _适配器{_Right._List._非检查结束()});
                 _用失效向量重插();
                 _Guard._Target = nullptr;
@@ -595,10 +595,10 @@ public:
     template <class... _Valtys>
     conditional_t<_Multi, iterator, pair<iterator, bool>> 就地构造(_Valtys&&... _Vals) {
         // try to insert value_type(_Vals...)
-        using _In_place_key_extractor = typename _Traits::template _In_place_key_extractor<_Valtys...>;
+        using _就地键提取器 = typename _Traits::template _就地键提取器<_Valtys...>;
         if constexpr (_Multi) {
             _检查最大尺寸();
-            _List_node_emplace_op2<_Alnode> _新节点(_List._取分配器(), _STD forward<_Valtys>(_Vals)...);
+            _List_node_emplace_op2<_结点分配器> _新节点(_List._取分配器(), _STD forward<_Valtys>(_Vals)...);
             const auto& _Keyval = _Traits::_Kfn(_新节点._Ptr->_Myval);
             const auto _Hashval = _Traitsobj(_Keyval);
             if (_检查需重哈希1()) {
@@ -607,8 +607,8 @@ public:
 
             const auto _Target = _查找最后(_Keyval, _Hashval);
             return _List._Make_iter(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release()));
-        } else if constexpr (_In_place_key_extractor::_Extractable) {
-            const auto& _Keyval = _In_place_key_extractor::_Extract(_Vals...);
+        } else if constexpr (_就地键提取器::_Extractable) {
+            const auto& _Keyval = _就地键提取器::_Extract(_Vals...);
             const auto _Hashval = _Traitsobj(_Keyval);
             auto _Target        = _查找最后(_Keyval, _Hashval);
             if (_Target._Duplicate) {
@@ -617,7 +617,7 @@ public:
 
             _检查最大尺寸();
             // invalidates _Keyval:
-            _List_node_emplace_op2<_Alnode> _新节点(_List._取分配器(), _STD forward<_Valtys>(_Vals)...);
+            _List_node_emplace_op2<_结点分配器> _新节点(_List._取分配器(), _STD forward<_Valtys>(_Vals)...);
             if (_检查需重哈希1()) {
                 _为1重哈希();
                 _Target = _查找最后(_Traits::_Kfn(_新节点._Ptr->_Myval), _Hashval);
@@ -626,7 +626,7 @@ public:
             return {
                 _List._Make_iter(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release())), true};
         } else {
-            _List_node_emplace_op2<_Alnode> _新节点(_List._取分配器(), _STD forward<_Valtys>(_Vals)...);
+            _List_node_emplace_op2<_结点分配器> _新节点(_List._取分配器(), _STD forward<_Valtys>(_Vals)...);
             const auto& _Keyval = _Traits::_Kfn(_新节点._Ptr->_Myval);
             const auto _Hashval = _Traitsobj(_Keyval);
             auto _Target        = _查找最后(_Keyval, _Hashval);
@@ -647,10 +647,10 @@ public:
 
     template <class... _Valtys>
     iterator 按提示就地构造(const_iterator _Hint, _Valtys&&... _Vals) { // try to insert value_type(_Vals...)
-        using _In_place_key_extractor = typename _Traits::template _In_place_key_extractor<_Valtys...>;
+        using _就地键提取器 = typename _Traits::template _就地键提取器<_Valtys...>;
         if constexpr (_Multi) {
             _检查最大尺寸();
-            _List_node_emplace_op2<_Alnode> _新节点(_List._取分配器(), _STD forward<_Valtys>(_Vals)...);
+            _List_node_emplace_op2<_结点分配器> _新节点(_List._取分配器(), _STD forward<_Valtys>(_Vals)...);
             const auto& _Keyval = _Traits::_Kfn(_新节点._Ptr->_Myval);
             const auto _Hashval = _Traitsobj(_Keyval);
             if (_检查需重哈希1()) {
@@ -659,8 +659,8 @@ public:
 
             const auto _Target = _按提示查找(_Hint._Ptr, _Keyval, _Hashval);
             return _List._Make_iter(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release()));
-        } else if constexpr (_In_place_key_extractor::_Extractable) {
-            const auto& _Keyval = _In_place_key_extractor::_Extract(_Vals...);
+        } else if constexpr (_就地键提取器::_Extractable) {
+            const auto& _Keyval = _就地键提取器::_Extract(_Vals...);
             const auto _Hashval = _Traitsobj(_Keyval);
             auto _Target        = _按提示查找(_Hint._Ptr, _Keyval, _Hashval);
             if (_Target._Duplicate) {
@@ -669,7 +669,7 @@ public:
 
             _检查最大尺寸();
             // invalidates _Keyval:
-            _List_node_emplace_op2<_Alnode> _新节点(_List._取分配器(), _STD forward<_Valtys>(_Vals)...);
+            _List_node_emplace_op2<_结点分配器> _新节点(_List._取分配器(), _STD forward<_Valtys>(_Vals)...);
             if (_检查需重哈希1()) {
                 _为1重哈希();
                 _Target = _按提示查找(_Hint._Ptr, _Traits::_Kfn(_新节点._Ptr->_Myval), _Hashval);
@@ -677,7 +677,7 @@ public:
 
             return _List._Make_iter(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release()));
         } else {
-            _List_node_emplace_op2<_Alnode> _新节点(_List._取分配器(), _STD forward<_Valtys>(_Vals)...);
+            _List_node_emplace_op2<_结点分配器> _新节点(_List._取分配器(), _STD forward<_Valtys>(_Vals)...);
             const auto& _Keyval = _Traits::_Kfn(_新节点._Ptr->_Myval);
             const auto _Hashval = _Traitsobj(_Keyval);
             auto _Target        = _按提示查找(_Hint._Ptr, _Keyval, _Hashval);
@@ -706,7 +706,7 @@ protected:
         }
 
         _检查最大尺寸();
-        _List_node_emplace_op2<_Alnode> _新节点(_List._取分配器(), piecewise_construct,
+        _List_node_emplace_op2<_结点分配器> _新节点(_List._取分配器(), piecewise_construct,
             _STD forward_as_tuple(_STD forward<_Keyty>(_Keyval_arg)),
             _STD forward_as_tuple(_STD forward<_Mappedty>(_Mapval)...));
         if (_检查需重哈希1()) {
@@ -728,7 +728,7 @@ protected:
 
         _检查最大尺寸();
         // might invalidate _Keyval:
-        _List_node_emplace_op2<_Alnode> _新节点(_List._取分配器(), piecewise_construct,
+        _List_node_emplace_op2<_结点分配器> _新节点(_List._取分配器(), piecewise_construct,
             _STD forward_as_tuple(_STD forward<_Keyty>(_Keyval_arg)),
             _STD forward_as_tuple(_STD forward<_Mappedty>(_Mapval)...));
         if (_检查需重哈希1()) {
@@ -756,13 +756,13 @@ public:
         _检查容器不变式守卫 _Check_right{_Right};
 #endif // _ENABLE_STL_INTERNAL_CHECK
 
-        if constexpr (_Choose_pocca_v<_Alnode>) {
+        if constexpr (_Choose_pocca_v<_结点分配器>) {
             auto& _Al             = _取分配器();
             const auto& _Right_al = _Right._取分配器();
             if (_Al != _Right_al) {
-                auto&& _Alproxy       = _GET_PROXY_ALLOCATOR(_Alnode, _Al);
-                auto&& _Right_alproxy = _GET_PROXY_ALLOCATOR(_Alnode, _Right_al);
-                _Container_proxy_ptr<_Alnode> _Vec_proxy(_Right_alproxy, _Leave_proxy_unbound{});
+                auto&& _Alproxy       = _GET_PROXY_ALLOCATOR(_结点分配器, _Al);
+                auto&& _Right_alproxy = _GET_PROXY_ALLOCATOR(_结点分配器, _Right_al);
+                _Container_proxy_ptr<_结点分配器> _Vec_proxy(_Right_alproxy, _Leave_proxy_unbound{});
                 _List._Reload_sentinel_and_proxy(_Right._List);
                 _Vec._清理();
                 _传播复制赋值两者(_Right);
@@ -770,7 +770,7 @@ public:
 
                 _清空守卫 _Guard{this};
                 _Traitsobj = _Right._Traitsobj;
-                _List.template _Assign_cast<_Mutable_value_type&>(
+                _List.template _Assign_cast<_可变值类型&>(
                     _Right._List._非检查开始(), _Right._List._非检查结束());
                 _用失效向量重插();
                 _Guard._Target = nullptr;
@@ -782,7 +782,7 @@ public:
         _清空守卫 _Guard{this};
         _Traitsobj = _Right._Traitsobj;
         _传播复制赋值两者(_Right);
-        _List.template _Assign_cast<_Mutable_value_type&>(
+        _List.template _Assign_cast<_可变值类型&>(
             _Right._List._非检查开始(), _Right._List._非检查结束());
         _用失效向量重插();
         _Guard._Target = nullptr;
@@ -1461,7 +1461,7 @@ public:
         }
 
 #if _ITERATOR_DEBUG_LEVEL == 2
-        if constexpr (!_Alnode_traits::is_always_equal::value) {
+        if constexpr (!_结点分配器特征::is_always_equal::value) {
             _STL_VERIFY(_List._取分配器() == _That._List._取分配器(), "allocator incompatible for merge");
         }
 #endif // _ITERATOR_DEBUG_LEVEL == 2
@@ -1826,11 +1826,11 @@ protected:
         return _Traitsobj._取最大桶尺寸();
     }
 
-    _Alnode& _取分配器() noexcept {
+    _结点分配器& _取分配器() noexcept {
         return _List._取分配器();
     }
 
-    const _Alnode& _取分配器() const noexcept {
+    const _结点分配器& _取分配器() const noexcept {
         return _List._取分配器();
     }
 

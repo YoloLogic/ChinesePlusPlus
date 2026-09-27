@@ -979,7 +979,14 @@ $H = @{
                           #   ⚠ 实测 <list> 里 `allocator_type` 只有一处【无限定】声明
                           #     （L796 `using allocator_type = _Alloc;`），没有 `X::allocator_type`
                           #     的借用读取 -> 可以安全整词替换。
-                          'allocator_type'        = '分配器类型' }
+                          'allocator_type'        = '分配器类型'
+                          # §16.60 协调改名第三批：这两个是 `_List_val` 自己的类内别名，
+                          #   全在 <list> 内部（53 / 23 处，**0 处** `X::名字` 限定读取），
+                          #   但 `哈希内部件` 会读 `typename _Mylist::_Alnode` 等
+                          #   -> 与本条目同批翻（§16.45：基类是我们的，两边一起改）。
+                          '_Alnode'               = '_结点分配器'
+                          '_Alnode_traits'        = '_结点分配器特征'
+                          }
     members = [ordered]@{
       'size' = '尺寸'; 'empty' = '为空'
       'begin' = '开始'; 'end' = '结束'
@@ -1332,8 +1339,18 @@ $H = @{
                           '_Hash'          = '_哈希'
                           '_Uhash_compare' = '_无序哈希比较'
                           '_Is_hasher'     = '_是哈希器'
-                          # ⚠ _Alnode / _Alnode_traits / _Key_compare 是 `typename _Mybase::X`，
-                          #   而它们在 哈希内部件 里【没被改名】-> 现在照旧可用。
+                          # ⚠ §16.60 起 _Alnode / _Alnode_traits / _Key_compare **已经翻**了
+                          #   （与 链表 + 哈希内部件 同批，§16.45：基类是我们的，两边一起改）。
+                          #   这条注释原来写的是"它们在 哈希内部件 里没被改名，照旧可用" ——
+                          #   那句话随本批**废止**。
+                          '_Alnode'             = '_结点分配器'
+                          '_Alnode_traits'      = '_结点分配器特征'
+                          '_Key_compare'        = '_键比较器'
+                          # §16.60 其余 4 个（traits 里声明、`_哈希` 读）：本头同批翻。
+                          'key_compare'         = '键比较器'
+                          'value_compare'       = '值比较'
+                          '_Mutable_value_type' = '_可变值类型'
+                          '_In_place_key_extractor' = '_就地键提取器'
                           # §16.58 跨条目协调改名（与 哈希内部件 同批）：
                           #   `_Uset_traits` 里的这三个名字被 `_哈希` 读
                           #   （`typename _Traits::allocator_type/key_type/node_type`），
@@ -1540,8 +1557,18 @@ $H = @{
                           # §16.45：借用 <list> 的名字，<链表> 已翻 -> 必须跟。
                           '_List_node'     = '_链表节点'
                           '_List_node_emplace_op2' = '_链表节点就地构造操作2'
-                          # ⚠ _Alnode / _Alnode_traits / _Key_compare 【不翻】：
-                          #   它们在 哈希内部件 里没被改名 -> 现在照旧可用。
+                          # ⚠ §16.60 起 _Alnode / _Alnode_traits / _Key_compare **已经翻**了
+                          #   （与 链表 + 哈希内部件 同批，§16.45：基类是我们的，两边一起改）。
+                          #   这条注释原来写的是"它们在 哈希内部件 里没被改名，照旧可用" ——
+                          #   那句话随本批**废止**。
+                          '_Alnode'             = '_结点分配器'
+                          '_Alnode_traits'      = '_结点分配器特征'
+                          '_Key_compare'        = '_键比较器'
+                          # §16.60 其余 4 个（traits 里声明、`_哈希` 读）：本头同批翻。
+                          'key_compare'         = '键比较器'
+                          'value_compare'       = '值比较'
+                          '_Mutable_value_type' = '_可变值类型'
+                          '_In_place_key_extractor' = '_就地键提取器'
                           # §16.58 跨条目协调改名（与 哈希内部件 同批）：
                           #   `_Umap_traits` 里的这三个名字被 `_哈希` 读
                           #   （`typename _Traits::allocator_type/key_type/node_type`），
@@ -2269,6 +2296,34 @@ $H = @{
       'allocator_type'                = '分配器类型'
       'key_type'                      = '键类型'
       'node_type'                     = '结点类型'
+      # -----------------------------------------------------------------------
+      # §16.60 协调改名第三批（7 个）：`哈希内部件` + `链表` + 两个无序头【同批】改。
+      #   全是**内部名**（`key_compare`/`value_compare` 只在 traits 里，
+      #   不是公开 API）-> 公开层【不需要】补英文。
+      #
+      # 跨条目读取（实测）：
+      #   · `_Alnode` / `_Alnode_traits`：`链表`（`_List_val` 里 53/23 处，0 处限定读取）
+      #     -> 本头读 `typename _Mylist::X`，两个无序头读 `typename _Mybase::X`；
+      #   · `_Key_compare`：本头 L337 自己的别名（`typename _Traits::key_compare`），
+      #     两个无序头读 `typename _Mybase::_Key_compare`（各 66 处用法）；
+      #   · `key_compare` / `value_compare`：两个无序头的 traits 各 1 处声明，
+      #     本头 L337/L338 各读 1 处（`typename _Traits::X`）；
+      #   · `_Mutable_value_type`：traits 各 1 处声明，本头 6 处（1 处限定读）；
+      #   · `_In_place_key_extractor`：traits 各 1 处声明，本头 6 处
+      #     （`typename _Traits::template X<...>` —— 注意那个 `template` 关键字，
+      #      所以"限定读取"正则会数成 0，实际是**我们在读**）。
+      #
+      # ⚠ §16.37 当年把 `_Mutable_value_type` / `_In_place_key_extractor` 判成
+      #   "第 ③ 类不能翻"，理由是"读它的是**借来的** `std::_Hash`"。
+      #   现在 `_Hash` 是我们自己的了 -> 那条理由失效，它变成**欠账**（§16.45）。
+      # -----------------------------------------------------------------------
+      '_Alnode'                       = '_结点分配器'
+      '_Alnode_traits'                = '_结点分配器特征'
+      '_Key_compare'                  = '_键比较器'
+      'key_compare'                   = '键比较器'
+      'value_compare'                 = '值比较'
+      '_Mutable_value_type'           = '_可变值类型'
+      '_In_place_key_extractor'       = '_就地键提取器'
     }
     members = [ordered]@{
       # §16.48 成员层第一批：**确认属于 `_Hash` 自己**的那一批（同 §16.43.3 的做法）。
