@@ -1577,6 +1577,57 @@ $H = @{
       @('批B 前向声明确实在（_容器代理 能在定义之前用 _迭代器基类12）','#包含 <内存内部件>`n整数 主函数(){ 标准::细节::_容器代理 代; (空型)代; 返回 0; }')
     )
   }
+  # ===========================================================================
+  #  §16.43 步骤 1 的第四个内部件：xtree（2000 行）
+  #
+  #  为什么先做它：`<映射>`/`<集合>`/`<无序映射>`/`<无序集合>`/`<链表>`/`<单向链表>`
+  #  的一整族"借用"欠账都卡在它上面 ——
+  #      `_Alnode` / `_Alnode_traits` / `_Nodeptr` / `_Key_compare`
+  #  在那些头的拷贝里都是 `typename _Mybase::X`（_Mybase = **借来的** std::_Tree），
+  #  按 §16.37.1 的判据属于第 ③ 类【不能翻】，除非 _Tree 也是我们自己的。
+  #  本头做完，这一族才有消除路径（那时把上层的 zhIncludes 指过来即可）。
+  #
+  #  与 xmemory 的区别（实测）：本头【不需要 realInclude】——
+  #  它引用的 _Container_base / _Simple_types / _Alloc_construct_ptr 等由真 <xmemory> 提供
+  #  （它还只 #include <xmemory> 与 <xnode_handle.h>，两者都还没抄），
+  #  而本头只翻【自己定义的】16 个名字，不碰那些借来的。
+  #
+  #  本条目先做【类型层】（与 §16.23 对 xmemory 的做法一致）；
+  #  `_Tree` 的成员函数层是下一批。
+  # ===========================================================================
+  'xtree' = @{
+    zh      = '树内部件'
+    noPub   = $true
+    types   = [ordered]@{
+      '_Tree'                          = '_树'
+      '_Tree_node'                     = '_树节点'
+      '_Tree_val'                      = '_树值'
+      '_Tree_iterator'                 = '_树迭代器'
+      '_Tree_const_iterator'           = '_树常量迭代器'
+      '_Tree_unchecked_iterator'       = '_树非检查迭代器'
+      '_Tree_unchecked_const_iterator' = '_树非检查常量迭代器'
+      '_Tree_iter_types'               = '_树迭代类型集'
+      '_Tree_simple_types'             = '_树简单类型集'
+      '_Tree_child'                    = '_树子向'
+      '_Tree_id'                       = '_树标识'
+      '_Tree_find_result'              = '_树查找结果'
+      '_Tree_find_hint_result'         = '_树查找提示结果'
+      '_Tree_head_scoped_ptr'          = '_树头作用域指针'
+      '_Tree_temp_node_alloc'          = '_树临时节点分配器'
+      '_Tree_temp_node'                = '_树临时节点'
+    }
+    members = [ordered]@{}
+    data    = [ordered]@{}
+    derive  = @()
+    stdHash = $false
+    tparam  = @{ decl = ''; args = '' }
+    tests = @(
+      @('只引中文头','#包含 <树内部件>`n整数 主函数(){ 返回 0; }'),
+      # ⚠ 真守卫（不是空测）：把几个顶层汉语类型名真正用起来。
+      # 形参个数照原文：_Tree_child 无参、_Tree_node<_Value_type,_Voidptr>、_Tree_simple_types<_Ty>。
+      @('顶层汉语类型名可用（模板形参照原文）','#包含 <树内部件>`n整数 主函数(){`n  (空型)sizeof(标准::细节::_树子向);`n  (空型)sizeof(标准::细节::_树节点<整数, 空型*>);`n  (空型)sizeof(标准::细节::_树简单类型集<整数>);`n  返回 0; }')
+    )
+  }
   'scoped_allocator' = @{
     zh      = '作用域分配器'
     realInclude = @('scoped_allocator')   # §16.29「乙」
