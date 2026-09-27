@@ -421,7 +421,18 @@ $H = @{
     #      这是第一种"手写层加中文名（而不是加英文名）"的用法，见方案 §3.16。
     types   = [ordered]@{ 'set' = '集合实现'
                           'multiset' = '多重集合实现'
-                          '_Tset_traits' = '_集合特征' }
+                          '_Tset_traits' = '_集合特征'
+                          # §16.37 【实测结论：不能翻】`_In_place_key_extractor` 是
+                          #   `_Tset_traits` 里的成员，而【借来的 std::_Tree】会去读它：
+                          #     C:\...\include\xtree:1011:68: error:
+                          #       '标准::细节::_集合特征<...>' 中没有名为 '_In_place_key_extractor' 的成员
+                          #   => 属 §16.35.5 第 ③ 类（std 模板读的契约成员名），消除路径 =
+                          #      步骤 1 抄 <xtree>（那时 _Tree 也是我们的，两边一起改）。
+                          #   ⚠ 同时暴露一个守卫缺口：这个错误报在【微软原头】的坐标上，
+                          #     而生成器的"校对回退"只认【本产品文件】里的错误 -> 它救不了这种。
+                          #     本轮是【真测试】把它拦下来的（0/4）。
+                          # ⚠ _Alnode / _Alnode_traits 同理（`typename _Mybase::X`，_Mybase = std::_Tree）。
+                          }
     members = [ordered]@{ 'emplace' = '就地构造' }
     data    = [ordered]@{}
     derive  = @( @('emplace','就地构造') )
@@ -481,6 +492,9 @@ $H = @{
     types   = [ordered]@{ 'map' = '映射实现'
                           'multimap' = '多重映射实现'
                           '_Tmap_traits' = '_映射特征'
+                          # §16.37 【实测结论：不能翻】`_In_place_key_extractor` 被借来的
+                          #   std::_Tree 读取（xtree:1011）-> 第 ③ 类；消除路径 = 抄 <xtree>。
+                          # ⚠ _Alnode / _Alnode_traits / _Nodeptr 同理（`typename _Mybase::X`）。
                           }   # ⚠ value_compare 故意【不】改名：它是【借来的】_Tree（xtree）的成员类型名，
                           #   改名会让 xtree:879 找不到它（实测）。中文名欠账，消除路径 = 自底向上抄 xtree。
     members = [ordered]@{
@@ -1096,7 +1110,14 @@ $H = @{
     #   所以中文名要【手写在派生层】（§3.16），members 表只登记本文件自己定义的。
     types   = [ordered]@{ 'unordered_set' = '无序集合实现'
                           'unordered_multiset' = '无序多重集合实现'
-                          '_Uset_traits' = '_无序集合特征' }
+                          '_Uset_traits' = '_无序集合特征'
+                          # §16.37 【实测结论：不能翻】`_Mutable_value_type` / `_In_place_key_extractor`
+                          #   都被【借来的 std::_Hash】读取（xhash:335）-> 第 ③ 类；
+                          #   消除路径 = 步骤 1 抄 <xhash>。
+                          # `_Mytraits` 是【我们自己】用的（std::_Hash 不读它）-> ① 类，可以翻。
+                          '_Mytraits' = '_我的特征'
+                          # ⚠ _Alnode / _Alnode_traits / _Key_compare 同理（typename _Mybase::X）。
+                          }
     members = [ordered]@{ 'emplace' = '就地构造' }
     data    = [ordered]@{}
     derive  = @( @('emplace','就地构造') )
@@ -1158,7 +1179,13 @@ $H = @{
     # 与 <映射> 同型：API 几乎全部继承自借用的 _Hash（在 <xhash>，我们没翻）
     types   = [ordered]@{ 'unordered_map' = '无序映射实现'
                           'unordered_multimap' = '无序多重映射实现'
-                          '_Umap_traits' = '_无序映射特征' }
+                          '_Umap_traits' = '_无序映射特征'
+                          # §16.37 【实测结论：不能翻】`_Mutable_value_type` / `_In_place_key_extractor`
+                          #   都被【借来的 std::_Hash】读取（xhash:335）-> 第 ③ 类；消除路径 = 抄 <xhash>。
+                          # `_Mytraits` 是【我们自己】用的 -> ① 类，可以翻。
+                          '_Mytraits' = '_我的特征'
+                          # ⚠ _Alnode / _Alnode_traits / _Nodeptr / _Key_compare 同理。
+                          }
     members = [ordered]@{
       'at' = '取值'   # ⚠ insert 不改名：调的是【借来的】基类 insert（§15.10 形态③）
       'insert_or_assign' = '插入或赋值'; 'try_emplace' = '尝试就地构造'

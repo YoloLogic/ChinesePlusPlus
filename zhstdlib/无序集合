@@ -67,8 +67,8 @@ public:
                                      "because of [container.requirements].");
 
 private:
-    using _Mytraits      = _Uhash_compare<_Kty, _Hasher, _Keyeq>;
-    using _我的基类        = _Hash<_无序集合特征<_Kty, _Mytraits, _Alloc, false>>;
+    using _我的特征      = _Uhash_compare<_Kty, _Hasher, _Keyeq>;
+    using _我的基类        = _Hash<_无序集合特征<_Kty, _我的特征, _Alloc, false>>;
     using _Alnode        = typename _我的基类::_Alnode;
     using _Alnode_traits = typename _我的基类::_Alnode_traits;
     using _Key_compare   = typename _我的基类::_Key_compare;
@@ -415,8 +415,8 @@ public:
                                      "because of [container.requirements].");
 
 private:
-    using _Mytraits      = _Uhash_compare<_Kty, _Hasher, _Keyeq>;
-    using _我的基类        = _Hash<_无序集合特征<_Kty, _Mytraits, _Alloc, true>>;
+    using _我的特征      = _Uhash_compare<_Kty, _Hasher, _Keyeq>;
+    using _我的基类        = _Hash<_无序集合特征<_Kty, _我的特征, _Alloc, true>>;
     using _Alnode        = typename _我的基类::_Alnode;
     using _Alnode_traits = typename _我的基类::_Alnode_traits;
     using _Key_compare   = typename _我的基类::_Key_compare;

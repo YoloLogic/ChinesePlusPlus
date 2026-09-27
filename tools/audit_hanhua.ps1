@@ -122,8 +122,17 @@ function Get-NestedNames([string] $text) {
     #    取最后一个标识符会取到【底层类型】bool。必须先把基类/底层类型子句切掉
     #    （与第一把尺 Get-DeclaredNames 用同一套剥法：去括号、切顶层 ':'、
     #      去尾部模板实参表、去 final，再取最后一个标识符）。
-    foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+(?:class|struct|union|enum\s+class|enum)\s+([^;{\r\n=]*)')) {
+    #  ⚠ 第三个假残留（§16.37）：**多行 template 参数表**也会被当成嵌套类声明。
+    #        template <class _Kty, class _Ty,
+    #            class _Alloc, // actual allocator type      <- 缩进、以 class 开头
+    #            class _Keyeq = equal_to<_Kty>>
+    #        class map { ... }
+    #    `class _Alloc,` 是模板参数，不是嵌套类。判据：**真正的类声明同一行里必有 `{` 或 `;`**
+    #    （模板参数行以 `,` 或 `>` 结尾）。所以先取整行再要求含 `[;{]`。
+    foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+(?:class|struct|union|enum\s+class|enum)\s+([^\r\n]*)')) {
+        if ($m.Value -notmatch '[;{]') { continue }
         $g = [regex]::Replace($m.Groups[1].Value, '\([^()]*\)', ' ')
+        $g = ($g -split '[;{]')[0]
         $depth = 0; $cut = -1
         for ($i = 0; $i -lt $g.Length; $i++) {
             $c = $g[$i]
