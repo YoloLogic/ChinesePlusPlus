@@ -1422,7 +1422,11 @@ $H = @{
       # §16.55 回归守卫：把 `_哈希` 内部的 local_iterator/const_local_iterator/
       #   const_reference 翻成汉语，**不能**把公开层的这三个英文名一起带走
       #   （消费者拷贝自己声明了 `using local_iterator = typename _Mybase::iterator;`）。
-      @('桶迭代器名仍在（3 名销账的回归守卫）','#包含 <无序集合>`n整数 主函数(){`n  (空型)sizeof(标准::无序集合<整数>::local_iterator);`n  (空型)sizeof(标准::无序集合<整数>::const_local_iterator);`n  (空型)sizeof(标准::无序集合<整数>::const_reference);`n  返回 0; }')
+      @('桶迭代器名仍在（3 名销账的回归守卫）','#包含 <无序集合>`n整数 主函数(){`n  (空型)sizeof(标准::无序集合<整数>::local_iterator);`n  (空型)sizeof(标准::无序集合<整数>::const_local_iterator);`n  (空型)sizeof(标准::无序集合<整数>::const_reference);`n  返回 0; }'),
+      # §16.55.2 / §16.57 泛型契约守卫：借用来的 std 契约名（allocator_type 等）
+      #   在【公开层】必须仍是英文 —— 否则 std::uses_allocator 这类泛型代码读不到。
+      #   这条探针是"跨条目协调改名"那一轮的验收判据，先立在这里。
+      @('泛型契约：uses_allocator 认得出（英文名必须在公开层）','#包含 <无序集合>`n#包含 <memory>`n静态断言(std::uses_allocator<标准::无序集合<整数>, std::allocator<整数>>::value);`n静态断言(std::uses_allocator<标准::无序多重集合<整数>, std::allocator<整数>>::value);`n整数 主函数(){ 返回 0; }')
     )
   }
   'unordered_map' = @{
@@ -1594,7 +1598,10 @@ $H = @{
       @('无序多重映射：中英双语 + 嵌套类型','#包含 <无序映射>`n整数 主函数(){ 标准::无序多重映射<整数, 整数> 甲;`n  (空型)sizeof(标准::无序多重映射<整数, 整数>::常量迭代器);`n  标准::无序多重映射<整数, 整数>::迭代器 头 = 甲.begin(); 头 = 甲.end();`n  甲.emplace(1, 2); 甲.插入(标准::无序多重映射<整数, 整数>::值类型{1, 3}); 甲.emplace_hint(头, 标准::无序多重映射<整数, 整数>::值类型{5, 6});`n  标准::无序多重映射<整数, 整数>::键类型 钥 = 1; 标准::无序多重映射<整数, 整数>::映射类型 值 = 2;`n  头 = 甲.开始(); 头 = 甲.结束(); 整数 有 = 甲.包含(钥) ? 1 : (甲.查找(钥) == 甲.结束() ? 0 : 1);`n  整数 尺 = (整数)甲.尺寸() - (整数)甲.size(); 整数 空 = 甲.为空() ? 0 : (甲.empty() ? 0 : 1);`n  整数 桶 = 甲.桶数() > 0 ? 0 : 1; 整数 因子 = 甲.负载因子() > 0.0f ? 0 : 1;`n  (空型)甲.get_allocator(); (空型)甲.计数(钥); (空型)甲.擦除(钥); 甲.清空(); 甲.clear();`n  (空型)值;`n  返回 有 + 尺 + 空 + 桶 + 因子 - 1; }'),
       # §16.55 回归守卫（同 <无序集合>）：销掉 `_哈希` 内部的三个名字，
       #   公开层的 local_iterator / const_local_iterator / const_reference 必须仍在。
-      @('桶迭代器名仍在（3 名销账的回归守卫）','#包含 <无序映射>`n整数 主函数(){`n  (空型)sizeof(标准::无序映射<整数, 整数>::local_iterator);`n  (空型)sizeof(标准::无序映射<整数, 整数>::const_local_iterator);`n  (空型)sizeof(标准::无序映射<整数, 整数>::const_reference);`n  返回 0; }')
+      @('桶迭代器名仍在（3 名销账的回归守卫）','#包含 <无序映射>`n整数 主函数(){`n  (空型)sizeof(标准::无序映射<整数, 整数>::local_iterator);`n  (空型)sizeof(标准::无序映射<整数, 整数>::const_local_iterator);`n  (空型)sizeof(标准::无序映射<整数, 整数>::const_reference);`n  返回 0; }'),
+      # §16.55.2 / §16.57 泛型契约守卫（同 <无序集合>）：借用来的 std 契约名
+      #   （allocator_type 等）在【公开层】必须仍是英文。
+      @('泛型契约：uses_allocator 认得出（英文名必须在公开层）','#包含 <无序映射>`n#包含 <memory>`n静态断言(std::uses_allocator<标准::无序映射<整数, 整数>, std::allocator<标准::无序映射<整数, 整数>::值类型>>::value);`n静态断言(std::uses_allocator<标准::无序多重映射<整数, 整数>, std::allocator<标准::无序多重映射<整数, 整数>::值类型>>::value);`n整数 主函数(){ 返回 0; }')
     )
   }
   'span' = @{
