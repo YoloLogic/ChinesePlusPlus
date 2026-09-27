@@ -349,7 +349,7 @@ public:
     using pointer         = typename _我的链表::pointer;
     using const_pointer   = typename _我的链表::const_pointer;
     using reference       = value_type&;
-    using const_reference = const value_type&;
+    using 常量引用 = const value_type&;
 
     using iterator =
         conditional_t<is_same_v<key_type, value_type>, typename _我的链表::const_iterator, typename _我的链表::iterator>;
@@ -846,8 +846,8 @@ public:
         return static_cast<allocator_type>(_List.取分配器());
     }
 
-    using local_iterator       = iterator;
-    using const_local_iterator = const_iterator;
+    using 局部迭代器       = iterator;
+    using 常量局部迭代器 = const_iterator;
 
     _NODISCARD size_type bucket_count() const noexcept {
         return _Maxidx;
@@ -871,15 +871,15 @@ public:
         return static_cast<size_type>(_STD distance(_Bucket_lo, _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1])) + 1;
     }
 
-    _NODISCARD local_iterator 开始(size_type _Bucket) noexcept /* strengthened */ {
+    _NODISCARD 局部迭代器 开始(size_type _Bucket) noexcept /* strengthened */ {
         return _List._Make_iter(_Vec._Mypair._Myval2._Myfirst[_Bucket << 1]._Ptr);
     }
 
-    _NODISCARD const_local_iterator 开始(size_type _Bucket) const noexcept /* strengthened */ {
+    _NODISCARD 常量局部迭代器 开始(size_type _Bucket) const noexcept /* strengthened */ {
         return _List._Make_const_iter(_Vec._Mypair._Myval2._Myfirst[_Bucket << 1]._Ptr);
     }
 
-    _NODISCARD local_iterator 结束(size_type _Bucket) noexcept /* strengthened */ {
+    _NODISCARD 局部迭代器 结束(size_type _Bucket) noexcept /* strengthened */ {
         _结点指针 _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1]._Ptr;
         if (_Bucket_hi != _List._Mypair._Myval2._Myhead) {
             _Bucket_hi = _Bucket_hi->_Next;
@@ -888,7 +888,7 @@ public:
         return _List._Make_iter(_Bucket_hi);
     }
 
-    _NODISCARD const_local_iterator 结束(size_type _Bucket) const noexcept /* strengthened */ {
+    _NODISCARD 常量局部迭代器 结束(size_type _Bucket) const noexcept /* strengthened */ {
         _结点指针 _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1]._Ptr;
         if (_Bucket_hi != _List._Mypair._Myval2._Myhead) {
             _Bucket_hi = _Bucket_hi->_Next;
@@ -897,11 +897,11 @@ public:
         return _List._Make_const_iter(_Bucket_hi);
     }
 
-    _NODISCARD const_local_iterator cbegin(size_type _Bucket) const noexcept /* strengthened */ {
+    _NODISCARD 常量局部迭代器 cbegin(size_type _Bucket) const noexcept /* strengthened */ {
         return _List._Make_const_iter(_Vec._Mypair._Myval2._Myfirst[_Bucket << 1]._Ptr);
     }
 
-    _NODISCARD const_local_iterator cend(size_type _Bucket) const noexcept /* strengthened */ {
+    _NODISCARD 常量局部迭代器 cend(size_type _Bucket) const noexcept /* strengthened */ {
         _结点指针 _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1]._Ptr;
         if (_Bucket_hi != _List._Mypair._Myval2._Myhead) {
             _Bucket_hi = _Bucket_hi->_Next;
