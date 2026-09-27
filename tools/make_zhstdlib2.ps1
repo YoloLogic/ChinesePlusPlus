@@ -29,6 +29,83 @@ $utf8  = New-Object System.Text.UTF8Encoding($false)
 #  表：每个头一条。加新头 = 加一条。
 # ---------------------------------------------------------------------------
 $H = @{
+  'mutex' = @{
+    zh      = '互斥量'
+    types   = [ordered]@{
+      '_Mutex_base'            = '_互斥量基类'
+      'mutex'                  = '互斥量实现'
+      'condition_variable'     = '条件变量实现'
+      'condition_variable_any' = '条件变量任意实现'
+      'unique_lock'            = '独占锁实现'
+      'lock_guard'             = '锁守卫实现'
+      'once_flag'              = '一次标志实现'
+      'adopt_lock_t'           = '接管锁类型'
+      'defer_lock_t'           = '延迟锁类型'
+      'try_to_lock_t'          = '尝试锁类型'
+      # 本文件自己定义的内部自由函数：被 `_STD X` 限定引用。
+      # 普通成员表覆盖不到它们（步 4c 只处理 types+data），必须在这里登记改名，
+      # 否则报「namespace 'std' 中没有名为 '_Unlock_locks' 的成员」。
+      # 编译器自己的提示就是答案：「你是不是想直接写 '_Try_lock_from_locks'？」
+      '_Unlock_locks'          = '_解锁各锁'
+      '_Try_lock_from_locks'   = '_从各锁尝试加锁'
+    }
+    # ⚠ 注意：`mutex` 既是类名，也是 unique_lock 的成员函数名 —— 两者都变「互斥量实现」，
+    #   于是 独占锁::互斥量实现() 读起来别扭但不歧义（记为妥协）。
+    members = [ordered]@{
+      'lock' = '加锁'; 'unlock' = '解锁'; 'try_lock' = '尝试加锁'
+      'try_lock_for' = '限时加锁'; 'try_lock_until' = '加锁至时刻'
+      'native_handle' = '原生句柄'; 'owns_lock' = '持有锁'
+      'release' = '释放'; 'swap' = '交换'
+      'adopt_lock' = '接管锁'; 'defer_lock' = '延迟锁'; 'try_to_lock' = '尝试锁'
+      'call_once' = '一次调用'
+    }
+    data    = [ordered]@{}
+    # ⚠ 实测教训：不要照【标准文档】的 API 写派生层，要照【微软这个版本实际有的】写。
+    #   · native_handle / native_handle_type 在 MSVC 里已被官方删除（GH-3820，
+    #     <mutex> 第 75、615 行就写着 "have intentionally been removed"），
+    #     照标准写就会生成 基类::原生句柄() -> 没有这个成员。
+    #   · once_flag 也**不在** <mutex> 里（grep 原文 0 命中），
+    #     照标准写就会生成 类型 一次标志 : 公开 细节::一次标志实现 -> 缺少 类名。
+    derive  = @( @('lock','加锁'), @('try_lock','尝试加锁'), @('unlock','解锁') )
+    stdHash = $false
+    tparam  = @{ decl = ''; args = '' }
+    # 一个头里有多个对外类 —— 主类由机制生成，其余在这里手写
+    extra = @'
+
+名域 标准 {
+
+// 独占锁（std::unique_lock）
+模板 <类型名 互斥类型>
+类型 独占锁 : 公开 细节::独占锁实现<互斥类型> {
+公开:
+    使用 基类 = 细节::独占锁实现<互斥类型>;
+    使用 基类::基类;
+    模板 <类型名... 参数> 自动 lock(参数&&... 值) { 返回 基类::加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 try_lock(参数&&... 值) { 返回 基类::尝试加锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 unlock(参数&&... 值) { 返回 基类::解锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 owns_lock(参数&&... 值) 常量 { 返回 基类::持有锁(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 release(参数&&... 值) { 返回 基类::释放(static_cast<参数&&>(值)...); }
+};
+
+// 锁守卫（std::lock_guard）
+模板 <类型名 互斥类型>
+类型 锁守卫 : 公开 细节::锁守卫实现<互斥类型> {
+公开:
+    使用 基类 = 细节::锁守卫实现<互斥类型>;
+    使用 基类::基类;
+};
+
+// 自由函数（这两个自由函数是 <mutex> 自己定义的，已随正文搬进 细节）
+模板 <类型名 互斥类型> 内联 空型 加锁(互斥类型& 甲, 互斥类型& 乙) { 细节::加锁(甲, 乙); }
+
+}  // 名域 标准
+'@
+    tests = @(
+      @('只引中文头','#包含 <互斥量>`n整数 主函数(){ 标准::互斥量 甲; 甲.加锁(); 甲.解锁(); 标准::锁守卫<标准::互斥量> 卫(甲); 返回 0; }'),
+      @('与微软原头并存','#包含 <互斥量>`n#包含 <mutex>`n整数 主函数(){ 标准::互斥量 甲; 甲.加锁(); std::mutex 乙; 乙.lock(); 乙.unlock(); 返回 0; }'),
+      @('英文名与中文名并用 + 独占锁','#包含 <互斥量>`n整数 主函数(){ 标准::互斥量 甲; 标准::独占锁<标准::互斥量> 锁(甲); 布尔 有 = 锁.持有锁(); 布尔 有2 = 锁.owns_lock(); 锁.解锁(); 锁.unlock(); 返回 (整数)(有 || 有2) - 1; }')
+    )
+  }
   'scoped_allocator' = @{
     zh      = '作用域分配器'
     types   = [ordered]@{ 'scoped_allocator_adaptor' = '作用域分配器适配器实现'
@@ -222,21 +299,34 @@ Write-Host "  步3/4 类型 $nT 处 / 成员 $nM 处 / 数据 $nD 处"
 #  修法：改名完成后，把 `_STD <改后的名字>` 还原成不带限定的 `<改后的名字>`。
 # ---------------------------------------------------------------------------
 $nq = 0
-# ⚠ 只对【类型】与【数据成员】去限定，绝不能对【成员函数名】去限定。
+# ⚠ 只对【类型】【数据成员】【自由函数】去限定，绝不能对【成员函数名】去限定。
 #   反例（实测踩到）：<stack> 里 `using _STD swap;` 是**故意**把 std::swap 拉进来供 ADL 用，
 #   它不是"引用自己"。而我那张 members 表里也有 swap->交换，于是步 4c 把
 #   `using _STD 交换;` 去限定成 `using 交换;` -> error: 使用 声明要求限定名。
-#   判据：`_STD X` 只有在本文件【定义】了 X 时才该去限定；函数名会和 std 自由函数同名，
-#   所以只认 types/data 两类。
-foreach ($m in @($spec.types, $spec.data)) {
+#   判据：`_STD X` 只有在本文件【定义】了 X 时才该去限定。
+#   细化（本轮实测）：`using` 开头的 `_STD X` 一律不动；其余位置 types/data/members 都去限定。
+function Remove-StdQualifier {
+    param([string]$Text, [string]$Name, [ref]$Count)
+    $rx = '(?<!using )_STD ' + [regex]::Escape($Name) + '\b'
+    $new = [regex]::Replace($Text, $rx, $Name)
+    if ($new -ne $Text) { $Count.Value++ }
+    return $new
+}
+foreach ($m in @($spec.types, $spec.data, $spec.members)) {
     foreach ($k in $m.Keys) {
-        $newName = $m[$k]
-        $before2 = $text
-        $text = $text.Replace("_STD $newName", $newName)
-        if ($text -ne $before2) { $nq++ }
+        $text = Remove-StdQualifier -Text $text -Name $m[$k] -Count ([ref]$nq)
     }
 }
-Write-Host "  步4c 去限定 `_STD <本文件的实体>`: $nq 个"
+# 本文件在名域作用域定义的 `_` 开头自由函数：改名后同样要被去限定。
+# 不靠人肉登记（漏一个就报一次），直接从生成文本里扫出来。
+$scanned = 0
+foreach ($mm in [regex]::Matches($text, '(?m)^[^\r\n#]*?\b(_\w+)\s*\(')) {
+    $nm = $mm.Groups[1].Value
+    $before3 = $text
+    $text = Remove-StdQualifier -Text $text -Name $nm -Count ([ref]$scanned)
+    if ($text -eq $before3) { continue }
+}
+Write-Host "  步4c 去限定 `_STD <本文件的实体>`: $nq 个（另扫出内部函数 $scanned 个）"
 
 # 步 6：派生层（在中文的基础上派生，补回英文原名）
 $cls = ($spec.types.Values | Select-Object -First 1)   # 实现类名
