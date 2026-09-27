@@ -2569,6 +2569,67 @@ $H = @{
       @('与微软原头并存（std::string 照旧）','#包含 <字符串内部件>`n#包含 <string>`n整数 主函数(){ 标准::细节::基础字符串实现<字符> 甲 = "abc"; std::string 乙 = "abc"; 返回 (整数)甲.尺寸() - (整数)乙.size(); }')
     )
   }
+  # ===========================================================================
+  #  §16.62 步骤 1 的第七个内部件：__msvc_string_view.hpp（2016 行）
+  #
+  #  为什么做它：§16.61.9 把 `字符串内部件` 成员层的**全部边界**都归结到它身上 ——
+  #  `starts_with` / `ends_with` / `contains` 之所以不能翻，就是因为它们的实现是
+  #  「造一个 `basic_string_view` 再调用它的同名成员」，而 view 是**借来的**。
+  #  这个头里同时定义着 `char_traits`（`_Narrow_char_traits` / `_WChar_traits` 的公开壳）
+  #  与 `basic_string_view` / `_String_view_iterator`。
+  #
+  #  ★ 铁律③ 的判定（本轮最重要的一个决定）：
+  #    `char_traits` **不翻**（保持英文名）—— 它是**用户可特化**的 std 模板
+  #    （`std::char_traits<自定义字符>`），**类型身份参与语义**：
+  #    翻了就等于换了一个类型，用户的特化再也匹配不上。属铁律③ 的"只能用别名"那一类。
+  #    它下面的实现基类（`_Char_traits`/`_WChar_traits`/`_Narrow_char_traits`）是我们自己的
+  #    内部件 -> 照翻（用户不会特化它们）。
+  #  ★ 与 <字符串内部件> 的关系：本轮**不**把两者的 zhIncludes 接起来
+  #    （那是一次跨条目协调改名，同 §16.58/§16.60 的做法，留作下一步）。
+  # ===========================================================================
+  '__msvc_string_view.hpp' = @{
+    zh      = '字符串视图内部件'
+    realInclude = @('string_view')   # §16.29「乙」
+    noPub   = $true
+    types   = [ordered]@{
+      # ---- 本头自己的顶层类型 ----
+      'basic_string_view'             = '基础字符串视图'
+      '_String_view_iterator'         = '_字符串视图迭代器'
+      '_String_bitmap'                = '_字符串位图'
+      '_Ostr_t'                       = '_输出流类型'
+      '_Traits_ch_t'                  = '_特征字符类型'
+      '_Get_comparison_category'      = '_取比较类别'
+      '_Get_comparison_category_t'    = '_取比较类别类型'
+      # ---- char_traits 的实现基类（我们自己的内部件；公开壳 char_traits 见下）----
+      '_Char_traits'                  = '_字符特征基类'
+      '_WChar_traits'                 = '_宽字符特征'
+      '_Narrow_char_traits'           = '_窄字符特征'
+      # ---------------------------------------------------------------------
+      #  ⚠ 【不翻】逐条记理由：
+      #    · `char_traits` —— 铁律③：用户可特化的 std 模板，身份参与语义（见上）。
+      #    · `char_type` / `int_type`? / `off_type` / `pos_type` / `state_type` /
+      #      `difference_type` / `reference` / `comparison_category` / `element_type` /
+      #      `traits_type` —— traits / 迭代器的**契约名**（第 ③④ 类），
+      #      借来的 std 模板与 traits 契约都读它们。
+      #    · `hash` / `pointer_traits` —— std 模板名，本头里是它们的**特化**（`_STD` 位）。
+      #    · `reverse_iterator` / `iterator_category` / `iterator_concept` —— 同上。
+      # ---------------------------------------------------------------------
+    }
+    # ⚠ 成员层本轮不动（与 字符串内部件 的第一轮同形）：先把类型名做实。
+    #   `char_traits` 的成员名（length/assign/copy/compare/find/…）**不能翻**（铁律③ 同理）——
+    #   它们是用户可见的 traits 契约。
+    members = [ordered]@{}
+    data    = [ordered]@{}
+    derive  = @()
+    stdHash = $false
+    tparam  = @{ decl = ''; args = '' }
+    tests = @(
+      @('只引中文头','#包含 <字符串视图内部件>`n整数 主函数(){ 返回 0; }'),
+      @('顶层汉语类型名可用（真用法）','#包含 <字符串视图内部件>`n整数 主函数(){ 标准::细节::基础字符串视图<字符> 甲("abc"); 甲.remove_prefix(1); 返回 (整数)甲.size() - 2; }'),
+      @('迭代器与位图内部名可用','#包含 <字符串视图内部件>`n整数 主函数(){ 标准::细节::基础字符串视图<字符> 甲("abc");`n  标准::细节::基础字符串视图<字符>::iterator 头 = 甲.begin(); 头 = 甲.end();`n  (空型)sizeof(标准::细节::基础字符串视图<字符>::const_iterator);`n  返回 (整数)甲.size() - 3; }'),
+      @('与微软原头并存（std::string_view 照旧）','#包含 <字符串视图内部件>`n#包含 <string_view>`n整数 主函数(){ 标准::细节::基础字符串视图<字符> 甲("abc"); std::string_view 乙 = "abc"; 返回 (整数)甲.size() - (整数)乙.size(); }')
+    )
+  }
   'scoped_allocator' = @{
     zh      = '作用域分配器'
     realInclude = @('scoped_allocator')   # §16.29「乙」
