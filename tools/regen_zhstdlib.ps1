@@ -22,6 +22,8 @@ param([string[]] $Exclude = @())
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
+# §16.56：真实用例守卫要用编译器（其余守卫都由各自的脚本自带）。
+$cxx  = Join-Path $root 'build\Release\bin\chinese++.exe'
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 
 # 从生成器里扫表项：形如   'header' = @{   或   'header' = @{ zh = ...（单行/多行两种写法）
@@ -141,6 +143,44 @@ Write-Host "=== 铁律① 守卫（微软原库未动）===" -ForegroundColor Cy
 & pwsh -NoProfile -File (Join-Path $root 'tools\verify_originals.ps1')
 $og = $LASTEXITCODE
 
+# ---------------------------------------------------------------------------
+#  真实用例守卫（§16.56）—— 目标里的【总判据第一条】必须由机器守。
+#
+#  目标的判据原文：「`examples\汉语库示例.cpp` 这个**真实用例整体编过**」。
+#  但它一直只是我在提交前**手敲一次** —— 项目反复吃过"靠我记得"的亏
+#  （§15.1 / §16.30 / §16.31 / §16.42），最要紧的这一条更不能例外。
+#
+#  为什么它比"单头测试"更强：单头测试是【每个头各写一段小程序】，
+#  而真实用例是**一个文件里把多个头一起用**（向量/字符串/链表/映射/可选/线程/位集…），
+#  照出来的是"头与头之间的组合"问题 —— 组合探针只做【语法】检查（`-fsyntax-only`），
+#  这一条做的是**真正生成代码**（`-c` 出目标文件），模板实例化全部走完。
+#
+#  ⚠ 用 `-c` 不用 `-fsyntax-only`：后者不实例化所有模板成员函数。
+#    实测签名：编过 = 0 错误（允许 -Wmicrosoft-template 这类警告），并打印对象字节数
+#    —— 字节数是"真的生成了代码"的凭据，写进台账，防止哪天退化成空编译。
+# ---------------------------------------------------------------------------
+Write-Host "=== 真实用例守卫（examples\汉语库示例.cpp）===" -ForegroundColor Cyan
+$exSrc = Join-Path $root 'examples\汉语库示例.cpp'
+$exObj = Join-Path $root 'build\zh_example_guard.o'
+$ex = 1
+if (-not (Test-Path $exSrc)) {
+    Write-Host "❌ 找不到真实用例：$exSrc" -ForegroundColor Red
+} else {
+    $exOut = & cmd /c "`"$cxx`" -std=c++20 -I `"$(Join-Path $root 'zhstdlib')`" -c `"$exSrc`" -o `"$exObj`" 2>&1"
+    $ex = $LASTEXITCODE
+    if ($ex -eq 0) {
+        $exSize = if (Test-Path $exObj) { (Get-Item $exObj).Length } else { 0 }
+        Write-Host ("真实用例：编译通过（对象 {0} 字节）；警告 {1} 条（不计入失败）" -f $exSize, (@($exOut | Where-Object { $_ -match 'warning:' }).Count)) -ForegroundColor Green
+        if ($exSize -eq 0) {
+            Write-Host '❌ 对象文件是 0 字节 —— 这不是"编过了"' -ForegroundColor Red
+            $ex = 1
+        }
+    } else {
+        Write-Host '❌ 真实用例编译失败（这是目标的总判据第一条）:' -ForegroundColor Red
+        @($exOut | Where-Object { $_ -match 'error:' }) | Select-Object -First 20 | ForEach-Object { Write-Host "  $_" -ForegroundColor Red }
+    }
+}
+
 Write-Host ''
 # ---------------------------------------------------------------------------
 #  生成器告警台账 —— 必须显式可见。
@@ -166,9 +206,9 @@ Write-Host ("=== 顺带引真头探针（§16.29「乙」）：{0} 个头通过�
 Write-Host '    这条是「乙」的机器保证：条目加了 realInclude 的都会进来，缺一个就说明那条挂了。' -ForegroundColor Gray
 Write-Host ''
 
-if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0) {
-    Write-Host "重新生成 + 全量验证 + 用法对照表 + 铁律①：全部通过" -ForegroundColor Green
+if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0) {
+    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 铁律①：全部通过" -ForegroundColor Green
     exit 0
 }
-Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；用法对照表守卫退出码 {2}；铁律①守卫退出码 {3}" -f $fail, $v, $ud, $og) -ForegroundColor Red
+Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；铁律①守卫退出码 {4}" -f $fail, $v, $ex, $ud, $og) -ForegroundColor Red
 exit 1
