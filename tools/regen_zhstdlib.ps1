@@ -128,6 +128,19 @@ Write-Host "=== 用法对照表守卫 ===" -ForegroundColor Cyan
 & pwsh -NoProfile -File (Join-Path $root 'tools\make_zh_usage.ps1') -Check
 $ud = $LASTEXITCODE
 
+# ---------------------------------------------------------------------------
+#  铁律① 守卫（§16.42）——**微软原库一个字节都没动**。
+#
+#  为什么加它：用户 2026-09-28 问"原本的英语库都没动吧"。查下来确实没动
+#  （361 个文件的修改时间全部早于项目起点 2026-09-23，脚本里对原头目录只有读操作），
+#  但那条铁律一直是靠"我们只读它"这个【约定】维持的 —— **约定不是守卫**。
+#  本项目反复吃过"靠我记得"的亏（§15.1 / §16.30 / §16.31），所以最要紧的这条铁律
+#  也必须由机器来守：逐文件比对 SHA256（**用内容而不是时间戳** —— 时间戳可以恢复，内容不会）。
+# ---------------------------------------------------------------------------
+Write-Host "=== 铁律① 守卫（微软原库未动）===" -ForegroundColor Cyan
+& pwsh -NoProfile -File (Join-Path $root 'tools\verify_originals.ps1')
+$og = $LASTEXITCODE
+
 Write-Host ''
 # ---------------------------------------------------------------------------
 #  生成器告警台账 —— 必须显式可见。
@@ -153,9 +166,9 @@ Write-Host ("=== 顺带引真头探针（§16.29「乙」）：{0} 个头通过�
 Write-Host '    这条是「乙」的机器保证：条目加了 realInclude 的都会进来，缺一个就说明那条挂了。' -ForegroundColor Gray
 Write-Host ''
 
-if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0) {
-    Write-Host "重新生成 + 全量验证 + 用法对照表：全部通过" -ForegroundColor Green
+if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0) {
+    Write-Host "重新生成 + 全量验证 + 用法对照表 + 铁律①：全部通过" -ForegroundColor Green
     exit 0
 }
-Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；用法对照表守卫退出码 {2}" -f $fail, $v, $ud) -ForegroundColor Red
+Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；用法对照表守卫退出码 {2}；铁律①守卫退出码 {3}" -f $fail, $v, $ud, $og) -ForegroundColor Red
 exit 1
