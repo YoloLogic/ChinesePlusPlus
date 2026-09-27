@@ -972,7 +972,14 @@ $H = @{
                           '_Hash_equal'           = '_哈希相等'
                           '_Unchecked_iterator'   = '_非检查迭代器'
                           '_Unchecked_const_iterator' = '_非检查常量迭代器'
-                          '_Prevent_inheriting_unwrap' = '_阻止继承解包' }
+                          '_Prevent_inheriting_unwrap' = '_阻止继承解包'
+                          # §16.58 跨条目协调改名：`哈希内部件` 正文里有
+                          #   `typename _Mylist::allocator_type`（_Mylist = 我们的 链表实现）
+                          #   -> 本条目必须同批翻，否则报"没有名为「分配器类型」的类型"。
+                          #   ⚠ 实测 <list> 里 `allocator_type` 只有一处【无限定】声明
+                          #     （L796 `using allocator_type = _Alloc;`），没有 `X::allocator_type`
+                          #     的借用读取 -> 可以安全整词替换。
+                          'allocator_type'        = '分配器类型' }
     members = [ordered]@{
       'size' = '尺寸'; 'empty' = '为空'
       'begin' = '开始'; 'end' = '结束'
@@ -1017,7 +1024,12 @@ $H = @{
     deriveExtra = '    模板 <类型名... 参数> 声明类型(自动) 最大尺寸(参数&&... 值) 常量 { 返回 基类::max_size(static_cast<参数&&>(值)...); }'
     deriveTypes = @( @('迭代器','iterator'), @('常量迭代器','const_iterator'),
                      @('反向迭代器','reverse_iterator'), @('常量反向迭代器','const_reverse_iterator'),
-                     @('值类型','value_type'), @('尺寸类型','size_type') )
+                     @('值类型','value_type'), @('尺寸类型','size_type'),
+                     # §16.58 方向翻转：抄来那层的 `allocator_type` 已成本头汉语名，
+                     #   公开层必须把【英文原名】补回 —— 否则
+                     #   `std::uses_allocator<标准::链表<int>, 分配器>` 会变成 false
+                     #   （泛型代码静默换路径，而且照样编得过）。
+                     @('allocator_type','分配器类型') )
     stdHash = $false
     tparam  = @{ decl = '模板 <类型名 元素, 类型名 分配器 = std::allocator<元素>>'; args = '<元素, 分配器>' }
     tests = @(
@@ -1322,6 +1334,14 @@ $H = @{
                           '_Is_hasher'     = '_是哈希器'
                           # ⚠ _Alnode / _Alnode_traits / _Key_compare 是 `typename _Mybase::X`，
                           #   而它们在 哈希内部件 里【没被改名】-> 现在照旧可用。
+                          # §16.58 跨条目协调改名（与 哈希内部件 同批）：
+                          #   `_Uset_traits` 里的这三个名字被 `_哈希` 读
+                          #   （`typename _Traits::allocator_type/key_type/node_type`），
+                          #   本头还有 `typename _Mybase::allocator_type/node_type`
+                          #   -> 必须同批翻；公开层靠 deriveTypes【方向翻转】补回英文。
+                          'allocator_type' = '分配器类型'
+                          'key_type'       = '键类型'
+                          'node_type'      = '结点类型'
                           }
     members = [ordered]@{ 'emplace' = '就地构造'
                           # §16.51 同步改名（本头正文调 `_Mybase::X` / `_Hash::X`）
@@ -1338,7 +1358,19 @@ $H = @{
                  @('begin','开始'), @('end','结束'), @('empty','为空'),
                  @('get_allocator','取分配器') )
     deriveTypes = @( @('迭代器','iterator'), @('常量迭代器','const_iterator'),
-                     @('键类型','key_type'), @('尺寸类型','size_type') )
+                     @('尺寸类型','size_type'),
+                     # §16.58 跨条目协调改名（与 哈希内部件 同批）：
+                     #   `key_type`/`allocator_type`/`node_type` 方向**翻转**
+                     #   （抄来那层已汉语 -> 公开层补【英文原名】）；
+                     #   `allocator_type`/`node_type` 还是借来的 std 契约名
+                     #   （uses_allocator 读 X::allocator_type），必须补回，
+                     #   否则泛型代码静默换路径（而且照样编得过）。
+                     @('key_type','键类型'), @('allocator_type','分配器类型'),
+                     @('node_type','结点类型'),
+                     # ⚠ 顺手补一个【旧方向】的：`value_type` 是边界（迭代器契约，
+                     #   抄来那层不能翻），主类一直缺汉语名 ——
+                     #   用户写 标准::无序集合<T>::值类型 本来会失败。
+                     @('值类型','value_type') )
     deriveExtra = @'
     模板 <类型名... 参数> 声明类型(自动) 插入(参数&&... 值) { 返回 基类::insert(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 擦除(参数&&... 值) { 返回 基类::erase(static_cast<参数&&>(值)...); }
@@ -1370,9 +1402,13 @@ $H = @{
     // §16.51 嵌套类型名也补中文（主类有 deriveTypes，这个类得手写）
     使用 迭代器 = 基类::iterator;
     使用 常量迭代器 = 基类::const_iterator;
-    使用 键类型 = 基类::key_type;
     使用 值类型 = 基类::value_type;
     使用 尺寸类型 = 基类::size_type;
+    // §16.58 这三个名字在【抄来那层】已经是汉语了 -> 这里改成补【英文原名】
+    //   （方向翻转，与主类 deriveTypes 一致）；中文名从基类继承，不再手写。
+    使用 key_type = 基类::键类型;
+    使用 node_type = 基类::结点类型;
+    使用 allocator_type = 基类::分配器类型;
 
     // §16.51 英文原名回填：这 8 个名字（emplace / emplace_hint + 6 个继承自 _哈希 的公开 API）
     //   在【抄来那层】已经是汉语 —— 不回填，用户原本能写的 甲.size() 就没了 = 回归。
@@ -1426,7 +1462,11 @@ $H = @{
       # §16.55.2 / §16.57 泛型契约守卫：借用来的 std 契约名（allocator_type 等）
       #   在【公开层】必须仍是英文 —— 否则 std::uses_allocator 这类泛型代码读不到。
       #   这条探针是"跨条目协调改名"那一轮的验收判据，先立在这里。
-      @('泛型契约：uses_allocator 认得出（英文名必须在公开层）','#包含 <无序集合>`n#包含 <memory>`n静态断言(std::uses_allocator<标准::无序集合<整数>, std::allocator<整数>>::value);`n静态断言(std::uses_allocator<标准::无序多重集合<整数>, std::allocator<整数>>::value);`n整数 主函数(){ 返回 0; }')
+      @('泛型契约：uses_allocator 认得出（英文名必须在公开层）','#包含 <无序集合>`n#包含 <memory>`n静态断言(std::uses_allocator<标准::无序集合<整数>, std::allocator<整数>>::value);`n静态断言(std::uses_allocator<标准::无序多重集合<整数>, std::allocator<整数>>::value);`n整数 主函数(){ 返回 0; }'),
+      # §16.58 回归守卫：这次把 `_哈希` 的三个名字（allocator_type/key_type/node_type）
+      #   翻成汉语 —— 公开层必须【中英两个名字都在、而且指的是同一个类型】。
+      #   ⚠ 这就是 §16.41.2 那条："翻一半就是回归"。
+      @('三种名字中英一致（§16.58 回归守卫）','#包含 <无序集合>`n#包含 <type_traits>`n静态断言(std::is_same_v<标准::无序集合<整数>::键类型, 标准::无序集合<整数>::key_type>);`n静态断言(std::is_same_v<标准::无序集合<整数>::结点类型, 标准::无序集合<整数>::node_type>);`n静态断言(std::is_same_v<标准::无序集合<整数>::分配器类型, 标准::无序集合<整数>::allocator_type>);`n静态断言(std::is_same_v<标准::无序多重集合<整数>::键类型, 标准::无序多重集合<整数>::key_type>);`n静态断言(std::is_same_v<标准::无序多重集合<整数>::结点类型, 标准::无序多重集合<整数>::node_type>);`n静态断言(std::is_same_v<标准::无序多重集合<整数>::分配器类型, 标准::无序多重集合<整数>::allocator_type>);`n静态断言(std::is_same_v<标准::无序集合<整数>::值类型, 标准::无序集合<整数>::value_type>);`n整数 主函数(){ 返回 0; }')
     )
   }
   'unordered_map' = @{
@@ -1472,6 +1512,14 @@ $H = @{
                           '_List_node_emplace_op2' = '_链表节点就地构造操作2'
                           # ⚠ _Alnode / _Alnode_traits / _Key_compare 【不翻】：
                           #   它们在 哈希内部件 里没被改名 -> 现在照旧可用。
+                          # §16.58 跨条目协调改名（与 哈希内部件 同批）：
+                          #   `_Umap_traits` 里的这三个名字被 `_哈希` 读
+                          #   （`typename _Traits::allocator_type/key_type/node_type`），
+                          #   本头还有 `typename _Mybase::allocator_type/node_type`
+                          #   -> 必须同批翻；公开层靠 deriveTypes【方向翻转】补回英文。
+                          'allocator_type' = '分配器类型'
+                          'key_type'       = '键类型'
+                          'node_type'      = '结点类型'
                           }
     members = [ordered]@{
       'at' = '取值'   # ⚠ insert 不改名：基类里没翻 insert（§15.10 形态③）
@@ -1509,8 +1557,14 @@ $H = @{
                  @('begin','开始'), @('end','结束'), @('empty','为空'),
                  @('get_allocator','取分配器') )
     deriveTypes = @( @('迭代器','iterator'), @('常量迭代器','const_iterator'),
-                     @('键类型','key_type'), @('映射类型','mapped_type'),
-                     @('值类型','value_type'), @('尺寸类型','size_type') )
+                     @('映射类型','mapped_type'),
+                     @('值类型','value_type'), @('尺寸类型','size_type'),
+                     # §16.58 跨条目协调改名（与 哈希内部件 同批）：这三个方向**翻转**
+                     #   （抄来那层已汉语 -> 公开层补【英文原名】）。
+                     #   `allocator_type`/`node_type` 是借来的 std 契约名
+                     #   （uses_allocator 读 X::allocator_type），必须补回。
+                     @('key_type','键类型'), @('allocator_type','分配器类型'),
+                     @('node_type','结点类型') )
     deriveExtra = @'
     模板 <类型名... 参数> 声明类型(自动) 插入(参数&&... 值) { 返回 基类::insert(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 擦除(参数&&... 值) { 返回 基类::erase(static_cast<参数&&>(值)...); }
@@ -1542,10 +1596,14 @@ $H = @{
     // §16.52 嵌套类型名也补中文（主类有 deriveTypes，这个类得手写）
     使用 迭代器 = 基类::iterator;
     使用 常量迭代器 = 基类::const_iterator;
-    使用 键类型 = 基类::key_type;
     使用 映射类型 = 基类::mapped_type;
     使用 值类型 = 基类::value_type;
     使用 尺寸类型 = 基类::size_type;
+    // §16.58 这三个名字在【抄来那层】已经是汉语了 -> 这里改成补【英文原名】
+    //   （方向翻转，与主类 deriveTypes 一致）；中文名从基类继承，不再手写。
+    使用 key_type = 基类::键类型;
+    使用 node_type = 基类::结点类型;
+    使用 allocator_type = 基类::分配器类型;
 
     // §16.52 英文原名回填：这 8 个名字（emplace / emplace_hint + 6 个继承自 _哈希 的公开 API）
     //   在【抄来那层】已经是汉语 —— 不回填，用户原本能写的 甲.size() 就没了 = 回归。
@@ -1601,7 +1659,9 @@ $H = @{
       @('桶迭代器名仍在（3 名销账的回归守卫）','#包含 <无序映射>`n整数 主函数(){`n  (空型)sizeof(标准::无序映射<整数, 整数>::local_iterator);`n  (空型)sizeof(标准::无序映射<整数, 整数>::const_local_iterator);`n  (空型)sizeof(标准::无序映射<整数, 整数>::const_reference);`n  返回 0; }'),
       # §16.55.2 / §16.57 泛型契约守卫（同 <无序集合>）：借用来的 std 契约名
       #   （allocator_type 等）在【公开层】必须仍是英文。
-      @('泛型契约：uses_allocator 认得出（英文名必须在公开层）','#包含 <无序映射>`n#包含 <memory>`n静态断言(std::uses_allocator<标准::无序映射<整数, 整数>, std::allocator<标准::无序映射<整数, 整数>::值类型>>::value);`n静态断言(std::uses_allocator<标准::无序多重映射<整数, 整数>, std::allocator<标准::无序多重映射<整数, 整数>::值类型>>::value);`n整数 主函数(){ 返回 0; }')
+      @('泛型契约：uses_allocator 认得出（英文名必须在公开层）','#包含 <无序映射>`n#包含 <memory>`n静态断言(std::uses_allocator<标准::无序映射<整数, 整数>, std::allocator<标准::无序映射<整数, 整数>::值类型>>::value);`n静态断言(std::uses_allocator<标准::无序多重映射<整数, 整数>, std::allocator<标准::无序多重映射<整数, 整数>::值类型>>::value);`n整数 主函数(){ 返回 0; }'),
+      # §16.58 回归守卫（同 <无序集合>）：三个名字中英都在，且指同一个类型。
+      @('三种名字中英一致（§16.58 回归守卫）','#包含 <无序映射>`n#包含 <type_traits>`n静态断言(std::is_same_v<标准::无序映射<整数, 整数>::键类型, 标准::无序映射<整数, 整数>::key_type>);`n静态断言(std::is_same_v<标准::无序映射<整数, 整数>::结点类型, 标准::无序映射<整数, 整数>::node_type>);`n静态断言(std::is_same_v<标准::无序映射<整数, 整数>::分配器类型, 标准::无序映射<整数, 整数>::allocator_type>);`n静态断言(std::is_same_v<标准::无序多重映射<整数, 整数>::键类型, 标准::无序多重映射<整数, 整数>::key_type>);`n静态断言(std::is_same_v<标准::无序多重映射<整数, 整数>::结点类型, 标准::无序多重映射<整数, 整数>::node_type>);`n静态断言(std::is_same_v<标准::无序多重映射<整数, 整数>::分配器类型, 标准::无序多重映射<整数, 整数>::allocator_type>);`n整数 主函数(){ 返回 0; }')
     )
   }
   'span' = @{
@@ -2134,6 +2194,23 @@ $H = @{
       'const_reference'               = '常量引用'
       'local_iterator'                = '局部迭代器'
       'const_local_iterator'          = '常量局部迭代器'
+      # -----------------------------------------------------------------------
+      # §16.58 跨条目协调改名（第一批 3 个）——这三个名字**同时是借来的 std 契约**：
+      #   `std::allocator_traits<A>::allocator_type`、`std::uses_allocator<X,A>`
+      #   （读 `X::allocator_type`）。所以公开层必须把英文补回，
+      #   4 个公开类的 `deriveTypes` 与手写别名【同批翻转】（见 §16.58 的清单）。
+      #
+      # 跨条目读取（实测）：
+      #   · `typename _Traits::allocator_type` / `::key_type` / `::node_type`
+      #     —— `_Uset_traits`/`_Umap_traits` 在【无序两头】的拷贝里 -> 同批翻；
+      #   · `typename _Mylist::allocator_type` —— 【链表】-> 同批翻；
+      #   · `_Hash<_Other_traits>::allocator_type`（两处 static_assert）—— 本头自己的。
+      # 译名与 <映射>/<集合>/树内部件 既有的一致（跨头译名守卫会强制）：
+      #   allocator_type -> 分配器类型、key_type -> 键类型、node_type -> **结点类型**。
+      # -----------------------------------------------------------------------
+      'allocator_type'                = '分配器类型'
+      'key_type'                      = '键类型'
+      'node_type'                     = '结点类型'
     }
     members = [ordered]@{
       # §16.48 成员层第一批：**确认属于 `_Hash` 自己**的那一批（同 §16.43.3 的做法）。

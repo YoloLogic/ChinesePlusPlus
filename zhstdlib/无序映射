@@ -30,13 +30,13 @@ template <class _Kty, // key type
     bool _Mfl> // true if multiple equivalent keys are permitted
 class _无序映射特征 : public _Tr { // traits required to make _哈希 behave like a map
 public:
-    using key_type            = _Kty;
+    using 键类型            = _Kty;
     using value_type          = pair<const _Kty, _Ty>;
     using _Mutable_value_type = pair<_Kty, _Ty>;
     using key_compare         = _Tr;
-    using allocator_type      = _Alloc;
+    using 分配器类型      = _Alloc;
 #if _HAS_CXX17
-    using node_type = _Node_handle<_链表节点<value_type, typename allocator_traits<_Alloc>::void_pointer>, _Alloc,
+    using 结点类型 = _Node_handle<_链表节点<value_type, typename allocator_traits<_Alloc>::void_pointer>, _Alloc,
         _Node_handle_map_base, _Kty, _Ty>;
 #endif // _HAS_CXX17
 
@@ -78,12 +78,12 @@ private:
 
 public:
     using hasher      = _Hasher;
-    using key_type    = _Kty;
+    using 键类型    = _Kty;
     using mapped_type = _Ty;
     using key_equal   = _Keyeq;
 
     using value_type      = pair<const _Kty, _Ty>;
-    using allocator_type  = typename _我的基类::allocator_type;
+    using 分配器类型  = typename _我的基类::分配器类型;
     using size_type       = typename _我的基类::size_type;
     using difference_type = typename _我的基类::difference_type;
     using pointer         = typename _我的基类::pointer;
@@ -97,63 +97,63 @@ public:
     using const_local_iterator = typename _我的基类::const_iterator;
 
 #if _HAS_CXX17
-    using insert_return_type = _Insert_return_type<iterator, typename _我的基类::node_type>;
+    using insert_return_type = _Insert_return_type<iterator, typename _我的基类::结点类型>;
 #endif // _HAS_CXX17
 
-    无序映射实现() : _我的基类(_Key_compare(), allocator_type()) {}
+    无序映射实现() : _我的基类(_Key_compare(), 分配器类型()) {}
 
-    explicit 无序映射实现(const allocator_type& _Al) : _我的基类(_Key_compare(), _Al) {}
+    explicit 无序映射实现(const 分配器类型& _Al) : _我的基类(_Key_compare(), _Al) {}
 
     无序映射实现(const 无序映射实现& _Right)
         : _我的基类(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._取分配器())) {}
 
-    无序映射实现(const 无序映射实现& _Right, const allocator_type& _Al) : _我的基类(_Right, _Al) {}
+    无序映射实现(const 无序映射实现& _Right, const 分配器类型& _Al) : _我的基类(_Right, _Al) {}
 
-    explicit 无序映射实现(size_type _Buckets) : _我的基类(_Key_compare(), allocator_type()) {
+    explicit 无序映射实现(size_type _Buckets) : _我的基类(_Key_compare(), 分配器类型()) {
         _我的基类::rehash(_Buckets);
     }
 
-    无序映射实现(size_type _Buckets, const allocator_type& _Al) : _我的基类(_Key_compare(), _Al) {
+    无序映射实现(size_type _Buckets, const 分配器类型& _Al) : _我的基类(_Key_compare(), _Al) {
         _我的基类::rehash(_Buckets);
     }
 
-    无序映射实现(size_type _Buckets, const hasher& _Hasharg) : _我的基类(_Key_compare(_Hasharg), allocator_type()) {
+    无序映射实现(size_type _Buckets, const hasher& _Hasharg) : _我的基类(_Key_compare(_Hasharg), 分配器类型()) {
         _我的基类::rehash(_Buckets);
     }
 
-    无序映射实现(size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
+    无序映射实现(size_type _Buckets, const hasher& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg), _Al) {
         _我的基类::rehash(_Buckets);
     }
 
     无序映射实现(size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
-        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), 分配器类型()) {
         _我的基类::rehash(_Buckets);
     }
 
-    无序映射实现(size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg, const allocator_type& _Al)
+    无序映射实现(size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg, const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
         _我的基类::rehash(_Buckets);
     }
 
     template <class _Iter>
-    无序映射实现(_Iter _First, _Iter _Last) : _我的基类(_Key_compare(), allocator_type()) {
+    无序映射实现(_Iter _First, _Iter _Last) : _我的基类(_Key_compare(), 分配器类型()) {
         insert(_First, _Last);
     }
 
     template <class _Iter>
-    无序映射实现(_Iter _First, _Iter _Last, const allocator_type& _Al) : _我的基类(_Key_compare(), _Al) {
+    无序映射实现(_Iter _First, _Iter _Last, const 分配器类型& _Al) : _我的基类(_Key_compare(), _Al) {
         insert(_First, _Last);
     }
 
     template <class _Iter>
-    无序映射实现(_Iter _First, _Iter _Last, size_type _Buckets) : _我的基类(_Key_compare(), allocator_type()) {
+    无序映射实现(_Iter _First, _Iter _Last, size_type _Buckets) : _我的基类(_Key_compare(), 分配器类型()) {
         _我的基类::rehash(_Buckets);
         insert(_First, _Last);
     }
 
     template <class _Iter>
-    无序映射实现(_Iter _First, _Iter _Last, size_type _Buckets, const allocator_type& _Al)
+    无序映射实现(_Iter _First, _Iter _Last, size_type _Buckets, const 分配器类型& _Al)
         : _我的基类(_Key_compare(), _Al) {
         _我的基类::rehash(_Buckets);
         insert(_First, _Last);
@@ -161,13 +161,13 @@ public:
 
     template <class _Iter>
     无序映射实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg)
-        : _我的基类(_Key_compare(_Hasharg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg), 分配器类型()) {
         _我的基类::rehash(_Buckets);
         insert(_First, _Last);
     }
 
     template <class _Iter>
-    无序映射实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
+    无序映射实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg), _Al) {
         _我的基类::rehash(_Buckets);
         insert(_First, _Last);
@@ -175,14 +175,14 @@ public:
 
     template <class _Iter>
     无序映射实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
-        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), 分配器类型()) {
         _我的基类::rehash(_Buckets);
         insert(_First, _Last);
     }
 
     template <class _Iter>
     无序映射实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg,
-        const allocator_type& _Al)
+        const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
         _我的基类::rehash(_Buckets);
         insert(_First, _Last);
@@ -190,23 +190,23 @@ public:
 
 #if _HAS_CXX23
     template <_Container_compatible_range<value_type> _Rng>
-    无序映射实现(from_range_t, _Rng&& _Range) : _我的基类(_Key_compare(), allocator_type()) {
+    无序映射实现(from_range_t, _Rng&& _Range) : _我的基类(_Key_compare(), 分配器类型()) {
         this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    无序映射实现(from_range_t, _Rng&& _Range, const allocator_type& _Al) : _我的基类(_Key_compare(), _Al) {
+    无序映射实现(from_range_t, _Rng&& _Range, const 分配器类型& _Al) : _我的基类(_Key_compare(), _Al) {
         this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    无序映射实现(from_range_t, _Rng&& _Range, size_type _Buckets) : _我的基类(_Key_compare(), allocator_type()) {
+    无序映射实现(from_range_t, _Rng&& _Range, size_type _Buckets) : _我的基类(_Key_compare(), 分配器类型()) {
         _我的基类::rehash(_Buckets);
         this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    无序映射实现(from_range_t, _Rng&& _Range, size_type _Buckets, const allocator_type& _Al)
+    无序映射实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 分配器类型& _Al)
         : _我的基类(_Key_compare(), _Al) {
         _我的基类::rehash(_Buckets);
         this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
@@ -214,13 +214,13 @@ public:
 
     template <_Container_compatible_range<value_type> _Rng>
     无序映射实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg)
-        : _我的基类(_Key_compare(_Hasharg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg), 分配器类型()) {
         _我的基类::rehash(_Buckets);
         this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    无序映射实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
+    无序映射实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg), _Al) {
         _我的基类::rehash(_Buckets);
         this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
@@ -228,14 +228,14 @@ public:
 
     template <_Container_compatible_range<value_type> _Rng>
     无序映射实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
-        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), 分配器类型()) {
         _我的基类::rehash(_Buckets);
         this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序映射实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg,
-        const allocator_type& _Al)
+        const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
         _我的基类::rehash(_Buckets);
         this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
@@ -249,7 +249,7 @@ public:
 
     无序映射实现(无序映射实现&& _Right) : _我的基类(_STD move(_Right)) {}
 
-    无序映射实现(无序映射实现&& _Right, const allocator_type& _Al) : _我的基类(_STD move(_Right), _Al) {}
+    无序映射实现(无序映射实现&& _Right, const 分配器类型& _Al) : _我的基类(_STD move(_Right), _Al) {}
 
     无序映射实现& operator=(无序映射实现&& _Right)
         noexcept(_Alnode_traits::is_always_equal::value
@@ -258,7 +258,7 @@ public:
         return *this;
     }
 
-    mapped_type& operator[](key_type&& _Keyval) {
+    mapped_type& operator[](键类型&& _Keyval) {
         return this->_尝试就地构造(_STD move(_Keyval)).first->_Myval.second;
     }
 
@@ -279,25 +279,25 @@ public:
     }
 
     template <class... _Mappedty>
-    pair<iterator, bool> 尝试就地构造(const key_type& _Keyval, _Mappedty&&... _Mapval) {
+    pair<iterator, bool> 尝试就地构造(const 键类型& _Keyval, _Mappedty&&... _Mapval) {
         const auto _Result = this->_尝试就地构造(_Keyval, _STD forward<_Mappedty>(_Mapval)...);
         return {this->_List._Make_iter(_Result.first), _Result.second};
     }
 
     template <class... _Mappedty>
-    pair<iterator, bool> 尝试就地构造(key_type&& _Keyval, _Mappedty&&... _Mapval) {
+    pair<iterator, bool> 尝试就地构造(键类型&& _Keyval, _Mappedty&&... _Mapval) {
         const auto _Result = this->_尝试就地构造(_STD move(_Keyval), _STD forward<_Mappedty>(_Mapval)...);
         return {this->_List._Make_iter(_Result.first), _Result.second};
     }
 
     template <class... _Mappedty>
-    iterator 尝试就地构造(const const_iterator _Hint, const key_type& _Keyval, _Mappedty&&... _Mapval) {
+    iterator 尝试就地构造(const const_iterator _Hint, const 键类型& _Keyval, _Mappedty&&... _Mapval) {
         return this->_List._Make_iter(
             this->_按提示尝试就地构造(_Hint._Ptr, _Keyval, _STD forward<_Mappedty>(_Mapval)...));
     }
 
     template <class... _Mappedty>
-    iterator 尝试就地构造(const const_iterator _Hint, key_type&& _Keyval, _Mappedty&&... _Mapval) {
+    iterator 尝试就地构造(const const_iterator _Hint, 键类型&& _Keyval, _Mappedty&&... _Mapval) {
         return this->_List._Make_iter(
             this->_按提示尝试就地构造(_Hint._Ptr, _STD move(_Keyval), _STD forward<_Mappedty>(_Mapval)...));
     }
@@ -352,52 +352,52 @@ private:
 
 public:
     template <class _Mappedty>
-    pair<iterator, bool> 插入或赋值(const key_type& _Keyval, _Mappedty&& _Mapval) {
+    pair<iterator, bool> 插入或赋值(const 键类型& _Keyval, _Mappedty&& _Mapval) {
         return _Insert_or_assign(_Keyval, _STD forward<_Mappedty>(_Mapval));
     }
 
     template <class _Mappedty>
-    pair<iterator, bool> 插入或赋值(key_type&& _Keyval, _Mappedty&& _Mapval) {
+    pair<iterator, bool> 插入或赋值(键类型&& _Keyval, _Mappedty&& _Mapval) {
         return _Insert_or_assign(_STD move(_Keyval), _STD forward<_Mappedty>(_Mapval));
     }
 
     template <class _Mappedty>
-    iterator 插入或赋值(const_iterator _Hint, const key_type& _Keyval, _Mappedty&& _Mapval) {
+    iterator 插入或赋值(const_iterator _Hint, const 键类型& _Keyval, _Mappedty&& _Mapval) {
         return _Insert_or_assign(_Hint._Ptr, _Keyval, _STD forward<_Mappedty>(_Mapval));
     }
 
     template <class _Mappedty>
-    iterator 插入或赋值(const_iterator _Hint, key_type&& _Keyval, _Mappedty&& _Mapval) {
+    iterator 插入或赋值(const_iterator _Hint, 键类型&& _Keyval, _Mappedty&& _Mapval) {
         return _Insert_or_assign(_Hint._Ptr, _STD move(_Keyval), _STD forward<_Mappedty>(_Mapval));
     }
 
-    无序映射实现(initializer_list<value_type> _Ilist) : _我的基类(_Key_compare(), allocator_type()) {
+    无序映射实现(initializer_list<value_type> _Ilist) : _我的基类(_Key_compare(), 分配器类型()) {
         insert(_Ilist);
     }
 
-    无序映射实现(initializer_list<value_type> _Ilist, const allocator_type& _Al) : _我的基类(_Key_compare(), _Al) {
+    无序映射实现(initializer_list<value_type> _Ilist, const 分配器类型& _Al) : _我的基类(_Key_compare(), _Al) {
         insert(_Ilist);
     }
 
-    无序映射实现(initializer_list<value_type> _Ilist, size_type _Buckets) : _我的基类(_Key_compare(), allocator_type()) {
+    无序映射实现(initializer_list<value_type> _Ilist, size_type _Buckets) : _我的基类(_Key_compare(), 分配器类型()) {
         _我的基类::rehash(_Buckets);
         insert(_Ilist);
     }
 
-    无序映射实现(initializer_list<value_type> _Ilist, size_type _Buckets, const allocator_type& _Al)
+    无序映射实现(initializer_list<value_type> _Ilist, size_type _Buckets, const 分配器类型& _Al)
         : _我的基类(_Key_compare(), _Al) {
         _我的基类::rehash(_Buckets);
         insert(_Ilist);
     }
 
     无序映射实现(initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg)
-        : _我的基类(_Key_compare(_Hasharg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg), 分配器类型()) {
         _我的基类::rehash(_Buckets);
         insert(_Ilist);
     }
 
     无序映射实现(
-        initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
+        initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg), _Al) {
         _我的基类::rehash(_Buckets);
         insert(_Ilist);
@@ -405,13 +405,13 @@ public:
 
     无序映射实现(
         initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
-        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), 分配器类型()) {
         _我的基类::rehash(_Buckets);
         insert(_Ilist);
     }
 
     无序映射实现(initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg,
-        const _Keyeq& _Keyeqarg, const allocator_type& _Al)
+        const _Keyeq& _Keyeqarg, const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
         _我的基类::rehash(_Buckets);
         insert(_Ilist);
@@ -431,11 +431,11 @@ public:
         return _我的基类::_Traitsobj._Mypair._Myval2._Get_first();
     }
 
-    mapped_type& operator[](const key_type& _Keyval) {
+    mapped_type& operator[](const 键类型& _Keyval) {
         return this->_尝试就地构造(_Keyval).first->_Myval.second;
     }
 
-    _NODISCARD mapped_type& 取值(const key_type& _Keyval) {
+    _NODISCARD mapped_type& 取值(const 键类型& _Keyval) {
         const auto _Target = this->_查找最后(_Keyval, this->_Traitsobj(_Keyval));
         if (_Target._Duplicate) {
             return _Target._Duplicate->_Myval.second;
@@ -444,7 +444,7 @@ public:
         _Xout_of_range("invalid 无序映射实现<K, T> key");
     }
 
-    _NODISCARD const mapped_type& 取值(const key_type& _Keyval) const {
+    _NODISCARD const mapped_type& 取值(const 键类型& _Keyval) const {
         const auto _Target = this->_查找最后(_Keyval, this->_Traitsobj(_Keyval));
         if (_Target._Duplicate) {
             return _Target._Duplicate->_Myval.second;
@@ -568,12 +568,12 @@ private:
 
 public:
     using hasher      = _Hasher;
-    using key_type    = _Kty;
+    using 键类型    = _Kty;
     using mapped_type = _Ty;
     using key_equal   = _Keyeq;
 
     using value_type      = pair<const _Kty, _Ty>;
-    using allocator_type  = typename _我的基类::allocator_type;
+    using 分配器类型  = typename _我的基类::分配器类型;
     using size_type       = typename _我的基类::size_type;
     using difference_type = typename _我的基类::difference_type;
     using pointer         = typename _我的基类::pointer;
@@ -586,61 +586,61 @@ public:
     using local_iterator       = typename _我的基类::iterator;
     using const_local_iterator = typename _我的基类::const_iterator;
 
-    无序多重映射实现() : _我的基类(_Key_compare(), allocator_type()) {} // construct empty map from defaults
+    无序多重映射实现() : _我的基类(_Key_compare(), 分配器类型()) {} // construct empty map from defaults
 
-    explicit 无序多重映射实现(const allocator_type& _Al)
+    explicit 无序多重映射实现(const 分配器类型& _Al)
         : _我的基类(_Key_compare(), _Al) {} // construct empty map from defaults, allocator
 
     无序多重映射实现(const 无序多重映射实现& _Right)
         : _我的基类(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._取分配器())) {}
 
-    无序多重映射实现(const 无序多重映射实现& _Right, const allocator_type& _Al) : _我的基类(_Right, _Al) {}
+    无序多重映射实现(const 无序多重映射实现& _Right, const 分配器类型& _Al) : _我的基类(_Right, _Al) {}
 
-    explicit 无序多重映射实现(size_type _Buckets) : _我的基类(_Key_compare(), allocator_type()) {
+    explicit 无序多重映射实现(size_type _Buckets) : _我的基类(_Key_compare(), 分配器类型()) {
         _我的基类::rehash(_Buckets);
     }
 
-    无序多重映射实现(size_type _Buckets, const allocator_type& _Al) : _我的基类(_Key_compare(), _Al) {
+    无序多重映射实现(size_type _Buckets, const 分配器类型& _Al) : _我的基类(_Key_compare(), _Al) {
         _我的基类::rehash(_Buckets);
     }
 
-    无序多重映射实现(size_type _Buckets, const hasher& _Hasharg) : _我的基类(_Key_compare(_Hasharg), allocator_type()) {
+    无序多重映射实现(size_type _Buckets, const hasher& _Hasharg) : _我的基类(_Key_compare(_Hasharg), 分配器类型()) {
         _我的基类::rehash(_Buckets);
     }
 
-    无序多重映射实现(size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
+    无序多重映射实现(size_type _Buckets, const hasher& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg), _Al) {
         _我的基类::rehash(_Buckets);
     }
 
     无序多重映射实现(size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
-        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), 分配器类型()) {
         _我的基类::rehash(_Buckets);
     }
 
-    无序多重映射实现(size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg, const allocator_type& _Al)
+    无序多重映射实现(size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg, const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
         _我的基类::rehash(_Buckets);
     }
 
     template <class _Iter>
-    无序多重映射实现(_Iter _First, _Iter _Last) : _我的基类(_Key_compare(), allocator_type()) {
+    无序多重映射实现(_Iter _First, _Iter _Last) : _我的基类(_Key_compare(), 分配器类型()) {
         insert(_First, _Last);
     }
 
     template <class _Iter>
-    无序多重映射实现(_Iter _First, _Iter _Last, const allocator_type& _Al) : _我的基类(_Key_compare(), _Al) {
+    无序多重映射实现(_Iter _First, _Iter _Last, const 分配器类型& _Al) : _我的基类(_Key_compare(), _Al) {
         insert(_First, _Last);
     }
 
     template <class _Iter>
-    无序多重映射实现(_Iter _First, _Iter _Last, size_type _Buckets) : _我的基类(_Key_compare(), allocator_type()) {
+    无序多重映射实现(_Iter _First, _Iter _Last, size_type _Buckets) : _我的基类(_Key_compare(), 分配器类型()) {
         _我的基类::rehash(_Buckets);
         insert(_First, _Last);
     }
 
     template <class _Iter>
-    无序多重映射实现(_Iter _First, _Iter _Last, size_type _Buckets, const allocator_type& _Al)
+    无序多重映射实现(_Iter _First, _Iter _Last, size_type _Buckets, const 分配器类型& _Al)
         : _我的基类(_Key_compare(), _Al) {
         _我的基类::rehash(_Buckets);
         insert(_First, _Last);
@@ -648,13 +648,13 @@ public:
 
     template <class _Iter>
     无序多重映射实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg)
-        : _我的基类(_Key_compare(_Hasharg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg), 分配器类型()) {
         _我的基类::rehash(_Buckets);
         insert(_First, _Last);
     }
 
     template <class _Iter>
-    无序多重映射实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
+    无序多重映射实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg), _Al) {
         _我的基类::rehash(_Buckets);
         insert(_First, _Last);
@@ -662,14 +662,14 @@ public:
 
     template <class _Iter>
     无序多重映射实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
-        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), 分配器类型()) {
         _我的基类::rehash(_Buckets);
         insert(_First, _Last);
     }
 
     template <class _Iter>
     无序多重映射实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg,
-        const allocator_type& _Al)
+        const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
         _我的基类::rehash(_Buckets);
         insert(_First, _Last);
@@ -677,23 +677,23 @@ public:
 
 #if _HAS_CXX23
     template <_Container_compatible_range<value_type> _Rng>
-    无序多重映射实现(from_range_t, _Rng&& _Range) : _我的基类(_Key_compare(), allocator_type()) {
+    无序多重映射实现(from_range_t, _Rng&& _Range) : _我的基类(_Key_compare(), 分配器类型()) {
         this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    无序多重映射实现(from_range_t, _Rng&& _Range, const allocator_type& _Al) : _我的基类(_Key_compare(), _Al) {
+    无序多重映射实现(from_range_t, _Rng&& _Range, const 分配器类型& _Al) : _我的基类(_Key_compare(), _Al) {
         this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    无序多重映射实现(from_range_t, _Rng&& _Range, size_type _Buckets) : _我的基类(_Key_compare(), allocator_type()) {
+    无序多重映射实现(from_range_t, _Rng&& _Range, size_type _Buckets) : _我的基类(_Key_compare(), 分配器类型()) {
         _我的基类::rehash(_Buckets);
         this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    无序多重映射实现(from_range_t, _Rng&& _Range, size_type _Buckets, const allocator_type& _Al)
+    无序多重映射实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 分配器类型& _Al)
         : _我的基类(_Key_compare(), _Al) {
         _我的基类::rehash(_Buckets);
         this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
@@ -701,14 +701,14 @@ public:
 
     template <_Container_compatible_range<value_type> _Rng>
     无序多重映射实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg)
-        : _我的基类(_Key_compare(_Hasharg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg), 分配器类型()) {
         _我的基类::rehash(_Buckets);
         this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序多重映射实现(
-        from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
+        from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg), _Al) {
         _我的基类::rehash(_Buckets);
         this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
@@ -716,14 +716,14 @@ public:
 
     template <_Container_compatible_range<value_type> _Rng>
     无序多重映射实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
-        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), 分配器类型()) {
         _我的基类::rehash(_Buckets);
         this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序多重映射实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg,
-        const allocator_type& _Al)
+        const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
         _我的基类::rehash(_Buckets);
         this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
@@ -737,7 +737,7 @@ public:
 
     无序多重映射实现(无序多重映射实现&& _Right) : _我的基类(_STD move(_Right)) {}
 
-    无序多重映射实现(无序多重映射实现&& _Right, const allocator_type& _Al) : _我的基类(_STD move(_Right), _Al) {}
+    无序多重映射实现(无序多重映射实现&& _Right, const 分配器类型& _Al) : _我的基类(_STD move(_Right), _Al) {}
 
     无序多重映射实现& operator=(无序多重映射实现&& _Right)
         noexcept(_Alnode_traits::is_always_equal::value
@@ -762,34 +762,34 @@ public:
         return this->按提示就地构造(_Where, _STD forward<_Valty>(_Val));
     }
 
-    无序多重映射实现(initializer_list<value_type> _Ilist) : _我的基类(_Key_compare(), allocator_type()) {
+    无序多重映射实现(initializer_list<value_type> _Ilist) : _我的基类(_Key_compare(), 分配器类型()) {
         insert(_Ilist);
     }
 
-    无序多重映射实现(initializer_list<value_type> _Ilist, const allocator_type& _Al) : _我的基类(_Key_compare(), _Al) {
+    无序多重映射实现(initializer_list<value_type> _Ilist, const 分配器类型& _Al) : _我的基类(_Key_compare(), _Al) {
         insert(_Ilist);
     }
 
     无序多重映射实现(initializer_list<value_type> _Ilist, size_type _Buckets)
-        : _我的基类(_Key_compare(), allocator_type()) {
+        : _我的基类(_Key_compare(), 分配器类型()) {
         _我的基类::rehash(_Buckets);
         insert(_Ilist);
     }
 
-    无序多重映射实现(initializer_list<value_type> _Ilist, size_type _Buckets, const allocator_type& _Al)
+    无序多重映射实现(initializer_list<value_type> _Ilist, size_type _Buckets, const 分配器类型& _Al)
         : _我的基类(_Key_compare(), _Al) {
         _我的基类::rehash(_Buckets);
         insert(_Ilist);
     }
 
     无序多重映射实现(initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg)
-        : _我的基类(_Key_compare(_Hasharg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg), 分配器类型()) {
         _我的基类::rehash(_Buckets);
         insert(_Ilist);
     }
 
     无序多重映射实现(
-        initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
+        initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg), _Al) {
         _我的基类::rehash(_Buckets);
         insert(_Ilist);
@@ -797,13 +797,13 @@ public:
 
     无序多重映射实现(
         initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
-        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), 分配器类型()) {
         _我的基类::rehash(_Buckets);
         insert(_Ilist);
     }
 
     无序多重映射实现(initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg,
-        const _Keyeq& _Keyeqarg, const allocator_type& _Al)
+        const _Keyeq& _Keyeqarg, const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
         _我的基类::rehash(_Buckets);
         insert(_Ilist);
@@ -961,10 +961,12 @@ _STL_RESTORE_CLANG_WARNINGS
     // 嵌套类型名也要补回英文（数据成员不行 —— 那会改布局）
     使用 迭代器 = 基类::iterator;
     使用 常量迭代器 = 基类::const_iterator;
-    使用 键类型 = 基类::key_type;
     使用 映射类型 = 基类::mapped_type;
     使用 值类型 = 基类::value_type;
     使用 尺寸类型 = 基类::size_type;
+    使用 key_type = 基类::键类型;
+    使用 allocator_type = 基类::分配器类型;
+    使用 node_type = 基类::结点类型;
 
     // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
     模板 <类型名... 参数> 声明类型(自动) at(参数&&... 值) { 返回 基类::取值(static_cast<参数&&>(值)...); }
@@ -1020,10 +1022,14 @@ _STL_RESTORE_CLANG_WARNINGS
     // §16.52 嵌套类型名也补中文（主类有 deriveTypes，这个类得手写）
     使用 迭代器 = 基类::iterator;
     使用 常量迭代器 = 基类::const_iterator;
-    使用 键类型 = 基类::key_type;
     使用 映射类型 = 基类::mapped_type;
     使用 值类型 = 基类::value_type;
     使用 尺寸类型 = 基类::size_type;
+    // §16.58 这三个名字在【抄来那层】已经是汉语了 -> 这里改成补【英文原名】
+    //   （方向翻转，与主类 deriveTypes 一致）；中文名从基类继承，不再手写。
+    使用 key_type = 基类::键类型;
+    使用 node_type = 基类::结点类型;
+    使用 allocator_type = 基类::分配器类型;
 
     // §16.52 英文原名回填：这 8 个名字（emplace / emplace_hint + 6 个继承自 _哈希 的公开 API）
     //   在【抄来那层】已经是汉语 —— 不回填，用户原本能写的 甲.size() 就没了 = 回归。

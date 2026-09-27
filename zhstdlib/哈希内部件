@@ -329,7 +329,7 @@ struct _哈希向量 {
 template <class _Traits>
 class _哈希 { // hash table -- 链表实现 with vector of iterators for quick access
 protected:
-    using _我的链表             = 链表实现<typename _Traits::value_type, typename _Traits::allocator_type>;
+    using _我的链表             = 链表实现<typename _Traits::value_type, typename _Traits::分配器类型>;
     using _Alnode             = typename _我的链表::_Alnode;
     using _Alnode_traits      = typename _我的链表::_Alnode_traits;
     using _节点               = typename _我的链表::_节点;
@@ -340,10 +340,10 @@ protected:
     using _值比较器 = typename _Traits::value_compare;
 
 public:
-    using key_type = typename _Traits::key_type;
+    using 键类型 = typename _Traits::键类型;
 
     using value_type      = typename _我的链表::value_type;
-    using allocator_type  = typename _我的链表::allocator_type;
+    using 分配器类型  = typename _我的链表::分配器类型;
     using size_type       = typename _我的链表::size_type;
     using difference_type = typename _我的链表::difference_type;
     using pointer         = typename _我的链表::pointer;
@@ -352,10 +352,10 @@ public:
     using 常量引用 = const value_type&;
 
     using iterator =
-        conditional_t<is_same_v<key_type, value_type>, typename _我的链表::const_iterator, typename _我的链表::iterator>;
+        conditional_t<is_same_v<键类型, value_type>, typename _我的链表::const_iterator, typename _我的链表::iterator>;
     using const_iterator = typename _我的链表::const_iterator;
 
-    using _非检查迭代器       = conditional_t<is_same_v<key_type, value_type>,
+    using _非检查迭代器       = conditional_t<is_same_v<键类型, value_type>,
               typename _我的链表::_非检查常量迭代器, typename _我的链表::_非检查迭代器>;
     using _非检查常量迭代器 = typename _我的链表::_非检查常量迭代器;
 
@@ -369,7 +369,7 @@ public:
     friend bool _哈希相等(const _哈希<_TraitsT>& _Left, const _哈希<_TraitsT>& _Right);
 
 protected:
-    _哈希(const _Key_compare& _Parg, const allocator_type& _Al)
+    _哈希(const _Key_compare& _Parg, const 分配器类型& _Al)
         : _Traitsobj(_Parg), _List(_Al), _Vec(_Al), _Mask(_Min_buckets - 1), _Maxidx(_Min_buckets) {
         // construct 为空 hash table
         _最大桶尺寸() = _Bucket_size;
@@ -381,7 +381,7 @@ protected:
 
     template <class _Any_alloc>
     _哈希(const _哈希& _Right, const _Any_alloc& _Al)
-        : _Traitsobj(_Right._Traitsobj), _List(static_cast<allocator_type>(_Al)), _Vec(_Al), _Mask(_Right._Mask),
+        : _Traitsobj(_Right._Traitsobj), _List(static_cast<分配器类型>(_Al)), _Vec(_Al), _Mask(_Right._Mask),
           _Maxidx(_Right._Maxidx) {
         // construct hash table by copying _Right
         _Vec._赋值扩容(_Right._Vec.尺寸(), _List._非检查结束());
@@ -416,7 +416,7 @@ private:
     }
 
 public:
-    _哈希(_哈希&& _Right, const allocator_type& _Al) : _Traitsobj(_Right._Traitsobj), _List(_Al), _Vec(_Al) {
+    _哈希(_哈希&& _Right, const 分配器类型& _Al) : _Traitsobj(_Right._Traitsobj), _List(_Al), _Vec(_Al) {
         // construct hash table by moving _Right, allocator
         if constexpr (_Alnode_traits::is_always_equal::value) {
             _移动构造相等分配器(_Right);
@@ -842,8 +842,8 @@ public:
         return _List.为空();
     }
 
-    _NODISCARD allocator_type 取分配器() const noexcept {
-        return static_cast<allocator_type>(_List.取分配器());
+    _NODISCARD 分配器类型 取分配器() const noexcept {
+        return static_cast<分配器类型>(_List.取分配器());
     }
 
     using 局部迭代器       = iterator;
@@ -857,8 +857,8 @@ public:
         return _Vec.max_size() >> 1;
     }
 
-    _NODISCARD size_type bucket(const key_type& _Keyval) const
-        noexcept(_Nothrow_hash<_Traits, key_type>) /* strengthened */ {
+    _NODISCARD size_type bucket(const 键类型& _Keyval) const
+        noexcept(_Nothrow_hash<_Traits, 键类型>) /* strengthened */ {
         return _Traitsobj(_Keyval) & _Mask;
     }
 
@@ -980,7 +980,7 @@ public:
     }
 
 private:
-    _结点指针 _非检查擦除(_结点指针 _Plist) noexcept(_Nothrow_hash<_Traits, key_type>) {
+    _结点指针 _非检查擦除(_结点指针 _Plist) noexcept(_Nothrow_hash<_Traits, 键类型>) {
         size_type _Bucket = bucket(_Traits::_Kfn(_Plist->_Myval));
         _擦除桶(_Plist, _Bucket);
         return _List._非检查擦除(_Plist);
@@ -1030,7 +1030,7 @@ private:
 #endif // ^^^ _ITERATOR_DEBUG_LEVEL != 2 ^^^
     };
 
-    _结点指针 _非检查擦除(_结点指针 _First, const _结点指针 _Last) noexcept(_Nothrow_hash<_Traits, key_type>) {
+    _结点指针 _非检查擦除(_结点指针 _First, const _结点指针 _Last) noexcept(_Nothrow_hash<_Traits, 键类型>) {
         if (_First == _Last) {
             return _Last;
         }
@@ -1105,7 +1105,7 @@ private:
     template <class _Kx>
     static constexpr bool _无异构擦除异常() {
         return _Nothrow_hash<_Traits, _Kx>
-            && (!_Multi || (_Nothrow_compare<_Traits, key_type, _Kx> && _Nothrow_compare<_Traits, _Kx, key_type>) );
+            && (!_Multi || (_Nothrow_compare<_Traits, 键类型, _Kx> && _Nothrow_compare<_Traits, _Kx, 键类型>) );
     }
 
     template <class _Keytype>
@@ -1129,20 +1129,20 @@ private:
 
 public:
     template <class _Iter = iterator, enable_if_t<!is_same_v<_Iter, const_iterator>, int> = 0>
-    iterator erase(iterator _Plist) noexcept(_Nothrow_hash<_Traits, key_type>) /* strengthened */ {
+    iterator erase(iterator _Plist) noexcept(_Nothrow_hash<_Traits, 键类型>) /* strengthened */ {
         return _List._Make_iter(_非检查擦除(_Plist._Ptr));
     }
 
-    iterator erase(const_iterator _Plist) noexcept(_Nothrow_hash<_Traits, key_type>) /* strengthened */ {
+    iterator erase(const_iterator _Plist) noexcept(_Nothrow_hash<_Traits, 键类型>) /* strengthened */ {
         return _List._Make_iter(_非检查擦除(_Plist._Ptr));
     }
 
     iterator erase(const_iterator _First, const_iterator _Last)
-        noexcept(_Nothrow_hash<_Traits, key_type>) /* strengthened */ {
+        noexcept(_Nothrow_hash<_Traits, 键类型>) /* strengthened */ {
         return _List._Make_iter(_非检查擦除(_First._Ptr, _Last._Ptr));
     }
 
-    size_type erase(const key_type& _Keyval) noexcept(noexcept(_擦除(_Keyval))) /* strengthened */ {
+    size_type erase(const 键类型& _Keyval) noexcept(noexcept(_擦除(_Keyval))) /* strengthened */ {
         return _擦除(_Keyval);
     }
 
@@ -1167,7 +1167,7 @@ public:
             return;
         }
 
-        if constexpr (_Nothrow_hash<_Traits, key_type>) {
+        if constexpr (_Nothrow_hash<_Traits, 键类型>) {
             // In testing, hash<size_t>{}(size_t{}) takes about 14 times as much time as assigning a pointer, or
             // ~7-8 times as much as clearing a bucket. Therefore, if we would need to assign over more than 8 times
             // as many buckets as elements, remove element-by-element.
@@ -1230,7 +1230,7 @@ private:
     }
 
 public:
-    _NODISCARD iterator find(const key_type& _Keyval) {
+    _NODISCARD iterator find(const 键类型& _Keyval) {
         return _List._Make_iter(_查找(_Keyval, _Traitsobj(_Keyval)));
     }
 
@@ -1242,7 +1242,7 @@ public:
     }
 #endif // _HAS_CXX20
 
-    _NODISCARD const_iterator find(const key_type& _Keyval) const {
+    _NODISCARD const_iterator find(const 键类型& _Keyval) const {
         return _List._Make_const_iter(_查找(_Keyval, _Traitsobj(_Keyval)));
     }
 
@@ -1253,7 +1253,7 @@ public:
         return _List._Make_const_iter(_查找(_Keyval, _Traitsobj(_Keyval)));
     }
 
-    _NODISCARD bool contains(const key_type& _Keyval) const {
+    _NODISCARD bool contains(const 键类型& _Keyval) const {
         return static_cast<bool>(_查找最后(_Keyval, _Traitsobj(_Keyval))._Duplicate);
     }
 
@@ -1264,7 +1264,7 @@ public:
     }
 #endif // _HAS_CXX20
 
-    _NODISCARD size_type count(const key_type& _Keyval) const {
+    _NODISCARD size_type count(const 键类型& _Keyval) const {
         const size_t _Hashval = _Traitsobj(_Keyval);
         if constexpr (_Multi) {
             return _等值区间(_Keyval, _Hashval)._Distance;
@@ -1295,7 +1295,7 @@ private:
 
     template <class _Keyty>
     _NODISCARD _等值区间结果 _等值区间(const _Keyty& _Keyval, const size_t _Hashval) const
-        noexcept(_Nothrow_compare<_Traits, key_type, _Keyty> && _Nothrow_compare<_Traits, _Keyty, key_type>) {
+        noexcept(_Nothrow_compare<_Traits, 键类型, _Keyty> && _Nothrow_compare<_Traits, _Keyty, 键类型>) {
         const size_type _Bucket              = _Hashval & _Mask;
         _非检查常量迭代器 _Where     = _Vec._Mypair._Myval2._Myfirst[_Bucket << 1];
         const _非检查常量迭代器 _End = _非检查结束();
@@ -1341,7 +1341,7 @@ private:
     }
 
 public:
-    _NODISCARD pair<iterator, iterator> equal_range(const key_type& _Keyval) {
+    _NODISCARD pair<iterator, iterator> equal_range(const 键类型& _Keyval) {
         const auto _Result = _等值区间(_Keyval, _Traitsobj(_Keyval));
         return {_List._Make_iter(_Result._First._Ptr), _List._Make_iter(_Result._Last._Ptr)};
     }
@@ -1355,7 +1355,7 @@ public:
     }
 #endif // _HAS_CXX20
 
-    _NODISCARD pair<const_iterator, const_iterator> equal_range(const key_type& _Keyval) const {
+    _NODISCARD pair<const_iterator, const_iterator> equal_range(const 键类型& _Keyval) const {
         const auto _Result = _等值区间(_Keyval, _Traitsobj(_Keyval));
         return {_List._Make_const_iter(_Result._First._Ptr), _List._Make_const_iter(_Result._Last._Ptr)};
     }
@@ -1379,41 +1379,41 @@ public:
     }
 
 #if _HAS_CXX17
-    using node_type = typename _Traits::node_type;
+    using 结点类型 = typename _Traits::结点类型;
 
-    node_type extract(const const_iterator _Where) {
+    结点类型 extract(const const_iterator _Where) {
 #if _ITERATOR_DEBUG_LEVEL == 2
         const auto _List_data = _STD addressof(_List._Mypair._Myval2);
         _STL_VERIFY(_Where._Getcont() == _List_data, "extract mismatched container");
         _STL_VERIFY(_Where._Ptr != _List_data->_Myhead, "cannot extract 结束()");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
-        return node_type::_Make(_Extract(_Where._Unwrapped()), _List._取分配器());
+        return 结点类型::_Make(_Extract(_Where._Unwrapped()), _List._取分配器());
     }
 
-    node_type extract(const key_type& _Keyval) {
+    结点类型 extract(const 键类型& _Keyval) {
         const auto _Ptr = _Extract(_Keyval);
         if (!_Ptr) {
-            return node_type{};
+            return 结点类型{};
         }
 
-        return node_type::_Make(_Ptr, _List._取分配器());
+        return 结点类型::_Make(_Ptr, _List._取分配器());
     }
 
 #if _HAS_CXX23
     template <class _Kx>
         requires (_Traits::template _Supports_transparency<_哈希, _Kx>)
-    node_type extract(_Kx&& _Keyval) {
+    结点类型 extract(_Kx&& _Keyval) {
         const auto _Ptr = _Extract(_Keyval);
         if (!_Ptr) {
-            return node_type{};
+            return 结点类型{};
         }
 
-        return node_type::_Make(_Ptr, _List._取分配器());
+        return 结点类型::_Make(_Ptr, _List._取分配器());
     }
 #endif // _HAS_CXX23
 
-    iterator insert(const_iterator _Hint, node_type&& _Handle) {
+    iterator insert(const_iterator _Hint, 结点类型&& _Handle) {
         if (_Handle.为空()) {
             return 结束();
         }
@@ -1451,7 +1451,7 @@ public:
         static_assert(is_same_v<_结点指针, typename _哈希<_Other_traits>::_结点指针>,
             "merge() requires an argument with a compatible node type.");
 
-        static_assert(is_same_v<allocator_type, typename _哈希<_Other_traits>::allocator_type>,
+        static_assert(is_same_v<分配器类型, typename _哈希<_Other_traits>::分配器类型>,
             "merge() requires an argument with the same allocator type.");
 
         if constexpr (is_same_v<_哈希, _哈希<_Other_traits>>) {
@@ -1506,7 +1506,7 @@ public:
         static_assert(is_same_v<_结点指针, typename _哈希<_Other_traits>::_结点指针>,
             "merge() requires an argument with a compatible node type.");
 
-        static_assert(is_same_v<allocator_type, typename _哈希<_Other_traits>::allocator_type>,
+        static_assert(is_same_v<分配器类型, typename _哈希<_Other_traits>::分配器类型>,
             "merge() requires an argument with the same allocator type.");
 
         merge(_That);
@@ -1540,7 +1540,7 @@ protected:
     }
 
 public:
-    conditional_t<_Traits::_Multi, iterator, _Insert_return_type<iterator, node_type>> insert(node_type&& _Handle) {
+    conditional_t<_Traits::_Multi, iterator, _Insert_return_type<iterator, 结点类型>> insert(结点类型&& _Handle) {
         // insert the node (if any) held in _Handle
         if (_Handle.为空()) {
             if constexpr (_Traits::_Multi) {
@@ -1576,7 +1576,7 @@ public:
         if constexpr (_Traits::_Multi) {
             return _List._Make_iter(_新节点);
         } else {
-            return {_List._Make_iter(_新节点), true, node_type{}};
+            return {_List._Make_iter(_新节点), true, 结点类型{}};
         }
     }
 #endif // _HAS_CXX17

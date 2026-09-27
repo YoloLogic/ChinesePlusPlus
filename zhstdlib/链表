@@ -795,7 +795,7 @@ public:
                                     "because of [container.requirements].");
 
     using value_type      = _Ty;
-    using allocator_type  = _Alloc;
+    using 分配器类型  = _Alloc;
     using size_type       = typename _分配器特征::size_type;
     using difference_type = typename _分配器特征::difference_type;
     using pointer         = typename _分配器特征::pointer;
@@ -1215,8 +1215,8 @@ public:
         return _Mypair._Myval2._Mysize == 0;
     }
 
-    _NODISCARD allocator_type 取分配器() const noexcept {
-        return static_cast<allocator_type>(_取分配器());
+    _NODISCARD 分配器类型 取分配器() const noexcept {
+        return static_cast<分配器类型>(_取分配器());
     }
 
     _NODISCARD reference 前() noexcept /* strengthened */ {
@@ -1974,6 +1974,7 @@ _STL_RESTORE_CLANG_WARNINGS
     使用 常量反向迭代器 = 基类::const_reverse_iterator;
     使用 值类型 = 基类::value_type;
     使用 尺寸类型 = 基类::size_type;
+    使用 allocator_type = 基类::分配器类型;
 
     // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
     模板 <类型名... 参数> 声明类型(自动) size(参数&&... 值) { 返回 基类::尺寸(static_cast<参数&&>(值)...); }

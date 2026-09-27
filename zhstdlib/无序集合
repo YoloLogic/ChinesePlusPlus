@@ -29,13 +29,13 @@ template <class _Kty, // key type (same as value type)
     bool _Mfl> // true if multiple equivalent keys are permitted
 class _无序集合特征 : public _Tr { // traits required to make _哈希 behave like a set
 public:
-    using key_type            = _Kty;
+    using 键类型            = _Kty;
     using value_type          = _Kty;
     using _Mutable_value_type = _Kty;
     using key_compare         = _Tr;
-    using allocator_type      = _Alloc;
+    using 分配器类型      = _Alloc;
 #if _HAS_CXX17
-    using node_type = _Node_handle<_List_node<value_type, typename allocator_traits<_Alloc>::void_pointer>, _Alloc,
+    using 结点类型 = _Node_handle<_List_node<value_type, typename allocator_traits<_Alloc>::void_pointer>, _Alloc,
         _Node_handle_set_base, _Kty>;
 #endif // _HAS_CXX17
 
@@ -75,11 +75,11 @@ private:
 
 public:
     using hasher    = _Hasher;
-    using key_type  = _Kty;
+    using 键类型  = _Kty;
     using key_equal = _Keyeq;
 
     using value_type      = typename _我的基类::value_type;
-    using allocator_type  = typename _我的基类::allocator_type;
+    using 分配器类型  = typename _我的基类::分配器类型;
     using size_type       = typename _我的基类::size_type;
     using difference_type = typename _我的基类::difference_type;
     using pointer         = typename _我的基类::pointer;
@@ -93,63 +93,63 @@ public:
     using const_local_iterator = typename _我的基类::const_iterator;
 
 #if _HAS_CXX17
-    using insert_return_type = _Insert_return_type<iterator, typename _我的基类::node_type>;
+    using insert_return_type = _Insert_return_type<iterator, typename _我的基类::结点类型>;
 #endif // _HAS_CXX17
 
-    无序集合实现() : _我的基类(_Key_compare(), allocator_type()) {}
+    无序集合实现() : _我的基类(_Key_compare(), 分配器类型()) {}
 
-    explicit 无序集合实现(const allocator_type& _Al) : _我的基类(_Key_compare(), _Al) {}
+    explicit 无序集合实现(const 分配器类型& _Al) : _我的基类(_Key_compare(), _Al) {}
 
     无序集合实现(const 无序集合实现& _Right)
         : _我的基类(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._Getal())) {}
 
-    无序集合实现(const 无序集合实现& _Right, const allocator_type& _Al) : _我的基类(_Right, _Al) {}
+    无序集合实现(const 无序集合实现& _Right, const 分配器类型& _Al) : _我的基类(_Right, _Al) {}
 
-    explicit 无序集合实现(size_type _Buckets) : _我的基类(_Key_compare(), allocator_type()) {
+    explicit 无序集合实现(size_type _Buckets) : _我的基类(_Key_compare(), 分配器类型()) {
         this->rehash(_Buckets);
     }
 
-    无序集合实现(size_type _Buckets, const allocator_type& _Al) : _我的基类(_Key_compare(), _Al) {
+    无序集合实现(size_type _Buckets, const 分配器类型& _Al) : _我的基类(_Key_compare(), _Al) {
         this->rehash(_Buckets);
     }
 
-    无序集合实现(size_type _Buckets, const hasher& _Hasharg) : _我的基类(_Key_compare(_Hasharg), allocator_type()) {
+    无序集合实现(size_type _Buckets, const hasher& _Hasharg) : _我的基类(_Key_compare(_Hasharg), 分配器类型()) {
         this->rehash(_Buckets);
     }
 
-    无序集合实现(size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
+    无序集合实现(size_type _Buckets, const hasher& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg), _Al) {
         this->rehash(_Buckets);
     }
 
     无序集合实现(size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
-        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), 分配器类型()) {
         this->rehash(_Buckets);
     }
 
-    无序集合实现(size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg, const allocator_type& _Al)
+    无序集合实现(size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg, const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
         this->rehash(_Buckets);
     }
 
     template <class _Iter>
-    无序集合实现(_Iter _First, _Iter _Last) : _我的基类(_Key_compare(), allocator_type()) {
+    无序集合实现(_Iter _First, _Iter _Last) : _我的基类(_Key_compare(), 分配器类型()) {
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
-    无序集合实现(_Iter _First, _Iter _Last, const allocator_type& _Al) : _我的基类(_Key_compare(), _Al) {
+    无序集合实现(_Iter _First, _Iter _Last, const 分配器类型& _Al) : _我的基类(_Key_compare(), _Al) {
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
-    无序集合实现(_Iter _First, _Iter _Last, size_type _Buckets) : _我的基类(_Key_compare(), allocator_type()) {
+    无序集合实现(_Iter _First, _Iter _Last, size_type _Buckets) : _我的基类(_Key_compare(), 分配器类型()) {
         this->rehash(_Buckets);
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
-    无序集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const allocator_type& _Al)
+    无序集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const 分配器类型& _Al)
         : _我的基类(_Key_compare(), _Al) {
         this->rehash(_Buckets);
         this->insert(_First, _Last);
@@ -157,13 +157,13 @@ public:
 
     template <class _Iter>
     无序集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg)
-        : _我的基类(_Key_compare(_Hasharg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg), 分配器类型()) {
         this->rehash(_Buckets);
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
-    无序集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
+    无序集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg), _Al) {
         this->rehash(_Buckets);
         this->insert(_First, _Last);
@@ -171,14 +171,14 @@ public:
 
     template <class _Iter>
     无序集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
-        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), 分配器类型()) {
         this->rehash(_Buckets);
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
     无序集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg,
-        const allocator_type& _Al)
+        const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
         this->rehash(_Buckets);
         this->insert(_First, _Last);
@@ -186,23 +186,23 @@ public:
 
 #if _HAS_CXX23
     template <_Container_compatible_range<value_type> _Rng>
-    无序集合实现(from_range_t, _Rng&& _Range) : _我的基类(_Key_compare(), allocator_type()) {
+    无序集合实现(from_range_t, _Rng&& _Range) : _我的基类(_Key_compare(), 分配器类型()) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    无序集合实现(from_range_t, _Rng&& _Range, const allocator_type& _Al) : _我的基类(_Key_compare(), _Al) {
+    无序集合实现(from_range_t, _Rng&& _Range, const 分配器类型& _Al) : _我的基类(_Key_compare(), _Al) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets) : _我的基类(_Key_compare(), allocator_type()) {
+    无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets) : _我的基类(_Key_compare(), 分配器类型()) {
         _我的基类::rehash(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const allocator_type& _Al)
+    无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 分配器类型& _Al)
         : _我的基类(_Key_compare(), _Al) {
         _我的基类::rehash(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
@@ -210,13 +210,13 @@ public:
 
     template <_Container_compatible_range<value_type> _Rng>
     无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg)
-        : _我的基类(_Key_compare(_Hasharg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg), 分配器类型()) {
         _我的基类::rehash(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
+    无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg), _Al) {
         _我的基类::rehash(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
@@ -224,14 +224,14 @@ public:
 
     template <_Container_compatible_range<value_type> _Rng>
     无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
-        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), 分配器类型()) {
         _我的基类::rehash(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg,
-        const allocator_type& _Al)
+        const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
         _我的基类::rehash(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
@@ -245,7 +245,7 @@ public:
 
     无序集合实现(无序集合实现&& _Right) : _我的基类(_STD move(_Right)) {}
 
-    无序集合实现(无序集合实现&& _Right, const allocator_type& _Al) : _我的基类(_STD move(_Right), _Al) {}
+    无序集合实现(无序集合实现&& _Right, const 分配器类型& _Al) : _我的基类(_STD move(_Right), _Al) {}
 
     无序集合实现& operator=(无序集合实现&& _Right)
         noexcept(_Alnode_traits::is_always_equal::value
@@ -258,33 +258,33 @@ public:
         _我的基类::swap(_Right);
     }
 
-    无序集合实现(initializer_list<value_type> _Ilist) : _我的基类(_Key_compare(), allocator_type()) {
+    无序集合实现(initializer_list<value_type> _Ilist) : _我的基类(_Key_compare(), 分配器类型()) {
         this->insert(_Ilist);
     }
 
-    无序集合实现(initializer_list<value_type> _Ilist, const allocator_type& _Al) : _我的基类(_Key_compare(), _Al) {
+    无序集合实现(initializer_list<value_type> _Ilist, const 分配器类型& _Al) : _我的基类(_Key_compare(), _Al) {
         this->insert(_Ilist);
     }
 
-    无序集合实现(initializer_list<value_type> _Ilist, size_type _Buckets) : _我的基类(_Key_compare(), allocator_type()) {
+    无序集合实现(initializer_list<value_type> _Ilist, size_type _Buckets) : _我的基类(_Key_compare(), 分配器类型()) {
         this->rehash(_Buckets);
         this->insert(_Ilist);
     }
 
-    无序集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const allocator_type& _Al)
+    无序集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const 分配器类型& _Al)
         : _我的基类(_Key_compare(), _Al) {
         this->rehash(_Buckets);
         this->insert(_Ilist);
     }
 
     无序集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg)
-        : _我的基类(_Key_compare(_Hasharg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg), 分配器类型()) {
         this->rehash(_Buckets);
         this->insert(_Ilist);
     }
 
     无序集合实现(
-        initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
+        initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg), _Al) {
         this->rehash(_Buckets);
         this->insert(_Ilist);
@@ -292,13 +292,13 @@ public:
 
     无序集合实现(
         initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
-        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), 分配器类型()) {
         this->rehash(_Buckets);
         this->insert(_Ilist);
     }
 
     无序集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg,
-        const _Keyeq& _Keyeqarg, const allocator_type& _Al)
+        const _Keyeq& _Keyeqarg, const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
         this->rehash(_Buckets);
         this->insert(_Ilist);
@@ -423,11 +423,11 @@ private:
 
 public:
     using hasher    = _Hasher;
-    using key_type  = _Kty;
+    using 键类型  = _Kty;
     using key_equal = _Keyeq;
 
     using value_type      = typename _我的基类::value_type;
-    using allocator_type  = typename _我的基类::allocator_type;
+    using 分配器类型  = typename _我的基类::分配器类型;
     using size_type       = typename _我的基类::size_type;
     using difference_type = typename _我的基类::difference_type;
     using pointer         = typename _我的基类::pointer;
@@ -437,60 +437,60 @@ public:
     using iterator        = typename _我的基类::iterator;
     using const_iterator  = typename _我的基类::const_iterator;
 
-    无序多重集合实现() : _我的基类(_Key_compare(), allocator_type()) {}
+    无序多重集合实现() : _我的基类(_Key_compare(), 分配器类型()) {}
 
-    explicit 无序多重集合实现(const allocator_type& _Al) : _我的基类(_Key_compare(), _Al) {}
+    explicit 无序多重集合实现(const 分配器类型& _Al) : _我的基类(_Key_compare(), _Al) {}
 
     无序多重集合实现(const 无序多重集合实现& _Right)
         : _我的基类(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._Getal())) {}
 
-    无序多重集合实现(const 无序多重集合实现& _Right, const allocator_type& _Al) : _我的基类(_Right, _Al) {}
+    无序多重集合实现(const 无序多重集合实现& _Right, const 分配器类型& _Al) : _我的基类(_Right, _Al) {}
 
-    explicit 无序多重集合实现(size_type _Buckets) : _我的基类(_Key_compare(), allocator_type()) {
+    explicit 无序多重集合实现(size_type _Buckets) : _我的基类(_Key_compare(), 分配器类型()) {
         this->rehash(_Buckets);
     }
 
-    无序多重集合实现(size_type _Buckets, const allocator_type& _Al) : _我的基类(_Key_compare(), _Al) {
+    无序多重集合实现(size_type _Buckets, const 分配器类型& _Al) : _我的基类(_Key_compare(), _Al) {
         this->rehash(_Buckets);
     }
 
-    无序多重集合实现(size_type _Buckets, const hasher& _Hasharg) : _我的基类(_Key_compare(_Hasharg), allocator_type()) {
+    无序多重集合实现(size_type _Buckets, const hasher& _Hasharg) : _我的基类(_Key_compare(_Hasharg), 分配器类型()) {
         this->rehash(_Buckets);
     }
 
-    无序多重集合实现(size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
+    无序多重集合实现(size_type _Buckets, const hasher& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg), _Al) {
         this->rehash(_Buckets);
     }
 
     无序多重集合实现(size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
-        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), 分配器类型()) {
         this->rehash(_Buckets);
     }
 
-    无序多重集合实现(size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg, const allocator_type& _Al)
+    无序多重集合实现(size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg, const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
         this->rehash(_Buckets);
     }
 
     template <class _Iter>
-    无序多重集合实现(_Iter _First, _Iter _Last) : _我的基类(_Key_compare(), allocator_type()) {
+    无序多重集合实现(_Iter _First, _Iter _Last) : _我的基类(_Key_compare(), 分配器类型()) {
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
-    无序多重集合实现(_Iter _First, _Iter _Last, const allocator_type& _Al) : _我的基类(_Key_compare(), _Al) {
+    无序多重集合实现(_Iter _First, _Iter _Last, const 分配器类型& _Al) : _我的基类(_Key_compare(), _Al) {
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
-    无序多重集合实现(_Iter _First, _Iter _Last, size_type _Buckets) : _我的基类(_Key_compare(), allocator_type()) {
+    无序多重集合实现(_Iter _First, _Iter _Last, size_type _Buckets) : _我的基类(_Key_compare(), 分配器类型()) {
         this->rehash(_Buckets);
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
-    无序多重集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const allocator_type& _Al)
+    无序多重集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const 分配器类型& _Al)
         : _我的基类(_Key_compare(), _Al) {
         this->rehash(_Buckets);
         this->insert(_First, _Last);
@@ -498,13 +498,13 @@ public:
 
     template <class _Iter>
     无序多重集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg)
-        : _我的基类(_Key_compare(_Hasharg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg), 分配器类型()) {
         this->rehash(_Buckets);
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
-    无序多重集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
+    无序多重集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg), _Al) {
         this->rehash(_Buckets);
         this->insert(_First, _Last);
@@ -512,14 +512,14 @@ public:
 
     template <class _Iter>
     无序多重集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
-        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), 分配器类型()) {
         this->rehash(_Buckets);
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
     无序多重集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg,
-        const allocator_type& _Al)
+        const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
         this->rehash(_Buckets);
         this->insert(_First, _Last);
@@ -532,27 +532,27 @@ public:
 
     无序多重集合实现(无序多重集合实现&& _Right) : _我的基类(_STD move(_Right)) {}
 
-    无序多重集合实现(无序多重集合实现&& _Right, const allocator_type& _Al) : _我的基类(_STD move(_Right), _Al) {}
+    无序多重集合实现(无序多重集合实现&& _Right, const 分配器类型& _Al) : _我的基类(_STD move(_Right), _Al) {}
 
 #if _HAS_CXX23
     template <_Container_compatible_range<value_type> _Rng>
-    无序多重集合实现(from_range_t, _Rng&& _Range) : _我的基类(_Key_compare(), allocator_type()) {
+    无序多重集合实现(from_range_t, _Rng&& _Range) : _我的基类(_Key_compare(), 分配器类型()) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    无序多重集合实现(from_range_t, _Rng&& _Range, const allocator_type& _Al) : _我的基类(_Key_compare(), _Al) {
+    无序多重集合实现(from_range_t, _Rng&& _Range, const 分配器类型& _Al) : _我的基类(_Key_compare(), _Al) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    无序多重集合实现(from_range_t, _Rng&& _Range, size_type _Buckets) : _我的基类(_Key_compare(), allocator_type()) {
+    无序多重集合实现(from_range_t, _Rng&& _Range, size_type _Buckets) : _我的基类(_Key_compare(), 分配器类型()) {
         _我的基类::rehash(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    无序多重集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const allocator_type& _Al)
+    无序多重集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 分配器类型& _Al)
         : _我的基类(_Key_compare(), _Al) {
         _我的基类::rehash(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
@@ -560,14 +560,14 @@ public:
 
     template <_Container_compatible_range<value_type> _Rng>
     无序多重集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg)
-        : _我的基类(_Key_compare(_Hasharg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg), 分配器类型()) {
         _我的基类::rehash(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序多重集合实现(
-        from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
+        from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg), _Al) {
         _我的基类::rehash(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
@@ -575,14 +575,14 @@ public:
 
     template <_Container_compatible_range<value_type> _Rng>
     无序多重集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
-        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), 分配器类型()) {
         _我的基类::rehash(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序多重集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg,
-        const allocator_type& _Al)
+        const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
         _我的基类::rehash(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
@@ -600,34 +600,34 @@ public:
         _我的基类::swap(_Right);
     }
 
-    无序多重集合实现(initializer_list<value_type> _Ilist) : _我的基类(_Key_compare(), allocator_type()) {
+    无序多重集合实现(initializer_list<value_type> _Ilist) : _我的基类(_Key_compare(), 分配器类型()) {
         this->insert(_Ilist);
     }
 
-    无序多重集合实现(initializer_list<value_type> _Ilist, const allocator_type& _Al) : _我的基类(_Key_compare(), _Al) {
+    无序多重集合实现(initializer_list<value_type> _Ilist, const 分配器类型& _Al) : _我的基类(_Key_compare(), _Al) {
         this->insert(_Ilist);
     }
 
     无序多重集合实现(initializer_list<value_type> _Ilist, size_type _Buckets)
-        : _我的基类(_Key_compare(), allocator_type()) {
+        : _我的基类(_Key_compare(), 分配器类型()) {
         this->rehash(_Buckets);
         this->insert(_Ilist);
     }
 
-    无序多重集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const allocator_type& _Al)
+    无序多重集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const 分配器类型& _Al)
         : _我的基类(_Key_compare(), _Al) {
         this->rehash(_Buckets);
         this->insert(_Ilist);
     }
 
     无序多重集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg)
-        : _我的基类(_Key_compare(_Hasharg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg), 分配器类型()) {
         this->rehash(_Buckets);
         this->insert(_Ilist);
     }
 
     无序多重集合实现(
-        initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
+        initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg), _Al) {
         this->rehash(_Buckets);
         this->insert(_Ilist);
@@ -635,13 +635,13 @@ public:
 
     无序多重集合实现(
         initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
-        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
+        : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), 分配器类型()) {
         this->rehash(_Buckets);
         this->insert(_Ilist);
     }
 
     无序多重集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const hasher& _Hasharg,
-        const _Keyeq& _Keyeqarg, const allocator_type& _Al)
+        const _Keyeq& _Keyeqarg, const 分配器类型& _Al)
         : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
         this->rehash(_Buckets);
         this->insert(_Ilist);
@@ -788,8 +788,11 @@ _STL_RESTORE_CLANG_WARNINGS
     // 嵌套类型名也要补回英文（数据成员不行 —— 那会改布局）
     使用 迭代器 = 基类::iterator;
     使用 常量迭代器 = 基类::const_iterator;
-    使用 键类型 = 基类::key_type;
     使用 尺寸类型 = 基类::size_type;
+    使用 key_type = 基类::键类型;
+    使用 allocator_type = 基类::分配器类型;
+    使用 node_type = 基类::结点类型;
+    使用 值类型 = 基类::value_type;
 
     // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
     模板 <类型名... 参数> 声明类型(自动) emplace(参数&&... 值) { 返回 基类::就地构造(static_cast<参数&&>(值)...); }
@@ -839,9 +842,13 @@ _STL_RESTORE_CLANG_WARNINGS
     // §16.51 嵌套类型名也补中文（主类有 deriveTypes，这个类得手写）
     使用 迭代器 = 基类::iterator;
     使用 常量迭代器 = 基类::const_iterator;
-    使用 键类型 = 基类::key_type;
     使用 值类型 = 基类::value_type;
     使用 尺寸类型 = 基类::size_type;
+    // §16.58 这三个名字在【抄来那层】已经是汉语了 -> 这里改成补【英文原名】
+    //   （方向翻转，与主类 deriveTypes 一致）；中文名从基类继承，不再手写。
+    使用 key_type = 基类::键类型;
+    使用 node_type = 基类::结点类型;
+    使用 allocator_type = 基类::分配器类型;
 
     // §16.51 英文原名回填：这 8 个名字（emplace / emplace_hint + 6 个继承自 _哈希 的公开 API）
     //   在【抄来那层】已经是汉语 —— 不回填，用户原本能写的 甲.size() 就没了 = 回归。
