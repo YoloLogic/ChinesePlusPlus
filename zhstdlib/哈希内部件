@@ -593,7 +593,7 @@ public:
     }
 
     template <class... _Valtys>
-    conditional_t<_Multi, iterator, pair<iterator, bool>> emplace(_Valtys&&... _Vals) {
+    conditional_t<_Multi, iterator, pair<iterator, bool>> 就地构造(_Valtys&&... _Vals) {
         // try to insert value_type(_Vals...)
         using _In_place_key_extractor = typename _Traits::template _In_place_key_extractor<_Valtys...>;
         if constexpr (_Multi) {
@@ -646,7 +646,7 @@ public:
     }
 
     template <class... _Valtys>
-    iterator emplace_hint(const_iterator _Hint, _Valtys&&... _Vals) { // try to insert value_type(_Vals...)
+    iterator 按提示就地构造(const_iterator _Hint, _Valtys&&... _Vals) { // try to insert value_type(_Vals...)
         using _In_place_key_extractor = typename _Traits::template _In_place_key_extractor<_Valtys...>;
         if constexpr (_Multi) {
             _检查最大尺寸();
@@ -938,26 +938,26 @@ public:
     }
 
     conditional_t<_Multi, iterator, pair<iterator, bool>> insert(const value_type& _Val) {
-        return emplace(_Val);
+        return 就地构造(_Val);
     }
 
     conditional_t<_Multi, iterator, pair<iterator, bool>> insert(value_type&& _Val) {
-        return emplace(_STD move(_Val));
+        return 就地构造(_STD move(_Val));
     }
 
     iterator insert(const_iterator _Hint, const value_type& _Val) {
-        return emplace_hint(_Hint, _Val);
+        return 按提示就地构造(_Hint, _Val);
     }
 
     iterator insert(const_iterator _Hint, value_type&& _Val) {
-        return emplace_hint(_Hint, _STD move(_Val));
+        return 按提示就地构造(_Hint, _STD move(_Val));
     }
 
 protected:
     template <class _Iter, class _Sent>
     void _插入范围非检查(_Iter _First, const _Sent _Last) {
         for (; _First != _Last; ++_First) {
-            emplace(*_First);
+            就地构造(*_First);
         }
     }
 

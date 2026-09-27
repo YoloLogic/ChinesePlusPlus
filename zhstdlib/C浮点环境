@@ -18,6 +18,6 @@
 名域 标准 {
     使用 浮点环境类型 = std::fenv_t;
     使用 浮点异常类型 = std::fexcept_t;
-    模板 <类型名... 参数> 自动 清除浮点异常(参数&&... 值) { 返回 std::feclearexcept(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 测试浮点异常(参数&&... 值) { 返回 std::fetestexcept(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 清除浮点异常(参数&&... 值) { 返回 std::feclearexcept(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 测试浮点异常(参数&&... 值) { 返回 std::fetestexcept(static_cast<参数&&>(值)...); }
 }

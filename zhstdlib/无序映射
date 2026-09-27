@@ -8,7 +8,7 @@
 #define _ZH_UNORDERED_MAP_
 #include <yvals_core.h>
 #if _STL_COMPILER_PREPROCESSOR
-#include <xhash>
+#include <哈希内部件>
 
 #if _HAS_CXX17
 #include <xpolymorphic_allocator.h>
@@ -28,7 +28,7 @@ template <class _Kty, // key type
     class _Tr, // comparator predicate type
     class _Alloc, // actual allocator type (should be value allocator)
     bool _Mfl> // true if multiple equivalent keys are permitted
-class _无序映射特征 : public _Tr { // traits required to make _Hash behave like a map
+class _无序映射特征 : public _Tr { // traits required to make _哈希 behave like a map
 public:
     using key_type            = _Kty;
     using value_type          = pair<const _Kty, _Ty>;
@@ -36,7 +36,7 @@ public:
     using key_compare         = _Tr;
     using allocator_type      = _Alloc;
 #if _HAS_CXX17
-    using node_type = _Node_handle<_List_node<value_type, typename allocator_traits<_Alloc>::void_pointer>, _Alloc,
+    using node_type = _Node_handle<_链表节点<value_type, typename allocator_traits<_Alloc>::void_pointer>, _Alloc,
         _Node_handle_map_base, _Kty, _Ty>;
 #endif // _HAS_CXX17
 
@@ -60,7 +60,7 @@ public:
 
 _EXPORT_STD template <class _Kty, class _Ty, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>,
     class _Alloc = allocator<pair<const _Kty, _Ty>>>
-class 无序映射实现 : public _Hash<_无序映射特征<_Kty, _Ty, _Uhash_compare<_Kty, _Hasher, _Keyeq>, _Alloc, false>> {
+class 无序映射实现 : public _哈希<_无序映射特征<_Kty, _Ty, _无序哈希比较<_Kty, _Hasher, _Keyeq>, _Alloc, false>> {
     // hash table of {key, mapped} values, unique keys
 public:
     static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<pair<const _Kty, _Ty>, typename _Alloc::value_type>,
@@ -69,11 +69,11 @@ public:
                                      "because of [container.requirements].");
 
 private:
-    using _我的特征      = _Uhash_compare<_Kty, _Hasher, _Keyeq>;
-    using _我的基类        = _Hash<_无序映射特征<_Kty, _Ty, _我的特征, _Alloc, false>>;
+    using _我的特征      = _无序哈希比较<_Kty, _Hasher, _Keyeq>;
+    using _我的基类        = _哈希<_无序映射特征<_Kty, _Ty, _我的特征, _Alloc, false>>;
     using _Alnode        = typename _我的基类::_Alnode;
     using _Alnode_traits = typename _我的基类::_Alnode_traits;
-    using _Nodeptr       = typename _我的基类::_Nodeptr;
+    using _结点指针       = typename _我的基类::_结点指针;
     using _Key_compare   = typename _我的基类::_Key_compare;
 
 public:
@@ -105,7 +105,7 @@ public:
     explicit 无序映射实现(const allocator_type& _Al) : _我的基类(_Key_compare(), _Al) {}
 
     无序映射实现(const 无序映射实现& _Right)
-        : _我的基类(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._Getal())) {}
+        : _我的基类(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._取分配器())) {}
 
     无序映射实现(const 无序映射实现& _Right, const allocator_type& _Al) : _我的基类(_Right, _Al) {}
 
@@ -191,46 +191,46 @@ public:
 #if _HAS_CXX23
     template <_Container_compatible_range<value_type> _Rng>
     无序映射实现(from_range_t, _Rng&& _Range) : _我的基类(_Key_compare(), allocator_type()) {
-        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序映射实现(from_range_t, _Rng&& _Range, const allocator_type& _Al) : _我的基类(_Key_compare(), _Al) {
-        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序映射实现(from_range_t, _Rng&& _Range, size_type _Buckets) : _我的基类(_Key_compare(), allocator_type()) {
         _我的基类::rehash(_Buckets);
-        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序映射实现(from_range_t, _Rng&& _Range, size_type _Buckets, const allocator_type& _Al)
         : _我的基类(_Key_compare(), _Al) {
         _我的基类::rehash(_Buckets);
-        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序映射实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg)
         : _我的基类(_Key_compare(_Hasharg), allocator_type()) {
         _我的基类::rehash(_Buckets);
-        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序映射实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
         : _我的基类(_Key_compare(_Hasharg), _Al) {
         _我的基类::rehash(_Buckets);
-        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序映射实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
         : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
         _我的基类::rehash(_Buckets);
-        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
@@ -238,7 +238,7 @@ public:
         const allocator_type& _Al)
         : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
         _我的基类::rehash(_Buckets);
-        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 #endif // _HAS_CXX23
 
@@ -259,7 +259,7 @@ public:
     }
 
     mapped_type& operator[](key_type&& _Keyval) {
-        return this->_Try_emplace(_STD move(_Keyval)).first->_Myval.second;
+        return this->_尝试就地构造(_STD move(_Keyval)).first->_Myval.second;
     }
 
     void swap(无序映射实现& _Right) noexcept(noexcept(_我的基类::swap(_Right))) {
@@ -275,31 +275,31 @@ public:
 
     template <class _Valty, enable_if_t<is_constructible_v<value_type, _Valty>, int> = 0>
     iterator insert(const_iterator _Where, _Valty&& _Val) {
-        return this->emplace_hint(_Where, _STD forward<_Valty>(_Val));
+        return this->按提示就地构造(_Where, _STD forward<_Valty>(_Val));
     }
 
     template <class... _Mappedty>
     pair<iterator, bool> 尝试就地构造(const key_type& _Keyval, _Mappedty&&... _Mapval) {
-        const auto _Result = this->_Try_emplace(_Keyval, _STD forward<_Mappedty>(_Mapval)...);
+        const auto _Result = this->_尝试就地构造(_Keyval, _STD forward<_Mappedty>(_Mapval)...);
         return {this->_List._Make_iter(_Result.first), _Result.second};
     }
 
     template <class... _Mappedty>
     pair<iterator, bool> 尝试就地构造(key_type&& _Keyval, _Mappedty&&... _Mapval) {
-        const auto _Result = this->_Try_emplace(_STD move(_Keyval), _STD forward<_Mappedty>(_Mapval)...);
+        const auto _Result = this->_尝试就地构造(_STD move(_Keyval), _STD forward<_Mappedty>(_Mapval)...);
         return {this->_List._Make_iter(_Result.first), _Result.second};
     }
 
     template <class... _Mappedty>
     iterator 尝试就地构造(const const_iterator _Hint, const key_type& _Keyval, _Mappedty&&... _Mapval) {
         return this->_List._Make_iter(
-            this->_Try_emplace_hint(_Hint._Ptr, _Keyval, _STD forward<_Mappedty>(_Mapval)...));
+            this->_按提示尝试就地构造(_Hint._Ptr, _Keyval, _STD forward<_Mappedty>(_Mapval)...));
     }
 
     template <class... _Mappedty>
     iterator 尝试就地构造(const const_iterator _Hint, key_type&& _Keyval, _Mappedty&&... _Mapval) {
         return this->_List._Make_iter(
-            this->_Try_emplace_hint(_Hint._Ptr, _STD move(_Keyval), _STD forward<_Mappedty>(_Mapval)...));
+            this->_按提示尝试就地构造(_Hint._Ptr, _STD move(_Keyval), _STD forward<_Mappedty>(_Mapval)...));
     }
 
 private:
@@ -307,47 +307,47 @@ private:
     pair<iterator, bool> _Insert_or_assign(_Keyty&& _Keyval_arg, _Mappedty&& _Mapval) {
         const auto& _Keyval   = _Keyval_arg;
         const size_t _Hashval = this->_Traitsobj(_Keyval);
-        auto _Target          = this->_Find_last(_Keyval, _Hashval);
+        auto _Target          = this->_查找最后(_Keyval, _Hashval);
         if (_Target._Duplicate) {
             _Target._Duplicate->_Myval.second = _STD forward<_Mappedty>(_Mapval);
             return {this->_List._Make_iter(_Target._Duplicate), false};
         }
 
-        this->_Check_max_size();
+        this->_检查最大尺寸();
         // invalidates _Keyval:
-        _List_node_emplace_op2<_Alnode> _Newnode(
-            this->_Getal(), _STD forward<_Keyty>(_Keyval_arg), _STD forward<_Mappedty>(_Mapval));
-        if (this->_Check_rehash_required_1()) {
-            this->_Rehash_for_1();
-            _Target = this->_Find_last(_Newnode._Ptr->_Myval.first, _Hashval);
+        _链表节点就地构造操作2<_Alnode> _Newnode(
+            this->_取分配器(), _STD forward<_Keyty>(_Keyval_arg), _STD forward<_Mappedty>(_Mapval));
+        if (this->_检查需重哈希1()) {
+            this->_为1重哈希();
+            _Target = this->_查找最后(_Newnode._Ptr->_Myval.first, _Hashval);
         }
 
         return {this->_List._Make_iter(
-                    this->_Insert_new_node_before(_Hashval, _Target._Insert_before, _Newnode._Release())),
+                    this->_在之前插入新节点(_Hashval, _Target._Insert_before, _Newnode._Release())),
             true};
     }
 
     template <class _Keyty, class _Mappedty>
-    iterator _Insert_or_assign(const _Nodeptr _Hint, _Keyty&& _Keyval_arg, _Mappedty&& _Mapval) {
+    iterator _Insert_or_assign(const _结点指针 _Hint, _Keyty&& _Keyval_arg, _Mappedty&& _Mapval) {
         const auto& _Keyval   = _Keyval_arg;
         const size_t _Hashval = this->_Traitsobj(_Keyval);
-        auto _Target          = this->_Find_hint(_Hint, _Keyval, _Hashval);
+        auto _Target          = this->_按提示查找(_Hint, _Keyval, _Hashval);
         if (_Target._Duplicate) {
             _Target._Duplicate->_Myval.second = _STD forward<_Mappedty>(_Mapval);
             return this->_List._Make_iter(_Target._Duplicate);
         }
 
-        this->_Check_max_size();
+        this->_检查最大尺寸();
         // invalidates _Keyval:
-        _List_node_emplace_op2<_Alnode> _Newnode(
-            this->_Getal(), _STD forward<_Keyty>(_Keyval_arg), _STD forward<_Mappedty>(_Mapval));
-        if (this->_Check_rehash_required_1()) {
-            this->_Rehash_for_1();
-            _Target = this->_Find_hint(_Hint, _Newnode._Ptr->_Myval.first, _Hashval);
+        _链表节点就地构造操作2<_Alnode> _Newnode(
+            this->_取分配器(), _STD forward<_Keyty>(_Keyval_arg), _STD forward<_Mappedty>(_Mapval));
+        if (this->_检查需重哈希1()) {
+            this->_为1重哈希();
+            _Target = this->_按提示查找(_Hint, _Newnode._Ptr->_Myval.first, _Hashval);
         }
 
         return this->_List._Make_iter(
-            this->_Insert_new_node_before(_Hashval, _Target._Insert_before, _Newnode._Release()));
+            this->_在之前插入新节点(_Hashval, _Target._Insert_before, _Newnode._Release()));
     }
 
 public:
@@ -418,7 +418,7 @@ public:
     }
 
     无序映射实现& operator=(initializer_list<value_type> _Ilist) {
-        _我的基类::clear();
+        _我的基类::清空();
         insert(_Ilist);
         return *this;
     }
@@ -432,11 +432,11 @@ public:
     }
 
     mapped_type& operator[](const key_type& _Keyval) {
-        return this->_Try_emplace(_Keyval).first->_Myval.second;
+        return this->_尝试就地构造(_Keyval).first->_Myval.second;
     }
 
     _NODISCARD mapped_type& 取值(const key_type& _Keyval) {
-        const auto _Target = this->_Find_last(_Keyval, this->_Traitsobj(_Keyval));
+        const auto _Target = this->_查找最后(_Keyval, this->_Traitsobj(_Keyval));
         if (_Target._Duplicate) {
             return _Target._Duplicate->_Myval.second;
         }
@@ -445,7 +445,7 @@ public:
     }
 
     _NODISCARD const mapped_type& 取值(const key_type& _Keyval) const {
-        const auto _Target = this->_Find_last(_Keyval, this->_Traitsobj(_Keyval));
+        const auto _Target = this->_查找最后(_Keyval, this->_Traitsobj(_Keyval));
         if (_Target._Duplicate) {
             return _Target._Duplicate->_Myval.second;
         }
@@ -453,22 +453,22 @@ public:
         _Xout_of_range("invalid 无序映射实现<K, T> key");
     }
 
-    using _我的基类::_Unchecked_begin;
-    using _我的基类::_Unchecked_end;
+    using _我的基类::_非检查开始;
+    using _我的基类::_非检查结束;
 };
 
 #if _HAS_CXX17
 template <class _Iter, class _Hasher = hash<_Guide_key_t<_Iter>>, class _Keyeq = equal_to<_Guide_key_t<_Iter>>,
     class _Alloc = allocator<_Guide_pair_t<_Iter>>,
     enable_if_t<
-        conjunction_v<_Is_iterator<_Iter>, _Is_hasher<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_Alloc>>,
+        conjunction_v<_Is_iterator<_Iter>, _是哈希器<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_Alloc>>,
         int> = 0>
 无序映射实现(_Iter, _Iter, _Guide_size_type_t<_Alloc> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(), _Alloc = _Alloc())
     -> 无序映射实现<_Guide_key_t<_Iter>, _Guide_val_t<_Iter>, _Hasher, _Keyeq, _Alloc>;
 
 template <class _Kty, class _Ty, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>,
     class _Alloc = allocator<pair<const _Kty, _Ty>>,
-    enable_if_t<conjunction_v<_Is_hasher<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_Alloc>>, int> = 0>
+    enable_if_t<conjunction_v<_是哈希器<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_Alloc>>, int> = 0>
 无序映射实现(initializer_list<pair<_Kty, _Ty>>, _Guide_size_type_t<_Alloc> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(),
     _Alloc = _Alloc()) -> 无序映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>;
 
@@ -481,7 +481,7 @@ template <class _Iter, class _Alloc, enable_if_t<conjunction_v<_Is_iterator<_Ite
     _Guide_val_t<_Iter>, hash<_Guide_key_t<_Iter>>, equal_to<_Guide_key_t<_Iter>>, _Alloc>;
 
 template <class _Iter, class _Hasher, class _Alloc,
-    enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_hasher<_Hasher>, _Is_allocator<_Alloc>>, int> = 0>
+    enable_if_t<conjunction_v<_Is_iterator<_Iter>, _是哈希器<_Hasher>, _Is_allocator<_Alloc>>, int> = 0>
 无序映射实现(_Iter, _Iter, _Guide_size_type_t<_Alloc>, _Hasher, _Alloc)
     -> 无序映射实现<_Guide_key_t<_Iter>, _Guide_val_t<_Iter>, _Hasher, equal_to<_Guide_key_t<_Iter>>, _Alloc>;
 
@@ -494,7 +494,7 @@ template <class _Kty, class _Ty, class _Alloc, enable_if_t<_Is_allocator<_Alloc>
     -> 无序映射实现<_Kty, _Ty, hash<_Kty>, equal_to<_Kty>, _Alloc>;
 
 template <class _Kty, class _Ty, class _Hasher, class _Alloc,
-    enable_if_t<conjunction_v<_Is_hasher<_Hasher>, _Is_allocator<_Alloc>>, int> = 0>
+    enable_if_t<conjunction_v<_是哈希器<_Hasher>, _Is_allocator<_Alloc>>, int> = 0>
 无序映射实现(initializer_list<pair<_Kty, _Ty>>, _Guide_size_type_t<_Alloc>, _Hasher, _Alloc)
     -> 无序映射实现<_Kty, _Ty, _Hasher, equal_to<_Kty>, _Alloc>;
 
@@ -537,7 +537,7 @@ _EXPORT_STD template <class _Kty, class _Ty, class _Hasher, class _Keyeq, class 
 _EXPORT_STD template <class _Kty, class _Ty, class _Hasher, class _Keyeq, class _Alloc>
 _NODISCARD bool operator==(const 无序映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>& _Left,
     const 无序映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>& _Right) {
-    return _Hash_equal(_Left, _Right);
+    return _哈希相等(_Left, _Right);
 }
 
 #if !_HAS_CXX20
@@ -550,7 +550,7 @@ _NODISCARD bool operator!=(const 无序映射实现<_Kty, _Ty, _Hasher, _Keyeq, 
 
 _EXPORT_STD template <class _Kty, class _Ty, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>,
     class _Alloc = allocator<pair<const _Kty, _Ty>>>
-class 无序多重映射实现 : public _Hash<_无序映射特征<_Kty, _Ty, _Uhash_compare<_Kty, _Hasher, _Keyeq>, _Alloc, true>> {
+class 无序多重映射实现 : public _哈希<_无序映射特征<_Kty, _Ty, _无序哈希比较<_Kty, _Hasher, _Keyeq>, _Alloc, true>> {
     // hash table of {key, mapped} values, non-unique keys
 public:
     static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<pair<const _Kty, _Ty>, typename _Alloc::value_type>,
@@ -560,8 +560,8 @@ public:
                                      "because of [container.requirements].");
 
 private:
-    using _我的特征      = _Uhash_compare<_Kty, _Hasher, _Keyeq>;
-    using _我的基类        = _Hash<_无序映射特征<_Kty, _Ty, _我的特征, _Alloc, true>>;
+    using _我的特征      = _无序哈希比较<_Kty, _Hasher, _Keyeq>;
+    using _我的基类        = _哈希<_无序映射特征<_Kty, _Ty, _我的特征, _Alloc, true>>;
     using _Alnode        = typename _我的基类::_Alnode;
     using _Alnode_traits = typename _我的基类::_Alnode_traits;
     using _Key_compare   = typename _我的基类::_Key_compare;
@@ -592,7 +592,7 @@ public:
         : _我的基类(_Key_compare(), _Al) {} // construct empty map from defaults, allocator
 
     无序多重映射实现(const 无序多重映射实现& _Right)
-        : _我的基类(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._Getal())) {}
+        : _我的基类(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._取分配器())) {}
 
     无序多重映射实现(const 无序多重映射实现& _Right, const allocator_type& _Al) : _我的基类(_Right, _Al) {}
 
@@ -678,32 +678,32 @@ public:
 #if _HAS_CXX23
     template <_Container_compatible_range<value_type> _Rng>
     无序多重映射实现(from_range_t, _Rng&& _Range) : _我的基类(_Key_compare(), allocator_type()) {
-        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序多重映射实现(from_range_t, _Rng&& _Range, const allocator_type& _Al) : _我的基类(_Key_compare(), _Al) {
-        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序多重映射实现(from_range_t, _Rng&& _Range, size_type _Buckets) : _我的基类(_Key_compare(), allocator_type()) {
         _我的基类::rehash(_Buckets);
-        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序多重映射实现(from_range_t, _Rng&& _Range, size_type _Buckets, const allocator_type& _Al)
         : _我的基类(_Key_compare(), _Al) {
         _我的基类::rehash(_Buckets);
-        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序多重映射实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg)
         : _我的基类(_Key_compare(_Hasharg), allocator_type()) {
         _我的基类::rehash(_Buckets);
-        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
@@ -711,14 +711,14 @@ public:
         from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const allocator_type& _Al)
         : _我的基类(_Key_compare(_Hasharg), _Al) {
         _我的基类::rehash(_Buckets);
-        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序多重映射实现(from_range_t, _Rng&& _Range, size_type _Buckets, const hasher& _Hasharg, const _Keyeq& _Keyeqarg)
         : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), allocator_type()) {
         _我的基类::rehash(_Buckets);
-        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
@@ -726,7 +726,7 @@ public:
         const allocator_type& _Al)
         : _我的基类(_Key_compare(_Hasharg, _Keyeqarg), _Al) {
         _我的基类::rehash(_Buckets);
-        this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 #endif // _HAS_CXX23
 
@@ -759,7 +759,7 @@ public:
 
     template <class _Valty, enable_if_t<is_constructible_v<value_type, _Valty>, int> = 0>
     iterator insert(const_iterator _Where, _Valty&& _Val) {
-        return this->emplace_hint(_Where, _STD forward<_Valty>(_Val));
+        return this->按提示就地构造(_Where, _STD forward<_Valty>(_Val));
     }
 
     无序多重映射实现(initializer_list<value_type> _Ilist) : _我的基类(_Key_compare(), allocator_type()) {
@@ -810,7 +810,7 @@ public:
     }
 
     无序多重映射实现& operator=(initializer_list<value_type> _Ilist) {
-        _我的基类::clear();
+        _我的基类::清空();
         insert(_Ilist);
         return *this;
     }
@@ -823,22 +823,22 @@ public:
         return _我的基类::_Traitsobj._Mypair._Myval2._Get_first();
     }
 
-    using _我的基类::_Unchecked_begin;
-    using _我的基类::_Unchecked_end;
+    using _我的基类::_非检查开始;
+    using _我的基类::_非检查结束;
 };
 
 #if _HAS_CXX17
 template <class _Iter, class _Hasher = hash<_Guide_key_t<_Iter>>, class _Keyeq = equal_to<_Guide_key_t<_Iter>>,
     class _Alloc = allocator<_Guide_pair_t<_Iter>>,
     enable_if_t<
-        conjunction_v<_Is_iterator<_Iter>, _Is_hasher<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_Alloc>>,
+        conjunction_v<_Is_iterator<_Iter>, _是哈希器<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_Alloc>>,
         int> = 0>
 无序多重映射实现(_Iter, _Iter, _Guide_size_type_t<_Alloc> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(),
     _Alloc = _Alloc()) -> 无序多重映射实现<_Guide_key_t<_Iter>, _Guide_val_t<_Iter>, _Hasher, _Keyeq, _Alloc>;
 
 template <class _Kty, class _Ty, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>,
     class _Alloc = allocator<pair<const _Kty, _Ty>>,
-    enable_if_t<conjunction_v<_Is_hasher<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_Alloc>>, int> = 0>
+    enable_if_t<conjunction_v<_是哈希器<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_Alloc>>, int> = 0>
 无序多重映射实现(initializer_list<pair<_Kty, _Ty>>, _Guide_size_type_t<_Alloc> = 0, _Hasher = _Hasher(),
     _Keyeq = _Keyeq(), _Alloc = _Alloc()) -> 无序多重映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>;
 
@@ -851,7 +851,7 @@ template <class _Iter, class _Alloc, enable_if_t<conjunction_v<_Is_iterator<_Ite
     _Guide_val_t<_Iter>, hash<_Guide_key_t<_Iter>>, equal_to<_Guide_key_t<_Iter>>, _Alloc>;
 
 template <class _Iter, class _Hasher, class _Alloc,
-    enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_hasher<_Hasher>, _Is_allocator<_Alloc>>, int> = 0>
+    enable_if_t<conjunction_v<_Is_iterator<_Iter>, _是哈希器<_Hasher>, _Is_allocator<_Alloc>>, int> = 0>
 无序多重映射实现(_Iter, _Iter, _Guide_size_type_t<_Alloc>, _Hasher, _Alloc)
     -> 无序多重映射实现<_Guide_key_t<_Iter>, _Guide_val_t<_Iter>, _Hasher, equal_to<_Guide_key_t<_Iter>>, _Alloc>;
 
@@ -864,7 +864,7 @@ template <class _Kty, class _Ty, class _Alloc, enable_if_t<_Is_allocator<_Alloc>
     -> 无序多重映射实现<_Kty, _Ty, hash<_Kty>, equal_to<_Kty>, _Alloc>;
 
 template <class _Kty, class _Ty, class _Hasher, class _Alloc,
-    enable_if_t<conjunction_v<_Is_hasher<_Hasher>, _Is_allocator<_Alloc>>, int> = 0>
+    enable_if_t<conjunction_v<_是哈希器<_Hasher>, _Is_allocator<_Alloc>>, int> = 0>
 无序多重映射实现(initializer_list<pair<_Kty, _Ty>>, _Guide_size_type_t<_Alloc>, _Hasher, _Alloc)
     -> 无序多重映射实现<_Kty, _Ty, _Hasher, equal_to<_Kty>, _Alloc>;
 
@@ -909,7 +909,7 @@ _EXPORT_STD template <class _Kty, class _Ty, class _Hasher, class _Keyeq, class 
 _EXPORT_STD template <class _Kty, class _Ty, class _Hasher, class _Keyeq, class _Alloc>
 _NODISCARD bool operator==(const 无序多重映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>& _Left,
     const 无序多重映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>& _Right) {
-    return _Hash_equal(_Left, _Right);
+    return _哈希相等(_Left, _Right);
 }
 
 #if !_HAS_CXX20
@@ -967,29 +967,43 @@ _STL_RESTORE_CLANG_WARNINGS
     使用 尺寸类型 = 基类::size_type;
 
     // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
-    模板 <类型名... 参数> 自动 at(参数&&... 值) { 返回 基类::取值(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 at(参数&&... 值) 常量 { 返回 基类::取值(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 insert_or_assign(参数&&... 值) { 返回 基类::插入或赋值(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 insert_or_assign(参数&&... 值) 常量 { 返回 基类::插入或赋值(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 try_emplace(参数&&... 值) { 返回 基类::尝试就地构造(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 try_emplace(参数&&... 值) 常量 { 返回 基类::尝试就地构造(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 emplace(参数&&... 值) { 返回 基类::就地构造(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 emplace(参数&&... 值) 常量 { 返回 基类::就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) at(参数&&... 值) { 返回 基类::取值(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) at(参数&&... 值) 常量 { 返回 基类::取值(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) insert_or_assign(参数&&... 值) { 返回 基类::插入或赋值(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) insert_or_assign(参数&&... 值) 常量 { 返回 基类::插入或赋值(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) try_emplace(参数&&... 值) { 返回 基类::尝试就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) try_emplace(参数&&... 值) 常量 { 返回 基类::尝试就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) emplace(参数&&... 值) { 返回 基类::就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) emplace(参数&&... 值) 常量 { 返回 基类::就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) emplace_hint(参数&&... 值) { 返回 基类::按提示就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) emplace_hint(参数&&... 值) 常量 { 返回 基类::按提示就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) size(参数&&... 值) { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) size(参数&&... 值) 常量 { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) clear(参数&&... 值) { 返回 基类::清空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) clear(参数&&... 值) 常量 { 返回 基类::清空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) begin(参数&&... 值) { 返回 基类::开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) begin(参数&&... 值) 常量 { 返回 基类::开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) end(参数&&... 值) { 返回 基类::结束(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) end(参数&&... 值) 常量 { 返回 基类::结束(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) empty(参数&&... 值) { 返回 基类::为空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) empty(参数&&... 值) 常量 { 返回 基类::为空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) get_allocator(参数&&... 值) { 返回 基类::取分配器(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) get_allocator(参数&&... 值) 常量 { 返回 基类::取分配器(static_cast<参数&&>(值)...); }
 
     // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
     // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
-    模板 <类型名... 参数> 自动 插入(参数&&... 值) { 返回 基类::insert(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 擦除(参数&&... 值) { 返回 基类::erase(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 查找(参数&&... 值) { 返回 基类::find(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 计数(参数&&... 值) 常量 { 返回 基类::count(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 尺寸(参数&&... 值) 常量 { 返回 基类::size(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 为空(参数&&... 值) 常量 { 返回 基类::empty(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 清空(参数&&... 值) { 返回 基类::clear(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 包含(参数&&... 值) 常量 { 返回 基类::contains(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 开始(参数&&... 值) { 返回 基类::begin(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 结束(参数&&... 值) { 返回 基类::end(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 桶数(参数&&... 值) 常量 { 返回 基类::bucket_count(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 负载因子(参数&&... 值) 常量 { 返回 基类::load_factor(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 插入(参数&&... 值) { 返回 基类::insert(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 擦除(参数&&... 值) { 返回 基类::erase(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 查找(参数&&... 值) { 返回 基类::find(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 计数(参数&&... 值) 常量 { 返回 基类::count(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 尺寸(参数&&... 值) 常量 { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 为空(参数&&... 值) 常量 { 返回 基类::为空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 清空(参数&&... 值) { 返回 基类::清空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 包含(参数&&... 值) 常量 { 返回 基类::contains(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 开始(参数&&... 值) { 返回 基类::开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 结束(参数&&... 值) { 返回 基类::结束(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 桶数(参数&&... 值) 常量 { 返回 基类::bucket_count(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 负载因子(参数&&... 值) 常量 { 返回 基类::load_factor(static_cast<参数&&>(值)...); }
 };
 }
 
@@ -1002,15 +1016,44 @@ _STL_RESTORE_CLANG_WARNINGS
 公开:
     使用 基类 = 细节::无序多重映射实现<键, 映射值, 散列, 相等, 分配器>;
     使用 基类::基类;
-    模板 <类型名... 参数> 自动 插入(参数&&... 值) { 返回 基类::insert(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 擦除(参数&&... 值) { 返回 基类::erase(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 查找(参数&&... 值) { 返回 基类::find(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 计数(参数&&... 值) 常量 { 返回 基类::count(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 尺寸(参数&&... 值) 常量 { 返回 基类::size(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 为空(参数&&... 值) 常量 { 返回 基类::empty(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 清空(参数&&... 值) { 返回 基类::clear(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 开始(参数&&... 值) { 返回 基类::begin(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 结束(参数&&... 值) { 返回 基类::end(static_cast<参数&&>(值)...); }
+
+    // §16.52 嵌套类型名也补中文（主类有 deriveTypes，这个类得手写）
+    使用 迭代器 = 基类::iterator;
+    使用 常量迭代器 = 基类::const_iterator;
+    使用 键类型 = 基类::key_type;
+    使用 映射类型 = 基类::mapped_type;
+    使用 值类型 = 基类::value_type;
+    使用 尺寸类型 = 基类::size_type;
+
+    // §16.52 英文原名回填：这 8 个名字（emplace / emplace_hint + 6 个继承自 _哈希 的公开 API）
+    //   在【抄来那层】已经是汉语 —— 不回填，用户原本能写的 甲.size() 就没了 = 回归。
+    模板 <类型名... 参数> 声明类型(自动) emplace(参数&&... 值) { 返回 基类::就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) emplace_hint(参数&&... 值) { 返回 基类::按提示就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) size(参数&&... 值) { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) size(参数&&... 值) 常量 { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) clear(参数&&... 值) { 返回 基类::清空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) begin(参数&&... 值) { 返回 基类::开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) begin(参数&&... 值) 常量 { 返回 基类::开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) end(参数&&... 值) { 返回 基类::结束(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) end(参数&&... 值) 常量 { 返回 基类::结束(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) empty(参数&&... 值) 常量 { 返回 基类::为空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) get_allocator(参数&&... 值) 常量 { 返回 基类::取分配器(static_cast<参数&&>(值)...); }
+
+    // 中文转发：insert/erase/find/count/contains/bucket_count/load_factor 在
+    //   基类里【仍是英文】（xhash 没翻那些名字）-> 中文名得手写；
+    //   尺寸/为空/清空/开始/结束 基类里已是汉语，这里转发只是保持两个类名字一致。
+    模板 <类型名... 参数> 声明类型(自动) 插入(参数&&... 值) { 返回 基类::insert(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 擦除(参数&&... 值) { 返回 基类::erase(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 查找(参数&&... 值) { 返回 基类::find(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 计数(参数&&... 值) 常量 { 返回 基类::count(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 尺寸(参数&&... 值) 常量 { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 为空(参数&&... 值) 常量 { 返回 基类::为空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 清空(参数&&... 值) { 返回 基类::清空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 包含(参数&&... 值) 常量 { 返回 基类::contains(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 开始(参数&&... 值) { 返回 基类::开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 结束(参数&&... 值) { 返回 基类::结束(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 桶数(参数&&... 值) 常量 { 返回 基类::bucket_count(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 负载因子(参数&&... 值) 常量 { 返回 基类::load_factor(static_cast<参数&&>(值)...); }
 };
 
 }  // 名域 标准
