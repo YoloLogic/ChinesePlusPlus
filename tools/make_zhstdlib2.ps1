@@ -456,6 +456,19 @@ $H = @{
                           #   现在 _Tree = 细节::_树（§16.44），定义处与读取点都在我们手里，
                           #   于是「两边一起改」成立 —— 这就把那条欠账真正销掉了。
                           '_In_place_key_extractor' = '_就地键提取器'
+                          # §16.47 与 树内部件 同步改的契约名（分类见 树内部件 条目里的长注释）。
+                          #   `insert_return_type` 是本头自己定义的（xtree 里 0 次），一并翻。
+                          'iterator'               = '迭代器'
+                          'const_iterator'         = '常量迭代器'
+                          # ⚠ reverse_iterator / const_reverse_iterator / size_type 不翻
+                          #   （② / 同名两个主人，见 树内部件 条目）
+                          'const_reference'        = '常量引用'
+                          'key_type'               = '键类型'
+                          'key_compare'            = '键比较器'
+                          'value_compare'          = '值比较'
+                          'node_type'              = '结点类型'
+                          'allocator_type'         = '分配器类型'
+                          'insert_return_type'     = '插入返回类型'
                           # §16.37 【实测结论：不能翻】`_In_place_key_extractor` 是
                           #   `_Tset_traits` 里的成员，而 `_Tree` 会去读它：
                           #     xtree:1011:68: error:
@@ -488,10 +501,20 @@ $H = @{
     模板 <类型名... 参数> 自动 开始(参数&&... 值) { 返回 基类::begin(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 结束(参数&&... 值) { 返回 基类::end(static_cast<参数&&>(值)...); }
 '@
-    # 嵌套类型名：iterator 等继承自 _Tree，派生类自动带上英文名；
-    # 这里补中文名（deriveTypes 就是往派生类里写 `使用 中文 = 基类::英文;`）
-    deriveTypes = @( @('迭代器','iterator'), @('常量迭代器','const_iterator'),
-                     @('键类型','key_type'), @('尺寸类型','size_type') )
+    # 嵌套类型名：§16.47 把方向**反过来**（§9.1）—— 抄来那层现在是汉语，
+    # 派生层负责把【英文原名】补回来。所以配对是 @('英文名','汉语名')。
+    #   ⚠ 漏一个就是回归：用户本来能写的 标准::集合<T>::value_type 之类会消失。
+    #   ⚠ 只覆盖【主类 集合】；手写的 多重集合 必须在 extra 里自己补（见下）。
+    deriveTypes = @( @('iterator','迭代器'), @('const_iterator','常量迭代器'),
+                     @('const_reference','常量引用'),
+                     @('key_type','键类型'), @('key_compare','键比较器'),
+                     @('value_compare','值比较'), @('node_type','结点类型'),
+                     @('allocator_type','分配器类型'), @('insert_return_type','插入返回类型'),
+                     # ↓ 这三个是【边界】：抄来那层里不能翻（② 类 / 同名两个主人），
+                     #   所以中文名只能用旧方向在这里补（§16.35.5 的"方向故意混用"）。
+                     @('尺寸类型','size_type'),
+                     @('反向迭代器','reverse_iterator'),
+                     @('常量反向迭代器','const_reverse_iterator') )
     stdHash = $false
     tparam  = @{ decl = '模板 <类型名 键, 类型名 比较 = std::less<键>, 类型名 分配器 = std::allocator<键>>'; args = '<键, 比较, 分配器>' }
     extra = @'
@@ -504,6 +527,23 @@ $H = @{
 公开:
     使用 基类 = 细节::多重集合实现<键, 比较, 分配器>;
     使用 基类::基类;
+    // ⚠ §16.47：deriveTypes 只管主类 集合，管不到这里。
+    //   抄来那层已把这一族契约名翻成汉语，所以英文原名必须【在这里手写补回】——
+    //   不写就是"翻一半"（§16.41.2）：原来能用的 标准::多重集合<T>::iterator 会消失。
+    使用 iterator               = 基类::迭代器;
+    使用 const_iterator         = 基类::常量迭代器;
+    使用 反向迭代器             = 基类::reverse_iterator;         // 边界名，旧方向
+    使用 常量反向迭代器         = 基类::const_reverse_iterator;   // 边界名，旧方向
+    使用 尺寸类型              = 基类::size_type;              // 边界名，旧方向
+    使用 const_reference        = 基类::常量引用;
+    使用 key_type               = 基类::键类型;
+    使用 key_compare            = 基类::键比较器;
+    使用 value_compare          = 基类::值比较;
+    使用 node_type              = 基类::结点类型;
+    使用 allocator_type         = 基类::分配器类型;
+    // ⚠ 这里【没有】insert_return_type —— 它是 set/map 专有的（multiset 不可摘结点），
+    //   实测：'标准::细节::多重集合实现<int>' 中没有名为「插入返回类型」的类型。
+    //   判据：手写层补的每一行都要确认【那个类的基类里真的有这个名字】。
     模板 <类型名... 参数> 自动 插入(参数&&... 值) { 返回 基类::insert(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 擦除(参数&&... 值) { 返回 基类::erase(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 查找(参数&&... 值) { 返回 基类::find(static_cast<参数&&>(值)...); }
@@ -545,7 +585,21 @@ $H = @{
                           '_Alnode_traits'         = '_结点分配器特征'
                           '_Nodeptr'               = '_结点指针'
                           '_In_place_key_extractor' = '_就地键提取器'
-                          # §16.37 【实测结论：不能翻】`_In_place_key_extractor` 被 `_Tree` 读取
+                          # §16.47 与 树内部件 同步改的契约名（分类见 树内部件 条目里的长注释）
+                          'iterator'               = '迭代器'
+                          'const_iterator'         = '常量迭代器'
+                          'mapped_type'            = '映射类型'
+                          'const_reference'        = '常量引用'
+                          'key_type'               = '键类型'
+                          'key_compare'            = '键比较器'
+                          'value_compare'          = '值比较'
+                          'node_type'              = '结点类型'
+                          'allocator_type'         = '分配器类型'
+                          'insert_return_type'     = '插入返回类型'
+                          # ⚠ 不翻：value_type(④ 迭代器契约) / size_type(同名两个主人) /
+                          #        reverse_iterator(② std 模板名) / const_reverse_iterator
+                          #   —— 它们的中文名在 deriveTypes 里用【旧方向】补
+                          #  §16.37 【实测结论：不能翻】`_In_place_key_extractor` 被 `_Tree` 读取
                           #   （xtree:1011）-> 第 ③ 类。现在 _Tree 是我们自己的了，
                           #   「两边一起改」的通路已打开，属下一批。
                           # ⚠ _Alnode / _Alnode_traits / _Nodeptr 同理（`typename _Mybase::X`），
@@ -580,9 +634,16 @@ $H = @{
     data    = [ordered]@{}
     derive  = @( @('at','取值'), @('insert_or_assign','插入或赋值'),
                  @('try_emplace','尝试就地构造'), @('emplace','就地构造') )
-    deriveTypes = @( @('迭代器','iterator'), @('常量迭代器','const_iterator'),
-                     @('键类型','key_type'), @('映射类型','mapped_type'),
-                     @('值类型','value_type'), @('尺寸类型','size_type') )
+    deriveTypes = @( @('iterator','迭代器'), @('const_iterator','常量迭代器'),
+                     @('mapped_type','映射类型'), @('const_reference','常量引用'),
+                     @('key_type','键类型'), @('key_compare','键比较器'),
+                     @('value_compare','值比较'), @('node_type','结点类型'),
+                     @('allocator_type','分配器类型'), @('insert_return_type','插入返回类型'),
+                     # ↓ 边界：抄来那层不能翻（④ 迭代器契约 / ② std 模板名 / 同名两个主人）
+                     #   -> 中文名只能用旧方向在这里补（§16.35.5 "方向故意混用"）。
+                     @('值类型','value_type'), @('尺寸类型','size_type'),
+                     @('反向迭代器','reverse_iterator'),
+                     @('常量反向迭代器','const_reverse_iterator') )
     # 中文转发：这些 API 在 <xtree> 里（借用），本文件改名改不到（方案 §3.16）
     deriveExtra = @'
     模板 <类型名... 参数> 自动 插入(参数&&... 值) { 返回 基类::insert(static_cast<参数&&>(值)...); }
@@ -611,6 +672,21 @@ $H = @{
 公开:
     使用 基类 = 细节::多重映射实现<键, 映射值, 比较, 分配器>;
     使用 基类::基类;
+    // §16.47：deriveTypes 只管主类 映射，管不到这里 —— 逐个手写（否则是"翻一半"= 回归）。
+    使用 iterator           = 基类::迭代器;
+    使用 const_iterator     = 基类::常量迭代器;
+    使用 mapped_type        = 基类::映射类型;
+    使用 const_reference    = 基类::常量引用;
+    使用 key_type           = 基类::键类型;
+    使用 key_compare        = 基类::键比较器;
+    使用 value_compare      = 基类::值比较;
+    使用 node_type          = 基类::结点类型;
+    使用 allocator_type     = 基类::分配器类型;
+    // ⚠ 边界名（旧方向）：多重映射没有 insert_return_type（不可摘结点）
+    使用 值类型             = 基类::value_type;
+    使用 尺寸类型           = 基类::size_type;
+    使用 反向迭代器         = 基类::reverse_iterator;
+    使用 常量反向迭代器     = 基类::const_reverse_iterator;
     模板 <类型名... 参数> 自动 插入(参数&&... 值) { 返回 基类::insert(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 擦除(参数&&... 值) { 返回 基类::erase(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 查找(参数&&... 值) { 返回 基类::find(static_cast<参数&&>(值)...); }
@@ -1703,6 +1779,36 @@ $H = @{
       #     （同一个文件里两个主人），要单独判定；`_Red`/`_Black` 没有这个问题。
       '_Red'                     = '_红'
       '_Black'                   = '_黑'
+      # =======================================================================
+      # §16.47 `_Tree` 的【契约名】第一批 —— 先按 §16.35.5 第 ④ 类分类再动手。
+      # 实测（数迭代器类区间 25..311 vs _Tree 区间 852..2000 的出现次数）：
+      #   只在 _Tree 里出现（=> 容器专有 => 可翻）：
+      #     size_type(0/15) const_reference(0/1) const_iterator(0/42) iterator(6/73*)
+      #     reverse_iterator(0/7) const_reverse_iterator(0/7) key_type(0/18)
+      #     key_compare(0/24) value_compare(0/4) node_type(0/14) allocator_type(0/12)
+      #     * iterator 那 6 次**全在字符串字面量里**（断言消息），不是标识符 -> 仍可翻
+      #   迭代器类里也在用（=> 迭代器契约 => 不能翻）：
+      #     value_type / difference_type / pointer / const_pointer / reference / iterator_category
+      #   ⚠ 判据：**同一个名字既是容器契约又是迭代器契约时，不能翻** ——
+      #     翻了，std::iterator_traits<我们的迭代器> 就认不出它（标准算法直接用不了）。
+      # =======================================================================
+      'iterator'                 = '迭代器'
+      'const_iterator'           = '常量迭代器'
+      # ⚠ `reverse_iterator` / `const_reverse_iterator` 【不翻】（§16.35.5 第 ② 类）：
+      #   原文是 `using reverse_iterator = _STD reverse_iterator<iterator>;`
+      #   —— 右边的 `reverse_iterator` 是 **std 的模板名**。翻了之后步 4c 会把它去限定成
+      #   `反向迭代器<迭代器>`，而 `反向迭代器` 正是我们刚声明的别名 -> 自引用 -> 语法错：
+      #       树内部件:898:50: error: 在 alias declaration 之后缺少 ';'
+      #   （与 <跨度> 那次同一个坑。）中文名只能在派生层补（旧方向）。
+      # ⚠ `size_type` 也【不翻】—— 同名两个主人：`_Tree` 自己有一个，
+      #   而借来的 `allocator_traits` 也有一个（原文 867 行 `typename _Alty_traits::size_type`）。
+      #   翻了就报：'std::allocator_traits<std::allocator<int>>' 中没有名为「尺寸类型」的类型。
+      'const_reference'          = '常量引用'
+      'key_type'                 = '键类型'
+      'key_compare'              = '键比较器'
+      'value_compare'            = '值比较'
+      'node_type'                = '结点类型'
+      'allocator_type'           = '分配器类型'
     }
     members = [ordered]@{
       # §16.43 成员层第一批：**确认属于 `_Tree` 自己**的那一批。

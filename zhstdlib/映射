@@ -31,12 +31,12 @@ template <class _Kty, // key type
     bool _Mfl> // true if multiple equivalent keys are permitted
 class _映射特征 { // traits required to make _树 behave like a 映射实现
 public:
-    using key_type       = _Kty;
+    using 键类型       = _Kty;
     using value_type     = pair<const _Kty, _Ty>;
-    using key_compare    = _Pr;
-    using allocator_type = _Alloc;
+    using 键比较器    = _Pr;
+    using 分配器类型 = _Alloc;
 #if _HAS_CXX17
-    using node_type = _Node_handle<_树节点<value_type, typename allocator_traits<_Alloc>::void_pointer>, _Alloc,
+    using 结点类型 = _Node_handle<_树节点<value_type, typename allocator_traits<_Alloc>::void_pointer>, _Alloc,
         _Node_handle_map_base, _Kty, _Ty>;
 #endif // _HAS_CXX17
 
@@ -45,7 +45,7 @@ public:
     template <class... _Args>
     using _就地键提取器 = _In_place_key_extract_map<_Kty, _Args...>;
 
-    class value_compare {
+    class 值比较 {
     public:
         using _FIRST_ARGUMENT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS  = value_type;
         using _SECOND_ARGUMENT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS = value_type;
@@ -59,9 +59,9 @@ public:
     protected:
         friend _树<_映射特征>;
 
-        value_compare(key_compare _Pred) : comp(_Pred) {}
+        值比较(键比较器 _Pred) : comp(_Pred) {}
 
-        key_compare comp; // the comparator predicate for keys
+        键比较器 comp; // the comparator predicate for keys
     };
 
     template <class _Ty1, class _Ty2>
@@ -81,20 +81,20 @@ public:
 
     using _我的基类                = _树<_映射特征<_Kty, _Ty, _Pr, _Alloc, false>>;
     using _结点指针               = typename _我的基类::_结点指针;
-    using key_type               = _Kty;
-    using mapped_type            = _Ty;
-    using key_compare            = _Pr;
-    using value_compare          = typename _我的基类::value_compare;
+    using 键类型               = _Kty;
+    using 映射类型            = _Ty;
+    using 键比较器            = _Pr;
+    using 值比较          = typename _我的基类::值比较;
     using value_type             = pair<const _Kty, _Ty>;
-    using allocator_type         = typename _我的基类::allocator_type;
+    using 分配器类型         = typename _我的基类::分配器类型;
     using size_type              = typename _我的基类::size_type;
     using difference_type        = typename _我的基类::difference_type;
     using pointer                = typename _我的基类::pointer;
     using const_pointer          = typename _我的基类::const_pointer;
     using reference              = value_type&;
-    using const_reference        = const value_type&;
-    using iterator               = typename _我的基类::iterator;
-    using const_iterator         = typename _我的基类::const_iterator;
+    using 常量引用        = const value_type&;
+    using 迭代器               = typename _我的基类::迭代器;
+    using 常量迭代器         = typename _我的基类::常量迭代器;
     using reverse_iterator       = typename _我的基类::reverse_iterator;
     using const_reverse_iterator = typename _我的基类::const_reverse_iterator;
 
@@ -102,59 +102,59 @@ public:
     using _结点分配器特征 = typename _我的基类::_结点分配器特征;
 
 #if _HAS_CXX17
-    using insert_return_type = _Insert_return_type<iterator, typename _我的基类::node_type>;
+    using 插入返回类型 = _Insert_return_type<迭代器, typename _我的基类::结点类型>;
 #endif // _HAS_CXX17
 
-    映射实现() : _我的基类(key_compare()) {}
+    映射实现() : _我的基类(键比较器()) {}
 
-    explicit 映射实现(const allocator_type& _Al) : _我的基类(key_compare(), _Al) {}
+    explicit 映射实现(const 分配器类型& _Al) : _我的基类(键比较器(), _Al) {}
 
     映射实现(const 映射实现& _Right) : _我的基类(_Right, _结点分配器特征::select_on_container_copy_construction(_Right._取分配器())) {}
 
-    映射实现(const 映射实现& _Right, const allocator_type& _Al) : _我的基类(_Right, _Al) {}
+    映射实现(const 映射实现& _Right, const 分配器类型& _Al) : _我的基类(_Right, _Al) {}
 
-    explicit 映射实现(const key_compare& _Pred) : _我的基类(_Pred) {}
+    explicit 映射实现(const 键比较器& _Pred) : _我的基类(_Pred) {}
 
-    映射实现(const key_compare& _Pred, const allocator_type& _Al) : _我的基类(_Pred, _Al) {}
+    映射实现(const 键比较器& _Pred, const 分配器类型& _Al) : _我的基类(_Pred, _Al) {}
 
     template <class _Iter>
-    映射实现(_Iter _First, _Iter _Last) : _我的基类(key_compare()) {
+    映射实现(_Iter _First, _Iter _Last) : _我的基类(键比较器()) {
         insert(_First, _Last);
     }
 
     template <class _Iter>
-    映射实现(_Iter _First, _Iter _Last, const key_compare& _Pred) : _我的基类(_Pred) {
+    映射实现(_Iter _First, _Iter _Last, const 键比较器& _Pred) : _我的基类(_Pred) {
         insert(_First, _Last);
     }
 
     template <class _Iter>
-    映射实现(_Iter _First, _Iter _Last, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
+    映射实现(_Iter _First, _Iter _Last, const 分配器类型& _Al) : _我的基类(键比较器(), _Al) {
         insert(_First, _Last);
     }
 
     template <class _Iter>
-    映射实现(_Iter _First, _Iter _Last, const key_compare& _Pred, const allocator_type& _Al) : _我的基类(_Pred, _Al) {
+    映射实现(_Iter _First, _Iter _Last, const 键比较器& _Pred, const 分配器类型& _Al) : _我的基类(_Pred, _Al) {
         insert(_First, _Last);
     }
 
 #if _HAS_CXX23
     template <_Container_compatible_range<value_type> _Rng>
-    映射实现(from_range_t, _Rng&& _Range) : _我的基类(key_compare()) {
+    映射实现(from_range_t, _Rng&& _Range) : _我的基类(键比较器()) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    映射实现(from_range_t, _Rng&& _Range, const key_compare& _Pred) : _我的基类(_Pred) {
+    映射实现(from_range_t, _Rng&& _Range, const 键比较器& _Pred) : _我的基类(_Pred) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    映射实现(from_range_t, _Rng&& _Range, const key_compare& _Pred, const allocator_type& _Al) : _我的基类(_Pred, _Al) {
+    映射实现(from_range_t, _Rng&& _Range, const 键比较器& _Pred, const 分配器类型& _Al) : _我的基类(_Pred, _Al) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    映射实现(from_range_t, _Rng&& _Range, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
+    映射实现(from_range_t, _Rng&& _Range, const 分配器类型& _Al) : _我的基类(键比较器(), _Al) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 #endif // _HAS_CXX23
@@ -166,14 +166,14 @@ public:
 
     映射实现(映射实现&& _Right) : _我的基类(_STD move(_Right)) {}
 
-    映射实现(映射实现&& _Right, const allocator_type& _Al) : _我的基类(_STD move(_Right), _Al) {}
+    映射实现(映射实现&& _Right, const 分配器类型& _Al) : _我的基类(_STD move(_Right), _Al) {}
 
     映射实现& operator=(映射实现&& _Right) noexcept(_结点分配器特征::is_always_equal::value && is_nothrow_move_assignable_v<_Pr>) {
         _我的基类::operator=(_STD move(_Right));
         return *this;
     }
 
-    mapped_type& operator[](key_type&& _Keyval) { // find element matching _Keyval or insert value-initialized value
+    映射类型& operator[](键类型&& _Keyval) { // find element matching _Keyval or insert value-initialized value
         return _Try_emplace(_STD move(_Keyval)).first->_Myval.second;
     }
 
@@ -184,12 +184,12 @@ public:
     using _我的基类::insert;
 
     template <class _Valty, enable_if_t<is_constructible_v<value_type, _Valty>, int> = 0>
-    pair<iterator, bool> insert(_Valty&& _Val) {
+    pair<迭代器, bool> insert(_Valty&& _Val) {
         return this->就地构造(_STD forward<_Valty>(_Val));
     }
 
     template <class _Valty, enable_if_t<is_constructible_v<value_type, _Valty>, int> = 0>
-    iterator insert(const_iterator _Where, _Valty&& _Val) {
+    迭代器 insert(常量迭代器 _Where, _Valty&& _Val) {
         return this->emplace_hint(_Where, _STD forward<_Valty>(_Val));
     }
 
@@ -234,26 +234,26 @@ private:
 
 public:
     template <class... _Mappedty>
-    pair<iterator, bool> 尝试就地构造(const key_type& _Keyval, _Mappedty&&... _Mapval) {
+    pair<迭代器, bool> 尝试就地构造(const 键类型& _Keyval, _Mappedty&&... _Mapval) {
         const auto _Result = _Try_emplace(_Keyval, _STD forward<_Mappedty>(_Mapval)...);
-        return {iterator(_Result.first, _我的基类::_取检查值()), _Result.second};
+        return {迭代器(_Result.first, _我的基类::_取检查值()), _Result.second};
     }
 
     template <class... _Mappedty>
-    iterator 尝试就地构造(const const_iterator _Hint, const key_type& _Keyval, _Mappedty&&... _Mapval) {
-        return iterator(
+    迭代器 尝试就地构造(const 常量迭代器 _Hint, const 键类型& _Keyval, _Mappedty&&... _Mapval) {
+        return 迭代器(
             _Try_emplace_hint(_Hint._Ptr, _Keyval, _STD forward<_Mappedty>(_Mapval)...), _我的基类::_取检查值());
     }
 
     template <class... _Mappedty>
-    pair<iterator, bool> 尝试就地构造(key_type&& _Keyval, _Mappedty&&... _Mapval) {
+    pair<迭代器, bool> 尝试就地构造(键类型&& _Keyval, _Mappedty&&... _Mapval) {
         const auto _Result = _Try_emplace(_STD move(_Keyval), _STD forward<_Mappedty>(_Mapval)...);
-        return {iterator(_Result.first, _我的基类::_取检查值()), _Result.second};
+        return {迭代器(_Result.first, _我的基类::_取检查值()), _Result.second};
     }
 
     template <class... _Mappedty>
-    iterator 尝试就地构造(const const_iterator _Hint, key_type&& _Keyval, _Mappedty&&... _Mapval) {
-        return iterator(_Try_emplace_hint(_Hint._Ptr, _STD move(_Keyval), _STD forward<_Mappedty>(_Mapval)...),
+    迭代器 尝试就地构造(const 常量迭代器 _Hint, 键类型&& _Keyval, _Mappedty&&... _Mapval) {
+        return 迭代器(_Try_emplace_hint(_Hint._Ptr, _STD move(_Keyval), _STD forward<_Mappedty>(_Mapval)...),
             _我的基类::_取检查值());
     }
 
@@ -298,42 +298,42 @@ private:
 
 public:
     template <class _Mappedty>
-    pair<iterator, bool> 插入或赋值(const key_type& _Keyval, _Mappedty&& _Mapval) {
+    pair<迭代器, bool> 插入或赋值(const 键类型& _Keyval, _Mappedty&& _Mapval) {
         const auto _Result = _Insert_or_assign(_Keyval, _STD forward<_Mappedty>(_Mapval));
-        return {iterator(_Result.first, _我的基类::_取检查值()), _Result.second};
+        return {迭代器(_Result.first, _我的基类::_取检查值()), _Result.second};
     }
 
     template <class _Mappedty>
-    iterator 插入或赋值(const const_iterator _Hint, const key_type& _Keyval, _Mappedty&& _Mapval) {
-        return iterator(
+    迭代器 插入或赋值(const 常量迭代器 _Hint, const 键类型& _Keyval, _Mappedty&& _Mapval) {
+        return 迭代器(
             _Insert_or_assign_hint(_Hint._Ptr, _Keyval, _STD forward<_Mappedty>(_Mapval)), _我的基类::_取检查值());
     }
 
     template <class _Mappedty>
-    pair<iterator, bool> 插入或赋值(key_type&& _Keyval, _Mappedty&& _Mapval) {
+    pair<迭代器, bool> 插入或赋值(键类型&& _Keyval, _Mappedty&& _Mapval) {
         const auto _Result = _Insert_or_assign(_STD move(_Keyval), _STD forward<_Mappedty>(_Mapval));
-        return {iterator(_Result.first, _我的基类::_取检查值()), _Result.second};
+        return {迭代器(_Result.first, _我的基类::_取检查值()), _Result.second};
     }
 
     template <class _Mappedty>
-    iterator 插入或赋值(const const_iterator _Hint, key_type&& _Keyval, _Mappedty&& _Mapval) {
-        return iterator(_Insert_or_assign_hint(_Hint._Ptr, _STD move(_Keyval), _STD forward<_Mappedty>(_Mapval)),
+    迭代器 插入或赋值(const 常量迭代器 _Hint, 键类型&& _Keyval, _Mappedty&& _Mapval) {
+        return 迭代器(_Insert_or_assign_hint(_Hint._Ptr, _STD move(_Keyval), _STD forward<_Mappedty>(_Mapval)),
             _我的基类::_取检查值());
     }
 
-    映射实现(initializer_list<value_type> _Ilist) : _我的基类(key_compare()) {
+    映射实现(initializer_list<value_type> _Ilist) : _我的基类(键比较器()) {
         insert(_Ilist);
     }
 
-    映射实现(initializer_list<value_type> _Ilist, const key_compare& _Pred) : _我的基类(_Pred) {
+    映射实现(initializer_list<value_type> _Ilist, const 键比较器& _Pred) : _我的基类(_Pred) {
         insert(_Ilist);
     }
 
-    映射实现(initializer_list<value_type> _Ilist, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
+    映射实现(initializer_list<value_type> _Ilist, const 分配器类型& _Al) : _我的基类(键比较器(), _Al) {
         insert(_Ilist);
     }
 
-    映射实现(initializer_list<value_type> _Ilist, const key_compare& _Pred, const allocator_type& _Al)
+    映射实现(initializer_list<value_type> _Ilist, const 键比较器& _Pred, const 分配器类型& _Al)
         : _我的基类(_Pred, _Al) {
         insert(_Ilist);
     }
@@ -344,11 +344,11 @@ public:
         return *this;
     }
 
-    mapped_type& operator[](const key_type& _Keyval) {
+    映射类型& operator[](const 键类型& _Keyval) {
         return _Try_emplace(_Keyval).first->_Myval.second;
     }
 
-    _NODISCARD mapped_type& 取值(const key_type& _Keyval) {
+    _NODISCARD 映射类型& 取值(const 键类型& _Keyval) {
         const auto _Loc = _我的基类::_查找下界(_Keyval);
         if (!_我的基类::_下界重复项(_Loc._Bound, _Keyval)) {
             _Xout_of_range("invalid 映射实现<K, T> key");
@@ -357,7 +357,7 @@ public:
         return _Loc._Bound->_Myval.second;
     }
 
-    _NODISCARD const mapped_type& 取值(const key_type& _Keyval) const {
+    _NODISCARD const 映射类型& 取值(const 键类型& _Keyval) const {
         const auto _Loc = _我的基类::_查找下界(_Keyval);
         if (!_我的基类::_下界重复项(_Loc._Bound, _Keyval)) {
             _Xout_of_range("invalid 映射实现<K, T> key");
@@ -462,77 +462,77 @@ public:
                                      "because of [container.requirements].");
 
     using _我的基类                = _树<_映射特征<_Kty, _Ty, _Pr, _Alloc, true>>;
-    using key_type               = _Kty;
-    using mapped_type            = _Ty;
-    using key_compare            = _Pr;
-    using value_compare          = typename _我的基类::value_compare;
+    using 键类型               = _Kty;
+    using 映射类型            = _Ty;
+    using 键比较器            = _Pr;
+    using 值比较          = typename _我的基类::值比较;
     using value_type             = pair<const _Kty, _Ty>;
-    using allocator_type         = typename _我的基类::allocator_type;
+    using 分配器类型         = typename _我的基类::分配器类型;
     using size_type              = typename _我的基类::size_type;
     using difference_type        = typename _我的基类::difference_type;
     using pointer                = typename _我的基类::pointer;
     using const_pointer          = typename _我的基类::const_pointer;
     using reference              = value_type&;
-    using const_reference        = const value_type&;
-    using iterator               = typename _我的基类::iterator;
-    using const_iterator         = typename _我的基类::const_iterator;
+    using 常量引用        = const value_type&;
+    using 迭代器               = typename _我的基类::迭代器;
+    using 常量迭代器         = typename _我的基类::常量迭代器;
     using reverse_iterator       = typename _我的基类::reverse_iterator;
     using const_reverse_iterator = typename _我的基类::const_reverse_iterator;
 
     using _结点分配器        = typename _我的基类::_结点分配器;
     using _结点分配器特征 = typename _我的基类::_结点分配器特征;
 
-    多重映射实现() : _我的基类(key_compare()) {}
+    多重映射实现() : _我的基类(键比较器()) {}
 
-    explicit 多重映射实现(const allocator_type& _Al) : _我的基类(key_compare(), _Al) {}
+    explicit 多重映射实现(const 分配器类型& _Al) : _我的基类(键比较器(), _Al) {}
 
     多重映射实现(const 多重映射实现& _Right)
         : _我的基类(_Right, _结点分配器特征::select_on_container_copy_construction(_Right._取分配器())) {}
 
-    多重映射实现(const 多重映射实现& _Right, const allocator_type& _Al) : _我的基类(_Right, _Al) {}
+    多重映射实现(const 多重映射实现& _Right, const 分配器类型& _Al) : _我的基类(_Right, _Al) {}
 
-    explicit 多重映射实现(const key_compare& _Pred) : _我的基类(_Pred) {}
+    explicit 多重映射实现(const 键比较器& _Pred) : _我的基类(_Pred) {}
 
-    多重映射实现(const key_compare& _Pred, const allocator_type& _Al) : _我的基类(_Pred, _Al) {}
+    多重映射实现(const 键比较器& _Pred, const 分配器类型& _Al) : _我的基类(_Pred, _Al) {}
 
     template <class _Iter>
-    多重映射实现(_Iter _First, _Iter _Last) : _我的基类(key_compare()) {
+    多重映射实现(_Iter _First, _Iter _Last) : _我的基类(键比较器()) {
         insert(_First, _Last);
     }
 
     template <class _Iter>
-    多重映射实现(_Iter _First, _Iter _Last, const key_compare& _Pred) : _我的基类(_Pred) {
+    多重映射实现(_Iter _First, _Iter _Last, const 键比较器& _Pred) : _我的基类(_Pred) {
         insert(_First, _Last);
     }
 
     template <class _Iter>
-    多重映射实现(_Iter _First, _Iter _Last, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
+    多重映射实现(_Iter _First, _Iter _Last, const 分配器类型& _Al) : _我的基类(键比较器(), _Al) {
         insert(_First, _Last);
     }
 
     template <class _Iter>
-    多重映射实现(_Iter _First, _Iter _Last, const key_compare& _Pred, const allocator_type& _Al) : _我的基类(_Pred, _Al) {
+    多重映射实现(_Iter _First, _Iter _Last, const 键比较器& _Pred, const 分配器类型& _Al) : _我的基类(_Pred, _Al) {
         insert(_First, _Last);
     }
 
 #if _HAS_CXX23
     template <_Container_compatible_range<value_type> _Rng>
-    多重映射实现(from_range_t, _Rng&& _Range) : _我的基类(key_compare()) {
+    多重映射实现(from_range_t, _Rng&& _Range) : _我的基类(键比较器()) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    多重映射实现(from_range_t, _Rng&& _Range, const key_compare& _Pred) : _我的基类(_Pred) {
+    多重映射实现(from_range_t, _Rng&& _Range, const 键比较器& _Pred) : _我的基类(_Pred) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    多重映射实现(from_range_t, _Rng&& _Range, const key_compare& _Pred, const allocator_type& _Al) : _我的基类(_Pred, _Al) {
+    多重映射实现(from_range_t, _Rng&& _Range, const 键比较器& _Pred, const 分配器类型& _Al) : _我的基类(_Pred, _Al) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    多重映射实现(from_range_t, _Rng&& _Range, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
+    多重映射实现(from_range_t, _Rng&& _Range, const 分配器类型& _Al) : _我的基类(键比较器(), _Al) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 #endif // _HAS_CXX23
@@ -544,7 +544,7 @@ public:
 
     多重映射实现(多重映射实现&& _Right) : _我的基类(_STD move(_Right)) {}
 
-    多重映射实现(多重映射实现&& _Right, const allocator_type& _Al) : _我的基类(_STD move(_Right), _Al) {}
+    多重映射实现(多重映射实现&& _Right, const 分配器类型& _Al) : _我的基类(_STD move(_Right), _Al) {}
 
     多重映射实现& operator=(多重映射实现&& _Right)
         noexcept(_结点分配器特征::is_always_equal::value && is_nothrow_move_assignable_v<_Pr>) {
@@ -553,7 +553,7 @@ public:
     }
 
     template <class... _Valty>
-    iterator 就地构造(_Valty&&... _Val) {
+    迭代器 就地构造(_Valty&&... _Val) {
         return _我的基类::就地构造(_STD forward<_Valty>(_Val)...).first;
     }
 
@@ -564,28 +564,28 @@ public:
     using _我的基类::insert;
 
     template <class _Valty, enable_if_t<is_constructible_v<value_type, _Valty>, int> = 0>
-    iterator insert(_Valty&& _Val) {
+    迭代器 insert(_Valty&& _Val) {
         return this->就地构造(_STD forward<_Valty>(_Val));
     }
 
     template <class _Valty, enable_if_t<is_constructible_v<value_type, _Valty>, int> = 0>
-    iterator insert(const_iterator _Where, _Valty&& _Val) {
+    迭代器 insert(常量迭代器 _Where, _Valty&& _Val) {
         return this->emplace_hint(_Where, _STD forward<_Valty>(_Val));
     }
 
-    多重映射实现(initializer_list<value_type> _Ilist) : _我的基类(key_compare()) {
+    多重映射实现(initializer_list<value_type> _Ilist) : _我的基类(键比较器()) {
         insert(_Ilist);
     }
 
-    多重映射实现(initializer_list<value_type> _Ilist, const key_compare& _Pred) : _我的基类(_Pred) {
+    多重映射实现(initializer_list<value_type> _Ilist, const 键比较器& _Pred) : _我的基类(_Pred) {
         insert(_Ilist);
     }
 
-    多重映射实现(initializer_list<value_type> _Ilist, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
+    多重映射实现(initializer_list<value_type> _Ilist, const 分配器类型& _Al) : _我的基类(键比较器(), _Al) {
         insert(_Ilist);
     }
 
-    多重映射实现(initializer_list<value_type> _Ilist, const key_compare& _Pred, const allocator_type& _Al)
+    多重映射实现(initializer_list<value_type> _Ilist, const 键比较器& _Pred, const 分配器类型& _Al)
         : _我的基类(_Pred, _Al) {
         insert(_Ilist);
     }
@@ -720,12 +720,20 @@ _STL_RESTORE_CLANG_WARNINGS
     使用 基类::基类;
 
     // 嵌套类型名也要补回英文（数据成员不行 —— 那会改布局）
-    使用 迭代器 = 基类::iterator;
-    使用 常量迭代器 = 基类::const_iterator;
-    使用 键类型 = 基类::key_type;
-    使用 映射类型 = 基类::mapped_type;
+    使用 iterator = 基类::迭代器;
+    使用 const_iterator = 基类::常量迭代器;
+    使用 mapped_type = 基类::映射类型;
+    使用 const_reference = 基类::常量引用;
+    使用 key_type = 基类::键类型;
+    使用 key_compare = 基类::键比较器;
+    使用 value_compare = 基类::值比较;
+    使用 node_type = 基类::结点类型;
+    使用 allocator_type = 基类::分配器类型;
+    使用 insert_return_type = 基类::插入返回类型;
     使用 值类型 = 基类::value_type;
     使用 尺寸类型 = 基类::size_type;
+    使用 反向迭代器 = 基类::reverse_iterator;
+    使用 常量反向迭代器 = 基类::const_reverse_iterator;
 
     // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
     模板 <类型名... 参数> 自动 at(参数&&... 值) { 返回 基类::取值(static_cast<参数&&>(值)...); }
@@ -761,6 +769,21 @@ _STL_RESTORE_CLANG_WARNINGS
 公开:
     使用 基类 = 细节::多重映射实现<键, 映射值, 比较, 分配器>;
     使用 基类::基类;
+    // §16.47：deriveTypes 只管主类 映射，管不到这里 —— 逐个手写（否则是"翻一半"= 回归）。
+    使用 iterator           = 基类::迭代器;
+    使用 const_iterator     = 基类::常量迭代器;
+    使用 mapped_type        = 基类::映射类型;
+    使用 const_reference    = 基类::常量引用;
+    使用 key_type           = 基类::键类型;
+    使用 key_compare        = 基类::键比较器;
+    使用 value_compare      = 基类::值比较;
+    使用 node_type          = 基类::结点类型;
+    使用 allocator_type     = 基类::分配器类型;
+    // ⚠ 边界名（旧方向）：多重映射没有 insert_return_type（不可摘结点）
+    使用 值类型             = 基类::value_type;
+    使用 尺寸类型           = 基类::size_type;
+    使用 反向迭代器         = 基类::reverse_iterator;
+    使用 常量反向迭代器     = 基类::const_reverse_iterator;
     模板 <类型名... 参数> 自动 插入(参数&&... 值) { 返回 基类::insert(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 擦除(参数&&... 值) { 返回 基类::erase(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 查找(参数&&... 值) { 返回 基类::find(static_cast<参数&&>(值)...); }

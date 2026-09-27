@@ -28,12 +28,12 @@ template <class _Kty, // key/value type
     bool _Mfl> // true if multiple equivalent keys are permitted
 class _集合特征 { // traits required to make _树 behave like a 集合实现
 public:
-    using key_type       = _Kty;
+    using 键类型       = _Kty;
     using value_type     = _Kty;
-    using key_compare    = _Pr;
-    using allocator_type = _Alloc;
+    using 键比较器    = _Pr;
+    using 分配器类型 = _Alloc;
 #if _HAS_CXX17
-    using node_type = _Node_handle<_树节点<value_type, typename allocator_traits<_Alloc>::void_pointer>, _Alloc,
+    using 结点类型 = _Node_handle<_树节点<value_type, typename allocator_traits<_Alloc>::void_pointer>, _Alloc,
         _Node_handle_set_base, _Kty>;
 #endif // _HAS_CXX17
 
@@ -42,7 +42,7 @@ public:
     template <class... _Args>
     using _就地键提取器 = _In_place_key_extract_set<_Kty, _Args...>;
 
-    using value_compare = key_compare;
+    using 值比较 = 键比较器;
 
     static const _Kty& _Kfn(const value_type& _Val) { // extract key from element value
         return _Val;
@@ -59,19 +59,19 @@ public:
                                      "because of [container.requirements].");
 
     using _我的基类                = _树<_集合特征<_Kty, _Pr, _Alloc, false>>;
-    using key_type               = _Kty;
-    using key_compare            = _Pr;
-    using value_compare          = typename _我的基类::value_compare;
+    using 键类型               = _Kty;
+    using 键比较器            = _Pr;
+    using 值比较          = typename _我的基类::值比较;
     using value_type             = typename _我的基类::value_type;
-    using allocator_type         = typename _我的基类::allocator_type;
+    using 分配器类型         = typename _我的基类::分配器类型;
     using size_type              = typename _我的基类::size_type;
     using difference_type        = typename _我的基类::difference_type;
     using pointer                = typename _我的基类::pointer;
     using const_pointer          = typename _我的基类::const_pointer;
     using reference              = value_type&;
-    using const_reference        = const value_type&;
-    using iterator               = typename _我的基类::iterator;
-    using const_iterator         = typename _我的基类::const_iterator;
+    using 常量引用        = const value_type&;
+    using 迭代器               = typename _我的基类::迭代器;
+    using 常量迭代器         = typename _我的基类::常量迭代器;
     using reverse_iterator       = typename _我的基类::reverse_iterator;
     using const_reverse_iterator = typename _我的基类::const_reverse_iterator;
 
@@ -79,59 +79,59 @@ public:
     using _结点分配器特征 = typename _我的基类::_结点分配器特征;
 
 #if _HAS_CXX17
-    using insert_return_type = _Insert_return_type<iterator, typename _我的基类::node_type>;
+    using 插入返回类型 = _Insert_return_type<迭代器, typename _我的基类::结点类型>;
 #endif // _HAS_CXX17
 
-    集合实现() : _我的基类(key_compare()) {}
+    集合实现() : _我的基类(键比较器()) {}
 
-    explicit 集合实现(const allocator_type& _Al) : _我的基类(key_compare(), _Al) {}
+    explicit 集合实现(const 分配器类型& _Al) : _我的基类(键比较器(), _Al) {}
 
     集合实现(const 集合实现& _Right) : _我的基类(_Right, _结点分配器特征::select_on_container_copy_construction(_Right._Getal())) {}
 
-    集合实现(const 集合实现& _Right, const allocator_type& _Al) : _我的基类(_Right, _Al) {}
+    集合实现(const 集合实现& _Right, const 分配器类型& _Al) : _我的基类(_Right, _Al) {}
 
-    explicit 集合实现(const key_compare& _Pred) : _我的基类(_Pred) {}
+    explicit 集合实现(const 键比较器& _Pred) : _我的基类(_Pred) {}
 
-    集合实现(const key_compare& _Pred, const allocator_type& _Al) : _我的基类(_Pred, _Al) {}
+    集合实现(const 键比较器& _Pred, const 分配器类型& _Al) : _我的基类(_Pred, _Al) {}
 
     template <class _Iter>
-    集合实现(_Iter _First, _Iter _Last) : _我的基类(key_compare()) {
+    集合实现(_Iter _First, _Iter _Last) : _我的基类(键比较器()) {
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
-    集合实现(_Iter _First, _Iter _Last, const key_compare& _Pred) : _我的基类(_Pred) {
+    集合实现(_Iter _First, _Iter _Last, const 键比较器& _Pred) : _我的基类(_Pred) {
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
-    集合实现(_Iter _First, _Iter _Last, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
+    集合实现(_Iter _First, _Iter _Last, const 分配器类型& _Al) : _我的基类(键比较器(), _Al) {
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
-    集合实现(_Iter _First, _Iter _Last, const key_compare& _Pred, const allocator_type& _Al) : _我的基类(_Pred, _Al) {
+    集合实现(_Iter _First, _Iter _Last, const 键比较器& _Pred, const 分配器类型& _Al) : _我的基类(_Pred, _Al) {
         this->insert(_First, _Last);
     }
 
 #if _HAS_CXX23
     template <_Container_compatible_range<value_type> _Rng>
-    集合实现(from_range_t, _Rng&& _Range) : _我的基类(key_compare()) {
+    集合实现(from_range_t, _Rng&& _Range) : _我的基类(键比较器()) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    集合实现(from_range_t, _Rng&& _Range, const key_compare& _Pred) : _我的基类(_Pred) {
+    集合实现(from_range_t, _Rng&& _Range, const 键比较器& _Pred) : _我的基类(_Pred) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    集合实现(from_range_t, _Rng&& _Range, const key_compare& _Pred, const allocator_type& _Al) : _我的基类(_Pred, _Al) {
+    集合实现(from_range_t, _Rng&& _Range, const 键比较器& _Pred, const 分配器类型& _Al) : _我的基类(_Pred, _Al) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    集合实现(from_range_t, _Rng&& _Range, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
+    集合实现(from_range_t, _Rng&& _Range, const 分配器类型& _Al) : _我的基类(键比较器(), _Al) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 #endif // _HAS_CXX23
@@ -143,7 +143,7 @@ public:
 
     集合实现(集合实现&& _Right) : _我的基类(_STD move(_Right)) {}
 
-    集合实现(集合实现&& _Right, const allocator_type& _Al) : _我的基类(_STD move(_Right), _Al) {}
+    集合实现(集合实现&& _Right, const 分配器类型& _Al) : _我的基类(_STD move(_Right), _Al) {}
 
     集合实现& operator=(集合实现&& _Right) noexcept(_结点分配器特征::is_always_equal::value && is_nothrow_move_assignable_v<_Pr>) {
         _我的基类::operator=(_STD move(_Right));
@@ -154,19 +154,19 @@ public:
         _我的基类::swap(_Right);
     }
 
-    集合实现(initializer_list<value_type> _Ilist) : _我的基类(key_compare()) {
+    集合实现(initializer_list<value_type> _Ilist) : _我的基类(键比较器()) {
         this->insert(_Ilist);
     }
 
-    集合实现(initializer_list<value_type> _Ilist, const key_compare& _Pred) : _我的基类(_Pred) {
+    集合实现(initializer_list<value_type> _Ilist, const 键比较器& _Pred) : _我的基类(_Pred) {
         this->insert(_Ilist);
     }
 
-    集合实现(initializer_list<value_type> _Ilist, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
+    集合实现(initializer_list<value_type> _Ilist, const 分配器类型& _Al) : _我的基类(键比较器(), _Al) {
         this->insert(_Ilist);
     }
 
-    集合实现(initializer_list<value_type> _Ilist, const key_compare& _Pred, const allocator_type& _Al)
+    集合实现(initializer_list<value_type> _Ilist, const 键比较器& _Pred, const 分配器类型& _Al)
         : _我的基类(_Pred, _Al) {
         this->insert(_Ilist);
     }
@@ -270,76 +270,76 @@ public:
                                      "because of [container.requirements].");
 
     using _我的基类                = _树<_集合特征<_Kty, _Pr, _Alloc, true>>;
-    using key_type               = _Kty;
-    using key_compare            = _Pr;
-    using value_compare          = typename _我的基类::value_compare;
+    using 键类型               = _Kty;
+    using 键比较器            = _Pr;
+    using 值比较          = typename _我的基类::值比较;
     using value_type             = typename _我的基类::value_type;
-    using allocator_type         = typename _我的基类::allocator_type;
+    using 分配器类型         = typename _我的基类::分配器类型;
     using size_type              = typename _我的基类::size_type;
     using difference_type        = typename _我的基类::difference_type;
     using pointer                = typename _我的基类::pointer;
     using const_pointer          = typename _我的基类::const_pointer;
     using reference              = value_type&;
-    using const_reference        = const value_type&;
-    using iterator               = typename _我的基类::iterator;
-    using const_iterator         = typename _我的基类::const_iterator;
+    using 常量引用        = const value_type&;
+    using 迭代器               = typename _我的基类::迭代器;
+    using 常量迭代器         = typename _我的基类::常量迭代器;
     using reverse_iterator       = typename _我的基类::reverse_iterator;
     using const_reverse_iterator = typename _我的基类::const_reverse_iterator;
 
     using _结点分配器        = typename _我的基类::_结点分配器;
     using _结点分配器特征 = typename _我的基类::_结点分配器特征;
 
-    多重集合实现() : _我的基类(key_compare()) {}
+    多重集合实现() : _我的基类(键比较器()) {}
 
-    explicit 多重集合实现(const allocator_type& _Al) : _我的基类(key_compare(), _Al) {}
+    explicit 多重集合实现(const 分配器类型& _Al) : _我的基类(键比较器(), _Al) {}
 
     多重集合实现(const 多重集合实现& _Right)
         : _我的基类(_Right, _结点分配器特征::select_on_container_copy_construction(_Right._Getal())) {}
 
-    多重集合实现(const 多重集合实现& _Right, const allocator_type& _Al) : _我的基类(_Right, _Al) {}
+    多重集合实现(const 多重集合实现& _Right, const 分配器类型& _Al) : _我的基类(_Right, _Al) {}
 
-    explicit 多重集合实现(const key_compare& _Pred) : _我的基类(_Pred) {}
+    explicit 多重集合实现(const 键比较器& _Pred) : _我的基类(_Pred) {}
 
-    多重集合实现(const key_compare& _Pred, const allocator_type& _Al) : _我的基类(_Pred, _Al) {}
+    多重集合实现(const 键比较器& _Pred, const 分配器类型& _Al) : _我的基类(_Pred, _Al) {}
 
     template <class _Iter>
-    多重集合实现(_Iter _First, _Iter _Last) : _我的基类(key_compare()) {
+    多重集合实现(_Iter _First, _Iter _Last) : _我的基类(键比较器()) {
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
-    多重集合实现(_Iter _First, _Iter _Last, const key_compare& _Pred) : _我的基类(_Pred) {
+    多重集合实现(_Iter _First, _Iter _Last, const 键比较器& _Pred) : _我的基类(_Pred) {
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
-    多重集合实现(_Iter _First, _Iter _Last, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
+    多重集合实现(_Iter _First, _Iter _Last, const 分配器类型& _Al) : _我的基类(键比较器(), _Al) {
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
-    多重集合实现(_Iter _First, _Iter _Last, const key_compare& _Pred, const allocator_type& _Al) : _我的基类(_Pred, _Al) {
+    多重集合实现(_Iter _First, _Iter _Last, const 键比较器& _Pred, const 分配器类型& _Al) : _我的基类(_Pred, _Al) {
         this->insert(_First, _Last);
     }
 
 #if _HAS_CXX23
     template <_Container_compatible_range<value_type> _Rng>
-    多重集合实现(from_range_t, _Rng&& _Range) : _我的基类(key_compare()) {
+    多重集合实现(from_range_t, _Rng&& _Range) : _我的基类(键比较器()) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    多重集合实现(from_range_t, _Rng&& _Range, const key_compare& _Pred) : _我的基类(_Pred) {
+    多重集合实现(from_range_t, _Rng&& _Range, const 键比较器& _Pred) : _我的基类(_Pred) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    多重集合实现(from_range_t, _Rng&& _Range, const key_compare& _Pred, const allocator_type& _Al) : _我的基类(_Pred, _Al) {
+    多重集合实现(from_range_t, _Rng&& _Range, const 键比较器& _Pred, const 分配器类型& _Al) : _我的基类(_Pred, _Al) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
-    多重集合实现(from_range_t, _Rng&& _Range, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
+    多重集合实现(from_range_t, _Rng&& _Range, const 分配器类型& _Al) : _我的基类(键比较器(), _Al) {
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 #endif // _HAS_CXX23
@@ -351,7 +351,7 @@ public:
 
     多重集合实现(多重集合实现&& _Right) : _我的基类(_STD move(_Right)) {}
 
-    多重集合实现(多重集合实现&& _Right, const allocator_type& _Al) : _我的基类(_STD move(_Right), _Al) {}
+    多重集合实现(多重集合实现&& _Right, const 分配器类型& _Al) : _我的基类(_STD move(_Right), _Al) {}
 
     多重集合实现& operator=(多重集合实现&& _Right)
         noexcept(_结点分配器特征::is_always_equal::value && is_nothrow_move_assignable_v<_Pr>) {
@@ -360,7 +360,7 @@ public:
     }
 
     template <class... _Valty>
-    iterator 就地构造(_Valty&&... _Val) {
+    迭代器 就地构造(_Valty&&... _Val) {
         return _我的基类::就地构造(_STD forward<_Valty>(_Val)...).first;
     }
 
@@ -368,19 +368,19 @@ public:
         _我的基类::swap(_Right);
     }
 
-    多重集合实现(initializer_list<value_type> _Ilist) : _我的基类(key_compare()) {
+    多重集合实现(initializer_list<value_type> _Ilist) : _我的基类(键比较器()) {
         this->insert(_Ilist);
     }
 
-    多重集合实现(initializer_list<value_type> _Ilist, const key_compare& _Pred) : _我的基类(_Pred) {
+    多重集合实现(initializer_list<value_type> _Ilist, const 键比较器& _Pred) : _我的基类(_Pred) {
         this->insert(_Ilist);
     }
 
-    多重集合实现(initializer_list<value_type> _Ilist, const allocator_type& _Al) : _我的基类(key_compare(), _Al) {
+    多重集合实现(initializer_list<value_type> _Ilist, const 分配器类型& _Al) : _我的基类(键比较器(), _Al) {
         this->insert(_Ilist);
     }
 
-    多重集合实现(initializer_list<value_type> _Ilist, const key_compare& _Pred, const allocator_type& _Al)
+    多重集合实现(initializer_list<value_type> _Ilist, const 键比较器& _Pred, const 分配器类型& _Al)
         : _我的基类(_Pred, _Al) {
         this->insert(_Ilist);
     }
@@ -507,10 +507,18 @@ _STL_RESTORE_CLANG_WARNINGS
     使用 基类::基类;
 
     // 嵌套类型名也要补回英文（数据成员不行 —— 那会改布局）
-    使用 迭代器 = 基类::iterator;
-    使用 常量迭代器 = 基类::const_iterator;
-    使用 键类型 = 基类::key_type;
+    使用 iterator = 基类::迭代器;
+    使用 const_iterator = 基类::常量迭代器;
+    使用 const_reference = 基类::常量引用;
+    使用 key_type = 基类::键类型;
+    使用 key_compare = 基类::键比较器;
+    使用 value_compare = 基类::值比较;
+    使用 node_type = 基类::结点类型;
+    使用 allocator_type = 基类::分配器类型;
+    使用 insert_return_type = 基类::插入返回类型;
     使用 尺寸类型 = 基类::size_type;
+    使用 反向迭代器 = 基类::reverse_iterator;
+    使用 常量反向迭代器 = 基类::const_reverse_iterator;
 
     // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
     模板 <类型名... 参数> 自动 emplace(参数&&... 值) { 返回 基类::就地构造(static_cast<参数&&>(值)...); }
@@ -539,6 +547,23 @@ _STL_RESTORE_CLANG_WARNINGS
 公开:
     使用 基类 = 细节::多重集合实现<键, 比较, 分配器>;
     使用 基类::基类;
+    // ⚠ §16.47：deriveTypes 只管主类 集合，管不到这里。
+    //   抄来那层已把这一族契约名翻成汉语，所以英文原名必须【在这里手写补回】——
+    //   不写就是"翻一半"（§16.41.2）：原来能用的 标准::多重集合<T>::iterator 会消失。
+    使用 iterator               = 基类::迭代器;
+    使用 const_iterator         = 基类::常量迭代器;
+    使用 反向迭代器             = 基类::reverse_iterator;         // 边界名，旧方向
+    使用 常量反向迭代器         = 基类::const_reverse_iterator;   // 边界名，旧方向
+    使用 尺寸类型              = 基类::size_type;              // 边界名，旧方向
+    使用 const_reference        = 基类::常量引用;
+    使用 key_type               = 基类::键类型;
+    使用 key_compare            = 基类::键比较器;
+    使用 value_compare          = 基类::值比较;
+    使用 node_type              = 基类::结点类型;
+    使用 allocator_type         = 基类::分配器类型;
+    // ⚠ 这里【没有】insert_return_type —— 它是 set/map 专有的（multiset 不可摘结点），
+    //   实测：'标准::细节::多重集合实现<int>' 中没有名为「插入返回类型」的类型。
+    //   判据：手写层补的每一行都要确认【那个类的基类里真的有这个名字】。
     模板 <类型名... 参数> 自动 插入(参数&&... 值) { 返回 基类::insert(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 擦除(参数&&... 值) { 返回 基类::erase(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 查找(参数&&... 值) { 返回 基类::find(static_cast<参数&&>(值)...); }
