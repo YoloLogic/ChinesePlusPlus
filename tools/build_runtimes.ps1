@@ -26,11 +26,34 @@
 #         entirely and only profile+orc were built.
 #   Ninja has no toolset concept, so -DCMAKE_C_COMPILER is honoured verbatim.
 #
+# A SOURCE-TREE HAZARD, OBSERVED ONCE  (2026-09-27)
+#   CMake runs helper Python scripts straight out of the LLVM source tree, and
+#   CPython then writes a __pycache__ next to them. One such file turned up at
+#       LLVM-main\openmp\runtime\tools\__pycache__\libomputils.cpython-313.pyc
+#   It is not source, but it broke tools\make_patch.ps1's coverage sweep:
+#       openmp   files 857/858   bytes 7649466/7652311   differs   NOT SCANNED
+#   i.e. a top-level directory differed while no patch covers it, so the script
+#   refused to claim "our patches reproduce our tree". The gate was RIGHT.
+#
+#   The file was deleted BEFORE its timestamp was recorded, so WHICH build
+#   produced it was NOT established. libomputils.py is imported only by scripts
+#   under openmp\runtime\tools\ (message-converter / generate-def /
+#   check-execstack / check-depends), and THIS script only configures
+#   -DLLVM_ENABLE_RUNTIMES=compiler-rt -- so most likely some openmp/libomp
+#   configure did it, but that is inference, not proof.
+#   Treat the PYTHONDONTWRITEBYTECODE line below as PREVENTION, not as a
+#   verified root-cause fix. If the file reappears, record its timestamp FIRST.
+#
 # HOW TO RUN
 #   powershell -ExecutionPolicy Bypass -File tools\build_runtimes.ps1
 # ---------------------------------------------------------------------------
 
 $ErrorActionPreference = 'Stop'
+
+# Keep CPython from dropping __pycache__ into the LLVM source tree (see the
+# hazard note above). Child processes -- cmake, ninja, the Python scripts they
+# spawn -- inherit this.
+$env:PYTHONDONTWRITEBYTECODE = '1'
 
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
 $bin  = Join-Path $root 'build\Release\bin'

@@ -4,6 +4,7 @@
 > 同时英文照旧可用。项目口号：**不是创新的汉语编程，却是最强的汉语编程。**
 >
 > 编译器：`build\Release\bin\chinese++.exe`（即 `clang++.exe` 的硬链接）
+> **发给别人用的那条路**：`dist\Chinese++-0.1-win64.zip` → 解压 → 双击 `一键安装.cmd`
 
 ---
 
@@ -15,8 +16,8 @@
 | 想知道**为什么这么做** | [`汉字第一公民-路线图.md`](汉字第一公民-路线图.md) —— 方向、原则、底线 |
 | 想知道**具体改了什么** | [`关键字/关键字改动清单.md`](关键字/关键字改动清单.md)、[`诊断汉化/诊断汉化清单.md`](诊断汉化/诊断汉化清单.md) |
 | 要**独立复核**（人或 AI） | 一条命令即可：`powershell -File E:\Chinese++\tools\acceptance.ps1`；细节见 [`诊断汉化/诊断汉化-独立复核.md`](诊断汉化/诊断汉化-独立复核.md) |
-| 想知道**凭什么说"别人的代码也编得过"** | [`..\third_party\README.md`](../third_party/README.md) —— 拿 4 个真实开源项目（tinyxml2 / pugixml / fmt / googletest）与官方 clang 逐项对照，一条命令可复跑 |
-| 想**发给别人用** | [`打包/一键配置-VSCode.md`](打包/一键配置-VSCode.md)（推荐先做这个）+ [`打包/打包方案.md`](打包/打包方案.md) —— 注意：**这两份是设计，还没实施** |
+| 想知道**凭什么说"别人的代码也编得过"** | [`..\third_party\README.md`](../third_party/README.md) —— 拿 **8 个真实开源项目**（tinyxml2 / pugixml / fmt / googletest / cJSON / zlib / libuv / lz4）与官方 clang 逐项对照，一条命令可复跑 |
+| 想**发给别人用** | [`打包/打包方案.md`](打包/打包方案.md) —— **§7.5～§7.8 是落地与实测记录**（发行包已产出：`dist\Chinese++-0.1-win64.zip`，77.8 MB）。推荐的第一个动作仍是[`打包/一键配置-VSCode.md`](打包/一键配置-VSCode.md) |
 
 ---
 
@@ -32,11 +33,14 @@
 | [`诊断汉化/诊断汉化-准备.md`](诊断汉化/诊断汉化-准备.md) | 动手前的调研：7374 条口径、语料、术语表、候选 ID | 基本不再改（**部分结论已被主文档更正**，见其开头） |
 | [`诊断汉化/诊断汉化-独立复核.md`](诊断汉化/诊断汉化-独立复核.md) | **给复核者用的自包含指南**：9 条主张 + 失败判据 + 已知陷阱 | 加了新的"该验证什么"的主张 |
 | [`诊断汉化/诊断汉化-对抗性复核报告.md`](诊断汉化/诊断汉化-对抗性复核报告.md) | 独立会话的复核结果（含它自己的反例与"未验证"清单） | 复核者自己写；不要替他改 |
-| [`打包/打包方案.md`](打包/打包方案.md) | 分发这件事的本质：编译器依赖哪些**别人的**东西、四个阶段怎么取舍、体积与许可 | 真要做发行包时；或目标用户群变了 |
-| [`打包/一键配置-VSCode.md`](打包/一键配置-VSCode.md) | **推荐的第一个动作**：双击一下就把 VS Code 配好（中文可编、报错中文、关键字不标红），且可一键还原 | 真开始做那个 kit 时；**目前只是设计，未实施** |
+| [`打包/打包方案.md`](打包/打包方案.md) | 分发这件事的本质：编译器依赖哪些**别人的**东西、四个阶段怎么取舍、体积与许可。**§7.5～§7.8 是落地与实测记录** | 打包脚本、包体积、编辑器方案变了 |
+| [`打包/一键配置-VSCode.md`](打包/一键配置-VSCode.md) | **推荐的第一个动作**：双击一下就把 VS Code 配好（中文可编、报错中文、关键字不标红），且可一键还原。**已实施**（`packaging\attach-to-vscode.ps1`） | 那套 `.vscode` 模板或 clangd 参数变了 |
 
-> ⚠️ `docs\打包\` 里的两份是**设计文档，没有实施**。它们存在的意义是
-> 把已经想清楚的东西（含实测数字和踩过的坑）存住，等真要发布时不用重推一遍。
+> ✅ `docs\打包\` 里的两份**过去是设计稿，现在都已实施**（2026-09-26 更新）：
+> `tools\make_package.ps1` 产出 `dist\Chinese++-0.1-win64\`（未压缩 194.2 MB / 361 个文件）
+> 与 `.zip`（77.8 MB），包内 `verify.ps1` **17 项**自测已通过。
+> 仍**没做**的只有一件：发行包尚未在**没有构建树的机器**上验过
+> （`打包方案.md` 末行）。设计与实测并存在同一份文档里，读时看日期。
 
 另外三处与文档相关，但**故意留在原地**：
 
@@ -71,11 +75,11 @@ Get-ChildItem E:\Chinese++ -Recurse -Include *.md,*.ps1,*.py,*.cpp,*.def,*.td |
 
 ---
 
-## 四、当前实测（2026-09-23）
+## 四、当前实测（验收数字于 2026-09-27 复核）
 
 ```
 powershell -File E:\Chinese++\tools\acceptance.ps1     →  19 PASS / 0 FAIL
-powershell -File E:\Chinese++\tests\run_all.ps1        →  passed: 20  failed: 0
+powershell -File E:\Chinese++\tests\run_all.ps1        →  passed: 22  failed: 0
 tests\12-diagnostics\check.ps1                         →  78 个渲染用例全过（原 26）
 中文诊断表                                             →  7344 条（第三批 A/B/C + C1 + C2a + C4 + P 档 2654 + V/S/F 档 4600，2026-09-24）
 覆盖（两个语料，都要看）                                →  真实项目 100.0%（1398/1398）
@@ -116,7 +120,9 @@ tests\12-diagnostics\check.ps1                         →  78 个渲染用例�
     tests\13-preprocessor\check.ps1                      →  7 PASS / 0 FAIL
     全中文 vs 全英文 -E -P                                →  逐字节相同（150 B 对 150 B）
 
-工具链完整性（2026-09-23 补齐）                          →  bin\ 新增 lld-link.exe / lld.exe /
+工具链完整性（2026-09-23 补工具，2026-09-26 补运行时）      →  bin\ 新增 lld-link.exe / lld.exe /
     ld.lld.exe / wasm-ld.exe / llvm-ar / llvm-lib / llvm-ranlib / llvm-rc
-    仍然缺：compiler-rt 运行时（clang_rt.*，影响 sanitizer/覆盖率/PGO）
+    运行时已补齐：lib\clang\24\lib\windows\ 下 12 个 clang_rt.*（8.1 MB，随包发布）
+      ✅ -fsanitize=address（含真实 use-after-free 报告）/ --coverage / -fsanitize=address,undefined
+      ❌ 仍不可用：-fsanitize=fuzzer、静态 ASan、单用 -fsanitize=undefined
 ```

@@ -5,6 +5,8 @@
 
 编译器：`build\Release\bin\chinese++.exe`
 
+**发行包**：`dist\Chinese++-0.1-win64.zip`（77.8 MB）→ 解压 → 双击 `一键安装.cmd`
+
 ```cpp
 整数 main() {
   标准::输出 << "你好，世界" << 标准::换行;
@@ -24,7 +26,28 @@
 powershell -File E:\Chinese++\tools\acceptance.ps1
 ```
 
-17 条断言，每条都打印它自己产出的证据（约 8 分钟）。给复核者用。
+**19** 条断言，每条都打印它自己产出的证据（约 8 分钟）。给复核者用。
+`tests\run_all.ps1` 另有一套（最近一次实测 `passed: 22    failed: 0`）。
+
+## 发给别人用（发行包已经产出）
+
+```powershell
+powershell -File E:\Chinese++\tools\make_package.ps1
+```
+
+产出 `dist\Chinese++-0.1-win64\`（未压缩 194.2 MB / 361 个文件）与同名 `.zip`（77.8 MB）。
+对方解压后双击 `一键安装.cmd`：自动建 9 个别名、**只给会话级 PATH**、
+检测 VS Build Tools、按需下载便携 VS Code（中文界面 ＋ 能认中文关键字的 clangd）、
+跑包内自测 `verify.ps1`（**17 项**）。另外三个：
+
+| 脚本 | 干什么 |
+|---|---|
+| `一键为工作区配置.cmd` | 把 `.vscode` 配到**你自己打开的**工作区（不用把工作区搬进包里） |
+| `一键装配到我的VSCode.cmd` | 用**你已有的** VS Code（扩展装进便携 `data\`，不动 `%APPDATA%\Code`） |
+| `一键还原我的VSCode.cmd` | 完全还原上面那一步（没装配过就什么都不做） |
+
+**如实记一条没验证的**：发行包**尚未在没有构建树的机器上**试过 —— 本机始终有构建树。
+包内 `verify.ps1` 不引用构建树，所以它测的东西可信；但换机器这件事还没测。
 
 ## 回滚：这是个 git 仓库
 
