@@ -1059,6 +1059,29 @@ $H = @{
       @('只引中文头','#包含 <调用一次>`n整数 主函数(){ 标准::一次标志 标; 标准::一次调用(标, []{}); 返回 0; }')
     )
   }
+  'xsmf_control.h' = @{
+    zh      = '特殊成员控制'
+    pub     = '_特殊成员控制'
+    types   = [ordered]@{ '_SMF_control' = '_特殊成员控制'
+                          '_Non_trivial_copy' = '_非平凡复制'
+                          '_Deleted_copy' = '_删除复制'
+                          '_SMF_control_copy' = '_特殊成员控制复制'
+                          '_Non_trivial_move' = '_非平凡移动'
+                          '_Deleted_move' = '_删除移动'
+                          '_SMF_control_move' = '_特殊成员控制移动'
+                          '_Non_trivial_copy_assign' = '_非平凡复制赋值' }
+    members = [ordered]@{}
+    data    = [ordered]@{}
+    derive  = @()
+    stdHash = $false
+    # ⚠ 参数包【不能叫 类型】（那是 class 的关键词）—— 实测报 缺少 identifier /
+    #   匿名 class 的声明必须是定义。这条本来是关键词检查的缺口：它没查 tparam。
+    tparam  = @{ decl = '模板 <类型名 基类参数, 类型名... 类型集>'; args = '<基类参数, 类型集...>' }
+    tests = @(
+      @('只引中文头','#包含 <特殊成员控制>`n整数 主函数(){ 返回 0; }'),
+      @('本体类型确实可用（模板形状对）','#包含 <特殊成员控制>`n结构 基类 { 整数 值; };`n整数 主函数(){ 标准::_特殊成员控制<基类, 整数> 甲; (空型)甲; 返回 0; }')
+    )
+  }
   'scoped_allocator' = @{
     zh      = '作用域分配器'
     types   = [ordered]@{ 'scoped_allocator_adaptor' = '作用域分配器适配器实现'
