@@ -2816,7 +2816,11 @@ $H = @{
     # ⚠ 不翻 uses_allocator / formatter —— 它们是 std 的模板，改名会断
     members = [ordered]@{ 'emplace' = '就地构造'; 'empty' = '为空'; 'pop' = '弹出'
                           'push' = '压入'; 'push_range' = '范围压入'
-                          'top' = '栈顶' }   # ⚠ size/empty 不改名：调的是【借来的容器】c.size()/c.empty()（§15.10 形态②）
+                          'top' = '栈顶'
+                          # §16.73 本头**自己定义**的内部助手（`stack::_Get_container`）-> 翻。
+                          #   ⚠ `<队列>` 里也有同名的一个，但它那一条【本轮不动】——
+                          #     跨条目协调改名要两个条目同批，留到下一轮一起做。
+                          '_Get_container' = '_取容器' }
                           # ⚠ swap 也不改名的理由同 <队列>（§3.12 + §16.30.3）
     data    = [ordered]@{}
     derive  = @( @('emplace','就地构造'), @('empty','为空'), @('pop','弹出'),

@@ -139,7 +139,7 @@ public:
         swap(c, _Right.c); // intentional ADL
     }
 
-    _NODISCARD const _Container& _Get_container() const noexcept {
+    _NODISCARD const _Container& _取容器() const noexcept {
         return c;
     }
 
@@ -169,39 +169,39 @@ template <_RANGES input_range _Rng, _Allocator_for_container _Alloc>
 
 _EXPORT_STD template <class _Ty, class _Container>
 _NODISCARD bool operator==(const 栈实现<_Ty, _Container>& _Left, const 栈实现<_Ty, _Container>& _Right) {
-    return _Left._Get_container() == _Right._Get_container();
+    return _Left._取容器() == _Right._取容器();
 }
 
 _EXPORT_STD template <class _Ty, class _Container>
 _NODISCARD bool operator!=(const 栈实现<_Ty, _Container>& _Left, const 栈实现<_Ty, _Container>& _Right) {
-    return _Left._Get_container() != _Right._Get_container();
+    return _Left._取容器() != _Right._取容器();
 }
 
 _EXPORT_STD template <class _Ty, class _Container>
 _NODISCARD bool operator<(const 栈实现<_Ty, _Container>& _Left, const 栈实现<_Ty, _Container>& _Right) {
-    return _Left._Get_container() < _Right._Get_container();
+    return _Left._取容器() < _Right._取容器();
 }
 
 _EXPORT_STD template <class _Ty, class _Container>
 _NODISCARD bool operator>(const 栈实现<_Ty, _Container>& _Left, const 栈实现<_Ty, _Container>& _Right) {
-    return _Left._Get_container() > _Right._Get_container();
+    return _Left._取容器() > _Right._取容器();
 }
 
 _EXPORT_STD template <class _Ty, class _Container>
 _NODISCARD bool operator<=(const 栈实现<_Ty, _Container>& _Left, const 栈实现<_Ty, _Container>& _Right) {
-    return _Left._Get_container() <= _Right._Get_container();
+    return _Left._取容器() <= _Right._取容器();
 }
 
 _EXPORT_STD template <class _Ty, class _Container>
 _NODISCARD bool operator>=(const 栈实现<_Ty, _Container>& _Left, const 栈实现<_Ty, _Container>& _Right) {
-    return _Left._Get_container() >= _Right._Get_container();
+    return _Left._取容器() >= _Right._取容器();
 }
 
 #if _HAS_CXX20
 _EXPORT_STD template <class _Ty, three_way_comparable _Container>
 _NODISCARD compare_three_way_result_t<_Container> operator<=>(
     const 栈实现<_Ty, _Container>& _Left, const 栈实现<_Ty, _Container>& _Right) {
-    return _Left._Get_container() <=> _Right._Get_container();
+    return _Left._取容器() <=> _Right._取容器();
 }
 #endif // _HAS_CXX20
 
