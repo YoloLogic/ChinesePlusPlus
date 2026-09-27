@@ -1302,10 +1302,12 @@ $H = @{
   'unordered_set' = @{
     zh      = '无序集合'
     realInclude = @('unordered_set')   # §16.29「乙」
-    # ⚠ 与 <set> 同型：API 几乎全部继承自 _Hash（现在是我们自己的 哈希内部件，§16.48），
-    #   所以中文名要【手写在派生层】（§3.16），members 表只登记本文件自己定义的。
-    # ⚠ §16.50 记：切换**差一步**，卡在 `_Hash` 的【公开 API 名】上 ——
-    #   详见方案 §16.50.3；那是要与派生层英文补回同步做的一批，不是这里的问题。
+    # ===========================================================================
+    #  §16.51 【销账】把 <无序集合> 切到我们自己的 哈希内部件（xhash）。
+    #  §16.49 修了前置阻塞（友元），§16.50 修了两个内部件的同步改名，
+    #  §16.51 补上最后一层（`_Hash` 的公开 API 名 size/clear）—— 于是能照 §16.44 走。
+    # ===========================================================================
+    zhIncludes = @{ 'xhash' = '哈希内部件' }
     types   = [ordered]@{ 'unordered_set' = '无序集合实现'
                           'unordered_multiset' = '无序多重集合实现'
                           '_Uset_traits' = '_无序集合特征'
@@ -1314,11 +1316,27 @@ $H = @{
                           #   消除路径 = 步骤 1 抄 <xhash>。
                           # `_Mytraits` 是【我们自己】用的（std::_Hash 不读它）-> ① 类，可以翻。
                           '_Mytraits' = '_我的特征'
-                          # ⚠ _Alnode / _Alnode_traits / _Key_compare 同理（typename _Mybase::X）。
+                          # §16.51 切到我们自己的 哈希内部件
+                          '_Hash'          = '_哈希'
+                          '_Uhash_compare' = '_无序哈希比较'
+                          '_Is_hasher'     = '_是哈希器'
+                          # ⚠ _Alnode / _Alnode_traits / _Key_compare 是 `typename _Mybase::X`，
+                          #   而它们在 哈希内部件 里【没被改名】-> 现在照旧可用。
                           }
-    members = [ordered]@{ 'emplace' = '就地构造' }
+    members = [ordered]@{ 'emplace' = '就地构造'
+                          # §16.51 同步改名（本头正文调 `_Mybase::X` / `_Hash::X`）
+                          '_Hash_equal'      = '_哈希相等'
+                          '_Unchecked_begin' = '_非检查开始'
+                          '_Unchecked_end'   = '_非检查结束'
+                          'size'             = '尺寸'
+                          'clear'            = '清空' }
     data    = [ordered]@{}
-    derive  = @( @('emplace','就地构造') )
+    # §16.51 公开 API 名的英文补回（§9.1 的新方向：抄来那层已汉语，派生层补英文）。
+    #   ⚠ 漏一个就是回归 —— 用户本来能写的 标准::无序集合<T>::size() 会消失。
+    derive  = @( @('emplace','就地构造'),
+                 @('size','尺寸'), @('clear','清空'),
+                 @('begin','开始'), @('end','结束'), @('empty','为空'),
+                 @('get_allocator','取分配器') )
     deriveTypes = @( @('迭代器','iterator'), @('常量迭代器','const_iterator'),
                      @('键类型','key_type'), @('尺寸类型','size_type') )
     deriveExtra = @'
@@ -1326,12 +1344,12 @@ $H = @{
     模板 <类型名... 参数> 自动 擦除(参数&&... 值) { 返回 基类::erase(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 查找(参数&&... 值) { 返回 基类::find(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 计数(参数&&... 值) 常量 { 返回 基类::count(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 尺寸(参数&&... 值) 常量 { 返回 基类::size(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 为空(参数&&... 值) 常量 { 返回 基类::empty(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 清空(参数&&... 值) { 返回 基类::clear(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 尺寸(参数&&... 值) 常量 { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 为空(参数&&... 值) 常量 { 返回 基类::为空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 清空(参数&&... 值) { 返回 基类::清空(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 包含(参数&&... 值) 常量 { 返回 基类::contains(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 开始(参数&&... 值) { 返回 基类::begin(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 结束(参数&&... 值) { 返回 基类::end(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 开始(参数&&... 值) { 返回 基类::开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 结束(参数&&... 值) { 返回 基类::结束(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 桶数(参数&&... 值) 常量 { 返回 基类::bucket_count(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 负载因子(参数&&... 值) 常量 { 返回 基类::load_factor(static_cast<参数&&>(值)...); }
 '@
@@ -1986,6 +2004,24 @@ $H = @{
       '_Unchecked_begin'          = '_非检查开始'
       '_Unchecked_end'            = '_非检查结束'
       '_Unchecked_erase'          = '_非检查擦除'
+      # §16.51 公开 API 名第一批：`_Hash` 正文里有 `_Mylist::size()` / `_Mylist::clear()`，
+      #   而 <链表> 已把 size/clear 翻成 尺寸/清空 -> 本头必须跟着翻，
+      #   否则报「'标准::细节::链表实现<int>' 中没有名为 'size' 的成员」。
+      #   ⚠ 翻了之后 `_Hash::size`/`clear` 也变汉语 -> <无序集合>/<无序映射> 的
+      #     派生层必须补回英文（否则用户写 标准::无序集合<T>::size() 会消失 = 回归）。
+      'size'                      = '尺寸'
+      'clear'                     = '清空'
+      # §16.51 续：`_Hash` 正文里还有 `_List.begin()/end()/empty()/get_allocator()/max_size()`
+      #   （实测 `_List.X` 的全部调用面：_Emplace/_Getal/_Make_*_iter/_Mypair/
+      #    _Reload_sentinel_and_proxy/_Swap_val/_Tidy/_Unchecked_* + 这 7 个公开 API 名）。
+      #   这些在 <链表> 里都已翻成汉语 -> 本头必须跟着翻。
+      'begin'                     = '开始'
+      'end'                       = '结束'
+      'empty'                     = '为空'
+      'get_allocator'             = '取分配器'
+      # ⚠ `max_size` 【不翻】：它也是借来的 `allocator_traits` 的契约成员
+      #   （实测报「'std::allocator_traits<...>' 中没有名为「最大尺寸」的成员」）；
+      #   而且 <链表> 也没翻它 -> 两边一致。
     }
     data    = [ordered]@{}
     derive  = @()

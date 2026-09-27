@@ -43,7 +43,7 @@ _NODISCARD size_t hash_value(const _Kty& _Keyval) noexcept {
 
 template <class _Elem, class _Traits, class _Alloc>
 _NODISCARD size_t hash_value(const _STD basic_string<_Elem, _Traits, _Alloc>& _Str) noexcept {
-    return _Hash_array_representation(_Str.c_str(), _Str.size());
+    return _Hash_array_representation(_Str.c_str(), _Str.尺寸());
 }
 
 _NODISCARD inline size_t hash_value(_In_z_ const char* _Str) noexcept {
@@ -259,14 +259,14 @@ struct _哈希向量 {
 
     template <class _Any_alloc, enable_if_t<!is_same_v<_Remove_cvref_t<_Any_alloc>, _哈希向量>, int> = 0>
     explicit _哈希向量(_Any_alloc&& _Al) noexcept
-        : _Mypair(_One_then_variadic_args_t{}, _STD forward<_Any_alloc>(_Al)) { // construct empty vector, allocator
+        : _Mypair(_One_then_variadic_args_t{}, _STD forward<_Any_alloc>(_Al)) { // construct 为空 vector, allocator
         _Mypair._Myval2._Alloc_proxy(_GET_PROXY_ALLOCATOR(_Aliter, _Mypair._Get_first()));
     }
 
     _哈希向量(const _哈希向量&)            = delete;
     _哈希向量& operator=(const _哈希向量&) = delete;
 
-    _NODISCARD size_type size() const noexcept {
+    _NODISCARD size_type 尺寸() const noexcept {
         return static_cast<size_type>(_Mypair._Myval2._Mylast - _Mypair._Myval2._Myfirst);
     }
 
@@ -276,14 +276,14 @@ struct _哈希向量 {
     }
 
     _NODISCARD size_type capacity() const noexcept {
-        // This implementation never has capacity() differ from size(), but the previous implementation could.
+        // This implementation never has capacity() differ from 尺寸(), but the previous implementation could.
         // We need to handle that situation gracefully since we may link to old code (See GH-2774).
         return static_cast<size_type>(_Mypair._Myval2._Myend - _Mypair._Myval2._Myfirst);
     }
 
     void _赋值扩容(const size_type _Cells, const value_type _Val) {
         // set the elements stored here to _Cells copies of _Val, leaving the value unchanged if an exception is thrown
-        const auto _Oldsize = size();
+        const auto _Oldsize = 尺寸();
         _STL_INTERNAL_CHECK(_Oldsize <= _Cells);
         auto& _Alvec = _Mypair._Get_first();
         if (_Oldsize < _Cells) {
@@ -371,7 +371,7 @@ public:
 protected:
     _哈希(const _Key_compare& _Parg, const allocator_type& _Al)
         : _Traitsobj(_Parg), _List(_Al), _Vec(_Al), _Mask(_Min_buckets - 1), _Maxidx(_Min_buckets) {
-        // construct empty hash table
+        // construct 为空 hash table
         _最大桶尺寸() = _Bucket_size;
         _Vec._赋值扩容(_Min_buckets * 2, _List._非检查结束());
 #ifdef _ENABLE_STL_INTERNAL_CHECK
@@ -384,7 +384,7 @@ protected:
         : _Traitsobj(_Right._Traitsobj), _List(static_cast<allocator_type>(_Al)), _Vec(_Al), _Mask(_Right._Mask),
           _Maxidx(_Right._Maxidx) {
         // construct hash table by copying _Right
-        _Vec._赋值扩容(_Right._Vec.size(), _List._非检查结束());
+        _Vec._赋值扩容(_Right._Vec.尺寸(), _List._非检查结束());
         _插入范围非检查(_Right._非检查开始(), _Right._非检查结束());
 #ifdef _ENABLE_STL_INTERNAL_CHECK
         _标准库内部检查容器不变式();
@@ -429,7 +429,7 @@ public:
                 _List._Emplace(_Myhead, reinterpret_cast<_Mutable_value_type&&>(_Val));
             }
             _用失效向量重插();
-            _Right.clear();
+            _Right.清空();
         }
 
 #ifdef _ENABLE_STL_INTERNAL_CHECK
@@ -442,7 +442,7 @@ public:
     ~_哈希() noexcept {
         // Destroying _List and _Vec will store tombstones in their pointers.
         // We'll also set _Mask and _Maxidx back to the values used by _哈希's default constructor. Although this
-        // doesn't provide the same benefit as zeroing out size fields, it's consistent with the pattern elsewhere.
+        // doesn't provide the same benefit as zeroing out 尺寸 fields, it's consistent with the pattern elsewhere.
         _Mask   = _Min_buckets - 1;
         _Maxidx = _Min_buckets;
     }
@@ -488,7 +488,7 @@ private:
 
         ~_清空守卫() {
             if (_Target) {
-                _Target->clear();
+                _Target->清空();
             }
         }
     };
@@ -543,7 +543,7 @@ public:
                 _Vec._清理();
                 _传播移动赋值两者(_Right);
 
-                // assign the empty 链表实现 to _Right._List (except the allocators), and take _Right's _List data
+                // assign the 为空 链表实现 to _Right._List (except the allocators), and take _Right's _List data
                 auto& _List_data       = _List._Mypair._Myval2;
                 auto& _Right_list_data = _Right._List._Mypair._Myval2;
                 _List_data._Myhead     = _STD exchange(_Right_list_data._Myhead, _Newhead._Release());
@@ -584,7 +584,7 @@ public:
             }
         }
 
-        clear();
+        清空();
         _Traitsobj = _Right._Traitsobj;
         _传播移动赋值两者(_Right);
         _交换值(_Right);
@@ -790,20 +790,20 @@ public:
         return *this;
     }
 
-    _NODISCARD iterator begin() noexcept {
-        return _List.begin();
+    _NODISCARD iterator 开始() noexcept {
+        return _List.开始();
     }
 
-    _NODISCARD const_iterator begin() const noexcept {
-        return _List.begin();
+    _NODISCARD const_iterator 开始() const noexcept {
+        return _List.开始();
     }
 
-    _NODISCARD iterator end() noexcept {
-        return _List.end();
+    _NODISCARD iterator 结束() noexcept {
+        return _List.结束();
     }
 
-    _NODISCARD const_iterator end() const noexcept {
-        return _List.end();
+    _NODISCARD const_iterator 结束() const noexcept {
+        return _List.结束();
     }
 
     _非检查迭代器 _非检查开始() noexcept {
@@ -823,27 +823,27 @@ public:
     }
 
     _NODISCARD const_iterator cbegin() const noexcept {
-        return begin();
+        return 开始();
     }
 
     _NODISCARD const_iterator cend() const noexcept {
-        return end();
+        return 结束();
     }
 
-    _NODISCARD size_type size() const noexcept {
-        return _List.size();
+    _NODISCARD size_type 尺寸() const noexcept {
+        return _List.尺寸();
     }
 
     _NODISCARD size_type max_size() const noexcept {
         return _List.max_size();
     }
 
-    _NODISCARD_EMPTY_MEMBER bool empty() const noexcept {
-        return _List.empty();
+    _NODISCARD_EMPTY_MEMBER bool 为空() const noexcept {
+        return _List.为空();
     }
 
-    _NODISCARD allocator_type get_allocator() const noexcept {
-        return static_cast<allocator_type>(_List.get_allocator());
+    _NODISCARD allocator_type 取分配器() const noexcept {
+        return static_cast<allocator_type>(_List.取分配器());
     }
 
     using local_iterator       = iterator;
@@ -871,15 +871,15 @@ public:
         return static_cast<size_type>(_STD distance(_Bucket_lo, _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1])) + 1;
     }
 
-    _NODISCARD local_iterator begin(size_type _Bucket) noexcept /* strengthened */ {
+    _NODISCARD local_iterator 开始(size_type _Bucket) noexcept /* strengthened */ {
         return _List._Make_iter(_Vec._Mypair._Myval2._Myfirst[_Bucket << 1]._Ptr);
     }
 
-    _NODISCARD const_local_iterator begin(size_type _Bucket) const noexcept /* strengthened */ {
+    _NODISCARD const_local_iterator 开始(size_type _Bucket) const noexcept /* strengthened */ {
         return _List._Make_const_iter(_Vec._Mypair._Myval2._Myfirst[_Bucket << 1]._Ptr);
     }
 
-    _NODISCARD local_iterator end(size_type _Bucket) noexcept /* strengthened */ {
+    _NODISCARD local_iterator 结束(size_type _Bucket) noexcept /* strengthened */ {
         _结点指针 _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1]._Ptr;
         if (_Bucket_hi != _List._Mypair._Myval2._Myhead) {
             _Bucket_hi = _Bucket_hi->_Next;
@@ -888,7 +888,7 @@ public:
         return _List._Make_iter(_Bucket_hi);
     }
 
-    _NODISCARD const_local_iterator end(size_type _Bucket) const noexcept /* strengthened */ {
+    _NODISCARD const_local_iterator 结束(size_type _Bucket) const noexcept /* strengthened */ {
         _结点指针 _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1]._Ptr;
         if (_Bucket_hi != _List._Mypair._Myval2._Myhead) {
             _Bucket_hi = _Bucket_hi->_Next;
@@ -911,7 +911,7 @@ public:
     }
 
     _NODISCARD float load_factor() const noexcept {
-        return static_cast<float>(size()) / static_cast<float>(bucket_count());
+        return static_cast<float>(尺寸()) / static_cast<float>(bucket_count());
     }
 
     _NODISCARD float max_load_factor() const noexcept {
@@ -924,8 +924,8 @@ public:
     }
 
     void rehash(size_type _Buckets) { // rebuild table with at least _Buckets buckets
-        // don't violate a.bucket_count() >= a.size() / a.max_load_factor() invariant:
-        _Buckets = (_STD max)(_最小负载因子桶数(_List.size()), _Buckets);
+        // don't violate a.bucket_count() >= a.尺寸() / a.max_load_factor() invariant:
+        _Buckets = (_STD max)(_最小负载因子桶数(_List.尺寸()), _Buckets);
         if (_Buckets <= _Maxidx) { // we already have enough buckets; nothing to do
             return;
         }
@@ -976,7 +976,7 @@ public:
 #endif // _HAS_CXX23
 
     void insert(initializer_list<value_type> _Ilist) {
-        _插入范围非检查(_Ilist.begin(), _Ilist.end());
+        _插入范围非检查(_Ilist.开始(), _Ilist.结束());
     }
 
 private:
@@ -1047,7 +1047,7 @@ private:
             _结点指针& _Bucket_hi   = _Bucket_bounds[(_Bucket << 1) + 1]._Ptr;
             const bool _Update_lo  = _Bucket_lo == _Eraser._Next;
             const _结点指针 _Old_hi = _Bucket_hi;
-            for (;;) { // remove elements until we hit the end of the bucket
+            for (;;) { // remove elements until we hit the 结束 of the bucket
                 const bool _At_bucket_back = _Eraser._Next == _Old_hi;
                 _Eraser._递增已擦除();
                 if (_At_bucket_back) {
@@ -1080,7 +1080,7 @@ private:
             _结点指针& _Bucket_lo   = _Bucket_bounds[_Bucket << 1]._Ptr;
             _结点指针& _Bucket_hi   = _Bucket_bounds[(_Bucket << 1) + 1]._Ptr;
             const _结点指针 _Old_hi = _Bucket_hi;
-            for (;;) { // remove elements until we hit the end of the bucket
+            for (;;) { // remove elements until we hit the 结束 of the bucket
                 const bool _At_bucket_back = _Eraser._Next == _Old_hi;
                 _Eraser._递增已擦除();
                 if (_At_bucket_back) {
@@ -1154,14 +1154,14 @@ public:
     }
 #endif // _HAS_CXX23
 
-    void clear() noexcept {
+    void 清空() noexcept {
         // TRANSITION, ABI:
-        // LWG-2550 requires implementations to make clear() O(size()), independent of bucket_count().
+        // LWG-2550 requires implementations to make 清空() O(尺寸()), independent of bucket_count().
         // Unfortunately our current data structure / ABI does not allow achieving this in the general case because:
         //   (1) Finding the bucket that goes with an element requires running the hash function
         //   (2) The hash function operator() may throw exceptions, and
-        //   (3) clear() is a noexcept function.
-        // We do comply with LWG-2550 if the hash function is noexcept, or if the container was empty.
+        //   (3) 清空() is a noexcept function.
+        // We do comply with LWG-2550 if the hash function is noexcept, or if the container was 为空.
         const auto _Oldsize = _List._Mypair._Myval2._Mysize;
         if (_Oldsize == 0) {
             return;
@@ -1179,14 +1179,14 @@ public:
         }
 
         // Bulk destroy items and reset buckets
-        _List.clear();
+        _List.清空();
         _STD fill(_Vec._Mypair._Myval2._Myfirst, _Vec._Mypair._Myval2._Mylast, _非检查结束());
     }
 
 private:
     template <class _Keyty>
     _NODISCARD _结点指针 _查找首个(const _Keyty& _Keyval, const size_t _Hashval) const {
-        // find node pointer to first node matching _Keyval (with hash _Hashval) if it exists; otherwise, end
+        // find node pointer to first node matching _Keyval (with hash _Hashval) if it exists; otherwise, 结束
         const size_type _Bucket = _Hashval & _Mask;
         _结点指针 _Where         = _Vec._Mypair._Myval2._Myfirst[_Bucket << 1]._Ptr;
         const _结点指针 _End     = _List._Mypair._Myval2._Myhead;
@@ -1219,7 +1219,7 @@ private:
         if constexpr (_Traits::_Multi) {
             return _查找首个(_Keyval, _Hashval);
         } else {
-            // use _查找最后 for unique containers to avoid increase in code size of instantiating _查找首个
+            // use _查找最后 for unique containers to avoid increase in code 尺寸 of instantiating _查找首个
             auto _Target = _查找最后(_Keyval, _Hashval)._Duplicate;
             if (_Target) {
                 return _Target;
@@ -1385,7 +1385,7 @@ public:
 #if _ITERATOR_DEBUG_LEVEL == 2
         const auto _List_data = _STD addressof(_List._Mypair._Myval2);
         _STL_VERIFY(_Where._Getcont() == _List_data, "extract mismatched container");
-        _STL_VERIFY(_Where._Ptr != _List_data->_Myhead, "cannot extract end()");
+        _STL_VERIFY(_Where._Ptr != _List_data->_Myhead, "cannot extract 结束()");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
         return node_type::_Make(_Extract(_Where._Unwrapped()), _List._取分配器());
@@ -1414,12 +1414,12 @@ public:
 #endif // _HAS_CXX23
 
     iterator insert(const_iterator _Hint, node_type&& _Handle) {
-        if (_Handle.empty()) {
-            return end();
+        if (_Handle.为空()) {
+            return 结束();
         }
 
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(_List.get_allocator() == _Handle._取分配器(), "node handle allocator incompatible for insert");
+        _STL_VERIFY(_List.取分配器() == _Handle._取分配器(), "node handle allocator incompatible for insert");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
         const auto& _Keyval   = _Traits::_Kfn(_Handle._Getptr()->_Myval);
@@ -1542,16 +1542,16 @@ protected:
 public:
     conditional_t<_Traits::_Multi, iterator, _Insert_return_type<iterator, node_type>> insert(node_type&& _Handle) {
         // insert the node (if any) held in _Handle
-        if (_Handle.empty()) {
+        if (_Handle.为空()) {
             if constexpr (_Traits::_Multi) {
-                return end();
+                return 结束();
             } else {
-                return {end(), false, _STD move(_Handle)};
+                return {结束(), false, _STD move(_Handle)};
             }
         }
 
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(_List.get_allocator() == _Handle._取分配器(), "node handle allocator incompatible for insert");
+        _STL_VERIFY(_List.取分配器() == _Handle._取分配器(), "node handle allocator incompatible for insert");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
         const auto& _Keyval   = _Traits::_Kfn(_Handle._Getptr()->_Myval);
@@ -1646,7 +1646,7 @@ protected:
         _非检查迭代器& _Bucket_lo = _Bucket_array[_Bucket << 1];
         _非检查迭代器& _Bucket_hi = _Bucket_array[(_Bucket << 1) + 1];
         if (_Bucket_lo._Ptr == _Head) {
-            // bucket is empty, set both
+            // bucket is 为空, set both
             _Bucket_lo._Ptr = _新节点;
             _Bucket_hi._Ptr = _新节点;
         } else if (_Bucket_lo._Ptr == _Insert_before) {
@@ -1687,13 +1687,13 @@ protected:
         _结点指针& _Bucket_lo = _Vec._Mypair._Myval2._Myfirst[_Bucket << 1]._Ptr;
         _结点指针& _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1]._Ptr;
         if (_Bucket_hi == _Plist) {
-            if (_Bucket_lo == _Plist) { // make bucket empty
+            if (_Bucket_lo == _Plist) { // make bucket 为空
                 const auto _End = _List._Mypair._Myval2._Myhead;
 
                 _Bucket_lo = _End;
                 _Bucket_hi = _End;
             } else {
-                _Bucket_hi = _Plist->_Prev; // move end back one element
+                _Bucket_hi = _Plist->_Prev; // move 结束 back one element
             }
         } else if (_Bucket_lo == _Plist) {
             _Bucket_lo = _Plist->_Next; // move beginning up one element
@@ -1722,8 +1722,8 @@ protected:
         return _Req_buckets;
     }
 
-    void _用失效向量重插() { // insert elements in [begin(), end()), distrusting existing _Vec elements
-        _强制重哈希(_期望扩容桶数(_List.size()));
+    void _用失效向量重插() { // insert elements in [开始(), 结束()), distrusting existing _Vec elements
+        _强制重哈希(_期望扩容桶数(_List.尺寸()));
     }
 
     void _强制重哈希(size_type _Buckets) {
@@ -1742,7 +1742,7 @@ protected:
         // The above test also means that we won't perform a forbidden full shift when restoring the power of
         // 2 invariant
         // this round up to power of 2 in addition to the _Buckets > _Maxidx above means
-        // we'll at least double in size (the next power of 2 above _Maxidx)
+        // we'll at least double in 尺寸 (the next power of 2 above _Maxidx)
         _Buckets                       = static_cast<size_type>(1) << _Ceiling_of_log_2(static_cast<size_t>(_Buckets));
         const _非检查迭代器 _End = _非检查结束();
 
@@ -1762,12 +1762,12 @@ protected:
             const size_type _Bucket = bucket(_Inserted_key);
 
             // _Bucket_lo and _Bucket_hi are the *inclusive* range of elements in the bucket, or _非检查结束() if
-            // the bucket is empty; if !_Standard then [_Bucket_lo, _Bucket_hi] is a sorted range.
+            // the bucket is 为空; if !_Standard then [_Bucket_lo, _Bucket_hi] is a sorted range.
             _非检查迭代器& _Bucket_lo = _Vec._Mypair._Myval2._Myfirst[_Bucket << 1];
             _非检查迭代器& _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1];
 
             if (_Bucket_lo == _End) {
-                // The bucket was empty, set it to the inserted element.
+                // The bucket was 为空, set it to the inserted element.
                 _Bucket_lo = _Inserted;
                 _Bucket_hi = _Inserted;
                 continue;
@@ -1776,8 +1776,8 @@ protected:
             // Search the bucket for the insertion location and move element if necessary.
             _非检查常量迭代器 _Insert_before = _Bucket_hi;
             if (!_Traitsobj(_Inserted_key, _Traits::_Kfn(*_Insert_before))) {
-                // The inserted element belongs at the end of the bucket; splice it there and set _Bucket_hi to the
-                // new bucket inclusive end.
+                // The inserted element belongs at the 结束 of the bucket; splice it there and set _Bucket_hi to the
+                // new bucket inclusive 结束.
                 ++_Insert_before;
                 if (_Insert_before != _Inserted) { // avoid splice on element already in position
                     _我的链表::_迭代器检查值::_Unchecked_splice(_Insert_before._Ptr, _Inserted._Ptr, _Next_inserted._Ptr);
@@ -1879,14 +1879,14 @@ protected:
 
         // trim matching prefixes
         while (*_First1 == *_First2) {
-            // the right equal_range ends at the end of the bucket or on the first nonequal element
+            // the right equal_range ends at the 结束 of the bucket or on the first nonequal element
             bool _Right_range_end = _First2 == _Bucket_hi;
             ++_First2;
             if (!_Right_range_end) {
                 _Right_range_end = _Right._Traitsobj(_Keyval, _Traits::_Kfn(*_First2));
             }
 
-            // the left equal_range ends at the end of the container or on the first nonequal element
+            // the left equal_range ends at the 结束 of the container or on the first nonequal element
             ++_First1;
             const bool _Left_range_end = _First1 == _Left_stop_at || _Traitsobj(_Keyval, _Traits::_Kfn(*_First1));
 
@@ -1901,7 +1901,7 @@ protected:
             }
         }
 
-        // found a mismatched element, find the end of the equal_ranges and dispatch to _Check_match_counts
+        // found a mismatched element, find the 结束 of the equal_ranges and dispatch to _Check_match_counts
         auto _Last1 = _First1;
         auto _Last2 = _First2;
         for (;;) {
@@ -1929,7 +1929,7 @@ protected:
     template <bool _Multi2 = _Traits::_Multi, enable_if_t<_Multi2, int> = 0>
     _NODISCARD bool _多重相等(const _哈希& _Right) const {
         static_assert(_Traits::_Multi, "This function only works with multi containers");
-        _STL_INTERNAL_CHECK(this->size() == _Right.size());
+        _STL_INTERNAL_CHECK(this->尺寸() == _Right.尺寸());
         const auto _Last1 = _非检查结束();
         auto _First1      = _非检查开始();
         while (_First1 != _Last1) {
@@ -1947,12 +1947,12 @@ protected:
 #ifdef _ENABLE_STL_INTERNAL_CHECK
 public:
     void _标准库内部检查容器不变式() const noexcept {
-        const size_type _Vecsize = _Vec.size();
+        const size_type _Vecsize = _Vec.尺寸();
         _STL_INTERNAL_CHECK(_Vec._Mypair._Myval2._Mylast == _Vec._Mypair._Myval2._Myend);
         _STL_INTERNAL_CHECK(_Vecsize >= _Min_buckets * 2);
         _STL_INTERNAL_CHECK(_Maxidx == (_Vecsize >> 1));
         _STL_INTERNAL_CHECK(_Maxidx - 1 == _Mask);
-        _STL_INTERNAL_CHECK(_Maxidx >= _最小负载因子桶数(_List.size()));
+        _STL_INTERNAL_CHECK(_Maxidx >= _最小负载因子桶数(_List.尺寸()));
         // asserts that bucket count is a power of 2:
         _STL_INTERNAL_CHECK((static_cast<size_type>(1) << _Floor_of_log_2(_Vecsize)) == _Vecsize);
         _STL_INTERNAL_CHECK(load_factor() <= max_load_factor());
@@ -2004,7 +2004,7 @@ public:
             }
         }
 
-        _STL_INTERNAL_CHECK(_List.size() == _Elements);
+        _STL_INTERNAL_CHECK(_List.尺寸() == _Elements);
 #endif // _STL_INTERNAL_CHECK_EXHAUSTIVE
     }
 
@@ -2015,7 +2015,7 @@ protected:
     _我的链表 _List; // 链表实现 of elements, must initialize before _Vec
     _哈希向量<_Aliter> _Vec; // "vector" of 链表实现 iterators for buckets:
                              // each bucket is 2 iterators denoting the closed range of elements in the bucket,
-                             // or both iterators set to _非检查结束() if the bucket is empty.
+                             // or both iterators set to _非检查结束() if the bucket is 为空.
     size_type _Mask; // the key mask
     size_type _Maxidx; // current maximum key value, must be a power of 2
 };
@@ -2036,7 +2036,7 @@ using _是哈希器 = negation<disjunction<is_integral<_Hasher>, _Is_allocator<_
 
 template <class _Traits>
 _NODISCARD bool _哈希相等(const _哈希<_Traits>& _Left, const _哈希<_Traits>& _Right) {
-    if (_Left.size() != _Right.size()) {
+    if (_Left.尺寸() != _Right.尺寸()) {
         return false;
     }
 

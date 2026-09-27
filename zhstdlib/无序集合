@@ -8,7 +8,7 @@
 #define _ZH_UNORDERED_SET_
 #include <yvals_core.h>
 #if _STL_COMPILER_PREPROCESSOR
-#include <xhash>
+#include <哈希内部件>
 
 #if _HAS_CXX17
 #include <xpolymorphic_allocator.h>
@@ -27,7 +27,7 @@ template <class _Kty, // key type (same as value type)
     class _Tr, // comparator predicate type
     class _Alloc, // actual allocator type (should be value allocator)
     bool _Mfl> // true if multiple equivalent keys are permitted
-class _无序集合特征 : public _Tr { // traits required to make _Hash behave like a set
+class _无序集合特征 : public _Tr { // traits required to make _哈希 behave like a set
 public:
     using key_type            = _Kty;
     using value_type          = _Kty;
@@ -58,7 +58,7 @@ public:
 
 _EXPORT_STD template <class _Kty, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>,
     class _Alloc = allocator<_Kty>>
-class 无序集合实现 : public _Hash<_无序集合特征<_Kty, _Uhash_compare<_Kty, _Hasher, _Keyeq>, _Alloc, false>> {
+class 无序集合实现 : public _哈希<_无序集合特征<_Kty, _无序哈希比较<_Kty, _Hasher, _Keyeq>, _Alloc, false>> {
     // hash table of key-values, unique keys
 public:
     static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<_Kty, typename _Alloc::value_type>,
@@ -67,8 +67,8 @@ public:
                                      "because of [container.requirements].");
 
 private:
-    using _我的特征      = _Uhash_compare<_Kty, _Hasher, _Keyeq>;
-    using _我的基类        = _Hash<_无序集合特征<_Kty, _我的特征, _Alloc, false>>;
+    using _我的特征      = _无序哈希比较<_Kty, _Hasher, _Keyeq>;
+    using _我的基类        = _哈希<_无序集合特征<_Kty, _我的特征, _Alloc, false>>;
     using _Alnode        = typename _我的基类::_Alnode;
     using _Alnode_traits = typename _我的基类::_Alnode_traits;
     using _Key_compare   = typename _我的基类::_Key_compare;
@@ -305,7 +305,7 @@ public:
     }
 
     无序集合实现& operator=(initializer_list<value_type> _Ilist) {
-        this->clear();
+        this->清空();
         this->insert(_Ilist);
         return *this;
     }
@@ -318,21 +318,21 @@ public:
         return this->_Traitsobj._Mypair._Myval2._Get_first();
     }
 
-    using _我的基类::_Unchecked_begin;
-    using _我的基类::_Unchecked_end;
+    using _我的基类::_非检查开始;
+    using _我的基类::_非检查结束;
 };
 
 #if _HAS_CXX17
 template <class _Iter, class _Hasher = hash<_Iter_value_t<_Iter>>, class _Keyeq = equal_to<_Iter_value_t<_Iter>>,
     class _Alloc = allocator<_Iter_value_t<_Iter>>,
     enable_if_t<
-        conjunction_v<_Is_iterator<_Iter>, _Is_hasher<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_Alloc>>,
+        conjunction_v<_Is_iterator<_Iter>, _是哈希器<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_Alloc>>,
         int> = 0>
 无序集合实现(_Iter, _Iter, _Guide_size_type_t<_Alloc> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(), _Alloc = _Alloc())
     -> 无序集合实现<_Iter_value_t<_Iter>, _Hasher, _Keyeq, _Alloc>;
 
 template <class _Kty, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>, class _Alloc = allocator<_Kty>,
-    enable_if_t<conjunction_v<_Is_hasher<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_Alloc>>, int> = 0>
+    enable_if_t<conjunction_v<_是哈希器<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_Alloc>>, int> = 0>
 无序集合实现(initializer_list<_Kty>, _Guide_size_type_t<_Alloc> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(),
     _Alloc = _Alloc()) -> 无序集合实现<_Kty, _Hasher, _Keyeq, _Alloc>;
 
@@ -341,7 +341,7 @@ template <class _Iter, class _Alloc, enable_if_t<conjunction_v<_Is_iterator<_Ite
     -> 无序集合实现<_Iter_value_t<_Iter>, hash<_Iter_value_t<_Iter>>, equal_to<_Iter_value_t<_Iter>>, _Alloc>;
 
 template <class _Iter, class _Hasher, class _Alloc,
-    enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_hasher<_Hasher>, _Is_allocator<_Alloc>>, int> = 0>
+    enable_if_t<conjunction_v<_Is_iterator<_Iter>, _是哈希器<_Hasher>, _Is_allocator<_Alloc>>, int> = 0>
 无序集合实现(_Iter, _Iter, _Guide_size_type_t<_Alloc>, _Hasher, _Alloc)
     -> 无序集合实现<_Iter_value_t<_Iter>, _Hasher, equal_to<_Iter_value_t<_Iter>>, _Alloc>;
 
@@ -350,7 +350,7 @@ template <class _Kty, class _Alloc, enable_if_t<_Is_allocator<_Alloc>::value, in
     -> 无序集合实现<_Kty, hash<_Kty>, equal_to<_Kty>, _Alloc>;
 
 template <class _Kty, class _Hasher, class _Alloc,
-    enable_if_t<conjunction_v<_Is_hasher<_Hasher>, _Is_allocator<_Alloc>>, int> = 0>
+    enable_if_t<conjunction_v<_是哈希器<_Hasher>, _Is_allocator<_Alloc>>, int> = 0>
 无序集合实现(initializer_list<_Kty>, _Guide_size_type_t<_Alloc>, _Hasher, _Alloc)
     -> 无序集合实现<_Kty, _Hasher, equal_to<_Kty>, _Alloc>;
 
@@ -393,7 +393,7 @@ _EXPORT_STD template <class _Kty, class _Hasher, class _Keyeq, class _Alloc, cla
 _EXPORT_STD template <class _Kty, class _Hasher, class _Keyeq, class _Alloc>
 _NODISCARD bool operator==(const 无序集合实现<_Kty, _Hasher, _Keyeq, _Alloc>& _Left,
     const 无序集合实现<_Kty, _Hasher, _Keyeq, _Alloc>& _Right) {
-    return _Hash_equal(_Left, _Right);
+    return _哈希相等(_Left, _Right);
 }
 
 #if !_HAS_CXX20
@@ -406,7 +406,7 @@ _NODISCARD bool operator!=(const 无序集合实现<_Kty, _Hasher, _Keyeq, _Allo
 
 _EXPORT_STD template <class _Kty, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>,
     class _Alloc = allocator<_Kty>>
-class 无序多重集合实现 : public _Hash<_无序集合特征<_Kty, _Uhash_compare<_Kty, _Hasher, _Keyeq>, _Alloc, true>> {
+class 无序多重集合实现 : public _哈希<_无序集合特征<_Kty, _无序哈希比较<_Kty, _Hasher, _Keyeq>, _Alloc, true>> {
     // hash table of key-values, non-unique keys
 public:
     static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<_Kty, typename _Alloc::value_type>,
@@ -415,8 +415,8 @@ public:
                                      "because of [container.requirements].");
 
 private:
-    using _我的特征      = _Uhash_compare<_Kty, _Hasher, _Keyeq>;
-    using _我的基类        = _Hash<_无序集合特征<_Kty, _我的特征, _Alloc, true>>;
+    using _我的特征      = _无序哈希比较<_Kty, _Hasher, _Keyeq>;
+    using _我的基类        = _哈希<_无序集合特征<_Kty, _我的特征, _Alloc, true>>;
     using _Alnode        = typename _我的基类::_Alnode;
     using _Alnode_traits = typename _我的基类::_Alnode_traits;
     using _Key_compare   = typename _我的基类::_Key_compare;
@@ -648,7 +648,7 @@ public:
     }
 
     无序多重集合实现& operator=(initializer_list<value_type> _Ilist) {
-        this->clear();
+        this->清空();
         this->insert(_Ilist);
         return *this;
     }
@@ -661,21 +661,21 @@ public:
         return this->_Traitsobj._Mypair._Myval2._Get_first();
     }
 
-    using _我的基类::_Unchecked_begin;
-    using _我的基类::_Unchecked_end;
+    using _我的基类::_非检查开始;
+    using _我的基类::_非检查结束;
 };
 
 #if _HAS_CXX17
 template <class _Iter, class _Hasher = hash<_Iter_value_t<_Iter>>, class _Keyeq = equal_to<_Iter_value_t<_Iter>>,
     class _Alloc = allocator<_Iter_value_t<_Iter>>,
     enable_if_t<
-        conjunction_v<_Is_iterator<_Iter>, _Is_hasher<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_Alloc>>,
+        conjunction_v<_Is_iterator<_Iter>, _是哈希器<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_Alloc>>,
         int> = 0>
 无序多重集合实现(_Iter, _Iter, _Guide_size_type_t<_Alloc> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(),
     _Alloc = _Alloc()) -> 无序多重集合实现<_Iter_value_t<_Iter>, _Hasher, _Keyeq, _Alloc>;
 
 template <class _Kty, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>, class _Alloc = allocator<_Kty>,
-    enable_if_t<conjunction_v<_Is_hasher<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_Alloc>>, int> = 0>
+    enable_if_t<conjunction_v<_是哈希器<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_Alloc>>, int> = 0>
 无序多重集合实现(initializer_list<_Kty>, _Guide_size_type_t<_Alloc> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(),
     _Alloc = _Alloc()) -> 无序多重集合实现<_Kty, _Hasher, _Keyeq, _Alloc>;
 
@@ -684,7 +684,7 @@ template <class _Iter, class _Alloc, enable_if_t<conjunction_v<_Is_iterator<_Ite
     -> 无序多重集合实现<_Iter_value_t<_Iter>, hash<_Iter_value_t<_Iter>>, equal_to<_Iter_value_t<_Iter>>, _Alloc>;
 
 template <class _Iter, class _Hasher, class _Alloc,
-    enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_hasher<_Hasher>, _Is_allocator<_Alloc>>, int> = 0>
+    enable_if_t<conjunction_v<_Is_iterator<_Iter>, _是哈希器<_Hasher>, _Is_allocator<_Alloc>>, int> = 0>
 无序多重集合实现(_Iter, _Iter, _Guide_size_type_t<_Alloc>, _Hasher, _Alloc)
     -> 无序多重集合实现<_Iter_value_t<_Iter>, _Hasher, equal_to<_Iter_value_t<_Iter>>, _Alloc>;
 
@@ -693,7 +693,7 @@ template <class _Kty, class _Alloc, enable_if_t<_Is_allocator<_Alloc>::value, in
     -> 无序多重集合实现<_Kty, hash<_Kty>, equal_to<_Kty>, _Alloc>;
 
 template <class _Kty, class _Hasher, class _Alloc,
-    enable_if_t<conjunction_v<_Is_hasher<_Hasher>, _Is_allocator<_Alloc>>, int> = 0>
+    enable_if_t<conjunction_v<_是哈希器<_Hasher>, _Is_allocator<_Alloc>>, int> = 0>
 无序多重集合实现(initializer_list<_Kty>, _Guide_size_type_t<_Alloc>, _Hasher, _Alloc)
     -> 无序多重集合实现<_Kty, _Hasher, equal_to<_Kty>, _Alloc>;
 
@@ -737,7 +737,7 @@ _EXPORT_STD template <class _Kty, class _Hasher, class _Keyeq, class _Alloc, cla
 _EXPORT_STD template <class _Kty, class _Hasher, class _Keyeq, class _Alloc>
 _NODISCARD bool operator==(const 无序多重集合实现<_Kty, _Hasher, _Keyeq, _Alloc>& _Left,
     const 无序多重集合实现<_Kty, _Hasher, _Keyeq, _Alloc>& _Right) {
-    return _Hash_equal(_Left, _Right);
+    return _哈希相等(_Left, _Right);
 }
 
 #if !_HAS_CXX20
@@ -794,6 +794,18 @@ _STL_RESTORE_CLANG_WARNINGS
     // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
     模板 <类型名... 参数> 自动 emplace(参数&&... 值) { 返回 基类::就地构造(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 emplace(参数&&... 值) 常量 { 返回 基类::就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 size(参数&&... 值) { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 size(参数&&... 值) 常量 { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 clear(参数&&... 值) { 返回 基类::清空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 clear(参数&&... 值) 常量 { 返回 基类::清空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 begin(参数&&... 值) { 返回 基类::开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 begin(参数&&... 值) 常量 { 返回 基类::开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 end(参数&&... 值) { 返回 基类::结束(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 end(参数&&... 值) 常量 { 返回 基类::结束(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 empty(参数&&... 值) { 返回 基类::为空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 empty(参数&&... 值) 常量 { 返回 基类::为空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 get_allocator(参数&&... 值) { 返回 基类::取分配器(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 get_allocator(参数&&... 值) 常量 { 返回 基类::取分配器(static_cast<参数&&>(值)...); }
 
     // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
     // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
@@ -801,12 +813,12 @@ _STL_RESTORE_CLANG_WARNINGS
     模板 <类型名... 参数> 自动 擦除(参数&&... 值) { 返回 基类::erase(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 查找(参数&&... 值) { 返回 基类::find(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 计数(参数&&... 值) 常量 { 返回 基类::count(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 尺寸(参数&&... 值) 常量 { 返回 基类::size(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 为空(参数&&... 值) 常量 { 返回 基类::empty(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 清空(参数&&... 值) { 返回 基类::clear(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 尺寸(参数&&... 值) 常量 { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 为空(参数&&... 值) 常量 { 返回 基类::为空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 清空(参数&&... 值) { 返回 基类::清空(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 包含(参数&&... 值) 常量 { 返回 基类::contains(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 开始(参数&&... 值) { 返回 基类::begin(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 结束(参数&&... 值) { 返回 基类::end(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 开始(参数&&... 值) { 返回 基类::开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 结束(参数&&... 值) { 返回 基类::结束(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 桶数(参数&&... 值) 常量 { 返回 基类::bucket_count(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 负载因子(参数&&... 值) 常量 { 返回 基类::load_factor(static_cast<参数&&>(值)...); }
 };
