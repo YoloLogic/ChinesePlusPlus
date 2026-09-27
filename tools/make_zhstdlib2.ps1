@@ -1332,6 +1332,38 @@ if (Test-Path $kwFile) {
     }
 }
 $kwBad = @(); $kwChecked = 0
+
+# ---------------------------------------------------------------------------
+#  关键词检查【扩展】：模板参数名（§16.9 的实证缺口）
+#  xsmf_control.h 的 tparam 里我把参数包命名为「类型」—— 那是 class 的关键词，
+#  生成的派生层直接语法错（缺少 identifier）。而当初的关键词检查只扫
+#  zh/pub/types/members/data，没扫 tparam。
+#
+#  ⚠ 只查【模板参数名】，不查 tparam.decl 全文、也不查 extra/deriveExtra：
+#     那些地方本来就该出现中文关键词（模板/类型名/返回/公开…），拿关键词扫它们是纯噪音。
+#     参数名的取法：decl 里 <...> 内按 ',' 切开，每段最后一个词就是参数名
+#     （先去掉 '...' 与 '= 默认值'）。
+# ---------------------------------------------------------------------------
+foreach ($en in ($H.Keys | Sort-Object)) {
+    $sp = $H[$en]
+    if (-not $sp.ContainsKey('tparam')) { continue }
+    $decl = [string]$sp.tparam.decl
+    $lt = $decl.IndexOf('<'); $gt = $decl.LastIndexOf('>')
+    if ($lt -lt 0 -or $gt -le $lt) { continue }
+    $inner = $decl.Substring($lt + 1, $gt - $lt - 1)
+    foreach ($piece in ($inner -split ',')) {
+        $p = $piece.Trim()
+        if ($p -match '=') { $p = ($p -split '=')[0].Trim() }
+        $p = $p.Replace('...', ' ').Trim()
+        $toks = @($p -split '\s+' | Where-Object { $_ -ne '' })
+        if ($toks.Count -eq 0) { continue }
+        $pname = $toks[$toks.Count - 1]
+        if ($kwList.ContainsKey($pname)) {
+            Write-Host ("  ❌ 关键词检查[模板参数名] {0} 的参数名 '{1}' 是关键词（{2}）" -f $en, $pname, $kwList[$pname]) -ForegroundColor Red
+            $kwBad += ("  [tparam] {0} 的参数名 '{1}' 是关键词：{2}" -f $en, $pname, $kwList[$pname])
+        }
+    }
+}
 foreach ($en in ($H.Keys | Sort-Object)) {
     $names = @($H[$en].zh)
     if ($H[$en].ContainsKey('pub')) { $names += $H[$en].pub }
