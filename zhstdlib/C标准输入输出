@@ -1,31 +1,34 @@
 // <C标准输入输出> —— cstdio 的中文别名层
 //
 // 为什么是别名而不是抄一份（方案铁律 4）：
-//   C 包装头自己没有实现，只是把 C 库名字搬进 std；而 std::FILE 这类
+//   C 包装头自己没有实现，只是把 C 库名字搬进 std；这些类型
 //   **必须与全局那个是同一个类型**（对齐 / ABI）。抄一份就变成"另一种类型"。
 //   实测抄 cstddef 直接炸：「using _STD max_align_t;」那条"桥"搬名域后断链。
 //
+// 三种机制都用上了（见 docs\标准库汉化\标准库汉化方案.md §3.4）：
+//   类型 -> 使用 中文名 = std::原名;
+//   函数 -> 一模板转发（函数没有"别名"机制）
+//   宏   -> 内联 常量 承载它的值
+//
 // 英文原名照旧可用：这里只是【多一个名字】，原头一个字节没动。
+// 变参 C 函数（printf fprintf sprintf snprintf scanf sscanf fscanf setlocale setjmp va_start va_arg va_end va_copy）无法转发，只能继续用原名。
 #pragma once
 #include <cstdio>
 
 名域 标准 {
-    使用 文件                 = std::FILE;
-    使用 打开文件               = std::fopen;
-    使用 关闭文件               = std::fclose;
-    使用 打印                 = std::printf;
-    使用 格式化打印              = std::fprintf;
-    使用 扫描                 = std::scanf;
-    使用 读文件                = std::fread;
-    使用 写文件                = std::fwrite;
-    使用 取字符                = std::fgetc;
-    使用 放字符                = std::fputc;
-    使用 取字符串               = std::fgets;
-    使用 放字符串               = std::fputs;
-    使用 标准输入               = std::stdin;
-    使用 标准输出               = std::stdout;
-    使用 标准错误               = std::stderr;
-    使用 定位文件               = std::fseek;
-    使用 冲刷文件               = std::fflush;
-
+    使用 文件 = std::FILE;
+    模板 <类型名... 参数> 自动 打开文件(参数&&... 值) { 返回 std::fopen(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 关闭文件(参数&&... 值) { 返回 std::fclose(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 读文件(参数&&... 值) { 返回 std::fread(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 写文件(参数&&... 值) { 返回 std::fwrite(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 取字符(参数&&... 值) { 返回 std::fgetc(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 放字符(参数&&... 值) { 返回 std::fputc(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 取字符串(参数&&... 值) { 返回 std::fgets(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 放字符串(参数&&... 值) { 返回 std::fputs(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 定位文件(参数&&... 值) { 返回 std::fseek(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 冲刷文件(参数&&... 值) { 返回 std::fflush(static_cast<参数&&>(值)...); }
+    内联 文件* 常量& 标准输入 = stdin;
+    内联 文件* 常量& 标准输出 = stdout;
+    内联 文件* 常量& 标准错误 = stderr;
+    内联 常量 整数 文件结束 = EOF;
 }
