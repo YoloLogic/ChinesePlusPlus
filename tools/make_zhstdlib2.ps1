@@ -2799,7 +2799,10 @@ $H = @{
                           'select_on_container_copy_construction' = '复制时选择'
                           'construct' = '构造'; 'destroy' = '析构'
                           'max_size' = '最大尺寸'
-                          'allocate' = '分配'; 'deallocate' = '释放' }
+                          'allocate' = '分配'; 'deallocate' = '释放'
+                          # §16.75 本头**自己定义**的内部助手（`_Get_inner_object`）
+                          #   —— 不是公开 API，翻它不需要派生层补英文。
+                          '_Get_inner_object' = '_取内层对象' }
     data    = [ordered]@{}
     derive  = @(@('inner_allocator','内层分配器'), @('outer_allocator','外层分配器'),
                  @('select_on_container_copy_construction','复制时选择'),

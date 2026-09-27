@@ -64,11 +64,11 @@ struct _作用域基类<_Outer, _Inner0, _Inner...> : _Outer { // nest of alloca
 
     inner_allocator_type _Inner_obj;
 
-    inner_allocator_type& _Get_inner_object(_我的适配器&) {
+    inner_allocator_type& _取内层对象(_我的适配器&) {
         return _Inner_obj;
     }
 
-    const inner_allocator_type& _Get_inner_object(const _我的适配器&) const {
+    const inner_allocator_type& _取内层对象(const _我的适配器&) const {
         return _Inner_obj;
     }
 
@@ -98,11 +98,11 @@ struct _作用域基类<_Outer> : _Outer { // nest of allocators, one deep
     using _我的适配器           = 作用域分配器适配器实现<_Outer>;
     using inner_allocator_type = 作用域分配器适配器实现<_Outer>;
 
-    inner_allocator_type& _Get_inner_object(_我的适配器& _Self) {
+    inner_allocator_type& _取内层对象(_我的适配器& _Self) {
         return _Self;
     }
 
-    const inner_allocator_type& _Get_inner_object(const _我的适配器& _Self) const {
+    const inner_allocator_type& _取内层对象(const _我的适配器& _Self) const {
         return _Self;
     }
 
@@ -192,11 +192,11 @@ public:
     作用域分配器适配器实现& operator=(作用域分配器适配器实现&&)      = default;
 
     _NODISCARD inner_allocator_type& 内层分配器() noexcept { // get reference to inner allocator
-        return this->_Get_inner_object(*this);
+        return this->_取内层对象(*this);
     }
 
     _NODISCARD const inner_allocator_type& 内层分配器() const noexcept { // get reference to inner allocator
-        return this->_Get_inner_object(*this);
+        return this->_取内层对象(*this);
     }
 
     _NODISCARD outer_allocator_type& 外层分配器() noexcept { // get reference to outer allocator
