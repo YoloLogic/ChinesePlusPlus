@@ -31,7 +31,7 @@ _STL_DISABLE_CLANG_WARNINGS
 名域 标准 { 名域 细节 {
 使用 名域 std;
 
-_EXPORT_STD struct 空值类型 { // no-取值 state indicator
+_EXPORT_STD struct 空值类型 { // no-value state indicator
     struct _Tag {};
     constexpr explicit 空值类型(_Tag) {}
 };
@@ -45,7 +45,7 @@ _EXPORT_STD inline constexpr 空值类型 nullopt{空值类型::_Tag{}};
 
 struct _Nontrivial_dummy_type {
     constexpr _Nontrivial_dummy_type() noexcept {
-        // This default constructor is user-provided to avoid zero-initialization when objects are 取值-initialized.
+        // This default constructor is user-provided to avoid zero-initialization when objects are value-initialized.
     }
 };
 _STL_INTERNAL_STATIC_ASSERT(!is_trivially_default_constructible_v<_Nontrivial_dummy_type>);
@@ -57,7 +57,7 @@ struct _Construct_from_invoke_result_tag {
 #endif // _HAS_CXX23
 
 template <class _Ty, bool = is_trivially_destructible_v<_Ty>>
-struct _Optional_destruct_base { // either contains a 取值 of _Ty or is empty (trivial destructor)
+struct _Optional_destruct_base { // either contains a value of _Ty or is empty (trivial destructor)
     union {
         _Nontrivial_dummy_type _Dummy;
         remove_cv_t<_Ty> _Value;
@@ -69,7 +69,7 @@ struct _Optional_destruct_base { // either contains a 取值 of _Ty or is empty 
     template <class... _Types>
     constexpr explicit _Optional_destruct_base(in_place_t, _Types&&... _Args)
         noexcept(is_nothrow_constructible_v<_Ty, _Types...>)
-        : _Value(_STD forward<_Types>(_Args)...), _Has_value{true} {} // initialize contained 取值 with _Args...
+        : _Value(_STD forward<_Types>(_Args)...), _Has_value{true} {} // initialize contained value with _Args...
 
 #if _HAS_CXX23
     template <class _Fn, class _Ux>
@@ -87,7 +87,7 @@ struct _Optional_destruct_base { // either contains a 取值 of _Ty or is empty 
 };
 
 template <class _Ty>
-struct _Optional_destruct_base<_Ty, false> { // either contains a 取值 of _Ty or is empty (non-trivial destructor)
+struct _Optional_destruct_base<_Ty, false> { // either contains a value of _Ty or is empty (non-trivial destructor)
     union {
         _Nontrivial_dummy_type _Dummy;
         remove_cv_t<_Ty> _Value;
@@ -112,7 +112,7 @@ struct _Optional_destruct_base<_Ty, false> { // either contains a 取值 of _Ty 
     template <class... _Types>
     constexpr explicit _Optional_destruct_base(in_place_t, _Types&&... _Args)
         noexcept(is_nothrow_constructible_v<_Ty, _Types...>)
-        : _Value(_STD forward<_Types>(_Args)...), _Has_value{true} {} // initialize contained 取值 with _Args...
+        : _Value(_STD forward<_Types>(_Args)...), _Has_value{true} {} // initialize contained value with _Args...
 
 #if _HAS_CXX23
     template <class _Fn, class _Ux>
@@ -141,7 +141,7 @@ struct _Optional_construct_base : _Optional_destruct_base<_Ty> {
 
     template <class... _Types>
     _CONSTEXPR20 _Ty& _Construct(_Types&&... _Args) noexcept(is_nothrow_constructible_v<_Ty, _Types...>) {
-        // transition from the empty to the 取值-containing state
+        // transition from the empty to the value-containing state
         _STL_INTERNAL_CHECK(!this->_Has_value);
         _Construct_in_place(this->_Value, _STD forward<_Types>(_Args)...);
         this->_Has_value = true;
@@ -151,7 +151,7 @@ struct _Optional_construct_base : _Optional_destruct_base<_Ty> {
     template <class _Ty2>
     _CONSTEXPR20 void _Assign(_Ty2&& _Right)
         noexcept(is_nothrow_assignable_v<_Ty&, _Ty2> && is_nothrow_constructible_v<_Ty, _Ty2>) {
-        // assign / initialize the contained 取值 from _Right
+        // assign / initialize the contained value from _Right
         if (this->_Has_value) {
             static_cast<_Ty&>(this->_Value) = _STD forward<_Ty2>(_Right);
         } else {
@@ -162,7 +162,7 @@ struct _Optional_construct_base : _Optional_destruct_base<_Ty> {
     template <class _Self>
     _CONSTEXPR20 void _Construct_from(_Self&& _Right)
         noexcept(is_nothrow_constructible_v<_Ty, decltype(*_STD forward<_Self>(_Right))>) {
-        // initialize contained 取值 from _Right iff it contains a 取值
+        // initialize contained value from _Right iff it contains a value
         if (_Right._Has_value) {
             _Construct(*_STD forward<_Self>(_Right));
         }
@@ -172,7 +172,7 @@ struct _Optional_construct_base : _Optional_destruct_base<_Ty> {
     _CONSTEXPR20 void _Assign_from(_Self&& _Right)
         noexcept(is_nothrow_constructible_v<_Ty, decltype(*_STD forward<_Self>(_Right))>
                  && is_nothrow_assignable_v<_Ty&, decltype(*_STD forward<_Self>(_Right))>) {
-        // assign/initialize/destroy contained 取值 from _Right
+        // assign/initialize/destroy contained value from _Right
         if (_Right._Has_value) {
             _Assign(*_STD forward<_Self>(_Right));
         } else {
@@ -256,7 +256,7 @@ public:
         negation<conjunction<is_same<remove_cv_t<_Ty>, bool>, _Is_specialization<_Remove_cvref_t<_Ty2>, 可选实现>>>,
         is_constructible<_Ty, _Ty2>>>;
 
-    template <class _Ty2 = remove_cv_t<_Ty>, enable_if_t<_AllowDirectConversion<_Ty2>::取值, int> = 0>
+    template <class _Ty2 = remove_cv_t<_Ty>, enable_if_t<_AllowDirectConversion<_Ty2>::value, int> = 0>
     constexpr explicit(!is_convertible_v<_Ty2, _Ty>) 可选实现(_Ty2&& _Right)
         noexcept(is_nothrow_constructible_v<_Ty, _Ty2>) // strengthened
         : _我的基类(in_place, _STD forward<_Ty2>(_Right)) {}
@@ -403,28 +403,28 @@ public:
         return this->_Has_value;
     }
 
-    _NODISCARD constexpr const _Ty& 取值() const& {
+    _NODISCARD constexpr const _Ty& value() const& {
         if (!this->_Has_value) {
             _Throw_bad_optional_access();
         }
 
         return this->_Value;
     }
-    _NODISCARD constexpr _Ty& 取值() & {
+    _NODISCARD constexpr _Ty& value() & {
         if (!this->_Has_value) {
             _Throw_bad_optional_access();
         }
 
         return this->_Value;
     }
-    _NODISCARD constexpr _Ty&& 取值() && {
+    _NODISCARD constexpr _Ty&& value() && {
         if (!this->_Has_value) {
             _Throw_bad_optional_access();
         }
 
         return _STD move(this->_Value);
     }
-    _NODISCARD constexpr const _Ty&& 取值() const&& {
+    _NODISCARD constexpr const _Ty&& value() const&& {
         if (!this->_Has_value) {
             _Throw_bad_optional_access();
         }
@@ -979,7 +979,7 @@ _NODISCARD constexpr 可选实现<_Ty> make_optional(initializer_list<_Elem> _Il
 template <class _Ty>
 struct hash<可选实现<_Ty>>
     : _Conditionally_enabled_hash<可选实现<_Ty>, is_default_constructible_v<hash<remove_const_t<_Ty>>>> {
-    static size_t _Do_hash(const 可选实现<_Ty>& _Opt) noexcept(_Is_nothrow_hashable<remove_const_t<_Ty>>::取值) {
+    static size_t _Do_hash(const 可选实现<_Ty>& _Opt) noexcept(_Is_nothrow_hashable<remove_const_t<_Ty>>::value) {
         constexpr size_t _Unspecified_value = 0;
         if (_Opt) {
             return hash<remove_const_t<_Ty>>{}(*_Opt);
@@ -1016,8 +1016,6 @@ _STL_RESTORE_CLANG_WARNINGS
     // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
     模板 <类型名... 参数> 自动 has_value(参数&&... 值) { 返回 基类::有值(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 has_value(参数&&... 值) 常量 { 返回 基类::有值(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 value(参数&&... 值) { 返回 基类::取值(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 自动 value(参数&&... 值) 常量 { 返回 基类::取值(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 value_or(参数&&... 值) { 返回 基类::取值或(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 value_or(参数&&... 值) 常量 { 返回 基类::取值或(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 自动 reset(参数&&... 值) { 返回 基类::重置(static_cast<参数&&>(值)...); }
@@ -1033,9 +1031,15 @@ _STL_RESTORE_CLANG_WARNINGS
 
     // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
     // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
-    使用 基类::operator=;
+    // ⚠ 不能写 使用 基类::operator=; —— 那会把基类的拷贝/移动赋值也拉进来，
+    //   而 int 能经转换构造变成 可选，于是 `甲 = 5` 有两个候选 -> 歧义（实测）。
+    //   手写一个模板赋值即可：对 `可选 = 可选` 隐式拷贝赋值（非模板）优先，不冲突。
+    模板 <类型名 实参> 可选& operator=(实参&& 右) { 基类::operator=(static_cast<实参&&>(右)); 返回 *this; }
     使用 基类::operator*;
     使用 基类::operator->;
+    // value 的中文名在这里手写（它不能登记进 members 表，见该条目注释与 §15.5）
+    模板 <类型名... 参数> 自动 取值(参数&&... 值) { 返回 基类::value(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 取值(参数&&... 值) 常量 { 返回 基类::value(static_cast<参数&&>(值)...); }
 };
 }
 

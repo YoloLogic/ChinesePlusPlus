@@ -494,13 +494,15 @@ $H = @{
     realInclude = @('optional')
     dropTypes   = @('bad_optional_access')
     members = [ordered]@{
-      'has_value' = '有值'; 'value' = '取值'; 'value_or' = '取值或'
+      'has_value' = '有值'; 'value_or' = '取值或'   # ⚠ value 故意【不】登记：
+      #   它作为 ::value 出现在借来的 bool_constant<...>::value 里，改名会让约束恒假、
+      #   SFINAE 删掉 optional 的转换构造（实测，见方案 §15.5）。中文名改在派生层手写。
       'reset' = '重置'; 'emplace' = '就地构造'
       'and_then' = '且则'; 'transform' = '变换'; 'or_else' = '或则'
       # ⚠ swap 照旧不改名（§3.12）
     }
     data    = [ordered]@{}
-    derive  = @( @('has_value','有值'), @('value','取值'), @('value_or','取值或'),
+    derive  = @( @('has_value','有值'), @('value_or','取值或'),
                  @('reset','重置'), @('emplace','就地构造'),
                  @('and_then','且则'), @('transform','变换'), @('or_else','或则') )
     # 方向与以前相反：以前是'给派生类加中文名'，现在是'派生层把英文原名补回来'
@@ -508,9 +510,15 @@ $H = @{
     # ⚠ 派生类会【隐式生成】拷贝/移动赋值运算符，从而把基类的 operator= 藏起来
     #   -> `甲 = 5` 报"没有可行的重载 '='"。必须用 using 把基类的运算符拉回来。
     deriveExtra = @'
-    使用 基类::operator=;
+    // ⚠ 不能写 使用 基类::operator=; —— 那会把基类的拷贝/移动赋值也拉进来，
+    //   而 int 能经转换构造变成 可选，于是 `甲 = 5` 有两个候选 -> 歧义（实测）。
+    //   手写一个模板赋值即可：对 `可选 = 可选` 隐式拷贝赋值（非模板）优先，不冲突。
+    模板 <类型名 实参> 可选& operator=(实参&& 右) { 基类::operator=(static_cast<实参&&>(右)); 返回 *this; }
     使用 基类::operator*;
     使用 基类::operator->;
+    // value 的中文名在这里手写（它不能登记进 members 表，见该条目注释与 §15.5）
+    模板 <类型名... 参数> 自动 取值(参数&&... 值) { 返回 基类::value(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 自动 取值(参数&&... 值) 常量 { 返回 基类::value(static_cast<参数&&>(值)...); }
 '@
     stdHash = $false
     tparam  = @{ decl = '模板 <类型名 值>'; args = '<值>' }
