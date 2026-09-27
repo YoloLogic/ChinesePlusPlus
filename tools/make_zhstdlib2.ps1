@@ -426,26 +426,45 @@ $H = @{
   'set' = @{
     zh      = '集合'
     realInclude = @('set')   # §16.29「乙」
-    # ⚠ <set> 的 API 几乎【全部继承自借用的 _Tree】（在 <xtree> 里，我们没翻），
-    #   所以这个头自己定义的成员只有 ctor / emplace / swap。
-    #   -> 中文名不能靠 members 表改名（那些名字根本不在本文件里），
-    #      只能在 extra 里【手写中文转发】调基类的英文名。
-    #      这是第一种"手写层加中文名（而不是加英文名）"的用法，见方案 §3.16。
+    # ===========================================================================
+    #  §16.44 【销账】把 <集合> 切换到我们自己的 树内部件（xtree）！
+    #
+    #  为什么现在能切：§16.43 把 xtree 的 16 个类型名 + 39 个 `_Tree` 自己的成员名翻完了。
+    #  切换要改的就三处：
+    #    ① `#include <xtree>` 改成 `#include <树内部件>`（zhIncludes）
+    #    ② 本头正文里引用的两个 xtree 名字跟着改（`_Tree`→`_树`、`_Tree_node`→`_树节点`）
+    #    ③ 上一条测试证明它真的编得过（不是"看起来应该行"）
+    #  **实测本头只引用这两个名字**（grep 原文：`_Tree` 5 次、`_Tree_node` 1 次），
+    #  所以切换面很小 —— 这正是"先分类再动手"省下来的成本。
+    #
+    #  ⚠ 之前那句注释说「<set> 的 API 几乎全部继承自**借用的** _Tree（在 <xtree> 里，我们没翻）」
+    #    已经过时：_Tree 现在是我们自己的（`细节::_树`），本头继承的就是它。
+    # ===========================================================================
+    zhIncludes = @{ 'xtree' = '树内部件' }
+    # ⚠ 这个头自己定义的成员只有 ctor / emplace / swap；API 基本都从 `细节::_树` 继承。
+    #   -> 中文名靠 extra 里【手写中文转发】调基类的英文名（§3.16 的第一种手写层用法）。
     types   = [ordered]@{ 'set' = '集合实现'
                           'multiset' = '多重集合实现'
                           '_Tset_traits' = '_集合特征'
+                          # §16.44：跟着 树内部件 一起改（跨头译名一致性检查会强制一致）
+                          '_Tree'      = '_树'
+                          '_Tree_node' = '_树节点'
                           # §16.37 【实测结论：不能翻】`_In_place_key_extractor` 是
-                          #   `_Tset_traits` 里的成员，而【借来的 std::_Tree】会去读它：
-                          #     C:\...\include\xtree:1011:68: error:
+                          #   `_Tset_traits` 里的成员，而 `_Tree` 会去读它：
+                          #     xtree:1011:68: error:
                           #       '标准::细节::_集合特征<...>' 中没有名为 '_In_place_key_extractor' 的成员
-                          #   => 属 §16.35.5 第 ③ 类（std 模板读的契约成员名），消除路径 =
-                          #      步骤 1 抄 <xtree>（那时 _Tree 也是我们的，两边一起改）。
-                          #   ⚠ 同时暴露一个守卫缺口：这个错误报在【微软原头】的坐标上，
-                          #     而生成器的"校对回退"只认【本产品文件】里的错误 -> 它救不了这种。
-                          #     本轮是【真测试】把它拦下来的（0/4）。
-                          # ⚠ _Alnode / _Alnode_traits 同理（`typename _Mybase::X`，_Mybase = std::_Tree）。
+                          #   => 属 §16.35.5 第 ③ 类（std 模板读的契约成员名）。
+                          #   ⚠ 现在 _Tree 是我们自己的了（§16.44），所以【两边一起改】的通路已经打开 ——
+                          #     但那要连 树内部件 里的读取点一起改，属下一批。
+                          # ⚠ _Alnode / _Alnode_traits 同理（`typename _Mybase::X`）。
                           }
-    members = [ordered]@{ 'emplace' = '就地构造' }
+    members = [ordered]@{ 'emplace' = '就地构造'
+                          # §16.44 同步改名：本头正文调 `_Mybase::_Unchecked_begin/_Unchecked_end`，
+                          #   而 树内部件 已把它们翻成 _非检查开始/_非检查结束。
+                          #   **这就是"上层与内部件必须同步改"的实证**：不同步，编译器就报
+                          #   "`_树<...>` 中没有名为 '_Unchecked_begin' 的成员"。
+                          '_Unchecked_begin' = '_非检查开始'
+                          '_Unchecked_end'   = '_非检查结束' }
     data    = [ordered]@{}
     derive  = @( @('emplace','就地构造') )
     # ⚠ <set> 是在 deriveExtra 机制【之前】做的，主类 集合 一直没有中文转发
@@ -501,20 +520,50 @@ $H = @{
   'map' = @{
     zh      = '映射'
     realInclude = @('map')   # §16.29「乙」
+    # §16.44 【销账】与 <集合> 同批：把 <映射> 也切到我们自己的 树内部件。
+    #   实测本头引用 xtree 的面：类型 3 个（_Tree/_Tree_node/_Tree_temp_node）、
+    #   被我们改过名的基类成员 8 个（_Getal/_Getcomp? 不，是 _Getal/_Get_scary/
+    #   _Check_grow_by_1/_Find_hint/_Find_lower_bound/_Lower_bound_duplicate/
+    #   _Unchecked_begin/_Unchecked_end）。**都是"照着编译错误一次就能列全"的量**。
+    zhIncludes = @{ 'xtree' = '树内部件' }
     types   = [ordered]@{ 'map' = '映射实现'
                           'multimap' = '多重映射实现'
                           '_Tmap_traits' = '_映射特征'
-                          # §16.37 【实测结论：不能翻】`_In_place_key_extractor` 被借来的
-                          #   std::_Tree 读取（xtree:1011）-> 第 ③ 类；消除路径 = 抄 <xtree>。
-                          # ⚠ _Alnode / _Alnode_traits / _Nodeptr 同理（`typename _Mybase::X`）。
-                          }   # ⚠ value_compare 故意【不】改名：它是【借来的】_Tree（xtree）的成员类型名，
-                          #   改名会让 xtree:879 找不到它（实测）。中文名欠账，消除路径 = 自底向上抄 xtree。
+                          # §16.44 跟着 树内部件 一起改
+                          '_Tree'           = '_树'
+                          '_Tree_node'      = '_树节点'
+                          '_Tree_temp_node' = '_树临时节点'
+                          # §16.37 【实测结论：不能翻】`_In_place_key_extractor` 被 `_Tree` 读取
+                          #   （xtree:1011）-> 第 ③ 类。现在 _Tree 是我们自己的了，
+                          #   「两边一起改」的通路已打开，属下一批。
+                          # ⚠ _Alnode / _Alnode_traits / _Nodeptr 同理（`typename _Mybase::X`），
+                          #   但它们【没被 树内部件 改名】，所以现在照旧可用。
+                          }   # ⚠ value_compare 故意【不】改名：它是 _Tree 的成员类型名，
+                          #   改名会让 xtree 里的读取点找不到它。中文名欠账，
+                          #   消除路径 = 与 树内部件 同步改（通路已开）。
     members = [ordered]@{
       # at/insert/... 是 <map> 自己定义的（能改名）
-      'at' = '取值'   # ⚠ insert 也不改名：<map> 正文里调的是【借来的】_Mybase::insert（§15.10）
+      'at' = '取值'   # ⚠ insert 不改名：现在 _Mybase 是【我们自己的】细节::_树，
+                      #   而我们没有翻 _Tree 的公开 API 名（insert/erase/find/…）——
+                      #   它们是 map/set 的 std 契约，要与上层同步改，属下一批。
       'insert_or_assign' = '插入或赋值'; 'try_emplace' = '尝试就地构造'
       # emplace 必须与 <栈>/<集合> 一致（跨头译名检查会强制）
       'emplace' = '就地构造'
+      # §16.44 同步改名：本头正文调 `_Mybase::X`，而 树内部件 已把这些 X 翻成汉语。
+      #   **这是"上层与内部件必须同步改"的实证**（不同步，编译器直接报"没有名为…的成员"）。
+      '_Getal'                = '_取分配器'
+      '_Get_scary'            = '_取检查值'
+      '_Check_grow_by_1'      = '_检查增一'
+      '_Find_hint'            = '_按提示查找'
+      '_Find_lower_bound'     = '_查找下界'
+      '_Lower_bound_duplicate' = '_下界重复项'
+      '_Unchecked_begin'      = '_非检查开始'
+      '_Unchecked_end'        = '_非检查结束'
+      # ⚠ 这一个不是调在 `_Mybase::` 上，而是调在 `_Get_scary()` 返回的
+      #   `_Scary_val`（= _树值<...>）上 —— 所以先前 grep `_Mybase::_` 时没抓到它，
+      #   是**编译器**把它列出来的。判据：同步改名的清单不能只靠一种 grep 模式，
+      #   要以编译错误为准（编译器是完备的，正则不是）。
+      '_Insert_node'          = '_插入节点'
     }
     data    = [ordered]@{}
     derive  = @( @('at','取值'), @('insert_or_assign','插入或赋值'),
@@ -1650,7 +1699,11 @@ $H = @{
       '_Erase_unchecked'  = '_擦除非检查'
       '_Emplace'          = '_就地构造'
       '_Emplace_hint'     = '_按提示就地构造'
-      '_Extract'          = '_摘除'
+      # ⚠ `_Extract` 【不登记】（§3.12 判据：同名另有一个主人）——
+      #   本头正文里有 `std::_In_place_key_extract_set<...>::_Extract(...)`
+      #   （那个类型借自 <xmemory>，它的成员名是 std 契约的一部分）。
+      #   改了名，那一处就报「'std::_In_place_key_extract_set_impl<int,int>' 中没有名为 '_摘除' 的成员」。
+      #   消除路径：等 树内部件 也切到我们的 内存内部件（那时两边一起翻）。
       '_Check_grow_by_1'  = '_检查增一'
       '_Check_node_allocator' = '_检查节点分配器'
       '_Swap_val_excluding_comp' = '_交换值不含比较器'

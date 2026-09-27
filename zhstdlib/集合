@@ -8,7 +8,7 @@
 #define _ZH_SET_
 #include <yvals_core.h>
 #if _STL_COMPILER_PREPROCESSOR
-#include <xtree>
+#include <树内部件>
 
 #if _HAS_CXX17
 #include <xpolymorphic_allocator.h>
@@ -26,14 +26,14 @@ template <class _Kty, // key/value type
     class _Pr, // comparator predicate type
     class _Alloc, // actual allocator type (should be value allocator)
     bool _Mfl> // true if multiple equivalent keys are permitted
-class _集合特征 { // traits required to make _Tree behave like a 集合实现
+class _集合特征 { // traits required to make _树 behave like a 集合实现
 public:
     using key_type       = _Kty;
     using value_type     = _Kty;
     using key_compare    = _Pr;
     using allocator_type = _Alloc;
 #if _HAS_CXX17
-    using node_type = _Node_handle<_Tree_node<value_type, typename allocator_traits<_Alloc>::void_pointer>, _Alloc,
+    using node_type = _Node_handle<_树节点<value_type, typename allocator_traits<_Alloc>::void_pointer>, _Alloc,
         _Node_handle_set_base, _Kty>;
 #endif // _HAS_CXX17
 
@@ -50,7 +50,7 @@ public:
 };
 
 _EXPORT_STD template <class _Kty, class _Pr = less<_Kty>, class _Alloc = allocator<_Kty>>
-class 集合实现 : public _Tree<_集合特征<_Kty, _Pr, _Alloc, false>> {
+class 集合实现 : public _树<_集合特征<_Kty, _Pr, _Alloc, false>> {
     // ordered red-black tree of key values, unique keys
 public:
     static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<_Kty, typename _Alloc::value_type>,
@@ -58,7 +58,7 @@ public:
     static_assert(is_object_v<_Kty>, "The C++ Standard forbids containers of non-object types "
                                      "because of [container.requirements].");
 
-    using _我的基类                = _Tree<_集合特征<_Kty, _Pr, _Alloc, false>>;
+    using _我的基类                = _树<_集合特征<_Kty, _Pr, _Alloc, false>>;
     using key_type               = _Kty;
     using key_compare            = _Pr;
     using value_compare          = typename _我的基类::value_compare;
@@ -177,8 +177,8 @@ public:
         return *this;
     }
 
-    using _我的基类::_Unchecked_begin;
-    using _我的基类::_Unchecked_end;
+    using _我的基类::_非检查开始;
+    using _我的基类::_非检查结束;
 };
 
 #if _HAS_CXX17
@@ -210,15 +210,15 @@ template <_RANGES input_range _Rng, _Allocator_for_container _Alloc>
 _EXPORT_STD template <class _Kty, class _Pr, class _Alloc>
 _NODISCARD bool operator==(const 集合实现<_Kty, _Pr, _Alloc>& _Left, const 集合实现<_Kty, _Pr, _Alloc>& _Right) {
     return _Left.size() == _Right.size()
-        && _STD equal(_Left._Unchecked_begin(), _Left._Unchecked_end_iter(), _Right._Unchecked_begin());
+        && _STD equal(_Left._非检查开始(), _Left._Unchecked_end_iter(), _Right._非检查开始());
 }
 
 #if _HAS_CXX20
 _EXPORT_STD template <class _Kty, class _Pr, class _Alloc>
 _NODISCARD _Synth_three_way_result<_Kty> operator<=>(
     const 集合实现<_Kty, _Pr, _Alloc>& _Left, const 集合实现<_Kty, _Pr, _Alloc>& _Right) {
-    return _STD lexicographical_compare_three_way(_Left._Unchecked_begin(), _Left._Unchecked_end_iter(),
-        _Right._Unchecked_begin(), _Right._Unchecked_end_iter(), _Synth_three_way{});
+    return _STD lexicographical_compare_three_way(_Left._非检查开始(), _Left._Unchecked_end_iter(),
+        _Right._非检查开始(), _Right._Unchecked_end_iter(), _Synth_three_way{});
 }
 #else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
 template <class _Kty, class _Pr, class _Alloc>
@@ -229,7 +229,7 @@ _NODISCARD bool operator!=(const 集合实现<_Kty, _Pr, _Alloc>& _Left, const �
 template <class _Kty, class _Pr, class _Alloc>
 _NODISCARD bool operator<(const 集合实现<_Kty, _Pr, _Alloc>& _Left, const 集合实现<_Kty, _Pr, _Alloc>& _Right) {
     return _STD lexicographical_compare(
-        _Left._Unchecked_begin(), _Left._Unchecked_end_iter(), _Right._Unchecked_begin(), _Right._Unchecked_end_iter());
+        _Left._非检查开始(), _Left._Unchecked_end_iter(), _Right._非检查开始(), _Right._Unchecked_end_iter());
 }
 
 template <class _Kty, class _Pr, class _Alloc>
@@ -261,7 +261,7 @@ _EXPORT_STD template <class _Kty, class _Keylt, class _Alloc, class _Pr>
 #endif // _HAS_CXX20
 
 _EXPORT_STD template <class _Kty, class _Pr = less<_Kty>, class _Alloc = allocator<_Kty>>
-class 多重集合实现 : public _Tree<_集合特征<_Kty, _Pr, _Alloc, true>> {
+class 多重集合实现 : public _树<_集合特征<_Kty, _Pr, _Alloc, true>> {
     // ordered red-black tree of key values, non-unique keys
 public:
     static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<_Kty, typename _Alloc::value_type>,
@@ -269,7 +269,7 @@ public:
     static_assert(is_object_v<_Kty>, "The C++ Standard forbids containers of non-object types "
                                      "because of [container.requirements].");
 
-    using _我的基类                = _Tree<_集合特征<_Kty, _Pr, _Alloc, true>>;
+    using _我的基类                = _树<_集合特征<_Kty, _Pr, _Alloc, true>>;
     using key_type               = _Kty;
     using key_compare            = _Pr;
     using value_compare          = typename _我的基类::value_compare;
@@ -391,8 +391,8 @@ public:
         return *this;
     }
 
-    using _我的基类::_Unchecked_begin;
-    using _我的基类::_Unchecked_end;
+    using _我的基类::_非检查开始;
+    using _我的基类::_非检查结束;
 };
 
 #if _HAS_CXX17
@@ -425,15 +425,15 @@ template <_RANGES input_range _Rng, _Allocator_for_container _Alloc>
 _EXPORT_STD template <class _Kty, class _Pr, class _Alloc>
 _NODISCARD bool operator==(const 多重集合实现<_Kty, _Pr, _Alloc>& _Left, const 多重集合实现<_Kty, _Pr, _Alloc>& _Right) {
     return _Left.size() == _Right.size()
-        && _STD equal(_Left._Unchecked_begin(), _Left._Unchecked_end_iter(), _Right._Unchecked_begin());
+        && _STD equal(_Left._非检查开始(), _Left._Unchecked_end_iter(), _Right._非检查开始());
 }
 
 #if _HAS_CXX20
 _EXPORT_STD template <class _Kty, class _Pr, class _Alloc>
 _NODISCARD _Synth_three_way_result<_Kty> operator<=>(
     const 多重集合实现<_Kty, _Pr, _Alloc>& _Left, const 多重集合实现<_Kty, _Pr, _Alloc>& _Right) {
-    return _STD lexicographical_compare_three_way(_Left._Unchecked_begin(), _Left._Unchecked_end_iter(),
-        _Right._Unchecked_begin(), _Right._Unchecked_end_iter(), _Synth_three_way{});
+    return _STD lexicographical_compare_three_way(_Left._非检查开始(), _Left._Unchecked_end_iter(),
+        _Right._非检查开始(), _Right._Unchecked_end_iter(), _Synth_three_way{});
 }
 #else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
 template <class _Kty, class _Pr, class _Alloc>
@@ -444,7 +444,7 @@ _NODISCARD bool operator!=(const 多重集合实现<_Kty, _Pr, _Alloc>& _Left, c
 template <class _Kty, class _Pr, class _Alloc>
 _NODISCARD bool operator<(const 多重集合实现<_Kty, _Pr, _Alloc>& _Left, const 多重集合实现<_Kty, _Pr, _Alloc>& _Right) {
     return _STD lexicographical_compare(
-        _Left._Unchecked_begin(), _Left._Unchecked_end_iter(), _Right._Unchecked_begin(), _Right._Unchecked_end_iter());
+        _Left._非检查开始(), _Left._Unchecked_end_iter(), _Right._非检查开始(), _Right._Unchecked_end_iter());
 }
 
 template <class _Kty, class _Pr, class _Alloc>

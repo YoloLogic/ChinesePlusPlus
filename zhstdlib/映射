@@ -10,7 +10,7 @@
 #if _STL_COMPILER_PREPROCESSOR
 
 #include <tuple>
-#include <xtree>
+#include <树内部件>
 
 #if _HAS_CXX17
 #include <xpolymorphic_allocator.h>
@@ -29,14 +29,14 @@ template <class _Kty, // key type
     class _Pr, // comparator predicate type
     class _Alloc, // actual allocator type (should be value allocator)
     bool _Mfl> // true if multiple equivalent keys are permitted
-class _映射特征 { // traits required to make _Tree behave like a 映射实现
+class _映射特征 { // traits required to make _树 behave like a 映射实现
 public:
     using key_type       = _Kty;
     using value_type     = pair<const _Kty, _Ty>;
     using key_compare    = _Pr;
     using allocator_type = _Alloc;
 #if _HAS_CXX17
-    using node_type = _Node_handle<_Tree_node<value_type, typename allocator_traits<_Alloc>::void_pointer>, _Alloc,
+    using node_type = _Node_handle<_树节点<value_type, typename allocator_traits<_Alloc>::void_pointer>, _Alloc,
         _Node_handle_map_base, _Kty, _Ty>;
 #endif // _HAS_CXX17
 
@@ -57,7 +57,7 @@ public:
         }
 
     protected:
-        friend _Tree<_映射特征>;
+        friend _树<_映射特征>;
 
         value_compare(key_compare _Pred) : comp(_Pred) {}
 
@@ -71,7 +71,7 @@ public:
 };
 
 _EXPORT_STD template <class _Kty, class _Ty, class _Pr = less<_Kty>, class _Alloc = allocator<pair<const _Kty, _Ty>>>
-class 映射实现 : public _Tree<_映射特征<_Kty, _Ty, _Pr, _Alloc, false>> {
+class 映射实现 : public _树<_映射特征<_Kty, _Ty, _Pr, _Alloc, false>> {
     // ordered red-black tree of {key, mapped} values, unique keys
 public:
     static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<pair<const _Kty, _Ty>, typename _Alloc::value_type>,
@@ -79,7 +79,7 @@ public:
     static_assert(is_object_v<_Kty>, "The C++ Standard forbids containers of non-object types "
                                      "because of [container.requirements].");
 
-    using _我的基类                = _Tree<_映射特征<_Kty, _Ty, _Pr, _Alloc, false>>;
+    using _我的基类                = _树<_映射特征<_Kty, _Ty, _Pr, _Alloc, false>>;
     using _Nodeptr               = typename _我的基类::_Nodeptr;
     using key_type               = _Kty;
     using mapped_type            = _Ty;
@@ -109,7 +109,7 @@ public:
 
     explicit 映射实现(const allocator_type& _Al) : _我的基类(key_compare(), _Al) {}
 
-    映射实现(const 映射实现& _Right) : _我的基类(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._Getal())) {}
+    映射实现(const 映射实现& _Right) : _我的基类(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._取分配器())) {}
 
     映射实现(const 映射实现& _Right, const allocator_type& _Al) : _我的基类(_Right, _Al) {}
 
@@ -196,129 +196,129 @@ public:
 private:
     template <class _Keyty, class... _Mappedty>
     pair<_Nodeptr, bool> _Try_emplace(_Keyty&& _Keyval, _Mappedty&&... _Mapval) {
-        const auto _Loc = _我的基类::_Find_lower_bound(_Keyval);
-        if (_我的基类::_Lower_bound_duplicate(_Loc._Bound, _Keyval)) {
+        const auto _Loc = _我的基类::_查找下界(_Keyval);
+        if (_我的基类::_下界重复项(_Loc._Bound, _Keyval)) {
             return {_Loc._Bound, false};
         }
 
-        _我的基类::_Check_grow_by_1();
+        _我的基类::_检查增一();
 
-        const auto _Scary    = _我的基类::_Get_scary();
-        const auto _Inserted = _Tree_temp_node<_Alnode>(_我的基类::_Getal(), _Scary->_Myhead, piecewise_construct,
+        const auto _Scary    = _我的基类::_取检查值();
+        const auto _Inserted = _树临时节点<_Alnode>(_我的基类::_取分配器(), _Scary->_Myhead, piecewise_construct,
             _STD forward_as_tuple(_STD forward<_Keyty>(_Keyval)),
             _STD forward_as_tuple(_STD forward<_Mappedty>(_Mapval)...))
                                    ._Release();
 
         // nothrow hereafter
-        return {_Scary->_Insert_node(_Loc._Location, _Inserted), true};
+        return {_Scary->_插入节点(_Loc._Location, _Inserted), true};
     }
 
     template <class _Keyty, class... _Mappedty>
     _Nodeptr _Try_emplace_hint(const _Nodeptr _Hint, _Keyty&& _Keyval, _Mappedty&&... _Mapval) {
-        const auto _Loc = _我的基类::_Find_hint(_Hint, _Keyval);
+        const auto _Loc = _我的基类::_按提示查找(_Hint, _Keyval);
         if (_Loc._Duplicate) {
             return _Loc._Location._Parent;
         }
 
-        _我的基类::_Check_grow_by_1();
+        _我的基类::_检查增一();
 
-        const auto _Scary    = _我的基类::_Get_scary();
-        const auto _Inserted = _Tree_temp_node<_Alnode>(_我的基类::_Getal(), _Scary->_Myhead, piecewise_construct,
+        const auto _Scary    = _我的基类::_取检查值();
+        const auto _Inserted = _树临时节点<_Alnode>(_我的基类::_取分配器(), _Scary->_Myhead, piecewise_construct,
             _STD forward_as_tuple(_STD forward<_Keyty>(_Keyval)),
             _STD forward_as_tuple(_STD forward<_Mappedty>(_Mapval)...))
                                    ._Release();
 
         // nothrow hereafter
-        return _Scary->_Insert_node(_Loc._Location, _Inserted);
+        return _Scary->_插入节点(_Loc._Location, _Inserted);
     }
 
 public:
     template <class... _Mappedty>
     pair<iterator, bool> 尝试就地构造(const key_type& _Keyval, _Mappedty&&... _Mapval) {
         const auto _Result = _Try_emplace(_Keyval, _STD forward<_Mappedty>(_Mapval)...);
-        return {iterator(_Result.first, _我的基类::_Get_scary()), _Result.second};
+        return {iterator(_Result.first, _我的基类::_取检查值()), _Result.second};
     }
 
     template <class... _Mappedty>
     iterator 尝试就地构造(const const_iterator _Hint, const key_type& _Keyval, _Mappedty&&... _Mapval) {
         return iterator(
-            _Try_emplace_hint(_Hint._Ptr, _Keyval, _STD forward<_Mappedty>(_Mapval)...), _我的基类::_Get_scary());
+            _Try_emplace_hint(_Hint._Ptr, _Keyval, _STD forward<_Mappedty>(_Mapval)...), _我的基类::_取检查值());
     }
 
     template <class... _Mappedty>
     pair<iterator, bool> 尝试就地构造(key_type&& _Keyval, _Mappedty&&... _Mapval) {
         const auto _Result = _Try_emplace(_STD move(_Keyval), _STD forward<_Mappedty>(_Mapval)...);
-        return {iterator(_Result.first, _我的基类::_Get_scary()), _Result.second};
+        return {iterator(_Result.first, _我的基类::_取检查值()), _Result.second};
     }
 
     template <class... _Mappedty>
     iterator 尝试就地构造(const const_iterator _Hint, key_type&& _Keyval, _Mappedty&&... _Mapval) {
         return iterator(_Try_emplace_hint(_Hint._Ptr, _STD move(_Keyval), _STD forward<_Mappedty>(_Mapval)...),
-            _我的基类::_Get_scary());
+            _我的基类::_取检查值());
     }
 
 private:
     template <class _Keyty, class _Mappedty>
     pair<_Nodeptr, bool> _Insert_or_assign(_Keyty&& _Keyval, _Mappedty&& _Mapval) {
-        const auto _Loc = _我的基类::_Find_lower_bound(_Keyval);
-        if (_我的基类::_Lower_bound_duplicate(_Loc._Bound, _Keyval)) {
+        const auto _Loc = _我的基类::_查找下界(_Keyval);
+        if (_我的基类::_下界重复项(_Loc._Bound, _Keyval)) {
             _Loc._Bound->_Myval.second = _STD forward<_Mappedty>(_Mapval);
             return {_Loc._Bound, false};
         }
 
-        _我的基类::_Check_grow_by_1();
+        _我的基类::_检查增一();
 
-        const auto _Scary    = _我的基类::_Get_scary();
-        const auto _Inserted = _Tree_temp_node<_Alnode>(
-            _我的基类::_Getal(), _Scary->_Myhead, _STD forward<_Keyty>(_Keyval), _STD forward<_Mappedty>(_Mapval))
+        const auto _Scary    = _我的基类::_取检查值();
+        const auto _Inserted = _树临时节点<_Alnode>(
+            _我的基类::_取分配器(), _Scary->_Myhead, _STD forward<_Keyty>(_Keyval), _STD forward<_Mappedty>(_Mapval))
                                    ._Release();
 
         // nothrow hereafter
-        return {_Scary->_Insert_node(_Loc._Location, _Inserted), true};
+        return {_Scary->_插入节点(_Loc._Location, _Inserted), true};
     }
 
     template <class _Keyty, class _Mappedty>
     _Nodeptr _Insert_or_assign_hint(const _Nodeptr _Hint, _Keyty&& _Keyval, _Mappedty&& _Mapval) {
-        const auto _Loc = _我的基类::_Find_hint(_Hint, _Keyval);
+        const auto _Loc = _我的基类::_按提示查找(_Hint, _Keyval);
         if (_Loc._Duplicate) {
             _Loc._Location._Parent->_Myval.second = _STD forward<_Mappedty>(_Mapval);
             return _Loc._Location._Parent;
         }
 
-        _我的基类::_Check_grow_by_1();
+        _我的基类::_检查增一();
 
-        const auto _Scary    = _我的基类::_Get_scary();
-        const auto _Inserted = _Tree_temp_node<_Alnode>(
-            _我的基类::_Getal(), _Scary->_Myhead, _STD forward<_Keyty>(_Keyval), _STD forward<_Mappedty>(_Mapval))
+        const auto _Scary    = _我的基类::_取检查值();
+        const auto _Inserted = _树临时节点<_Alnode>(
+            _我的基类::_取分配器(), _Scary->_Myhead, _STD forward<_Keyty>(_Keyval), _STD forward<_Mappedty>(_Mapval))
                                    ._Release();
 
         // nothrow hereafter
-        return _Scary->_Insert_node(_Loc._Location, _Inserted);
+        return _Scary->_插入节点(_Loc._Location, _Inserted);
     }
 
 public:
     template <class _Mappedty>
     pair<iterator, bool> 插入或赋值(const key_type& _Keyval, _Mappedty&& _Mapval) {
         const auto _Result = _Insert_or_assign(_Keyval, _STD forward<_Mappedty>(_Mapval));
-        return {iterator(_Result.first, _我的基类::_Get_scary()), _Result.second};
+        return {iterator(_Result.first, _我的基类::_取检查值()), _Result.second};
     }
 
     template <class _Mappedty>
     iterator 插入或赋值(const const_iterator _Hint, const key_type& _Keyval, _Mappedty&& _Mapval) {
         return iterator(
-            _Insert_or_assign_hint(_Hint._Ptr, _Keyval, _STD forward<_Mappedty>(_Mapval)), _我的基类::_Get_scary());
+            _Insert_or_assign_hint(_Hint._Ptr, _Keyval, _STD forward<_Mappedty>(_Mapval)), _我的基类::_取检查值());
     }
 
     template <class _Mappedty>
     pair<iterator, bool> 插入或赋值(key_type&& _Keyval, _Mappedty&& _Mapval) {
         const auto _Result = _Insert_or_assign(_STD move(_Keyval), _STD forward<_Mappedty>(_Mapval));
-        return {iterator(_Result.first, _我的基类::_Get_scary()), _Result.second};
+        return {iterator(_Result.first, _我的基类::_取检查值()), _Result.second};
     }
 
     template <class _Mappedty>
     iterator 插入或赋值(const const_iterator _Hint, key_type&& _Keyval, _Mappedty&& _Mapval) {
         return iterator(_Insert_or_assign_hint(_Hint._Ptr, _STD move(_Keyval), _STD forward<_Mappedty>(_Mapval)),
-            _我的基类::_Get_scary());
+            _我的基类::_取检查值());
     }
 
     映射实现(initializer_list<value_type> _Ilist) : _我的基类(key_compare()) {
@@ -349,8 +349,8 @@ public:
     }
 
     _NODISCARD mapped_type& 取值(const key_type& _Keyval) {
-        const auto _Loc = _我的基类::_Find_lower_bound(_Keyval);
-        if (!_我的基类::_Lower_bound_duplicate(_Loc._Bound, _Keyval)) {
+        const auto _Loc = _我的基类::_查找下界(_Keyval);
+        if (!_我的基类::_下界重复项(_Loc._Bound, _Keyval)) {
             _Xout_of_range("invalid 映射实现<K, T> key");
         }
 
@@ -358,16 +358,16 @@ public:
     }
 
     _NODISCARD const mapped_type& 取值(const key_type& _Keyval) const {
-        const auto _Loc = _我的基类::_Find_lower_bound(_Keyval);
-        if (!_我的基类::_Lower_bound_duplicate(_Loc._Bound, _Keyval)) {
+        const auto _Loc = _我的基类::_查找下界(_Keyval);
+        if (!_我的基类::_下界重复项(_Loc._Bound, _Keyval)) {
             _Xout_of_range("invalid 映射实现<K, T> key");
         }
 
         return _Loc._Bound->_Myval.second;
     }
 
-    using _我的基类::_Unchecked_begin;
-    using _我的基类::_Unchecked_end;
+    using _我的基类::_非检查开始;
+    using _我的基类::_非检查结束;
 };
 
 #if _HAS_CXX17
@@ -401,15 +401,15 @@ template <_RANGES input_range _Rng, _Allocator_for_container _Alloc>
 _EXPORT_STD template <class _Kty, class _Ty, class _Pr, class _Alloc>
 _NODISCARD bool operator==(const 映射实现<_Kty, _Ty, _Pr, _Alloc>& _Left, const 映射实现<_Kty, _Ty, _Pr, _Alloc>& _Right) {
     return _Left.size() == _Right.size()
-        && _STD equal(_Left._Unchecked_begin(), _Left._Unchecked_end_iter(), _Right._Unchecked_begin());
+        && _STD equal(_Left._非检查开始(), _Left._Unchecked_end_iter(), _Right._非检查开始());
 }
 
 #if _HAS_CXX20
 _EXPORT_STD template <class _Kty, class _Ty, class _Pr, class _Alloc>
 _NODISCARD _Synth_three_way_result<pair<const _Kty, _Ty>> operator<=>(
     const 映射实现<_Kty, _Ty, _Pr, _Alloc>& _Left, const 映射实现<_Kty, _Ty, _Pr, _Alloc>& _Right) {
-    return _STD lexicographical_compare_three_way(_Left._Unchecked_begin(), _Left._Unchecked_end_iter(),
-        _Right._Unchecked_begin(), _Right._Unchecked_end_iter(), _Synth_three_way{});
+    return _STD lexicographical_compare_three_way(_Left._非检查开始(), _Left._Unchecked_end_iter(),
+        _Right._非检查开始(), _Right._Unchecked_end_iter(), _Synth_three_way{});
 }
 #else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
 template <class _Kty, class _Ty, class _Pr, class _Alloc>
@@ -420,7 +420,7 @@ _NODISCARD bool operator!=(const 映射实现<_Kty, _Ty, _Pr, _Alloc>& _Left, co
 template <class _Kty, class _Ty, class _Pr, class _Alloc>
 _NODISCARD bool operator<(const 映射实现<_Kty, _Ty, _Pr, _Alloc>& _Left, const 映射实现<_Kty, _Ty, _Pr, _Alloc>& _Right) {
     return _STD lexicographical_compare(
-        _Left._Unchecked_begin(), _Left._Unchecked_end_iter(), _Right._Unchecked_begin(), _Right._Unchecked_end_iter());
+        _Left._非检查开始(), _Left._Unchecked_end_iter(), _Right._非检查开始(), _Right._Unchecked_end_iter());
 }
 
 template <class _Kty, class _Ty, class _Pr, class _Alloc>
@@ -453,7 +453,7 @@ _EXPORT_STD template <class _Kty, class _Ty, class _Keylt, class _Alloc, class _
 #endif // _HAS_CXX20
 
 _EXPORT_STD template <class _Kty, class _Ty, class _Pr = less<_Kty>, class _Alloc = allocator<pair<const _Kty, _Ty>>>
-class 多重映射实现 : public _Tree<_映射特征<_Kty, _Ty, _Pr, _Alloc, true>> {
+class 多重映射实现 : public _树<_映射特征<_Kty, _Ty, _Pr, _Alloc, true>> {
     // ordered red-black tree of {key, mapped} values, non-unique keys
 public:
     static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<pair<const _Kty, _Ty>, typename _Alloc::value_type>,
@@ -461,7 +461,7 @@ public:
     static_assert(is_object_v<_Kty>, "The C++ Standard forbids containers of non-object types "
                                      "because of [container.requirements].");
 
-    using _我的基类                = _Tree<_映射特征<_Kty, _Ty, _Pr, _Alloc, true>>;
+    using _我的基类                = _树<_映射特征<_Kty, _Ty, _Pr, _Alloc, true>>;
     using key_type               = _Kty;
     using mapped_type            = _Ty;
     using key_compare            = _Pr;
@@ -487,7 +487,7 @@ public:
     explicit 多重映射实现(const allocator_type& _Al) : _我的基类(key_compare(), _Al) {}
 
     多重映射实现(const 多重映射实现& _Right)
-        : _我的基类(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._Getal())) {}
+        : _我的基类(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._取分配器())) {}
 
     多重映射实现(const 多重映射实现& _Right, const allocator_type& _Al) : _我的基类(_Right, _Al) {}
 
@@ -596,8 +596,8 @@ public:
         return *this;
     }
 
-    using _我的基类::_Unchecked_begin;
-    using _我的基类::_Unchecked_end;
+    using _我的基类::_非检查开始;
+    using _我的基类::_非检查结束;
 };
 
 #if _HAS_CXX17
@@ -633,15 +633,15 @@ _EXPORT_STD template <class _Kty, class _Ty, class _Pr, class _Alloc>
 _NODISCARD bool operator==(
     const 多重映射实现<_Kty, _Ty, _Pr, _Alloc>& _Left, const 多重映射实现<_Kty, _Ty, _Pr, _Alloc>& _Right) {
     return _Left.size() == _Right.size()
-        && _STD equal(_Left._Unchecked_begin(), _Left._Unchecked_end_iter(), _Right._Unchecked_begin());
+        && _STD equal(_Left._非检查开始(), _Left._Unchecked_end_iter(), _Right._非检查开始());
 }
 
 #if _HAS_CXX20
 _EXPORT_STD template <class _Kty, class _Ty, class _Pr, class _Alloc>
 _NODISCARD _Synth_three_way_result<pair<const _Kty, _Ty>> operator<=>(
     const 多重映射实现<_Kty, _Ty, _Pr, _Alloc>& _Left, const 多重映射实现<_Kty, _Ty, _Pr, _Alloc>& _Right) {
-    return _STD lexicographical_compare_three_way(_Left._Unchecked_begin(), _Left._Unchecked_end_iter(),
-        _Right._Unchecked_begin(), _Right._Unchecked_end_iter(), _Synth_three_way{});
+    return _STD lexicographical_compare_three_way(_Left._非检查开始(), _Left._Unchecked_end_iter(),
+        _Right._非检查开始(), _Right._Unchecked_end_iter(), _Synth_three_way{});
 }
 #else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
 template <class _Kty, class _Ty, class _Pr, class _Alloc>
@@ -654,7 +654,7 @@ template <class _Kty, class _Ty, class _Pr, class _Alloc>
 _NODISCARD bool operator<(
     const 多重映射实现<_Kty, _Ty, _Pr, _Alloc>& _Left, const 多重映射实现<_Kty, _Ty, _Pr, _Alloc>& _Right) {
     return _STD lexicographical_compare(
-        _Left._Unchecked_begin(), _Left._Unchecked_end_iter(), _Right._Unchecked_begin(), _Right._Unchecked_end_iter());
+        _Left._非检查开始(), _Left._Unchecked_end_iter(), _Right._非检查开始(), _Right._Unchecked_end_iter());
 }
 
 template <class _Kty, class _Ty, class _Pr, class _Alloc>
