@@ -1590,7 +1590,7 @@ $probe = Join-Path $env:TEMP ('zh2_' + [guid]::NewGuid().ToString('N').Substring
 #   实测：examples\汉语库示例.cpp 一编译就报
 #     'std::allocator_traits<...>' 中没有名为 '最大尺寸' 的成员   （见方案 §十二）
 #   这里直接用该条目的第一条测试 —— 它本来就是会真正使用这些类的程序。
-$probeBody = if ($spec.tests -and $spec.tests.Count -gt 0) { $spec.tests[0][1] } else { "整数 主函数(){ 返回 0; }" }
+$probeBody = if ($spec.tests -and $spec.tests.Count -gt 0) { $spec.tests[0][1].Replace([char]96 + 'n', "`n") } else { "整数 主函数(){ 返回 0; }" }
 [System.IO.File]::WriteAllText($probe, $probeBody + "`n", $utf8)
 $rev = @{}
 foreach ($k in $spec.members.Keys) { $rev[$spec.members[$k]] = $k }
@@ -1677,7 +1677,11 @@ $cases = $spec.tests
 $pass = 0
 foreach ($c in $cases) {
     $src = Join-Path $t 't.cpp'
-    [System.IO.File]::WriteAllText($src, $c[1] + "`n", $utf8)
+    # ⚠⚠ 测试正文里的反引号-n 是【字面两个字符】（条目用单引号写的），必须先转成真换行！
+    #   否则整条测试会写成一行，clang 把 `#include` 之后的全当"多余记号"（只警告）
+    #   -> 函数体被吞掉 -> 测试文件只剩一个 include -> 【所有 4/4 都是空测】。
+    #   实测：这正是本条修复的原因。用 [char]96 + 'n' 拼出那两个字面字符。
+    [System.IO.File]::WriteAllText($src, $c[1].Replace([char]96 + 'n', "`n") + "`n", $utf8)
     & cmd /c "`"$cxx`" -std=c++20 -isystem`"$out`" -fsyntax-only `"$src`" > `"$t\o.txt`" 2>&1"
     if ($LASTEXITCODE -eq 0) { Write-Host ("  [ok]   {0}" -f $c[0]); $pass++ }
     else {
