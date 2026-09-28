@@ -4513,6 +4513,16 @@ foreach ($mm in [regex]::Matches($text, '(?m)^[^\r\n#]*?\b(_\w+)\s*\(')) {
 }
 Write-Host "  步4c 去限定 `_STD <本文件的实体>`: $nq 个（另扫出内部函数 $scanned 个）"
 
+$rngN = 0
+foreach ($m in @($spec.types, $spec.data, $spec.members)) {
+    foreach ($k in $m.Keys) {
+        $rx = [regex]::Escape("_RANGES " + $m[$k]) + '\b'
+        $new = [regex]::Replace($text, $rx, $m[$k])
+        if ($new -ne $text) { $rngN++; $text = $new }
+    }
+}
+if ($rngN) { Write-Host ("  步4d _RANGES 去限定: {0} 处" -f $rngN) }
+
 # 步 6：派生层（在中文的基础上派生，补回英文原名）
 $cls = ($spec.types.Values | Select-Object -First 1)   # 实现类名
 $origType = ($spec.types.Keys | Select-Object -First 1) # 原本的类型名（供测试用）
