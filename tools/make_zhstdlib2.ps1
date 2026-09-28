@@ -3776,10 +3776,12 @@ foreach ($k in $spec.data.Keys) {
     }
 }
 if ($zeroHit.Count) {
-    Write-Host ("⚠ 登记≠落地（§17.27.3）：{0} 有 {1} 条改名登记在本条目拷贝层 0 命中" -f $Header, $zeroHit.Count) -ForegroundColor Yellow
-    $zeroHit | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
+    Write-Host ("❌ 登记≠落地（§17.27.3/§17.27.4）：{0} 有 {1} 条改名登记在本条目拷贝层 0 命中" -f $Header, $zeroHit.Count) -ForegroundColor Red
+    $zeroHit | ForEach-Object { Write-Host $_ -ForegroundColor Red }
     Write-Host '  含义：这些名字要么根本不属这个头（例：_Lock 属 <xthreads.h>/<shared_mutex> -> 该登记在那边），' -ForegroundColor Yellow
-    Write-Host '        要么是过时/拼错的登记。修法：删掉这条登记，或登记到真正定义它的那个条目上。' -ForegroundColor Yellow
+    Write-Host '        要么是过时/拼错的登记。危害不止"白写"：它会让 §16.52.3 那类【查表】守卫假通过 ——' -ForegroundColor Yellow
+    Write-Host '        §17.27.4 的幽灵 API（链表 shrink_to_fit -> 基类::收缩至适应）就是这样被掩盖的。' -ForegroundColor Yellow
+    throw "登记≠落地（§17.27.3）：先把这些登记删掉或搬到真正定义它的条目上，再生成"
 }
 Write-Host "  步3/4 类型 $nT 处 / 成员 $nM 处 / 数据 $nD 处"
 # ⚠ realInclude 必须插在【改名之后】：否则 `#include <optional>` 里的 optional
