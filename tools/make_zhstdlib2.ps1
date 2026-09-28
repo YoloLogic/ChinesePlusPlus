@@ -3762,6 +3762,7 @@ $nI = 0
 function Get-RenamePattern([string] $name) {
     return '(?<!_RANGES\s+)\b' + [regex]::Escape($name) + '\b'
 }
+$origText = $text          # §17.27.3 守卫用：改名【之前】的正文（登记有没有落地必须在原文上量）
 foreach ($k in $INTERNAL_NAMES.Keys) {
     if ($spec.types.Contains($k)) { continue }
     $c = ([regex]::Matches($text, (Get-RenamePattern $k))).Count
@@ -3770,9 +3771,49 @@ foreach ($k in $INTERNAL_NAMES.Keys) {
         $nI += $c
     }
 }
-if ($nI) { Write-Host "  步3/4b 内部名一键替换 $nI 处" }foreach ($k in $spec.types.Keys)   { $c = ([regex]::Matches($text, (Get-RenamePattern $k))).Count; if ($c) { $text = [regex]::Replace($text, (Get-RenamePattern $k), $spec.types[$k]); $nT += $c } }
-foreach ($k in $spec.members.Keys) { $c = ([regex]::Matches($text, (Get-RenamePattern $k))).Count; if ($c) { $text = [regex]::Replace($text, (Get-RenamePattern $k), $spec.members[$k]); $nM += $c } }
-foreach ($k in $spec.data.Keys)    { $c = ([regex]::Matches($text, (Get-RenamePattern $k))).Count; if ($c) { $text = [regex]::Replace($text, (Get-RenamePattern $k), $spec.data[$k]); $nD += $c } }
+if ($nI) { Write-Host "  步3/4b 内部名一键替换 $nI 处" }
+# ---------------------------------------------------------------------------
+#  §17.27.3 守卫：「登记了」必须等于「落地了」—— 登记≠落地。
+#
+#  实测换来的（提交 4ba775e 那次虚报）：<互斥量> 的 members 表里登记了 8 个
+#  `_Lock`/`_Validate`/`_Mymtx`/... -> 产品正文里**改到 0 处**，因为那些名字
+#  根本不在本条目拷贝的正文里（它们在 <xthreads.h> 的 C 包装层与 <shared_mutex>
+#  的拷贝层，该登记在那边）。登记表是【意图】，产品正文才是【事实】。
+#
+#  旧代码 `if ($c) { ...改名... }` —— **0 命中就静默跳过**，于是"多写几行登记"
+#  就能在审计表上凭空涨进度。这里把 0 命中一律报到 regen 的告警台账上。
+#  ⚠ 必须在 `$origText`（改名前的正文）上量：改名会吃掉英文名，改完再量都是 0。
+# ---------------------------------------------------------------------------
+$zeroHit = @()
+foreach ($k in $spec.types.Keys) {
+    $c = ([regex]::Matches($text, (Get-RenamePattern $k))).Count
+    if ($c) { $text = [regex]::Replace($text, (Get-RenamePattern $k), $spec.types[$k]); $nT += $c }
+    elseif (([regex]::Matches($origText, (Get-RenamePattern $k))).Count -eq 0) {
+        $zeroHit += ("⚠ {0} : types 表 {1} -> {2} —— 本条目拷贝层 0 命中" -f $Header, $k, $spec.types[$k])
+    }
+}
+foreach ($k in $spec.members.Keys) {
+    $c = ([regex]::Matches($text, (Get-RenamePattern $k))).Count
+    if ($c) { $text = ([regex]::Replace($text, (Get-RenamePattern $k), $spec.members[$k])); $nM += $c }
+    elseif (-not $spec.types.Contains($k) -and -not $INTERNAL_NAMES.Contains($k) -and
+            ([regex]::Matches($origText, (Get-RenamePattern $k))).Count -eq 0) {
+        $zeroHit += ("⚠ {0} : members 表 {1} -> {2} —— 本条目拷贝层 0 命中" -f $Header, $k, $spec.members[$k])
+    }
+}
+foreach ($k in $spec.data.Keys) {
+    $c = ([regex]::Matches($text, (Get-RenamePattern $k))).Count
+    if ($c) { $text = ([regex]::Replace($text, (Get-RenamePattern $k), $spec.data[$k])); $nD += $c }
+    elseif (-not $spec.types.Contains($k) -and -not $spec.members.Contains($k) -and -not $INTERNAL_NAMES.Contains($k) -and
+            ([regex]::Matches($origText, (Get-RenamePattern $k))).Count -eq 0) {
+        $zeroHit += ("⚠ {0} : data 表 {1} -> {2} —— 本条目拷贝层 0 命中" -f $Header, $k, $spec.data[$k])
+    }
+}
+if ($zeroHit.Count) {
+    Write-Host ("⚠ 登记≠落地（§17.27.3）：{0} 有 {1} 条改名登记在本条目拷贝层 0 命中" -f $Header, $zeroHit.Count) -ForegroundColor Yellow
+    $zeroHit | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
+    Write-Host '  含义：这些名字要么根本不属这个头（例：_Lock 属 <xthreads.h>/<shared_mutex> -> 该登记在那边），' -ForegroundColor Yellow
+    Write-Host '        要么是过时/拼错的登记。修法：删掉这条登记，或登记到真正定义它的那个条目上。' -ForegroundColor Yellow
+}
 Write-Host "  步3/4 类型 $nT 处 / 成员 $nM 处 / 数据 $nD 处"
 # ⚠ realInclude 必须插在【改名之后】：否则 `#include <optional>` 里的 optional
 #   会被类型改名改成 `#include <可选实现>` -> fatal error: 找不到文件 '可选实现'。
