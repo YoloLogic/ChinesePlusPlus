@@ -503,6 +503,10 @@ $H = @{
                           # ⚠ _Alnode / _Alnode_traits 同理（`typename _Mybase::X`）。
                           }
     members = [ordered]@{ 'emplace' = '就地构造'
+                          # §17.9 `_Kfn`（有序那一条链）：本头 traits 是【定义侧】，
+                          #   与 树内部件 的 `_Traits::_Kfn(...)` 调用侧同批翻成 `_取键`。
+                          #   与 §17.8 的无序链各自闭包、互不相干。
+                          '_Kfn' = '_取键'
                           # §16.44 同步改名：本头正文调 `_Mybase::_Unchecked_begin/_Unchecked_end`，
                           #   而 树内部件 已把它们翻成 _非检查开始/_非检查结束。
                           #   **这就是"上层与内部件必须同步改"的实证**：不同步，编译器就报
@@ -632,6 +636,8 @@ $H = @{
                           #   改名会让 xtree 里的读取点找不到它。中文名欠账，
                           #   消除路径 = 与 树内部件 同步改（通路已开）。
     members = [ordered]@{
+      # §17.9 `_Kfn`（有序那一条链，traits 定义侧）——与 树内部件 同批，见 <集合> 那边的说明。
+      '_Kfn' = '_取键'
       # at/insert/... 是 <map> 自己定义的（能改名）
       'at' = '取值'   # ⚠ insert 不改名：现在 _Mybase 是【我们自己的】细节::_树，
                       #   而我们没有翻 _Tree 的公开 API 名（insert/erase/find/…）——
@@ -2311,6 +2317,10 @@ $H = @{
       'allocator_type'           = '分配器类型'
     }
     members = [ordered]@{
+      # §17.9 `_Kfn`（有序那一条链，**调用侧**）：实测本头正文里只有
+      #   `_Traits::_Kfn(...)`（§17.6.1 逐行看过），定义在 <集合>/<映射> 的 traits 里
+      #   -> 三处同批翻。与 §17.8 的无序链各自闭包、互不相干。
+      '_Kfn' = '_取键'
       # §16.43 成员层第一批：**确认属于 `_Tree` 自己**的那一批。
       # ⚠ 不含借用自 <xutility>/<xmemory> 的自由函数与宏
       #   （_Adl_verify_range / _Construct_in_place / _Destroy_in_place /

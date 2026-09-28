@@ -1025,7 +1025,7 @@ protected:
             // nothrow hereafter
         } else {
             _树临时节点<_结点分配器> _新节点(_取分配器(), _Scary->_Myhead, _STD forward<_Valtys>(_Vals)...);
-            const auto& _Keyval = _Traits::_Kfn(_新节点._Ptr->_Myval);
+            const auto& _Keyval = _Traits::_取键(_新节点._Ptr->_Myval);
             if constexpr (_Multi) { // duplicate check if unique
                 _Loc = _查找上界(_Keyval);
             } else {
@@ -1068,7 +1068,7 @@ protected:
             // nothrow hereafter
         } else {
             _树临时节点<_结点分配器> _新节点(_取分配器(), _Scary->_Myhead, _STD forward<_Valtys>(_Vals)...);
-            _Loc = _按提示查找(_Hint, _Traits::_Kfn(_新节点._Ptr->_Myval));
+            _Loc = _按提示查找(_Hint, _Traits::_取键(_新节点._Ptr->_Myval));
             if constexpr (!_Multi) {
                 if (_Loc._Duplicate) {
                     return _Loc._Location._Parent;
@@ -1517,7 +1517,7 @@ protected:
         if constexpr (_Multi) { // insert even if duplicate
             if (_Hint->_Isnil) {
                 // insert at end if greater than or equal to last element
-                if (_Head->_Parent->_Isnil || !_DEBUG_LT_PRED(_Comp, _Keyval, _Traits::_Kfn(_Head->_Right->_Myval))) {
+                if (_Head->_Parent->_Isnil || !_DEBUG_LT_PRED(_Comp, _Keyval, _Traits::_取键(_Head->_Right->_Myval))) {
                     return {{_Head->_Right, _树子向::_Right}, false};
                 }
 
@@ -1527,7 +1527,7 @@ protected:
 
             if (_Hint == _Head->_Left) {
                 // insert at beginning if less than or equal to first element
-                if (!_DEBUG_LT_PRED(_Comp, _Traits::_Kfn(_Hint->_Myval), _Keyval)) {
+                if (!_DEBUG_LT_PRED(_Comp, _Traits::_取键(_Hint->_Myval), _Keyval)) {
                     return {{_Hint, _树子向::_Left}, false};
                 }
 
@@ -1535,10 +1535,10 @@ protected:
                 return {_查找下界(_Keyval)._Location, false};
             }
 
-            if (!_DEBUG_LT_PRED(_Comp, _Traits::_Kfn(_Hint->_Myval), _Keyval)) {
+            if (!_DEBUG_LT_PRED(_Comp, _Traits::_取键(_Hint->_Myval), _Keyval)) {
                 // _Val <= *_Hint
                 const auto _Prev = (--(_非检查常量迭代器(_Hint, nullptr)))._Ptr;
-                if (!_DEBUG_LT_PRED(_Comp, _Keyval, _Traits::_Kfn(_Prev->_Myval))) {
+                if (!_DEBUG_LT_PRED(_Comp, _Keyval, _Traits::_取键(_Prev->_Myval))) {
                     // _Val <= *_Hint and _Val >= *prev(_Hint); insert here
                     if (_Prev->_Right->_Isnil) {
                         return {{_Prev, _树子向::_Right}, false};
@@ -1556,18 +1556,18 @@ protected:
         } else { // insert only if unique
             if (_Hint->_Isnil) { // insert at end if after last element
                 // insert at end if greater than last element
-                if (_Head->_Parent->_Isnil || _DEBUG_LT_PRED(_Comp, _Traits::_Kfn(_Head->_Right->_Myval), _Keyval)) {
+                if (_Head->_Parent->_Isnil || _DEBUG_LT_PRED(_Comp, _Traits::_取键(_Head->_Right->_Myval), _Keyval)) {
                     return {{_Head->_Right, _树子向::_Right}, false};
                 }
             } else if (_Hint == _Head->_Left) {
                 // insert at beginning if less than first element
-                if (_DEBUG_LT_PRED(_Comp, _Keyval, _Traits::_Kfn(_Hint->_Myval))) {
+                if (_DEBUG_LT_PRED(_Comp, _Keyval, _Traits::_取键(_Hint->_Myval))) {
                     return {{_Hint, _树子向::_Left}, false};
                 }
-            } else if (_DEBUG_LT_PRED(_Comp, _Keyval, _Traits::_Kfn(_Hint->_Myval))) {
+            } else if (_DEBUG_LT_PRED(_Comp, _Keyval, _Traits::_取键(_Hint->_Myval))) {
                 // _Val < *_Hint
                 const auto _Prev = (--(_非检查常量迭代器(_Hint, nullptr)))._Ptr;
-                if (_DEBUG_LT_PRED(_Comp, _Traits::_Kfn(_Prev->_Myval), _Keyval)) {
+                if (_DEBUG_LT_PRED(_Comp, _Traits::_取键(_Prev->_Myval), _Keyval)) {
                     // _Val < *_Hint and _Val > *prev(_Hint); insert here
                     if (_Prev->_Right->_Isnil) {
                         return {{_Prev, _树子向::_Right}, false};
@@ -1575,10 +1575,10 @@ protected:
                         return {{_Hint, _树子向::_Left}, false};
                     }
                 }
-            } else if (_DEBUG_LT_PRED(_Comp, _Traits::_Kfn(_Hint->_Myval), _Keyval)) {
+            } else if (_DEBUG_LT_PRED(_Comp, _Traits::_取键(_Hint->_Myval), _Keyval)) {
                 // _Val > *_Hint
                 const auto _Next = (++(_非检查常量迭代器(_Hint, nullptr)))._Ptr;
-                if (_Next->_Isnil || _DEBUG_LT_PRED(_Comp, _Keyval, _Traits::_Kfn(_Next->_Myval))) {
+                if (_Next->_Isnil || _DEBUG_LT_PRED(_Comp, _Keyval, _Traits::_取键(_Next->_Myval))) {
                     // _Val > *_Hint and _Val < *next(_Hint); insert here
                     if (_Hint->_Right->_Isnil) {
                         return {{_Hint, _树子向::_Right}, false};
@@ -1607,7 +1607,7 @@ protected:
         _结点指针 _Trynode = _Result._Location._Parent;
         while (!_Trynode->_Isnil) {
             _Result._Location._Parent = _Trynode;
-            if (_DEBUG_LT_PRED(_取比较器(), _Keyval, _Traits::_Kfn(_Trynode->_Myval))) {
+            if (_DEBUG_LT_PRED(_取比较器(), _Keyval, _Traits::_取键(_Trynode->_Myval))) {
                 _Result._Location._Child = _树子向::_Left;
                 _Result._Bound           = _Trynode;
                 _Trynode                 = _Trynode->_Left;
@@ -1622,7 +1622,7 @@ protected:
 
     template <class _Keyty>
     bool _下界重复项(const _结点指针 _Bound, const _Keyty& _Keyval) const {
-        return !_Bound->_Isnil && !_DEBUG_LT_PRED(_取比较器(), _Keyval, _Traits::_Kfn(_Bound->_Myval));
+        return !_Bound->_Isnil && !_DEBUG_LT_PRED(_取比较器(), _Keyval, _Traits::_取键(_Bound->_Myval));
     }
 
     template <class _Keyty>
@@ -1632,7 +1632,7 @@ protected:
         _结点指针 _Trynode = _Result._Location._Parent;
         while (!_Trynode->_Isnil) {
             _Result._Location._Parent = _Trynode;
-            if (_DEBUG_LT_PRED(_取比较器(), _Traits::_Kfn(_Trynode->_Myval), _Keyval)) {
+            if (_DEBUG_LT_PRED(_取比较器(), _Traits::_取键(_Trynode->_Myval), _Keyval)) {
                 _Result._Location._Child = _树子向::_Right;
                 _Trynode                 = _Trynode->_Right;
             } else {
@@ -1712,7 +1712,7 @@ protected:
         _结点指针 _Hinode  = _Scary->_Myhead; // end() if search fails
 
         while (!_Pnode->_Isnil) {
-            const auto& _Nodekey = _Traits::_Kfn(_Pnode->_Myval);
+            const auto& _Nodekey = _Traits::_取键(_Pnode->_Myval);
             if (_DEBUG_LT_PRED(_Comp, _Nodekey, _Keyval)) {
                 _Pnode = _Pnode->_Right; // descend right subtree
             } else { // _Pnode not less than _Keyval, remember it
@@ -1727,7 +1727,7 @@ protected:
 
         _Pnode = _Hinode->_Isnil ? _Scary->_Myhead->_Parent : _Hinode->_Left; // continue scan for upper bound
         while (!_Pnode->_Isnil) {
-            if (_DEBUG_LT_PRED(_取比较器(), _Keyval, _Traits::_Kfn(_Pnode->_Myval))) {
+            if (_DEBUG_LT_PRED(_取比较器(), _Keyval, _Traits::_取键(_Pnode->_Myval))) {
                 // _Pnode greater than _Keyval, remember it
                 _Hinode = _Pnode;
                 _Pnode  = _Pnode->_Left; // descend left subtree
@@ -1789,7 +1789,7 @@ public:
         _检查节点分配器(_Handle);
         const auto _Scary        = _取检查值();
         const auto _Attempt_node = _Handle._Getptr();
-        const auto& _Keyval      = _Traits::_Kfn(_Attempt_node->_Myval);
+        const auto& _Keyval      = _Traits::_取键(_Attempt_node->_Myval);
         _树查找结果<_结点指针> _Loc;
         if constexpr (_Multi) {
             _Loc = _查找上界(_Keyval);
@@ -1829,7 +1829,7 @@ public:
 
         _检查节点分配器(_Handle);
         const auto _Attempt_node = _Handle._Getptr();
-        const auto& _Keyval      = _Traits::_Kfn(_Attempt_node->_Myval);
+        const auto& _Keyval      = _Traits::_取键(_Attempt_node->_Myval);
         const auto _Loc          = _按提示查找(_Hint._Ptr, _Keyval);
         if (_Loc._Duplicate) {
             return 迭代器(_Loc._Location._Parent, _Scary);
@@ -1876,7 +1876,7 @@ public:
             const auto _Attempt_node = _首个._Ptr;
             ++_首个;
             _树查找结果<_结点指针> _Loc;
-            const auto& _Keyval = _Traits::_Kfn(_Attempt_node->_Myval);
+            const auto& _Keyval = _Traits::_取键(_Attempt_node->_Myval);
             if constexpr (_Multi) {
                 _Loc = _查找上界(_Keyval);
             } else {
