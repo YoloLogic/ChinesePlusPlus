@@ -967,7 +967,7 @@ private:
 
         if constexpr (_Can_construct_by_copy) {
             const auto _Data = _My_data._我的指针();
-            _Copy_n_unchecked4(_STD move(_First), _Count, _Data);
+            _复制N个非检查4(_STD move(_First), _Count, _Data);
             _My_data._Mysize = _Count;
             _Data[_Count]    = _Elem();
         } else {
@@ -1013,7 +1013,7 @@ public:
     constexpr 基础字符串实现(from_range_t, _Rng&& _Range, const _Alloc& _Al = _Alloc())
         : _Mypair(_先一后变参实参{}, _Al) {
         if constexpr (_RANGES sized_range<_Rng> || _RANGES forward_range<_Rng>) {
-            const auto _Length = _To_unsigned_like(_RANGES distance(_Range));
+            const auto _Length = _转为无符号同型(_RANGES distance(_Range));
             const auto _Count  = _Convert_size<size_type>(_Length);
             if constexpr (_Contiguous_range_of<_Rng, _Elem>) {
                 _Construct<_Construct_strategy::_From_ptr>(_RANGES data(_Range), _Count);
@@ -1577,7 +1577,7 @@ public:
     template <_Container_compatible_range<_Elem> _Rng>
     constexpr 基础字符串实现& 追加范围(_Rng&& _Range) {
         if constexpr (_RANGES sized_range<_Rng> && _Contiguous_range_of<_Rng, _Elem>) {
-            const auto _Count = _Convert_size<size_type>(_To_unsigned_like(_RANGES size(_Range)));
+            const auto _Count = _Convert_size<size_type>(_转为无符号同型(_RANGES size(_Range)));
             return 追加(_RANGES data(_Range), _Count);
         } else {
             const 基础字符串实现 _Right(from_range, _Range, 取分配器());
@@ -1683,7 +1683,7 @@ public:
     template <_Container_compatible_range<_Elem> _Rng>
     constexpr 基础字符串实现& 范围赋值(_Rng&& _Range) {
         if constexpr (_RANGES sized_range<_Rng> && _Contiguous_range_of<_Rng, _Elem>) {
-            const auto _Count = _Convert_size<size_type>(_To_unsigned_like(_RANGES size(_Range)));
+            const auto _Count = _Convert_size<size_type>(_转为无符号同型(_RANGES size(_Range)));
             return assign(_RANGES data(_Range), _Count);
         } else {
             基础字符串实现 _Right(from_range, _Range, 取分配器());
@@ -1857,7 +1857,7 @@ public:
         const auto _Off = static_cast<size_type>(_Unfancy(_Where._Ptr) - _Mypair._Myval2._我的指针());
 
         if constexpr (_RANGES sized_range<_Rng> && _Contiguous_range_of<_Rng, _Elem>) {
-            const auto _Count = _Convert_size<size_type>(_To_unsigned_like(_RANGES size(_Range)));
+            const auto _Count = _Convert_size<size_type>(_转为无符号同型(_RANGES size(_Range)));
             插入(_Off, _RANGES data(_Range), _Count);
         } else {
             const 基础字符串实现 _Right(from_range, _Range, 取分配器());
@@ -2151,7 +2151,7 @@ public:
         const auto _Length = static_cast<size_type>(_Last._Ptr - _First._Ptr);
 
         if constexpr (_RANGES sized_range<_Rng> && _Contiguous_range_of<_Rng, _Elem>) {
-            const auto _Count = _Convert_size<size_type>(_To_unsigned_like(_RANGES size(_Range)));
+            const auto _Count = _Convert_size<size_type>(_转为无符号同型(_RANGES size(_Range)));
             return 替换(_Off, _Length, _RANGES data(_Range), _Count);
         } else {
             const 基础字符串实现 _Right(from_range, _Range, 取分配器());
@@ -3484,7 +3484,7 @@ constexpr 基础字符串实现<_Elem, _Traits, _Alloc>::size_type 擦除(
 _EXPORT_STD template <class _Elem, class _Traits, class _Alloc, class _Pr>
 constexpr 基础字符串实现<_Elem, _Traits, _Alloc>::size_type erase_if(
     基础字符串实现<_Elem, _Traits, _Alloc>& _Cont, _Pr _Pred) {
-    return _按条件擦除并移除(_Cont, _STD _Pass_fn(_Pred));
+    return _按条件擦除并移除(_Cont, _传递函数(_Pred));
 }
 #endif // _HAS_CXX20
 

@@ -1674,7 +1674,7 @@ _NoThrowFwdIt _未初始化移动非检查(_InIt _First, const _InIt _Last, _NoT
         if (!_STD is_constant_evaluated())
 #endif // _HAS_CXX26
         {
-            return _Copy_memmove(_First, _Last, _目标);
+            return _内存复制移动(_First, _Last, _目标);
         }
     }
     _未初始化回退<_NoThrowFwdIt> _Backout{_目标};
@@ -1710,8 +1710,8 @@ namespace ranges {
 
     template <class _InIt, class _OutIt>
     in_out_result<_InIt, _OutIt> _内存复制计数(_InIt _IFirst, _OutIt _OFirst, const size_t _Count) noexcept {
-        const auto _IFirstPtr     = _To_address(_IFirst);
-        const auto _OFirstPtr     = _To_address(_OFirst);
+        const auto _IFirstPtr     = _取地址(_IFirst);
+        const auto _OFirstPtr     = _取地址(_OFirst);
         const auto _IFirst_ch     = const_cast<char*>(reinterpret_cast<const volatile char*>(_IFirstPtr));
         const auto _OFirst_ch     = const_cast<char*>(reinterpret_cast<const volatile char*>(_OFirstPtr));
         const size_t _Count_bytes = _Count * sizeof(iter_value_t<_InIt>);
@@ -1734,10 +1734,10 @@ namespace ranges {
     in_out_result<_InIt, _OutIt> _内存复制距离(
         _InIt _IFirst, _OutIt _OFirst, const _DistIt _DFirst, const _DistIt _DLast) noexcept {
         // equivalent to _内存复制计数(_IFirst, _OFirst, _DLast - _DFirst) but computes distance more efficiently
-        const auto _IFirstPtr   = _To_address(_IFirst);
-        const auto _OFirstPtr   = _To_address(_OFirst);
-        const auto _DFirstPtr   = _To_address(_DFirst);
-        const auto _DLastPtr    = _To_address(_DLast);
+        const auto _IFirstPtr   = _取地址(_IFirst);
+        const auto _OFirstPtr   = _取地址(_OFirst);
+        const auto _DFirstPtr   = _取地址(_DFirst);
+        const auto _DLastPtr    = _取地址(_DLast);
         const auto _IFirst_ch   = const_cast<char*>(reinterpret_cast<const volatile char*>(_IFirstPtr));
         const auto _OFirst_ch   = const_cast<char*>(reinterpret_cast<const volatile char*>(_OFirstPtr));
         const auto _DFirst_ch   = const_cast<char*>(reinterpret_cast<const volatile char*>(_DFirstPtr));
@@ -1761,10 +1761,10 @@ namespace ranges {
     template <class _InIt, class _OutIt>
     in_out_result<_InIt, _OutIt> _内存复制公共(
         _InIt _IFirst, _InIt _ILast, _OutIt _OFirst, _OutIt _OLast) noexcept {
-        const auto _IFirstPtr   = _To_address(_IFirst);
-        const auto _ILastPtr    = _To_address(_ILast);
-        const auto _OFirstPtr   = _To_address(_OFirst);
-        const auto _OLastPtr    = _To_address(_OLast);
+        const auto _IFirstPtr   = _取地址(_IFirst);
+        const auto _ILastPtr    = _取地址(_ILast);
+        const auto _OFirstPtr   = _取地址(_OFirst);
+        const auto _OLastPtr    = _取地址(_OLast);
         const auto _IFirst_ch   = const_cast<char*>(reinterpret_cast<const volatile char*>(_IFirstPtr));
         const auto _ILast_ch    = const_cast<const char*>(reinterpret_cast<const volatile char*>(_ILastPtr));
         const auto _OFirst_ch   = const_cast<char*>(reinterpret_cast<const volatile char*>(_OFirstPtr));
@@ -1893,11 +1893,11 @@ _CONSTEXPR20 _分配器指针类型<_Alloc> _未初始化复制(
 #endif // _HAS_CXX20
         {
             if constexpr (is_same_v<decltype(_UFirst), decltype(_ULast)>) {
-                _Copy_memmove(_To_address(_UFirst), _To_address(_ULast), _去花式(_目标));
+                _内存复制移动(_取地址(_UFirst), _取地址(_ULast), _去花式(_目标));
                 _目标 += _ULast - _UFirst;
             } else {
                 const auto _Count = static_cast<size_t>(_ULast - _UFirst);
-                _Copy_memmove_n(_To_address(_UFirst), _Count, _去花式(_目标));
+                _内存复制移动计数(_取地址(_UFirst), _Count, _去花式(_目标));
                 _目标 += _Count;
             }
             return _目标;
@@ -1934,7 +1934,7 @@ _CONSTEXPR20 _分配器指针类型<_Alloc> _Uninitialized_copy_n(
         if (!_STD is_constant_evaluated())
 #endif // _HAS_CXX20
         {
-            _Copy_memmove_n(_UFirst, _Count, _去花式(_目标));
+            _内存复制移动计数(_UFirst, _Count, _去花式(_目标));
             _目标 += _Count;
             return _目标;
         }
@@ -1956,7 +1956,7 @@ _NoThrowFwdIt _Uninitialized_copy_unchecked(_InIt _First, const _InIt _Last, _No
         if (!_STD is_constant_evaluated())
 #endif // _HAS_CXX26
         {
-            return _Copy_memmove(_First, _Last, _目标);
+            return _内存复制移动(_First, _Last, _目标);
         }
     }
 
@@ -1996,7 +1996,7 @@ _CONSTEXPR20 _分配器指针类型<_Alloc> _未初始化移动(
         if (!_STD is_constant_evaluated())
 #endif // _HAS_CXX20
         {
-            _Copy_memmove(_UFirst, _ULast, _去花式(_目标));
+            _内存复制移动(_UFirst, _ULast, _去花式(_目标));
             return _目标 + (_ULast - _UFirst);
         }
     }
@@ -2027,8 +2027,8 @@ _CONSTEXPR20 _分配器指针类型<_Alloc> _未初始化填充若干(
         if (!_STD is_constant_evaluated())
 #endif // _HAS_CXX20
         {
-            if (_Is_all_bits_zero(_Val)) {
-                _Fill_zero_memset(_去花式(_First), static_cast<size_t>(_Count));
+            if (_是否全位为零(_Val)) {
+                _填充零内存(_去花式(_First), static_cast<size_t>(_Count));
                 return _First + _Count;
             }
         }
@@ -2052,8 +2052,8 @@ void uninitialized_fill(const _NoThrowFwdIt _First, const _NoThrowFwdIt _Last, c
         _填充内存(_UFirst, _Val, static_cast<size_t>(_ULast - _UFirst));
     } else {
         if constexpr (_Fill_zero_memset_is_safe<_Unwrapped_t<const _NoThrowFwdIt&>, _Tval>) {
-            if (_Is_all_bits_zero(_Val)) {
-                _Fill_zero_memset(_UFirst, static_cast<size_t>(_ULast - _UFirst));
+            if (_是否全位为零(_Val)) {
+                _填充零内存(_UFirst, static_cast<size_t>(_ULast - _UFirst));
                 return;
             }
         }
@@ -2074,8 +2074,8 @@ constexpr bool _Use_memset_value_construct_v = conjunction_v<bool_constant<_Iter
 
 template <class _Ptr>
 _Ptr _清零范围(const _Ptr _First, const _Ptr _Last) { // fill [_First, _Last) with zeroes
-    char* const _First_ch = reinterpret_cast<char*>(_To_address(_First));
-    char* const _Last_ch  = reinterpret_cast<char*>(_To_address(_Last));
+    char* const _First_ch = reinterpret_cast<char*>(_取地址(_First));
+    char* const _Last_ch  = reinterpret_cast<char*>(_取地址(_Last));
     _CSTD memset(_First_ch, 0, static_cast<size_t>(_Last_ch - _First_ch));
     return _Last;
 }
@@ -2317,7 +2317,7 @@ _NODISCARD_REMOVE_ALG _CONSTEXPR20 _FwdIt remove(_FwdIt _First, const _FwdIt _La
     _ADL校验范围(_First, _Last);
     auto _UFirst      = _取解包(_First);
     const auto _ULast = _取解包(_Last);
-    _UFirst           = _Find_unchecked(_UFirst, _ULast, _Val);
+    _UFirst           = _查找非检查(_UFirst, _ULast, _Val);
     auto _UNext       = _UFirst;
     if (_UFirst != _ULast) {
 #if _USE_STD_VECTOR_ALGORITHMS
@@ -2326,8 +2326,8 @@ _NODISCARD_REMOVE_ALG _CONSTEXPR20 _FwdIt remove(_FwdIt _First, const _FwdIt _La
             if (!_STD is_constant_evaluated())
 #endif // _HAS_CXX20
             {
-                const auto _First_ptr = _To_address(_UFirst);
-                const auto _Result    = _Remove_vectorized(_First_ptr, _To_address(_ULast), _Val);
+                const auto _First_ptr = _取地址(_UFirst);
+                const auto _Result    = _Remove_vectorized(_First_ptr, _取地址(_ULast), _Val);
 
                 if constexpr (is_pointer_v<decltype(_UNext)>) {
                     _UNext = _Result;
@@ -2359,7 +2359,7 @@ _NODISCARD_REMOVE_ALG _CONSTEXPR20 _FwdIt remove_if(_FwdIt _First, const _FwdIt 
     _ADL校验范围(_First, _Last);
     auto _UFirst      = _取解包(_First);
     const auto _ULast = _取解包(_Last);
-    _UFirst           = _STD find_if(_UFirst, _ULast, _Pass_fn(_Pred));
+    _UFirst           = _STD find_if(_UFirst, _ULast, _传递函数(_Pred));
     auto _UNext       = _UFirst;
     if (_UFirst != _ULast) {
         while (++_UFirst != _ULast) {

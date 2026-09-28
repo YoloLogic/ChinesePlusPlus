@@ -209,6 +209,34 @@ Write-Host ("=== 顺带引真头探针（§16.29「乙」）：{0} 个头通过�
 Write-Host '    这条是「乙」的机器保证：条目加了 realInclude 的都会进来，缺一个就说明那条挂了。' -ForegroundColor Gray
 Write-Host ''
 
+# ---------------------------------------------------------------------------
+#  §17.27.61 残余边界台账：`_RANGES <英文 _ 名>(`
+#
+#  为什么单列一类：`_STD X` 那一路有"步 4c 去限定"兜（§17.27.52 前后），
+#  但 `_RANGES X`（= `std::ranges::X`）**没有** —— 这些位置永远留在英文，
+#  而且**不会报错**（限定名照样能在借来的 std::ranges 里找到）。
+#  实测（§17.27.60）：给 `双端队列` 登记 `_Get_final_iterator_unwrapped` 后，
+#  拷贝层 0 命中（"编译器校对"把它改回英文了），是**登记≠落地**守卫把它照出来的。
+#
+#  它是**边界**，不是欠账：消除路径 = 把 `_RANGES X` 也纳入改名/去限定
+#  （像 `_STD X` 那样），但那是生成器的结构性改动。
+#  在那之前，至少让它【看得见】—— 判据（§17.27.3）：新发现必须有机器可见的落点。
+#  本台账只报告，不作门禁（口径同 `tools\check_multiowner.ps1`）。
+# ---------------------------------------------------------------------------
+$rngNames = @{}; $rngCount = 0
+foreach ($f in (Get-ChildItem (Join-Path $root 'zhstdlib') -File)) {
+    $ft = [System.IO.File]::ReadAllText($f.FullName)
+    foreach ($m in [regex]::Matches($ft, '(?m)_RANGES\s+(_[A-Za-z]\w*)\s*\(')) {
+        $rngNames[$m.Groups[1].Value] = 1; $rngCount++
+    }
+}
+Write-Host ("=== 残余边界台账（§17.27.61）：`_RANGES <英文 _ 名>(` 共 {0} 处 / {1} 个名字 ===" -f $rngCount, $rngNames.Count) -ForegroundColor Cyan
+if ($rngNames.Count) {
+    Write-Host ("    {0}" -f (($rngNames.Keys | Sort-Object) -join ', ')) -ForegroundColor Gray
+    Write-Host '    （边界，不是欠账；消除路径 = 把 `_RANGES X` 纳入改名/去限定，见方案 §17.27.61）' -ForegroundColor Gray
+}
+Write-Host ''
+
 if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0) {
     Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 铁律①：全部通过" -ForegroundColor Green
     exit 0

@@ -541,7 +541,7 @@ constexpr size_t _Traits_find(_In_reads_(_Hay_size) const _Traits_ptr_t<_Traits>
     if constexpr (_Is_implementation_handled_char_traits<_Traits> && sizeof(typename _Traits::char_type) <= 2) {
         if (!_Is_constant_evaluated()) {
             const auto _End = _Haystack + _Hay_size;
-            const auto _Ptr = _Search_vectorized(_Haystack + _Start_at, _End, _Needle, _Needle_size);
+            const auto _Ptr = _搜索向量化(_Haystack + _Start_at, _End, _Needle, _Needle_size);
 
             if (_Ptr != _End) {
                 return static_cast<size_t>(_Ptr - _Haystack);
@@ -577,7 +577,7 @@ constexpr size_t _Traits_find_ch(_In_reads_(_Hay_size) const _Traits_ptr_t<_Trai
     if constexpr (_Is_implementation_handled_char_traits<_Traits>) {
         if (!_Is_constant_evaluated()) {
             const auto _End = _Haystack + _Hay_size;
-            const auto _Ptr = _Find_vectorized(_Haystack + _Start_at, _End, _Ch);
+            const auto _Ptr = _查找向量化(_Haystack + _Start_at, _End, _Ch);
 
             if (_Ptr != _End) {
                 return static_cast<size_t>(_Ptr - _Haystack);
@@ -614,12 +614,12 @@ constexpr size_t _Traits_rfind(_In_reads_(_Hay_size) const _Traits_ptr_t<_Traits
 #if _USE_STD_VECTOR_ALGORITHMS
     if constexpr (_Is_implementation_handled_char_traits<_Traits> && sizeof(typename _Traits::char_type) <= 2) {
         if (!_Is_constant_evaluated()) {
-            // _Find_end_vectorized takes into account the needle length when locating the search start.
+            // _查找末段向量化 takes into account the needle length when locating the search start.
             // As a potentially earlier start position can be specified, we need to take it into account,
             // and pick between the maximum possible start position and the specified one,
-            // and then add _Needle_size, so that it is subtracted 后 in _Find_end_vectorized.
+            // and then add _Needle_size, so that it is subtracted 后 in _查找末段向量化.
             const auto _End = _Haystack + _Actual_start_at + _Needle_size;
-            const auto _Ptr = _Find_end_vectorized(_Haystack, _End, _Needle, _Needle_size);
+            const auto _Ptr = _查找末段向量化(_Haystack, _End, _Needle, _Needle_size);
 
             if (_Ptr != _End) {
                 return static_cast<size_t>(_Ptr - _Haystack);
@@ -656,7 +656,7 @@ constexpr size_t _Traits_rfind_ch(_In_reads_(_Hay_size) const _Traits_ptr_t<_Tra
     if constexpr (_Is_implementation_handled_char_traits<_Traits>) {
         if (!_Is_constant_evaluated()) {
             const auto _End = _Haystack + _Actual_start_at + 1;
-            const auto _Ptr = _Find_last_vectorized(_Haystack, _End, _Ch);
+            const auto _Ptr = _查找末个向量化(_Haystack, _End, _Ch);
 
             if (_Ptr != _End) {
                 return static_cast<size_t>(_Ptr - _Haystack);

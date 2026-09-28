@@ -702,7 +702,7 @@ public:
             _Construct_n(_Count, _STD move(_UFirst), _STD move(_ULast));
 #if _HAS_CXX20
         } else if constexpr (forward_iterator<_Iter>) {
-            const auto _Length = _To_unsigned_like(_RANGES distance(_UFirst, _ULast));
+            const auto _Length = _转为无符号同型(_RANGES distance(_UFirst, _ULast));
             const auto _Count  = _STD _Convert_size<size_type>(_Length);
             _Construct_n(_Count, _STD move(_UFirst), _STD move(_ULast));
 #endif // _HAS_CXX20
@@ -728,7 +728,7 @@ public:
     constexpr 向量实现(from_range_t, _Rng&& _Range, const _分配器& _Al = _分配器())
         : _Mypair(_One_then_variadic_args_t{}, _Al) {
         if constexpr (_RANGES sized_range<_Rng> || _RANGES forward_range<_Rng>) {
-            const auto _Length = _To_unsigned_like(_RANGES distance(_Range));
+            const auto _Length = _转为无符号同型(_RANGES distance(_Range));
             const auto _Count  = _Convert_size<size_type>(_Length);
             _Construct_n(_Count, _RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
         } else {
@@ -1015,7 +1015,7 @@ public:
     template <_Container_compatible_range<_Ty> _Rng>
     constexpr void 追加范围(_Rng&& _Range) {
         if constexpr (_RANGES forward_range<_Rng> || _RANGES sized_range<_Rng>) {
-            const auto _Length = _To_unsigned_like(_RANGES distance(_Range));
+            const auto _Length = _转为无符号同型(_RANGES distance(_Range));
             const auto _Count  = _Convert_size<size_type>(_Length);
             _追加计数范围(_RANGES _Ubegin(_Range), _Count);
         } else {
@@ -1048,7 +1048,7 @@ public:
                 _分配器特征::construct(_Al, _去花式(_Oldlast), _STD move(_Oldlast[-1]));
                 _ASAN_VECTOR_RELEASE_GUARD;
                 ++_My_data._Mylast;
-                _Move_backward_unchecked(_Whereptr, _Oldlast - 1, _Oldlast);
+                _向后移动非检查(_Whereptr, _Oldlast - 1, _Oldlast);
                 *_Whereptr = _STD move(_Obj._Get_value());
             }
 
@@ -1133,7 +1133,7 @@ public:
                 _STD fill(_Whereptr, _Oldlast, _Tmp);
             } else { // new stuff can all be assigned
                 _Mylast = _Uninitialized_move(_Oldlast - _Count, _Oldlast, _Oldlast, _Al);
-                _Move_backward_unchecked(_Whereptr, _Oldlast - _Count, _Oldlast);
+                _向后移动非检查(_Whereptr, _Oldlast - _Count, _Oldlast);
                 _STD fill_n(_Whereptr, _Count, _Tmp);
             }
             _ASAN_VECTOR_RELEASE_GUARD;
@@ -1220,7 +1220,7 @@ private:
             _地址消毒向量延长守卫(static_cast<size_type>(_Oldlast - _Oldfirst) + _Count);
             if (_Count < _Affected_elements) { // some affected elements must be assigned
                 _Mylast = _Uninitialized_move(_Oldlast - _Count, _Oldlast, _Oldlast, _Al);
-                _Move_backward_unchecked(_Whereptr, _Oldlast - _Count, _Oldlast);
+                _向后移动非检查(_Whereptr, _Oldlast - _Count, _Oldlast);
                 _析构范围(_Whereptr, _Whereptr + _Count, _Al);
 
                 _TRY_BEGIN
@@ -1232,7 +1232,7 @@ private:
                 _Uninitialized_move(_Whereptr + _Count, _Whereptr + 2 * _Count, _Whereptr, _Al);
                 _Guard._Target = nullptr;
 
-                _Move_unchecked(_Whereptr + 2 * _Count, _Mylast, _Whereptr + _Count);
+                _移动非检查(_Whereptr + 2 * _Count, _Mylast, _Whereptr + _Count);
                 _析构范围(_Oldlast, _Mylast, _Al);
                 _Mylast = _Oldlast;
                 _RERAISE;
@@ -1284,7 +1284,7 @@ public:
             _插入计数范围(_Where, _UFirst, _Count);
 #if _HAS_CXX20
         } else if constexpr (forward_iterator<_Iter>) {
-            const auto _Length = _To_unsigned_like(_RANGES distance(_UFirst, _ULast));
+            const auto _Length = _转为无符号同型(_RANGES distance(_UFirst, _ULast));
             const auto _Count  = _Convert_size<size_type>(_Length);
             _插入计数范围(_Where, _UFirst, _Count);
 #endif // _HAS_CXX20
@@ -1308,7 +1308,7 @@ public:
         const auto _Whereoff = static_cast<size_type>(_Whereptr - _Oldfirst);
 
         if constexpr (_RANGES forward_range<_Rng> || _RANGES sized_range<_Rng>) {
-            const auto _Length = _To_unsigned_like(_RANGES distance(_Range));
+            const auto _Length = _转为无符号同型(_RANGES distance(_Range));
             const auto _Count  = _Convert_size<size_type>(_Length);
             _插入计数范围(_Where, _RANGES _Ubegin(_Range), _Count);
         } else {
@@ -1452,7 +1452,7 @@ private:
                 if (!_STD is_constant_evaluated())
 #endif // _HAS_CXX20
                 {
-                    _Copy_memmove_n(_First, static_cast<size_t>(_Oldsize), _Myfirst);
+                    _内存复制移动计数(_First, static_cast<size_t>(_Oldsize), _Myfirst);
                     _First += _Oldsize;
                     _Copied = true;
                 }
@@ -1474,7 +1474,7 @@ private:
             }
         } else {
             const pointer _Newlast = _Myfirst + _Newsize;
-            _Copy_n_unchecked4(_STD move(_First), _Newsize, _Myfirst);
+            _复制N个非检查4(_STD move(_First), _Newsize, _Myfirst);
             _析构范围(_Newlast, _Mylast, _Al);
             _ASAN_VECTOR_MODIFY(static_cast<difference_type>(_Newsize - _Oldsize));
             _Mylast = _Newlast;
@@ -1493,7 +1493,7 @@ public:
             _赋值计数范围(_UFirst, _Count);
 #if _HAS_CXX20
         } else if constexpr (forward_iterator<_Iter>) {
-            const auto _Length = _To_unsigned_like(_RANGES distance(_UFirst, _ULast));
+            const auto _Length = _转为无符号同型(_RANGES distance(_UFirst, _ULast));
             const auto _Count  = _STD _Convert_size<size_type>(_Length);
             _赋值计数范围(_UFirst, _Count);
 #endif // _HAS_CXX20
@@ -1508,7 +1508,7 @@ public:
         static_assert(assignable_from<_Ty&, _RANGES range_reference_t<_Rng>>,
             "Elements must be assignable from the range's reference type (N4993 [sequence.reqmts]/60).");
         if constexpr (_RANGES sized_range<_Rng> || _RANGES forward_range<_Rng>) {
-            const auto _Length = _To_unsigned_like(_RANGES distance(_Range));
+            const auto _Length = _转为无符号同型(_RANGES distance(_Range));
             const auto _Count  = _Convert_size<size_type>(_Length);
             _赋值计数范围(_RANGES _Ubegin(_Range), _Count);
         } else {
@@ -1774,7 +1774,7 @@ public:
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
         _孤儿化范围(_Whereptr, _Mylast);
-        _Move_unchecked(_Whereptr + 1, _Mylast, _Whereptr);
+        _移动非检查(_Whereptr + 1, _Mylast, _Whereptr);
         _分配器特征::destroy(_Getal(), _去花式(_Mylast - 1));
         _ASAN_VECTOR_MODIFY(-1);
         --_Mylast;
@@ -1797,7 +1797,7 @@ public:
         if (_Firstptr != _Lastptr) { // something to do, invalidate iterators
             _孤儿化范围(_Firstptr, _Mylast);
 
-            const pointer _Newlast = _Move_unchecked(_Lastptr, _Mylast, _Firstptr);
+            const pointer _Newlast = _移动非检查(_Lastptr, _Mylast, _Firstptr);
             _析构范围(_Newlast, _Mylast, _Getal());
             _ASAN_VECTOR_MODIFY(static_cast<difference_type>(_Newlast - _Mylast)); // negative when destroying elements
             _Mylast = _Newlast;
@@ -2163,7 +2163,7 @@ private:
         const auto _Oldsize = static_cast<size_type>(_Mylast - _Myfirst);
         if (_Newsize > _Oldsize) {
             const pointer _Mid = _First + _Oldsize;
-            _Move_unchecked(_First, _Mid, _Myfirst);
+            _移动非检查(_First, _Mid, _Myfirst);
 
             if constexpr (_Nothrow_construct) {
                 _ASAN_VECTOR_MODIFY(static_cast<difference_type>(_Newsize - _Oldsize));
@@ -2175,7 +2175,7 @@ private:
             }
         } else {
             const pointer _Newlast = _Myfirst + _Newsize;
-            _Move_unchecked(_First, _Last, _Myfirst);
+            _移动非检查(_First, _Last, _Myfirst);
             _析构范围(_Newlast, _Mylast, _Al);
             _ASAN_VECTOR_MODIFY(static_cast<difference_type>(_Newsize - _Oldsize));
             _Mylast = _Newlast;
@@ -2410,7 +2410,7 @@ constexpr 向量实现<_Ty, _分配器>::size_type 擦除(向量实现<_Ty, _分
 
 _EXPORT_STD template <class _Ty, class _分配器, class _Pr>
 constexpr 向量实现<_Ty, _分配器>::size_type erase_if(向量实现<_Ty, _分配器>& _Cont, _Pr _Pred) {
-    return _按条件擦除并移除(_Cont, _STD _Pass_fn(_Pred));
+    return _按条件擦除并移除(_Cont, _传递函数(_Pred));
 }
 #endif // _HAS_CXX20
 
@@ -2952,7 +2952,7 @@ public:
     template <_Container_compatible_range<bool> _Rng>
     constexpr 向量实现(from_range_t, _Rng&& _Range, const _分配器& _Al = _分配器()) : _我的基类(_Al) {
         if constexpr (_RANGES forward_range<_Rng> || _RANGES sized_range<_Rng>) {
-            const auto _Length = _To_unsigned_like(_RANGES distance(_Range));
+            const auto _Length = _转为无符号同型(_RANGES distance(_Range));
             const auto _Count  = _Convert_size<size_type>(_Length);
             _赋值计数范围(_RANGES _Ubegin(_Range), _Count);
         } else {
@@ -3359,7 +3359,7 @@ public:
             "Elements must be assignable from the range's reference type (N4993 [sequence.reqmts]/60).");
         清空();
         if constexpr (_RANGES forward_range<_Rng> || _RANGES sized_range<_Rng>) {
-            const auto _Length = _To_unsigned_like(_RANGES distance(_Range));
+            const auto _Length = _转为无符号同型(_RANGES distance(_Range));
             const auto _Count  = _Convert_size<size_type>(_Length);
             _赋值计数范围(_RANGES _Ubegin(_Range), _Count);
         } else {
@@ -3392,13 +3392,13 @@ public:
             const auto _Length = static_cast<size_t>(_STD distance(_UFirst, _ULast));
             const auto _Count  = _STD _Convert_size<size_type>(_Length);
             const auto _Off    = static_cast<difference_type>(_插入若干(_Where, _Count));
-            _Copy_unchecked(_UFirst, _ULast, 开始() + _Off);
+            _复制非检查(_UFirst, _ULast, 开始() + _Off);
 #if _HAS_CXX20
         } else if constexpr (forward_iterator<_Iter>) {
-            const auto _Length = _To_unsigned_like(_RANGES distance(_UFirst, _ULast));
+            const auto _Length = _转为无符号同型(_RANGES distance(_UFirst, _ULast));
             const auto _Count  = _STD _Convert_size<size_type>(_Length);
             const auto _Off    = static_cast<difference_type>(_插入若干(_Where, _Count));
-            _Copy_unchecked(_UFirst, _ULast, 开始() + _Off);
+            _复制非检查(_UFirst, _ULast, 开始() + _Off);
 #endif // _HAS_CXX20
         } else {
             const auto _Old_size = this->_Mysize;
@@ -3420,10 +3420,10 @@ public:
         const difference_type _Old_off = _Where - 开始();
 
         if constexpr (_RANGES forward_range<_Rng> || _RANGES sized_range<_Rng>) {
-            const auto _Length = _To_unsigned_like(_RANGES distance(_Range));
+            const auto _Length = _转为无符号同型(_RANGES distance(_Range));
             const auto _Count  = _Convert_size<size_type>(_Length);
             const auto _Off    = static_cast<difference_type>(_插入若干(_Where, _Count));
-            _Copy_n_unchecked4(_RANGES _Ubegin(_Range), _Count, 开始() + _Off);
+            _复制N个非检查4(_RANGES _Ubegin(_Range), _Count, 开始() + _Off);
         } else {
             auto _UFirst         = _RANGES _Ubegin(_Range);
             const auto _ULast    = _RANGES _Uend(_Range);
@@ -3449,7 +3449,7 @@ public:
         _STL_VERIFY(结束() > _Where, "向量实现<bool> 擦除 iterator outside range");
 #endif
 
-        _STD copy(_Next_iter(_Where), 结束(), _Where);
+        _STD copy(_下一迭代器(_Where), 结束(), _Where);
 
 #if _ITERATOR_DEBUG_LEVEL == 2
         _孤儿化范围(static_cast<size_type>(_Off), this->_Mysize);
@@ -3884,7 +3884,7 @@ _CONSTEXPR20 _OutIt _Copy_vbool(_VbIt _First, _VbIt _Last, _OutIt _Dest) {
                 ++_VbDest_ch;
             }
 
-            _VbDest_ch = _Copy_unchecked(_VbFirst_ch, _VbLast_ch, _VbDest_ch);
+            _VbDest_ch = _复制非检查(_VbFirst_ch, _VbLast_ch, _VbDest_ch);
 
             // Copy remaining last bits
             if (_UnalignedLastBits != 0) {

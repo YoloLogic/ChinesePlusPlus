@@ -530,7 +530,7 @@ void swap(无序映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>& _Left,
 _EXPORT_STD template <class _Kty, class _Ty, class _Hasher, class _Keyeq, class _Alloc, class _Pr>
 无序映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>::size_type erase_if(
     无序映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>& _Cont, _Pr _Pred) {
-    return _Erase_nodes_if(_Cont, _STD _Pass_fn(_Pred));
+    return _Erase_nodes_if(_Cont, _传递函数(_Pred));
 }
 #endif // _HAS_CXX20
 
@@ -902,7 +902,7 @@ void swap(无序多重映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>& _Left,
 _EXPORT_STD template <class _Kty, class _Ty, class _Hasher, class _Keyeq, class _Alloc, class _Pr>
 无序多重映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>::size_type erase_if(
     无序多重映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>& _Cont, _Pr _Pred) {
-    return _Erase_nodes_if(_Cont, _STD _Pass_fn(_Pred));
+    return _Erase_nodes_if(_Cont, _传递函数(_Pred));
 }
 #endif // _HAS_CXX20
 

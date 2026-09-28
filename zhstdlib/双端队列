@@ -1215,20 +1215,20 @@ public:
             if (_Off <= _Mysize() / 2) { // closer to 前
                 _首部就地构造内部(_STD move(*_Unchecked_begin()));
 
-                auto _Moving_dst       = _Next_iter(_Unchecked_begin());
-                auto _Moving_src_begin = _Next_iter(_Moving_dst);
+                auto _Moving_dst       = _下一迭代器(_Unchecked_begin());
+                auto _Moving_src_begin = _下一迭代器(_Moving_dst);
                 auto _Moving_src_end   = _Moving_dst + static_cast<difference_type>(_Off);
 
-                auto _Moving_dst_end = _Move_unchecked(_Moving_src_begin, _Moving_src_end, _Moving_dst);
+                auto _Moving_dst_end = _移动非检查(_Moving_src_begin, _Moving_src_end, _Moving_dst);
                 *_Moving_dst_end     = _STD move(_Obj._Get_value());
             } else { // closer to 后
-                _尾部就地构造内部(_STD move(*_Prev_iter(_Unchecked_end())));
+                _尾部就地构造内部(_STD move(*_上一迭代器(_Unchecked_end())));
 
-                auto _Moving_dst_end   = _Prev_iter(_Unchecked_end());
-                auto _Moving_src_end   = _Prev_iter(_Moving_dst_end);
+                auto _Moving_dst_end   = _上一迭代器(_Unchecked_end());
+                auto _Moving_src_end   = _上一迭代器(_Moving_dst_end);
                 auto _Moving_src_begin = _Unchecked_begin() + static_cast<difference_type>(_Off);
 
-                _Move_backward_unchecked(_Moving_src_begin, _Moving_src_end, _Moving_dst_end);
+                _向后移动非检查(_Moving_src_begin, _Moving_src_end, _Moving_dst_end);
                 *_Moving_src_begin = _STD move(_Obj._Get_value());
             }
         }
@@ -1518,7 +1518,7 @@ public:
     }
 
     iterator 擦除(const_iterator _Where) noexcept(is_nothrow_move_assignable_v<value_type>) /* strengthened */ {
-        return 擦除(_Where, _Next_iter(_Where));
+        return 擦除(_Where, _下一迭代器(_Where));
     }
 
     iterator 擦除(const_iterator _First_arg, const_iterator _Last_arg)
@@ -1839,7 +1839,7 @@ _EXPORT_STD template <class _Ty, class _Alloc, class _Uty>
 
 _EXPORT_STD template <class _Ty, class _Alloc, class _Pr>
 双端队列实现<_Ty, _Alloc>::size_type erase_if(双端队列实现<_Ty, _Alloc>& _Cont, _Pr _Pred) {
-    return _按条件擦除并移除(_Cont, _STD _Pass_fn(_Pred));
+    return _按条件擦除并移除(_Cont, _传递函数(_Pred));
 }
 #endif // _HAS_CXX20
 

@@ -1292,12 +1292,12 @@ public:
 
     template <class _Pr2>
     void 归并(单向链表实现& _Right, _Pr2 _Pred) { // 归并 in elements from _Right, both ordered by _Pred
-        _归并1(_Right, _Pass_fn(_Pred));
+        _归并1(_Right, _传递函数(_Pred));
     }
 
     template <class _Pr2>
     void 归并(单向链表实现&& _Right, _Pr2 _Pred) { // 归并 in elements from _Right, both ordered by _Pred
-        _归并1(_Right, _Pass_fn(_Pred));
+        _归并1(_Right, _传递函数(_Pred));
     }
 
 private:
@@ -1414,7 +1414,7 @@ public:
 
     template <class _Pr2>
     void 排序(_Pr2 _Pred) { // order sequence
-        _迭代器检查值::_排序(_Mypair._Myval2._头之前(), _Pass_fn(_Pred));
+        _迭代器检查值::_排序(_Mypair._Myval2._头之前(), _传递函数(_Pred));
     }
 
     void 反转() noexcept { // 反转 sequence
@@ -1636,7 +1636,7 @@ _EXPORT_STD template <class _Ty, class _Alloc, class _Uty>
 
 _EXPORT_STD template <class _Ty, class _Alloc, class _Pr>
 单向链表实现<_Ty, _Alloc>::size_type erase_if(单向链表实现<_Ty, _Alloc>& _Cont, _Pr _Pred) {
-    return _Cont.按条件移除(_Pass_fn(_Pred));
+    return _Cont.按条件移除(_传递函数(_Pred));
 }
 #endif // _HAS_CXX20
 
