@@ -1252,6 +1252,37 @@ $H = @{
     # ⚠ forward_list 【没有 size()】（标准如此，取尺寸是 O(n) 所以不提供）——
     #   所以这里刻意不登记 size，免得改名遍去动文件里别处的 size。
     members = [ordered]@{
+      # §17.21 本头**自己定义**的内部助手（逐名量过"谁定义它"）-> 翻。
+      #   ⚠ 不登记（借来的/契约名）：_Alloc_proxy _Lock _Orphan_ptr _Proxy _Seek_to
+      #     _Swap_proxy_and_iterators _Unwrapped _Verify_range const_iterator equal iterator
+      '_Append_n' = '_追加n'
+      '_Append_range_unchecked' = '_追加范围非检查'
+      '_Assign_unchecked' = '_赋值非检查'
+      '_Attach_after' = '_接在其后'
+      '_Before_head' = '_头之前'
+      '_Erase_after' = '_擦除其后'
+      '_Freenode' = '_释放节点'
+      '_Inplace_merge' = '_就地归并'
+      '_Insert_after' = '_插入其后'
+      '_Insert_op' = '_插入操作'
+      '_Insert_range_after' = '_插入范围其后'
+      '_Make_iter' = '_造迭代器'
+      '_Merge1' = '_归并1'
+      '_Newnode' = '_新节点'
+      '_Op' = '_操作'
+      '_Resize' = '_调整尺寸'
+      '_Sort' = '_排序'
+      '_Sort2' = '_排序2'
+      '_Splice_after' = '_接合其后'
+      '_Take_head' = '_取走头部'
+      '_Transfer_back' = '_转移至末尾'
+      '_Transfer_non_before_begin_ownership' = '_转移非首前所有权'
+      '_Transfer_ownership' = '_转移所有权'
+      '_Unchecked_before_begin' = '_非检查首前'
+      '_Unchecked_end_iter' = '_非检查结束迭代器'
+      '_Getal' = '_取分配器'
+      '_Unchecked_begin' = '_非检查开始'
+      '_Unchecked_end' = '_非检查结束'
       'empty' = '为空'; 'max_size' = '最大尺寸'
       'before_begin' = '首前'; 'cbefore_begin' = '常量首前'
       'begin' = '开始'; 'end' = '结束'; 'cbegin' = '常量开始'; 'cend' = '常量结束'
