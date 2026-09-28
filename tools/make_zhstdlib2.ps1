@@ -42,7 +42,6 @@ $H = @{
       'condition_variable_any' = '条件变量任意实现'
       'unique_lock'            = '独占锁实现'
       'lock_guard'             = '锁守卫实现'
-      'once_flag'              = '一次标志实现'
       'adopt_lock_t'           = '接管锁类型'
       'defer_lock_t'           = '延迟锁类型'
       'try_to_lock_t'          = '尝试锁类型'
@@ -72,7 +71,6 @@ $H = @{
       'native_handle' = '原生句柄'; 'owns_lock' = '持有锁'
       'release' = '释放'; 'swap' = '交换'
       'adopt_lock' = '接管锁'; 'defer_lock' = '延迟锁'; 'try_to_lock' = '尝试锁'
-      'call_once' = '一次调用'
     }
     data    = [ordered]@{}
     # ⚠ 实测教训：不要照【标准文档】的 API 写派生层，要照【微软这个版本实际有的】写。
@@ -148,7 +146,6 @@ $H = @{
       'shared_lock'           = '共享锁实现'
       # 跨头类型名：这几个译名是 <互斥量> / <条件变量> 定下的（方案 §3.8.2）
       'mutex'                 = '互斥量实现'
-      '_Mutex_base'           = '_互斥量基类'
       'lock_guard'            = '锁守卫实现'
       'unique_lock'           = '独占锁实现'
       'condition_variable'    = '条件变量实现'
@@ -1061,7 +1058,7 @@ $H = @{
       'pop_back' = '尾删'; 'pop_front' = '头删'
       'emplace' = '就地构造'; 'emplace_back' = '尾部就地构造'; 'emplace_front' = '头部就地构造'
       'insert' = '插入'; 'erase' = '擦除'; 'assign' = '赋值'
-      'resize' = '调整尺寸'; 'shrink_to_fit' = '收缩至适应'
+      'resize' = '调整尺寸'
       'clear' = '清空'; 'get_allocator' = '取分配器'
       'append_range' = '追加范围'; 'prepend_range' = '前置范围'
       'assign_range' = '范围赋值'; 'insert_range' = '范围插入'
@@ -1086,7 +1083,7 @@ $H = @{
                  @('emplace','就地构造'), @('emplace_back','尾部就地构造'),
                  @('emplace_front','头部就地构造'),
                  @('insert','插入'), @('erase','擦除'), @('assign','赋值'),
-                 @('resize','调整尺寸'), @('shrink_to_fit','收缩至适应'),
+                 @('resize','调整尺寸'), 
                  @('clear','清空'), @('get_allocator','取分配器'),
                  @('sort','排序'), @('merge','归并'), @('splice','接合'),
                  @('remove','移除'), @('remove_if','按条件移除'),
@@ -1472,7 +1469,7 @@ $H = @{
                           'local_iterator'      = '局部迭代器'
                           'const_local_iterator' = '常量局部迭代器'
                           }
-    members = [ordered]@{ 'emplace' = '就地构造'
+    members = [ordered]@{ 
                           # §16.82 本头自己定义的两个公开 API（抄来那层翻 + 派生层补英文）
                           'hash_function'    = '散列函数'
                           'key_eq'           = '取键相等器'
@@ -1484,7 +1481,6 @@ $H = @{
                           '_Hash_equal'      = '_哈希相等'
                           '_Unchecked_begin' = '_非检查开始'
                           '_Unchecked_end'   = '_非检查结束'
-                          'size'             = '尺寸'
                           'clear'            = '清空' }
     data    = [ordered]@{}
     # §16.51 公开 API 名的英文补回（§9.1 的新方向：抄来那层已汉语，派生层补英文）。
@@ -1738,7 +1734,6 @@ $H = @{
       # §16.52 公开 API 名（`_Mybase::clear()` 在正文里；size/begin/end/empty/
       #   get_allocator 是【继承自 _哈希】的名字，xhash 翻了 -> 派生层必须补回英文，
       #   否则用户写 标准::无序映射<T>::size() 会消失 = 回归，见 §16.41.2）
-      'size'                     = '尺寸'
       'clear'                    = '清空'
     }
     data    = [ordered]@{}
@@ -2487,7 +2482,6 @@ $H = @{
       '_Nodeptr'                      = '_结点指针'
       '_Unchecked_iterator'           = '_非检查迭代器'
       '_Unchecked_const_iterator'     = '_非检查常量迭代器'
-      '_Prevent_inheriting_unwrap'    = '_阻止继承解包'
       # §16.50 与 <链表> 同步：链表 条目已把 `_Scary_val` 翻成 `_迭代器检查值`，
       #   而本头正文里有 `typename _Mylist::_Scary_val` -> 必须跟着改。
       '_Scary_val'                    = '_迭代器检查值'
@@ -2852,40 +2846,15 @@ $H = @{
       #   ⚠ 不登记 _Construct_in_place(_by_deref)/_Destroy_range/_Extract/_Release：
       #     它们属于**借来的 std**（allocator_traits 那一侧），改名会报"未使用声明的标识符"。
       '_Adopt' = '_收养'
-      '_Adopt_locked' = '_收养加锁'
-      '_Adopt_unlocked' = '_收养不加锁'
       '_Alloc_proxy' = '_分配代理'
-      '_Allocate' = '_分配'
-      '_Assign_locked' = '_赋值加锁'
-      '_Assign_unlocked' = '_赋值不加锁'
       '_Bind' = '_绑定'
       '_Clamp_to_end' = '_夹取至末尾'
-      '_Deallocate_plain' = '_释放原生'
-      '_Emplace_back' = '_尾部就地构造'
-      '_Emplace_back_deref' = '_按解引用尾部就地构造'
-      '_Emplace_back_deref_move' = '_按解引用移动尾部就地构造'
       '_Get_first' = '_取第一'
-      '_Get_val' = '_取本值'
-      '_Get_value' = '_取值'
       '_Getcont' = '_取容器'
-      '_Lock' = '_加锁'
       '_Orphan_all' = '_孤儿化全部'
-      '_Orphan_all_locked_v3' = '_孤儿化全部加锁3'
-      '_Orphan_all_unlocked_v3' = '_孤儿化全部不加锁3'
-      '_Orphan_me_locked_v3' = '_孤儿化本迭代器加锁3'
-      '_Orphan_me_unlocked_v3' = '_孤儿化本迭代器不加锁3'
       '_Release' = '_释放'
       '_Reload_proxy' = '_重载代理'
       '_Swap_proxy_and_iterators' = '_交换代理与迭代器'
-      '_Swap_proxy_and_iterators_locked' = '_交换代理与迭代器加锁'
-      '_Swap_proxy_and_iterators_unlocked' = '_交换代理与迭代器不加锁'
-      '_Uninitialized_move_unchecked' = '_未初始化移动非检查'
-      '_Copy_memcpy_common' = '_内存复制公共'
-      '_Copy_memcpy_count' = '_内存复制计数'
-      '_Copy_memcpy_distance' = '_内存复制距离'
-      '_Fill_memset' = '_填充内存'
-      '_Zero_range' = '_清零范围'
-      '_Allocate_aligned' = '_按对齐分配'
       '_Allocate_at_least_helper' = '_分配至少助手'
       '_Delete_plain_internal' = '_删除原生内部'
       # ⚠ `swap` 照旧不改名（§3.12）。
@@ -2993,7 +2962,6 @@ $H = @{
       # ---- char_traits 的实现基类（我们自己的内部件；公开壳 char_traits 见下）----
       '_Char_traits'                  = '_字符特征基类'
       '_WChar_traits'                 = '_宽字符特征'
-      '_Narrow_char_traits'           = '_窄字符特征'
       # ---------------------------------------------------------------------
       #  ⚠ 【不翻】逐条记理由：
       #    · `char_traits` —— 铁律③：用户可特化的 std 模板，身份参与语义（见上）。
@@ -3186,7 +3154,7 @@ $H = @{
     realInclude = @('semaphore')   # §16.29「乙」
     types   = [ordered]@{ 'counting_semaphore' = '计数信号量实现'
                           '_Semaphore_max' = '_信号量最大值'
-                          '_Semaphore_least_max_value' = '_信号量最小最大值' }
+                          }
     members = [ordered]@{ 'acquire' = '获取'; 'try_acquire' = '尝试获取'
                           'try_acquire_for' = '尝试限时获取'
                           'try_acquire_until' = '尝试获取至时刻'
@@ -3218,7 +3186,6 @@ $H = @{
                           # （微软只对真实的 std::condition_variable_any 开友元，见步 0）
                           'mutex'                = '互斥量实现'
                           'condition_variable'   = '条件变量实现'
-                          '_Mutex_base'          = '_互斥量基类'
                           # lock_guard / unique_lock 也定义在 <mutex> 里（就是现在我们包含的那份）
                           'lock_guard'           = '锁守卫实现'
                           'unique_lock'          = '独占锁实现'
@@ -3235,7 +3202,7 @@ $H = @{
                           # 否则 error: '独占锁实现<互斥量实现>' 中没有名为 'unlock' 的成员。
                           # ⚠ 这就是方案 §3.6.1 说的"译名必须全库共享"——
                           #   现在还是按头抄一遍，最终要提成一张全局表。
-                          'lock' = '加锁'; 'unlock' = '解锁'; 'try_lock' = '尝试加锁' }
+                          'lock' = '加锁'; 'unlock' = '解锁'; }
     data    = [ordered]@{}
     derive  = @( @('notify_all','通知全部'), @('notify_one','通知一个'),
                  @('wait','等待'), @('wait_for','限时等待'),
