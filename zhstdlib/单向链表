@@ -170,7 +170,7 @@ public:
 #endif // !_HAS_CXX20
 
 #if _ITERATOR_DEBUG_LEVEL == 2
-    friend void _Verify_range(const _单向链表常量迭代器& _First, const _单向链表常量迭代器& _Last) noexcept {
+    friend void _校验范围(const _单向链表常量迭代器& _First, const _单向链表常量迭代器& _Last) noexcept {
         _STL_VERIFY(
             _First._取容器() == _Last._取容器(), "单向链表实现 iterators in range are from different containers");
     }
@@ -178,11 +178,11 @@ public:
 
     using _阻止继承解包 = _单向链表常量迭代器;
 
-    _NODISCARD _单向链表非检查常量迭代器<_我的链表> _Unwrapped() const noexcept {
+    _NODISCARD _单向链表非检查常量迭代器<_我的链表> _解包() const noexcept {
         return _单向链表非检查常量迭代器<_我的链表>(this->_Ptr, static_cast<const _我的链表*>(this->_取容器()));
     }
 
-    void _Seek_to(const _单向链表非检查常量迭代器<_我的链表> _It) noexcept {
+    void _定位到(const _单向链表非检查常量迭代器<_我的链表> _It) noexcept {
         this->_Ptr = _It._Ptr;
     }
 };
@@ -222,7 +222,7 @@ public:
 
     using _阻止继承解包 = _单向链表迭代器;
 
-    _NODISCARD _单向链表非检查迭代器<_我的链表> _Unwrapped() const noexcept {
+    _NODISCARD _单向链表非检查迭代器<_我的链表> _解包() const noexcept {
         return _单向链表非检查迭代器<_我的链表>(this->_Ptr, static_cast<const _我的链表*>(this->_取容器()));
     }
 };
@@ -745,22 +745,22 @@ public:
         : _Mypair(_One_then_variadic_args_t{}, _Al) {
         auto&& _Alproxy = _取代理分配器(_Alnode, _取分配器());
         _容器代理指针<_分配器类型> _Proxy(_Alproxy, _Mypair._Myval2);
-        后插(首前(), _Ilist.开始(), _Ilist.结束());
+        后插(首前(), _Ilist.begin(), _Ilist.end());
         _Proxy._Release();
     }
 
     单向链表实现& operator=(initializer_list<_Ty> _Ilist) {
-        赋值(_Ilist.开始(), _Ilist.结束());
+        赋值(_Ilist.begin(), _Ilist.end());
         return *this;
     }
 
     void 赋值(initializer_list<_Ty> _Ilist) {
-        赋值(_Ilist.开始(), _Ilist.结束());
+        赋值(_Ilist.begin(), _Ilist.end());
     }
 
     iterator 后插(const_iterator _Where,
         initializer_list<_Ty> _Ilist) { // insert initializer_list
-        return 后插(_Where, _Ilist.开始(), _Ilist.结束());
+        return 后插(_Where, _Ilist.begin(), _Ilist.end());
     }
 
     ~单向链表实现() noexcept {
@@ -1132,7 +1132,7 @@ public:
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
         if (this != _STD addressof(_Right) && !_Right.为空()) { // worth splicing, do it
-            _接合其后(_Where._Unwrapped(), _Right, _Right._非检查首前(), _Default_sentinel{});
+            _接合其后(_Where._解包(), _Right, _Right._非检查首前(), _Default_sentinel{});
         }
     }
 
@@ -1170,7 +1170,7 @@ public:
             "单向链表实现 后接合 range outside right");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
-        _接合其后(_Where._Unwrapped(), _Right, _First._Unwrapped(), _Last._Unwrapped());
+        _接合其后(_Where._解包(), _Right, _First._解包(), _Last._解包());
     }
 
     void 后接合(const_iterator _Where, 单向链表实现&& _Right, const_iterator _First,

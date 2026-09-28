@@ -976,7 +976,7 @@ public:
 #endif // _HAS_CXX23
 
     void insert(initializer_list<value_type> _Ilist) {
-        _插入范围非检查(_Ilist.开始(), _Ilist.结束());
+        _插入范围非检查(_Ilist.begin(), _Ilist.end());
     }
 
 private:
@@ -1384,11 +1384,11 @@ public:
     结点类型 extract(const const_iterator _Where) {
 #if _ITERATOR_DEBUG_LEVEL == 2
         const auto _List_data = _STD addressof(_List._Mypair._Myval2);
-        _STL_VERIFY(_Where._Getcont() == _List_data, "extract mismatched container");
+        _STL_VERIFY(_Where._取容器() == _List_data, "extract mismatched container");
         _STL_VERIFY(_Where._Ptr != _List_data->_Myhead, "cannot extract 结束()");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
-        return 结点类型::_Make(_Extract(_Where._Unwrapped()), _List._取分配器());
+        return 结点类型::_Make(_Extract(_Where._解包()), _List._取分配器());
     }
 
     结点类型 extract(const 键类型& _Keyval) {

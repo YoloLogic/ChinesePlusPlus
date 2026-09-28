@@ -206,18 +206,18 @@ public:
 #endif // !_HAS_CXX20
 
 #if _ITERATOR_DEBUG_LEVEL == 2
-    friend void _Verify_range(const _链表常量迭代器& _First, const _链表常量迭代器& _Last) noexcept {
+    friend void _校验范围(const _链表常量迭代器& _First, const _链表常量迭代器& _Last) noexcept {
         _STL_VERIFY(_First._取容器() == _Last._取容器(), "链表实现 iterators in range are from different containers");
     }
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
     using _阻止继承解包 = _链表常量迭代器;
 
-    _NODISCARD _链表非检查常量迭代器<_我的链表> _Unwrapped() const noexcept {
+    _NODISCARD _链表非检查常量迭代器<_我的链表> _解包() const noexcept {
         return _链表非检查常量迭代器<_我的链表>(this->_Ptr, static_cast<const _我的链表*>(this->_取容器()));
     }
 
-    void _Seek_to(const _链表非检查常量迭代器<_我的链表> _It) noexcept {
+    void _定位到(const _链表非检查常量迭代器<_我的链表> _It) noexcept {
         this->_Ptr = _It._Ptr;
     }
 };
@@ -268,7 +268,7 @@ public:
 
     using _阻止继承解包 = _链表迭代器;
 
-    _NODISCARD _链表非检查迭代器<_我的链表> _Unwrapped() const noexcept {
+    _NODISCARD _链表非检查迭代器<_我的链表> _解包() const noexcept {
         return _链表非检查迭代器<_我的链表>(this->_Ptr, static_cast<const _我的链表*>(this->_取容器()));
     }
 };
@@ -1039,24 +1039,24 @@ public:
     }
 
     链表实现(initializer_list<_Ty> _Ilist) : _Mypair(_Zero_then_variadic_args_t{}) {
-        _构造范围非检查(_Ilist.开始(), _Ilist.结束());
+        _构造范围非检查(_Ilist.begin(), _Ilist.end());
     }
 
     链表实现(initializer_list<_Ty> _Ilist, const _Alloc& _Al) : _Mypair(_One_then_variadic_args_t{}, _Al) {
-        _构造范围非检查(_Ilist.开始(), _Ilist.结束());
+        _构造范围非检查(_Ilist.begin(), _Ilist.end());
     }
 
     链表实现& operator=(initializer_list<_Ty> _Ilist) {
-        赋值(_Ilist.开始(), _Ilist.结束());
+        赋值(_Ilist.begin(), _Ilist.end());
         return *this;
     }
 
     void 赋值(initializer_list<_Ty> _Ilist) {
-        赋值(_Ilist.开始(), _Ilist.结束());
+        赋值(_Ilist.begin(), _Ilist.end());
     }
 
     iterator 插入(const_iterator _Where, initializer_list<_Ty> _Ilist) { // 插入 initializer_list
-        return 插入(_Where, _Ilist.开始(), _Ilist.结束());
+        return 插入(_Where, _Ilist.begin(), _Ilist.end());
     }
 
     ~链表实现() noexcept {

@@ -178,7 +178,7 @@ public:
 
     _NODISCARD reference operator*() const noexcept {
 #if _ITERATOR_DEBUG_LEVEL == 2
-        const auto _Mycont = static_cast<const _Mytree*>(this->_Getcont());
+        const auto _Mycont = static_cast<const _Mytree*>(this->_取容器());
         _STL_VERIFY(_Mycont, "cannot dereference value-initialized map/set 迭代器");
         _STL_VERIFY(this->_Ptr != _Mycont->_Myhead, "cannot dereference end map/set 迭代器");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
@@ -192,7 +192,7 @@ public:
 
     _树常量迭代器& operator++() noexcept {
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(this->_Getcont(), "cannot increment value-initialized map/set 迭代器");
+        _STL_VERIFY(this->_取容器(), "cannot increment value-initialized map/set 迭代器");
         _STL_VERIFY(!this->_Ptr->_Isnil, "cannot increment end map/set 迭代器");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
@@ -208,7 +208,7 @@ public:
 
     _树常量迭代器& operator--() noexcept {
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(this->_Getcont(), "cannot decrement value-initialized map/set 迭代器");
+        _STL_VERIFY(this->_取容器(), "cannot decrement value-initialized map/set 迭代器");
         _结点指针 _Ptrsav = this->_Ptr;
         _我的基类::operator--();
         _STL_VERIFY(_Ptrsav != this->_Ptr, "cannot decrement begin map/set 迭代器");
@@ -227,7 +227,7 @@ public:
 
     _NODISCARD bool operator==(const _树常量迭代器& _Right) const noexcept {
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(this->_Getcont() == _Right._Getcont(), "map/set iterators incompatible");
+        _STL_VERIFY(this->_取容器() == _Right._取容器(), "map/set iterators incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
         return this->_Ptr == _Right._Ptr;
@@ -240,15 +240,15 @@ public:
 #endif // !_HAS_CXX20
 
 #if _ITERATOR_DEBUG_LEVEL == 2
-    friend void _Verify_range(const _树常量迭代器& _首个, const _树常量迭代器& _最后) noexcept {
-        _STL_VERIFY(_首个._Getcont() == _最后._Getcont(), "map/set iterators in range are from different containers");
+    friend void _校验范围(const _树常量迭代器& _首个, const _树常量迭代器& _最后) noexcept {
+        _STL_VERIFY(_首个._取容器() == _最后._取容器(), "map/set iterators in range are from different containers");
     }
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
     using _阻止继承解包 = _树常量迭代器;
 
-    _NODISCARD _树非检查常量迭代器<_Mytree> _Unwrapped() const noexcept {
-        return _树非检查常量迭代器<_Mytree>(this->_Ptr, static_cast<const _Mytree*>(this->_Getcont()));
+    _NODISCARD _树非检查常量迭代器<_Mytree> _解包() const noexcept {
+        return _树非检查常量迭代器<_Mytree>(this->_Ptr, static_cast<const _Mytree*>(this->_取容器()));
     }
 
     void _定位到(const _树非检查常量迭代器<_Mytree> _It) noexcept {
@@ -303,8 +303,8 @@ public:
 
     using _阻止继承解包 = _树迭代器;
 
-    _NODISCARD _树非检查迭代器<_Mytree> _Unwrapped() const noexcept {
-        return _树非检查迭代器<_Mytree>(this->_Ptr, static_cast<const _Mytree*>(this->_Getcont()));
+    _NODISCARD _树非检查迭代器<_Mytree> _解包() const noexcept {
+        return _树非检查迭代器<_Mytree>(this->_Ptr, static_cast<const _Mytree*>(this->_取容器()));
     }
 };
 
@@ -1088,7 +1088,7 @@ public:
     迭代器 emplace_hint(常量迭代器 _Where, _Valtys&&... _Vals) { // insert value_type(_Val...) at _Where
         const auto _Scary = _取检查值();
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(_Where._Getcont() == _Scary, "map/set insert 迭代器 outside range");
+        _STL_VERIFY(_Where._取容器() == _Scary, "map/set insert 迭代器 outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
         return 迭代器(_按提示就地构造(_Where._Ptr, _STD forward<_Valtys>(_Vals)...), _Scary);
     }
@@ -1256,7 +1256,7 @@ public:
     迭代器 insert(常量迭代器 _Where, const value_type& _Val) {
         const auto _Scary = _取检查值();
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(_Where._Getcont() == _Scary, "map/set insert 迭代器 outside range");
+        _STL_VERIFY(_Where._取容器() == _Scary, "map/set insert 迭代器 outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
         return 迭代器(_按提示就地构造(_Where._Ptr, _Val), _Scary);
     }
@@ -1264,7 +1264,7 @@ public:
     迭代器 insert(常量迭代器 _Where, value_type&& _Val) {
         const auto _Scary = _取检查值();
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(_Where._Getcont() == _Scary, "map/set insert 迭代器 outside range");
+        _STL_VERIFY(_Where._取容器() == _Scary, "map/set insert 迭代器 outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
         return 迭代器(_按提示就地构造(_Where._Ptr, _STD move(_Val)), _Scary);
     }
@@ -1336,23 +1336,23 @@ public:
     迭代器 erase(迭代器 _Where) noexcept /* strengthened */ {
         const auto _Scary = _取检查值();
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(_Where._Getcont() == _Scary, "map/set erase 迭代器 from incorrect container");
+        _STL_VERIFY(_Where._取容器() == _Scary, "map/set erase 迭代器 from incorrect container");
         _STL_VERIFY(!_Where._Ptr->_Isnil, "cannot erase map/set end() 迭代器");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
-        return 迭代器(_擦除非检查(_Where._Unwrapped()), _Scary);
+        return 迭代器(_擦除非检查(_Where._解包()), _Scary);
     }
 
     迭代器 erase(常量迭代器 _Where) noexcept /* strengthened */ {
         const auto _Scary = _取检查值();
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(_Where._Getcont() == _Scary, "map/set erase 迭代器 from incorrect container");
+        _STL_VERIFY(_Where._取容器() == _Scary, "map/set erase 迭代器 from incorrect container");
         _STL_VERIFY(!_Where._Ptr->_Isnil, "cannot erase map/set end() 迭代器");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
-        return 迭代器(_擦除非检查(_Where._Unwrapped()), _Scary);
+        return 迭代器(_擦除非检查(_Where._解包()), _Scary);
     }
 
     迭代器 erase(常量迭代器 _首个, 常量迭代器 _最后) noexcept /* strengthened */ {
-        return 迭代器(_擦除非检查(_首个._Unwrapped(), _最后._Unwrapped()), _取检查值());
+        return 迭代器(_擦除非检查(_首个._解包(), _最后._解包()), _取检查值());
     }
 
     size_type erase(const 键类型& _Keyval) noexcept(noexcept(_等值区间(_Keyval))) /* strengthened */ {
@@ -1746,10 +1746,10 @@ public:
     结点类型 extract(const 常量迭代器 _Where) {
         const auto _Scary = _取检查值();
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(_Where._Getcont() == _Scary && !_Where._Ptr->_Isnil, "map/set erase 迭代器 outside range");
+        _STL_VERIFY(_Where._取容器() == _Scary && !_Where._Ptr->_Isnil, "map/set erase 迭代器 outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
-        const auto _Ptr = _Scary->_Extract(_Where._Unwrapped());
+        const auto _Ptr = _Scary->_Extract(_Where._解包());
         _Scary->_孤立指针(_Ptr);
         return 结点类型::_Make(_Ptr, _取分配器());
     }
@@ -1821,7 +1821,7 @@ public:
     迭代器 insert(const 常量迭代器 _Hint, 结点类型&& _Handle) {
         const auto _Scary = _取检查值();
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(_Hint._Getcont() == _Scary, "map/set insert 迭代器 outside range");
+        _STL_VERIFY(_Hint._取容器() == _Scary, "map/set insert 迭代器 outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
         if (_Handle.empty()) {
             return end();

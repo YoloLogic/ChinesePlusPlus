@@ -397,7 +397,7 @@ public:
 
     using _阻止继承解包 = _双端队列常量迭代器;
 
-    _NODISCARD _双端队列非检查常量迭代器<_我的双端队列> _Unwrapped() const noexcept {
+    _NODISCARD _双端队列非检查常量迭代器<_我的双端队列> _解包() const noexcept {
         return {this->_Myoff, this->_取容器()};
     }
 
@@ -416,13 +416,13 @@ public:
     }
 
 #if _ITERATOR_DEBUG_LEVEL != 0
-    friend void _Verify_range(const _双端队列常量迭代器& _First, const _双端队列常量迭代器& _Last) noexcept {
+    friend void _校验范围(const _双端队列常量迭代器& _First, const _双端队列常量迭代器& _Last) noexcept {
         // note _Compat check inside operator<=
         _STL_VERIFY(_First <= _Last, "双端队列实现 iterators transposed");
     }
 #endif // _ITERATOR_DEBUG_LEVEL != 0
 
-    void _Seek_to(const _双端队列非检查常量迭代器<_我的双端队列>& _UIt) noexcept {
+    void _定位到(const _双端队列非检查常量迭代器<_我的双端队列>& _UIt) noexcept {
         _Myoff = _UIt._Myoff;
     }
 
@@ -510,7 +510,7 @@ public:
 
     using _阻止继承解包 = _双端队列迭代器;
 
-    _NODISCARD _双端队列非检查迭代器<_我的双端队列> _Unwrapped() const noexcept {
+    _NODISCARD _双端队列非检查迭代器<_我的双端队列> _解包() const noexcept {
         return {this->_Myoff, this->_取容器()};
     }
 };
@@ -653,7 +653,7 @@ public:
     explicit 双端队列实现(_CRT_GUARDOVERFLOW size_type _Count, const _Alloc& _Al = _Alloc())
         : _Mypair(_One_then_variadic_args_t{}, _Al) {
         _代理分配器类型 _Alproxy(_Getal());
-        _Container_proxy_ptr12<_代理分配器类型> _Proxy(_Alproxy, _取数据());
+        _容器代理指针12<_代理分配器类型> _Proxy(_Alproxy, _取数据());
         _Tidy_guard<双端队列实现> _Guard{this};
         调整尺寸(_Count);
         _Guard._Target = nullptr;
@@ -723,14 +723,14 @@ public:
 
     双端队列实现(initializer_list<_Ty> _Ilist, const _Alloc& _Al = allocator_type())
         : _Mypair(_One_then_variadic_args_t{}, _Al) {
-        _Construct(_Ilist.开始(), _Ilist.结束());
+        _Construct(_Ilist.begin(), _Ilist.end());
     }
 
 private:
     template <class _Iter, class _Sent>
     void _Construct(_Iter _First, const _Sent _Last) { // initialize from input range [_First, _Last)
         _代理分配器类型 _Alproxy(_Getal());
-        _Container_proxy_ptr12<_代理分配器类型> _Proxy(_Alproxy, _取数据());
+        _容器代理指针12<_代理分配器类型> _Proxy(_Alproxy, _取数据());
 
         _Tidy_guard<双端队列实现> _Guard{this};
         for (; _First != _Last; ++_First) {
@@ -743,7 +743,7 @@ private:
 
     void _Construct_n(size_type _Count, const _Ty& _Val) { // construct from _Count * _Val
         _代理分配器类型 _Alproxy(_Getal());
-        _Container_proxy_ptr12<_代理分配器类型> _Proxy(_Alproxy, _取数据());
+        _容器代理指针12<_代理分配器类型> _Proxy(_Alproxy, _取数据());
 
         _Tidy_guard<双端队列实现> _Guard{this};
         for (; _Count > 0; --_Count) {
@@ -810,7 +810,7 @@ public:
             if (_Al != _Right_al) {
                 _代理分配器类型 _Alproxy(_Al);
                 _代理分配器类型 _Right_alproxy(_Right_al);
-                _Container_proxy_ptr12<_代理分配器类型> _Proxy(_Right_alproxy, _离开代理未绑定{});
+                _容器代理指针12<_代理分配器类型> _Proxy(_Right_alproxy, _离开代理未绑定{});
                 _Tidy();
                 _Pocma(_Al, _Right_al);
                 _Proxy._绑定(_Alproxy, _STD addressof(_取数据()));
@@ -833,7 +833,7 @@ public:
     }
 
     双端队列实现& operator=(initializer_list<_Ty> _Ilist) {
-        赋值(_Ilist.开始(), _Ilist.结束());
+        赋值(_Ilist.begin(), _Ilist.end());
         return *this;
     }
 
@@ -871,7 +871,7 @@ public:
     }
 
     void 赋值(initializer_list<_Ty> _Ilist) {
-        赋值(_Ilist.开始(), _Ilist.结束());
+        赋值(_Ilist.begin(), _Ilist.end());
     }
 
     _NODISCARD allocator_type 取分配器() const noexcept {
@@ -1337,7 +1337,7 @@ public:
 #endif // _HAS_CXX23
 
     iterator 插入(const_iterator _Where, initializer_list<_Ty> _Ilist) {
-        return 插入(_Where, _Ilist.开始(), _Ilist.结束());
+        return 插入(_Where, _Ilist.begin(), _Ilist.end());
     }
 
 private:
@@ -1542,8 +1542,8 @@ public:
             return _First;
         }
 
-        auto _Unchecked_first = _First._Unwrapped();
-        auto _Unchecked_last  = _Last._Unwrapped();
+        auto _Unchecked_first = _First._解包();
+        auto _Unchecked_last  = _Last._解包();
 
         if (_Off < static_cast<size_type>(_Unchecked_end() - _Unchecked_last)) { // closer to 前
             _STD move_backward(_Unchecked_begin(), _Unchecked_first, _Unchecked_last); // copy over hole

@@ -212,7 +212,7 @@ public:
     }
 
 #if _ITERATOR_DEBUG_LEVEL >= 1
-    friend _CONSTEXPR20 void _Verify_range(
+    friend _CONSTEXPR20 void _校验范围(
         const _字符串常量迭代器& _First, const _字符串常量迭代器& _Last) noexcept {
         _STL_VERIFY(_First._取容器() == _Last._取容器(), "string iterators in range are from different containers");
         _STL_VERIFY(_First._Ptr <= _Last._Ptr, "string iterator range transposed");
@@ -221,11 +221,11 @@ public:
 
     using _阻止继承解包 = _字符串常量迭代器;
 
-    _NODISCARD _CONSTEXPR20 const value_type* _Unwrapped() const noexcept {
+    _NODISCARD _CONSTEXPR20 const value_type* _解包() const noexcept {
         return _Unfancy_maybe_null(_Ptr);
     }
 
-    _CONSTEXPR20 void _Seek_to(const value_type* _It) noexcept {
+    _CONSTEXPR20 void _定位到(const value_type* _It) noexcept {
         _Ptr = _STD _Refancy_maybe_null<pointer>(const_cast<value_type*>(_It));
     }
 
@@ -345,7 +345,7 @@ public:
 
     using _阻止继承解包 = _字符串迭代器;
 
-    _NODISCARD _CONSTEXPR20 value_type* _Unwrapped() const noexcept {
+    _NODISCARD _CONSTEXPR20 value_type* _解包() const noexcept {
         return const_cast<value_type*>(_Unfancy_maybe_null(this->_Ptr));
     }
 };
@@ -1341,23 +1341,23 @@ private:
 public:
     _CONSTEXPR20 基础字符串实现(initializer_list<_Elem> _Ilist, const _Alloc& _Al = 分配器类型())
         : _Mypair(_先一后变参实参{}, _Al) {
-        _Construct<_Construct_strategy::_From_ptr>(_Ilist.开始(), _Convert_size<size_type>(_Ilist.尺寸()));
+        _Construct<_Construct_strategy::_From_ptr>(_Ilist.begin(), _Convert_size<size_type>(_Ilist.size()));
     }
 
     _CONSTEXPR20 基础字符串实现& operator=(initializer_list<_Elem> _Ilist) {
-        return assign(_Ilist.开始(), _Convert_size<size_type>(_Ilist.尺寸()));
+        return assign(_Ilist.begin(), _Convert_size<size_type>(_Ilist.size()));
     }
 
     _CONSTEXPR20 基础字符串实现& operator+=(initializer_list<_Elem> _Ilist) {
-        return 追加(_Ilist.开始(), _Convert_size<size_type>(_Ilist.尺寸()));
+        return 追加(_Ilist.begin(), _Convert_size<size_type>(_Ilist.size()));
     }
 
     _CONSTEXPR20 基础字符串实现& assign(initializer_list<_Elem> _Ilist) {
-        return assign(_Ilist.开始(), _Convert_size<size_type>(_Ilist.尺寸()));
+        return assign(_Ilist.begin(), _Convert_size<size_type>(_Ilist.size()));
     }
 
     _CONSTEXPR20 基础字符串实现& 追加(initializer_list<_Elem> _Ilist) {
-        return 追加(_Ilist.开始(), _Convert_size<size_type>(_Ilist.尺寸()));
+        return 追加(_Ilist.begin(), _Convert_size<size_type>(_Ilist.size()));
     }
 
     _CONSTEXPR20 iterator 插入(const const_iterator _Where, const initializer_list<_Elem> _Ilist) {
@@ -1365,7 +1365,7 @@ public:
         _STL_VERIFY(_Where._取容器() == _STD addressof(_Mypair._Myval2), "string iterator incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
         const auto _Off = static_cast<size_type>(_Unfancy(_Where._Ptr) - _Mypair._Myval2._我的指针());
-        插入(_Off, _Ilist.开始(), _Convert_size<size_type>(_Ilist.尺寸()));
+        插入(_Off, _Ilist.begin(), _Convert_size<size_type>(_Ilist.size()));
         return 开始() + static_cast<difference_type>(_Off);
     }
 
@@ -1378,7 +1378,7 @@ public:
 #endif // _ITERATOR_DEBUG_LEVEL != 0
         const auto _Offset = static_cast<size_type>(_Unfancy(_First._Ptr) - _Mypair._Myval2._我的指针());
         const auto _Length = static_cast<size_type>(_Last._Ptr - _First._Ptr);
-        return 替换(_Offset, _Length, _Ilist.开始(), _Convert_size<size_type>(_Ilist.尺寸()));
+        return 替换(_Offset, _Length, _Ilist.begin(), _Convert_size<size_type>(_Ilist.size()));
     }
 
     _CONSTEXPR20 ~基础字符串实现() noexcept {

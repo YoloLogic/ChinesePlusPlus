@@ -206,7 +206,7 @@ public:
     }
 
 #if _ITERATOR_DEBUG_LEVEL != 0
-    friend _CONSTEXPR20 void _Verify_range(
+    friend _CONSTEXPR20 void _校验范围(
         const _向量常量迭代器& _First, const _向量常量迭代器& _Last) noexcept {
         _STL_VERIFY(_First._取容器() == _Last._取容器(), "向量实现 iterators in range are from different containers");
         _STL_VERIFY(_First._Ptr <= _Last._Ptr, "向量实现 iterator range transposed");
@@ -215,11 +215,11 @@ public:
 
     using _阻止继承解包 = _向量常量迭代器;
 
-    _NODISCARD _CONSTEXPR20 const value_type* _Unwrapped() const noexcept {
+    _NODISCARD _CONSTEXPR20 const value_type* _解包() const noexcept {
         return _去花式可空(_Ptr);
     }
 
-    _CONSTEXPR20 void _Seek_to(const value_type* _It) noexcept {
+    _CONSTEXPR20 void _定位到(const value_type* _It) noexcept {
         _Ptr = _STD _Refancy_maybe_null<_类型指针>(const_cast<value_type*>(_It));
     }
 
@@ -343,7 +343,7 @@ public:
 
     using _阻止继承解包 = _向量迭代器;
 
-    _NODISCARD _CONSTEXPR20 value_type* _Unwrapped() const noexcept {
+    _NODISCARD _CONSTEXPR20 value_type* _解包() const noexcept {
         return _去花式可空(this->_Ptr);
     }
 };
@@ -720,7 +720,7 @@ public:
 
     _CONSTEXPR20 向量实现(initializer_list<_Ty> _Ilist, const _分配器& _Al = _分配器())
         : _Mypair(_One_then_variadic_args_t{}, _Al) {
-        _Construct_n(_Convert_size<size_type>(_Ilist.尺寸()), _Ilist.开始(), _Ilist.结束());
+        _Construct_n(_Convert_size<size_type>(_Ilist.size()), _Ilist.begin(), _Ilist.end());
     }
 
 #if _HAS_CXX23
@@ -1329,8 +1329,8 @@ public:
 #endif // _ITERATOR_DEBUG_LEVEL == 2
         const auto _Whereoff = static_cast<size_type>(_Whereptr - _Oldfirst);
 
-        const auto _Count = _Convert_size<size_type>(_Ilist.尺寸());
-        _插入计数范围(_Where, _Ilist.开始(), _Count);
+        const auto _Count = _Convert_size<size_type>(_Ilist.size());
+        _插入计数范围(_Where, _Ilist.begin(), _Count);
         return _造迭代器偏移(_Whereoff);
     }
 
@@ -1518,8 +1518,8 @@ public:
 #endif // _HAS_CXX23
 
     _CONSTEXPR20 void 赋值(const initializer_list<_Ty> _Ilist) {
-        const auto _Count = _Convert_size<size_type>(_Ilist.尺寸());
-        _赋值计数范围(_Ilist.开始(), _Count);
+        const auto _Count = _Convert_size<size_type>(_Ilist.size());
+        _赋值计数范围(_Ilist.begin(), _Count);
     }
 
     _CONSTEXPR20 向量实现& operator=(const 向量实现& _Right) {
@@ -1544,8 +1544,8 @@ public:
     }
 
     _CONSTEXPR20 向量实现& operator=(initializer_list<_Ty> _Ilist) {
-        const auto _Count = _Convert_size<size_type>(_Ilist.尺寸());
-        _赋值计数范围(_Ilist.开始(), _Count);
+        const auto _Count = _Convert_size<size_type>(_Ilist.size());
+        _赋值计数范围(_Ilist.begin(), _Count);
         return *this;
     }
 
@@ -2684,7 +2684,7 @@ public:
 #if _ITERATOR_DEBUG_LEVEL != 0
     using _阻止继承解包 = _位向量常量迭代器;
 
-    friend _CONSTEXPR20 void _Verify_range(const _位向量常量迭代器& _First, const _位向量常量迭代器& _Last) noexcept {
+    friend _CONSTEXPR20 void _校验范围(const _位向量常量迭代器& _First, const _位向量常量迭代器& _Last) noexcept {
         // note _Compat check inside <=
         _STL_VERIFY(_First <= _Last, "向量实现<bool> iterator range transposed");
     }
