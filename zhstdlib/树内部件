@@ -370,9 +370,9 @@ struct _树节点 {
     template <class _Alloc>
     static void _释放节点0(_Alloc& _Al, _结点指针 _Ptr) noexcept {
         static_assert(is_same_v<typename _Alloc::value_type, _树节点>, "Bad _释放节点0 call");
-        _Destroy_in_place(_Ptr->_Left);
-        _Destroy_in_place(_Ptr->_Parent);
-        _Destroy_in_place(_Ptr->_Right);
+        _就地析构(_Ptr->_Left);
+        _就地析构(_Ptr->_Parent);
+        _就地析构(_Ptr->_Right);
         allocator_traits<_Alloc>::deallocate(_Al, _Ptr, 1);
     }
 
@@ -841,9 +841,9 @@ struct _树临时节点 : _树临时节点分配器<_结点分配器> {
 
     ~_树临时节点() {
         if (this->_Ptr) {
-            _Destroy_in_place(this->_Ptr->_Left);
-            _Destroy_in_place(this->_Ptr->_Parent);
-            _Destroy_in_place(this->_Ptr->_Right);
+            _就地析构(this->_Ptr->_Left);
+            _就地析构(this->_Ptr->_Parent);
+            _就地析构(this->_Ptr->_Right);
             _结点分配器特征::destroy(this->_Al, _STD addressof(this->_Ptr->_Myval));
         }
     }
@@ -1281,8 +1281,8 @@ protected:
 public:
     template <class _Iter>
     void insert(_Iter _首个, _Iter _最后) {
-        _Adl_verify_range(_首个, _最后);
-        _插入范围非检查(_STD _Get_unwrapped(_首个), _STD _Get_unwrapped(_最后));
+        _ADL校验范围(_首个, _最后);
+        _插入范围非检查(_取解包(_首个), _取解包(_最后));
     }
 
 #if _HAS_CXX23

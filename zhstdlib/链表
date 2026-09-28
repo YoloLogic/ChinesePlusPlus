@@ -892,14 +892,14 @@ public:
 
     template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
     链表实现(_Iter _First, _Iter _Last) : _Mypair(_Zero_then_variadic_args_t{}) {
-        _Adl_verify_range(_First, _Last);
-        _构造范围非检查(_STD _Get_unwrapped(_First), _STD _Get_unwrapped(_Last));
+        _ADL校验范围(_First, _Last);
+        _构造范围非检查(_取解包(_First), _取解包(_Last));
     }
 
     template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
     链表实现(_Iter _First, _Iter _Last, const _Alloc& _Al) : _Mypair(_One_then_variadic_args_t{}, _Al) {
-        _Adl_verify_range(_First, _Last);
-        _构造范围非检查(_STD _Get_unwrapped(_First), _STD _Get_unwrapped(_Last));
+        _ADL校验范围(_First, _Last);
+        _构造范围非检查(_取解包(_First), _取解包(_Last));
     }
 
 #if _HAS_CXX23
@@ -1349,8 +1349,8 @@ private:
 public:
     template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
     void 赋值(_Iter _First, _Iter _Last) {
-        _Adl_verify_range(_First, _Last);
-        _赋值非检查(_STD _Get_unwrapped(_First), _STD _Get_unwrapped(_Last));
+        _ADL校验范围(_First, _Last);
+        _赋值非检查(_取解包(_First), _取解包(_Last));
     }
 
 #if _HAS_CXX23
@@ -1408,9 +1408,9 @@ public:
 #if _ITERATOR_DEBUG_LEVEL == 2
         _STL_VERIFY(_Where._取容器() == _STD addressof(_Mypair._Myval2), "链表实现 插入 iterator outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
-        _Adl_verify_range(_First, _Last);
+        _ADL校验范围(_First, _Last);
         _链表节点插入操作2<_结点分配器> _Op(_取分配器());
-        _Op._追加范围非检查(_STD _Get_unwrapped(_First), _STD _Get_unwrapped(_Last));
+        _Op._追加范围非检查(_取解包(_First), _取解包(_Last));
         return _Make_iter(_Op._接在其前(_Mypair._Myval2, _Where._Ptr));
     }
 
@@ -1448,7 +1448,7 @@ private:
 
 public:
     iterator 擦除(const const_iterator _First, const const_iterator _Last) noexcept /* strengthened */ {
-        _Adl_verify_range(_First, _Last);
+        _ADL校验范围(_First, _Last);
         return _Make_iter(_非检查擦除(_First._Ptr, _Last._Ptr));
     }
 

@@ -839,8 +839,8 @@ public:
 
     template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
     void 赋值(_Iter _First, _Iter _Last) {
-        _Adl_verify_range(_First, _Last);
-        _赋值范围(_Get_unwrapped(_First), _Get_unwrapped(_Last));
+        _ADL校验范围(_First, _Last);
+        _赋值范围(_取解包(_First), _取解包(_Last));
     }
 
 #if _HAS_CXX23
@@ -1316,10 +1316,10 @@ public:
     template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
     iterator 插入(const_iterator _Where, _Iter _First, _Iter _Last) {
         // 插入 [_First, _Last) 取值 _Where
-        _Adl_verify_range(_First, _Last);
+        _ADL校验范围(_First, _Last);
         const size_type _Off = static_cast<size_type>(_Where - 开始());
         return _插入范围<static_cast<_是双向>(_Is_cpp17_bidi_iter_v<_Iter>)>(
-            _Off, _Get_unwrapped(_First), _Get_unwrapped(_Last));
+            _Off, _取解包(_First), _取解包(_Last));
     }
 
 #if _HAS_CXX23
@@ -1528,7 +1528,7 @@ public:
 
 #if _ITERATOR_DEBUG_LEVEL == 2
         _STL_VERIFY(_First <= _Last && 开始() <= _First && _Last <= 结束(), "双端队列实现 擦除 iterator outside range");
-        _Adl_verify_range(_First, _Last);
+        _ADL校验范围(_First, _Last);
 #endif
 
         auto _Off   = static_cast<size_type>(_First - 开始());

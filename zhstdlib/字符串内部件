@@ -500,7 +500,7 @@ public:
         char _Alias[_BUF_SIZE]; // TRANSITION, ABI: _Alias is preserved for binary compatibility (especially /clr)
 
         _CONSTEXPR20 void _切换到缓冲() noexcept {
-            _Destroy_in_place(_Ptr);
+            _就地析构(_Ptr);
 
 #if _HAS_CXX20
             // start the lifetime of the array elements
@@ -799,9 +799,9 @@ public:
     template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
     _CONSTEXPR20 基础字符串实现(_Iter _First, _Iter _Last, const _Alloc& _Al = _Alloc())
         : _Mypair(_先一后变参实参{}, _Al) {
-        _Adl_verify_range(_First, _Last);
-        auto _UFirst = _Get_unwrapped(_First);
-        auto _ULast  = _Get_unwrapped(_Last);
+        _ADL校验范围(_First, _Last);
+        auto _UFirst = _取解包(_First);
+        auto _ULast  = _取解包(_Last);
         if (_UFirst == _ULast) {
             _构造为空串();
         } else {
@@ -1372,7 +1372,7 @@ public:
     _CONSTEXPR20 基础字符串实现& 替换(
         const const_iterator _First, const const_iterator _Last, const initializer_list<_Elem> _Ilist) {
         // 替换 with initializer_list
-        _Adl_verify_range(_First, _Last);
+        _ADL校验范围(_First, _Last);
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(_First._取容器() == _STD addressof(_Mypair._Myval2), "string iterators incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
@@ -1562,9 +1562,9 @@ public:
     template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
     _CONSTEXPR20 基础字符串实现& 追加(const _Iter _First, const _Iter _Last) {
         // 追加 [_First, _Last), input iterators
-        _Adl_verify_range(_First, _Last);
-        const auto _UFirst = _Get_unwrapped(_First);
-        const auto _ULast  = _Get_unwrapped(_Last);
+        _ADL校验范围(_First, _Last);
+        const auto _UFirst = _取解包(_First);
+        const auto _ULast  = _取解包(_Last);
         if constexpr (_是元素字符指针<decltype(_UFirst)>::value) {
             return 追加(_UFirst, _STD _Convert_size<size_type>(static_cast<size_t>(_ULast - _UFirst)));
         } else {
@@ -1662,9 +1662,9 @@ public:
 
     template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
     _CONSTEXPR20 基础字符串实现& assign(const _Iter _First, const _Iter _Last) {
-        _Adl_verify_range(_First, _Last);
-        const auto _UFirst = _Get_unwrapped(_First);
-        const auto _ULast  = _Get_unwrapped(_Last);
+        _ADL校验范围(_First, _Last);
+        const auto _UFirst = _取解包(_First);
+        const auto _ULast  = _取解包(_Last);
         if constexpr (_是元素字符指针<decltype(_UFirst)>::value) {
             return assign(_UFirst, _STD _Convert_size<size_type>(static_cast<size_t>(_ULast - _UFirst)));
         } else {
@@ -1835,9 +1835,9 @@ public:
         _STL_VERIFY(_Where._取容器() == _STD addressof(_Mypair._Myval2), "string iterator incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
         const auto _Off = static_cast<size_type>(_Unfancy(_Where._Ptr) - _Mypair._Myval2._我的指针());
-        _Adl_verify_range(_First, _Last);
-        const auto _UFirst = _Get_unwrapped(_First);
-        const auto _ULast  = _Get_unwrapped(_Last);
+        _ADL校验范围(_First, _Last);
+        const auto _UFirst = _取解包(_First);
+        const auto _ULast  = _取解包(_Last);
         if constexpr (_是元素字符指针<decltype(_UFirst)>::value) {
             插入(_Off, _UFirst, _STD _Convert_size<size_type>(static_cast<size_t>(_ULast - _UFirst)));
         } else {
@@ -1905,7 +1905,7 @@ public:
 
     _CONSTEXPR20 iterator 擦除(const const_iterator _First, const const_iterator _Last) noexcept
     /* strengthened */ {
-        _Adl_verify_range(_First, _Last);
+        _ADL校验范围(_First, _Last);
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(_First._取容器() == _STD addressof(_Mypair._Myval2), "string iterators incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
@@ -2063,7 +2063,7 @@ public:
     _CONSTEXPR20 基础字符串实现& 替换(
         const const_iterator _First, const const_iterator _Last, const 基础字符串实现& _Right) {
         // 替换 [_First, _Last) with _Right
-        _Adl_verify_range(_First, _Last);
+        _ADL校验范围(_First, _Last);
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(_First._取容器() == _STD addressof(_Mypair._Myval2), "string iterators incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
@@ -2076,7 +2076,7 @@ public:
     _CONSTEXPR20 基础字符串实现& 替换(
         const const_iterator _First, const const_iterator _Last, const _StringViewIsh& _Right) {
         // 替换 [_First, _Last) with _Right
-        _Adl_verify_range(_First, _Last);
+        _ADL校验范围(_First, _Last);
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(_First._取容器() == _STD addressof(_Mypair._Myval2), "string iterators incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
@@ -2088,7 +2088,7 @@ public:
     _CONSTEXPR20 基础字符串实现& 替换(const const_iterator _First, const const_iterator _Last,
         _In_reads_(_Count) const _Elem* const _Ptr, const size_type _Count) {
         // 替换 [_First, _Last) with [_Ptr, _Ptr + _Count)
-        _Adl_verify_range(_First, _Last);
+        _ADL校验范围(_First, _Last);
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(_First._取容器() == _STD addressof(_Mypair._Myval2), "string iterators incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
@@ -2099,7 +2099,7 @@ public:
     _CONSTEXPR20 基础字符串实现& 替换(
         const const_iterator _First, const const_iterator _Last, _In_z_ const _Elem* const _Ptr) {
         // 替换 [_First, _Last) with [_Ptr, <null>)
-        _Adl_verify_range(_First, _Last);
+        _ADL校验范围(_First, _Last);
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(_First._取容器() == _STD addressof(_Mypair._Myval2), "string iterators incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
@@ -2110,7 +2110,7 @@ public:
     _CONSTEXPR20 基础字符串实现& 替换(
         const const_iterator _First, const const_iterator _Last, const size_type _Count, const _Elem _Ch) {
         // 替换 [_First, _Last) with _Count * _Ch
-        _Adl_verify_range(_First, _Last);
+        _ADL校验范围(_First, _Last);
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(_First._取容器() == _STD addressof(_Mypair._Myval2), "string iterators incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
@@ -2122,15 +2122,15 @@ public:
     _CONSTEXPR20 基础字符串实现& 替换(
         const const_iterator _First, const const_iterator _Last, const _Iter _First2, const _Iter _Last2) {
         // 替换 [_First, _Last) with [_First2, _Last2), input iterators
-        _Adl_verify_range(_First, _Last);
+        _ADL校验范围(_First, _Last);
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(_First._取容器() == _STD addressof(_Mypair._Myval2), "string iterators incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
         const auto _Off    = static_cast<size_type>(_Unfancy(_First._Ptr) - _Mypair._Myval2._我的指针());
         const auto _Length = static_cast<size_type>(_Last._Ptr - _First._Ptr);
-        _Adl_verify_range(_First2, _Last2);
-        const auto _UFirst2 = _Get_unwrapped(_First2);
-        const auto _ULast2  = _Get_unwrapped(_Last2);
+        _ADL校验范围(_First2, _Last2);
+        const auto _UFirst2 = _取解包(_First2);
+        const auto _ULast2  = _取解包(_Last2);
         if constexpr (_是元素字符指针<decltype(_UFirst2)>::value) {
             return 替换(
                 _Off, _Length, _UFirst2, _STD _Convert_size<size_type>(static_cast<size_t>(_ULast2 - _UFirst2)));
@@ -2143,7 +2143,7 @@ public:
 #if _HAS_CXX23
     template <_Container_compatible_range<_Elem> _Rng>
     constexpr 基础字符串实现& 按范围替换(const const_iterator _First, const const_iterator _Last, _Rng&& _Range) {
-        _Adl_verify_range(_First, _Last);
+        _ADL校验范围(_First, _Last);
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(_First._取容器() == _STD addressof(_Mypair._Myval2), "string iterators incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL != 0

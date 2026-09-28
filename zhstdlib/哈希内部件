@@ -964,8 +964,8 @@ protected:
 public:
     template <class _Iter>
     void insert(_Iter _First, _Iter _Last) {
-        _Adl_verify_range(_First, _Last);
-        _插入范围非检查(_STD _Get_unwrapped(_First), _STD _Get_unwrapped(_Last));
+        _ADL校验范围(_First, _Last);
+        _插入范围非检查(_取解包(_First), _取解包(_Last));
     }
 
 #if _HAS_CXX23
@@ -1438,8 +1438,8 @@ public:
         }
 
         const auto _Released = _Handle._Release();
-        _Destroy_in_place(_Released->_Next); // TRANSITION, ABI
-        _Destroy_in_place(_Released->_Prev);
+        _就地析构(_Released->_Next); // TRANSITION, ABI
+        _就地析构(_Released->_Prev);
         return _List._Make_iter(_在之前插入新节点(_Hashval, _Target._Insert_before, _Released));
     }
 
@@ -1492,8 +1492,8 @@ public:
             _Candidate->_Prev->_Next = _Candidate->_Next;
             _Candidate->_Next->_Prev = _Candidate->_Prev;
             --_That._List._Mypair._Myval2._Mysize;
-            _Destroy_in_place(_Candidate->_Next); // TRANSITION, ABI
-            _Destroy_in_place(_Candidate->_Prev);
+            _就地析构(_Candidate->_Next); // TRANSITION, ABI
+            _就地析构(_Candidate->_Prev);
 #if _ITERATOR_DEBUG_LEVEL == 2
             _List._Mypair._Myval2._Adopt_unique(_That._List._Mypair._Myval2, _Candidate);
 #endif // _ITERATOR_DEBUG_LEVEL == 2
@@ -1570,8 +1570,8 @@ public:
         }
 
         const auto _Released = _Handle._Release();
-        _Destroy_in_place(_Released->_Next); // TRANSITION, ABI
-        _Destroy_in_place(_Released->_Prev);
+        _就地析构(_Released->_Next); // TRANSITION, ABI
+        _就地析构(_Released->_Prev);
         const auto _新节点 = _在之前插入新节点(_Hashval, _Target._Insert_before, _Released);
         if constexpr (_Traits::_Multi) {
             return _List._Make_iter(_新节点);

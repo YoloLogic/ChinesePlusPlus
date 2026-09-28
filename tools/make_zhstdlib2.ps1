@@ -913,6 +913,8 @@ $H = @{
       '_Emplace'      = '_就地安置'
       '_Construct_in_place' = '_就地构造'
       '_Move_from'    = '_由之移动'
+      # §17.27.55 链名接通（第二批）：`_Destroy_in_place` 定义方是 `内存内部件`（本头直接引它）。
+      '_Destroy_in_place' = '_就地析构'
       '_Move_impl'    = '_移动实现'
       '_Rep'          = '_表示'
       '_TypeInfo'     = '_类型信息'
@@ -1015,6 +1017,9 @@ $H = @{
       '_Emplace_front_internal' = '_首部就地构造内部'
       # §17.27.54 链名接通：定义方 `通用内部件` 的品牌经 `内存内部件` 已可见 -> 调用点改名。
       '_Construct_in_place' = '_就地构造'
+      # §17.27.55 链名接通（第二批）：同一条传递链。
+      '_Get_unwrapped' = '_取解包'
+      '_Adl_verify_range' = '_ADL校验范围'
       '_Get_data' = '_取数据'
       '_Orphan_off' = '_孤儿化偏移'
       '_Assign_range' = '_赋值范围'
@@ -1168,6 +1173,9 @@ $H = @{
       '_Transfer_before' = '_转移至其前'
       # §17.27.54 链名接通（同 deque）。
       '_Construct_in_place' = '_就地构造'
+      # §17.27.55 链名接通（第二批）：定义方 `通用内部件` 经 `内存内部件` 可见 -> 调用点改名。
+      '_Get_unwrapped' = '_取解包'
+      '_Adl_verify_range' = '_ADL校验范围'
       '_Unchecked_erase' = '_非检查擦除'
       'size' = '尺寸'; 'empty' = '为空'
       'begin' = '开始'; 'end' = '结束'
@@ -1354,6 +1362,9 @@ $H = @{
       '_Emplace_reallocate' = '_就地构造并重新分配'
       # §17.27.54 链名接通（同 deque）。
       '_Construct_in_place' = '_就地构造'
+      # §17.27.55 链名接通（第二批）：定义方 `通用内部件` 经 `内存内部件` 可见 -> 调用点改名。
+      '_Get_unwrapped' = '_取解包'
+      '_Adl_verify_range' = '_ADL校验范围'
       '_Inc' = '_递增'
       '_Insert_counted_range' = '_插入计数范围'
       '_Insert_uncounted_range' = '_插入非计数范围'
@@ -1482,6 +1493,9 @@ $H = @{
       '_Take_head' = '_取走头部'
       # §17.27.54 链名接通（同 deque）。
       '_Construct_in_place' = '_就地构造'
+      # §17.27.55 链名接通（第二批）：定义方 `通用内部件` 经 `内存内部件` 可见 -> 调用点改名。
+      '_Get_unwrapped' = '_取解包'
+      '_Adl_verify_range' = '_ADL校验范围'
       '_Transfer_back' = '_转移至末尾'
       '_Transfer_non_before_begin_ownership' = '_转移非首前所有权'
       '_Transfer_ownership' = '_转移所有权'
@@ -2382,10 +2396,12 @@ $H = @{
     # -----------------------------------------------------------------------
     #  §16.67 成员名层（第三把尺指向的最大一块）。逐名量过"谁定义它"（§16.64 判据）：
     #    · 本头定义（下面这 48 条，含 §17.27.53 新增的 `_Construct_in_place`）-> 翻；
-    #    · **借用的**（不在本表）-> 留英文：`_Adl_verify_range` / `_Seek_wrapped`
-    #      （定义在 <xutility>）；`address` / `addressof` / `apply` / `construct_at` /
+    #    · **借用的**（不在本表）-> 留英文：`address` / `addressof` / `apply` / `construct_at` /
     #      `destroy_at` / `make_tuple` / `forward_as_tuple` / `memcpy` / `memset` /
     #      `pointer_to` / `elements_of` / `from_range_t` -> 全是 std/C 的名字；
+    #      ⚠ §17.27.55 就地更正：原来这条还列着 `_Adl_verify_range` / `_Seek_wrapped`
+    #        （理由"定义在借来的 <xutility>"）—— 前提已随 <xutility> 抄成 `通用内部件` 而消失，
+    #        那两个已进本表（还有 `_Get_unwrapped`），指向我们那份。
     #    · **allocator 契约名**（`allocate` / `allocate_at_least` / `deallocate` /
     #      `construct` / `destroy` / `max_size` / `select_on_container_copy_construction`）
     #      -> 第 ③ 类：`allocator_traits<我们的分配器>` 会读它们，翻了就认不出。
@@ -2398,6 +2414,13 @@ $H = @{
     #        我们的 `通用内部件`（§17.27.53 废止 §17.17.2），本头按"指向我们那份"处理。
     # -----------------------------------------------------------------------
     members = [ordered]@{
+      # §17.27.55 链名接通（第二批）：这三个的定义方**都是我们自己的**了
+      #   （`_Adl_verify_range` / `_Get_unwrapped` / `_Seek_wrapped` 定义在 <xutility>
+      #    -> 现在是 `通用内部件`；本头第 8 行就引了它 -> 调用点改名指向我们那份）。
+      #   ⚠ 更正下面那条"借用的 -> 留英文"的旧注（就地废止，理由写在原处）。
+      '_Get_unwrapped' = '_取解包'
+      '_Adl_verify_range' = '_ADL校验范围'
+      '_Seek_wrapped' = '_定位包装'
       '_Uninitialized_move' = '_未初始化移动'
       '_Uninitialized_fill_n' = '_未初始化填充若干'
       '_Destroy_in_place' = '_就地析构'
@@ -2655,6 +2678,11 @@ $H = @{
       #   本头经 `内存内部件` 已能看到 `通用内部件` 的自由函数 `_就地构造`。
       '_Construct_in_place' = '_就地构造'
       '_Emplace_hint'     = '_按提示就地构造'
+      # §17.27.55 链名接通（第二批）：`_Destroy_in_place` 定义方是 `内存内部件`（本头直接引它），
+      #   `_Get_unwrapped`/`_Adl_verify_range` 定义方是 `通用内部件`（经 `内存内部件` 传递可见）。
+      '_Destroy_in_place' = '_就地析构'
+      '_Get_unwrapped' = '_取解包'
+      '_Adl_verify_range' = '_ADL校验范围'
       # ⚠ `_Extract` 【不登记】（§3.12 判据：同名另有一个主人）——
       #   本头正文里有 `std::_In_place_key_extract_set<...>::_Extract(...)`
       #   （那个类型借自 <xmemory>，它的成员名是 std 契约的一部分）。
@@ -2829,6 +2857,11 @@ $H = @{
       # ⚠ `_Extract` / `_Release` 【保守排除】：它们在借用类型上同名出现过（§3.12 同名两个主人）。
       # §17.27.54 本批接通 `_Construct_in_place`（定义方 = `通用内部件`，经 `链表` 传递可见）。
       '_Construct_in_place'      = '_就地构造'
+      # §17.27.55 链名接通（第二批）：`_Destroy_in_place` 定义方是 `内存内部件`（经 `链表` 传递可见），
+      #   `_Get_unwrapped`/`_Adl_verify_range` 定义方是 `通用内部件`（同一条链）。
+      '_Destroy_in_place'        = '_就地析构'
+      '_Get_unwrapped'           = '_取解包'
+      '_Adl_verify_range'        = '_ADL校验范围'
       '_Assign_grow'              = '_赋值扩容'
       '_Bump_erased'              = '_递增已擦除'
       '_Check_max_size'           = '_检查最大尺寸'
@@ -3049,6 +3082,11 @@ $H = @{
       '_Allocate_for_capacity' = '_按容量分配'
       # §17.27.54 链名接通：本头经 `内存内部件` 已能看到 `通用内部件` 的 `_就地构造`。
       '_Construct_in_place' = '_就地构造'
+      # §17.27.55 链名接通（第二批）：`_Destroy_in_place` 定义方 `内存内部件`；
+      #   `_Get_unwrapped`/`_Adl_verify_range` 定义方 `通用内部件`（同一条传递链）。
+      '_Destroy_in_place' = '_就地析构'
+      '_Get_unwrapped' = '_取解包'
+      '_Adl_verify_range' = '_ADL校验范围'
       '_Deallocate_for_capacity' = '_按容量释放'
       # ---- 容量与尺寸 ----
       'size' = '尺寸'; 'capacity' = '容量'

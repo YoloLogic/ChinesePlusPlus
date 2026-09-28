@@ -75,7 +75,7 @@ struct _任意小对象类型信息 { // Hand-rolled vtable for nontrivial types
 
     template <class _Ty>
     static void __CLRCALL_PURE_OR_CDECL _析构实现(void* const _Target) noexcept {
-        _Destroy_in_place(*static_cast<_Ty*>(_Target));
+        _就地析构(*static_cast<_Ty*>(_Target));
     }
 
     template <class _Ty>

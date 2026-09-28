@@ -693,9 +693,9 @@ public:
     template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
     _CONSTEXPR20 向量实现(_Iter _First, _Iter _Last, const _分配器& _Al = _分配器())
         : _Mypair(_One_then_variadic_args_t{}, _Al) {
-        _Adl_verify_range(_First, _Last);
-        auto _UFirst = _Get_unwrapped(_First);
-        auto _ULast  = _Get_unwrapped(_Last);
+        _ADL校验范围(_First, _Last);
+        auto _UFirst = _取解包(_First);
+        auto _ULast  = _取解包(_Last);
         if constexpr (_Is_cpp17_fwd_iter_v<_Iter>) {
             const auto _Length = static_cast<size_t>(_STD distance(_UFirst, _ULast));
             const auto _Count  = _STD _Convert_size<size_type>(_Length);
@@ -1274,9 +1274,9 @@ public:
             "向量实现 插入 iterator outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
-        _Adl_verify_range(_First, _Last);
-        auto _UFirst         = _Get_unwrapped(_First);
-        auto _ULast          = _Get_unwrapped(_Last);
+        _ADL校验范围(_First, _Last);
+        auto _UFirst         = _取解包(_First);
+        auto _ULast          = _取解包(_Last);
         const auto _Whereoff = static_cast<size_type>(_Whereptr - _Oldfirst);
         if constexpr (_Is_cpp17_fwd_iter_v<_Iter>) {
             const auto _Length = static_cast<size_t>(_STD distance(_UFirst, _ULast));
@@ -1484,9 +1484,9 @@ private:
 public:
     template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
     _CONSTEXPR20 void 赋值(_Iter _First, _Iter _Last) {
-        _Adl_verify_range(_First, _Last);
-        auto _UFirst = _Get_unwrapped(_First);
-        auto _ULast  = _Get_unwrapped(_Last);
+        _ADL校验范围(_First, _Last);
+        auto _UFirst = _取解包(_First);
+        auto _ULast  = _取解包(_Last);
         if constexpr (_Is_cpp17_fwd_iter_v<_Iter>) {
             const auto _Length = static_cast<size_t>(_STD distance(_UFirst, _ULast));
             const auto _Count  = _STD _Convert_size<size_type>(_Length);
@@ -3384,9 +3384,9 @@ public:
     template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
     _CONSTEXPR20 iterator 插入(const_iterator _Where, _Iter _First, _Iter _Last) {
         const difference_type _Saved_offset = _Where - 开始();
-        _Adl_verify_range(_First, _Last);
-        auto _UFirst      = _Get_unwrapped(_First);
-        const auto _ULast = _Get_unwrapped(_Last);
+        _ADL校验范围(_First, _Last);
+        auto _UFirst      = _取解包(_First);
+        const auto _ULast = _取解包(_Last);
 
         if constexpr (_Is_cpp17_fwd_iter_v<_Iter>) {
             const auto _Length = static_cast<size_t>(_STD distance(_UFirst, _ULast));
