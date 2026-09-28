@@ -3223,6 +3223,39 @@ $H = @{
       @('char_traits 就是 std 那一个（铁律③ 机器守卫）','#包含 <字符串视图内部件>`n#包含 <type_traits>`n静态断言(std::is_same_v<标准::细节::char_traits<字符>, std::char_traits<字符>>);`n静态断言(std::is_same_v<标准::细节::基础字符串视图<字符>::traits_type, std::char_traits<字符>>);`n整数 主函数(){ 返回 0; }')
     )
   }
+  'xutility' = @{
+    zh      = '通用内部件'
+    # 目标阶段(2)：Step 1 的最后一块（7630 行）。noPub -> 派生层不补英文，名字要逐批补全。
+    #   prologue：subrange 的【带默认值前置声明】在另一个头（__msvc_iter_core.hpp）里，
+    #   而定义在 <xutility>（三参无默认）—— 拷贝落在 标准::细节::ranges 后，推导指引找不到默认值，
+    #   会报『太少个模板实参』。这里按原件原样补一份前置声明。
+    noPub   = $true
+    realInclude = @('xutility')
+    prologue = "#ifndef ZH_SUBRANGE_FWD`n#define ZH_SUBRANGE_FWD`n名域 ranges { 模板 <input_or_output_iterator _It, sentinel_for<_It> _Se = _It, std::ranges::subrange_kind _Ki = sized_sentinel_for<_Se, _It> ? std::ranges::subrange_kind::sized : std::ranges::subrange_kind::unsized> requires (_Ki == std::ranges::subrange_kind::sized || !sized_sentinel_for<_Se, _It>) 类型 subrange; }`n#endif"
+    types   = [ordered]@{
+      '_Container_proxy' = '_容器代理'
+      '_Iterator_base12' = '_迭代器基类12'
+                          '_Construct_in_place' = '_就地构造'
+                          '_Adl_verify_range' = '_ADL校验范围'
+                          '_Unwrapped' = '_解包'
+                          '_Seek_to' = '_定位到'
+                          '_Verify_range' = '_校验范围'
+                          '_Move_unchecked' = '_移动非检查'
+                          '_Fill_memset' = '_填充内存'
+                          '_Copy_memmove' = '_内存复制移动'
+                          '_To_address' = '_取地址'
+                          '_Get_unwrapped' = '_取解包'
+                          }
+    members = [ordered]@{}
+    data    = [ordered]@{}
+    derive  = @()
+    stdHash = $false
+    tparam  = @{ decl = ''; args = '' }
+    tests = @(
+      @('只引中文头','#包含 <通用内部件>`n整数 主函数(){ 返回 0; }'),
+      @('内部自由函数真实可用','#包含 <通用内部件>`n整数 主函数(){ 整数 甲 = 0; 标准::细节::_取解包(甲); 返回 0; }')
+    )
+  }
   'scoped_allocator' = @{
     zh      = '作用域分配器'
     realInclude = @('scoped_allocator')   # §16.29「乙」
@@ -4462,3 +4495,4 @@ foreach ($c in $cases) {
 }
 Write-Host ("  {0} / {1}" -f $pass, $cases.Count)
 Remove-Item -Recurse -Force $t -ErrorAction SilentlyContinue
+
