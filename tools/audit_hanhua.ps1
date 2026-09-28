@@ -200,7 +200,13 @@ $memBoundary = @('length', 'assign', 'copy', 'compare', 'find', 'max_size', 'swa
                  #   与 §16.72 的 `_Mycnd` 同一类（目标文档把 xthreads.h 判为边界）。
                  '_Smtx_try_lock_exclusive', '_Smtx_try_lock_shared',
                  '_Smtx_lock_exclusive', '_Smtx_lock_shared',
-                 '_Smtx_unlock_exclusive', '_Smtx_unlock_shared')
+                 '_Smtx_unlock_exclusive', '_Smtx_unlock_shared',
+                 # ---- §17.7 逐行看出来的**借用的 std 自由函数** ----
+                 #   `<集合>`/`<映射>` 正文里只有 `_STD _Erase_nodes_if(_Cont, ...)` 这种调用
+                 #   （std 的自由函数，定义在我们没抄的 <xutility> 一侧）——不是我们的名字。
+                 #   ⚠ 也正因为它是 `_STD X(...)` 这种**限定调用**，"谁定义它"的粗筛正则
+                 #     会把 `return _STD ` 当成返回类型而误判成"本头定义"（§17.6.1 的另一面）。
+                 '_Erase_nodes_if')
 function Get-NestedNames([string] $text) {    $names = @{}
     foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+using\s+([A-Za-z_]\w*)\s*=')) { $names[$m.Groups[1].Value] = $true }
     foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+typedef\s+[^;\r\n]*?\b([A-Za-z_]\w*)\s*;')) { $names[$m.Groups[1].Value] = $true }
