@@ -66,6 +66,16 @@ $H = @{
     # §3.7.2 销账：<mutex> 正文包含 <xcall_once.h>，这里指向我们自己的汉语内部件，
     # 于是只用 <互斥量> 就能拿到 标准::一次标志 与 标准::一次调用。
     zhIncludes = @{ 'xcall_once.h' = '调用一次' }
+      # §17.27 本头**自己定义**的内部助手（§16.79 要求与 <共享互斥量> 译名统一）
+      '_Lock' = '_加锁'
+      '_Validate' = '_校验'
+      '_Mymtx' = '_我的互斥量'
+      '_Register' = '_注册'
+      '_Unregister' = '_注销'
+      '_Try_lock_range' = '_尝试加锁范围'
+      '_Try_lock1' = '_尝试加锁1'
+      '_Verify_ownership_levels' = '_校验所有权层级'
+      # ⚠ 不登记 <xthreads.h> 的 C 函数（_Mtx_trylock / _Mtx_init_in_situ 等）
     members = [ordered]@{
       'lock' = '加锁'; 'unlock' = '解锁'; 'try_lock' = '尝试加锁'
       'try_lock_for' = '限时加锁'; 'try_lock_until' = '加锁至时刻'
