@@ -8,7 +8,7 @@
 #define _ZH_DEQUE_
 #include <yvals_core.h>
 #if _STL_COMPILER_PREPROCESSOR
-#include <xmemory>
+#include <内存内部件>
 
 #if _HAS_CXX17
 #include <xpolymorphic_allocator.h>
@@ -40,7 +40,7 @@ public:
 
     _双端队列非检查常量迭代器() noexcept : _Mycont(), _Myoff(0) {}
 
-    _双端队列非检查常量迭代器(_尺寸类型 _Off, const _Container_base12* _Pdeque) noexcept
+    _双端队列非检查常量迭代器(_尺寸类型 _Off, const _容器基类12* _Pdeque) noexcept
         : _Mycont(static_cast<const _我的双端队列*>(_Pdeque)), _Myoff(_Off) {}
 
     _NODISCARD reference operator*() const noexcept {
@@ -139,7 +139,7 @@ public:
     }
 #endif // ^^^ !_HAS_CXX20 ^^^
 
-    const _Container_base12* _Getcont() const noexcept { // get container pointer
+    const _容器基类12* _取容器() const noexcept { // get container pointer
         return _Mycont;
     }
 
@@ -231,7 +231,7 @@ public:
 };
 
 template <class _我的双端队列>
-class _双端队列常量迭代器 : public _Iterator_base12 {
+class _双端队列常量迭代器 : public _迭代器基类12 {
 private:
     using _尺寸类型 = typename _我的双端队列::size_type;
 
@@ -251,12 +251,12 @@ public:
         _设置容器(nullptr);
     }
 
-    _双端队列常量迭代器(_尺寸类型 _Off, const _Container_base12* _Pdeque) noexcept : _Myoff(_Off) {
+    _双端队列常量迭代器(_尺寸类型 _Off, const _容器基类12* _Pdeque) noexcept : _Myoff(_Off) {
         _设置容器(static_cast<const _我的双端队列*>(_Pdeque));
     }
 
     _NODISCARD reference operator*() const noexcept {
-        const auto _Mycont = static_cast<const _我的双端队列*>(this->_Getcont());
+        const auto _Mycont = static_cast<const _我的双端队列*>(this->_取容器());
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(_Mycont, "cannot dereference value-initialized 双端队列实现 iterator");
         _STL_VERIFY(_Mycont->_Myoff <= this->_Myoff && this->_Myoff < _Mycont->_Myoff + _Mycont->_Mysize,
@@ -272,7 +272,7 @@ public:
 
     _双端队列常量迭代器& operator++() noexcept {
 #if _ITERATOR_DEBUG_LEVEL != 0
-        const auto _Mycont = static_cast<const _我的双端队列*>(this->_Getcont());
+        const auto _Mycont = static_cast<const _我的双端队列*>(this->_取容器());
         _STL_VERIFY(_Mycont, "cannot increment value-initialized 双端队列实现 iterator");
         _STL_VERIFY(this->_Myoff < _Mycont->_Myoff + _Mycont->_Mysize, "cannot increment 双端队列实现 iterator past 结束");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
@@ -289,7 +289,7 @@ public:
 
     _双端队列常量迭代器& operator--() noexcept {
 #if _ITERATOR_DEBUG_LEVEL != 0
-        const auto _Mycont = static_cast<const _我的双端队列*>(this->_Getcont());
+        const auto _Mycont = static_cast<const _我的双端队列*>(this->_取容器());
         _STL_VERIFY(_Mycont, "cannot decrement value-initialized 双端队列实现 iterator");
         _STL_VERIFY(_Mycont->_Myoff < this->_Myoff, "cannot decrement 双端队列实现 iterator before 开始");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
@@ -307,7 +307,7 @@ public:
     _双端队列常量迭代器& operator+=(const difference_type _Off) noexcept {
 #if _ITERATOR_DEBUG_LEVEL != 0
         if (_Off != 0) {
-            const auto _Mycont = static_cast<const _我的双端队列*>(this->_Getcont());
+            const auto _Mycont = static_cast<const _我的双端队列*>(this->_取容器());
             _STL_VERIFY(_Mycont, "cannot seek value-initialized 双端队列实现 iterator");
             _STL_VERIFY(
                 _Mycont->_Myoff <= this->_Myoff + _Off && this->_Myoff + _Off <= _Mycont->_Myoff + _Mycont->_Mysize,
@@ -387,18 +387,18 @@ public:
 #if _ITERATOR_DEBUG_LEVEL == 0
         (void) _Right;
 #else
-        _STL_VERIFY(this->_Getcont() == _Right._Getcont(), "双端队列实现 iterators incompatible");
+        _STL_VERIFY(this->_取容器() == _Right._取容器(), "双端队列实现 iterators incompatible");
 #endif
     }
 
     void _设置容器(const _我的双端队列* _Pdeque) noexcept { // set container pointer
-        this->_Adopt(_Pdeque);
+        this->_收养(_Pdeque);
     }
 
     using _阻止继承解包 = _双端队列常量迭代器;
 
     _NODISCARD _双端队列非检查常量迭代器<_我的双端队列> _Unwrapped() const noexcept {
-        return {this->_Myoff, this->_Getcont()};
+        return {this->_Myoff, this->_取容器()};
     }
 
     void _Verify_offset(const difference_type _Off) const noexcept {
@@ -406,7 +406,7 @@ public:
         (void) _Off;
 #else // ^^^ _ITERATOR_DEBUG_LEVEL == 0 / _ITERATOR_DEBUG_LEVEL != 0 vvv
         if (_Off != 0) {
-            const auto _Mycont = static_cast<const _我的双端队列*>(this->_Getcont());
+            const auto _Mycont = static_cast<const _我的双端队列*>(this->_取容器());
             _STL_VERIFY(_Mycont, "cannot use value-initialized 双端队列实现 iterator");
             _STL_VERIFY(
                 _Mycont->_Myoff <= this->_Myoff + _Off && this->_Myoff + _Off <= _Mycont->_Myoff + _Mycont->_Mysize,
@@ -511,7 +511,7 @@ public:
     using _阻止继承解包 = _双端队列迭代器;
 
     _NODISCARD _双端队列非检查迭代器<_我的双端队列> _Unwrapped() const noexcept {
-        return {this->_Myoff, this->_Getcont()};
+        return {this->_Myoff, this->_取容器()};
     }
 };
 
@@ -532,7 +532,7 @@ struct _双端队列简单类型集 : _Simple_types<_Ty> {
 };
 
 template <class _值类型集>
-class _双端队列值 : public _Container_base12 {
+class _双端队列值 : public _容器基类12 {
 public:
     using value_type      = typename _值类型集::value_type;
     using size_type       = typename _值类型集::size_type;
@@ -589,7 +589,7 @@ public:
     value_type* _取下标地址(size_type _Off) noexcept {
         const auto _Block     = _取块(_Off);
         const auto _Block_off = static_cast<difference_type>(_Off % _Block_size);
-        return _Unfancy(_映射表[_Block] + _Block_off);
+        return _去花式(_映射表[_Block] + _Block_off);
     }
 
     _映射指针 _映射表; // pointer to array of pointers to blocks
@@ -612,7 +612,7 @@ private:
     using _代理分配器        = _Rebind_alloc_t<_Alloc, typename _分配器特征::pointer>;
     using _代理分配器特征 = allocator_traits<_代理分配器>;
     using _映射指针       = typename _代理分配器特征::pointer;
-    using _代理分配器类型   = _Rebind_alloc_t<_分配器类型, _Container_proxy>;
+    using _代理分配器类型   = _Rebind_alloc_t<_分配器类型, _容器代理>;
 
     using _映射差异类型 = typename iterator_traits<_映射指针>::difference_type;
 
@@ -643,11 +643,11 @@ public:
     enum { _EEN_DS = _Block_size }; // helper for expression evaluator
 
     双端队列实现() : _Mypair(_Zero_then_variadic_args_t{}) {
-        _取数据()._Alloc_proxy(static_cast<_代理分配器类型>(_Getal()));
+        _取数据()._分配代理(static_cast<_代理分配器类型>(_Getal()));
     }
 
     explicit 双端队列实现(const _Alloc& _Al) : _Mypair(_One_then_variadic_args_t{}, _Al) {
-        _取数据()._Alloc_proxy(static_cast<_代理分配器类型>(_Getal()));
+        _取数据()._分配代理(static_cast<_代理分配器类型>(_Getal()));
     }
 
     explicit 双端队列实现(_CRT_GUARDOVERFLOW size_type _Count, const _Alloc& _Al = _Alloc())
@@ -704,7 +704,7 @@ public:
     }
 
     双端队列实现(双端队列实现&& _Right) : _Mypair(_One_then_variadic_args_t{}, _STD move(_Right._Getal())) {
-        _取数据()._Alloc_proxy(static_cast<_代理分配器类型>(_Getal()));
+        _取数据()._分配代理(static_cast<_代理分配器类型>(_Getal()));
         _Take_contents(_Right);
     }
 
@@ -717,7 +717,7 @@ public:
             }
         }
 
-        _取数据()._Alloc_proxy(static_cast<_代理分配器类型>(_Getal()));
+        _取数据()._分配代理(static_cast<_代理分配器类型>(_Getal()));
         _Take_contents(_Right);
     }
 
@@ -759,7 +759,7 @@ private:
         // pre: _Getal() == _Right._Getal()
         auto& _My_data    = _取数据();
         auto& _Right_data = _Right._取数据();
-        _My_data._Swap_proxy_and_iterators(_Right_data);
+        _My_data._交换代理与迭代器(_Right_data);
         _My_data._映射表     = _Right_data._映射表;
         _My_data._映射表尺寸 = _Right_data._映射表尺寸;
         _My_data._Myoff   = _Right_data._Myoff;
@@ -775,7 +775,7 @@ public:
     ~双端队列实现() noexcept {
         _Tidy();
         _代理分配器类型 _Proxy_allocator(_Getal());
-        _Delete_plain_internal(_Proxy_allocator, _STD exchange(_取数据()._Myproxy, nullptr));
+        _删除原生内部(_Proxy_allocator, _STD exchange(_取数据()._Myproxy, nullptr));
     }
 
     双端队列实现& operator=(const 双端队列实现& _Right) {
@@ -788,7 +788,7 @@ public:
         if constexpr (_Choose_pocca_v<_分配器类型>) {
             if (_Al != _Right_al) {
                 _Tidy();
-                _取数据()._Reload_proxy(static_cast<_代理分配器类型>(_Al), static_cast<_代理分配器类型>(_Right_al));
+                _取数据()._重载代理(static_cast<_代理分配器类型>(_Al), static_cast<_代理分配器类型>(_Right_al));
             }
         }
 
@@ -810,10 +810,10 @@ public:
             if (_Al != _Right_al) {
                 _代理分配器类型 _Alproxy(_Al);
                 _代理分配器类型 _Right_alproxy(_Right_al);
-                _Container_proxy_ptr12<_代理分配器类型> _Proxy(_Right_alproxy, _Leave_proxy_unbound{});
+                _Container_proxy_ptr12<_代理分配器类型> _Proxy(_Right_alproxy, _离开代理未绑定{});
                 _Tidy();
                 _Pocma(_Al, _Right_al);
-                _Proxy._Bind(_Alproxy, _STD addressof(_取数据()));
+                _Proxy._绑定(_Alproxy, _STD addressof(_取数据()));
                 _Take_contents(_Right);
                 return *this;
             }
@@ -853,7 +853,7 @@ public:
 #endif // _HAS_CXX23
 
     void 赋值(_CRT_GUARDOVERFLOW size_type _Count, const _Ty& _Val) { // 赋值 _Count * _Val
-        _Orphan_all();
+        _孤儿化全部();
         auto _Myfirst       = _Unchecked_begin();
         const auto _Oldsize = _Mysize();
         auto _Assign_count  = (_STD min)(_Count, _Oldsize);
@@ -881,7 +881,7 @@ public:
 private:
     template <class _Iter, class _Sent>
     void _赋值范围(_Iter _First, const _Sent _Last) {
-        _Orphan_all();
+        _孤儿化全部();
         auto _Myfirst      = _Unchecked_begin();
         const auto _Mylast = _Unchecked_end();
         // Reuse existing elements
@@ -982,7 +982,7 @@ public:
     }
 
     void 调整尺寸(_CRT_GUARDOVERFLOW size_type _Newsize) {
-        _Orphan_all();
+        _孤儿化全部();
         while (_Mysize() < _Newsize) {
             _尾部就地构造内部();
         }
@@ -993,7 +993,7 @@ public:
     }
 
     void 调整尺寸(_CRT_GUARDOVERFLOW size_type _Newsize, const _Ty& _Val) {
-        _Orphan_all();
+        _孤儿化全部();
         while (_Mysize() < _Newsize) {
             _尾部就地构造内部(_Val);
         }
@@ -1052,7 +1052,7 @@ public:
         _代理分配器 _Almap(_Getal());
         const auto _New_map = _Almap.allocate(_New_block_count);
 
-        _Orphan_all(); // the map can be shrunk, invalidate all iterators
+        _孤儿化全部(); // the map can be shrunk, invalidate all iterators
 
         // transfer the ownership of blocks to pointers in the new map
         for (size_type _Block = 0; _Block != _Used_block_count; ++_Block) {
@@ -1067,7 +1067,7 @@ public:
 
         for (auto _Block = _映射表距离(); _Block > 0;) {
             --_Block;
-            _Destroy_in_place(_映射表()[_Block]); // destroy pointer to block
+            _就地析构(_映射表()[_Block]); // destroy pointer to block
         }
         _Almap.deallocate(_映射表(), _映射表尺寸()); // free storage for map
 
@@ -1179,7 +1179,7 @@ private:
 public:
     template <class... _Valty>
     _CONTAINER_EMPLACE_RETURN 头部就地构造(_Valty&&... _Val) {
-        _Orphan_all();
+        _孤儿化全部();
         _首部就地构造内部(_STD forward<_Valty>(_Val)...);
 #if _HAS_CXX17
         return 前();
@@ -1188,7 +1188,7 @@ public:
 
     template <class... _Valty>
     _CONTAINER_EMPLACE_RETURN 尾部就地构造(_Valty&&... _Val) {
-        _Orphan_all();
+        _孤儿化全部();
         _尾部就地构造内部(_STD forward<_Valty>(_Val)...);
 
 #if _HAS_CXX17
@@ -1204,7 +1204,7 @@ public:
         _STL_VERIFY(_Off <= _Mysize(), "双端队列实现 就地构造 iterator outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
-        _Orphan_all();
+        _孤儿化全部();
         if (_Off == 0) { // 取值 the beginning
             _首部就地构造内部(_STD forward<_Valty>(_Val)...);
         } else if (_Off == _Mysize()) { // 取值 the 结束
@@ -1237,29 +1237,29 @@ public:
     }
 
     void 头插(const _Ty& _Val) {
-        _Orphan_all();
+        _孤儿化全部();
         _首部就地构造内部(_Val);
     }
 
     void 头插(_Ty&& _Val) {
-        _Orphan_all();
+        _孤儿化全部();
         _首部就地构造内部(_STD move(_Val));
     }
 
     void 尾插(const _Ty& _Val) {
-        _Orphan_all();
+        _孤儿化全部();
         _尾部就地构造内部(_Val);
     }
 
     void 尾插(_Ty&& _Val) {
-        _Orphan_all();
+        _孤儿化全部();
         _尾部就地构造内部(_STD move(_Val));
     }
 
 #if _HAS_CXX23
     template <_Container_compatible_range<_Ty> _Rng>
     void 前置范围(_Rng&& _Range) {
-        _Orphan_all();
+        _孤儿化全部();
 
         const auto _Oldsize = _Mysize();
         _恢复原尺寸守卫<_弹出方向::_Front> _Guard{this, _Oldsize};
@@ -1284,7 +1284,7 @@ public:
 
     template <_Container_compatible_range<_Ty> _Rng>
     void 追加范围(_Rng&& _Range) {
-        _Orphan_all();
+        _孤儿化全部();
 
         const auto _Oldsize = _Mysize();
         auto _UFirst        = _RANGES _Ubegin(_Range);
@@ -1382,7 +1382,7 @@ private:
 
         const size_type _Oldsize = _Mysize();
 
-        _Orphan_all();
+        _孤儿化全部();
         if (_Off <= _Oldsize / 2) { // closer to 前, push to 前 then rotate
             _恢复原尺寸守卫<_弹出方向::_Front> _Guard{this, _Oldsize};
             if constexpr (_Bidi == _是双向::_Yes) {
@@ -1460,7 +1460,7 @@ private:
         } else { // closer to 后
             _恢复原尺寸守卫<_弹出方向::_Back> _Guard{this, _Oldsize};
             if (_Rem < _Count) { // 插入 longer than suffix
-                _Orphan_all();
+                _孤儿化全部();
                 for (_Num = _Count - _Rem; _Num > 0; --_Num) {
                     _尾部就地构造内部(_Val); // push excess values
                 }
@@ -1559,7 +1559,7 @@ public:
 
 #if _ITERATOR_DEBUG_LEVEL == 2
         if (_Moved) {
-            _Orphan_all();
+            _孤儿化全部();
         }
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
@@ -1584,7 +1584,7 @@ public:
             _Pocs(_Getal(), _Right._Getal());
             auto& _My_data    = _取数据();
             auto& _Right_data = _Right._取数据();
-            _My_data._Swap_proxy_and_iterators(_Right_data);
+            _My_data._交换代理与迭代器(_Right_data);
             swap(_My_data._映射表, _Right_data._映射表); // intentional ADL
             _STD swap(_My_data._映射表尺寸, _Right_data._映射表尺寸);
             _STD swap(_My_data._Myoff, _Right_data._Myoff);
@@ -1619,7 +1619,7 @@ private:
 
         const auto _Myboff  = static_cast<size_type>(_Myoff() / _Block_size);
         const auto _Map_off = static_cast<_映射差异类型>(_Myboff);
-        _映射指针 _Newmap     = _Allocate_at_least_helper(_Almap, _Allocsize);
+        _映射指针 _Newmap     = _分配至少助手(_Almap, _Allocsize);
         _映射指针 _Myptr      = _Newmap + _Map_off;
         _STL_ASSERT(_Allocsize >= _Newsize, "_Allocsize >= _Newsize");
         while (_Newsize <= _Allocsize / 2) {
@@ -1642,7 +1642,7 @@ private:
         }
 
         if (_映射表() != nullptr) {
-            _Destroy_range(_映射表(), _映射表() + _映射表距离());
+            _析构范围(_映射表(), _映射表() + _映射表距离());
             _Almap.deallocate(_映射表(), _映射表尺寸()); // free storage for old
         }
 
@@ -1659,7 +1659,7 @@ private:
             if (_Block_ptr) { // free block
                 _Getal().deallocate(_Block_ptr, _Block_size);
             }
-            _Destroy_in_place(_Block_ptr); // destroy pointer to block
+            _就地析构(_Block_ptr); // destroy pointer to block
         }
 
         _代理分配器 _Almap(_Getal());
@@ -1670,7 +1670,7 @@ private:
     }
 
     void _Tidy() noexcept { // free all storage
-        _Orphan_all();
+        _孤儿化全部();
 
         while (!为空()) {
             尾删();
@@ -1691,7 +1691,7 @@ private:
         }
 
         _Lockit _Lock(_LOCK_DEBUG);
-        _Iterator_base12** _Pnext = &_取数据()._Myproxy->_Myfirstiter;
+        _迭代器基类12** _Pnext = &_取数据()._Myproxy->_Myfirstiter;
         while (*_Pnext) {
             const auto _Pnextoff = static_cast<const_iterator&>(**_Pnext)._Myoff;
             if (_Pnextoff < _Offlo || _Offhigh < _Pnextoff) {
@@ -1708,8 +1708,8 @@ private:
         return _取数据()._取块(_Off);
     }
 
-    void _Orphan_all() noexcept {
-        _取数据()._Orphan_all();
+    void _孤儿化全部() noexcept {
+        _取数据()._孤儿化全部();
     }
 
     _分配器类型& _Getal() noexcept {
@@ -1834,12 +1834,12 @@ _NODISCARD bool operator>=(const 双端队列实现<_Ty, _Alloc>& _Left, const �
 #if _HAS_CXX20
 _EXPORT_STD template <class _Ty, class _Alloc, class _Uty>
 双端队列实现<_Ty, _Alloc>::size_type 擦除(双端队列实现<_Ty, _Alloc>& _Cont, const _Uty& _Val) {
-    return _Erase_remove(_Cont, _Val);
+    return _擦除并移除(_Cont, _Val);
 }
 
 _EXPORT_STD template <class _Ty, class _Alloc, class _Pr>
 双端队列实现<_Ty, _Alloc>::size_type erase_if(双端队列实现<_Ty, _Alloc>& _Cont, _Pr _Pred) {
-    return _Erase_remove_if(_Cont, _STD _Pass_fn(_Pred));
+    return _按条件擦除并移除(_Cont, _STD _Pass_fn(_Pred));
 }
 #endif // _HAS_CXX20
 
@@ -1928,5 +1928,21 @@ _STL_RESTORE_CLANG_WARNINGS
     模板 <类型名... 参数> 声明类型(自动) 最大尺寸(参数&&... 值) 常量 { 返回 基类::max_size(static_cast<参数&&>(值)...); }
 };
 }
+
+名域 标准 { 名域 细节 {
+
+使用 _Container_base12    = _容器基类12;
+使用 _Container_base0     = _容器基类0;
+使用 _Container_base      = _容器基类;
+使用 _Container_proxy     = _容器代理;
+模板 <类型名 分配器参数> 使用 _Container_proxy_ptr = _容器代理指针<分配器参数>;
+使用 _Iterator_base12     = _迭代器基类12;
+使用 _Iterator_base0      = _迭代器基类0;
+使用 _Iterator_base       = _迭代器基类;
+使用 _Fake_proxy_ptr_impl = _假代理指针实现;
+使用 _Fake_allocator      = _假分配器;
+
+} }  // 名域 标准::细节
+
 
 #endif // _DEQUE_

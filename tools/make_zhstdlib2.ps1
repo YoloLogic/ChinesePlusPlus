@@ -939,6 +939,10 @@ $H = @{
     zh      = '双端队列'
     realInclude = @('deque')   # §16.29「乙」
     types   = [ordered]@{ 'deque' = '双端队列实现'
+      '_Container_base12' = '_容器基类12'
+      '_Iterator_base12' = '_迭代器基类12'
+      '_Leave_proxy_unbound' = '_离开代理未绑定'
+      '_Container_proxy' = '_容器代理'
                           # ⚠ 2026-09-28 更正（§16.34）：这里原来写
                           #   "故意不改名：它们是内部件，跟着派生一起继承即可（§2.2.1 的"内部件暂不翻"）"
                           #   —— 两处都错：
@@ -971,6 +975,20 @@ $H = @{
                           '_Is_bidi'              = '_是双向'
                           '_Pop_direction'        = '_弹出方向' }
     members = [ordered]@{
+      '_Adopt' = '_收养'
+      '_Allocate_at_least_helper' = '_分配至少助手'
+      '_Bind' = '_绑定'
+      '_Delete_plain_internal' = '_删除原生内部'
+      '_Destroy_in_place' = '_就地析构'
+      '_Destroy_range' = '_析构范围'
+      '_Erase_remove' = '_擦除并移除'
+      '_Erase_remove_if' = '_按条件擦除并移除'
+      '_Reload_proxy' = '_重载代理'
+      '_Unfancy' = '_去花式'
+      '_Orphan_all' = '_孤儿化全部'
+      '_Getcont' = '_取容器'
+      '_Swap_proxy_and_iterators' = '_交换代理与迭代器'
+      '_Alloc_proxy' = '_分配代理'
       '_Erase_last_n' = '_擦除末尾若干'
       '_Getblock' = '_取块'
       '_Mapsize' = '_映射表尺寸'
@@ -1004,6 +1022,7 @@ $H = @{
       'assign_range' = '范围赋值'; 'insert_range' = '范围插入'
       # ⚠ swap 照旧不改名（§3.12）
     }
+    zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
     derive  = @( @('size','尺寸'), @('empty','为空'),
                  @('begin','开始'), @('end','结束'),
@@ -1021,6 +1040,24 @@ $H = @{
                      @('值类型','value_type'), @('尺寸类型','size_type') )
     stdHash = $false
     tparam  = @{ decl = '模板 <类型名 元素, 类型名 分配器 = std::allocator<元素>>'; args = '<元素, 分配器>' }
+    extra = @'
+
+名域 标准 { 名域 细节 {
+
+使用 _Container_base12    = _容器基类12;
+使用 _Container_base0     = _容器基类0;
+使用 _Container_base      = _容器基类;
+使用 _Container_proxy     = _容器代理;
+模板 <类型名 分配器参数> 使用 _Container_proxy_ptr = _容器代理指针<分配器参数>;
+使用 _Iterator_base12     = _迭代器基类12;
+使用 _Iterator_base0      = _迭代器基类0;
+使用 _Iterator_base       = _迭代器基类;
+使用 _Fake_proxy_ptr_impl = _假代理指针实现;
+使用 _Fake_allocator      = _假分配器;
+
+} }  // 名域 标准::细节
+
+'@
     tests = @(
       @('只引中文头','#包含 <双端队列>`n整数 主函数(){ 标准::双端队列<整数> 甲; 甲.尾插(1); 甲.头插(0); 甲.尾部就地构造(2); 返回 甲.取值(0) + (整数)甲.尺寸() - 3; }'),
       @('与微软原头并存','#包含 <双端队列>`n#包含 <deque>`n整数 主函数(){ 标准::双端队列<整数> 甲; 甲.push_back(1); std::deque<int> 乙; 乙.push_back(1); 返回 (整数)甲.尺寸() - (整数)乙.size(); }'),
