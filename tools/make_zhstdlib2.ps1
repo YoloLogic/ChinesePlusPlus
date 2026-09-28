@@ -419,6 +419,17 @@ $H = @{
                           # §16.27：自有内部件也要翻（长名、无二义，不是边界）
                           '_Buffer_for_bitset' = '_位缓冲' }
     members = [ordered]@{
+      # §17.25 本头**自己定义**的内部助手 -> 翻（译名与既有口径一致，守卫强制）
+      '_Flip_unchecked' = '_翻转非检查'
+      '_Getword' = '_取字'
+      '_Set_unchecked' = '_置位非检查'
+      '_Subscript' = '_下标'
+      '_To_string' = '_转字符串'
+      '_Trim' = '_修剪'
+      '_Xinv' = '_抛无效参数'
+      '_Xoflo' = '_抛溢出'
+      '_Xran' = '_抛范围错'
+      # ⚠ 不登记（借来的/契约名）：_Allocate _Hash_representation _Ok reference
       'set' = '置位'; 'reset' = '复位'; 'flip' = '翻转'; 'test' = '测试'
       'count' = '计数'; 'size' = '尺寸'
       'all' = '全为真'; 'any' = '有真'; 'none' = '全为假'
