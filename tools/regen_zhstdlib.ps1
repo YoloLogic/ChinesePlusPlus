@@ -52,6 +52,24 @@ $jobs = @(
 
 $fail = 0
 # 生成器告警台账 + 「乙」探针计数（见循环里的说明：这两样原先都被本脚本吞掉）
+# ---------------------------------------------------------------------------
+#  §17.27.72 **两遍法**：第一遍只把全部产品刷到最新（不计失败），第二遍才逐条目测试并判定。
+#
+#  为什么（round 18 实测，直接证据）：逐条目生成+测试是【顺序敏感】的 ——
+#  排序在前的条目（unordered_map/unordered_set）会拿**旧的**依赖产品（哈希内部件）去测，
+#  于是同一个改动"全量跑是红、单独跑（依赖已刷新）是绿"，甚至能提交出"下一遍自己会拒绝"的状态。
+#  判据：**生成与判定必须分成两遍** —— 先让全部产品落盘，再谈通过与否。
+#  代价：regen 时间约翻倍（可接受：宁可慢，也不能让判定依赖磁盘旧状态）。
+# ---------------------------------------------------------------------------
+$preCount = 0
+foreach ($j in $jobs) {
+    if ($j.Once) { continue }
+    foreach ($h in @($j.Entries | Where-Object { $Exclude -notcontains $_ } | Sort-Object)) {
+        & pwsh -NoProfile -File (Join-Path $root "tools\$($j.Script)") -Header $h *> $null
+        $preCount++
+    }
+}
+Write-Host ("=== 预热第一遍（只落盘、不判定）：{0} 个表项 ===" -f $preCount) -ForegroundColor DarkGray
 $warnTotal = 0
 $warnRows = @()
 $riOk = 0

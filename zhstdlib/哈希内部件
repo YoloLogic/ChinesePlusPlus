@@ -254,13 +254,13 @@ struct _哈希向量 {
         _Vec_iter_types<value_type, size_type, difference_type, pointer, typename _分配器迭代器特征::const_pointer>>>;
 
     _哈希向量() : _Mypair(_Zero_then_variadic_args_t{}) {
-        _Mypair._Myval2._Alloc_proxy(_取代理分配器(_分配器迭代器, _Mypair._Get_first()));
+        _Mypair._Myval2._Alloc_proxy(_GET_PROXY_ALLOCATOR(_分配器迭代器, _Mypair._Get_first()));
     }
 
     template <class _Any_alloc, enable_if_t<!is_same_v<_Remove_cvref_t<_Any_alloc>, _哈希向量>, int> = 0>
     explicit _哈希向量(_Any_alloc&& _Al) noexcept
         : _Mypair(_One_then_variadic_args_t{}, _STD forward<_Any_alloc>(_Al)) { // construct 为空 vector, allocator
-        _Mypair._Myval2._Alloc_proxy(_取代理分配器(_分配器迭代器, _Mypair._Get_first()));
+        _Mypair._Myval2._Alloc_proxy(_GET_PROXY_ALLOCATOR(_分配器迭代器, _Mypair._Get_first()));
     }
 
     _哈希向量(const _哈希向量&)            = delete;
@@ -318,7 +318,7 @@ struct _哈希向量 {
     ~_哈希向量() {
         _清理();
 #if _ITERATOR_DEBUG_LEVEL != 0
-        auto&& _Alproxy = _取代理分配器(_分配器迭代器, _Mypair._Get_first());
+        auto&& _Alproxy = _GET_PROXY_ALLOCATOR(_分配器迭代器, _Mypair._Get_first());
         _Delete_plain_internal(_Alproxy, _STD exchange(_Mypair._Myval2._Myproxy, nullptr));
 #endif // _ITERATOR_DEBUG_LEVEL != 0
     }
@@ -525,10 +525,10 @@ public:
         if constexpr (_Pocma_val == _Pocma_values::_Propagate_allocators) {
             if (_Al != _Right_al) {
                 // allocate all the parts necessary to maintain _哈希 invariants using _Right's allocator
-                auto&& _Alproxy       = _取代理分配器(_结点分配器, _Al);
-                auto&& _Right_alproxy = _取代理分配器(_结点分配器, _Right_al);
-                _容器代理指针<_结点分配器> _List_proxy(_Right_alproxy, _离开代理未绑定{});
-                _容器代理指针<_结点分配器> _Vec_proxy(_Right_alproxy, _离开代理未绑定{});
+                auto&& _Alproxy       = _GET_PROXY_ALLOCATOR(_结点分配器, _Al);
+                auto&& _Right_alproxy = _GET_PROXY_ALLOCATOR(_结点分配器, _Right_al);
+                _Container_proxy_ptr<_结点分配器> _List_proxy(_Right_alproxy, _Leave_proxy_unbound{});
+                _Container_proxy_ptr<_结点分配器> _Vec_proxy(_Right_alproxy, _Leave_proxy_unbound{});
                 _链表头构造指针<_结点分配器> _Newhead(_Right_al);
                 _最小桶数构造指针 _Buckets(_Right._Vec._Mypair._Get_first());
 
@@ -548,7 +548,7 @@ public:
                 auto& _Right_list_data = _Right._List._Mypair._Myval2;
                 _List_data._Myhead     = _STD exchange(_Right_list_data._Myhead, _Newhead._Release());
                 _List_data._Mysize     = _STD exchange(_Right_list_data._Mysize, size_type{0});
-                _List_proxy._绑定(_Alproxy, _STD addressof(_List_data));
+                _List_proxy._Bind(_Alproxy, _STD addressof(_List_data));
                 _List_data._Swap_proxy_and_iterators(_Right_list_data);
 
                 // assign the _Min_buckets into _Right's _Vec data and take _Right's _Vec data
@@ -561,7 +561,7 @@ public:
                 _Vec_data._Myfirst = _STD exchange(_Right_vec_data._Myfirst, _Newfirst);
                 _Vec_data._Mylast  = _STD exchange(_Right_vec_data._Mylast, _Newlast);
                 _Vec_data._Myend   = _STD exchange(_Right_vec_data._Myend, _Newlast);
-                _Vec_proxy._绑定(_Alproxy, _STD addressof(_Vec_data));
+                _Vec_proxy._Bind(_Alproxy, _STD addressof(_Vec_data));
                 _Vec_data._Swap_proxy_and_iterators(_Right_vec_data);
 
                 // give _Right the default _Mask and _Maxidx values and take its former values
@@ -760,13 +760,13 @@ public:
             auto& _Al             = _取分配器();
             const auto& _Right_al = _Right._取分配器();
             if (_Al != _Right_al) {
-                auto&& _Alproxy       = _取代理分配器(_结点分配器, _Al);
-                auto&& _Right_alproxy = _取代理分配器(_结点分配器, _Right_al);
-                _容器代理指针<_结点分配器> _Vec_proxy(_Right_alproxy, _离开代理未绑定{});
+                auto&& _Alproxy       = _GET_PROXY_ALLOCATOR(_结点分配器, _Al);
+                auto&& _Right_alproxy = _GET_PROXY_ALLOCATOR(_结点分配器, _Right_al);
+                _Container_proxy_ptr<_结点分配器> _Vec_proxy(_Right_alproxy, _Leave_proxy_unbound{});
                 _List._Reload_sentinel_and_proxy(_Right._List);
                 _Vec._清理();
                 _传播复制赋值两者(_Right);
-                _Vec_proxy._绑定(_Alproxy, _STD addressof(_Vec._Mypair._Myval2));
+                _Vec_proxy._Bind(_Alproxy, _STD addressof(_Vec._Mypair._Myval2));
 
                 _清空守卫 _Guard{this};
                 _Traitsobj = _Right._Traitsobj;
