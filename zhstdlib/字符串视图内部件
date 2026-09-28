@@ -11,7 +11,7 @@
 #include <yvals_core.h>
 #if _STL_COMPILER_PREPROCESSOR
 #include <iosfwd>
-#include <xutility>
+#include <通用内部件>
 
 #pragma pack(push, _CRT_PACKING)
 #pragma warning(push, _STL_WARNING_LEVEL)
@@ -1165,7 +1165,7 @@ public:
 #endif // !_HAS_CXX20
 
 #if _ITERATOR_DEBUG_LEVEL >= 1
-    friend constexpr void _Verify_range(const _字符串视图迭代器& _First, const _字符串视图迭代器& _Last) {
+    friend constexpr void _校验范围(const _字符串视图迭代器& _First, const _字符串视图迭代器& _Last) {
         _STL_VERIFY(_First._Mydata == _Last._Mydata && _First._Mysize == _Last._Mysize,
             "string_view iterators in range are from different views");
         _STL_VERIFY(_First._Myoff <= _Last._Myoff, "string_view iterator range transposed");
@@ -1174,7 +1174,7 @@ public:
 
     using _Prevent_inheriting_unwrap = _字符串视图迭代器;
 
-    _NODISCARD constexpr pointer _Unwrapped() const noexcept {
+    _NODISCARD constexpr pointer _解包() const noexcept {
 #if _ITERATOR_DEBUG_LEVEL >= 1
         return _Mydata + _Myoff;
 #else // ^^^ _ITERATOR_DEBUG_LEVEL >= 1 / _ITERATOR_DEBUG_LEVEL == 0 vvv
@@ -1184,7 +1184,7 @@ public:
 
     static constexpr bool _Unwrap_when_unverified = _ITERATOR_DEBUG_LEVEL == 0;
 
-    constexpr void _Seek_to(pointer _It) noexcept {
+    constexpr void _定位到(pointer _It) noexcept {
 #if _ITERATOR_DEBUG_LEVEL >= 1
         _Myoff = static_cast<size_t>(_It - _Mydata);
 #else // ^^^ _ITERATOR_DEBUG_LEVEL >= 1 / _ITERATOR_DEBUG_LEVEL == 0 vvv
@@ -1210,7 +1210,7 @@ struct pointer_traits<_字符串视图迭代器<_Traits>> {
     using difference_type = pointer::difference_type;
 
     _NODISCARD static constexpr element_type* to_address(const pointer& _Iter) noexcept {
-        return _Iter._Unwrapped();
+        return _Iter._解包();
     }
 };
 #endif // _HAS_CXX20

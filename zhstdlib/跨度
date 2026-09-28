@@ -15,7 +15,7 @@ _EMIT_STL_WARNING(STL4038, "The contents of <跨度实现> are available only wi
 #include <compare>
 #include <cstddef>
 #include <type_traits>
-#include <xutility>
+#include <通用内部件>
 
 #pragma pack(push, _CRT_PACKING)
 #pragma warning(push, _STL_WARNING_LEVEL)
@@ -165,7 +165,7 @@ struct _跨度迭代器 {
     }
 
 #if _ITERATOR_DEBUG_LEVEL >= 1
-    friend constexpr void _Verify_range(const _跨度迭代器& _First, const _跨度迭代器& _Last) noexcept {
+    friend constexpr void _校验范围(const _跨度迭代器& _First, const _跨度迭代器& _Last) noexcept {
         _STL_VERIFY(_First._Mybegin == _Last._Mybegin && _First._Myend == _Last._Myend,
             "跨度实现 iterators from different views do not form a range");
         _STL_VERIFY(_First._Myptr <= _Last._Myptr, "跨度实现 迭代器 range transposed");
@@ -174,13 +174,13 @@ struct _跨度迭代器 {
 
     using _阻止继承解包 = _跨度迭代器;
 
-    _NODISCARD constexpr pointer _Unwrapped() const noexcept {
+    _NODISCARD constexpr pointer _解包() const noexcept {
         return _Myptr;
     }
 
     static constexpr bool _Unwrap_when_unverified = _ITERATOR_DEBUG_LEVEL == 0;
 
-    constexpr void _Seek_to(const pointer _It) noexcept {
+    constexpr void _定位到(const pointer _It) noexcept {
         _Myptr = _It;
     }
 
@@ -198,7 +198,7 @@ struct pointer_traits<_跨度迭代器<_Ty>> {
     using difference_type = ptrdiff_t;
 
     _NODISCARD static constexpr element_type* to_address(const pointer _Iter) noexcept {
-        return _Iter._Unwrapped();
+        return _Iter._解包();
     }
 };
 
@@ -319,7 +319,7 @@ public:
     constexpr explicit(_Extent != 动态范围) 跨度实现(_It _First, _Sentinel _Last)
         noexcept(noexcept(_Last - _First)) // strengthened
         : _我的基类(_STD to_address(_First), static_cast<尺寸类型>(_Last - _First)) {
-        _Adl_verify_range(_First, _Last);
+        _ADL校验范围(_First, _Last);
 #if _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
         if constexpr (_Extent != 动态范围) {
             _STL_VERIFY(_Last - _First == _Extent,

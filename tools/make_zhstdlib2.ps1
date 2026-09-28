@@ -2058,6 +2058,10 @@ $H = @{
     zh      = '跨度'
     realInclude = @('span')   # §16.29「乙」
     types   = [ordered]@{ 'span' = '跨度实现'
+      '_Verify_range' = '_校验范围'
+      '_Seek_to' = '_定位到'
+      '_Adl_verify_range' = '_ADL校验范围'
+      '_Unwrapped' = '_解包'
                           # §16.27：自有内部件也要翻
                           '_Span_extent_type' = '_跨度范围类型'
                           '_Span_iterator'    = '_跨度迭代器'
@@ -2098,6 +2102,7 @@ $H = @{
       'as_bytes' = '转字节'; 'as_writable_bytes' = '转可写字节'
       # ⚠ swap 照旧不改名（§3.12）
     }
+    zhIncludes = @{ 'xutility' = '通用内部件' }
     data    = [ordered]@{ 'dynamic_extent' = '动态范围' }
     derive  = @( @('size','尺寸'), @('size_bytes','字节尺寸'), @('empty','为空'),
                  @('data','数据'), @('front','前'), @('back','后'),
@@ -3149,6 +3154,9 @@ $H = @{
     # -----------------------------------------------------------------------
     dropTypes = @('char_traits')
     types   = [ordered]@{
+      '_Verify_range' = '_校验范围'
+      '_Seek_to' = '_定位到'
+      '_Unwrapped' = '_解包'
       # ---- 本头自己的顶层类型 ----
       'basic_string_view'             = '基础字符串视图'
       '_String_view_iterator'         = '_字符串视图迭代器'
@@ -3206,6 +3214,7 @@ $H = @{
       'starts_with' = '开头为'; 'ends_with' = '结尾为'; 'contains' = '包含'
       # ⚠ swap 照旧不改名（§3.12）
     }
+    zhIncludes = @{ 'xutility' = '通用内部件' }
     data    = [ordered]@{}
     derive  = @()
     stdHash = $false
