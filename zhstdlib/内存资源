@@ -1,0 +1,20 @@
+// <内存资源> —— memory_resource 的中文别名层
+//
+// 为什么是别名而不是抄一份（方案铁律 4）：
+//   铁律③：memory_resource 身份参与语义，抄一份改名会让同一批符号在我们与真头里签名不一致（§17.27.34 实测：类型冲突）。
+//   这类头一旦抄一份，就会和 std 里那份成为两套互不相认的东西。
+//
+// 英文原名照旧可用：这里只是【多一个名字】，原头一个字节没动。
+// 变体（英文里带 _v 的变量模板形式）暂未提供中文名，属"必须的妥协"，见方案 §六。
+#pragma once
+#include <memory_resource>
+
+名域 标准 {
+    使用 内存资源 = std::pmr::memory_resource;
+    使用 内存资源指针 = std::pmr::memory_resource*;
+    模板 <类型名 某类型> 使用 多态分配器 = std::pmr::polymorphic_allocator<某类型>;
+    内联 内存资源指针 取默认资源() noexcept { 返回 std::pmr::get_default_resource(); }
+    内联 内存资源指针 新建删除资源() noexcept { 返回 std::pmr::new_delete_resource(); }
+    内联 内存资源指针 空内存资源() noexcept { 返回 std::pmr::null_memory_resource(); }
+    内联 内存资源指针 设默认资源(内存资源指针 新默认) noexcept { 返回 std::pmr::set_default_resource(新默认); }
+}

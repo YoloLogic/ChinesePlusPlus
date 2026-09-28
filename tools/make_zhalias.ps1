@@ -34,6 +34,23 @@ $utf8 = New-Object System.Text.UTF8Encoding($false)
 #            @('函数','中文名','std::原名')      —— 通用一模板转发
 #            @('原样','<整行代码>')              —— 原样发出（成员要转发成自由函数时用）
 $H = [ordered]@{
+  # §17.27.34/35：std::pmr 是【互操作面】—— memory_resource 身份参与语义（用户继承 + 跨 std/pmr 边界），
+  #   pmr 的自由函数是互操作入口。按铁律③【只能别名】，不抄正文。
+  'memory_resource' = @{ zh = '内存资源'; src = 'memory_resource';
+    reason = '铁律③：memory_resource 身份参与语义，抄一份改名会让同一批符号在我们与真头里签名不一致（§17.27.34 实测：类型冲突）。'; a = @(
+      @('原样','使用 内存资源 = std::pmr::memory_resource;'),
+      @('原样','使用 内存资源指针 = std::pmr::memory_resource*;'),
+      @('原样','模板 <类型名 某类型> 使用 多态分配器 = std::pmr::polymorphic_allocator<某类型>;'),
+      @('原样','内联 内存资源指针 取默认资源() noexcept { 返回 std::pmr::get_default_resource(); }'),
+      @('原样','内联 内存资源指针 新建删除资源() noexcept { 返回 std::pmr::new_delete_resource(); }'),
+      @('原样','内联 内存资源指针 空内存资源() noexcept { 返回 std::pmr::null_memory_resource(); }'),
+      @('原样','内联 内存资源指针 设默认资源(内存资源指针 新默认) noexcept { 返回 std::pmr::set_default_resource(新默认); }')
+  )
+    tests = @(
+      @('只引中文头（别名可用）','#包含 <内存资源>`n整数 主函数(){ 标准::内存资源指针 资 = 标准::取默认资源(); 标准::多态分配器<整数> 分; (空型)分; 返回 资 ? 0 : 1; }'),
+      @('与 <memory_resource> 并存','#包含 <内存资源>`n#包含 <memory_resource>`n整数 主函数(){ std::pmr::memory_resource* 甲 = 标准::空内存资源(); 标准::内存资源指针 乙 = std::pmr::get_default_resource(); 返回 (整数)(甲 == 乙) - 1; }')
+    )
+  }
   'coroutine' = @{ zh = '协程'; src = 'coroutine'; a = @(
       # 只能别名（铁律 4）：co_await / co_return 由【编译器】转写，
       # 它要的是 std::coroutine_traits / std::coroutine_handle 本身，换类型就断。
