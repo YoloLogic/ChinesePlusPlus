@@ -3798,16 +3798,17 @@ if ($nI) { Write-Host "  步3/4b 内部名一键替换 $nI 处" }
 #  ⚠ 必须在 `$origText`（改名前的正文）上量：改名会吃掉英文名，改完再量都是 0。
 # ---------------------------------------------------------------------------
 $zeroHit = @()
+$landedPairs = @()   # §17.27.13 第三层守卫：登记了、且在抄来那层命中，还要在【产品正文】里出现
 foreach ($k in $spec.types.Keys) {
     $c = ([regex]::Matches($text, (Get-RenamePattern $k))).Count
-    if ($c) { $text = [regex]::Replace($text, (Get-RenamePattern $k), $spec.types[$k]); $nT += $c }
+    if ($c) { $text = [regex]::Replace($text, (Get-RenamePattern $k), $spec.types[$k]); $nT += $c; $landedPairs += [pscustomobject]@{ Kind = 'types'; En = $k; Zh = $spec.types[$k] } }
     elseif (([regex]::Matches($origText, (Get-RenamePattern $k))).Count -eq 0) {
         $zeroHit += ("⚠ {0} : types 表 {1} -> {2} —— 本条目拷贝层 0 命中" -f $Header, $k, $spec.types[$k])
     }
 }
 foreach ($k in $spec.members.Keys) {
     $c = ([regex]::Matches($text, (Get-RenamePattern $k))).Count
-    if ($c) { $text = ([regex]::Replace($text, (Get-RenamePattern $k), $spec.members[$k])); $nM += $c }
+    if ($c) { $text = ([regex]::Replace($text, (Get-RenamePattern $k), $spec.members[$k])); $nM += $c; $landedPairs += [pscustomobject]@{ Kind = 'members'; En = $k; Zh = $spec.members[$k] } }
     elseif (-not $spec.types.Contains($k) -and -not $INTERNAL_NAMES.Contains($k) -and
             ([regex]::Matches($origText, (Get-RenamePattern $k))).Count -eq 0) {
         $zeroHit += ("⚠ {0} : members 表 {1} -> {2} —— 本条目拷贝层 0 命中" -f $Header, $k, $spec.members[$k])
@@ -3815,7 +3816,7 @@ foreach ($k in $spec.members.Keys) {
 }
 foreach ($k in $spec.data.Keys) {
     $c = ([regex]::Matches($text, (Get-RenamePattern $k))).Count
-    if ($c) { $text = ([regex]::Replace($text, (Get-RenamePattern $k), $spec.data[$k])); $nD += $c }
+    if ($c) { $text = ([regex]::Replace($text, (Get-RenamePattern $k), $spec.data[$k])); $nD += $c; $landedPairs += [pscustomobject]@{ Kind = 'data'; En = $k; Zh = $spec.data[$k] } }
     elseif (-not $spec.types.Contains($k) -and -not $spec.members.Contains($k) -and -not $INTERNAL_NAMES.Contains($k) -and
             ([regex]::Matches($origText, (Get-RenamePattern $k))).Count -eq 0) {
         $zeroHit += ("⚠ {0} : data 表 {1} -> {2} —— 本条目拷贝层 0 命中" -f $Header, $k, $spec.data[$k])
@@ -4204,6 +4205,29 @@ if ($endifs.Count -gt 0) {
     [System.IO.File]::AppendAllText($outPath, $layerText, $utf8)
 }
 Write-Host "  步6 派生层 + 英文转发 $($spec.derive.Count) 条$(if ($spec.deriveTypes) { " + 嵌套类型 $($spec.deriveTypes.Count) 条" })$(if ($spec.stdHash) { ' + std::hash 特化' })"
+# ---------------------------------------------------------------------------
+#  §17.27.13 守卫（第三层）："登记≠落地"要看【产品正文】，不是抄来那层
+#
+#  实测动机（§17.27.12）：`内存内部件` 的 `_Copy_memcpy_common` 在抄来那层**命中并替换了**，
+#  但产品里**仍有一处英文**、中文只有一处 —— 第一层守卫（0 命中即 throw）看不见这种"部分落地"。
+#  本守卫按 §17.27.5 的两阶段规矩先做【可见】：逐条登记检查"中文名到底进没进产品正文"。
+#  清单清零后再升级为 ❌（否则会拿"守卫替人做决定"）。
+# ---------------------------------------------------------------------------
+if ($landedPairs.Count) {
+    $prodText = [System.IO.File]::ReadAllText($outPath)
+    $notLanded = @()
+    foreach ($pr in $landedPairs) {
+        if ($prodText.IndexOf($pr.Zh) -lt 0) {
+            $notLanded += ("  {0} : {1} 表 {2} -> {3} —— 抄来那层命中过，但【产品正文】里没有这个中文名" -f $Header, $pr.Kind, $pr.En, $pr.Zh)
+        }
+    }
+    if ($notLanded.Count) {
+        Write-Host ("⚠ 登记≠落地·第三层（§17.27.13）：{0} 有 {1} 条中文名没进产品" -f $Header, $notLanded.Count) -ForegroundColor Yellow
+        $notLanded | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
+    } else {
+        Write-Host ("  第三层守卫: 通过（{0} 条登记的中文名都在产品正文里）" -f $landedPairs.Count) -ForegroundColor Green
+    }
+}
 
 # ---------------------------------------------------------------------------
 #  守卫：「乙」的机器判据（§16.29）—— 只写【中文头】，真英文头必须已经进来。
