@@ -14,7 +14,7 @@
 #include <limits> // TRANSITION, see GH-4634: Lots of user code assumes that <xmemory> drags in <limits>
 #include <new>
 #include <xatomic.h>
-#include <xutility>
+#include <通用内部件>
 
 #if _HAS_CXX20
 #include <tuple>
@@ -1224,7 +1224,7 @@ public:
     template <class _Alloc>
     _CONSTEXPR20 void _分配代理(_Alloc&& _Al) {
         _容器代理* const _New_proxy = _去花式(_Al.allocate(1));
-        _Construct_in_place(*_New_proxy, this);
+        _就地构造(*_New_proxy, this);
         _Myproxy            = _New_proxy;
         _New_proxy->_Mycont = this;
     }
@@ -1233,7 +1233,7 @@ public:
     _CONSTEXPR20 void _重载代理(_Alloc&& _Old_alloc, _Alloc&& _New_alloc) {
         // pre: no iterators refer to the existing proxy
         _容器代理* const _New_proxy = _去花式(_New_alloc.allocate(1));
-        _Construct_in_place(*_New_proxy, this);
+        _就地构造(*_New_proxy, this);
         _New_proxy->_Mycont = this;
         _删除原生内部(_Old_alloc, _STD exchange(_Myproxy, _New_proxy));
     }
@@ -1481,13 +1481,13 @@ struct _容器代理指针12 : _基本容器代理指针12 {
     _CONSTEXPR20 _容器代理指针12(_Alloc& _Al_, _离开代理未绑定) : _Al(_Al_) {
         // create a new unbound _容器代理
         _Ptr = _去花式(_Al_.allocate(1));
-        _Construct_in_place(*_Ptr);
+        _就地构造(*_Ptr);
     }
 
     _CONSTEXPR20 _容器代理指针12(_Alloc& _Al_, _容器基类12& _Mycont) : _Al(_Al_) {
         // create a new _容器代理 pointing at _Mycont
         _Ptr = _去花式(_Al_.allocate(1));
-        _Construct_in_place(*_Ptr, _STD addressof(_Mycont));
+        _就地构造(*_Ptr, _STD addressof(_Mycont));
         _Mycont._Myproxy = _Ptr;
     }
 
@@ -1637,7 +1637,7 @@ struct _NODISCARD _未初始化回退 {
     template <class... _Types>
     _CONSTEXPR20 void _尾部就地构造(_Types&&... _Vals) {
         // construct a new element at *_Last and increment
-        _Construct_in_place(*_Last, _STD forward<_Types>(_Vals)...);
+        _就地构造(*_Last, _STD forward<_Types>(_Vals)...);
         ++_Last;
     }
 
@@ -1653,7 +1653,7 @@ struct _NODISCARD _未初始化回退 {
         // construct a new element at *_Last from the result of dereferencing _Iter and increment,
         // with lvalue cast to xvalue if necessary for uninitialized_move(_n).
         if constexpr (is_lvalue_reference_v<decltype(*_Iter)>) {
-            _Construct_in_place(*_Last, _STD move(*_Iter));
+            _就地构造(*_Last, _STD move(*_Iter));
         } else {
             _按解引用就地构造(*_Last, _Iter);
         }
