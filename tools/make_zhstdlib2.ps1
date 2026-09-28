@@ -1425,6 +1425,9 @@ $H = @{
                           'const_local_iterator' = '常量局部迭代器'
                           }
     members = [ordered]@{ 'emplace' = '就地构造'
+                          # §16.82 本头自己定义的两个公开 API（抄来那层翻 + 派生层补英文）
+                          'hash_function'    = '散列函数'
+                          'key_eq'           = '取键相等器'
                           # §16.51 同步改名（本头正文调 `_Mybase::X` / `_Hash::X`）
                           '_Hash_equal'      = '_哈希相等'
                           '_Unchecked_begin' = '_非检查开始'
@@ -1436,6 +1439,9 @@ $H = @{
     #   ⚠ 漏一个就是回归 —— 用户本来能写的 标准::无序集合<T>::size() 会消失。
     derive  = @( @('emplace','就地构造'), @('emplace_hint','按提示就地构造'),
                  @('size','尺寸'), @('clear','清空'),
+                 # §16.82 本头【自己定义】的两个公开 API（实测 hash_function/key_eq
+                 #   只在两个无序头里有定义）-> 翻 + 派生层补回英文。
+                 @('hash_function','散列函数'), @('key_eq','取键相等器'),
                  @('begin','开始'), @('end','结束'), @('empty','为空'),
                  @('get_allocator','取分配器') )
     deriveTypes = @( @('迭代器','iterator'), @('常量迭代器','const_iterator'),
@@ -1645,6 +1651,9 @@ $H = @{
                           }
     members = [ordered]@{
       'at' = '取值'   # ⚠ insert 不改名：基类里没翻 insert（§15.10 形态③）
+      # §16.82 本头自己定义的两个公开 API（抄来那层翻 + 派生层补英文）
+      'hash_function' = '散列函数'
+      'key_eq'        = '取键相等器'
       'insert_or_assign' = '插入或赋值'; 'try_emplace' = '尝试就地构造'
       'emplace' = '就地构造'
       # §16.52 正文 `this->emplace_hint(...)`（insert(const_iterator,…) 里）—— 同步
@@ -1675,6 +1684,8 @@ $H = @{
                  @('emplace_hint','按提示就地构造'),
                  # §16.52 英文补回（§16.41.2：漏一个就是回归 —— 这 6 个名字
                  #   都是【继承自 _哈希】的公开 API，xhash 已把它们翻成汉语）
+                 # §16.82 本头【自己定义】的两个公开 API（hash_function/key_eq）
+                 @('hash_function','散列函数'), @('key_eq','取键相等器'),
                  @('size','尺寸'), @('clear','清空'),
                  @('begin','开始'), @('end','结束'), @('empty','为空'),
                  @('get_allocator','取分配器') )

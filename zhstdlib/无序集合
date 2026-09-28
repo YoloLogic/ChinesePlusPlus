@@ -310,11 +310,11 @@ public:
         return *this;
     }
 
-    _NODISCARD 散列器 hash_function() const {
+    _NODISCARD 散列器 散列函数() const {
         return this->_Traitsobj._Mypair._Get_first();
     }
 
-    _NODISCARD 键相等器 key_eq() const {
+    _NODISCARD 键相等器 取键相等器() const {
         return this->_Traitsobj._Mypair._Myval2._Get_first();
     }
 
@@ -653,11 +653,11 @@ public:
         return *this;
     }
 
-    _NODISCARD 散列器 hash_function() const {
+    _NODISCARD 散列器 散列函数() const {
         return this->_Traitsobj._Mypair._Get_first();
     }
 
-    _NODISCARD 键相等器 key_eq() const {
+    _NODISCARD 键相等器 取键相等器() const {
         return this->_Traitsobj._Mypair._Myval2._Get_first();
     }
 
@@ -809,6 +809,10 @@ _STL_RESTORE_CLANG_WARNINGS
     模板 <类型名... 参数> 声明类型(自动) size(参数&&... 值) 常量 { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) clear(参数&&... 值) { 返回 基类::清空(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) clear(参数&&... 值) 常量 { 返回 基类::清空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) hash_function(参数&&... 值) { 返回 基类::散列函数(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) hash_function(参数&&... 值) 常量 { 返回 基类::散列函数(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) key_eq(参数&&... 值) { 返回 基类::取键相等器(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) key_eq(参数&&... 值) 常量 { 返回 基类::取键相等器(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) begin(参数&&... 值) { 返回 基类::开始(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) begin(参数&&... 值) 常量 { 返回 基类::开始(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) end(参数&&... 值) { 返回 基类::结束(static_cast<参数&&>(值)...); }
