@@ -7,7 +7,7 @@
 #define _ZH_XTREE_
 #include <yvals_core.h>
 #if _STL_COMPILER_PREPROCESSOR
-#include <xmemory>
+#include <内存内部件>
 
 #if _HAS_CXX17
 #include <xnode_handle.h>
@@ -22,7 +22,7 @@ _STL_DISABLE_CLANG_WARNINGS
 
 名域 标准 { 名域 细节 {
 使用 名域 std;
-template <class _Mytree, class _Base = _Iterator_base0>
+template <class _Mytree, class _Base = _迭代器基类0>
 class _树非检查常量迭代器 : public _Base {
 public:
     using iterator_category = bidirectional_iterator_tag;
@@ -36,7 +36,7 @@ public:
     _树非检查常量迭代器() noexcept : _Ptr() {}
 
     _树非检查常量迭代器(_结点指针 _Pnode, const _Mytree* _Plist) noexcept : _Ptr(_Pnode) {
-        this->_Adopt(_Plist);
+        this->_收养(_Plist);
     }
 
     _NODISCARD reference operator*() const noexcept {
@@ -163,9 +163,9 @@ public:
 };
 
 template <class _Mytree>
-class _树常量迭代器 : public _树非检查常量迭代器<_Mytree, _Iterator_base> {
+class _树常量迭代器 : public _树非检查常量迭代器<_Mytree, _迭代器基类> {
 public:
-    using _我的基类           = _树非检查常量迭代器<_Mytree, _Iterator_base>;
+    using _我的基类           = _树非检查常量迭代器<_Mytree, _迭代器基类>;
     using iterator_category = bidirectional_iterator_tag;
 
     using _结点指针        = typename _Mytree::_结点指针;
@@ -419,7 +419,7 @@ struct _树查找提示结果 {
 }
 
 template <class _值类型集>
-class _树值 : public _Container_base {
+class _树值 : public _容器基类 {
 public:
     using _结点指针 = typename _值类型集::_结点指针;
 
@@ -739,7 +739,7 @@ public:
     void _孤立指针(const _结点指针 _Ptr) noexcept {
 #if _ITERATOR_DEBUG_LEVEL == 2
         _Lockit _Lock(_LOCK_DEBUG);
-        _Iterator_base12** _Pnext = &this->_Myproxy->_Myfirstiter;
+        _迭代器基类12** _Pnext = &this->_Myproxy->_Myfirstiter;
         while (*_Pnext) {
             const auto _Pnextptr = static_cast<常量迭代器&>(**_Pnext)._Ptr;
             if (_Pnextptr == _Myhead || (_Ptr != nullptr && _Pnextptr != _Ptr)) {
@@ -774,7 +774,7 @@ public:
 
     template <class _结点分配器>
     void _擦除头(_结点分配器& _Al) noexcept {
-        this->_Orphan_all();
+        this->_孤儿化全部();
         _擦除树(_Al, _Myhead->_Parent);
         _结点分配器::value_type::_释放节点0(_Al, _Myhead);
     }
@@ -915,9 +915,9 @@ public:
     _树(const _树& _Right, _Any_alloc&& _Al)
         : _Mypair(_One_then_variadic_args_t{}, _Right.key_comp(), _One_then_variadic_args_t{},
               _STD forward<_Any_alloc>(_Al)) {
-        auto&& _Alproxy   = _GET_PROXY_ALLOCATOR(_结点分配器, _取分配器());
+        auto&& _Alproxy   = _取代理分配器(_结点分配器, _取分配器());
         const auto _Scary = _取检查值();
-        _Container_proxy_ptr<_分配器类型> _Proxy(_Alproxy, *_Scary);
+        _容器代理指针<_分配器类型> _Proxy(_Alproxy, *_Scary);
         _树头作用域指针<_结点分配器, _迭代器检查值> _哨兵(_取分配器(), *_Scary);
         _复制<_策略::_复制>(_Right);
         _哨兵._Release();
@@ -936,9 +936,9 @@ public:
               _One_then_variadic_args_t{}, _Al) {
         if constexpr (!_结点分配器特征::is_always_equal::value) {
             if (_取分配器() != _Right._取分配器()) {
-                auto&& _Alproxy   = _GET_PROXY_ALLOCATOR(_结点分配器, _取分配器());
+                auto&& _Alproxy   = _取代理分配器(_结点分配器, _取分配器());
                 const auto _Scary = _取检查值();
-                _Container_proxy_ptr<_分配器类型> _Proxy(_Alproxy, *_Scary);
+                _容器代理指针<_分配器类型> _Proxy(_Alproxy, *_Scary);
                 _树头作用域指针<_结点分配器, _迭代器检查值> _哨兵(_取分配器(), *_Scary);
                 _复制<_策略::_Move>(_Right);
                 _哨兵._Release();
@@ -964,9 +964,9 @@ public:
             if (_Al != _Right_al) {
                 clear();
                 _取比较器()            = _Right._取比较器(); // intentionally copy comparator, see LWG-2227
-                auto&& _Alproxy       = _GET_PROXY_ALLOCATOR(_结点分配器, _Al);
-                auto&& _Right_alproxy = _GET_PROXY_ALLOCATOR(_结点分配器, _Right_al);
-                _Container_proxy_ptr<_分配器类型> _Proxy(_Right_alproxy, _Leave_proxy_unbound{});
+                auto&& _Alproxy       = _取代理分配器(_结点分配器, _Al);
+                auto&& _Right_alproxy = _取代理分配器(_结点分配器, _Right_al);
+                _容器代理指针<_分配器类型> _Proxy(_Right_alproxy, _离开代理未绑定{});
                 const auto _Scary       = _取检查值();
                 const auto _Right_scary = _Right._取检查值();
                 const auto _Newhead     = _STD exchange(_Right_scary->_Myhead, _节点::_建头节点(_Right_al));
@@ -975,7 +975,7 @@ public:
                 _Pocma(_Al, _Right_al);
                 _Scary->_Myhead = _Newhead;
                 _Scary->_Mysize = _Newsize;
-                _Proxy._Bind(_Alproxy, _Scary);
+                _Proxy._绑定(_Alproxy, _Scary);
                 _Scary->_Swap_proxy_and_iterators(*_Right_scary);
                 return *this;
             }
@@ -1097,7 +1097,7 @@ public:
         const auto _Scary = _取检查值();
         _Scary->_擦除头(_取分配器());
 #if _ITERATOR_DEBUG_LEVEL != 0 // TRANSITION, ABI
-        auto&& _Alproxy = _GET_PROXY_ALLOCATOR(_结点分配器, _取分配器());
+        auto&& _Alproxy = _取代理分配器(_结点分配器, _取分配器());
         _Delete_plain_internal(_Alproxy, _Scary->_Myproxy);
 #endif // _ITERATOR_DEBUG_LEVEL != 0
     }
@@ -1114,16 +1114,16 @@ public:
             if (_Al != _Right_al) {
                 clear();
                 const auto _Scary = _取检查值();
-                _Scary->_Orphan_all();
-                auto&& _Alproxy       = _GET_PROXY_ALLOCATOR(_结点分配器, _Al);
-                auto&& _Right_alproxy = _GET_PROXY_ALLOCATOR(_结点分配器, _Right_al);
-                _Container_proxy_ptr<_分配器类型> _Proxy(_Right_alproxy, _Leave_proxy_unbound{});
+                _Scary->_孤儿化全部();
+                auto&& _Alproxy       = _取代理分配器(_结点分配器, _Al);
+                auto&& _Right_alproxy = _取代理分配器(_结点分配器, _Right_al);
+                _容器代理指针<_分配器类型> _Proxy(_Right_alproxy, _离开代理未绑定{});
                 auto _Right_al_non_const = _Right_al;
                 auto _Newhead            = _节点::_建头节点(_Right_al_non_const);
                 _节点::_释放节点0(_Al, _Scary->_Myhead);
                 _Pocca(_Al, _Right_al);
                 _Scary->_Myhead = _Newhead;
-                _Proxy._Bind(_Alproxy, _Scary);
+                _Proxy._绑定(_Alproxy, _Scary);
                 _取比较器() = _Right._取比较器();
                 _复制<_策略::_复制>(_Right);
                 return *this;
@@ -1919,17 +1919,17 @@ protected:
 #if _ITERATOR_DEBUG_LEVEL == 2
         _Lockit _Lock(_LOCK_DEBUG);
         const auto _Old_parent_scary = _Old_parent._取检查值();
-        _Iterator_base12** _Pnext    = &_Old_parent_scary->_Myproxy->_Myfirstiter;
+        _迭代器基类12** _Pnext    = &_Old_parent_scary->_Myproxy->_Myfirstiter;
         _STL_VERIFY(_Pnext, "source container corrupted");
         if (_Ptr == nullptr || _Ptr == _Old_parent_scary->_Myhead) {
             return;
         }
 
         const auto _My_saved_proxy               = _取检查值()->_Myproxy;
-        _Iterator_base12** const _My_saved_first = &_My_saved_proxy->_Myfirstiter;
+        _迭代器基类12** const _My_saved_first = &_My_saved_proxy->_Myfirstiter;
 
         while (*_Pnext) {
-            _Iterator_base12** const _Next = &(*_Pnext)->_Mynextiter;
+            _迭代器基类12** const _Next = &(*_Pnext)->_Mynextiter;
             const auto _Iter               = static_cast<常量迭代器*>(*_Pnext);
             if (_Iter->_Ptr == _Ptr) { // reparent the 迭代器
                 *_Pnext            = *_Next;
@@ -1953,8 +1953,8 @@ protected:
 
     void _分配哨兵与代理() {
         const auto _Scary = _取检查值();
-        auto&& _Alproxy   = _GET_PROXY_ALLOCATOR(_结点分配器, _取分配器());
-        _Container_proxy_ptr<_结点分配器> _Proxy(_Alproxy, *_Scary);
+        auto&& _Alproxy   = _取代理分配器(_结点分配器, _取分配器());
+        _容器代理指针<_结点分配器> _Proxy(_Alproxy, *_Scary);
         _Scary->_Myhead = _节点::_建头节点(_取分配器());
         _Proxy._Release();
     }

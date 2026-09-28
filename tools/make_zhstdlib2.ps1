@@ -2318,7 +2318,6 @@ $H = @{
       '_Orphan_all_unlocked_v3' = '_孤儿化全部不加锁3'
       '_Orphan_me_locked_v3' = '_孤儿化本迭代器加锁3'
       '_Orphan_me_unlocked_v3' = '_孤儿化本迭代器不加锁3'
-      '_Release' = '_释放'
       '_Reload_proxy' = '_重载代理'
       '_Swap_proxy_and_iterators' = '_交换代理与迭代器'
       '_Swap_proxy_and_iterators_locked' = '_交换代理与迭代器加锁'
@@ -2379,6 +2378,13 @@ $H = @{
     zh      = '树内部件'
     noPub   = $true
     types   = [ordered]@{
+      '_Container_proxy_ptr' = '_容器代理指针'
+      '_Container_base' = '_容器基类'
+      '_Iterator_base12' = '_迭代器基类12'
+      '_Iterator_base0' = '_迭代器基类0'
+      '_Iterator_base' = '_迭代器基类'
+      '_Leave_proxy_unbound' = '_离开代理未绑定'
+      '_GET_PROXY_ALLOCATOR' = '_取代理分配器'
       '_Tree'                          = '_树'
       '_Tree_node'                     = '_树节点'
       '_Tree_val'                      = '_树值'
@@ -2454,6 +2460,9 @@ $H = @{
       'allocator_type'           = '分配器类型'
     }
     members = [ordered]@{
+      '_Orphan_all' = '_孤儿化全部'
+      '_Bind' = '_绑定'
+      '_Adopt' = '_收养'
       # §17.22 本头**自己定义**的内部助手（逐名量过"谁定义它"）-> 翻。
       #   ⚠ 不登记（借来的）：_Allocate _Extract _Lock _Make _Proxy _Release _Unwrapped _Verify_range
       #   ⚠ 公共 API 名（insert/erase/find/count/emplace/merge/…）属与 <集合>/<映射> 的**一条链**，
@@ -2517,6 +2526,7 @@ $H = @{
       '_Unchecked_end'    = '_非检查结束'
       '_Unchecked_end_iter' = '_非检查结束迭代器'
     }
+    zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
     derive  = @()
     stdHash = $false
@@ -2947,7 +2957,6 @@ $H = @{
       '_Get_first' = '_取第一'
       '_Getcont' = '_取容器'
       '_Orphan_all' = '_孤儿化全部'
-      '_Release' = '_释放'
       '_Reload_proxy' = '_重载代理'
       '_Swap_proxy_and_iterators' = '_交换代理与迭代器'
       '_Allocate_at_least_helper' = '_分配至少助手'

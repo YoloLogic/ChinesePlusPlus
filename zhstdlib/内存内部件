@@ -1165,7 +1165,7 @@ struct _分配器构造指针 { // pointer used to help construct 1 _Alloc::valu
 
     _CONSTEXPR20 explicit _分配器构造指针(_Alloc& _Al_) : _Al(_Al_), _Ptr(nullptr) {}
 
-    _NODISCARD _CONSTEXPR20 pointer _释放() noexcept { // disengage *this and return contained pointer
+    _NODISCARD _CONSTEXPR20 pointer _Release() noexcept { // disengage *this and return contained pointer
         return _STD exchange(_Ptr, nullptr);
     }
 
@@ -1456,14 +1456,14 @@ struct _假代理指针实现 { // fake replacement for a container proxy smart 
     _CONSTEXPR20 _假代理指针实现(const _假分配器&, const _容器基类0&) noexcept {}
 
     _CONSTEXPR20 void _绑定(const _假分配器&, _容器基类0*) noexcept {}
-    _CONSTEXPR20 void _释放() noexcept {}
+    _CONSTEXPR20 void _Release() noexcept {}
 };
 
 struct _基本容器代理指针12 {
     // smart pointer components for a _容器代理 * that don't depend on the 分配器
     _容器代理* _Ptr = nullptr;
 
-    constexpr void _释放() noexcept { // disengage this _基本容器代理指针12
+    constexpr void _Release() noexcept { // disengage this _基本容器代理指针12
         _Ptr = nullptr;
     }
 
@@ -1660,7 +1660,7 @@ struct _NODISCARD _未初始化回退 {
         ++_Last;
     }
 
-    constexpr _NoThrowFwdIt _释放() { // suppress any exception handling backout and return _Last
+    constexpr _NoThrowFwdIt _Release() { // suppress any exception handling backout and return _Last
         _First = _Last;
         return _Last;
     }
@@ -1682,7 +1682,7 @@ _NoThrowFwdIt _未初始化移动非检查(_InIt _First, const _InIt _Last, _NoT
         _Backout._按解引用移动尾部就地构造(_First);
     }
 
-    return _Backout._释放();
+    return _Backout._Release();
 }
 
 #if _HAS_CXX20
@@ -1824,7 +1824,7 @@ namespace ranges {
                 _Backout._尾部就地构造(_RANGES iter_move(_IFirst));
             }
 
-            return {_STD move(_IFirst), _Backout._释放()};
+            return {_STD move(_IFirst), _Backout._Release()};
         }
     }
 } // namespace ranges
@@ -1852,7 +1852,7 @@ public:
         ++_Last;
     }
 
-    constexpr pointer _释放() { // suppress any exception handling backout and return _Last
+    constexpr pointer _Release() { // suppress any exception handling backout and return _Last
         _First = _Last;
         return _Last;
     }
@@ -1909,7 +1909,7 @@ _CONSTEXPR20 _分配器指针类型<_Alloc> _未初始化复制(
         _Backout._尾部就地构造(*_UFirst);
     }
 
-    return _Backout._释放();
+    return _Backout._Release();
 }
 
 template <class _InIt, class _Alloc>
@@ -1945,7 +1945,7 @@ _CONSTEXPR20 _分配器指针类型<_Alloc> _Uninitialized_copy_n(
         _Backout._尾部就地构造(*_UFirst);
     }
 
-    return _Backout._释放();
+    return _Backout._Release();
 }
 
 template <class _InIt, class _NoThrowFwdIt>
@@ -1965,7 +1965,7 @@ _NoThrowFwdIt _Uninitialized_copy_unchecked(_InIt _First, const _InIt _Last, _No
         _Backout._按解引用尾部就地构造(_First);
     }
 
-    return _Backout._释放();
+    return _Backout._Release();
 }
 
 _EXPORT_STD template <class _InIt, class _NoThrowFwdIt>
@@ -2006,7 +2006,7 @@ _CONSTEXPR20 _分配器指针类型<_Alloc> _Uninitialized_move(
         _Backout._尾部就地构造(_STD move(*_UFirst));
     }
 
-    return _Backout._释放();
+    return _Backout._Release();
 }
 
 template <class _Alloc>
@@ -2039,7 +2039,7 @@ _CONSTEXPR20 _分配器指针类型<_Alloc> _Uninitialized_fill_n(
         _Backout._尾部就地构造(_Val);
     }
 
-    return _Backout._释放();
+    return _Backout._Release();
 }
 
 _EXPORT_STD template <class _NoThrowFwdIt, class _Tval>
@@ -2063,7 +2063,7 @@ void uninitialized_fill(const _NoThrowFwdIt _First, const _NoThrowFwdIt _Last, c
             _Backout._尾部就地构造(_Val);
         }
 
-        _Backout._释放();
+        _Backout._Release();
     }
 }
 
@@ -2101,7 +2101,7 @@ _CONSTEXPR20 _分配器指针类型<_Alloc> _Uninitialized_value_construct_n(
         _Backout._尾部就地构造();
     }
 
-    return _Backout._释放();
+    return _Backout._Release();
 }
 
 template <class _NoThrowFwdIt, class _Diff>
@@ -2116,7 +2116,7 @@ _NoThrowFwdIt _Uninitialized_value_construct_n_unchecked1(_NoThrowFwdIt _UFirst,
             _Backout._尾部就地构造();
         }
 
-        return _Backout._释放();
+        return _Backout._Release();
     }
 }
 
