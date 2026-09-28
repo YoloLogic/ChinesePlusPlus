@@ -2649,6 +2649,30 @@ $H = @{
     types   = [ordered]@{
       # ---- §17.12：本头正文里的 `basic_string_view<...>` 指到我们自己的视图 ----
       'basic_string_view'             = '基础字符串视图'
+      # -----------------------------------------------------------------------
+      #  §17.13 【实测：切换要**类型 + 成员**一起同步 —— 本轮已回退，留作记录】
+      #
+      #  只登记了 15 个**类型**名、加了 `zhIncludes = @{ xmemory = 内存内部件 }`，
+      #  生成时真头探针当场报：
+      #      字符串内部件:44:15: error:
+      #        '标准::细节::_字符串常量迭代器<_我的字符串>' 中没有名为 '_Adopt' 的成员
+      #  —— `_Adopt` 是 `_Iterator_base12` 的成员，而 内存内部件 里它已经叫 **`_收养`**
+      #     （§16.67/§16.70 那两批改的名）。
+      #  这就是 §16.50/§16.51 那条老教训：**切换内部件时，类型名与成员名必须一起同步**；
+      #  只做一半，报错会落在"上层正文调不到下层成员"上。
+      #
+      #  **下一轮该做的**：在 `zhIncludes` 加 `xmemory` 的同时，把 内存内部件 的
+      #  **成员改名表**（`_Adopt`->`_收养`、`_Alloc_proxy`->`_分配代理`、`_Orphan_all`->`_孤儿化全部`、
+      #  `_Swap_proxy_and_iterators`->`_交换代理与迭代器`、`_Get_first`->`_取第一`、
+      #  `_Get_value`->`_取值`、`_Get_val`->`_取本值`、`_Reload_proxy`->`_重载代理`、
+      #  `_Lock`->`_加锁`、`_Assign_locked/_Assign_unlocked`、`_Bind`、`_Clamp_to_end`、
+      #  `_Deallocate_plain`、`_Destroy_range`、`_Extract`、`_Release`、`_Emplace_back` 家族、
+      #  `_Construct_in_place(_by_deref)`、`_Uninitialized_move_unchecked`、
+      #  `_Copy_memcpy_*`/`_Fill_memset`/`_Zero_range`/`_Allocate_aligned`、
+      #  `_Allocate_at_least_helper`、`_Delete_plain_internal` …）
+      #  **整表**一并登记到本头的 members，再重新试切换。
+      #  判据：**切换的"一条链"= 类型表 + 成员表**，不是只看类型表。
+      # -----------------------------------------------------------------------
       'basic_string'                  = '基础字符串实现'
       '_String_val'                   = '_字符串值'
       '_String_iterator'              = '_字符串迭代器'
