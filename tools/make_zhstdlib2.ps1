@@ -2814,23 +2814,19 @@ $H = @{
     realInclude = @('string_view')   # §16.29「乙」
     noPub   = $true
     # -----------------------------------------------------------------------
-    #  ⚠ §17.11.1 【实测：`dropTypes` 这条路走不通】——已回退，留作记录。
+    #  §17.11.3（铁律③）`char_traits` **必须是别名，不能是拷贝** —— 机制已补好，本轮启用。
     #
-    #  试过 `dropTypes = @('char_traits')`（想删掉我们那份拷贝、改用 std 的）。
-    #  生成时 步0b 确实删了 7 处定义，但**顺带引真头探针 FAIL**：
-    #      字符串视图内部件:382:13: error: 模板特化或类外模板定义中多余的模板形参列表
-    #  —— 删掉了主模板，却留下了以它为前提的骨架（特化/辅助类），
-    #     `Remove-ClassDef` 是"按名字的花括号配对删除"，**不理解模板之间的关系**。
-    #
-    #  **所以"把 char_traits 变成别名"需要另一个机制**（下一轮再想）：
-    #    候选 A：连实现基类 `_Char_traits`/`_WChar_traits`/`_Narrow_char_traits` 一起 drop，
-    #           再补 `prologue` 把 std 的三者引进来；
-    #    候选 B：**不删**，而是给本产品加一句 `prologue` 级别的
-    #           `使用 char_traits = std::char_traits;` 并把拷贝**改名**（换个不冲突的名字）。
-    #  判据：**"删得掉" ≠ "删得对"** —— 删一个模板的主定义，必须同时处理它的特化与辅助类；
-    #        机制做不到时，宁可回退（本轮就是这么做的），也不要留半个能编过、语义却变的库。
+    #  `char_traits` 是用户可特化的 std 模板（`std::char_traits<自定义字符>`），
+    #  身份参与语义。我们抄的那一份（主模板 + 6 个特化）**永远收不到用户的特化**。
+    #  做法：`dropTypes` 把抄来的 7 处定义全部删掉（`Remove-ClassDef` 现在会连
+    #  【前面的多行模板头】一起删 —— §17.11.1 就是栽在这里），
+    #  于是本文件里的 `char_traits` 由 `使用 名域 std;` + 真头包含解析到 **std 那一份**
+    #  = "伸手用 std"的别名语义，身份不变。
+    #  ⚠ 实现基类 `_Char_traits`/`_WChar_traits`/`_Narrow_char_traits` 保留
+    #    （用户不会特化它们）；std 的 `char_traits<char>` 派生自 std 自己的基类，
+    #    我们那份拷贝因此**不被用到**，但留着无害。
     # -----------------------------------------------------------------------
-    # dropTypes = @('char_traits')
+    dropTypes = @('char_traits')
     types   = [ordered]@{
       # ---- 本头自己的顶层类型 ----
       'basic_string_view'             = '基础字符串视图'
@@ -3433,8 +3429,14 @@ function Remove-ClassDef {
     #   原来写成 `class\s+NAME` 会【匹配不到】-> dropTypes 静默什么都没删（实测踩到），
     #   于是异常类还在，_Throw_xxx() 抛的是抄来那个类 -> catch(std::xxx&) 永远抓不到。
     $rx = [regex]('(?m)^[^\r\n]*\b(?:class|struct)\s+[^;{\r\n]*?' + [regex]::Escape($Name) + '\b[^\r\n]*\{')
+    # §17.11.3 续：**同名可能有多个定义**（主模板 + 若干特化）。
+    #   实测 `char_traits` 有 7 处（主模板 + char16_t/char32_t/wchar_t/unsigned short/char/char8_t 特化）；
+    #   原来这里只 `Match` 一次 -> 只删掉第一个，剩下的特化与真头重定义：
+    #       error: 重定义（名字） 'char_traits<char16_t>'
+    #   所以像 `Remove-OperatorDefs` 那样**循环删到没有为止**。
+    while ($true) {
     $m = $rx.Match($Text)
-    if (-not $m.Success) { return $Text }
+    if (-not $m.Success) { break }
     $i = $Text.IndexOf('{', $m.Index)
     $depth = 0; $j = $i
     while ($j -lt $Text.Length) {
@@ -3447,9 +3449,29 @@ function Remove-ClassDef {
     $end = $j + 1
     while ($end -lt $Text.Length -and ($Text[$end] -eq ';' -or $Text[$end] -eq ' ' -or $Text[$end] -eq "`r" -or $Text[$end] -eq "`n")) { $end++ }
     $Count.Value++
+    # -----------------------------------------------------------------------
+    #  §17.11.3 多行模板头：定义可能写成
+    #      _EXPORT_STD template <class _Elem>
+    #      struct char_traits : _字符特征基类<_Elem, long> {};
+    #  只删第二行会留下【悬空的模板前缀】-> 紧随其后的特化报
+    #      "模板特化或类外模板定义中多余的模板形参列表"（§17.11.1 实测）。
+    #  所以从 $m.Index 往前吃掉所有"只由 template <...>（可带宏）构成"的行。
+    #  ⚠ 只吃"整行就是模板头"的行：`(_EXPORT_STD )?template <...>`；别的行一律不吃，
+    #     避免误删上一段的结尾（那会造成更隐蔽的破坏）。
+    # -----------------------------------------------------------------------
+    $start = $m.Index
+    while ($start -gt 0 -and $Text[$start - 1] -eq "`n") {
+        $prevEnd = $start - 1
+        $prevStart = $Text.LastIndexOf("`n", [Math]::Max($prevEnd - 1, 0))
+        if ($prevStart -lt 0) { break }
+        $prevLine = $Text.Substring($prevStart + 1, $prevEnd - $prevStart - 1).Trim()
+        if ($prevLine -match '^(?:_EXPORT_STD\s+)?template\s*<.*>\s*$') { $start = $prevStart + 1 } else { break }
+    }
     $note = "// [dropTypes] 这里删掉了抄来的 " + $Name + " 定义。`n" +
             "// 它的身份必须是 std 的那个（铁律 4：捕获按类型匹配），所以改用真头的 std::" + $Name + "。`n"
-    return $Text.Substring(0, $m.Index) + $note + $Text.Substring($end)
+    $Text = $Text.Substring(0, $start) + $note + $Text.Substring($end)
+    }  # while（删到没有同名定义为止）
+    return $Text
 }
 
 

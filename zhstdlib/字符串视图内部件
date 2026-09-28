@@ -379,21 +379,19 @@ public:
     }
 };
 
-_EXPORT_STD template <class _Elem>
-struct char_traits : _字符特征基类<_Elem, long> {}; // properties of a string or stream unknown element
+// [dropTypes] 这里删掉了抄来的 char_traits 定义。
+// 它的身份必须是 std 的那个（铁律 4：捕获按类型匹配），所以改用真头的 std::char_traits。
+// properties of a string or stream unknown element
 
-template <>
-struct char_traits<char16_t> : _宽字符特征<char16_t> {};
-
-template <>
-struct char_traits<char32_t> : _字符特征基类<char32_t, unsigned int> {};
-
-template <>
-struct char_traits<wchar_t> : _宽字符特征<wchar_t> {};
-
+// [dropTypes] 这里删掉了抄来的 char_traits 定义。
+// 它的身份必须是 std 的那个（铁律 4：捕获按类型匹配），所以改用真头的 std::char_traits。
+// [dropTypes] 这里删掉了抄来的 char_traits 定义。
+// 它的身份必须是 std 的那个（铁律 4：捕获按类型匹配），所以改用真头的 std::char_traits。
+// [dropTypes] 这里删掉了抄来的 char_traits 定义。
+// 它的身份必须是 std 的那个（铁律 4：捕获按类型匹配），所以改用真头的 std::char_traits。
 #ifdef _CRTBLD
-template <>
-struct char_traits<unsigned short> : _宽字符特征<unsigned short> {};
+// [dropTypes] 这里删掉了抄来的 char_traits 定义。
+// 它的身份必须是 std 的那个（铁律 4：捕获按类型匹配），所以改用真头的 std::char_traits。
 #endif // defined(_CRTBLD)
 
 // signed char and other unsigned integral types are supported as an extension.
@@ -413,136 +411,18 @@ constexpr bool _Is_implementation_handled_char_traits<char_traits<_Elem>> =
 #define _HAS_U8_INTRINSICS 0
 #endif // Detect u8 intrinsics
 
-template <class _Elem, class _Int_type>
-struct _窄字符特征 : private _字符特征基类<_Elem, _Int_type> {
-    // Implement char_traits for narrow character types char and char8_t
-private:
-    using _Primary_char_traits = _字符特征基类<_Elem, _Int_type>;
-
-public:
-    using char_type  = _Elem;
-    using int_type   = _Int_type;
-    using pos_type   = streampos;
-    using off_type   = streamoff;
-    using state_type = mbstate_t;
-#if _HAS_CXX20
-    using comparison_category = strong_ordering;
-#endif // _HAS_CXX20
-
-    using _Primary_char_traits::_Copy_s;
-    using _Primary_char_traits::copy;
-    using _Primary_char_traits::move;
-
-    _NODISCARD static _CONSTEXPR17 int compare(_In_reads_(_Count) const _Elem* const _First1,
-        _In_reads_(_Count) const _Elem* const _First2, const size_t _Count) noexcept /* strengthened */ {
-        // compare [_First1, _First1 + _Count) with [_First2, ...)
-#if _HAS_CXX17
-        return __builtin_memcmp(_First1, _First2, _Count);
-#else // ^^^ _HAS_CXX17 / !_HAS_CXX17 vvv
-        return _CSTD memcmp(_First1, _First2, _Count);
-#endif // ^^^ !_HAS_CXX17 ^^^
-    }
-
-    _NODISCARD static _CONSTEXPR17 size_t length(_In_z_ const _Elem* const _First) noexcept /* strengthened */ {
-        // find length of null-terminated string
-#if _HAS_CXX17
-#ifdef __cpp_char8_t
-        if constexpr (is_same_v<_Elem, char8_t>) {
-#if _HAS_U8_INTRINSICS
-            return __builtin_u8strlen(_First);
-#else // ^^^ use u8 intrinsics / no u8 intrinsics vvv
-            return _Primary_char_traits::length(_First);
-#endif // ^^^ no u8 intrinsics ^^^
-        } else
-#endif // defined(__cpp_char8_t)
-        {
-            return __builtin_strlen(_First);
-        }
-#else // ^^^ _HAS_CXX17 / !_HAS_CXX17 vvv
-        return _CSTD strlen(reinterpret_cast<const char*>(_First));
-#endif // ^^^ !_HAS_CXX17 ^^^
-    }
-
-    _NODISCARD static _CONSTEXPR17 const _Elem* find(_In_reads_(_Count) const _Elem* const _First, const size_t _Count,
-        const _Elem& _Ch) noexcept /* strengthened */ {
-        // look for _Ch in [_First, _First + _Count)
-#if _HAS_CXX17
-#ifdef __cpp_char8_t
-        if constexpr (is_same_v<_Elem, char8_t>) {
-#if _HAS_U8_INTRINSICS
-            return __builtin_u8memchr(_First, _Ch, _Count);
-#else // ^^^ use u8 intrinsics / no u8 intrinsics vvv
-            return _Primary_char_traits::find(_First, _Count, _Ch);
-#endif // ^^^ no u8 intrinsics ^^^
-        } else
-#endif // defined(__cpp_char8_t)
-        {
-            return __builtin_char_memchr(_First, _Ch, _Count);
-        }
-#else // ^^^ _HAS_CXX17 / !_HAS_CXX17 vvv
-        return static_cast<const _Elem*>(_CSTD memchr(_First, _Ch, _Count));
-#endif // ^^^ !_HAS_CXX17 ^^^
-    }
-
-    static _CONSTEXPR20 _Elem* assign(
-        _Out_writes_all_(_Count) _Elem* const _First, size_t _Count, const _Elem _Ch) noexcept /* strengthened */ {
-        // assign _Count * _Ch to [_First, ...)
-#if _HAS_CXX20
-        if (_STD is_constant_evaluated()) {
-            return _Primary_char_traits::assign(_First, _Count, _Ch);
-        }
-#endif // _HAS_CXX20
-
-        return static_cast<_Elem*>(_CSTD memset(_First, _Ch, _Count));
-    }
-
-    static _CONSTEXPR17 void assign(_Elem& _Left, const _Elem& _Right) noexcept {
-#if _HAS_CXX20
-        if (_STD is_constant_evaluated()) {
-            return _Primary_char_traits::assign(_Left, _Right);
-        }
-#endif // _HAS_CXX20
-        _Left = _Right;
-    }
-
-    _NODISCARD static constexpr bool eq(const _Elem _Left, const _Elem _Right) noexcept {
-        return _Left == _Right;
-    }
-
-    _NODISCARD static constexpr bool lt(const _Elem _Left, const _Elem _Right) noexcept {
-        return static_cast<unsigned char>(_Left) < static_cast<unsigned char>(_Right);
-    }
-
-    _NODISCARD static constexpr _Elem to_char_type(const int_type _Meta) noexcept {
-        return static_cast<_Elem>(_Meta);
-    }
-
-    _NODISCARD static constexpr int_type to_int_type(const _Elem _Ch) noexcept {
-        return static_cast<unsigned char>(_Ch);
-    }
-
-    _NODISCARD static constexpr bool eq_int_type(const int_type _Left, const int_type _Right) noexcept {
-        return _Left == _Right;
-    }
-
-    _NODISCARD static constexpr int_type not_eof(const int_type _Meta) noexcept {
-        return _Meta != eof() ? _Meta : !eof();
-    }
-
-    _NODISCARD static constexpr int_type eof() noexcept {
-        return static_cast<int_type>(EOF);
-    }
-};
-
+// [dropTypes] 这里删掉了抄来的 char_traits 定义。
+// 它的身份必须是 std 的那个（铁律 4：捕获按类型匹配），所以改用真头的 std::char_traits。
 #undef _HAS_U8_INTRINSICS
 #undef _HAS_MEMCPY_MEMMOVE_INTRINSICS
 
-template <>
-struct char_traits<char> : _窄字符特征<char, int> {}; // properties of a string or stream char element
+// [dropTypes] 这里删掉了抄来的 char_traits 定义。
+// 它的身份必须是 std 的那个（铁律 4：捕获按类型匹配），所以改用真头的 std::char_traits。
+// properties of a string or stream char element
 
 #ifdef __cpp_char8_t
-template <>
-struct char_traits<char8_t> : _窄字符特征<char8_t, unsigned int> {};
+// [dropTypes] 这里删掉了抄来的 char_traits 定义。
+// 它的身份必须是 std 的那个（铁律 4：捕获按类型匹配），所以改用真头的 std::char_traits。
 #endif // defined(__cpp_char8_t)
 
 template <class _Elem, class _Traits, class _SizeT>
