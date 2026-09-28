@@ -95,7 +95,29 @@ foreach ($n in $names.Keys) {
 }
 Write-Host ''
 Write-Host '=== §17.27.42 四类分桶（我们登记过的名字）==='
+$bucketDir = Join-Path (Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)) 'build'
 foreach ($k in $cats.Keys) {
     $v = @($cats[$k] | Sort-Object)
     Write-Host ("  {0,-32} {1,5} 个{2}" -f $k, $v.Count, $(if ($v.Count) { '   例：' + (($v | Select-Object -First 8) -join ' ') } else { '' }))
+    # -----------------------------------------------------------------------
+    #  §17.27.62 导出四张表（阶段(3) 的【工作表】）——
+    #  动机：分桶判据一直只打在屏幕上（每次滚过去就没了），而阶段(3) 是**按桶成批做**，
+    #  批量作业需要一份【可 diff、可核对数量】的清单。判据：**判据要能变成工作表**，
+    #  否则"按桶推进"实际还是靠人肉回忆。
+    #  ⚠ 只写 build\（不进版本库）；每行一个名字，另起一行写定义方/不归我们的，便于销账。
+    # -----------------------------------------------------------------------
+    if (-not (Test-Path $bucketDir)) { New-Item -ItemType Directory -Force $bucketDir | Out-Null }
+    $letter = ($k -split ' ')[0]
+    $out = @("# $k", "# 生成：tools\check_multiowner.ps1（§17.27.42/§17.27.62）—— 只报告，不作门禁")
+    foreach ($n in $v) {
+        $line = "  $n"
+        if ($definers.ContainsKey($n)) {
+            $d = @($definers[$n].Keys)
+            $notOurs = @($d | Where-Object { -not $owned.ContainsKey($_) })
+            $line += ("    # 定义方 {0} 个{1}" -f $d.Count, $(if ($notOurs.Count) { '，不归我们的：' + ($notOurs -join ', ') } else { '' }))
+        }
+        $out += $line
+    }
+    [System.IO.File]::WriteAllLines((Join-Path $bucketDir ("bucket_$letter.txt")), $out, (New-Object System.Text.UTF8Encoding($false)))
 }
+Write-Host ("  工作表已导出到 {0}\bucket_[ABCDE].txt（§17.27.62：判据要能变成工作表）" -f $bucketDir) -ForegroundColor Gray
