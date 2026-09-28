@@ -4376,7 +4376,7 @@ $nI = 0
 #  **不能靠"改了再等编译器回退"**：回退只对【被编译到】的位置有效。
 #  所以从源头用负向后顾挡住（.NET 支持变长后顾，`\s+` 可跨行缩进）。
 # ---------------------------------------------------------------------------
-$RANGES_RENAMABLE = @('_Ubegin','_Uend')
+$RANGES_RENAMABLE = @('_Ubegin','_Uend','_Copy_memcpy_common','_Copy_memcpy_distance','_Copy_unchecked','_Find_unchecked','_Get_final_iterator_unwrapped')
 function Get-RenamePattern([string] $name) {
     if ($RANGES_RENAMABLE -contains $name) { return '\b' + [regex]::Escape($name) + '\b' }
     return '(?<!_RANGES\s+)\b' + [regex]::Escape($name) + '\b'

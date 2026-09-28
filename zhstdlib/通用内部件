@@ -5021,7 +5021,7 @@ namespace ranges {
             auto _UFirst      = _RANGES _Unwrap_iter<_Se>(_STD move(_First));
             auto _ULast       = _RANGES _Unwrap_sent<_It>(_STD move(_Last));
             const auto _Count = _RANGES _Idl_distance<_It>(_UFirst, _ULast);
-            auto _UResult     = _RANGES _Copy_unchecked(
+            auto _UResult     = _复制非检查(
                     _STD move(_UFirst), _STD move(_ULast), _Get_unwrapped_n(_STD move(_Output), _Count));
             _定位包装(_First, _STD move(_UResult.in));
             _定位包装(_Output, _STD move(_UResult.out));
@@ -5034,7 +5034,7 @@ namespace ranges {
             _Rng&& _Range, _Out _Output) _CONST_CALL_OPERATOR {
             const auto _Count = _RANGES _Idl_distance(_Range);
             auto _First       = _RANGES begin(_Range);
-            auto _UResult = _RANGES _Copy_unchecked(_RANGES _Unwrap_range_iter<_Rng>(_STD move(_First)), _解包尾(_Range),
+            auto _UResult = _复制非检查(_RANGES _Unwrap_range_iter<_Rng>(_STD move(_First)), _解包尾(_Range),
                 _Get_unwrapped_n(_STD move(_Output), _Count));
             _定位包装(_First, _STD move(_UResult.in));
             _定位包装(_Output, _STD move(_UResult.out));
@@ -6289,7 +6289,7 @@ namespace ranges {
         _NODISCARD _STATIC_CALL_OPERATOR constexpr _It operator()(
             _It _First, _Se _Last, const _Ty& _Val, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             _ADL校验范围(_First, _Last);
-            auto _UResult = _RANGES _Find_unchecked(_RANGES _Unwrap_iter<_Se>(_STD move(_First)),
+            auto _UResult = _查找非检查(_RANGES _Unwrap_iter<_Se>(_STD move(_First)),
                 _RANGES _Unwrap_sent<_It>(_STD move(_Last)), _Val, _传递函数(_Proj));
 
             _定位包装(_First, _STD move(_UResult));
@@ -6301,7 +6301,7 @@ namespace ranges {
         _NODISCARD _STATIC_CALL_OPERATOR constexpr borrowed_iterator_t<_Rng> operator()(
             _Rng&& _Range, const _Ty& _Val, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             auto _First   = _RANGES begin(_Range);
-            auto _UResult = _RANGES _Find_unchecked(
+            auto _UResult = _查找非检查(
                 _RANGES _Unwrap_range_iter<_Rng>(_STD move(_First)), _解包尾(_Range), _Val, _传递函数(_Proj));
 
             _定位包装(_First, _STD move(_UResult));
