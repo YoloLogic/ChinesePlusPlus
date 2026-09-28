@@ -822,7 +822,7 @@ private:
     enum class _Allocation_policy { _At_least, _Exactly };
 
     template <_Allocation_policy _Policy = _Allocation_policy::_At_least>
-    _NODISCARD static _CONSTEXPR20 pointer _Allocate_for_capacity(_分配器类型& _Al, size_type& _Capacity) {
+    _NODISCARD static _CONSTEXPR20 pointer _按容量分配(_分配器类型& _Al, size_type& _Capacity) {
         _STL_INTERNAL_CHECK(_Capacity > _Small_string_capacity);
         ++_Capacity; // Take null terminator into consideration
 
@@ -848,7 +848,7 @@ private:
         return _Fancy_ptr;
     }
 
-    static _CONSTEXPR20 void _Deallocate_for_capacity(
+    static _CONSTEXPR20 void _按容量释放(
         _分配器类型& _Al, const pointer _Old_ptr, const size_type _Capacity) noexcept {
         _STL_INTERNAL_CHECK(_Capacity > _Small_string_capacity);
         _Al.deallocate(_Old_ptr, _Capacity + 1); // +1 for null terminator
@@ -911,7 +911,7 @@ private:
         }
 
         size_type _New_capacity = _计算增长(_Count, _Small_string_capacity, max_size());
-        const pointer _New_ptr  = _Allocate_for_capacity(_Al, _New_capacity); // throws
+        const pointer _New_ptr  = _按容量分配(_Al, _New_capacity); // throws
         _Construct_in_place(_My_data._Bx._Ptr, _New_ptr);
 
         _My_data._Mysize = _Count;
@@ -954,7 +954,7 @@ private:
 
             if (_Count > _Small_string_capacity) {
                 size_type _New_capacity = _计算增长(_Count);
-                const pointer _New_ptr  = _Allocate_for_capacity(_Al, _New_capacity); // throws
+                const pointer _New_ptr  = _按容量分配(_Al, _New_capacity); // throws
                 _Construct_in_place(_My_data._Bx._Ptr, _New_ptr);
                 _My_data._Myres = _New_capacity;
             }
@@ -980,11 +980,11 @@ private:
 
                         _Elem* const _Old_ptr   = _My_data._我的指针();
                         size_type _New_capacity = _计算增长(_My_data._Mysize + 1);
-                        const pointer _New_ptr  = _Allocate_for_capacity(_Al, _New_capacity); // throws
+                        const pointer _New_ptr  = _按容量分配(_Al, _New_capacity); // throws
 
                         _Traits::copy(_Unfancy(_New_ptr), _Old_ptr, _My_data._Mysize);
                         if (_My_data._已启用大串模式()) { // Need to deallocate old storage
-                            _Deallocate_for_capacity(_Al, _My_data._Bx._Ptr, _My_data._Myres);
+                            _按容量释放(_Al, _My_data._Bx._Ptr, _My_data._Myres);
                             _My_data._Bx._Ptr = _New_ptr;
                         } else {
                             _Construct_in_place(_My_data._Bx._Ptr, _New_ptr);
@@ -1064,7 +1064,7 @@ public:
 
         if (_New_capacity < _New_size) {
             _New_capacity           = _计算增长(_New_size, _Small_string_capacity, max_size());
-            const pointer _Fancyptr = _Allocate_for_capacity(_取分配器(), _New_capacity); // throws
+            const pointer _Fancyptr = _按容量分配(_取分配器(), _New_capacity); // throws
             _Ptr                    = _Unfancy(_Fancyptr);
             _Construct_in_place(_My_data._Bx._Ptr, _Fancyptr);
         }
@@ -1135,7 +1135,7 @@ public:
         size_type _New_capacity = _计算增长(_New_size, _Small_string_capacity, _Max);
         auto&& _Alproxy         = _取代理分配器(_分配器类型, _取分配器());
         _容器代理指针<_分配器类型> _Proxy(_Alproxy, _My_data); // throws
-        const pointer _Fancyptr = _Allocate_for_capacity(_取分配器(), _New_capacity); // throws
+        const pointer _Fancyptr = _按容量分配(_取分配器(), _New_capacity); // throws
         // nothrow hereafter
         _Construct_in_place(_My_data._Bx._Ptr, _Fancyptr);
         _My_data._Mysize = _New_size;
@@ -1411,7 +1411,7 @@ public:
                 if (_Right_size > _Small_string_capacity) {
                     size_type _New_capacity = _计算增长(_Right_size, _Small_string_capacity, _Right.max_size());
                     auto _Right_al_non_const = _Right_al;
-                    const pointer _New_ptr   = _Allocate_for_capacity(_Right_al_non_const, _New_capacity); // throws
+                    const pointer _New_ptr   = _按容量分配(_Right_al_non_const, _New_capacity); // throws
                     _Traits::copy(_Unfancy(_New_ptr), _Right_ptr, _Right_size + 1);
 
                     _清理释放();
@@ -2244,12 +2244,12 @@ public:
         if (_Target_capacity < _My_data._Myres) { // worth shrinking, do it
             auto& _Al = _取分配器();
             const pointer _New_ptr =
-                _Allocate_for_capacity<_Allocation_policy::_Exactly>(_Al, _Target_capacity); // throws
+                _按容量分配<_Allocation_policy::_Exactly>(_Al, _Target_capacity); // throws
             _ASAN_STRING_REMOVE(*this);
 
             _My_data._孤儿化全部();
             _Traits::copy(_Unfancy(_New_ptr), _Unfancy(_My_data._Bx._Ptr), _My_data._Mysize + 1);
-            _Deallocate_for_capacity(_Al, _My_data._Bx._Ptr, _My_data._Myres);
+            _按容量释放(_Al, _My_data._Bx._Ptr, _My_data._Myres);
             _My_data._Bx._Ptr = _New_ptr;
             _My_data._Myres   = _Target_capacity;
             _ASAN_STRING_CREATE(*this);
@@ -3004,7 +3004,7 @@ private:
         const size_type _Old_capacity = _Mypair._Myval2._Myres;
         size_type _New_capacity       = _计算增长(_New_size);
         auto& _Al                     = _取分配器();
-        const pointer _New_ptr        = _Allocate_for_capacity(_Al, _New_capacity); // throws
+        const pointer _New_ptr        = _按容量分配(_Al, _New_capacity); // throws
 
         _Mypair._Myval2._孤儿化全部();
         _ASAN_STRING_REMOVE(*this);
@@ -3012,7 +3012,7 @@ private:
         _Mypair._Myval2._Myres  = _New_capacity;
         _Fn(_Unfancy(_New_ptr), _New_size, _Args...);
         if (_Old_capacity > _Small_string_capacity) {
-            _Deallocate_for_capacity(_Al, _Mypair._Myval2._Bx._Ptr, _Old_capacity);
+            _按容量释放(_Al, _Mypair._Myval2._Bx._Ptr, _Old_capacity);
             _Mypair._Myval2._Bx._Ptr = _New_ptr;
         } else {
             _Construct_in_place(_Mypair._Myval2._Bx._Ptr, _New_ptr);
@@ -3036,7 +3036,7 @@ private:
         const size_type _Old_capacity = _My_data._Myres;
         size_type _New_capacity       = _计算增长(_New_size);
         auto& _Al                     = _取分配器();
-        const pointer _New_ptr        = _Allocate_for_capacity(_Al, _New_capacity); // throws
+        const pointer _New_ptr        = _按容量分配(_Al, _New_capacity); // throws
 
         _My_data._孤儿化全部();
         _ASAN_STRING_REMOVE(*this);
@@ -3046,7 +3046,7 @@ private:
         if (_Old_capacity > _Small_string_capacity) {
             const pointer _Old_ptr = _My_data._Bx._Ptr;
             _Fn(_Raw_new, _Unfancy(_Old_ptr), _Old_size, _Args...);
-            _Deallocate_for_capacity(_Al, _Old_ptr, _Old_capacity);
+            _按容量释放(_Al, _Old_ptr, _Old_capacity);
             _My_data._Bx._Ptr = _New_ptr;
         } else {
             _Fn(_Raw_new, _My_data._Bx._Buf, _Old_size, _Args...);
@@ -3069,7 +3069,7 @@ private:
         _My_data._Bx._切换到缓冲();
         _Traits::copy(_My_data._Bx._Buf, _Unfancy(_Ptr), _My_data._Mysize + 1);
         auto& _Al = _取分配器();
-        _Deallocate_for_capacity(_Al, _Ptr, _My_data._Myres);
+        _按容量释放(_Al, _Ptr, _My_data._Myres);
         _My_data._Myres = _Small_string_capacity;
     }
 
@@ -3085,7 +3085,7 @@ private:
         if (_My_data._已启用大串模式()) {
             _ASAN_STRING_REMOVE(*this);
             auto& _Al = _取分配器();
-            _Deallocate_for_capacity(_Al, _My_data._Bx._Ptr, _My_data._Myres);
+            _按容量释放(_Al, _My_data._Bx._Ptr, _My_data._Myres);
             _My_data._Bx._切换到缓冲();
         }
 

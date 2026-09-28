@@ -681,7 +681,7 @@ constexpr size_t _Traits_rfind_ch(_In_reads_(_Hay_size) const _Traits_ptr_t<_Tra
 template <class _Elem, bool = _Is_character<_Elem>::value>
 class _字符串位图 { // _字符串位图 for character types
 public:
-    constexpr bool _Mark(const _Elem* _First, const _Elem* const _Last) noexcept {
+    constexpr bool _标记(const _Elem* _First, const _Elem* const _Last) noexcept {
         // mark this bitmap such that the characters in [_First, _Last) are intended to match
         // returns whether all inputs can be placed in the bitmap
         for (; _First != _Last; ++_First) {
@@ -691,7 +691,7 @@ public:
         return true;
     }
 
-    constexpr bool _Match(const _Elem _Ch) const noexcept { // test if _Ch is in the bitmap
+    constexpr bool _匹配(const _Elem _Ch) const noexcept { // test if _Ch is in the bitmap
         // CodeQL [SM01954] This index is valid: we cast to unsigned char and the array has 256 elements.
         return _Matches[static_cast<unsigned char>(_Ch)];
     }
@@ -707,7 +707,7 @@ public:
                                         "and char32_t. See N4988 [char.traits]. "
                                         "Visual C++ accepts other unsigned integral types as an extension.");
 
-    constexpr bool _Mark(const _Elem* _First, const _Elem* const _Last) noexcept {
+    constexpr bool _标记(const _Elem* _First, const _Elem* const _Last) noexcept {
         // mark this bitmap such that the characters in [_First, _Last) are intended to match
         // returns whether all inputs can be placed in the bitmap
         for (; _First != _Last; ++_First) {
@@ -722,7 +722,7 @@ public:
         return true;
     }
 
-    constexpr bool _Match(const _Elem _Ch) const noexcept { // test if _Ch is in the bitmap
+    constexpr bool _匹配(const _Elem _Ch) const noexcept { // test if _Ch is in the bitmap
         return _Ch < 256U && _Matches[_Ch];
     }
 
@@ -758,9 +758,9 @@ constexpr size_t _Traits_find_first_of(_In_reads_(_Hay_size) const _Traits_ptr_t
 
         _字符串位图<typename _Traits::char_type> _Matches;
 
-        if (_Matches._Mark(_Needle, _Needle + _Needle_size)) {
+        if (_Matches._标记(_Needle, _Needle + _Needle_size)) {
             for (auto _Match_try = _Hay_start; _Match_try < _Hay_end; ++_Match_try) {
-                if (_Matches._Match(*_Match_try)) {
+                if (_Matches._匹配(*_Match_try)) {
                     return static_cast<size_t>(_Match_try - _Haystack); // found a match
                 }
             }
@@ -804,9 +804,9 @@ constexpr size_t _Traits_find_last_of(_In_reads_(_Hay_size) const _Traits_ptr_t<
 #endif // _USE_STD_VECTOR_ALGORITHMS
 
         _字符串位图<_Elem> _Matches;
-        if (_Matches._Mark(_Needle, _Needle + _Needle_size)) {
+        if (_Matches._标记(_Needle, _Needle + _Needle_size)) {
             for (auto _Match_try = _Haystack + _Hay_start;; --_Match_try) {
-                if (_Matches._Match(*_Match_try)) {
+                if (_Matches._匹配(*_Match_try)) {
                     return static_cast<size_t>(_Match_try - _Haystack); // found a match
                 }
 
@@ -845,9 +845,9 @@ constexpr size_t _Traits_find_first_not_of(_In_reads_(_Hay_size) const _Traits_p
     if constexpr (_Is_implementation_handled_char_traits<_Traits>) {
         using _Elem = typename _Traits::char_type;
         _字符串位图<_Elem> _Matches;
-        if (_Matches._Mark(_Needle, _Needle + _Needle_size)) {
+        if (_Matches._标记(_Needle, _Needle + _Needle_size)) {
             for (auto _Match_try = _Hay_start; _Match_try < _Hay_end; ++_Match_try) {
-                if (!_Matches._Match(*_Match_try)) {
+                if (!_Matches._匹配(*_Match_try)) {
                     return static_cast<size_t>(_Match_try - _Haystack); // found a match
                 }
             }
@@ -896,9 +896,9 @@ constexpr size_t _Traits_find_last_not_of(_In_reads_(_Hay_size) const _Traits_pt
     if constexpr (_Is_implementation_handled_char_traits<_Traits>) {
         using _Elem = typename _Traits::char_type;
         _字符串位图<_Elem> _Matches;
-        if (_Matches._Mark(_Needle, _Needle + _Needle_size)) {
+        if (_Matches._标记(_Needle, _Needle + _Needle_size)) {
             for (auto _Match_try = _Haystack + _Hay_start;; --_Match_try) {
-                if (!_Matches._Match(*_Match_try)) {
+                if (!_Matches._匹配(*_Match_try)) {
                     return static_cast<size_t>(_Match_try - _Haystack); // found a match
                 }
 
