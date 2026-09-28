@@ -933,6 +933,7 @@ $H = @{
       @('造任意 / 所属类型 / 接管构造','#包含 <任意>`n整数 主函数(){ 标准::任意 甲 = 标准::造任意<整数>(7); 常量 std::type_info& 信 = 甲.所属类型(); 整数 值 = 标准::任意转换<整数>(甲); 甲.重置(); 返回 (整数)甲.有值() + 值 + (信 == typeid(整数) ? 0 : 1) - 7; }'),
       @('英文名与中文名并用','#包含 <任意>`n整数 主函数(){ 标准::任意 甲 = 3; 布尔 有 = 甲.has_value(); 整数 值 = 标准::任意转换<整数>(甲); 返回 (有 ? 值 : 0) - 3; }')
     )
+    zhIncludes = @{ 'xmemory' = '内存内部件' }
   }
   'deque' = @{
     zh      = '双端队列'
@@ -1194,6 +1195,12 @@ $H = @{
     # -----------------------------------------------------------------------
     realInclude = @('vector')
     types   = [ordered]@{ 'vector' = '向量实现'
+      '_Container_proxy_ptr' = '_容器代理指针'
+      '_Container_base' = '_容器基类'
+      '_Iterator_base12' = '_迭代器基类12'
+      '_Iterator_base' = '_迭代器基类'
+      '_Leave_proxy_unbound' = '_离开代理未绑定'
+      '_GET_PROXY_ALLOCATOR' = '_取代理分配器'
                           # ------------------------------------------------------------------
                           # ⚠ 2026-09-28 更正（§2.4 / §16.33）：这里原来写着
                           #   "迭代器类（_Vector_iterator / _Vb_iterator 等）都是本文件内部件，
@@ -1256,6 +1263,22 @@ $H = @{
     # vector<bool> 特化也定义在本文件里，同一个 types 改名会一起覆盖 ——
     # 于是 细节::向量实现<bool, 分配器> 自动指到那个特化，派生层不用特殊处理。
     members = [ordered]@{
+      '_Adopt' = '_收养'
+      '_Allocate_at_least_helper' = '_分配至少助手'
+      '_Bind' = '_绑定'
+      '_Clamp_to_end' = '_夹取至末尾'
+      '_Delete_plain_internal' = '_删除原生内部'
+      '_Destroy_range' = '_析构范围'
+      '_Erase_remove' = '_擦除并移除'
+      '_Erase_remove_if' = '_按条件擦除并移除'
+      '_Reload_proxy' = '_重载代理'
+      '_Unfancy' = '_去花式'
+      '_Unfancy_maybe_null' = '_去花式可空'
+      '_Uninitialized_copy' = '_未初始化复制'
+      '_Orphan_all' = '_孤儿化全部'
+      '_Getcont' = '_取容器'
+      '_Swap_proxy_and_iterators' = '_交换代理与迭代器'
+      '_Alloc_proxy' = '_分配代理'
       '_Advance' = '_前进'
       '_Append_counted_range' = '_追加计数范围'
       '_Append_uncounted_range' = '_追加非计数范围'
@@ -1307,6 +1330,7 @@ $H = @{
       'append_range' = '追加范围'; 'assign_range' = '范围赋值'; 'insert_range' = '范围插入'
       # ⚠ swap 照旧不改名（§3.12）
     }
+    zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
     derive  = @( @('size','尺寸'), @('empty','为空'),
                  @('capacity','容量'), @('reserve','预留'), @('data','数据'),
