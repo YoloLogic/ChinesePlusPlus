@@ -9,7 +9,7 @@
 #include <yvals_core.h>
 #if _STL_COMPILER_PREPROCESSOR
 #include <__msvc_sanitizer_annotate_container.hpp>
-#include <__msvc_string_view.hpp>
+#include <字符串视图内部件>
 #include <iosfwd>
 #include <xmemory>
 
@@ -614,7 +614,7 @@ private:
 #if _HAS_CXX17
     template <class _StringViewIsh>
     using _是字符串视图类 =
-        enable_if_t<conjunction_v<is_convertible<const _StringViewIsh&, basic_string_view<_Elem, _Traits>>,
+        enable_if_t<conjunction_v<is_convertible<const _StringViewIsh&, 基础字符串视图<_Elem, _Traits>>,
                         negation<is_convertible<const _StringViewIsh&, const _Elem*>>>,
             int>;
 #endif // _HAS_CXX17
@@ -1151,15 +1151,15 @@ public:
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
     _CONSTEXPR20 explicit 基础字符串实现(const _StringViewIsh& _Right, const _Alloc& _Al = _Alloc())
         : _Mypair(_One_then_variadic_args_t{}, _Al) {
-        const basic_string_view<_Elem, _Traits> _As_view = _Right;
+        const 基础字符串视图<_Elem, _Traits> _As_view = _Right;
         _Construct<_Construct_strategy::_From_ptr>(_As_view.数据(), _Convert_size<size_type>(_As_view.尺寸()));
     }
 
-    template <class _Ty, enable_if_t<is_convertible_v<const _Ty&, basic_string_view<_Elem, _Traits>>, int> = 0>
+    template <class _Ty, enable_if_t<is_convertible_v<const _Ty&, 基础字符串视图<_Elem, _Traits>>, int> = 0>
     _CONSTEXPR20 基础字符串实现(
         const _Ty& _Right, const size_type _Roff, const size_type _Count, const _Alloc& _Al = _Alloc())
         : _Mypair(_One_then_variadic_args_t{}, _Al) { // construct from _Right [_Roff, _Roff + _Count) using _Al
-        const basic_string_view<_Elem, _Traits> _As_view = _Right;
+        const 基础字符串视图<_Elem, _Traits> _As_view = _Right;
         const auto _As_sub_view                          = _As_view.子串(_Roff, _Count);
         _Construct<_Construct_strategy::_From_ptr>(_As_sub_view.数据(), _Convert_size<size_type>(_As_sub_view.尺寸()));
     }
@@ -1495,7 +1495,7 @@ public:
 #if _HAS_CXX17
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
     _CONSTEXPR20 基础字符串实现& 追加(const _StringViewIsh& _Right) {
-        const basic_string_view<_Elem, _Traits> _As_view = _Right;
+        const 基础字符串视图<_Elem, _Traits> _As_view = _Right;
         return 追加(_As_view.数据(), _Convert_size<size_type>(_As_view.尺寸()));
     }
 
@@ -1503,7 +1503,7 @@ public:
     _CONSTEXPR20 基础字符串实现& 追加(
         const _StringViewIsh& _Right, const size_type _Roff, const size_type _Count = npos) {
         // 追加 _Right [_Roff, _Roff + _Count)
-        basic_string_view<_Elem, _Traits> _As_view = _Right;
+        基础字符串视图<_Elem, _Traits> _As_view = _Right;
         return 追加(_As_view.子串(_Roff, _Count));
     }
 #endif // _HAS_CXX17
@@ -1601,7 +1601,7 @@ public:
 #if _HAS_CXX17
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
     _CONSTEXPR20 基础字符串实现& assign(const _StringViewIsh& _Right) {
-        const basic_string_view<_Elem, _Traits> _As_view = _Right;
+        const 基础字符串视图<_Elem, _Traits> _As_view = _Right;
         return assign(_As_view.数据(), _Convert_size<size_type>(_As_view.尺寸()));
     }
 
@@ -1609,7 +1609,7 @@ public:
     _CONSTEXPR20 基础字符串实现& assign(
         const _StringViewIsh& _Right, const size_type _Roff, const size_type _Count = npos) {
         // assign _Right [_Roff, _Roff + _Count)
-        basic_string_view<_Elem, _Traits> _As_view = _Right;
+        基础字符串视图<_Elem, _Traits> _As_view = _Right;
         return assign(_As_view.子串(_Roff, _Count));
     }
 #endif // _HAS_CXX17
@@ -1715,7 +1715,7 @@ public:
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
     _CONSTEXPR20 基础字符串实现& 插入(const size_type _Off, const _StringViewIsh& _Right) {
         // 插入 _Right 取值 _Off
-        const basic_string_view<_Elem, _Traits> _As_view = _Right;
+        const 基础字符串视图<_Elem, _Traits> _As_view = _Right;
         return 插入(_Off, _As_view.数据(), _Convert_size<size_type>(_As_view.尺寸()));
     }
 
@@ -1723,7 +1723,7 @@ public:
     _CONSTEXPR20 基础字符串实现& 插入(
         const size_type _Off, const _StringViewIsh& _Right, const size_type _Roff, const size_type _Count = npos) {
         // 插入 _Right [_Roff, _Roff + _Count) 取值 _Off
-        basic_string_view<_Elem, _Traits> _As_view = _Right;
+        基础字符串视图<_Elem, _Traits> _As_view = _Right;
         return 插入(_Off, _As_view.子串(_Roff, _Count));
     }
 #endif // _HAS_CXX17
@@ -1755,7 +1755,7 @@ public:
                 _Ptr_shifted_after = _Count; // none of _Ptr's 数据 shifts
             } else if (_Insert_at <= _Ptr) { // all of [_Ptr, _Ptr + _Count) shifts
                 _Ptr_shifted_after = 0;
-            } else { // [_Ptr, _Ptr + _Count) contains _Insert_at, so only the part after _Insert_at shifts
+            } else { // [_Ptr, _Ptr + _Count) 包含 _Insert_at, so only the part after _Insert_at shifts
                 _Ptr_shifted_after = static_cast<size_type>(_Insert_at - _Ptr);
             }
 
@@ -1935,7 +1935,7 @@ public:
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
     _CONSTEXPR20 基础字符串实现& 替换(const size_type _Off, const size_type _Nx, const _StringViewIsh& _Right) {
         // 替换 [_Off, _Off + _Nx) with _Right
-        basic_string_view<_Elem, _Traits> _As_view = _Right;
+        基础字符串视图<_Elem, _Traits> _As_view = _Right;
         return 替换(_Off, _Nx, _As_view.数据(), _Convert_size<size_type>(_As_view.尺寸()));
     }
 
@@ -1943,7 +1943,7 @@ public:
     _CONSTEXPR20 基础字符串实现& 替换(const size_type _Off, const size_type _Nx, const _StringViewIsh& _Right,
         const size_type _Roff, const size_type _Count = npos) {
         // 替换 [_Off, _Off + _Nx) with _Right [_Roff, _Roff + _Count)
-        basic_string_view<_Elem, _Traits> _As_view = _Right;
+        基础字符串视图<_Elem, _Traits> _As_view = _Right;
         return 替换(_Off, _Nx, _As_view.子串(_Roff, _Count));
     }
 #endif // _HAS_CXX17
@@ -1997,7 +1997,7 @@ public:
                 }
 
                 _Traits::move(_Suffix_at + _Growth, _Suffix_at, _Suffix_size);
-                // next case must be move, in case _Ptr begins before _Insert_at and contains part of the hole;
+                // next case must be move, in case _Ptr begins before _Insert_at and 包含 part of the hole;
                 // this case doesn't occur in 插入 because the new content must come from outside the removed
                 // content there (because in 插入 there is no removed content)
                 _Traits::move(_Insert_at, _Ptr, _Ptr_shifted_after);
@@ -2284,9 +2284,9 @@ public:
     }
 
 #if _HAS_CXX17
-    /* implicit */ _CONSTEXPR20 operator basic_string_view<_Elem, _Traits>() const noexcept {
+    /* implicit */ _CONSTEXPR20 operator 基础字符串视图<_Elem, _Traits>() const noexcept {
         // return a string_view around *this's character-type sequence
-        return basic_string_view<_Elem, _Traits>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize};
+        return 基础字符串视图<_Elem, _Traits>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize};
     }
 #endif // _HAS_CXX17
 
@@ -2596,9 +2596,9 @@ public:
 #if _HAS_CXX17
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
     _NODISCARD _CONSTEXPR20 size_type find(const _StringViewIsh& _Right, const size_type _Off = 0) const
-        noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, basic_string_view<_Elem, _Traits>>) {
+        noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, 基础字符串视图<_Elem, _Traits>>) {
         // look for _Right beginning 取值 or after _Off
-        basic_string_view<_Elem, _Traits> _As_view = _Right;
+        基础字符串视图<_Elem, _Traits> _As_view = _Right;
         return static_cast<size_type>(_Traits_find<_Traits>(
             _Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize, _Off, _As_view.数据(), _As_view.尺寸()));
     }
@@ -2633,9 +2633,9 @@ public:
 #if _HAS_CXX17
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
     _NODISCARD _CONSTEXPR20 size_type 反向查找(const _StringViewIsh& _Right, const size_type _Off = npos) const
-        noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, basic_string_view<_Elem, _Traits>>) {
+        noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, 基础字符串视图<_Elem, _Traits>>) {
         // look for _Right beginning before _Off
-        basic_string_view<_Elem, _Traits> _As_view = _Right;
+        基础字符串视图<_Elem, _Traits> _As_view = _Right;
         return static_cast<size_type>(_Traits_rfind<_Traits>(
             _Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize, _Off, _As_view.数据(), _As_view.尺寸()));
     }
@@ -2670,9 +2670,9 @@ public:
 #if _HAS_CXX17
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
     _NODISCARD _CONSTEXPR20 size_type 查找首次属于(const _StringViewIsh& _Right, const size_type _Off = 0) const
-        noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, basic_string_view<_Elem, _Traits>>) {
+        noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, 基础字符串视图<_Elem, _Traits>>) {
         // look for one of _Right 取值 or after _Off
-        basic_string_view<_Elem, _Traits> _As_view = _Right;
+        基础字符串视图<_Elem, _Traits> _As_view = _Right;
         return static_cast<size_type>(_Traits_find_first_of<_Traits>(
             _Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize, _Off, _As_view.数据(), _As_view.尺寸()));
     }
@@ -2709,9 +2709,9 @@ public:
 #if _HAS_CXX17
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
     _NODISCARD _CONSTEXPR20 size_type 查找末次属于(const _StringViewIsh& _Right, const size_type _Off = npos) const
-        noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, basic_string_view<_Elem, _Traits>>) {
+        noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, 基础字符串视图<_Elem, _Traits>>) {
         // look for one of _Right before _Off
-        basic_string_view<_Elem, _Traits> _As_view = _Right;
+        基础字符串视图<_Elem, _Traits> _As_view = _Right;
         return static_cast<size_type>(_Traits_find_last_of<_Traits>(
             _Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize, _Off, _As_view.数据(), _As_view.尺寸()));
     }
@@ -2746,9 +2746,9 @@ public:
 #if _HAS_CXX17
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
     _NODISCARD _CONSTEXPR20 size_type 查找首次不属于(const _StringViewIsh& _Right, const size_type _Off = 0) const
-        noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, basic_string_view<_Elem, _Traits>>) {
+        noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, 基础字符串视图<_Elem, _Traits>>) {
         // look for none of _Right 取值 or after _Off
-        basic_string_view<_Elem, _Traits> _As_view = _Right;
+        基础字符串视图<_Elem, _Traits> _As_view = _Right;
         return static_cast<size_type>(_Traits_find_first_not_of<_Traits>(
             _Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize, _Off, _As_view.数据(), _As_view.尺寸()));
     }
@@ -2785,9 +2785,9 @@ public:
 #if _HAS_CXX17
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
     _NODISCARD _CONSTEXPR20 size_type 查找末次不属于(const _StringViewIsh& _Right, const size_type _Off = npos) const
-        noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, basic_string_view<_Elem, _Traits>>) {
+        noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, 基础字符串视图<_Elem, _Traits>>) {
         // look for none of _Right before _Off
-        basic_string_view<_Elem, _Traits> _As_view = _Right;
+        基础字符串视图<_Elem, _Traits> _As_view = _Right;
         return static_cast<size_type>(_Traits_find_last_not_of<_Traits>(
             _Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize, _Off, _As_view.数据(), _As_view.尺寸()));
     }
@@ -2821,9 +2821,9 @@ public:
     }
 
 #if _HAS_CXX17
-    _NODISCARD bool _开头为(const basic_string_view<_Elem, _Traits> _Right) const noexcept {
+    _NODISCARD bool _开头为(const 基础字符串视图<_Elem, _Traits> _Right) const noexcept {
         // Used exclusively by filesystem
-        return basic_string_view<_Elem, _Traits>(*this)._开头为(_Right);
+        return 基础字符串视图<_Elem, _Traits>(*this)._开头为(_Right);
     }
 #endif // _HAS_CXX17
 
@@ -2859,9 +2859,9 @@ public:
 #if _HAS_CXX17
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
     _NODISCARD _CONSTEXPR20 int compare(const _StringViewIsh& _Right) const
-        noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, basic_string_view<_Elem, _Traits>>) {
+        noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, 基础字符串视图<_Elem, _Traits>>) {
         // compare [0, 尺寸()) with _Right
-        basic_string_view<_Elem, _Traits> _As_view = _Right;
+        基础字符串视图<_Elem, _Traits> _As_view = _Right;
         return _Traits_compare<_Traits>(
             _Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize, _As_view.数据(), _As_view.尺寸());
     }
@@ -2869,7 +2869,7 @@ public:
     template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
     _NODISCARD _CONSTEXPR20 int compare(const size_type _Off, const size_type _Nx, const _StringViewIsh& _Right) const {
         // compare [_Off, _Off + _Nx) with _Right
-        basic_string_view<_Elem, _Traits> _As_view = _Right;
+        基础字符串视图<_Elem, _Traits> _As_view = _Right;
         _Mypair._Myval2._检查偏移(_Off);
         return _Traits_compare<_Traits>(_Mypair._Myval2._我的指针() + _Off, _Mypair._Myval2._夹取后缀尺寸(_Off, _Nx),
             _As_view.数据(), _As_view.尺寸());
@@ -2879,7 +2879,7 @@ public:
     _NODISCARD _CONSTEXPR20 int compare(const size_type _Off, const size_type _Nx, const _StringViewIsh& _Right,
         const size_type _Roff, const size_type _Count = npos) const {
         // compare [_Off, _Off + _Nx) with _Right [_Roff, _Roff + _Count)
-        basic_string_view<_Elem, _Traits> _As_view = _Right;
+        基础字符串视图<_Elem, _Traits> _As_view = _Right;
         _Mypair._Myval2._检查偏移(_Off);
         const auto _With_substr = _As_view.子串(_Roff, _Count);
         return _Traits_compare<_Traits>(_Mypair._Myval2._我的指针() + _Off, _Mypair._Myval2._夹取后缀尺寸(_Off, _Nx),
@@ -2931,42 +2931,42 @@ public:
     }
 
 #if _HAS_CXX20
-    _NODISCARD constexpr bool starts_with(const basic_string_view<_Elem, _Traits> _Right) const noexcept {
-        return basic_string_view<_Elem, _Traits>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize}.starts_with(_Right);
+    _NODISCARD constexpr bool 开头为(const 基础字符串视图<_Elem, _Traits> _Right) const noexcept {
+        return 基础字符串视图<_Elem, _Traits>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize}.开头为(_Right);
     }
 
-    _NODISCARD constexpr bool starts_with(const _Elem _Right) const noexcept {
-        return basic_string_view<_Elem, _Traits>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize}.starts_with(_Right);
+    _NODISCARD constexpr bool 开头为(const _Elem _Right) const noexcept {
+        return 基础字符串视图<_Elem, _Traits>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize}.开头为(_Right);
     }
 
-    _NODISCARD constexpr bool starts_with(const _Elem* const _Right) const noexcept /* strengthened */ {
-        return basic_string_view<_Elem, _Traits>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize}.starts_with(_Right);
+    _NODISCARD constexpr bool 开头为(const _Elem* const _Right) const noexcept /* strengthened */ {
+        return 基础字符串视图<_Elem, _Traits>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize}.开头为(_Right);
     }
 
-    _NODISCARD constexpr bool ends_with(const basic_string_view<_Elem, _Traits> _Right) const noexcept {
-        return basic_string_view<_Elem, _Traits>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize}.ends_with(_Right);
+    _NODISCARD constexpr bool 结尾为(const 基础字符串视图<_Elem, _Traits> _Right) const noexcept {
+        return 基础字符串视图<_Elem, _Traits>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize}.结尾为(_Right);
     }
 
-    _NODISCARD constexpr bool ends_with(const _Elem _Right) const noexcept {
-        return basic_string_view<_Elem, _Traits>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize}.ends_with(_Right);
+    _NODISCARD constexpr bool 结尾为(const _Elem _Right) const noexcept {
+        return 基础字符串视图<_Elem, _Traits>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize}.结尾为(_Right);
     }
 
-    _NODISCARD constexpr bool ends_with(const _Elem* const _Right) const noexcept /* strengthened */ {
-        return basic_string_view<_Elem, _Traits>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize}.ends_with(_Right);
+    _NODISCARD constexpr bool 结尾为(const _Elem* const _Right) const noexcept /* strengthened */ {
+        return 基础字符串视图<_Elem, _Traits>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize}.结尾为(_Right);
     }
 #endif // _HAS_CXX20
 
 #if _HAS_CXX23
-    _NODISCARD constexpr bool contains(const basic_string_view<_Elem, _Traits> _Right) const noexcept {
-        return basic_string_view<_Elem, _Traits>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize}.contains(_Right);
+    _NODISCARD constexpr bool 包含(const 基础字符串视图<_Elem, _Traits> _Right) const noexcept {
+        return 基础字符串视图<_Elem, _Traits>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize}.包含(_Right);
     }
 
-    _NODISCARD constexpr bool contains(const _Elem _Right) const noexcept {
-        return basic_string_view<_Elem, _Traits>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize}.contains(_Right);
+    _NODISCARD constexpr bool 包含(const _Elem _Right) const noexcept {
+        return 基础字符串视图<_Elem, _Traits>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize}.包含(_Right);
     }
 
-    _NODISCARD constexpr bool contains(const _Elem* const _Right) const noexcept /* strengthened */ {
-        return basic_string_view<_Elem, _Traits>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize}.contains(_Right);
+    _NODISCARD constexpr bool 包含(const _Elem* const _Right) const noexcept /* strengthened */ {
+        return 基础字符串视图<_Elem, _Traits>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._Mysize}.包含(_Right);
     }
 #endif // _HAS_CXX23
 
@@ -3124,12 +3124,12 @@ template <class _Iter, class _Alloc = allocator<_Iter_value_t<_Iter>>,
 
 template <class _Elem, class _Traits, class _Alloc = allocator<_Elem>,
     enable_if_t<_Is_allocator<_Alloc>::value, int> = 0>
-explicit 基础字符串实现(basic_string_view<_Elem, _Traits>, const _Alloc& = _Alloc())
+explicit 基础字符串实现(基础字符串视图<_Elem, _Traits>, const _Alloc& = _Alloc())
     -> 基础字符串实现<_Elem, _Traits, _Alloc>;
 
 template <class _Elem, class _Traits, class _Alloc = allocator<_Elem>,
     enable_if_t<_Is_allocator<_Alloc>::value, int> = 0>
-基础字符串实现(basic_string_view<_Elem, _Traits>, _Guide_size_type_t<_Alloc>, _Guide_size_type_t<_Alloc>,
+基础字符串实现(基础字符串视图<_Elem, _Traits>, _Guide_size_type_t<_Alloc>, _Guide_size_type_t<_Alloc>,
     const _Alloc& = _Alloc()) -> 基础字符串实现<_Elem, _Traits, _Alloc>;
 
 #if _HAS_CXX23
