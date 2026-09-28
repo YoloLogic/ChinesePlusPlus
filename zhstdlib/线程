@@ -55,7 +55,7 @@ private:
 #endif // _HAS_CXX20
 
     template <class _元组, size_t... _Indices>
-    static unsigned int __stdcall _Invoke(void* _RawVals) noexcept /* terminates */ {
+    static unsigned int __stdcall _调用(void* _RawVals) noexcept /* terminates */ {
         // adapt invoke of user's callable object to _beginthreadex's 线程实现 procedure
         const unique_ptr<_元组> _FnVals(static_cast<_元组*>(_RawVals));
         _元组& _Tup = *_FnVals.get(); // avoid ADL, handle incomplete types
@@ -65,8 +65,8 @@ private:
     }
 
     template <class _元组, size_t... _Indices>
-    _NODISCARD static constexpr auto _Get_invoke(index_sequence<_Indices...>) noexcept {
-        return &_Invoke<_元组, _Indices...>;
+    _NODISCARD static constexpr auto _取调用(index_sequence<_Indices...>) noexcept {
+        return &_调用<_元组, _Indices...>;
     }
 
 #pragma warning(push) // pointer or reference to potentially throwing function passed to 'extern "C"' function under
@@ -75,7 +75,7 @@ private:
     void _Start(_Fn&& _Fx, _Args&&... _Ax) {
         using _元组                 = tuple<decay_t<_Fn>, decay_t<_Args>...>;
         auto _Decay_copied           = _STD make_unique<_元组>(_STD forward<_Fn>(_Fx), _STD forward<_Args>(_Ax)...);
-        constexpr auto _Invoker_proc = _Get_invoke<_元组>(make_index_sequence<1 + sizeof...(_Args)>{});
+        constexpr auto _Invoker_proc = _取调用<_元组>(make_index_sequence<1 + sizeof...(_Args)>{});
 
         _Thr._Hnd =
             reinterpret_cast<void*>(_CSTD _beginthreadex(nullptr, 0, _Invoker_proc, _Decay_copied.get(), 0, &_Thr._Id));
@@ -231,7 +231,7 @@ public:
     id() noexcept = default; // id for no 线程实现
 
 #if _HAS_CXX23
-    _NODISCARD _Thrd_id_t _Get_underlying_id() const noexcept {
+    _NODISCARD _Thrd_id_t _取底层标识() const noexcept {
         return _Id;
     }
 #endif // _HAS_CXX23
@@ -321,7 +321,7 @@ struct formatter<线程实现::id, _CharT> {
         _STL_INTERNAL_STATIC_ASSERT(sizeof(_Thrd_id_t) == 4);
         _CharT _Buff[10]; // can hold 2^32 - 1
         _CharT* const _Last        = _STD end(_Buff);
-        const _CharT* const _First = _UIntegral_to_buff(_Last, _Val._Get_underlying_id());
+        const _CharT* const _First = _UIntegral_to_buff(_Last, _Val._取底层标识());
         return _Impl._Format(_Format_ctx, static_cast<int>(_Last - _First), _Fmt_align::_Right,
             [&](_FormatContext::iterator _Out) { return _RANGES copy(_First, _Last, _STD move(_Out)).out; });
     }

@@ -353,6 +353,9 @@ $H = @{
     }
     zhIncludes = @{ 'stop_token' = '停止令牌' }
     members = [ordered]@{
+      '_Get_invoke' = '_取调用'
+      '_Get_underlying_id' = '_取底层标识'
+      '_Invoke' = '_调用'
       'join' = '汇合'; 'detach' = '分离'; 'joinable' = '可汇合'
       'get_id' = '取标识'; 'native_handle' = '原生句柄'
       'hardware_concurrency' = '硬件并发数'
