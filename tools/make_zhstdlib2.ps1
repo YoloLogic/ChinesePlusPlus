@@ -64,8 +64,9 @@ $H = @{
     #   于是 独占锁::互斥量实现() 读起来别扭但不歧义（记为妥协）。
     # §3.7.2 销账：<mutex> 正文包含 <xcall_once.h>，这里指向我们自己的汉语内部件，
     # 于是只用 <互斥量> 就能拿到 标准::一次标志 与 标准::一次调用。
-    zhIncludes = @{ 'xcall_once.h' = '调用一次' }
+    zhIncludes = @{ 'xcall_once.h' = '调用一次'; 'thread' = '线程' }
     members = [ordered]@{
+      '_Pass_fn' = '_传递函数'
       '_Mymtx' = '_我的互斥量'
       '_Validate' = '_校验'
       '_Verify_ownership_levels' = '_校验所有权层级'
