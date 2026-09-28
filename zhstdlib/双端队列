@@ -1265,7 +1265,7 @@ public:
         _恢复原尺寸守卫<_弹出方向::_Front> _Guard{this, _Oldsize};
         if constexpr (_RANGES bidirectional_range<_Rng>) {
             const auto _UFirst = _解包首(_Range);
-            auto _ULast        = _RANGES _Get_final_iterator_unwrapped(_Range);
+            auto _ULast        = _取末尾迭代器解包(_Range);
             while (_UFirst != _ULast) {
                 _首部就地构造内部(*--_ULast); // prepend in order
             }
@@ -1329,7 +1329,7 @@ public:
 
         if constexpr (_RANGES bidirectional_range<_Rng>) {
             return _插入范围<_是双向::_Yes>(
-                _Off, _解包首(_Range), _RANGES _Get_final_iterator_unwrapped(_Range));
+                _Off, _解包首(_Range), _取末尾迭代器解包(_Range));
         } else {
             return _插入范围<_是双向::_Nope>(_Off, _解包首(_Range), _解包尾(_Range));
         }

@@ -1013,6 +1013,7 @@ $H = @{
       #   `_RANGES _Get_final_iterator_unwrapped(...)`（限定在 std::ranges）——
       #   登记后会被"编译器校对"改回英文（拷贝层 0 命中，守卫照出来）。
       #   属**边界**：要收它得先把 `_RANGES X` 也纳入改名/去限定（像 `_STD X` 那样）。
+      '_Get_final_iterator_unwrapped' = '_取末尾迭代器解包'
       '_Ubegin' = '_解包首'
       '_Uend' = '_解包尾'
       '_Pass_fn' = '_传递函数'
