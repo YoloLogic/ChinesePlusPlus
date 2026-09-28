@@ -1018,10 +1018,10 @@ public:
             if constexpr (_Contiguous_range_of<_Rng, _Elem>) {
                 _Construct<_Construct_strategy::_From_ptr>(_RANGES data(_Range), _Count);
             } else {
-                _由迭代器构造(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range), _Count);
+                _由迭代器构造(_解包首(_Range), _解包尾(_Range), _Count);
             }
         } else {
-            _由迭代器构造(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+            _由迭代器构造(_解包首(_Range), _解包尾(_Range));
         }
     }
 #endif // _HAS_CXX23

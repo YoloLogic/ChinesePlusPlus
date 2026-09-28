@@ -626,7 +626,7 @@ public:
     template <_Container_compatible_range<_Ty> _Rng>
     单向链表实现(from_range_t, _Rng&& _Range) : _Mypair(_Zero_then_variadic_args_t{}) {
         _单向链表后插操作2<_Alnode> _插入操作(_取分配器());
-        _插入操作._追加范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        _插入操作._追加范围非检查(_解包首(_Range), _解包尾(_Range));
         _分配代理();
         _插入操作._接在其后(_Mypair._Myval2._头之前());
     }
@@ -634,7 +634,7 @@ public:
     template <_Container_compatible_range<_Ty> _Rng>
     单向链表实现(from_range_t, _Rng&& _Range, const _Alloc& _Al) : _Mypair(_One_then_variadic_args_t{}, _Al) {
         _单向链表后插操作2<_Alnode> _插入操作(_取分配器());
-        _插入操作._追加范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        _插入操作._追加范围非检查(_解包首(_Range), _解包尾(_Range));
         _分配代理();
         _插入操作._接在其后(_Mypair._Myval2._头之前());
     }
@@ -933,7 +933,7 @@ public:
 #if _HAS_CXX23
     template <_Container_compatible_range<_Ty> _Rng>
     void 前置范围(_Rng&& _Range) {
-        _插入范围其后(_Mypair._Myval2._头之前(), _RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        _插入范围其后(_Mypair._Myval2._头之前(), _解包首(_Range), _解包尾(_Range));
     }
 #endif // _HAS_CXX23
 
@@ -984,7 +984,7 @@ public:
     void 范围赋值(_Rng&& _Range) {
         static_assert(assignable_from<_Ty&, _RANGES range_reference_t<_Rng>>,
             "Elements must be assignable from the range's reference type (N4993 [sequence.reqmts]/60).");
-        _赋值非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        _赋值非检查(_解包首(_Range), _解包尾(_Range));
     }
 #endif // _HAS_CXX23
 
@@ -1050,7 +1050,7 @@ public:
         _STL_VERIFY(_Where._取容器() == _STD addressof(_Mypair._Myval2),
             "单向链表实现 范围后插 location incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
-        return _插入范围其后(_Where._Ptr, _RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        return _插入范围其后(_Where._Ptr, _解包首(_Range), _解包尾(_Range));
     }
 #endif // _HAS_CXX23
 

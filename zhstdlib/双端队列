@@ -685,12 +685,12 @@ public:
 #if _HAS_CXX23
     template <_Container_compatible_range<_Ty> _Rng>
     双端队列实现(from_range_t, _Rng&& _Range) : _Mypair(_Zero_then_variadic_args_t{}) {
-        _Construct(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        _Construct(_解包首(_Range), _解包尾(_Range));
     }
 
     template <_Container_compatible_range<_Ty> _Rng>
     双端队列实现(from_range_t, _Rng&& _Range, const _Alloc& _Al) : _Mypair(_One_then_variadic_args_t{}, _Al) {
-        _Construct(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        _Construct(_解包首(_Range), _解包尾(_Range));
     }
 #endif // _HAS_CXX23
 
@@ -848,7 +848,7 @@ public:
     void 范围赋值(_Rng&& _Range) {
         static_assert(assignable_from<_Ty&, _RANGES range_reference_t<_Rng>>,
             "Elements must be assignable from the range's reference type (N4993 [sequence.reqmts]/60).");
-        _赋值范围(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        _赋值范围(_解包首(_Range), _解包尾(_Range));
     }
 #endif // _HAS_CXX23
 
@@ -1264,14 +1264,14 @@ public:
         const auto _Oldsize = _Mysize();
         _恢复原尺寸守卫<_弹出方向::_Front> _Guard{this, _Oldsize};
         if constexpr (_RANGES bidirectional_range<_Rng>) {
-            const auto _UFirst = _RANGES _Ubegin(_Range);
+            const auto _UFirst = _解包首(_Range);
             auto _ULast        = _RANGES _Get_final_iterator_unwrapped(_Range);
             while (_UFirst != _ULast) {
                 _首部就地构造内部(*--_ULast); // prepend in order
             }
         } else {
-            auto _UFirst      = _RANGES _Ubegin(_Range);
-            const auto _ULast = _RANGES _Uend(_Range);
+            auto _UFirst      = _解包首(_Range);
+            const auto _ULast = _解包尾(_Range);
             for (; _UFirst != _ULast; ++_UFirst) {
                 _首部就地构造内部(*_UFirst); // prepend flipped
             }
@@ -1287,8 +1287,8 @@ public:
         _孤儿化全部();
 
         const auto _Oldsize = _Mysize();
-        auto _UFirst        = _RANGES _Ubegin(_Range);
-        const auto _ULast   = _RANGES _Uend(_Range);
+        auto _UFirst        = _解包首(_Range);
+        const auto _ULast   = _解包尾(_Range);
 
         _恢复原尺寸守卫<_弹出方向::_Back> _Guard{this, _Oldsize};
         for (; _UFirst != _ULast; ++_UFirst) {
@@ -1329,9 +1329,9 @@ public:
 
         if constexpr (_RANGES bidirectional_range<_Rng>) {
             return _插入范围<_是双向::_Yes>(
-                _Off, _RANGES _Ubegin(_Range), _RANGES _Get_final_iterator_unwrapped(_Range));
+                _Off, _解包首(_Range), _RANGES _Get_final_iterator_unwrapped(_Range));
         } else {
-            return _插入范围<_是双向::_Nope>(_Off, _RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+            return _插入范围<_是双向::_Nope>(_Off, _解包首(_Range), _解包尾(_Range));
         }
     }
 #endif // _HAS_CXX23

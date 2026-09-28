@@ -191,46 +191,46 @@ public:
 #if _HAS_CXX23
     template <_Container_compatible_range<value_type> _Rng>
     无序映射实现(from_range_t, _Rng&& _Range) : _我的基类(_键比较器(), 分配器类型()) {
-        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序映射实现(from_range_t, _Rng&& _Range, const 分配器类型& _Al) : _我的基类(_键比较器(), _Al) {
-        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序映射实现(from_range_t, _Rng&& _Range, size_type _Buckets) : _我的基类(_键比较器(), 分配器类型()) {
         _我的基类::重哈希(_Buckets);
-        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序映射实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 分配器类型& _Al)
         : _我的基类(_键比较器(), _Al) {
         _我的基类::重哈希(_Buckets);
-        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序映射实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 散列器& _Hasharg)
         : _我的基类(_键比较器(_Hasharg), 分配器类型()) {
         _我的基类::重哈希(_Buckets);
-        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序映射实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 散列器& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg), _Al) {
         _我的基类::重哈希(_Buckets);
-        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序映射实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), 分配器类型()) {
         _我的基类::重哈希(_Buckets);
-        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
@@ -238,7 +238,7 @@ public:
         const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), _Al) {
         _我的基类::重哈希(_Buckets);
-        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 #endif // _HAS_CXX23
 
@@ -678,32 +678,32 @@ public:
 #if _HAS_CXX23
     template <_Container_compatible_range<value_type> _Rng>
     无序多重映射实现(from_range_t, _Rng&& _Range) : _我的基类(_键比较器(), 分配器类型()) {
-        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序多重映射实现(from_range_t, _Rng&& _Range, const 分配器类型& _Al) : _我的基类(_键比较器(), _Al) {
-        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序多重映射实现(from_range_t, _Rng&& _Range, size_type _Buckets) : _我的基类(_键比较器(), 分配器类型()) {
         _我的基类::重哈希(_Buckets);
-        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序多重映射实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 分配器类型& _Al)
         : _我的基类(_键比较器(), _Al) {
         _我的基类::重哈希(_Buckets);
-        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序多重映射实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 散列器& _Hasharg)
         : _我的基类(_键比较器(_Hasharg), 分配器类型()) {
         _我的基类::重哈希(_Buckets);
-        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
@@ -711,14 +711,14 @@ public:
         from_range_t, _Rng&& _Range, size_type _Buckets, const 散列器& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg), _Al) {
         _我的基类::重哈希(_Buckets);
-        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序多重映射实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), 分配器类型()) {
         _我的基类::重哈希(_Buckets);
-        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
@@ -726,7 +726,7 @@ public:
         const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), _Al) {
         _我的基类::重哈希(_Buckets);
-        this->_插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 #endif // _HAS_CXX23
 

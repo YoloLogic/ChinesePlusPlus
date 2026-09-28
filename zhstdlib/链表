@@ -905,12 +905,12 @@ public:
 #if _HAS_CXX23
     template <_Container_compatible_range<_Ty> _Rng>
     链表实现(from_range_t, _Rng&& _Range) : _Mypair(_Zero_then_variadic_args_t{}) {
-        _构造范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        _构造范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 
     template <_Container_compatible_range<_Ty> _Rng>
     链表实现(from_range_t, _Rng&& _Range, const _Alloc& _Al) : _Mypair(_One_then_variadic_args_t{}, _Al) {
-        _构造范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        _构造范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 #endif // _HAS_CXX23
 
@@ -1259,7 +1259,7 @@ public:
     template <_Container_compatible_range<_Ty> _Rng>
     void 前置范围(_Rng&& _Range) {
         _链表节点插入操作2<_结点分配器> _Op(_取分配器());
-        _Op._追加范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        _Op._追加范围非检查(_解包首(_Range), _解包尾(_Range));
         _Op._接在其前(_Mypair._Myval2, _Mypair._Myval2._Myhead->_Next);
     }
 #endif // _HAS_CXX23
@@ -1280,7 +1280,7 @@ public:
     template <_Container_compatible_range<_Ty> _Rng>
     void 追加范围(_Rng&& _Range) {
         _链表节点插入操作2<_结点分配器> _Op(_取分配器());
-        _Op._追加范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        _Op._追加范围非检查(_解包首(_Range), _解包尾(_Range));
         _Op._接到末尾(_Mypair._Myval2);
     }
 #endif // _HAS_CXX23
@@ -1358,7 +1358,7 @@ public:
     void 范围赋值(_Rng&& _Range) {
         static_assert(assignable_from<_Ty&, _RANGES range_reference_t<_Rng>>,
             "Elements must be assignable from the range's reference type (N4993 [sequence.reqmts]/60).");
-        _赋值非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        _赋值非检查(_解包首(_Range), _解包尾(_Range));
     }
 #endif // _HAS_CXX23
 
@@ -1421,7 +1421,7 @@ public:
         _STL_VERIFY(_Where._取容器() == _STD addressof(_Mypair._Myval2), "链表实现 范围插入 iterator outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
         _链表节点插入操作2<_结点分配器> _Op(_取分配器());
-        _Op._追加范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        _Op._追加范围非检查(_解包首(_Range), _解包尾(_Range));
         return _Make_iter(_Op._接在其前(_Mypair._Myval2, _Where._Ptr));
     }
 #endif // _HAS_CXX23

@@ -971,7 +971,7 @@ public:
 #if _HAS_CXX23
     template <_Container_compatible_range<value_type> _Rng>
     void insert_range(_Rng&& _Range) {
-        _插入范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+        _插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 #endif // _HAS_CXX23
 

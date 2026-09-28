@@ -2833,7 +2833,7 @@ namespace ranges {
     } // namespace _Unchecked_begin
 
     inline namespace _Cpos {
-        inline constexpr _Unchecked_begin::_Cpo _Ubegin;
+        inline constexpr _Unchecked_begin::_Cpo _解包首;
     }
 
     namespace _Unchecked_end {
@@ -2884,7 +2884,7 @@ namespace ranges {
     } // namespace _Unchecked_end
 
     inline namespace _Cpos {
-        inline constexpr _Unchecked_end::_Cpo _Uend;
+        inline constexpr _Unchecked_end::_Cpo _解包尾;
     }
 
     _EXPORT_STD template <class _Rng>
@@ -3568,7 +3568,7 @@ namespace ranges {
             if constexpr (sized_range<_Rng>) {
                 return static_cast<range_difference_t<_Rng>>(_RANGES size(_Range));
             } else {
-                return _Distance_unchecked(_Ubegin(_Range), _Uend(_Range));
+                return _Distance_unchecked(_解包首(_Range), _解包尾(_Range));
             }
         }
 
@@ -3588,7 +3588,7 @@ namespace ranges {
 
         template <class _Rng>
         static constexpr bool _Nothrow_size =
-            noexcept(_Distance_unchecked(_Ubegin(_STD declval<_Rng&>()), _Uend(_STD declval<_Rng&>())));
+            noexcept(_Distance_unchecked(_解包首(_STD declval<_Rng&>()), _解包尾(_STD declval<_Rng&>())));
 
         template <sized_range _Rng>
         static constexpr bool _Nothrow_size<_Rng> = noexcept(_RANGES size(_STD declval<_Rng&>()));
@@ -4931,39 +4931,39 @@ namespace ranges {
 
     template <forward_range _Rng>
     _NODISCARD constexpr auto _取末尾迭代器解包(_Rng& _Range) {
-        // find the (unwrapped) iterator in _Range which equals _Uend(_Range) [possibly O(N)]
+        // find the (unwrapped) iterator in _Range which equals _解包尾(_Range) [possibly O(N)]
         if constexpr (common_range<_Rng>) {
-            if constexpr (same_as<decltype(_Uend(_Range)), _Unwrapped_iterator_t<_Rng>>) {
-                return _Uend(_Range);
+            if constexpr (same_as<decltype(_解包尾(_Range)), _Unwrapped_iterator_t<_Rng>>) {
+                return _解包尾(_Range);
             } else {
                 return _RANGES _Unwrap_range_sent<_Rng>(_RANGES end(_Range));
             }
         } else if constexpr (sized_range<_Rng>) {
-            return _RANGES next(_Ubegin(_Range), _RANGES distance(_Range));
+            return _RANGES next(_解包首(_Range), _RANGES distance(_Range));
         } else {
-            return _RANGES next(_Ubegin(_Range), _Uend(_Range));
+            return _RANGES next(_解包首(_Range), _解包尾(_Range));
         }
     }
 
     template <forward_range _Rng>
     _NODISCARD constexpr auto _取末尾迭代器解包(_Rng& _Range, const _Unwrapped_iterator_t<_Rng>& _Mid) {
-        // find the (unwrapped) iterator in _Range which equals _Uend(_Range) [possibly O(N)]
+        // find the (unwrapped) iterator in _Range which equals _解包尾(_Range) [possibly O(N)]
         // Pre: [ranges::begin(_Range), _Mid) and [_Mid, ranges::end(_Range)) denote ranges
         if constexpr (common_range<_Rng>) {
-            if constexpr (same_as<decltype(_Uend(_Range)), _Unwrapped_iterator_t<_Rng>>) {
-                return _Uend(_Range);
+            if constexpr (same_as<decltype(_解包尾(_Range)), _Unwrapped_iterator_t<_Rng>>) {
+                return _解包尾(_Range);
             } else {
                 return _Unwrap_range_sent<_Rng>(_RANGES end(_Range));
             }
         } else if constexpr (sized_range<_Rng>) {
             const auto _Dist = _RANGES distance(_Range);
             if constexpr (sized_sentinel_for<_Unwrapped_iterator_t<_Rng>, _Unwrapped_iterator_t<_Rng>>) {
-                return _RANGES next(_Mid, _Dist - (_Mid - _Ubegin(_Range)));
+                return _RANGES next(_Mid, _Dist - (_Mid - _解包首(_Range)));
             } else {
-                return _RANGES next(_Ubegin(_Range), _Dist);
+                return _RANGES next(_解包首(_Range), _Dist);
             }
         } else {
-            return _RANGES next(_Mid, _Uend(_Range));
+            return _RANGES next(_Mid, _解包尾(_Range));
         }
     }
 
@@ -5034,7 +5034,7 @@ namespace ranges {
             _Rng&& _Range, _Out _Output) _CONST_CALL_OPERATOR {
             const auto _Count = _RANGES _Idl_distance(_Range);
             auto _First       = _RANGES begin(_Range);
-            auto _UResult = _RANGES _Copy_unchecked(_RANGES _Unwrap_range_iter<_Rng>(_STD move(_First)), _Uend(_Range),
+            auto _UResult = _RANGES _Copy_unchecked(_RANGES _Unwrap_range_iter<_Rng>(_STD move(_First)), _解包尾(_Range),
                 _Get_unwrapped_n(_STD move(_Output), _Count));
             _定位包装(_First, _STD move(_UResult.in));
             _定位包装(_Output, _STD move(_UResult.out));
@@ -5764,7 +5764,7 @@ namespace ranges {
                 auto _First1 = _RANGES begin(_Range1);
                 auto _First2 = _RANGES begin(_Range2);
                 auto _Result = _RANGES _Mismatch_4(_RANGES _Unwrap_range_iter<_Rng1>(_STD move(_First1)),
-                    _Uend(_Range1), _RANGES _Unwrap_range_iter<_Rng2>(_STD move(_First2)), _Uend(_Range2),
+                    _解包尾(_Range1), _RANGES _Unwrap_range_iter<_Rng2>(_STD move(_First2)), _解包尾(_Range2),
                     _传递函数(_Pred), _传递函数(_Proj1), _传递函数(_Proj2));
                 _定位包装(_First1, _STD move(_Result.in1));
                 _定位包装(_First2, _STD move(_Result.in2));
@@ -6302,7 +6302,7 @@ namespace ranges {
             _Rng&& _Range, const _Ty& _Val, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             auto _First   = _RANGES begin(_Range);
             auto _UResult = _RANGES _Find_unchecked(
-                _RANGES _Unwrap_range_iter<_Rng>(_STD move(_First)), _Uend(_Range), _Val, _传递函数(_Proj));
+                _RANGES _Unwrap_range_iter<_Rng>(_STD move(_First)), _解包尾(_Range), _Val, _传递函数(_Proj));
 
             _定位包装(_First, _STD move(_UResult));
             return _First;
@@ -6714,7 +6714,7 @@ namespace ranges {
             _Rng&& _Range, _Pr _Pred, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             auto _First   = _RANGES begin(_Range);
             auto _UResult = _RANGES _Find_if_unchecked(_RANGES _Unwrap_range_iter<_Rng>(_STD move(_First)),
-                _Uend(_Range), _传递函数(_Pred), _传递函数(_Proj));
+                _解包尾(_Range), _传递函数(_Pred), _传递函数(_Proj));
 
             _定位包装(_First, _STD move(_UResult));
             return _First;
@@ -6744,7 +6744,7 @@ namespace ranges {
             _Rng&& _Range, _Pr _Pred, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             auto _First = _RANGES begin(_Range);
 
-            auto _UResult = _Find_if_not_unchecked(_RANGES _Unwrap_range_iter<_Rng>(_STD move(_First)), _Uend(_Range),
+            auto _UResult = _Find_if_not_unchecked(_RANGES _Unwrap_range_iter<_Rng>(_STD move(_First)), _解包尾(_Range),
                 _传递函数(_Pred), _传递函数(_Proj));
 
             _定位包装(_First, _STD move(_UResult));
@@ -6791,7 +6791,7 @@ namespace ranges {
         _NODISCARD _STATIC_CALL_OPERATOR constexpr borrowed_iterator_t<_Rng> operator()(
             _Rng&& _Range, _Pr _Pred = {}, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             auto _UResult =
-                _Adjacent_find_unchecked(_Ubegin(_Range), _Uend(_Range), _传递函数(_Pred), _传递函数(_Proj));
+                _Adjacent_find_unchecked(_解包首(_Range), _解包尾(_Range), _传递函数(_Pred), _传递函数(_Proj));
 
             return _RANGES _Rewrap_iterator(_Range, _STD move(_UResult));
         }
@@ -6872,11 +6872,11 @@ namespace ranges {
             if constexpr (sized_range<_Rng1> && sized_range<_Rng2>) {
                 const auto _Count1 = _RANGES distance(_Range1);
                 const auto _Count2 = _RANGES distance(_Range2);
-                auto _UResult      = _Search_sized(_Ubegin(_Range1), _Uend(_Range1), _Count1, _Ubegin(_Range2),
-                         _Uend(_Range2), _Count2, _传递函数(_Pred), _传递函数(_Proj1), _传递函数(_Proj2));
+                auto _UResult      = _Search_sized(_解包首(_Range1), _解包尾(_Range1), _Count1, _解包首(_Range2),
+                         _解包尾(_Range2), _Count2, _传递函数(_Pred), _传递函数(_Proj1), _传递函数(_Proj2));
                 return _RANGES _Rewrap_subrange<borrowed_subrange_t<_Rng1>>(_Range1, _STD move(_UResult));
             } else {
-                auto _UResult = _Search_unsized(_Ubegin(_Range1), _Uend(_Range1), _Ubegin(_Range2), _Uend(_Range2),
+                auto _UResult = _Search_unsized(_解包首(_Range1), _解包尾(_Range1), _解包首(_Range2), _解包尾(_Range2),
                     _传递函数(_Pred), _传递函数(_Proj1), _传递函数(_Proj2));
                 return _RANGES _Rewrap_subrange<borrowed_subrange_t<_Rng1>>(_Range1, _STD move(_UResult));
             }
@@ -7125,7 +7125,7 @@ namespace ranges {
         _NODISCARD _STATIC_CALL_OPERATOR constexpr borrowed_iterator_t<_Rng> operator()(
             _Rng&& _Range, _Pr _Pred = {}, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             auto _UResult = _RANGES _Max_element_unchecked(
-                _Ubegin(_Range), _Uend(_Range), _传递函数(_Pred), _传递函数(_Proj));
+                _解包首(_Range), _解包尾(_Range), _传递函数(_Pred), _传递函数(_Proj));
             return _RANGES _Rewrap_iterator(_Range, _STD move(_UResult));
         }
     };
@@ -7202,8 +7202,8 @@ namespace ranges {
             requires indirectly_copyable_storable<iterator_t<_Rng>, range_value_t<_Rng>*>
         _NODISCARD _STATIC_CALL_OPERATOR constexpr range_value_t<_Rng> operator()(
             _Rng&& _Range, _Pr _Pred = {}, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
-            auto _UFirst = _Ubegin(_Range);
-            auto _ULast  = _Uend(_Range);
+            auto _UFirst = _解包首(_Range);
+            auto _ULast  = _解包尾(_Range);
             _STL_ASSERT(
                 _UFirst != _ULast, "A range passed to std::ranges::max must not be empty. (N4971 [alg.min.max]/13)");
 #if _USE_STD_VECTOR_ALGORITHMS
@@ -7351,7 +7351,7 @@ namespace ranges {
         _NODISCARD _STATIC_CALL_OPERATOR constexpr borrowed_iterator_t<_Rng> operator()(
             _Rng&& _Range, _Pr _Pred = {}, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             auto _UResult = _RANGES _Min_element_unchecked(
-                _Ubegin(_Range), _Uend(_Range), _传递函数(_Pred), _传递函数(_Proj));
+                _解包首(_Range), _解包尾(_Range), _传递函数(_Pred), _传递函数(_Proj));
             return _RANGES _Rewrap_iterator(_Range, _STD move(_UResult));
         }
     };
@@ -7422,8 +7422,8 @@ namespace ranges {
             requires indirectly_copyable_storable<iterator_t<_Rng>, range_value_t<_Rng>*>
         _NODISCARD _STATIC_CALL_OPERATOR constexpr range_value_t<_Rng> operator()(
             _Rng&& _Range, _Pr _Pred = {}, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
-            auto _UFirst = _Ubegin(_Range);
-            auto _ULast  = _Uend(_Range);
+            auto _UFirst = _解包首(_Range);
+            auto _ULast  = _解包尾(_Range);
             _STL_ASSERT(
                 _UFirst != _ULast, "A range passed to std::ranges::min must not be empty. (N4971 [alg.min.max]/5)");
 #if _USE_STD_VECTOR_ALGORITHMS

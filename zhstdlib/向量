@@ -730,13 +730,13 @@ public:
         if constexpr (_RANGES sized_range<_Rng> || _RANGES forward_range<_Rng>) {
             const auto _Length = _转为无符号同型(_RANGES distance(_Range));
             const auto _Count  = _Convert_size<size_type>(_Length);
-            _Construct_n(_Count, _RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+            _Construct_n(_Count, _解包首(_Range), _解包尾(_Range));
         } else {
             auto&& _Alproxy = _取代理分配器(_分配器类型, _Getal());
             _容器代理指针<_分配器类型> _Proxy(_Alproxy, _Mypair._Myval2);
             _Tidy_guard<向量实现> _Guard{this};
 
-            _追加非计数范围(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+            _追加非计数范围(_解包首(_Range), _解包尾(_Range));
 
             _Guard._Target = nullptr;
             _Proxy._Release();
@@ -1017,9 +1017,9 @@ public:
         if constexpr (_RANGES forward_range<_Rng> || _RANGES sized_range<_Rng>) {
             const auto _Length = _转为无符号同型(_RANGES distance(_Range));
             const auto _Count  = _Convert_size<size_type>(_Length);
-            _追加计数范围(_RANGES _Ubegin(_Range), _Count);
+            _追加计数范围(_解包首(_Range), _Count);
         } else {
-            _追加非计数范围(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+            _追加非计数范围(_解包首(_Range), _解包尾(_Range));
         }
     }
 #endif // _HAS_CXX23
@@ -1310,9 +1310,9 @@ public:
         if constexpr (_RANGES forward_range<_Rng> || _RANGES sized_range<_Rng>) {
             const auto _Length = _转为无符号同型(_RANGES distance(_Range));
             const auto _Count  = _Convert_size<size_type>(_Length);
-            _插入计数范围(_Where, _RANGES _Ubegin(_Range), _Count);
+            _插入计数范围(_Where, _解包首(_Range), _Count);
         } else {
-            _插入非计数范围(_Where, _RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+            _插入非计数范围(_Where, _解包首(_Range), _解包尾(_Range));
         }
         return _造迭代器偏移(_Whereoff);
     }
@@ -1510,9 +1510,9 @@ public:
         if constexpr (_RANGES sized_range<_Rng> || _RANGES forward_range<_Rng>) {
             const auto _Length = _转为无符号同型(_RANGES distance(_Range));
             const auto _Count  = _Convert_size<size_type>(_Length);
-            _赋值计数范围(_RANGES _Ubegin(_Range), _Count);
+            _赋值计数范围(_解包首(_Range), _Count);
         } else {
-            _赋值非计数范围(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+            _赋值非计数范围(_解包首(_Range), _解包尾(_Range));
         }
     }
 #endif // _HAS_CXX23
@@ -2954,9 +2954,9 @@ public:
         if constexpr (_RANGES forward_range<_Rng> || _RANGES sized_range<_Rng>) {
             const auto _Length = _转为无符号同型(_RANGES distance(_Range));
             const auto _Count  = _Convert_size<size_type>(_Length);
-            _赋值计数范围(_RANGES _Ubegin(_Range), _Count);
+            _赋值计数范围(_解包首(_Range), _Count);
         } else {
-            _赋值非计数范围(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+            _赋值非计数范围(_解包首(_Range), _解包尾(_Range));
         }
     }
 #endif // _HAS_CXX23
@@ -3361,9 +3361,9 @@ public:
         if constexpr (_RANGES forward_range<_Rng> || _RANGES sized_range<_Rng>) {
             const auto _Length = _转为无符号同型(_RANGES distance(_Range));
             const auto _Count  = _Convert_size<size_type>(_Length);
-            _赋值计数范围(_RANGES _Ubegin(_Range), _Count);
+            _赋值计数范围(_解包首(_Range), _Count);
         } else {
-            _赋值非计数范围(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
+            _赋值非计数范围(_解包首(_Range), _解包尾(_Range));
         }
     }
 #endif // _HAS_CXX23
@@ -3423,10 +3423,10 @@ public:
             const auto _Length = _转为无符号同型(_RANGES distance(_Range));
             const auto _Count  = _Convert_size<size_type>(_Length);
             const auto _Off    = static_cast<difference_type>(_插入若干(_Where, _Count));
-            _复制N个非检查4(_RANGES _Ubegin(_Range), _Count, 开始() + _Off);
+            _复制N个非检查4(_解包首(_Range), _Count, 开始() + _Off);
         } else {
-            auto _UFirst         = _RANGES _Ubegin(_Range);
-            const auto _ULast    = _RANGES _Uend(_Range);
+            auto _UFirst         = _解包首(_Range);
+            const auto _ULast    = _解包尾(_Range);
             const auto _Old_size = this->_Mysize;
             for (; _UFirst != _ULast; ++_UFirst) {
                 尾部就地构造(*_UFirst);
