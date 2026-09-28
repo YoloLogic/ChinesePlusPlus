@@ -599,7 +599,7 @@ public:
         if constexpr (_Multi) {
             _检查最大尺寸();
             _List_node_emplace_op2<_结点分配器> _新节点(_List._取分配器(), _STD forward<_Valtys>(_Vals)...);
-            const auto& _Keyval = _Traits::_Kfn(_新节点._Ptr->_Myval);
+            const auto& _Keyval = _Traits::_取键(_新节点._Ptr->_Myval);
             const auto _Hashval = _Traitsobj(_Keyval);
             if (_检查需重哈希1()) {
                 _为1重哈希();
@@ -620,14 +620,14 @@ public:
             _List_node_emplace_op2<_结点分配器> _新节点(_List._取分配器(), _STD forward<_Valtys>(_Vals)...);
             if (_检查需重哈希1()) {
                 _为1重哈希();
-                _Target = _查找最后(_Traits::_Kfn(_新节点._Ptr->_Myval), _Hashval);
+                _Target = _查找最后(_Traits::_取键(_新节点._Ptr->_Myval), _Hashval);
             }
 
             return {
                 _List._Make_iter(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release())), true};
         } else {
             _List_node_emplace_op2<_结点分配器> _新节点(_List._取分配器(), _STD forward<_Valtys>(_Vals)...);
-            const auto& _Keyval = _Traits::_Kfn(_新节点._Ptr->_Myval);
+            const auto& _Keyval = _Traits::_取键(_新节点._Ptr->_Myval);
             const auto _Hashval = _Traitsobj(_Keyval);
             auto _Target        = _查找最后(_Keyval, _Hashval);
             if (_Target._Duplicate) {
@@ -637,7 +637,7 @@ public:
             _检查最大尺寸();
             if (_检查需重哈希1()) {
                 _为1重哈希();
-                _Target = _查找最后(_Traits::_Kfn(_新节点._Ptr->_Myval), _Hashval);
+                _Target = _查找最后(_Traits::_取键(_新节点._Ptr->_Myval), _Hashval);
             }
 
             return {
@@ -651,7 +651,7 @@ public:
         if constexpr (_Multi) {
             _检查最大尺寸();
             _List_node_emplace_op2<_结点分配器> _新节点(_List._取分配器(), _STD forward<_Valtys>(_Vals)...);
-            const auto& _Keyval = _Traits::_Kfn(_新节点._Ptr->_Myval);
+            const auto& _Keyval = _Traits::_取键(_新节点._Ptr->_Myval);
             const auto _Hashval = _Traitsobj(_Keyval);
             if (_检查需重哈希1()) {
                 _为1重哈希();
@@ -672,13 +672,13 @@ public:
             _List_node_emplace_op2<_结点分配器> _新节点(_List._取分配器(), _STD forward<_Valtys>(_Vals)...);
             if (_检查需重哈希1()) {
                 _为1重哈希();
-                _Target = _按提示查找(_Hint._Ptr, _Traits::_Kfn(_新节点._Ptr->_Myval), _Hashval);
+                _Target = _按提示查找(_Hint._Ptr, _Traits::_取键(_新节点._Ptr->_Myval), _Hashval);
             }
 
             return _List._Make_iter(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release()));
         } else {
             _List_node_emplace_op2<_结点分配器> _新节点(_List._取分配器(), _STD forward<_Valtys>(_Vals)...);
-            const auto& _Keyval = _Traits::_Kfn(_新节点._Ptr->_Myval);
+            const auto& _Keyval = _Traits::_取键(_新节点._Ptr->_Myval);
             const auto _Hashval = _Traitsobj(_Keyval);
             auto _Target        = _按提示查找(_Hint._Ptr, _Keyval, _Hashval);
             if (_Target._Duplicate) {
@@ -688,7 +688,7 @@ public:
             _检查最大尺寸();
             if (_检查需重哈希1()) {
                 _为1重哈希();
-                _Target = _按提示查找(_Hint._Ptr, _Traits::_Kfn(_新节点._Ptr->_Myval), _Hashval);
+                _Target = _按提示查找(_Hint._Ptr, _Traits::_取键(_新节点._Ptr->_Myval), _Hashval);
             }
 
             return _List._Make_iter(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release()));
@@ -711,7 +711,7 @@ protected:
             _STD forward_as_tuple(_STD forward<_Mappedty>(_Mapval)...));
         if (_检查需重哈希1()) {
             _为1重哈希();
-            _Target = _查找最后(_Traits::_Kfn(_新节点._Ptr->_Myval), _Hashval);
+            _Target = _查找最后(_Traits::_取键(_新节点._Ptr->_Myval), _Hashval);
         }
 
         return {_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release()), true};
@@ -733,7 +733,7 @@ protected:
             _STD forward_as_tuple(_STD forward<_Mappedty>(_Mapval)...));
         if (_检查需重哈希1()) {
             _为1重哈希();
-            _Target = _按提示查找(_Hint, _Traits::_Kfn(_新节点._Ptr->_Myval), _Hashval);
+            _Target = _按提示查找(_Hint, _Traits::_取键(_新节点._Ptr->_Myval), _Hashval);
         }
 
         return _在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release());
@@ -981,7 +981,7 @@ public:
 
 private:
     _结点指针 _非检查擦除(_结点指针 _Plist) noexcept(_Nothrow_hash<_Traits, 键类型>) {
-        size_type _Bucket = bucket(_Traits::_Kfn(_Plist->_Myval));
+        size_type _Bucket = bucket(_Traits::_取键(_Plist->_Myval));
         _擦除桶(_Plist, _Bucket);
         return _List._非检查擦除(_Plist);
     }
@@ -1041,7 +1041,7 @@ private:
         {
             // process the first bucket, which is special because here _First might not be the beginning of the bucket
             const auto _Predecessor = _First->_Prev;
-            const size_type _Bucket = bucket(_Traits::_Kfn(_Eraser._Next->_Myval)); // throws
+            const size_type _Bucket = bucket(_Traits::_取键(_Eraser._Next->_Myval)); // throws
             // nothrow hereafter this block
             _结点指针& _Bucket_lo   = _Bucket_bounds[_Bucket << 1]._Ptr;
             _结点指针& _Bucket_hi   = _Bucket_bounds[(_Bucket << 1) + 1]._Ptr;
@@ -1075,7 +1075,7 @@ private:
 
         // hereafter we are always erasing buckets' prefixes
         while (_Eraser._Next != _Last) {
-            const size_type _Bucket = bucket(_Traits::_Kfn(_Eraser._Next->_Myval)); // throws
+            const size_type _Bucket = bucket(_Traits::_取键(_Eraser._Next->_Myval)); // throws
             // nothrow hereafter this block
             _结点指针& _Bucket_lo   = _Bucket_bounds[_Bucket << 1]._Ptr;
             _结点指针& _Bucket_hi   = _Bucket_bounds[(_Bucket << 1) + 1]._Ptr;
@@ -1196,9 +1196,9 @@ private:
 
         const _结点指针 _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1]._Ptr;
         for (;;) {
-            if (!_Traitsobj(_Traits::_Kfn(_Where->_Myval), _Keyval)) {
+            if (!_Traitsobj(_Traits::_取键(_Where->_Myval), _Keyval)) {
                 if constexpr (!_Traits::_Standard) {
-                    if (_Traitsobj(_Keyval, _Traits::_Kfn(_Where->_Myval))) {
+                    if (_Traitsobj(_Keyval, _Traits::_取键(_Where->_Myval))) {
                         return _End;
                     }
                 }
@@ -1304,14 +1304,14 @@ private:
         }
 
         const _非检查常量迭代器 _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1];
-        for (; _Traitsobj(_Traits::_Kfn(*_Where), _Keyval); ++_Where) {
+        for (; _Traitsobj(_Traits::_取键(*_Where), _Keyval); ++_Where) {
             if (_Where == _Bucket_hi) {
                 return {_End, _End, 0};
             }
         }
 
         if constexpr (!_Traits::_Standard) {
-            if (_Traitsobj(_Keyval, _Traits::_Kfn(*_Where))) {
+            if (_Traitsobj(_Keyval, _Traits::_取键(*_Where))) {
                 return {_End, _End, 0};
             }
         }
@@ -1328,7 +1328,7 @@ private:
                     break;
                 }
 
-                if (_Traitsobj(_Keyval, _Traits::_Kfn(*_Where))) {
+                if (_Traitsobj(_Keyval, _Traits::_取键(*_Where))) {
                     break;
                 }
             }
@@ -1422,7 +1422,7 @@ public:
         _STL_VERIFY(_List.取分配器() == _Handle._取分配器(), "node handle allocator incompatible for insert");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
-        const auto& _Keyval   = _Traits::_Kfn(_Handle._Getptr()->_Myval);
+        const auto& _Keyval   = _Traits::_取键(_Handle._Getptr()->_Myval);
         const size_t _Hashval = _Traitsobj(_Keyval);
         auto _Target          = _按提示查找(_Hint._Ptr, _Keyval, _Hashval);
         if constexpr (!_Traits::_Multi) {
@@ -1471,7 +1471,7 @@ public:
         while (_First != _Last) {
             const auto _Candidate = _First._Ptr;
             ++_First;
-            const auto& _Keyval   = _Traits::_Kfn(_Candidate->_Myval);
+            const auto& _Keyval   = _Traits::_取键(_Candidate->_Myval);
             const size_t _Hashval = _Traitsobj(_Keyval);
             auto _Target          = _查找最后(_Keyval, _Hashval);
             if constexpr (!_Traits::_Multi) {
@@ -1514,7 +1514,7 @@ public:
 
 protected:
     _结点指针 _Extract(const _非检查常量迭代器 _Where) {
-        const size_type _Bucket = bucket(_Traits::_Kfn(*_Where));
+        const size_type _Bucket = bucket(_Traits::_取键(*_Where));
         _擦除桶(_Where._Ptr, _Bucket);
         return _List._Mypair._Myval2._Unlinknode(_Where._Ptr);
     }
@@ -1554,7 +1554,7 @@ public:
         _STL_VERIFY(_List.取分配器() == _Handle._取分配器(), "node handle allocator incompatible for insert");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
-        const auto& _Keyval   = _Traits::_Kfn(_Handle._Getptr()->_Myval);
+        const auto& _Keyval   = _Traits::_取键(_Handle._Getptr()->_Myval);
         const size_t _Hashval = _Traitsobj(_Keyval);
         auto _Target          = _查找最后(_Keyval, _Hashval);
         if constexpr (!_Traits::_Multi) {
@@ -1595,9 +1595,9 @@ protected:
         const _结点指针 _Bucket_lo = _Vec._Mypair._Myval2._Myfirst[_Bucket << 1]._Ptr;
         for (;;) {
             // Search backwards to maintain sorted [_Bucket_lo, _Bucket_hi] when !_Standard
-            if (!_Traitsobj(_Keyval, _Traits::_Kfn(_Where->_Myval))) {
+            if (!_Traitsobj(_Keyval, _Traits::_取键(_Where->_Myval))) {
                 if constexpr (!_Traits::_Standard) {
-                    if (_Traitsobj(_Traits::_Kfn(_Where->_Myval), _Keyval)) {
+                    if (_Traitsobj(_Traits::_取键(_Where->_Myval), _Keyval)) {
                         return {_Where->_Next, _结点指针{}};
                     }
                 }
@@ -1618,9 +1618,9 @@ protected:
         const _结点指针 _Hint, const _Keyty& _Keyval, const size_t _Hashval) const {
         // if _Hint points to an element equivalent to _Keyval, returns _Hint; otherwise,
         // returns _查找最后(_Keyval, _Hashval)
-        if (_Hint != _List._Mypair._Myval2._Myhead && !_Traitsobj(_Traits::_Kfn(_Hint->_Myval), _Keyval)) {
+        if (_Hint != _List._Mypair._Myval2._Myhead && !_Traitsobj(_Traits::_取键(_Hint->_Myval), _Keyval)) {
             if constexpr (!_Traits::_Standard) {
-                if (_Traitsobj(_Keyval, _Traits::_Kfn(_Hint->_Myval))) {
+                if (_Traitsobj(_Keyval, _Traits::_取键(_Hint->_Myval))) {
                     return _查找最后(_Keyval, _Hashval);
                 }
             }
@@ -1758,7 +1758,7 @@ protected:
         for (_非检查迭代器 _Next_inserted = _Inserted; _Inserted != _End; _Inserted = _Next_inserted) {
             ++_Next_inserted;
 
-            auto& _Inserted_key     = _Traits::_Kfn(*_Inserted);
+            auto& _Inserted_key     = _Traits::_取键(*_Inserted);
             const size_type _Bucket = bucket(_Inserted_key);
 
             // _Bucket_lo and _Bucket_hi are the *inclusive* range of elements in the bucket, or _非检查结束() if
@@ -1775,7 +1775,7 @@ protected:
 
             // Search the bucket for the insertion location and move element if necessary.
             _非检查常量迭代器 _Insert_before = _Bucket_hi;
-            if (!_Traitsobj(_Inserted_key, _Traits::_Kfn(*_Insert_before))) {
+            if (!_Traitsobj(_Inserted_key, _Traits::_取键(*_Insert_before))) {
                 // The inserted element belongs at the 结束 of the bucket; splice it there and set _Bucket_hi to the
                 // new bucket inclusive 结束.
                 ++_Insert_before;
@@ -1800,7 +1800,7 @@ protected:
                     break;
                 }
 
-                if (!_Traitsobj(_Inserted_key, _Traits::_Kfn(*--_Insert_before))) {
+                if (!_Traitsobj(_Inserted_key, _Traits::_取键(*--_Insert_before))) {
                     // Found insertion point, move the element here, bucket bounds are already okay.
                     ++_Insert_before;
                     // Element can't be already in position here because all elements we're inserting are after all
@@ -1843,7 +1843,7 @@ protected:
         const _哈希& _Right, _非检查常量迭代器 _First1) const {
         // check that an equal_range of elements starting with *_First1 are a permutation of the corresponding
         // equal_range of elements in _Right
-        auto& _Keyval = _Traits::_Kfn(*_First1);
+        auto& _Keyval = _Traits::_取键(*_First1);
         // find the start of the matching run in the other container
         const size_t _Hashval   = _Right._Traitsobj(_Keyval);
         const size_type _Bucket = _Hashval & _Right._Mask;
@@ -1854,7 +1854,7 @@ protected:
         }
 
         const auto _Bucket_hi = _Right._Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1];
-        for (; _Right._Traitsobj(_Traits::_Kfn(*_First2), _Keyval); ++_First2) {
+        for (; _Right._Traitsobj(_Traits::_取键(*_First2), _Keyval); ++_First2) {
             // find first matching element in _Right
             if (_First2 == _Bucket_hi) {
                 return {};
@@ -1866,7 +1866,7 @@ protected:
             _Left_stop_at = _非检查结束();
         } else {
             // check the first elements for equivalence when !_Standard
-            if (_Right._Traitsobj(_Keyval, _Traits::_Kfn(*_First2))) {
+            if (_Right._Traitsobj(_Keyval, _Traits::_取键(*_First2))) {
                 return {};
             }
 
@@ -1883,12 +1883,12 @@ protected:
             bool _Right_range_end = _First2 == _Bucket_hi;
             ++_First2;
             if (!_Right_range_end) {
-                _Right_range_end = _Right._Traitsobj(_Keyval, _Traits::_Kfn(*_First2));
+                _Right_range_end = _Right._Traitsobj(_Keyval, _Traits::_取键(*_First2));
             }
 
             // the left equal_range ends at the 结束 of the container or on the first nonequal element
             ++_First1;
-            const bool _Left_range_end = _First1 == _Left_stop_at || _Traitsobj(_Keyval, _Traits::_Kfn(*_First1));
+            const bool _Left_range_end = _First1 == _Left_stop_at || _Traitsobj(_Keyval, _Traits::_取键(*_First1));
 
             if (_Left_range_end && _Right_range_end) {
                 // the equal_ranges were completely equal
@@ -1908,11 +1908,11 @@ protected:
             bool _Right_range_end = _Last2 == _Bucket_hi;
             ++_Last2;
             if (!_Right_range_end) {
-                _Right_range_end = _Right._Traitsobj(_Keyval, _Traits::_Kfn(*_Last2));
+                _Right_range_end = _Right._Traitsobj(_Keyval, _Traits::_取键(*_Last2));
             }
 
             ++_Last1;
-            const bool _Left_range_end = _Last1 == _Left_stop_at || _Traitsobj(_Keyval, _Traits::_Kfn(*_Last1));
+            const bool _Left_range_end = _Last1 == _Left_stop_at || _Traitsobj(_Keyval, _Traits::_取键(*_Last1));
 
             if (_Left_range_end && _Right_range_end) {
                 // equal_ranges had the same length, check for permutation
@@ -1978,9 +1978,9 @@ public:
                         for (;;) {
                             ++_SNext;
                             if constexpr (_Traits::_Multi) {
-                                _STL_INTERNAL_CHECK(!_Traitsobj(_Traits::_Kfn(*_SNext), _Traits::_Kfn(*_SFirst)));
+                                _STL_INTERNAL_CHECK(!_Traitsobj(_Traits::_取键(*_SNext), _Traits::_取键(*_SFirst)));
                             } else {
-                                _STL_INTERNAL_CHECK(_Traitsobj(_Traits::_Kfn(*_SFirst), _Traits::_Kfn(*_SNext)));
+                                _STL_INTERNAL_CHECK(_Traitsobj(_Traits::_取键(*_SFirst), _Traits::_取键(*_SNext)));
                             }
 
                             if (_SNext == _Bucket_hi) {
@@ -1994,7 +1994,7 @@ public:
                 // check that all the elements in the bucket belong in the bucket:
                 for (;;) {
                     ++_Elements;
-                    _STL_INTERNAL_CHECK(bucket(_Traits::_Kfn(*_Where)) == _Bucket);
+                    _STL_INTERNAL_CHECK(bucket(_Traits::_取键(*_Where)) == _Bucket);
                     if (_Where == _Bucket_hi) {
                         break;
                     }
@@ -2045,7 +2045,7 @@ _NODISCARD bool _哈希相等(const _哈希<_Traits>& _Left, const _哈希<_Trai
     } else {
         for (const auto& _LVal : _Left) {
             // look for element with equivalent key
-            const auto& _Keyval = _Traits::_Kfn(_LVal);
+            const auto& _Keyval = _Traits::_取键(_LVal);
             const auto _Next2   = _Right._查找最后(_Keyval, _Right._Traitsobj(_Keyval))._Duplicate;
             if (!(static_cast<bool>(_Next2) && _LVal == _Next2->_Myval)) {
                 return false;
