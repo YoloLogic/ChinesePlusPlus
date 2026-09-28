@@ -2163,7 +2163,14 @@ $H = @{
       '_Assign_unlocked' = '_赋值不加锁'
       '_Bind' = '_绑定'
       '_Clamp_to_end' = '_夹取至末尾'
-      '_Construct_in_place' = '_就地构造'
+      # ⚠ §17.17.2 `_Construct_in_place` **撤下改名**（保持英文名）。
+      #   逐行看过：`<xmemory>` 里它**只有调用、没有定义**（L1221/1230/1478/1484/1634），
+      #   定义在**借来的** `<xutility>` 一侧；而那 5 处调用点**全在
+      #   `#if _ITERATOR_DEBUG_LEVEL != 0` 里** —— 这就是"改名后只在 IDL=1 报未声明"的根因
+      #   （IDL=0 时那些行不参与编译，这个名字从没被查过）。
+      #   撤下后调用点保持英文 -> 解析到 `<xutility>` 那份 ✓；
+      #   因为**我们那份从来没有定义过它**，不会出现 §16.61.6 那种"同名两份 -> 歧义"。
+      #   ⚠ `_Construct_in_place_by_deref` **不撤**：它在 xmemory L1609 **有定义**，是我们那份。
       '_Construct_in_place_by_deref' = '_按解引用就地构造'
       '_Deallocate_plain' = '_释放原生'
       '_Destroy_range' = '_析构范围'
