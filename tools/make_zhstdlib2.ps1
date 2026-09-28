@@ -2747,6 +2747,7 @@ $H = @{
       'allocator_type'           = '分配器类型'
     }
     members = [ordered]@{
+      '_Delete_plain_internal' = '_删除原生内部'
       '_Orphan_all' = '_孤儿化全部'
       '_Bind' = '_绑定'
       '_Adopt' = '_收养'
@@ -3473,6 +3474,7 @@ $H = @{
     members = [ordered]@{
       # §17.27.60 台账收尾（阶段(3) 第一批）：这些名字的定义方是 通用内部件（我们的 xutility 拷贝，
       #   §17.27.52 已给定义方解毒）；本头能看到它 -> 调用点跟改，指向我们那份。
+      '_Myptr' = '_我的指针'
       '_Find_vectorized' = '_查找向量化'
       '_Find_last_vectorized' = '_查找末个向量化'
       '_Find_end_vectorized' = '_查找末段向量化'

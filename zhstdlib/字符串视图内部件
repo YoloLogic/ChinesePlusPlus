@@ -973,7 +973,7 @@ private:
     constexpr _字符串视图迭代器(const pointer _Data, const size_t _Size, const size_t _Off) noexcept
         : _Mydata(_Data), _Mysize(_Size), _Myoff(_Off) {}
 #else // ^^^ _ITERATOR_DEBUG_LEVEL >= 1 / _ITERATOR_DEBUG_LEVEL == 0 vvv
-    constexpr explicit _字符串视图迭代器(const pointer _Ptr) noexcept : _Myptr(_Ptr) {}
+    constexpr explicit _字符串视图迭代器(const pointer _Ptr) noexcept : _我的指针(_Ptr) {}
 #endif // ^^^ _ITERATOR_DEBUG_LEVEL == 0 ^^^
 
 public:
@@ -983,7 +983,7 @@ public:
         _STL_VERIFY(_Myoff < _Mysize, "cannot dereference 结束 string_view iterator");
         return _Mydata[_Myoff];
 #else // ^^^ _ITERATOR_DEBUG_LEVEL >= 1 / _ITERATOR_DEBUG_LEVEL == 0 vvv
-        return *_Myptr;
+        return *_我的指针;
 #endif // ^^^ _ITERATOR_DEBUG_LEVEL == 0 ^^^
     }
 
@@ -993,7 +993,7 @@ public:
         _STL_VERIFY(_Myoff < _Mysize, "cannot dereference 结束 string_view iterator");
         return _Mydata + _Myoff;
 #else // ^^^ _ITERATOR_DEBUG_LEVEL >= 1 / _ITERATOR_DEBUG_LEVEL == 0 vvv
-        return _Myptr;
+        return _我的指针;
 #endif // ^^^ _ITERATOR_DEBUG_LEVEL == 0 ^^^
     }
 
@@ -1003,7 +1003,7 @@ public:
         _STL_VERIFY(_Myoff < _Mysize, "cannot increment string_view iterator past 结束");
         ++_Myoff;
 #else // ^^^ _ITERATOR_DEBUG_LEVEL >= 1 / _ITERATOR_DEBUG_LEVEL == 0 vvv
-        ++_Myptr;
+        ++_我的指针;
 #endif // ^^^ _ITERATOR_DEBUG_LEVEL == 0 ^^^
         return *this;
     }
@@ -1020,7 +1020,7 @@ public:
         _STL_VERIFY(_Myoff != 0, "cannot decrement string_view iterator before 开始");
         --_Myoff;
 #else // ^^^ _ITERATOR_DEBUG_LEVEL >= 1 / _ITERATOR_DEBUG_LEVEL == 0 vvv
-        --_Myptr;
+        --_我的指针;
 #endif // ^^^ _ITERATOR_DEBUG_LEVEL == 0 ^^^
         return *this;
     }
@@ -1055,7 +1055,7 @@ public:
         _Verify_offset(_Off);
         _Myoff += static_cast<size_t>(_Off);
 #else // ^^^ _ITERATOR_DEBUG_LEVEL >= 1 / _ITERATOR_DEBUG_LEVEL == 0 vvv
-        _Myptr += _Off;
+        _我的指针 += _Off;
 #endif // ^^^ _ITERATOR_DEBUG_LEVEL == 0 ^^^
 
         return *this;
@@ -1090,7 +1090,7 @@ public:
 
         _Myoff -= static_cast<size_t>(_Off);
 #else // ^^^ _ITERATOR_DEBUG_LEVEL >= 1 / _ITERATOR_DEBUG_LEVEL == 0 vvv
-        _Myptr -= _Off;
+        _我的指针 -= _Off;
 #endif // ^^^ _ITERATOR_DEBUG_LEVEL == 0 ^^^
 
         return *this;
@@ -1108,7 +1108,7 @@ public:
             "cannot subtract incompatible string_view iterators");
         return static_cast<difference_type>(_Myoff - _Right._Myoff);
 #else // ^^^ _ITERATOR_DEBUG_LEVEL >= 1 / _ITERATOR_DEBUG_LEVEL == 0 vvv
-        return _Myptr - _Right._Myptr;
+        return _我的指针 - _Right._我的指针;
 #endif // ^^^ _ITERATOR_DEBUG_LEVEL == 0 ^^^
     }
 
@@ -1122,7 +1122,7 @@ public:
             "cannot compare incompatible string_view iterators for equality");
         return _Myoff == _Right._Myoff;
 #else // ^^^ _ITERATOR_DEBUG_LEVEL >= 1 / _ITERATOR_DEBUG_LEVEL == 0 vvv
-        return _Myptr == _Right._Myptr;
+        return _我的指针 == _Right._我的指针;
 #endif // ^^^ _ITERATOR_DEBUG_LEVEL == 0 ^^^
     }
 
@@ -1133,7 +1133,7 @@ public:
             "cannot compare incompatible string_view iterators");
         return _Myoff <=> _Right._Myoff;
 #else // ^^^ _ITERATOR_DEBUG_LEVEL >= 1 / _ITERATOR_DEBUG_LEVEL == 0 vvv
-        return _Myptr <=> _Right._Myptr;
+        return _我的指针 <=> _Right._我的指针;
 #endif // ^^^ _ITERATOR_DEBUG_LEVEL == 0 ^^^
     }
 #else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
@@ -1147,7 +1147,7 @@ public:
             "cannot compare incompatible string_view iterators");
         return _Myoff < _Right._Myoff;
 #else // ^^^ _ITERATOR_DEBUG_LEVEL >= 1 / _ITERATOR_DEBUG_LEVEL == 0 vvv
-        return _Myptr < _Right._Myptr;
+        return _我的指针 < _Right._我的指针;
 #endif // ^^^ _ITERATOR_DEBUG_LEVEL == 0 ^^^
     }
 
@@ -1178,7 +1178,7 @@ public:
 #if _ITERATOR_DEBUG_LEVEL >= 1
         return _Mydata + _Myoff;
 #else // ^^^ _ITERATOR_DEBUG_LEVEL >= 1 / _ITERATOR_DEBUG_LEVEL == 0 vvv
-        return _Myptr;
+        return _我的指针;
 #endif // ^^^ _ITERATOR_DEBUG_LEVEL == 0 ^^^
     }
 
@@ -1188,7 +1188,7 @@ public:
 #if _ITERATOR_DEBUG_LEVEL >= 1
         _Myoff = static_cast<size_t>(_It - _Mydata);
 #else // ^^^ _ITERATOR_DEBUG_LEVEL >= 1 / _ITERATOR_DEBUG_LEVEL == 0 vvv
-        _Myptr = _It;
+        _我的指针 = _It;
 #endif // ^^^ _ITERATOR_DEBUG_LEVEL == 0 ^^^
     }
 
@@ -1198,7 +1198,7 @@ private:
     size_t _Mysize  = 0;
     size_t _Myoff   = 0;
 #else // ^^^ _ITERATOR_DEBUG_LEVEL >= 1 / _ITERATOR_DEBUG_LEVEL == 0 vvv
-    pointer _Myptr = nullptr;
+    pointer _我的指针 = nullptr;
 #endif // ^^^ _ITERATOR_DEBUG_LEVEL == 0 ^^^
 };
 
