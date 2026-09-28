@@ -3571,6 +3571,17 @@ $H = @{
     #   判据：**凡本头在名域作用域有定义、且其它产品无限定调用的自由函数，一律改名**
     #   （下表即按此判据从原件正则扫出，见 §17.27.52；成员名不受影响：成员查找只看类作用域）。
     members = [ordered]@{
+      '_As_const_pointer' = '_作为常量指针'
+      '_Equal_rev_pred' = '_相等反转谓词'
+      '_Find_if_unchecked' = '_查找若非检查'
+      '_Find_last_iterator' = '_查找最后迭代器'
+      '_Idl_distance' = '_IDL距离'
+      '_Max_element_unchecked' = '_最大元素非检查'
+      '_Min_element_unchecked' = '_最小元素非检查'
+      '_Mismatch_4' = '_不匹配4'
+      '_Mismatch_n' = '_不匹配计数'
+      '_Possibly_const_range' = '_可能常量范围'
+      '_Rewrap_iterator' = '_重包装迭代器'
       '_Ubegin' = '_解包首'
       '_Uend' = '_解包尾'
       '_Pass_fn'                     = '_传递函数'
@@ -4376,7 +4387,7 @@ $nI = 0
 #  **不能靠"改了再等编译器回退"**：回退只对【被编译到】的位置有效。
 #  所以从源头用负向后顾挡住（.NET 支持变长后顾，`\s+` 可跨行缩进）。
 # ---------------------------------------------------------------------------
-$RANGES_RENAMABLE = @('_Ubegin','_Uend','_Copy_memcpy_common','_Copy_memcpy_distance','_Copy_unchecked','_Find_unchecked','_Get_final_iterator_unwrapped')
+$RANGES_RENAMABLE = @('_Ubegin','_Uend','_Copy_memcpy_common','_Copy_memcpy_distance','_Copy_unchecked','_Find_unchecked','_Get_final_iterator_unwrapped','_As_const_pointer','_Equal_rev_pred','_Find_if_unchecked','_Find_last_iterator','_Idl_distance','_Max_element_unchecked','_Min_element_unchecked','_Mismatch_4','_Mismatch_n','_Possibly_const_range','_Rewrap_iterator')
 function Get-RenamePattern([string] $name) {
     if ($RANGES_RENAMABLE -contains $name) { return '\b' + [regex]::Escape($name) + '\b' }
     return '(?<!_RANGES\s+)\b' + [regex]::Escape($name) + '\b'
