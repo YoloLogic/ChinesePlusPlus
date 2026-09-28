@@ -193,7 +193,7 @@ __declspec(noalias) size_t _Count_vectorized(_Ty* const _First, _Ty* const _Last
 }
 
 template <class _Ty, class _TVal>
-_Ty* _Find_vectorized(_Ty* const _First, _Ty* const _Last, const _TVal _Val) noexcept {
+_Ty* _查找向量化(_Ty* const _First, _Ty* const _Last, const _TVal _Val) noexcept {
     if constexpr (is_pointer_v<_TVal> || is_null_pointer_v<_TVal>) {
 #ifdef _WIN64
         return const_cast<_Ty*>(
@@ -220,7 +220,7 @@ _Ty* _Find_vectorized(_Ty* const _First, _Ty* const _Last, const _TVal _Val) noe
 }
 
 template <class _Ty, class _TVal>
-_Ty* _Find_last_vectorized(_Ty* const _First, _Ty* const _Last, const _TVal _Val) noexcept {
+_Ty* _查找末个向量化(_Ty* const _First, _Ty* const _Last, const _TVal _Val) noexcept {
     if constexpr (is_pointer_v<_TVal> || is_null_pointer_v<_TVal>) {
 #ifdef _WIN64
         return const_cast<_Ty*>(
@@ -250,7 +250,7 @@ _Ty* _Find_last_vectorized(_Ty* const _First, _Ty* const _Last, const _TVal _Val
 _INLINE_VAR constexpr ptrdiff_t _Threshold_find_first_of = 16;
 
 template <class _Ty1, class _Ty2>
-_Ty1* _Search_vectorized(_Ty1* const _First1, _Ty1* const _Last1, _Ty2* const _First2, const size_t _Count2) noexcept {
+_Ty1* _搜索向量化(_Ty1* const _First1, _Ty1* const _Last1, _Ty2* const _First2, const size_t _Count2) noexcept {
     _STL_INTERNAL_STATIC_ASSERT(sizeof(_Ty1) == sizeof(_Ty2));
     if constexpr (sizeof(_Ty1) == 1) {
         return const_cast<_Ty1*>(static_cast<const _Ty1*>(::__std_search_1(_First1, _Last1, _First2, _Count2)));
@@ -262,7 +262,7 @@ _Ty1* _Search_vectorized(_Ty1* const _First1, _Ty1* const _Last1, _Ty2* const _F
 }
 
 template <class _Ty1, class _Ty2>
-_Ty1* _Find_end_vectorized(
+_Ty1* _查找末段向量化(
     _Ty1* const _First1, _Ty1* const _Last1, _Ty2* const _First2, const size_t _Count2) noexcept {
     _STL_INTERNAL_STATIC_ASSERT(sizeof(_Ty1) == sizeof(_Ty2));
     if constexpr (sizeof(_Ty1) == 1) {
@@ -779,7 +779,7 @@ struct _Ref_fn { // pass function object by value as a reference
 };
 
 template <class _Fn>
-_NODISCARD constexpr auto _Pass_fn(_Fn& _Func) noexcept {
+_NODISCARD constexpr auto _传递函数(_Fn& _Func) noexcept {
     constexpr bool _Pass_by_value = conjunction_v<bool_constant<sizeof(_Fn) <= sizeof(void*)>,
         is_trivially_copy_constructible<_Fn>, is_trivially_destructible<_Fn>>;
     if constexpr (_Pass_by_value) {
@@ -943,7 +943,7 @@ template <class _Ty>
 using _Make_unsigned_like_t = _Make_unsigned_like_impl<_Integer_class<_Ty>>::template _Apply<_Ty>;
 
 template <_Integer_like _Ty>
-_NODISCARD constexpr auto _To_unsigned_like(const _Ty _Value) noexcept {
+_NODISCARD constexpr auto _转为无符号同型(const _Ty _Value) noexcept {
     return static_cast<_Make_unsigned_like_t<_Ty>>(_Value);
 }
 
@@ -1488,7 +1488,7 @@ constexpr bool
         true;
 
 template <class _Iter, class _UIter>
-constexpr void _Seek_wrapped(_Iter& _It, _UIter&& _UIt) {
+constexpr void _定位包装(_Iter& _It, _UIter&& _UIt) {
     if constexpr (_Wrapped_seekable_v<_Iter, _UIter>) {
         _It._定位到(_STD forward<_UIter>(_UIt));
     } else {
@@ -1665,7 +1665,7 @@ _CONSTEXPR17 void advance(_InIt& _Where, _Diff _Off) { // increment iterator by 
         }
 
         if constexpr (_Need_rewrap) {
-            _Seek_wrapped(_Where, _STD move(_UWhere));
+            _定位包装(_Where, _STD move(_UWhere));
         }
     }
 }
@@ -1688,7 +1688,7 @@ _NODISCARD _CONSTEXPR17 _Iter_diff_t<_InIt> distance(_InIt _First, _InIt _Last) 
 }
 
 template <class _InIt>
-constexpr _InIt _Next_iter(_InIt _First) { // increment iterator
+constexpr _InIt _下一迭代器(_InIt _First) { // increment iterator
     return ++_First;
 }
 
@@ -1702,7 +1702,7 @@ _NODISCARD _CONSTEXPR17 _InIt next(
 }
 
 template <class _BidIt>
-constexpr _BidIt _Prev_iter(_BidIt _First) { // decrement iterator
+constexpr _BidIt _上一迭代器(_BidIt _First) { // decrement iterator
     return --_First;
 }
 
@@ -3476,7 +3476,7 @@ namespace ranges {
                 }
 
                 if constexpr (_Need_rewrap) {
-                    _Seek_wrapped(_Where, _STD move(_UWhere));
+                    _定位包装(_Where, _STD move(_UWhere));
                 }
             }
         }
@@ -3500,7 +3500,7 @@ namespace ranges {
                 }
 
                 if constexpr (_Need_rewrap) {
-                    _Seek_wrapped(_Where, _STD move(_UWhere));
+                    _定位包装(_Where, _STD move(_UWhere));
                 }
             }
         }
@@ -3826,7 +3826,7 @@ namespace ranges {
             requires forward_range<_Derived> && sized_sentinel_for<sentinel_t<_Derived>, iterator_t<_Derived>>
         {
             auto& _Self = _Cast();
-            return _To_unsigned_like(_RANGES end(_Self) - _RANGES begin(_Self));
+            return _转为无符号同型(_RANGES end(_Self) - _RANGES begin(_Self));
         }
 
         _NODISCARD constexpr auto size() const
@@ -3834,7 +3834,7 @@ namespace ranges {
                   && sized_sentinel_for<sentinel_t<const _Derived>, iterator_t<const _Derived>>
         {
             auto& _Self = _Cast();
-            return _To_unsigned_like(_RANGES end(_Self) - _RANGES begin(_Self));
+            return _转为无符号同型(_RANGES end(_Self) - _RANGES begin(_Self));
         }
 
         _NODISCARD constexpr decltype(auto) front()
@@ -4788,7 +4788,7 @@ _OutCtgIt _内存复制移动(_CtgIt _First, _CtgIt _Last, _OutCtgIt _Dest) {
 }
 
 template <class _CtgIt, class _OutCtgIt>
-_OutCtgIt _Copy_memmove_n(_CtgIt _First, const size_t _Object_count, _OutCtgIt _Dest) {
+_OutCtgIt _内存复制移动计数(_CtgIt _First, const size_t _Object_count, _OutCtgIt _Dest) {
     const auto _First_ptr  = _取地址(_First);
     const auto _First_ch   = const_cast<const char*>(reinterpret_cast<const volatile char*>(_First_ptr));
     const auto _Byte_count = _Object_count * sizeof(*_First_ptr);
@@ -4811,7 +4811,7 @@ template <class _VbIt>
 _NODISCARD _CONSTEXPR20 _VbIt _Find_vbool(_VbIt _First, _VbIt _Last, bool _Val) noexcept;
 
 template <class _InIt, class _SizeTy, class _OutIt>
-_CONSTEXPR20 _OutIt _Copy_n_unchecked4(_InIt _First, _SizeTy _Count, _OutIt _Dest) {
+_CONSTEXPR20 _OutIt _复制N个非检查4(_InIt _First, _SizeTy _Count, _OutIt _Dest) {
     // copy _First + [0, _Count) to _Dest + [0, _Count), returning _Dest + _Count
     // note: has callers outside the copy family
     _STL_INTERNAL_STATIC_ASSERT(_Integer_like<_SizeTy>);
@@ -4822,7 +4822,7 @@ _CONSTEXPR20 _OutIt _Copy_n_unchecked4(_InIt _First, _SizeTy _Count, _OutIt _Des
         if (!_STD is_constant_evaluated())
 #endif // _HAS_CXX20
         {
-            return _Copy_memmove_n(_First, static_cast<size_t>(_Count), _Dest);
+            return _内存复制移动计数(_First, static_cast<size_t>(_Count), _Dest);
         }
     }
 
@@ -4843,9 +4843,9 @@ using _Sent_copy_cat = conditional_t<
     _Iter_copy_cat<_InIt, _OutIt>, _False_trivial_cat>;
 
 template <class _InIt, class _Sent, class _OutIt>
-_CONSTEXPR20 _OutIt _Copy_unchecked(_InIt _First, _Sent _Last, _OutIt _Dest) {
+_CONSTEXPR20 _OutIt _复制非检查(_InIt _First, _Sent _Last, _OutIt _Dest) {
     // copy [_First, _Last) to [_Dest, ...)
-    // note: _Copy_unchecked has callers other than the copy family
+    // note: _复制非检查 has callers other than the copy family
     if constexpr (_Is_vb_iterator<_InIt> && _Is_vb_iterator<_OutIt, true>) {
         return _Copy_vbool(_First, _Last, _Dest);
     } else {
@@ -4856,7 +4856,7 @@ _CONSTEXPR20 _OutIt _Copy_unchecked(_InIt _First, _Sent _Last, _OutIt _Dest) {
             {
 #if _HAS_CXX20
                 if constexpr (!is_same_v<_InIt, _Sent>) {
-                    return _Copy_memmove_n(_First, static_cast<size_t>(_Last - _First), _Dest);
+                    return _内存复制移动计数(_First, static_cast<size_t>(_Last - _First), _Dest);
                 } else
 #endif // _HAS_CXX20
                 {
@@ -4879,7 +4879,7 @@ _CONSTEXPR20 _OutIt copy(_InIt _First, _InIt _Last, _OutIt _Dest) { // copy [_Fi
     const auto _UFirst = _取解包(_First);
     const auto _ULast  = _取解包(_Last);
     auto _UDest        = _Get_unwrapped_n(_STD move(_Dest), _Idl_distance<_InIt>(_UFirst, _ULast));
-    _Seek_wrapped(_Dest, _Copy_unchecked(_UFirst, _ULast, _STD move(_UDest)));
+    _定位包装(_Dest, _复制非检查(_UFirst, _ULast, _STD move(_UDest)));
     return _Dest;
 }
 
@@ -4918,7 +4918,7 @@ namespace ranges {
 
     template <forward_iterator _It, class _Se>
         requires sentinel_for<remove_cvref_t<_Se>, _It>
-    _NODISCARD constexpr _Unwrap_iter_t<_It, _Se> _Get_final_iterator_unwrapped(
+    _NODISCARD constexpr _Unwrap_iter_t<_It, _Se> _取末尾迭代器解包(
         const _Unwrap_iter_t<_It, _Se>& _UFirst, _Se&& _Last) {
         // find the iterator in [_UFirst, _Unwrap_sent<_It>(_Last)) which equals _Unwrap_sent<_It>(_Last)
         // [possibly O(N)]
@@ -4930,7 +4930,7 @@ namespace ranges {
     }
 
     template <forward_range _Rng>
-    _NODISCARD constexpr auto _Get_final_iterator_unwrapped(_Rng& _Range) {
+    _NODISCARD constexpr auto _取末尾迭代器解包(_Rng& _Range) {
         // find the (unwrapped) iterator in _Range which equals _Uend(_Range) [possibly O(N)]
         if constexpr (common_range<_Rng>) {
             if constexpr (same_as<decltype(_Uend(_Range)), _Unwrapped_iterator_t<_Rng>>) {
@@ -4946,7 +4946,7 @@ namespace ranges {
     }
 
     template <forward_range _Rng>
-    _NODISCARD constexpr auto _Get_final_iterator_unwrapped(_Rng& _Range, const _Unwrapped_iterator_t<_Rng>& _Mid) {
+    _NODISCARD constexpr auto _取末尾迭代器解包(_Rng& _Range, const _Unwrapped_iterator_t<_Rng>& _Mid) {
         // find the (unwrapped) iterator in _Range which equals _Uend(_Range) [possibly O(N)]
         // Pre: [ranges::begin(_Range), _Mid) and [_Mid, ranges::end(_Range)) denote ranges
         if constexpr (common_range<_Rng>) {
@@ -4990,7 +4990,7 @@ namespace ranges {
 
     template <input_iterator _It, sentinel_for<_It> _Se, weakly_incrementable _Out>
         requires indirectly_copyable<_It, _Out>
-    _NODISCARD constexpr copy_result<_It, _Out> _Copy_unchecked(_It _First, _Se _Last, _Out _Output) {
+    _NODISCARD constexpr copy_result<_It, _Out> _复制非检查(_It _First, _Se _Last, _Out _Output) {
         if constexpr (_Sent_copy_cat<_It, _Se, _Out>::_Bitcopy_assignable) {
             if (!_STD is_constant_evaluated()) {
                 if constexpr (is_same_v<_It, _Se>) {
@@ -4998,7 +4998,7 @@ namespace ranges {
                     return {_STD move(_Last), _STD move(_Output)};
                 } else {
                     const auto _Count = static_cast<size_t>(_Last - _First);
-                    _Output           = _Copy_memmove_n(_First, _Count, _STD move(_Output));
+                    _Output           = _内存复制移动计数(_First, _Count, _STD move(_Output));
                     _First += _Count;
                     return {_STD move(_First), _STD move(_Output)};
                 }
@@ -5023,8 +5023,8 @@ namespace ranges {
             const auto _Count = _RANGES _Idl_distance<_It>(_UFirst, _ULast);
             auto _UResult     = _RANGES _Copy_unchecked(
                     _STD move(_UFirst), _STD move(_ULast), _Get_unwrapped_n(_STD move(_Output), _Count));
-            _Seek_wrapped(_First, _STD move(_UResult.in));
-            _Seek_wrapped(_Output, _STD move(_UResult.out));
+            _定位包装(_First, _STD move(_UResult.in));
+            _定位包装(_Output, _STD move(_UResult.out));
             return {_STD move(_First), _STD move(_Output)};
         }
 
@@ -5036,8 +5036,8 @@ namespace ranges {
             auto _First       = _RANGES begin(_Range);
             auto _UResult = _RANGES _Copy_unchecked(_RANGES _Unwrap_range_iter<_Rng>(_STD move(_First)), _Uend(_Range),
                 _Get_unwrapped_n(_STD move(_Output), _Count));
-            _Seek_wrapped(_First, _STD move(_UResult.in));
-            _Seek_wrapped(_Output, _STD move(_UResult.out));
+            _定位包装(_First, _STD move(_UResult.in));
+            _定位包装(_Output, _STD move(_UResult.out));
             return {_STD move(_First), _STD move(_Output)};
         }
     };
@@ -5061,8 +5061,8 @@ _CONSTEXPR20 _OutIt copy_n(_InIt _First, _Diff _Count_raw, _OutIt _Dest) {
                 if (!_STD is_constant_evaluated())
 #endif // _HAS_CXX20
                 {
-                    _UDest = _Copy_memmove_n(_UFirst, static_cast<size_t>(_Count), _UDest);
-                    _Seek_wrapped(_Dest, _UDest);
+                    _UDest = _内存复制移动计数(_UFirst, static_cast<size_t>(_Count), _UDest);
+                    _定位包装(_Dest, _UDest);
                     return _Dest;
                 }
             }
@@ -5079,7 +5079,7 @@ _CONSTEXPR20 _OutIt copy_n(_InIt _First, _Diff _Count_raw, _OutIt _Dest) {
                 ++_UFirst;
             }
 
-            _Seek_wrapped(_Dest, _UDest);
+            _定位包装(_Dest, _UDest);
         }
     }
 
@@ -5146,7 +5146,7 @@ _CONSTEXPR20 _BidIt2 copy_backward(_BidIt1 _First, _BidIt1 _Last, _BidIt2 _Dest)
     const auto _UFirst = _取解包(_First);
     const auto _ULast  = _取解包(_Last);
     const auto _UDest  = _Get_unwrapped_n(_Dest, -_Idl_distance<_BidIt1>(_UFirst, _ULast));
-    _Seek_wrapped(_Dest, _Copy_backward_unchecked(_UFirst, _ULast, _UDest));
+    _定位包装(_Dest, _Copy_backward_unchecked(_UFirst, _ULast, _UDest));
     return _Dest;
 }
 
@@ -5181,7 +5181,7 @@ _CONSTEXPR20 _OutIt move(_InIt _First, _InIt _Last, _OutIt _Dest) {
     const auto _UFirst = _取解包(_First);
     const auto _ULast  = _取解包(_Last);
     const auto _UDest  = _Get_unwrapped_n(_Dest, _Idl_distance<_InIt>(_UFirst, _ULast));
-    _Seek_wrapped(_Dest, _移动非检查(_UFirst, _ULast, _UDest));
+    _定位包装(_Dest, _移动非检查(_UFirst, _ULast, _UDest));
     return _Dest;
 }
 
@@ -5197,9 +5197,9 @@ _FwdIt2 move(_ExPo&&, _FwdIt1 _First, _FwdIt1 _Last, _FwdIt2 _Dest) noexcept /* 
 #endif // _HAS_CXX17
 
 template <class _BidIt1, class _BidIt2>
-_CONSTEXPR20 _BidIt2 _Move_backward_unchecked(_BidIt1 _First, _BidIt1 _Last, _BidIt2 _Dest) {
+_CONSTEXPR20 _BidIt2 _向后移动非检查(_BidIt1 _First, _BidIt1 _Last, _BidIt2 _Dest) {
     // move [_First, _Last) backwards to [..., _Dest)
-    // note: _Move_backward_unchecked has callers other than the move_backward family
+    // note: _向后移动非检查 has callers other than the move_backward family
     if constexpr (_Iter_move_cat<_BidIt1, _BidIt2>::_Bitcopy_assignable) {
 #if _HAS_CXX20
         if (!_STD is_constant_evaluated())
@@ -5223,7 +5223,7 @@ _CONSTEXPR20 _BidIt2 move_backward(_BidIt1 _First, _BidIt1 _Last, _BidIt2 _Dest)
     const auto _UFirst = _取解包(_First);
     const auto _ULast  = _取解包(_Last);
     const auto _UDest  = _Get_unwrapped_n(_Dest, -_Idl_distance<_BidIt1>(_UFirst, _ULast));
-    _Seek_wrapped(_Dest, _Move_backward_unchecked(_UFirst, _ULast, _UDest));
+    _定位包装(_Dest, _向后移动非检查(_UFirst, _ULast, _UDest));
     return _Dest;
 }
 
@@ -5284,12 +5284,12 @@ void _填充内存(_CtgIt _Dest, const _Ty _Val, const size_t _Count) {
 }
 
 template <class _CtgIt>
-void _Fill_zero_memset(_CtgIt _Dest, const size_t _Count) {
+void _填充零内存(_CtgIt _Dest, const size_t _Count) {
     _CSTD memset(_取地址(_Dest), 0, _Count * sizeof(_Iter_value_t<_CtgIt>));
 }
 
 template <class _Ty>
-_NODISCARD bool _Is_all_bits_zero(const _Ty& _Val) {
+_NODISCARD bool _是否全位为零(const _Ty& _Val) {
     // checks if scalar type has all bits set to zero
     _STL_INTERNAL_STATIC_ASSERT(is_scalar_v<_Ty> && !is_member_pointer_v<_Ty>);
     if constexpr (is_same_v<_Ty, nullptr_t>) {
@@ -5317,8 +5317,8 @@ _CONSTEXPR20 void fill(const _FwdIt _First, const _FwdIt _Last, const _Ty& _Val)
                 _填充内存(_UFirst, _Val, static_cast<size_t>(_ULast - _UFirst));
                 return;
             } else if constexpr (_Fill_zero_memset_is_safe<decltype(_UFirst), _Ty>) {
-                if (_Is_all_bits_zero(_Val)) {
-                    _Fill_zero_memset(_UFirst, static_cast<size_t>(_ULast - _UFirst));
+                if (_是否全位为零(_Val)) {
+                    _填充零内存(_UFirst, static_cast<size_t>(_ULast - _UFirst));
                     return;
                 }
             }
@@ -5357,12 +5357,12 @@ _CONSTEXPR20 _OutIt fill_n(_OutIt _Dest, const _Diff _Count_raw, const _Ty& _Val
             {
                 if constexpr (_Fill_memset_is_safe<decltype(_UDest), _Ty>) {
                     _填充内存(_UDest, _Val, static_cast<size_t>(_Count));
-                    _Seek_wrapped(_Dest, _UDest + _Count);
+                    _定位包装(_Dest, _UDest + _Count);
                     return _Dest;
                 } else if constexpr (_Fill_zero_memset_is_safe<decltype(_UDest), _Ty>) {
-                    if (_Is_all_bits_zero(_Val)) {
-                        _Fill_zero_memset(_UDest, static_cast<size_t>(_Count));
-                        _Seek_wrapped(_Dest, _UDest + _Count);
+                    if (_是否全位为零(_Val)) {
+                        _填充零内存(_UDest, static_cast<size_t>(_Count));
+                        _定位包装(_Dest, _UDest + _Count);
                         return _Dest;
                     }
                 }
@@ -5372,7 +5372,7 @@ _CONSTEXPR20 _OutIt fill_n(_OutIt _Dest, const _Diff _Count_raw, const _Ty& _Val
                 *_UDest = _Val;
             }
 
-            _Seek_wrapped(_Dest, _UDest);
+            _定位包装(_Dest, _UDest);
         }
     }
     return _Dest;
@@ -5401,12 +5401,12 @@ namespace ranges {
                 if (!_STD is_constant_evaluated()) {
                     if constexpr (_Fill_memset_is_safe<decltype(_UFirst), _Ty>) {
                         _填充内存(_UFirst, _Value, static_cast<size_t>(_Count));
-                        _Seek_wrapped(_First, _UFirst + _Count); // no need to move since _UFirst is a pointer
+                        _定位包装(_First, _UFirst + _Count); // no need to move since _UFirst is a pointer
                         return _First;
                     } else if constexpr (_Fill_zero_memset_is_safe<decltype(_UFirst), _Ty>) {
-                        if (_Is_all_bits_zero(_Value)) {
-                            _Fill_zero_memset(_UFirst, static_cast<size_t>(_Count));
-                            _Seek_wrapped(_First, _UFirst + _Count); // no need to move since _UFirst is a pointer
+                        if (_是否全位为零(_Value)) {
+                            _填充零内存(_UFirst, static_cast<size_t>(_Count));
+                            _定位包装(_First, _UFirst + _Count); // no need to move since _UFirst is a pointer
                             return _First;
                         }
                     }
@@ -5416,7 +5416,7 @@ namespace ranges {
                     *_UFirst = _Value;
                 }
 
-                _Seek_wrapped(_First, _STD move(_UFirst));
+                _定位包装(_First, _STD move(_UFirst));
             }
 
             return _First;
@@ -5584,7 +5584,7 @@ _NODISCARD _CONSTEXPR20 bool equal(
             return false;
         }
 
-        return _STD equal(_UFirst1, _ULast1, _UFirst2, _Pass_fn(_Pred));
+        return _STD equal(_UFirst1, _ULast1, _UFirst2, _传递函数(_Pred));
     } else {
         for (;;) {
             if (_UFirst1 == _ULast1) {
@@ -5722,18 +5722,18 @@ namespace ranges {
                 }
 
                 auto _Result = _RANGES _Mismatch_n(_取解包(_STD move(_First1)),
-                    _取解包(_STD move(_First2)), _Count1, _Pass_fn(_Pred), _Pass_fn(_Proj1),
-                    _Pass_fn(_Proj2));
-                _Seek_wrapped(_First1, _STD move(_Result.in1));
-                _Seek_wrapped(_First2, _STD move(_Result.in2));
+                    _取解包(_STD move(_First2)), _Count1, _传递函数(_Pred), _传递函数(_Proj1),
+                    _传递函数(_Proj2));
+                _定位包装(_First1, _STD move(_Result.in1));
+                _定位包装(_First2, _STD move(_Result.in2));
                 return {_STD move(_First1), _STD move(_First2)};
             } else {
                 auto _Result = _RANGES _Mismatch_4(_RANGES _Unwrap_iter<_Se1>(_STD move(_First1)),
                     _RANGES _Unwrap_sent<_It1>(_STD move(_Last1)), _RANGES _Unwrap_iter<_Se2>(_STD move(_First2)),
-                    _RANGES _Unwrap_sent<_It2>(_STD move(_Last2)), _Pass_fn(_Pred), _Pass_fn(_Proj1),
-                    _Pass_fn(_Proj2));
-                _Seek_wrapped(_First1, _STD move(_Result.in1));
-                _Seek_wrapped(_First2, _STD move(_Result.in2));
+                    _RANGES _Unwrap_sent<_It2>(_STD move(_Last2)), _传递函数(_Pred), _传递函数(_Proj1),
+                    _传递函数(_Proj2));
+                _定位包装(_First1, _STD move(_Result.in1));
+                _定位包装(_First2, _STD move(_Result.in2));
                 return {_STD move(_First1), _STD move(_First2)};
             }
         }
@@ -5755,19 +5755,19 @@ namespace ranges {
                 auto _First1 = _RANGES begin(_Range1);
                 auto _First2 = _RANGES begin(_Range2);
                 auto _Result = _RANGES _Mismatch_n(_取解包(_STD move(_First1)),
-                    _取解包(_STD move(_First2)), _Count1, _Pass_fn(_Pred), _Pass_fn(_Proj1),
-                    _Pass_fn(_Proj2));
-                _Seek_wrapped(_First1, _STD move(_Result.in1));
-                _Seek_wrapped(_First2, _STD move(_Result.in2));
+                    _取解包(_STD move(_First2)), _Count1, _传递函数(_Pred), _传递函数(_Proj1),
+                    _传递函数(_Proj2));
+                _定位包装(_First1, _STD move(_Result.in1));
+                _定位包装(_First2, _STD move(_Result.in2));
                 return {_STD move(_First1), _STD move(_First2)};
             } else {
                 auto _First1 = _RANGES begin(_Range1);
                 auto _First2 = _RANGES begin(_Range2);
                 auto _Result = _RANGES _Mismatch_4(_RANGES _Unwrap_range_iter<_Rng1>(_STD move(_First1)),
                     _Uend(_Range1), _RANGES _Unwrap_range_iter<_Rng2>(_STD move(_First2)), _Uend(_Range2),
-                    _Pass_fn(_Pred), _Pass_fn(_Proj1), _Pass_fn(_Proj2));
-                _Seek_wrapped(_First1, _STD move(_Result.in1));
-                _Seek_wrapped(_First2, _STD move(_Result.in2));
+                    _传递函数(_Pred), _传递函数(_Proj1), _传递函数(_Proj2));
+                _定位包装(_First1, _STD move(_Result.in1));
+                _定位包装(_First2, _STD move(_Result.in2));
                 return {_STD move(_First1), _STD move(_First2)};
             }
         }
@@ -5904,7 +5904,7 @@ _NODISCARD bool lexicographical_compare(_ExPo&&, const _FwdIt1 _First1, const _F
     // not parallelized at present, parallelism expected to be feasible in a future release
     _REQUIRE_PARALLEL_ITERATOR(_FwdIt1);
     _REQUIRE_PARALLEL_ITERATOR(_FwdIt2);
-    return _STD lexicographical_compare(_First1, _Last1, _First2, _Last2, _Pass_fn(_Pred));
+    return _STD lexicographical_compare(_First1, _Last1, _First2, _Last2, _传递函数(_Pred));
 }
 
 _EXPORT_STD template <class _ExPo, class _FwdIt1, class _FwdIt2, _Enable_if_execution_policy_t<_ExPo> = 0>
@@ -6131,7 +6131,7 @@ _NODISCARD constexpr bool _Could_compare_equal_to_value_type(const _Ty& _Val) {
 }
 
 template <class _InIt, class _Ty>
-_NODISCARD _CONSTEXPR20 _InIt _Find_unchecked(_InIt _First, const _InIt _Last, const _Ty& _Val) {
+_NODISCARD _CONSTEXPR20 _InIt _查找非检查(_InIt _First, const _InIt _Last, const _Ty& _Val) {
     // find first matching _Val; choose optimization
     // activate optimization for contiguous iterators to most scalar types (possibly const-qualified)
     if constexpr (_Vector_alg_in_find_is_safe<_InIt, _Ty>) {
@@ -6144,7 +6144,7 @@ _NODISCARD _CONSTEXPR20 _InIt _Find_unchecked(_InIt _First, const _InIt _Last, c
             }
 #if _USE_STD_VECTOR_ALGORITHMS
             const auto _First_ptr = _取地址(_First);
-            const auto _Result    = _Find_vectorized(_First_ptr, _取地址(_Last), _Val);
+            const auto _Result    = _查找向量化(_First_ptr, _取地址(_Last), _Val);
             if constexpr (is_pointer_v<_InIt>) {
                 return _Result;
             } else {
@@ -6191,7 +6191,7 @@ _NODISCARD _CONSTEXPR20 _InIt find(_InIt _First, const _InIt _Last, const _Ty& _
     if constexpr (_Is_vb_iterator<_InIt> && is_same_v<_Ty, bool>) {
         return _Find_vbool(_First, _Last, _Val);
     } else {
-        _Seek_wrapped(_First, _Find_unchecked(_取解包(_First), _取解包(_Last), _Val));
+        _定位包装(_First, _查找非检查(_取解包(_First), _取解包(_Last), _Val));
         return _First;
     }
 }
@@ -6214,7 +6214,7 @@ namespace ranges {
     // concept-constrained for strict enforcement as it is used by several algorithms
     template <input_iterator _It, sentinel_for<_It> _Se, class _Ty, class _Pj = identity>
         requires indirect_binary_predicate<ranges::equal_to, projected<_It, _Pj>, const _Ty*>
-    _NODISCARD constexpr _It _Find_unchecked(_It _First, const _Se _Last, const _Ty& _Val, _Pj _Proj = {}) {
+    _NODISCARD constexpr _It _查找非检查(_It _First, const _Se _Last, const _Ty& _Val, _Pj _Proj = {}) {
         constexpr bool _Elements_are_1_byte = sizeof(_Iter_value_t<_It>) == 1;
         constexpr bool _Is_sized            = sized_sentinel_for<_Se, _It>;
 
@@ -6240,7 +6240,7 @@ namespace ranges {
                 if constexpr (_Is_sized) {
                     // When _Is_sized && _Elements_are_1_byte, prefer this over memchr() for performance
                     const auto _Last_ptr = _First_ptr + (_Last - _First);
-                    _Result              = _Find_vectorized(_First_ptr, _Last_ptr, _Val);
+                    _Result              = _查找向量化(_First_ptr, _Last_ptr, _Val);
                 } else
 #endif // ^^^ _USE_STD_VECTOR_ALGORITHMS ^^^
                 {
@@ -6290,9 +6290,9 @@ namespace ranges {
             _It _First, _Se _Last, const _Ty& _Val, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             _ADL校验范围(_First, _Last);
             auto _UResult = _RANGES _Find_unchecked(_RANGES _Unwrap_iter<_Se>(_STD move(_First)),
-                _RANGES _Unwrap_sent<_It>(_STD move(_Last)), _Val, _Pass_fn(_Proj));
+                _RANGES _Unwrap_sent<_It>(_STD move(_Last)), _Val, _传递函数(_Proj));
 
-            _Seek_wrapped(_First, _STD move(_UResult));
+            _定位包装(_First, _STD move(_UResult));
             return _First;
         }
 
@@ -6302,9 +6302,9 @@ namespace ranges {
             _Rng&& _Range, const _Ty& _Val, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             auto _First   = _RANGES begin(_Range);
             auto _UResult = _RANGES _Find_unchecked(
-                _RANGES _Unwrap_range_iter<_Rng>(_STD move(_First)), _Uend(_Range), _Val, _Pass_fn(_Proj));
+                _RANGES _Unwrap_range_iter<_Rng>(_STD move(_First)), _Uend(_Range), _Val, _传递函数(_Proj));
 
-            _Seek_wrapped(_First, _STD move(_UResult));
+            _定位包装(_First, _STD move(_UResult));
             return _First;
         }
     };
@@ -6479,7 +6479,7 @@ _NODISCARD _CONSTEXPR20 _TrimResult _Trim_completely(
 }
 
 template <class _FwdIt1, class _FwdIt2, class _Pr>
-_NODISCARD _CONSTEXPR20 bool _Check_match_counts(
+_NODISCARD _CONSTEXPR20 bool _检查匹配计数(
     _FwdIt1 _First1, _FwdIt1 _Last1, _FwdIt2 _First2, _FwdIt2 _Last2, _Pr _Pred) {
     // test if [_First1, _Last1) == permuted [_First2, _Last2), after matching prefix removal
     _STL_INTERNAL_CHECK(!_Pred(*_First1, *_First2));
@@ -6511,7 +6511,7 @@ _NODISCARD _CONSTEXPR20 bool _Check_match_counts(
                 return false; // second range lacks value, not a permutation
             }
 
-            _FwdIt1 _Skip1                = _Next_iter(_Next1);
+            _FwdIt1 _Skip1                = _下一迭代器(_Next1);
             _Iter_diff_t<_FwdIt1> _Count1 = _Count_pr(_Skip1, _Last1, *_Next1, _Pred) + 1;
             if (_Count2 != _Count1) {
                 return false; // match counts differ, not a permutation
@@ -6592,13 +6592,13 @@ _CONSTEXPR20 _FwdIt rotate(_FwdIt _First, _FwdIt _Mid, _FwdIt _Last) {
         _STD reverse(_UFirst, _UMid);
         _STD reverse(_UMid, _ULast);
         _STD reverse(_UFirst, _ULast);
-        _Seek_wrapped(_First, _UFirst + (_ULast - _UMid));
+        _定位包装(_First, _UFirst + (_ULast - _UMid));
     } else if constexpr (_Is_cpp17_bidi_iter_v<_FwdIt>) {
         _STD reverse(_UFirst, _UMid);
         _STD reverse(_UMid, _ULast);
         auto _Tmp = _Reverse_until_sentinel_unchecked(_UFirst, _UMid, _ULast);
         _STD reverse(_Tmp.first, _Tmp.second);
-        _Seek_wrapped(_First, _UMid != _Tmp.first ? _Tmp.first : _Tmp.second);
+        _定位包装(_First, _UMid != _Tmp.first ? _Tmp.first : _Tmp.second);
     } else {
         auto _UNext = _UMid;
         do { // rotate the first cycle
@@ -6609,7 +6609,7 @@ _CONSTEXPR20 _FwdIt rotate(_FwdIt _First, _FwdIt _Mid, _FwdIt _Last) {
                 _UMid = _UNext;
             }
         } while (_UNext != _ULast);
-        _Seek_wrapped(_First, _UFirst);
+        _定位包装(_First, _UFirst);
         while (_UMid != _ULast) { // rotate subsequent cycles
             _UNext = _UMid;
             do {
@@ -6647,7 +6647,7 @@ _NODISCARD _CONSTEXPR20 _InIt find_if(_InIt _First, const _InIt _Last, _Pr _Pred
         }
     }
 
-    _Seek_wrapped(_First, _UFirst);
+    _定位包装(_First, _UFirst);
     return _First;
 }
 
@@ -6702,9 +6702,9 @@ namespace ranges {
             _It _First, _Se _Last, _Pr _Pred, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             _ADL校验范围(_First, _Last);
             auto _UResult = _RANGES _Find_if_unchecked(_RANGES _Unwrap_iter<_Se>(_STD move(_First)),
-                _RANGES _Unwrap_sent<_It>(_STD move(_Last)), _Pass_fn(_Pred), _Pass_fn(_Proj));
+                _RANGES _Unwrap_sent<_It>(_STD move(_Last)), _传递函数(_Pred), _传递函数(_Proj));
 
-            _Seek_wrapped(_First, _STD move(_UResult));
+            _定位包装(_First, _STD move(_UResult));
             return _First;
         }
 
@@ -6714,9 +6714,9 @@ namespace ranges {
             _Rng&& _Range, _Pr _Pred, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             auto _First   = _RANGES begin(_Range);
             auto _UResult = _RANGES _Find_if_unchecked(_RANGES _Unwrap_range_iter<_Rng>(_STD move(_First)),
-                _Uend(_Range), _Pass_fn(_Pred), _Pass_fn(_Proj));
+                _Uend(_Range), _传递函数(_Pred), _传递函数(_Proj));
 
-            _Seek_wrapped(_First, _STD move(_UResult));
+            _定位包装(_First, _STD move(_UResult));
             return _First;
         }
     };
@@ -6732,9 +6732,9 @@ namespace ranges {
             _ADL校验范围(_First, _Last);
 
             auto _UResult = _Find_if_not_unchecked(_RANGES _Unwrap_iter<_Se>(_STD move(_First)),
-                _RANGES _Unwrap_sent<_It>(_STD move(_Last)), _Pass_fn(_Pred), _Pass_fn(_Proj));
+                _RANGES _Unwrap_sent<_It>(_STD move(_Last)), _传递函数(_Pred), _传递函数(_Proj));
 
-            _Seek_wrapped(_First, _STD move(_UResult));
+            _定位包装(_First, _STD move(_UResult));
             return _First;
         }
 
@@ -6745,9 +6745,9 @@ namespace ranges {
             auto _First = _RANGES begin(_Range);
 
             auto _UResult = _Find_if_not_unchecked(_RANGES _Unwrap_range_iter<_Rng>(_STD move(_First)), _Uend(_Range),
-                _Pass_fn(_Pred), _Pass_fn(_Proj));
+                _传递函数(_Pred), _传递函数(_Proj));
 
-            _Seek_wrapped(_First, _STD move(_UResult));
+            _定位包装(_First, _STD move(_UResult));
             return _First;
         }
 
@@ -6779,9 +6779,9 @@ namespace ranges {
             _ADL校验范围(_First, _Last);
 
             auto _UResult = _Adjacent_find_unchecked(_RANGES _Unwrap_iter<_Se>(_STD move(_First)),
-                _RANGES _Unwrap_sent<_It>(_STD move(_Last)), _Pass_fn(_Pred), _Pass_fn(_Proj));
+                _RANGES _Unwrap_sent<_It>(_STD move(_Last)), _传递函数(_Pred), _传递函数(_Proj));
 
-            _Seek_wrapped(_First, _STD move(_UResult));
+            _定位包装(_First, _STD move(_UResult));
             return _First;
         }
 
@@ -6791,7 +6791,7 @@ namespace ranges {
         _NODISCARD _STATIC_CALL_OPERATOR constexpr borrowed_iterator_t<_Rng> operator()(
             _Rng&& _Range, _Pr _Pred = {}, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             auto _UResult =
-                _Adjacent_find_unchecked(_Ubegin(_Range), _Uend(_Range), _Pass_fn(_Pred), _Pass_fn(_Proj));
+                _Adjacent_find_unchecked(_Ubegin(_Range), _Uend(_Range), _传递函数(_Pred), _传递函数(_Proj));
 
             return _RANGES _Rewrap_iterator(_Range, _STD move(_UResult));
         }
@@ -6855,11 +6855,11 @@ namespace ranges {
                 const auto _Count1 = _ULast1 - _UFirst1;
                 const auto _Count2 = _ULast2 - _UFirst2;
                 auto _UResult = _Search_sized(_STD move(_UFirst1), _STD move(_ULast1), _Count1, _STD move(_UFirst2),
-                    _STD move(_ULast2), _Count2, _Pass_fn(_Pred), _Pass_fn(_Proj1), _Pass_fn(_Proj2));
+                    _STD move(_ULast2), _Count2, _传递函数(_Pred), _传递函数(_Proj1), _传递函数(_Proj2));
                 return _RANGES _Rewrap_subrange<subrange<_It1>>(_First1, _STD move(_UResult));
             } else {
                 auto _UResult = _Search_unsized(_STD move(_UFirst1), _STD move(_ULast1), _STD move(_UFirst2),
-                    _STD move(_ULast2), _Pass_fn(_Pred), _Pass_fn(_Proj1), _Pass_fn(_Proj2));
+                    _STD move(_ULast2), _传递函数(_Pred), _传递函数(_Proj1), _传递函数(_Proj2));
                 return _RANGES _Rewrap_subrange<subrange<_It1>>(_First1, _STD move(_UResult));
             }
         }
@@ -6873,11 +6873,11 @@ namespace ranges {
                 const auto _Count1 = _RANGES distance(_Range1);
                 const auto _Count2 = _RANGES distance(_Range2);
                 auto _UResult      = _Search_sized(_Ubegin(_Range1), _Uend(_Range1), _Count1, _Ubegin(_Range2),
-                         _Uend(_Range2), _Count2, _Pass_fn(_Pred), _Pass_fn(_Proj1), _Pass_fn(_Proj2));
+                         _Uend(_Range2), _Count2, _传递函数(_Pred), _传递函数(_Proj1), _传递函数(_Proj2));
                 return _RANGES _Rewrap_subrange<borrowed_subrange_t<_Rng1>>(_Range1, _STD move(_UResult));
             } else {
                 auto _UResult = _Search_unsized(_Ubegin(_Range1), _Uend(_Range1), _Ubegin(_Range2), _Uend(_Range2),
-                    _Pass_fn(_Pred), _Pass_fn(_Proj1), _Pass_fn(_Proj2));
+                    _传递函数(_Pred), _传递函数(_Proj1), _传递函数(_Proj2));
                 return _RANGES _Rewrap_subrange<borrowed_subrange_t<_Rng1>>(_Range1, _STD move(_UResult));
             }
         }
@@ -6910,7 +6910,7 @@ namespace ranges {
                     }
 
                     const auto _Ptr_res1 =
-                        _Search_vectorized(_Ptr1, _Ptr_last1, _Ptr2, static_cast<size_t>(_Count2));
+                        _搜索向量化(_Ptr1, _Ptr_last1, _Ptr2, static_cast<size_t>(_Count2));
 
                     if constexpr (is_pointer_v<_It1>) {
                         if (_Ptr_res1 != _Ptr_last1) {
@@ -7041,8 +7041,8 @@ constexpr _FwdIt _Max_element_unchecked(_FwdIt _First, _FwdIt _Last, _Pr _Pred) 
 _EXPORT_STD template <class _FwdIt, class _Pr>
 _NODISCARD constexpr _FwdIt max_element(_FwdIt _First, _FwdIt _Last, _Pr _Pred) { // find largest element
     _ADL校验范围(_First, _Last);
-    _Seek_wrapped(_First,
-        _Max_element_unchecked(_取解包(_First), _取解包(_Last), _Pass_fn(_Pred)));
+    _定位包装(_First,
+        _Max_element_unchecked(_取解包(_First), _取解包(_Last), _传递函数(_Pred)));
     return _First;
 }
 
@@ -7057,7 +7057,7 @@ _NODISCARD _FwdIt max_element(_ExPo&&, _FwdIt _First, _FwdIt _Last, _Pr _Pred) n
     // find largest element
     // not parallelized at present, parallelism expected to be feasible in a future release
     _REQUIRE_PARALLEL_ITERATOR(_FwdIt);
-    return _STD max_element(_First, _Last, _Pass_fn(_Pred));
+    return _STD max_element(_First, _Last, _传递函数(_Pred));
 }
 
 _EXPORT_STD template <class _ExPo, class _FwdIt, _Enable_if_execution_policy_t<_ExPo> = 0>
@@ -7114,9 +7114,9 @@ namespace ranges {
         _NODISCARD _STATIC_CALL_OPERATOR constexpr _It operator()(
             _It _First, _Se _Last, _Pr _Pred = {}, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             _ADL校验范围(_First, _Last);
-            _Seek_wrapped(
+            _定位包装(
                 _First, _RANGES _Max_element_unchecked(_RANGES _Unwrap_iter<_Se>(_STD move(_First)),
-                            _RANGES _Unwrap_sent<_It>(_STD move(_Last)), _Pass_fn(_Pred), _Pass_fn(_Proj)));
+                            _RANGES _Unwrap_sent<_It>(_STD move(_Last)), _传递函数(_Pred), _传递函数(_Proj)));
             return _First;
         }
 
@@ -7125,7 +7125,7 @@ namespace ranges {
         _NODISCARD _STATIC_CALL_OPERATOR constexpr borrowed_iterator_t<_Rng> operator()(
             _Rng&& _Range, _Pr _Pred = {}, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             auto _UResult = _RANGES _Max_element_unchecked(
-                _Ubegin(_Range), _Uend(_Range), _Pass_fn(_Pred), _Pass_fn(_Proj));
+                _Ubegin(_Range), _Uend(_Range), _传递函数(_Pred), _传递函数(_Proj));
             return _RANGES _Rewrap_iterator(_Range, _STD move(_UResult));
         }
     };
@@ -7147,7 +7147,7 @@ _NODISCARD constexpr _Ty(max)(initializer_list<_Ty> _Ilist, _Pr _Pred) {
         }
     }
 #endif // _USE_STD_VECTOR_ALGORITHMS
-    const _Ty* _Res = _Max_element_unchecked(_Ilist.begin(), _Ilist.end(), _Pass_fn(_Pred));
+    const _Ty* _Res = _Max_element_unchecked(_Ilist.begin(), _Ilist.end(), _传递函数(_Pred));
     return *_Res;
 }
 
@@ -7194,7 +7194,7 @@ namespace ranges {
                 }
             }
 #endif // _USE_STD_VECTOR_ALGORITHMS
-            return *_RANGES _Max_element_unchecked(_First, _Last, _Pass_fn(_Pred), _Pass_fn(_Proj));
+            return *_RANGES _Max_element_unchecked(_First, _Last, _传递函数(_Pred), _传递函数(_Proj));
         }
 
         template <input_range _Rng, class _Pj = identity,
@@ -7218,7 +7218,7 @@ namespace ranges {
 #endif // _USE_STD_VECTOR_ALGORITHMS
             if constexpr (forward_range<_Rng> && _Prefer_iterator_copies<decltype(_UFirst)>) {
                 return static_cast<range_value_t<_Rng>>(*_RANGES _Max_element_unchecked(
-                    _STD move(_UFirst), _STD move(_ULast), _Pass_fn(_Pred), _Pass_fn(_Proj)));
+                    _STD move(_UFirst), _STD move(_ULast), _传递函数(_Pred), _传递函数(_Proj)));
             } else {
                 range_value_t<_Rng> _Found(*_UFirst);
                 while (++_UFirst != _ULast) {
@@ -7267,8 +7267,8 @@ constexpr _FwdIt _Min_element_unchecked(_FwdIt _First, _FwdIt _Last, _Pr _Pred) 
 _EXPORT_STD template <class _FwdIt, class _Pr>
 _NODISCARD constexpr _FwdIt min_element(_FwdIt _First, _FwdIt _Last, _Pr _Pred) { // find smallest element
     _ADL校验范围(_First, _Last);
-    _Seek_wrapped(_First,
-        _Min_element_unchecked(_取解包(_First), _取解包(_Last), _Pass_fn(_Pred)));
+    _定位包装(_First,
+        _Min_element_unchecked(_取解包(_First), _取解包(_Last), _传递函数(_Pred)));
     return _First;
 }
 
@@ -7283,7 +7283,7 @@ _NODISCARD _FwdIt min_element(_ExPo&&, _FwdIt _First, _FwdIt _Last, _Pr _Pred) n
     // find smallest element
     // not parallelized at present, parallelism expected to be feasible in a future release
     _REQUIRE_PARALLEL_ITERATOR(_FwdIt);
-    return _STD min_element(_First, _Last, _Pass_fn(_Pred));
+    return _STD min_element(_First, _Last, _传递函数(_Pred));
 }
 
 _EXPORT_STD template <class _ExPo, class _FwdIt, _Enable_if_execution_policy_t<_ExPo> = 0>
@@ -7340,9 +7340,9 @@ namespace ranges {
         _NODISCARD _STATIC_CALL_OPERATOR constexpr _It operator()(
             _It _First, _Se _Last, _Pr _Pred = {}, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             _ADL校验范围(_First, _Last);
-            _Seek_wrapped(
+            _定位包装(
                 _First, _RANGES _Min_element_unchecked(_RANGES _Unwrap_iter<_Se>(_STD move(_First)),
-                            _RANGES _Unwrap_sent<_It>(_STD move(_Last)), _Pass_fn(_Pred), _Pass_fn(_Proj)));
+                            _RANGES _Unwrap_sent<_It>(_STD move(_Last)), _传递函数(_Pred), _传递函数(_Proj)));
             return _First;
         }
 
@@ -7351,7 +7351,7 @@ namespace ranges {
         _NODISCARD _STATIC_CALL_OPERATOR constexpr borrowed_iterator_t<_Rng> operator()(
             _Rng&& _Range, _Pr _Pred = {}, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             auto _UResult = _RANGES _Min_element_unchecked(
-                _Ubegin(_Range), _Uend(_Range), _Pass_fn(_Pred), _Pass_fn(_Proj));
+                _Ubegin(_Range), _Uend(_Range), _传递函数(_Pred), _传递函数(_Proj));
             return _RANGES _Rewrap_iterator(_Range, _STD move(_UResult));
         }
     };
@@ -7373,7 +7373,7 @@ _NODISCARD constexpr _Ty(min)(initializer_list<_Ty> _Ilist, _Pr _Pred) {
         }
     }
 #endif // _USE_STD_VECTOR_ALGORITHMS
-    const _Ty* _Res = _Min_element_unchecked(_Ilist.begin(), _Ilist.end(), _Pass_fn(_Pred));
+    const _Ty* _Res = _Min_element_unchecked(_Ilist.begin(), _Ilist.end(), _传递函数(_Pred));
     return *_Res;
 }
 
@@ -7414,7 +7414,7 @@ namespace ranges {
                 }
             }
 #endif // _USE_STD_VECTOR_ALGORITHMS
-            return *_RANGES _Min_element_unchecked(_First, _Last, _Pass_fn(_Pred), _Pass_fn(_Proj));
+            return *_RANGES _Min_element_unchecked(_First, _Last, _传递函数(_Pred), _传递函数(_Proj));
         }
 
         template <input_range _Rng, class _Pj = identity,
@@ -7438,7 +7438,7 @@ namespace ranges {
 #endif // _USE_STD_VECTOR_ALGORITHMS
             if constexpr (forward_range<_Rng> && _Prefer_iterator_copies<decltype(_UFirst)>) {
                 return static_cast<range_value_t<_Rng>>(*_RANGES _Min_element_unchecked(
-                    _STD move(_UFirst), _STD move(_ULast), _Pass_fn(_Pred), _Pass_fn(_Proj)));
+                    _STD move(_UFirst), _STD move(_ULast), _传递函数(_Pred), _传递函数(_Proj)));
             } else {
                 range_value_t<_Rng> _Found(*_UFirst);
                 while (++_UFirst != _ULast) {
@@ -7467,14 +7467,14 @@ _NODISCARD _CONSTEXPR20 _FwdIt lower_bound(_FwdIt _First, const _FwdIt _Last, co
         const _Iter_diff_t<_FwdIt> _Count2 = _Count / 2;
         const auto _UMid                   = _STD next(_UFirst, _Count2);
         if (_Pred(*_UMid, _Val)) { // try top half
-            _UFirst = _Next_iter(_UMid);
+            _UFirst = _下一迭代器(_UMid);
             _Count -= _Count2 + 1;
         } else {
             _Count = _Count2;
         }
     }
 
-    _Seek_wrapped(_First, _UFirst);
+    _定位包装(_First, _UFirst);
     return _First;
 }
 
@@ -7497,12 +7497,12 @@ _NODISCARD _CONSTEXPR20 _FwdIt upper_bound(_FwdIt _First, _FwdIt _Last, const _T
         if (_Pred(_Val, *_UMid)) {
             _Count = _Count2;
         } else { // try top half
-            _UFirst = _Next_iter(_UMid);
+            _UFirst = _下一迭代器(_UMid);
             _Count -= _Count2 + 1;
         }
     }
 
-    _Seek_wrapped(_First, _UFirst);
+    _定位包装(_First, _UFirst);
     return _First;
 }
 

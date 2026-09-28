@@ -3255,14 +3255,41 @@ $H = @{
                           '_To_address' = '_取地址'
                           '_Get_unwrapped' = '_取解包'
                           }
-    members = [ordered]@{}
+    # 目标阶段(2)：本头是【定义方】，它的名字一旦留在英文，就会把同名两份摆进同一个
+    #   `标准::细节`（我们那份 + `使用 名域 std;` 拉进来的原件），别的拷贝一调用就
+    #   『对 X 的调用有歧义』（§17.27.52 实测：链表:1794 `_Pass_fn`）。
+    #   判据：**凡本头在名域作用域有定义、且其它产品无限定调用的自由函数，一律改名**
+    #   （下表即按此判据从原件正则扫出，见 §17.27.52；成员名不受影响：成员查找只看类作用域）。
+    members = [ordered]@{
+      '_Pass_fn'                     = '_传递函数'
+      '_Copy_memmove_n'              = '_内存复制移动计数'
+      '_Copy_n_unchecked4'           = '_复制N个非检查4'
+      '_Copy_unchecked'              = '_复制非检查'
+      '_To_unsigned_like'            = '_转为无符号同型'
+      '_Next_iter'                   = '_下一迭代器'
+      '_Prev_iter'                   = '_上一迭代器'
+      '_Move_backward_unchecked'     = '_向后移动非检查'
+      '_Get_final_iterator_unwrapped'= '_取末尾迭代器解包'
+      '_Find_unchecked'              = '_查找非检查'
+      '_Find_vectorized'             = '_查找向量化'
+      '_Find_last_vectorized'        = '_查找末个向量化'
+      '_Find_end_vectorized'         = '_查找末段向量化'
+      '_Search_vectorized'           = '_搜索向量化'
+      '_Check_match_counts'          = '_检查匹配计数'
+      '_Fill_zero_memset'            = '_填充零内存'
+      '_Seek_wrapped'                = '_定位包装'
+      '_Is_all_bits_zero'            = '_是否全位为零'
+    }
     data    = [ordered]@{}
     derive  = @()
     stdHash = $false
     tparam  = @{ decl = ''; args = '' }
     tests = @(
       @('只引中文头','#包含 <通用内部件>`n整数 主函数(){ 返回 0; }'),
-      @('内部自由函数真实可用','#包含 <通用内部件>`n整数 主函数(){ 整数 甲 = 0; 标准::细节::_取解包(甲); 返回 0; }')
+      @('内部自由函数真实可用','#包含 <通用内部件>`n整数 主函数(){ 整数 甲 = 0; 标准::细节::_取解包(甲); 返回 0; }'),
+      # §17.27.52 机器守卫：定义方改名后，`_传递函数` 必须真的可用（原件那份是同名英文，
+      #   若表里没改名，这里会因『两份同名』而编不过）。取 `_Pass_fn` 作代表。
+      @('定义方改名真的落地（代表：_Pass_fn）','#包含 <通用内部件>`n#包含 <functional>`n整数 主函数(){ std::less<整数> 丙; 常量 自动& 丁 = 标准::细节::_传递函数(丙); (空型)丁; 返回 0; }')
     )
   }
   'scoped_allocator' = @{
