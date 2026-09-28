@@ -178,6 +178,14 @@ $memBoundary = @('length', 'assign', 'copy', 'compare', 'find', 'max_size', 'swa
                  #     所以**用户能写 `甲.等待()`**，只是抄来那层留着英文。
                  #   `lexicographical_compare*`：std 算法（借来的）。
                  'wait', 'lexicographical_compare', 'lexicographical_compare_three_way',
+                 # ---- §17.23 字符串视图 那边的**借用 C/std 名**（不是欠账）----
+                 #   实测这些只有调用、定义在 C 运行库或我们没抄的 std 头里：
+                 #   memcmp / wcslen / wmemcmp / to_address / eq_int_type /
+                 #   __std_find_first_of_trivial_pos_* / __std_find_last_of_trivial_pos_*
+                 'memcmp', 'wcslen', 'wmemcmp', 'to_address', 'eq_int_type',
+                 '__std_find_first_of_trivial_pos_1', '__std_find_first_of_trivial_pos_2',
+                 '__std_find_first_of_trivial_pos_4', '__std_find_first_of_trivial_pos_8',
+                 '__std_find_last_of_trivial_pos_1', '__std_find_last_of_trivial_pos_2',
                  # ---- §16.72 借用的线程核心件 + 模板形参噪声 ----
                  #   `_Mycnd`：<condition_variable> 正文里只有 `_Mycnd()` 这种**调用**，
                  #     定义在借来的线程核心头（goals 里 xthreads.h 那一类，属"判定的边界"）。
