@@ -8,7 +8,7 @@
 #define _ZH_LIST_
 #include <yvals_core.h>
 #if _STL_COMPILER_PREPROCESSOR
-#include <xmemory>
+#include <内存内部件>
 
 #if _HAS_CXX17
 #include <xpolymorphic_allocator.h>
@@ -23,7 +23,7 @@ _STL_DISABLE_CLANG_WARNINGS
 
 名域 标准 { 名域 细节 {
 使用 名域 std;
-template <class _我的链表, class _Base = _Iterator_base0>
+template <class _我的链表, class _Base = _迭代器基类0>
 class _链表非检查常量迭代器 : public _Base {
 public:
     using iterator_category = bidirectional_iterator_tag;
@@ -37,7 +37,7 @@ public:
     _链表非检查常量迭代器() noexcept : _Ptr() {}
 
     _链表非检查常量迭代器(_结点指针 _Pnode, const _我的链表* _Plist) noexcept : _Ptr(_Pnode) {
-        this->_Adopt(_Plist);
+        this->_收养(_Plist);
     }
 
     _NODISCARD reference operator*() const noexcept {
@@ -129,9 +129,9 @@ public:
 };
 
 template <class _我的链表>
-class _链表常量迭代器 : public _链表非检查常量迭代器<_我的链表, _Iterator_base> {
+class _链表常量迭代器 : public _链表非检查常量迭代器<_我的链表, _迭代器基类> {
 public:
-    using _我的基类           = _链表非检查常量迭代器<_我的链表, _Iterator_base>;
+    using _我的基类           = _链表非检查常量迭代器<_我的链表, _迭代器基类>;
     using iterator_category = bidirectional_iterator_tag;
 
     using _结点指针        = typename _我的链表::_结点指针;
@@ -144,7 +144,7 @@ public:
 
     _NODISCARD reference operator*() const noexcept {
 #if _ITERATOR_DEBUG_LEVEL == 2
-        const auto _Mycont = static_cast<const _我的链表*>(this->_Getcont());
+        const auto _Mycont = static_cast<const _我的链表*>(this->_取容器());
         _STL_VERIFY(_Mycont, "cannot dereference value-initialized 链表实现 iterator");
         _STL_VERIFY(this->_Ptr != _Mycont->_Myhead, "cannot dereference 结束 链表实现 iterator");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
@@ -158,7 +158,7 @@ public:
 
     _链表常量迭代器& operator++() noexcept {
 #if _ITERATOR_DEBUG_LEVEL == 2
-        const auto _Mycont = static_cast<const _我的链表*>(this->_Getcont());
+        const auto _Mycont = static_cast<const _我的链表*>(this->_取容器());
         _STL_VERIFY(_Mycont, "cannot increment value-initialized 链表实现 iterator");
         _STL_VERIFY(this->_Ptr != _Mycont->_Myhead, "cannot increment 结束 链表实现 iterator");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
@@ -176,7 +176,7 @@ public:
     _链表常量迭代器& operator--() noexcept {
         const auto _New_ptr = this->_Ptr->_Prev;
 #if _ITERATOR_DEBUG_LEVEL == 2
-        const auto _Mycont = static_cast<const _我的链表*>(this->_Getcont());
+        const auto _Mycont = static_cast<const _我的链表*>(this->_取容器());
         _STL_VERIFY(_Mycont, "cannot decrement value-initialized 链表实现 iterator");
         _STL_VERIFY(_New_ptr != _Mycont->_Myhead, "cannot decrement 开始 链表实现 iterator");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
@@ -193,7 +193,7 @@ public:
 
     _NODISCARD bool operator==(const _链表常量迭代器& _Right) const noexcept {
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(this->_Getcont() == _Right._Getcont(), "链表实现 iterators incompatible");
+        _STL_VERIFY(this->_取容器() == _Right._取容器(), "链表实现 iterators incompatible");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
         return this->_Ptr == _Right._Ptr;
@@ -207,14 +207,14 @@ public:
 
 #if _ITERATOR_DEBUG_LEVEL == 2
     friend void _Verify_range(const _链表常量迭代器& _First, const _链表常量迭代器& _Last) noexcept {
-        _STL_VERIFY(_First._Getcont() == _Last._Getcont(), "链表实现 iterators in range are from different containers");
+        _STL_VERIFY(_First._取容器() == _Last._取容器(), "链表实现 iterators in range are from different containers");
     }
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
     using _阻止继承解包 = _链表常量迭代器;
 
     _NODISCARD _链表非检查常量迭代器<_我的链表> _Unwrapped() const noexcept {
-        return _链表非检查常量迭代器<_我的链表>(this->_Ptr, static_cast<const _我的链表*>(this->_Getcont()));
+        return _链表非检查常量迭代器<_我的链表>(this->_Ptr, static_cast<const _我的链表*>(this->_取容器()));
     }
 
     void _Seek_to(const _链表非检查常量迭代器<_我的链表> _It) noexcept {
@@ -269,7 +269,7 @@ public:
     using _阻止继承解包 = _链表迭代器;
 
     _NODISCARD _链表非检查迭代器<_我的链表> _Unwrapped() const noexcept {
-        return _链表非检查迭代器<_我的链表>(this->_Ptr, static_cast<const _我的链表*>(this->_Getcont()));
+        return _链表非检查迭代器<_我的链表>(this->_Ptr, static_cast<const _我的链表*>(this->_取容器()));
     }
 };
 
@@ -309,8 +309,8 @@ struct _链表节点 { // 链表实现 node
     static void _Freenode0(_结点分配器& _Al, _结点指针 _Ptr) noexcept {
         // destroy pointer members in _Ptr and deallocate with _Al
         static_assert(is_same_v<typename _结点分配器::value_type, _链表节点>, "Bad _Freenode0 call");
-        _Destroy_in_place(_Ptr->_Next);
-        _Destroy_in_place(_Ptr->_Prev);
+        _就地析构(_Ptr->_Next);
+        _就地析构(_Ptr->_Prev);
         allocator_traits<_结点分配器>::deallocate(_Al, _Ptr, 1);
     }
 
@@ -340,7 +340,7 @@ struct _链表简单类型集 : _Simple_types<_Ty> {
 };
 
 template <class _值类型集>
-class _链表值 : public _Container_base {
+class _链表值 : public _容器基类 {
 public:
     using _结点指针 = typename _值类型集::_结点指针;
 
@@ -367,10 +367,10 @@ public:
     void _孤儿化指针2(_结点指针 _Ptr) noexcept { // orphan iterators with specified node pointers
 #if _ITERATOR_DEBUG_LEVEL == 2
         _Lockit _Lock(_LOCK_DEBUG);
-        _Iterator_base12** _Pnext = &this->_Myproxy->_Myfirstiter;
+        _迭代器基类12** _Pnext = &this->_Myproxy->_Myfirstiter;
         const auto _Head          = _Myhead;
         while (*_Pnext) {
-            _Iterator_base12** _Pnextnext = &(*_Pnext)->_Mynextiter;
+            _迭代器基类12** _Pnextnext = &(*_Pnext)->_Mynextiter;
             const auto _Pnextptr          = static_cast<_链表常量迭代器<_链表值>&>(**_Pnext)._Ptr;
             if (_Pnextptr == _Head || _Pnextptr != _Ptr) {
                 // iterator is 结束() or doesn't point at the one we are orphaning, move on
@@ -388,10 +388,10 @@ public:
     void _孤儿化非末尾() noexcept { // orphan iterators except 结束()
 #if _ITERATOR_DEBUG_LEVEL == 2
         _Lockit _Lock(_LOCK_DEBUG);
-        _Iterator_base12** _Pnext = &this->_Myproxy->_Myfirstiter;
+        _迭代器基类12** _Pnext = &this->_Myproxy->_Myfirstiter;
         const auto _Head          = _Myhead;
         while (*_Pnext) {
-            _Iterator_base12** _Pnextnext = &(*_Pnext)->_Mynextiter;
+            _迭代器基类12** _Pnextnext = &(*_Pnext)->_Mynextiter;
             if (static_cast<_链表常量迭代器<_链表值>&>(**_Pnext)._Ptr == _Head) { // iterator is 结束(), move on
                 _Pnext = _Pnextnext;
             } else { // orphan the iterator
@@ -414,7 +414,7 @@ public:
     void _Adopt_unique(_链表值& _Other, _结点指针 _Pnode) noexcept {
         // adopt iterators pointing to the spliced node
         _Lockit _Lock(_LOCK_DEBUG);
-        _Iterator_base12** _Pnext = &_Other._Myproxy->_Myfirstiter;
+        _迭代器基类12** _Pnext = &_Other._Myproxy->_Myfirstiter;
         const auto _Myproxy       = this->_Myproxy;
         while (*_Pnext) {
             auto& _Iter = static_cast<_链表常量迭代器<_链表值>&>(**_Pnext);
@@ -432,7 +432,7 @@ public:
     void _收养全部(_链表值& _Other) noexcept {
         // adopt all iterators (except _Other.结束())
         _Lockit _Lock(_LOCK_DEBUG);
-        _Iterator_base12** _Pnext = &_Other._Myproxy->_Myfirstiter;
+        _迭代器基类12** _Pnext = &_Other._Myproxy->_Myfirstiter;
         const auto _Myproxy       = this->_Myproxy;
         const auto _Otherhead     = _Other._Myhead;
         while (*_Pnext) {
@@ -451,7 +451,7 @@ public:
     void _收养范围(_链表值& _Other, const _结点指针 _First, const _结点指针 _Last) noexcept {
         // adopt all iterators pointing to nodes in the "range" [_First, _Last) by marking nodes
         _Lockit _Lock(_LOCK_DEBUG);
-        _Iterator_base12** _Pnext = &_Other._Myproxy->_Myfirstiter;
+        _迭代器基类12** _Pnext = &_Other._Myproxy->_Myfirstiter;
         const auto _Myproxy       = this->_Myproxy;
         _结点指针 _Oldprev         = _First->_Prev;
         for (_结点指针 _Ptr = _First; _Ptr != _Last; _Ptr = _Ptr->_Next) { // mark _Prev pointers
@@ -826,8 +826,8 @@ private:
     }
 
     void _Construct_n(_CRT_GUARDOVERFLOW size_type _Count) {
-        auto&& _Alproxy = _GET_PROXY_ALLOCATOR(_结点分配器, _取分配器());
-        _Container_proxy_ptr<_分配器类型> _Proxy(_Alproxy, _Mypair._Myval2);
+        auto&& _Alproxy = _取代理分配器(_结点分配器, _取分配器());
+        _容器代理指针<_分配器类型> _Proxy(_Alproxy, _Mypair._Myval2);
         _链表节点插入操作2<_结点分配器> _Appended(_取分配器());
         _Appended._追加n(_Count);
         _Appended._接到头部(_Mypair._Myval2);
@@ -847,8 +847,8 @@ public:
 
 private:
     void _Construct_n(_CRT_GUARDOVERFLOW size_type _Count, const _Ty& _Val) {
-        auto&& _Alproxy = _GET_PROXY_ALLOCATOR(_结点分配器, _取分配器());
-        _Container_proxy_ptr<_分配器类型> _Proxy(_Alproxy, _Mypair._Myval2);
+        auto&& _Alproxy = _取代理分配器(_结点分配器, _取分配器());
+        _容器代理指针<_分配器类型> _Proxy(_Alproxy, _Mypair._Myval2);
         _链表节点插入操作2<_结点分配器> _Appended(_取分配器());
         _Appended._追加n(_Count, _Val);
         _Appended._接到头部(_Mypair._Myval2);
@@ -872,8 +872,8 @@ public:
 private:
     template <class _Iter, class _Sent>
     void _构造范围非检查(_Iter _First, const _Sent _Last) {
-        auto&& _Alproxy = _GET_PROXY_ALLOCATOR(_结点分配器, _取分配器());
-        _Container_proxy_ptr<_分配器类型> _Proxy(_Alproxy, _Mypair._Myval2);
+        auto&& _Alproxy = _取代理分配器(_结点分配器, _取分配器());
+        _容器代理指针<_分配器类型> _Proxy(_Alproxy, _Mypair._Myval2);
         _链表节点插入操作2<_结点分配器> _Appended(_取分配器());
         _Appended._追加范围非检查(_STD move(_First), _Last);
         _Appended._接到头部(_Mypair._Myval2);
@@ -942,9 +942,9 @@ public:
         constexpr auto _Pocma_val = _Choose_pocma_v<_结点分配器>;
         if constexpr (_Pocma_val == _Pocma_values::_Propagate_allocators) {
             if (_Al != _Right_al) {
-                auto&& _Alproxy       = _GET_PROXY_ALLOCATOR(_结点分配器, _Al);
-                auto&& _Right_alproxy = _GET_PROXY_ALLOCATOR(_结点分配器, _Right_al);
-                _Container_proxy_ptr<_分配器类型> _Proxy(_Right_alproxy, _Leave_proxy_unbound{});
+                auto&& _Alproxy       = _取代理分配器(_结点分配器, _Al);
+                auto&& _Right_alproxy = _取代理分配器(_结点分配器, _Right_al);
+                _容器代理指针<_分配器类型> _Proxy(_Right_alproxy, _离开代理未绑定{});
                 auto& _My_data      = _Mypair._Myval2;
                 auto& _Right_data   = _Right._Mypair._Myval2;
                 const auto _Newhead = _STD exchange(_Right_data._Myhead, _节点::_Buyheadnode(_Right_al));
@@ -953,8 +953,8 @@ public:
                 _Pocma(_Al, _Right_al);
                 _My_data._Myhead = _Newhead;
                 _My_data._Mysize = _Newsize;
-                _Proxy._Bind(_Alproxy, _STD addressof(_My_data));
-                _My_data._Swap_proxy_and_iterators(_Right_data);
+                _Proxy._绑定(_Alproxy, _STD addressof(_My_data));
+                _My_data._交换代理与迭代器(_Right_data);
                 return *this;
             }
         } else if constexpr (_Pocma_val == _Pocma_values::_No_propagate_allocators) {
@@ -977,7 +977,7 @@ private:
         using _STD swap;
         auto& _My_data    = _Mypair._Myval2;
         auto& _Right_data = _Right._Mypair._Myval2;
-        _My_data._Swap_proxy_and_iterators(_Right_data);
+        _My_data._交换代理与迭代器(_Right_data);
         swap(_My_data._Myhead, _Right_data._Myhead); // intentional ADL
         _STD swap(_My_data._Mysize, _Right_data._Mysize);
     }
@@ -1020,7 +1020,7 @@ public:
     template <class... _Valty>
     iterator 就地构造(const const_iterator _Where, _Valty&&... _Val) { // 插入 element at _Where
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(_Where._Getcont() == _STD addressof(_Mypair._Myval2), "链表实现 就地构造 iterator outside range");
+        _STL_VERIFY(_Where._取容器() == _STD addressof(_Mypair._Myval2), "链表实现 就地构造 iterator outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
         return _Make_iter(_Emplace(_Where._Ptr, _STD forward<_Valty>(_Val)...));
@@ -1062,25 +1062,25 @@ public:
     ~链表实现() noexcept {
         _Tidy();
 #if _ITERATOR_DEBUG_LEVEL != 0 // TRANSITION, ABI
-        auto&& _Alproxy = _GET_PROXY_ALLOCATOR(_结点分配器, _取分配器());
-        _Delete_plain_internal(_Alproxy, _Mypair._Myval2._Myproxy);
+        auto&& _Alproxy = _取代理分配器(_结点分配器, _取分配器());
+        _删除原生内部(_Alproxy, _Mypair._Myval2._Myproxy);
 #endif // _ITERATOR_DEBUG_LEVEL != 0
     }
 
 private:
     void _Reload_sentinel_and_proxy(const 链表实现& _Right) { // reload sentinel / proxy from unequal POCCA _Right
         auto& _Al             = _取分配器();
-        auto&& _Alproxy       = _GET_PROXY_ALLOCATOR(_结点分配器, _Al);
+        auto&& _Alproxy       = _取代理分配器(_结点分配器, _Al);
         auto& _Right_al       = _Right._取分配器();
-        auto&& _Right_alproxy = _GET_PROXY_ALLOCATOR(_结点分配器, _Right_al);
-        _Container_proxy_ptr<_分配器类型> _Proxy(_Right_alproxy, _Leave_proxy_unbound{});
+        auto&& _Right_alproxy = _取代理分配器(_结点分配器, _Right_al);
+        _容器代理指针<_分配器类型> _Proxy(_Right_alproxy, _离开代理未绑定{});
         auto _Right_al_non_const = _Right_al;
         auto _Newhead            = _节点::_Buyheadnode(_Right_al_non_const);
         _Tidy();
         _Pocca(_Al, _Right_al);
         _Mypair._Myval2._Myhead = _Newhead;
         _Mypair._Myval2._Mysize = 0;
-        _Proxy._Bind(_Alproxy, _STD addressof(_Mypair._Myval2));
+        _Proxy._绑定(_Alproxy, _STD addressof(_Mypair._Myval2));
     }
 
 public:
@@ -1388,7 +1388,7 @@ public:
 
     iterator 插入(const_iterator _Where, const _Ty& _Val) { // 插入 _Val at _Where
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(_Where._Getcont() == _STD addressof(_Mypair._Myval2), "链表实现 插入 iterator outside range");
+        _STL_VERIFY(_Where._取容器() == _STD addressof(_Mypair._Myval2), "链表实现 插入 iterator outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
         return _Make_iter(_Emplace(_Where._Ptr, _Val));
     }
@@ -1396,7 +1396,7 @@ public:
     iterator 插入(const_iterator _Where, _CRT_GUARDOVERFLOW size_type _Count, const _Ty& _Val) {
         // 插入 _Count * _Val before _Where
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(_Where._Getcont() == _STD addressof(_Mypair._Myval2), "链表实现 插入 iterator outside range");
+        _STL_VERIFY(_Where._取容器() == _STD addressof(_Mypair._Myval2), "链表实现 插入 iterator outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
         _链表节点插入操作2<_结点分配器> _Op(_取分配器());
         _Op._追加n(_Count, _Val);
@@ -1406,7 +1406,7 @@ public:
     template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
     iterator 插入(const const_iterator _Where, _Iter _First, _Iter _Last) { // 插入 [_First, _Last) before _Where
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(_Where._Getcont() == _STD addressof(_Mypair._Myval2), "链表实现 插入 iterator outside range");
+        _STL_VERIFY(_Where._取容器() == _STD addressof(_Mypair._Myval2), "链表实现 插入 iterator outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
         _Adl_verify_range(_First, _Last);
         _链表节点插入操作2<_结点分配器> _Op(_取分配器());
@@ -1418,7 +1418,7 @@ public:
     template <_Container_compatible_range<_Ty> _Rng>
     iterator 范围插入(const_iterator _Where, _Rng&& _Range) {
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(_Where._Getcont() == _STD addressof(_Mypair._Myval2), "链表实现 范围插入 iterator outside range");
+        _STL_VERIFY(_Where._取容器() == _STD addressof(_Mypair._Myval2), "链表实现 范围插入 iterator outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
         _链表节点插入操作2<_结点分配器> _Op(_取分配器());
         _Op._追加范围非检查(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
@@ -1428,7 +1428,7 @@ public:
 
     iterator 擦除(const const_iterator _Where) noexcept /* strengthened */ {
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(_Where._Getcont() == _STD addressof(_Mypair._Myval2), "链表实现 擦除 iterator outside range");
+        _STL_VERIFY(_Where._取容器() == _STD addressof(_Mypair._Myval2), "链表实现 擦除 iterator outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
         const auto _Result = _Where._Ptr->_Next;
         _节点::_Freenode(_取分配器(), _Mypair._Myval2._Unlinknode(_Where._Ptr));
@@ -1469,9 +1469,9 @@ private:
                 _Marked->_Prev = nullptr;
             }
 
-            _Iterator_base12** _Pnext = &_Mypair._Myval2._Myproxy->_Myfirstiter;
+            _迭代器基类12** _Pnext = &_Mypair._Myval2._Myproxy->_Myfirstiter;
             while (*_Pnext) {
-                _Iterator_base12** _Pnextnext = &(*_Pnext)->_Mynextiter;
+                _迭代器基类12** _Pnextnext = &(*_Pnext)->_Mynextiter;
                 if (static_cast<const_iterator&>(**_Pnext)._Ptr->_Prev) { // node still has a _Prev, skip
                     _Pnext = _Pnextnext;
                 } else { // orphan the iterator
@@ -1516,7 +1516,7 @@ private:
     void _Tidy() noexcept {
         auto& _Al      = _取分配器();
         auto& _My_data = _Mypair._Myval2;
-        _My_data._Orphan_all();
+        _My_data._孤儿化全部();
         _节点::_释放非头节点(_Al, _My_data._Myhead);
         _节点::_Freenode0(_Al, _My_data._Myhead);
     }
@@ -1533,7 +1533,7 @@ public:
         auto& _Right_data = _Right._Mypair._Myval2;
         if (this != _STD addressof(_Right) && _Right_data._Mysize != 0) { // worth splicing, do it
 #if _ITERATOR_DEBUG_LEVEL == 2
-            _STL_VERIFY(_Where._Getcont() == _STD addressof(_Mypair._Myval2), "链表实现 接合 iterator outside range");
+            _STL_VERIFY(_Where._取容器() == _STD addressof(_Mypair._Myval2), "链表实现 接合 iterator outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
             const auto _Right_head = _Right_data._Myhead;
             _接合(_Where._Ptr, _Right, _Right_head->_Next, _Right_head, _Right_data._Mysize);
@@ -1547,8 +1547,8 @@ public:
     void 接合(const const_iterator _Where, 链表实现& _Right, const const_iterator _First) {
         // 接合 _Right [_First, _First + 1) at _Where
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(_Where._Getcont() == _STD addressof(_Mypair._Myval2)
-                        && _First._Getcont() == _STD addressof(_Right._Mypair._Myval2),
+        _STL_VERIFY(_Where._取容器() == _STD addressof(_Mypair._Myval2)
+                        && _First._取容器() == _STD addressof(_Right._Mypair._Myval2),
             "链表实现 接合 iterator outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
         const auto _UWhere = _Where._Ptr;
@@ -1573,8 +1573,8 @@ public:
         // 接合 _Right [_First, _Last) at _Where
 #if _ITERATOR_DEBUG_LEVEL == 2
         const auto _Right_data_ptr = _STD addressof(_Right._Mypair._Myval2);
-        _STL_VERIFY(_Where._Getcont() == _STD addressof(_Mypair._Myval2) && _First._Getcont() == _Right_data_ptr
-                        && _Last._Getcont() == _Right_data_ptr,
+        _STL_VERIFY(_Where._取容器() == _STD addressof(_Mypair._Myval2) && _First._取容器() == _Right_data_ptr
+                        && _Last._取容器() == _Right_data_ptr,
             "链表实现 接合 iterator outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
@@ -1645,9 +1645,9 @@ public:
 #if _ITERATOR_DEBUG_LEVEL == 2
             {
                 _Lockit _Lock(_LOCK_DEBUG);
-                _Iterator_base12** _Pnext = &_List._Mypair._Myval2._Myproxy->_Myfirstiter;
+                _迭代器基类12** _Pnext = &_List._Mypair._Myval2._Myproxy->_Myfirstiter;
                 while (*_Pnext) {
-                    _Iterator_base12** _Pnextnext = &(*_Pnext)->_Mynextiter;
+                    _迭代器基类12** _Pnextnext = &(*_Pnext)->_Mynextiter;
                     const auto _Pnextptr          = static_cast<const_iterator&>(**_Pnext)._Ptr;
                     if (_Pnextptr->_Prev) {
                         // iterator doesn't point to one of the elements we're removing
@@ -1847,8 +1847,8 @@ private:
     }
 
     void _分配哨兵与代理() {
-        auto&& _Alproxy = _GET_PROXY_ALLOCATOR(_结点分配器, _取分配器());
-        _Container_proxy_ptr<_分配器类型> _Proxy(_Alproxy, _Mypair._Myval2);
+        auto&& _Alproxy = _取代理分配器(_结点分配器, _取分配器());
+        _容器代理指针<_分配器类型> _Proxy(_Alproxy, _Mypair._Myval2);
         auto& _Al     = _取分配器();
         auto _Newhead = _Al.allocate(1);
         _Construct_in_place(_Newhead->_Next, _Newhead);
@@ -1857,8 +1857,8 @@ private:
         _Proxy._Release();
     }
 
-    void _Orphan_all() noexcept {
-        _Mypair._Myval2._Orphan_all();
+    void _孤儿化全部() noexcept {
+        _Mypair._Myval2._孤儿化全部();
     }
 
     _结点分配器& _取分配器() noexcept {

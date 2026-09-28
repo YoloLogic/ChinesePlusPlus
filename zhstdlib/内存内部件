@@ -1980,7 +1980,7 @@ _NoThrowFwdIt uninitialized_copy(const _InIt _First, const _InIt _Last, _NoThrow
 }
 
 template <class _InIt, class _Alloc>
-_CONSTEXPR20 _分配器指针类型<_Alloc> _Uninitialized_move(
+_CONSTEXPR20 _分配器指针类型<_Alloc> _未初始化移动(
     const _InIt _First, const _InIt _Last, _分配器指针类型<_Alloc> _目标, _Alloc& _Al) {
     // move [_First, _Last) to raw _目标, using _Al
     // note: only called internally from elsewhere in the STL
@@ -2010,7 +2010,7 @@ _CONSTEXPR20 _分配器指针类型<_Alloc> _Uninitialized_move(
 }
 
 template <class _Alloc>
-_CONSTEXPR20 _分配器指针类型<_Alloc> _Uninitialized_fill_n(
+_CONSTEXPR20 _分配器指针类型<_Alloc> _未初始化填充若干(
     _分配器指针类型<_Alloc> _First, _分配器尺寸类型<_Alloc> _Count, const typename _Alloc::value_type& _Val, _Alloc& _Al) {
     // copy _Count copies of _Val to raw _First, using _Al
     using _类型 = typename _Alloc::value_type;

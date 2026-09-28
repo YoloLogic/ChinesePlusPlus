@@ -1030,6 +1030,13 @@ $H = @{
     zh      = '链表'
     realInclude = @('list')   # §16.29「乙」
     types   = [ordered]@{ 'list' = '链表实现'
+      '_Container_proxy_ptr' = '_容器代理指针'
+      '_Container_base' = '_容器基类'
+      '_Iterator_base12' = '_迭代器基类12'
+      '_Iterator_base0' = '_迭代器基类0'
+      '_Iterator_base' = '_迭代器基类'
+      '_Leave_proxy_unbound' = '_离开代理未绑定'
+      '_GET_PROXY_ALLOCATOR' = '_取代理分配器'
                           # §16.34：本文件自己定义的内部件，按 §六第 6 条翻。
                           # ⚠ `_Hash` 在本文件只是【前向声明】（定义在 <xhash>）：
                           #   原文 `template <class _Traits> class _Hash;` + `friend class _Hash;`。
@@ -1077,6 +1084,13 @@ $H = @{
                           '_Alnode_traits'        = '_结点分配器特征'
                           }
     members = [ordered]@{
+      '_Adopt' = '_收养'
+      '_Bind' = '_绑定'
+      '_Delete_plain_internal' = '_删除原生内部'
+      '_Destroy_in_place' = '_就地析构'
+      '_Orphan_all' = '_孤儿化全部'
+      '_Getcont' = '_取容器'
+      '_Swap_proxy_and_iterators' = '_交换代理与迭代器'
       '_Adopt_all' = '_收养全部'
       '_Adopt_range' = '_收养范围'
       '_Alloc_sentinel_and_proxy' = '_分配哨兵与代理'
@@ -1123,6 +1137,7 @@ $H = @{
       '_Unchecked_end'    = '_非检查结束'
       # ⚠ swap 照旧不改名（§3.12）
     }
+    zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
     derive  = @( @('size','尺寸'), @('empty','为空'),
                  @('begin','开始'), @('end','结束'),
@@ -1323,6 +1338,12 @@ $H = @{
     zh      = '单向链表'
     realInclude = @('forward_list')   # §16.29「乙」
     types   = [ordered]@{ 'forward_list' = '单向链表实现'
+      '_Container_proxy_ptr' = '_容器代理指针'
+      '_Container_base' = '_容器基类'
+      '_Iterator_base12' = '_迭代器基类12'
+      '_Iterator_base0' = '_迭代器基类0'
+      '_Iterator_base' = '_迭代器基类'
+      '_GET_PROXY_ALLOCATOR' = '_取代理分配器'
                           # §16.34：本文件自己定义的内部件，按 §六第 6 条翻
                           '_Flist_val'            = '_单向链表值'
                           '_Flist_node'           = '_单向链表节点'
@@ -1345,6 +1366,14 @@ $H = @{
     # ⚠ forward_list 【没有 size()】（标准如此，取尺寸是 O(n) 所以不提供）——
     #   所以这里刻意不登记 size，免得改名遍去动文件里别处的 size。
     members = [ordered]@{
+      '_Adopt' = '_收养'
+      '_Delete_plain_internal' = '_删除原生内部'
+      '_Destroy_in_place' = '_就地析构'
+      '_Reload_proxy' = '_重载代理'
+      '_Orphan_all' = '_孤儿化全部'
+      '_Getcont' = '_取容器'
+      '_Swap_proxy_and_iterators' = '_交换代理与迭代器'
+      '_Alloc_proxy' = '_分配代理'
       # §17.21 本头**自己定义**的内部助手（逐名量过"谁定义它"）-> 翻。
       #   ⚠ 不登记（借来的/契约名）：_Alloc_proxy _Lock _Orphan_ptr _Proxy _Seek_to
       #     _Swap_proxy_and_iterators _Unwrapped _Verify_range const_iterator equal iterator
@@ -1389,6 +1418,7 @@ $H = @{
       'insert_range_after' = '范围后插'
       # ⚠ swap 照旧不改名（§3.12）
     }
+    zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
     derive  = @( @('empty','为空'), @('max_size','最大尺寸'),
                  @('before_begin','首前'), @('begin','开始'), @('end','结束'),
@@ -2276,6 +2306,8 @@ $H = @{
     #      别的头保持英文、指向 std 那一份，两边改名后不再同名、互不干扰。
     # -----------------------------------------------------------------------
     members = [ordered]@{
+      '_Uninitialized_move' = '_未初始化移动'
+      '_Uninitialized_fill_n' = '_未初始化填充若干'
       '_Destroy_in_place' = '_就地析构'
       '_Uninitialized_copy' = '_未初始化复制'
       '_Delete_plain_internal' = '_删除原生内部'
