@@ -192,7 +192,15 @@ $memBoundary = @('length', 'assign', 'copy', 'compare', 'find', 'max_size', 'swa
                  #     std::type_info 的成员（§16.30.3 实测："type_info 中没有名为 '哈希值' 的成员"）。
                  #   中文名由 deriveExtra 手写转发补出（所以**用户能写 `甲.哈希值()`**），
                  #   抄来那层留英文是边界，不是欠账。
-                 'hash_code', 'name')
+                 'hash_code', 'name',
+                 # ---- §16.81 借来的 C 线程核心 API（只有调用，定义在 xthreads.h）----
+                 #   实测 <shared_mutex> 里只有 `_Smtx_try_lock_exclusive(&_Myhandle)`
+                 #   这种**调用**；定义在借来的 xthreads.h：
+                 #       int __cdecl _Smtx_try_lock_exclusive(_Smtx_t*) noexcept;
+                 #   与 §16.72 的 `_Mycnd` 同一类（目标文档把 xthreads.h 判为边界）。
+                 '_Smtx_try_lock_exclusive', '_Smtx_try_lock_shared',
+                 '_Smtx_lock_exclusive', '_Smtx_lock_shared',
+                 '_Smtx_unlock_exclusive', '_Smtx_unlock_shared')
 function Get-NestedNames([string] $text) {    $names = @{}
     foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+using\s+([A-Za-z_]\w*)\s*=')) { $names[$m.Groups[1].Value] = $true }
     foreach ($m in [regex]::Matches($text, '(?m)^[ \t]+typedef\s+[^;\r\n]*?\b([A-Za-z_]\w*)\s*;')) { $names[$m.Groups[1].Value] = $true }
