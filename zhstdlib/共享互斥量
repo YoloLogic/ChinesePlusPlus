@@ -79,19 +79,19 @@ public:
     限时共享互斥量实现& operator=(const 限时共享互斥量实现&) = delete;
 
     void 加锁() { // 加锁 exclusive
-        独占锁实现<互斥量实现> _Lock(_Mymtx);
+        独占锁实现<互斥量实现> _加锁(_Mymtx);
         while (_Writing) {
-            _Write_queue.wait(_Lock);
+            _Write_queue.wait(_加锁);
         }
 
         _Writing = true;
         while (0 < _Readers) {
-            _Read_queue.wait(_Lock); // wait for writing, no readers
+            _Read_queue.wait(_加锁); // wait for writing, no readers
         }
     }
 
     _NODISCARD_TRY_CHANGE_STATE bool 尝试加锁() { // try to 加锁 exclusive
-        锁守卫实现<互斥量实现> _Lock(_Mymtx);
+        锁守卫实现<互斥量实现> _加锁(_Mymtx);
         if (_Writing || 0 < _Readers) {
             return false;
         } else { // set writing, no readers
@@ -112,17 +112,17 @@ public:
         static_assert(chrono::_Is_clock_v<_Clock>, "Clock type required");
         auto _Not_writing  = [this] { return !_Writing; };
         auto _Zero_readers = [this] { return _Readers == 0; };
-        独占锁实现<互斥量实现> _Lock(_Mymtx);
+        独占锁实现<互斥量实现> _加锁(_Mymtx);
 
-        if (!_Write_queue.wait_until(_Lock, _Abs_time, _Not_writing)) {
+        if (!_Write_queue.wait_until(_加锁, _Abs_time, _Not_writing)) {
             return false;
         }
 
         _Writing = true;
 
-        if (!_Read_queue.wait_until(_Lock, _Abs_time, _Zero_readers)) { // timeout, leave writing state
+        if (!_Read_queue.wait_until(_加锁, _Abs_time, _Zero_readers)) { // timeout, leave writing state
             _Writing = false;
-            _Lock.解锁(); // 解锁 before notifying, for efficiency
+            _加锁.解锁(); // 解锁 before notifying, for efficiency
             _Write_queue.notify_all();
             return false;
         }
@@ -132,7 +132,7 @@ public:
 
     void 解锁() { // 解锁 exclusive
         { // 解锁 before notifying, for efficiency
-            锁守卫实现<互斥量实现> _Lock(_Mymtx);
+            锁守卫实现<互斥量实现> _加锁(_Mymtx);
 
             _Writing = false;
         }
@@ -141,16 +141,16 @@ public:
     }
 
     void 共享加锁() { // 加锁 non-exclusive
-        独占锁实现<互斥量实现> _Lock(_Mymtx);
+        独占锁实现<互斥量实现> _加锁(_Mymtx);
         while (_Writing || _Readers == _Max_readers) {
-            _Write_queue.wait(_Lock);
+            _Write_queue.wait(_加锁);
         }
 
         ++_Readers;
     }
 
     _NODISCARD_TRY_CHANGE_STATE bool 尝试共享加锁() { // try to 加锁 non-exclusive
-        锁守卫实现<互斥量实现> _Lock(_Mymtx);
+        锁守卫实现<互斥量实现> _加锁(_Mymtx);
         if (_Writing || _Readers == _Max_readers) {
             return false;
         } else { // count another reader
@@ -171,9 +171,9 @@ public:
         static_assert(chrono::_Is_clock_v<_Clock>, "Clock type required");
         const auto _Can_acquire = [this] { return !_Writing && _Readers < _Max_readers; };
 
-        独占锁实现<互斥量实现> _Lock(_Mymtx);
+        独占锁实现<互斥量实现> _加锁(_Mymtx);
 
-        if (!_Write_queue.wait_until(_Lock, _Abs_time, _Can_acquire)) {
+        if (!_Write_queue.wait_until(_加锁, _Abs_time, _Can_acquire)) {
             return false;
         }
 
@@ -186,7 +186,7 @@ public:
         bool _Local_writing;
 
         { // 解锁 before notifying, for efficiency
-            锁守卫实现<互斥量实现> _Lock(_Mymtx);
+            锁守卫实现<互斥量实现> _加锁(_Mymtx);
             --_Readers;
             _Local_readers = _Readers;
             _Local_writing = _Writing;
@@ -261,13 +261,13 @@ public:
     共享锁实现& operator=(const 共享锁实现&) = delete;
 
     void 加锁() { // 加锁 the 互斥量实现
-        _Validate();
+        _校验();
         _Pmtx->共享加锁();
         _Owns = true;
     }
 
     _NODISCARD_TRY_CHANGE_STATE bool 尝试加锁() { // try to 加锁 the 互斥量实现
-        _Validate();
+        _校验();
         _Owns = _Pmtx->尝试共享加锁();
         return _Owns;
     }
@@ -275,7 +275,7 @@ public:
     template <class _Rep, class _Period>
     _NODISCARD_TRY_CHANGE_STATE bool 限时加锁(const chrono::duration<_Rep, _Period>& _Rel_time) {
         // try to 加锁 the 互斥量实现 for _Rel_time
-        _Validate();
+        _校验();
         _Owns = _Pmtx->限时共享加锁(_Rel_time);
         return _Owns;
     }
@@ -284,7 +284,7 @@ public:
     _NODISCARD_TRY_CHANGE_STATE bool 加锁至时刻(const chrono::time_point<_Clock, _Duration>& _Abs_time) {
         // try to 加锁 the 互斥量实现 until _Abs_time
         static_assert(chrono::_Is_clock_v<_Clock>, "Clock type required");
-        _Validate();
+        _校验();
         _Owns = _Pmtx->共享加锁至时刻(_Abs_time);
         return _Owns;
     }
@@ -326,7 +326,7 @@ private:
     _Mutex* _Pmtx = nullptr;
     bool _Owns    = false;
 
-    void _Validate() const { // check if the 互斥量实现 can be locked
+    void _校验() const { // check if the 互斥量实现 can be locked
         if (!_Pmtx) {
             _Throw_system_error(errc::operation_not_permitted);
         }

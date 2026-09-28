@@ -166,6 +166,14 @@ $H = @{
       'try_lock_for' = '限时加锁'; 'try_lock_until' = '加锁至时刻'
       'try_lock_shared_for' = '限时共享加锁'; 'try_lock_shared_until' = '共享加锁至时刻'
       'owns_lock' = '持有锁'; 'release' = '释放'; 'swap' = '交换'
+      # §16.79 本头**自己定义**的内部助手（实测 shared_mutex 里有定义；`_Lock` 在
+      #   <mutex> 里也有 -> 按"定义方各自翻本头这份"处理；译名与 内存内部件 一致：
+      #   `_Lock` 在那边已译作 `_加锁`，跨头译名守卫强制统一）。
+      #   ⚠ `_Smtx_try_lock_exclusive/_shared` 与 `native_handle` 【本轮不动】：
+      #     前两个在借来的 xthreads.h 里也有同名定义、后者是公开 API（要配 derive 补英文），
+      #     留到下一轮与别的同类一起做。
+      '_Lock' = '_加锁'
+      '_Validate' = '_校验'
     }
     # ⚠ `shared_lock::mutex()` 这个取值函数名和类型名 `mutex` 撞车：
     #   types 表先跑，`mutex` 已被改成 `互斥量实现`，所以它读作 互斥量实现()。
