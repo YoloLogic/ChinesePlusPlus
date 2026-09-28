@@ -3015,6 +3015,15 @@ $H = @{
       'data' = '数据'
       'substr' = '子串'
       'remove_prefix' = '去前缀'; 'remove_suffix' = '去后缀'
+      # §17.24 与 字符串内部件【同名助手】口径统一（译名早已在那边定下，跨头守卫强制）：
+      '_Check_offset' = '_检查偏移'
+      '_Check_offset_exclusive' = '_检查偏移排他'
+      '_Clamp_suffix_size' = '_夹取后缀尺寸'
+      '_Insert_string' = '_插入字符串'
+      '_Starts_with' = '_开头为'
+      '_Unchecked_begin' = '_非检查开始'
+      '_Unchecked_end' = '_非检查结束'
+      '_Xran' = '_抛范围错'
       'starts_with' = '开头为'; 'ends_with' = '结尾为'; 'contains' = '包含'
       # ⚠ swap 照旧不改名（§3.12）
     }

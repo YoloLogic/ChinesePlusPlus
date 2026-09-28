@@ -426,7 +426,7 @@ constexpr bool _Is_implementation_handled_char_traits<char_traits<_Elem>> =
 #endif // defined(__cpp_char8_t)
 
 template <class _Elem, class _Traits, class _SizeT>
-basic_ostream<_Elem, _Traits>& _Insert_string(
+basic_ostream<_Elem, _Traits>& _插入字符串(
     basic_ostream<_Elem, _Traits>& _Ostr, const _Elem* const _Data, const _SizeT _Size) {
     // insert a character-type sequence into _Ostr as if through a basic_string copy
     using _输出流类型                    = basic_ostream<_Elem, _Traits>;
@@ -1326,11 +1326,11 @@ public:
         return 反向结束();
     }
 
-    constexpr const_pointer _Unchecked_begin() const noexcept {
+    constexpr const_pointer _非检查开始() const noexcept {
         return _Mydata;
     }
 
-    constexpr const_pointer _Unchecked_end() const noexcept {
+    constexpr const_pointer _非检查结束() const noexcept {
         return _Mydata + _Mysize;
     }
 
@@ -1367,7 +1367,7 @@ public:
 
     _NODISCARD constexpr const_reference 取值(const size_type _Off) const {
         // get the character 取值 _Off or throw if that is out of range
-        _Check_offset_exclusive(_Off);
+        _检查偏移排他(_Off);
         return _Mydata[_Off];
     }
 
@@ -1413,8 +1413,8 @@ public:
     _CONSTEXPR20 size_type copy(
         _Out_writes_(_Count) _Elem* const _Ptr, size_type _Count, const size_type _Off = 0) const {
         // copy [_Off, _Off + Count) to [_Ptr, _Ptr + _Count)
-        _Check_offset(_Off);
-        _Count = _Clamp_suffix_size(_Off, _Count);
+        _检查偏移(_Off);
+        _Count = _夹取后缀尺寸(_Off, _Count);
         _Traits::copy(_Ptr, _Mydata + _Off, _Count);
         return _Count;
     }
@@ -1423,16 +1423,16 @@ public:
         _Copy_s(_Out_writes_all_(_Dest_size) _Elem* const _Dest, const size_type _Dest_size, size_type _Count,
             const size_type _Off = 0) const {
         // copy [_Off, _Off + _Count) to [_Dest, _Dest + _Count)
-        _Check_offset(_Off);
-        _Count = _Clamp_suffix_size(_Off, _Count);
+        _检查偏移(_Off);
+        _Count = _夹取后缀尺寸(_Off, _Count);
         _Traits::_Copy_s(_Dest, _Dest_size, _Mydata + _Off, _Count);
         return _Count;
     }
 
     _NODISCARD constexpr 基础字符串视图 子串(const size_type _Off = 0, size_type _Count = npos) const {
         // return a new 基础字符串视图 moved forward by _Off and trimmed to _Count elements
-        _Check_offset(_Off);
-        _Count = _Clamp_suffix_size(_Off, _Count);
+        _检查偏移(_Off);
+        _Count = _夹取后缀尺寸(_Off, _Count);
         return 基础字符串视图(_Mydata + _Off, _Count);
     }
 
@@ -1651,30 +1651,30 @@ public:
         return _Traits_find_last_not_of<_Traits>(_Mydata, _Mysize, _Off, _Ptr, _Traits::length(_Ptr));
     }
 
-    _NODISCARD constexpr bool _Starts_with(const 基础字符串视图 _View) const noexcept {
+    _NODISCARD constexpr bool _开头为(const 基础字符串视图 _View) const noexcept {
         return _Mysize >= _View._Mysize && _Traits::compare(_Mydata, _View._Mydata, _View._Mysize) == 0;
     }
 
 private:
-    constexpr void _Check_offset(const size_type _Off) const { // checks whether _Off is in the bounds of [0, 尺寸()]
+    constexpr void _检查偏移(const size_type _Off) const { // checks whether _Off is in the bounds of [0, 尺寸()]
         if (_Mysize < _Off) {
-            _Xran();
+            _抛范围错();
         }
     }
 
-    constexpr void _Check_offset_exclusive(const size_type _Off) const {
+    constexpr void _检查偏移排他(const size_type _Off) const {
         // checks whether _Off is in the bounds of [0, 尺寸())
         if (_Mysize <= _Off) {
-            _Xran();
+            _抛范围错();
         }
     }
 
-    constexpr size_type _Clamp_suffix_size(const size_type _Off, const size_type _Size) const noexcept {
+    constexpr size_type _夹取后缀尺寸(const size_type _Off, const size_type _Size) const noexcept {
         // trims _Size to the longest it can be assuming a string 取值/after _Off
         return (_STD min)(_Size, _Mysize - _Off);
     }
 
-    [[noreturn]] static void _Xran() {
+    [[noreturn]] static void _抛范围错() {
         _Xout_of_range("invalid string_view position");
     }
 
@@ -1859,7 +1859,7 @@ struct hash<基础字符串视图<_Elem>> : _Conditionally_enabled_hash<基础�
 _EXPORT_STD template <class _Elem, class _Traits>
 basic_ostream<_Elem, _Traits>& operator<<(
     basic_ostream<_Elem, _Traits>& _Ostr, const 基础字符串视图<_Elem, _Traits> _Str) {
-    return _Insert_string(_Ostr, _Str.数据(), _Str.尺寸());
+    return _插入字符串(_Ostr, _Str.数据(), _Str.尺寸());
 }
 
 inline namespace literals {
