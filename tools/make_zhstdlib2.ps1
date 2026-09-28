@@ -174,6 +174,11 @@ $H = @{
       #     留到下一轮与别的同类一起做。
       '_Lock' = '_加锁'
       '_Validate' = '_校验'
+      # §16.80 `native_handle` 是**公开 API**（`std::shared_mutex::native_handle()`）——
+      #   翻它的同时**必须**在 derive 里把英文补回（否则用户写 `甲.native_handle()` 就没了 =
+      #   §16.41.2 说的"翻一半就是回归"）。它的正文调的是 `_Mtx_native_handle(...)`
+      #   （另一个词，不受影响）。
+      'native_handle' = '原生句柄'
     }
     # ⚠ `shared_lock::mutex()` 这个取值函数名和类型名 `mutex` 撞车：
     #   types 表先跑，`mutex` 已被改成 `互斥量实现`，所以它读作 互斥量实现()。
@@ -181,7 +186,8 @@ $H = @{
     data    = [ordered]@{}
     derive  = @( @('lock','加锁'), @('unlock','解锁'), @('try_lock','尝试加锁'),
                  @('lock_shared','共享加锁'), @('unlock_shared','共享解锁'),
-                 @('try_lock_shared','尝试共享加锁') )
+                 @('try_lock_shared','尝试共享加锁'),
+                 @('native_handle','原生句柄') )
     stdHash = $false
     tparam  = @{ decl = ''; args = '' }
     extra = @'
