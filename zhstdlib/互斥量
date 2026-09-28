@@ -36,7 +36,7 @@ class _互斥量基类 { // base class for all 互斥量实现 types
 public:
 #ifdef _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR
     _互斥量基类(int _Flags = 0) noexcept {
-        _Mtx_init_in_situ(_Mymtx(), _Flags | _Mtx_try);
+        _Mtx_init_in_situ(_我的互斥量(), _Flags | _Mtx_try);
     }
 #else // ^^^ defined(_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR) / !defined(_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR) vvv
     constexpr _互斥量基类(int _Flags = 0) noexcept {
@@ -51,12 +51,12 @@ public:
     _互斥量基类& operator=(const _互斥量基类&) = delete;
 
     void 加锁() {
-        if (_Mtx_lock(_Mymtx()) != _Thrd_result::_Success) {
+        if (_Mtx_lock(_我的互斥量()) != _Thrd_result::_Success) {
             // undefined behavior, only occurs for plain mutexes (N4950 [thread.互斥量实现.requirements.互斥量实现.general]/6)
             _Throw_Cpp_error(_RESOURCE_DEADLOCK_WOULD_OCCUR);
         }
 
-        if (!_Verify_ownership_levels()) {
+        if (!_校验所有权层级()) {
             // only occurs for recursive mutexes (N4950 [thread.互斥量实现.recursive]/3)
             // POSIX specifies EAGAIN in the corresponding situation:
             // https://pubs.opengroup.org/onlinepubs/9699919799/functions/pthread_mutex_lock.html
@@ -66,17 +66,17 @@ public:
 
     _NODISCARD_TRY_CHANGE_STATE bool 尝试加锁() noexcept /* strengthened */ {
         // false may be from undefined behavior for plain mutexes (N4950 [thread.互斥量实现.requirements.互斥量实现.general]/6)
-        return _Mtx_trylock(_Mymtx()) == _Thrd_result::_Success;
+        return _Mtx_trylock(_我的互斥量()) == _Thrd_result::_Success;
     }
 
     void 解锁() noexcept /* strengthened */ {
-        _Mtx_unlock(_Mymtx());
+        _Mtx_unlock(_我的互斥量());
     }
 
     // native_handle_type and 原生句柄() have intentionally been removed. See GH-3820.
 
 protected:
-    _NODISCARD_TRY_CHANGE_STATE bool _Verify_ownership_levels() noexcept {
+    _NODISCARD_TRY_CHANGE_STATE bool _校验所有权层级() noexcept {
         if (_Mtx_storage._Count == INT_MAX) {
             // only occurs for recursive mutexes (N4950 [thread.互斥量实现.recursive]/3)
             --_Mtx_storage._Count;
@@ -92,7 +92,7 @@ private:
 
     _Mtx_internal_imp_t _Mtx_storage{};
 
-    _Mtx_t _Mymtx() noexcept {
+    _Mtx_t _我的互斥量() noexcept {
         return &_Mtx_storage;
     }
 };
@@ -111,7 +111,7 @@ public:
         : _互斥量基类(_Mtx_recursive) {}
 
     _NODISCARD_TRY_CHANGE_STATE bool 尝试加锁() noexcept {
-        return _互斥量基类::尝试加锁() && _Verify_ownership_levels();
+        return _互斥量基类::尝试加锁() && _校验所有权层级();
     }
 
     recursive_mutex(const recursive_mutex&)            = delete;
@@ -187,20 +187,20 @@ public:
     独占锁实现& operator=(const 独占锁实现&) = delete;
 
     void 加锁() { // 加锁 the 互斥量实现
-        _Validate();
+        _校验();
         _Pmtx->加锁();
         _Owns = true;
     }
 
     _NODISCARD_TRY_CHANGE_STATE bool 尝试加锁() {
-        _Validate();
+        _校验();
         _Owns = _Pmtx->尝试加锁();
         return _Owns;
     }
 
     template <class _Rep, class _Period>
     _NODISCARD_TRY_CHANGE_STATE bool 限时加锁(const chrono::duration<_Rep, _Period>& _Rel_time) {
-        _Validate();
+        _校验();
         _Owns = _Pmtx->限时加锁(_Rel_time);
         return _Owns;
     }
@@ -208,7 +208,7 @@ public:
     template <class _Clock, class _Duration>
     _NODISCARD_TRY_CHANGE_STATE bool 加锁至时刻(const chrono::time_point<_Clock, _Duration>& _Abs_time) {
         static_assert(chrono::_Is_clock_v<_Clock>, "Clock type required");
-        _Validate();
+        _校验();
         _Owns = _Pmtx->加锁至时刻(_Abs_time);
         return _Owns;
     }
@@ -250,7 +250,7 @@ private:
     _Mutex* _Pmtx = nullptr;
     bool _Owns    = false;
 
-    void _Validate() const { // check if the 互斥量实现 can be locked
+    void _校验() const { // check if the 互斥量实现 can be locked
         if (!_Pmtx) {
             _Throw_system_error(errc::operation_not_permitted);
         }
@@ -311,9 +311,9 @@ struct _NODISCARD _解锁调用守卫 {
     bool _Valid = true;
 };
 
-template <class _Lock>
+template <class _加锁>
 struct _NODISCARD _解锁单个守卫 {
-    explicit _解锁单个守卫(_Lock& _Lk) noexcept : _Lk_ptr(_STD addressof(_Lk)) {}
+    explicit _解锁单个守卫(_加锁& _Lk) noexcept : _Lk_ptr(_STD addressof(_Lk)) {}
 
     ~_解锁单个守卫() noexcept {
         if (_Lk_ptr) {
@@ -324,11 +324,11 @@ struct _NODISCARD _解锁单个守卫 {
     _解锁单个守卫(const _解锁单个守卫&)            = delete;
     _解锁单个守卫& operator=(const _解锁单个守卫&) = delete;
 
-    _Lock* _Lk_ptr;
+    _加锁* _Lk_ptr;
 };
 
 template <class... _LockN>
-int _Try_lock_range(const int _First, const int _Last, _LockN&... _LkN) {
+int _尝试加锁范围(const int _First, const int _Last, _LockN&... _LkN) {
     using _下标集 = index_sequence_for<_LockN...>;
     int _Next      = _First;
 
@@ -346,12 +346,12 @@ int _Try_lock_range(const int _First, const int _Last, _LockN&... _LkN) {
 }
 
 template <class _Lock0, class _Lock1, class _Lock2, class... _LockN>
-int _Try_lock1(_Lock0& _Lk0, _Lock1& _Lk1, _Lock2& _Lk2, _LockN&... _LkN) { // try to 加锁 3 or more locks
-    return _Try_lock_range(0, sizeof...(_LockN) + 3, _Lk0, _Lk1, _Lk2, _LkN...);
+int _尝试加锁1(_Lock0& _Lk0, _Lock1& _Lk1, _Lock2& _Lk2, _LockN&... _LkN) { // try to 加锁 3 or more locks
+    return _尝试加锁范围(0, sizeof...(_LockN) + 3, _Lk0, _Lk1, _Lk2, _LkN...);
 }
 
 template <class _Lock0, class _Lock1>
-int _Try_lock1(_Lock0& _Lk0, _Lock1& _Lk1) {
+int _尝试加锁1(_Lock0& _Lk0, _Lock1& _Lk1) {
     // try to 加锁 2 locks, special case for better codegen and reduced metaprogramming for common case
     if (!_Lk0.尝试加锁()) {
         return 0;
@@ -368,7 +368,7 @@ int _Try_lock1(_Lock0& _Lk0, _Lock1& _Lk1) {
 
 _EXPORT_STD template <class _Lock0, class _Lock1, class... _LockN>
 _NODISCARD_TRY_CHANGE_STATE int 尝试加锁(_Lock0& _Lk0, _Lock1& _Lk1, _LockN&... _LkN) { // try to 加锁 multiple locks
-    return _Try_lock1(_Lk0, _Lk1, _LkN...);
+    return _尝试加锁1(_Lk0, _Lk1, _LkN...);
 }
 
 template <class... _LockN>
@@ -385,10 +385,10 @@ int _Lock_attempt(const int _Hard_lock, _LockN&... _LkN) {
         };
         _解锁调用守卫<decltype(_Unlocker)> _Guard{_Unlocker};
 
-        _Failed = _Try_lock_range(0, _Hard_lock, _LkN...);
+        _Failed = _尝试加锁范围(0, _Hard_lock, _LkN...);
         if (_Failed == -1) {
             _Backout_start = 0; // that is, 解锁 [0, _Hard_lock] if the next throws
-            _Failed        = _Try_lock_range(_Hard_lock + 1, sizeof...(_LockN), _LkN...);
+            _Failed        = _尝试加锁范围(_Hard_lock + 1, sizeof...(_LockN), _LkN...);
             if (_Failed == -1) { // we got all the locks
                 _Guard._Valid = false;
                 return -1;
@@ -547,7 +547,7 @@ public:
 
     void wait(独占锁实现<互斥量实现>& _Lck) noexcept /* strengthened */ { // wait for signal
         // Nothing to do to comply with LWG-2135 because std::互斥量实现 加锁/解锁 are nothrow
-        _Cnd_wait(_Mycnd(), _Lck.互斥量实现()->_Mymtx());
+        _Cnd_wait(_Mycnd(), _Lck.互斥量实现()->_我的互斥量());
     }
 
     template <class _Predicate>
@@ -580,7 +580,7 @@ public:
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(
             _Lck.持有锁(), "wait_until's caller must own the 加锁 argument (N4958 [thread.condition.condvar]/17)");
-        _STL_VERIFY(_Mtx_current_owns(_Lck.互斥量实现()->_Mymtx()),
+        _STL_VERIFY(_Mtx_current_owns(_Lck.互斥量实现()->_我的互斥量()),
             "wait_until's calling thread must hold the 加锁 argument's 互斥量实现 (N4958 [thread.condition.condvar]/17)");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
         for (;;) {
@@ -592,7 +592,7 @@ public:
 
             const unsigned long _Rel_ms_count = _Clamped_rel_time_ms_count(_Abs_time - _Now)._Count;
 
-            const _Thrd_result _Res = _Cnd_timedwait_for_unchecked(_Mycnd(), _Lck.互斥量实现()->_Mymtx(), _Rel_ms_count);
+            const _Thrd_result _Res = _Cnd_timedwait_for_unchecked(_Mycnd(), _Lck.互斥量实现()->_我的互斥量(), _Rel_ms_count);
             if (_Res == _Thrd_result::_Success) {
                 return cv_status::no_timeout;
             }
@@ -615,12 +615,12 @@ public:
 
     // native_handle_type and 原生句柄() have intentionally been removed. See GH-3820.
 
-    void _Register(独占锁实现<互斥量实现>& _Lck, int* _Ready) noexcept { // register this object for 释放 at thread exit
-        _Cnd_register_at_thread_exit(_Mycnd(), _Lck.释放()->_Mymtx(), _Ready);
+    void _注册(独占锁实现<互斥量实现>& _Lck, int* _Ready) noexcept { // register this object for 释放 at thread exit
+        _Cnd_register_at_thread_exit(_Mycnd(), _Lck.释放()->_我的互斥量(), _Ready);
     }
 
-    void _Unregister(互斥量实现& _Mtx) noexcept { // unregister this object for 释放 at thread exit
-        _Cnd_unregister_at_thread_exit(_Mtx._Mymtx());
+    void _注销(互斥量实现& _Mtx) noexcept { // unregister this object for 释放 at thread exit
+        _Cnd_unregister_at_thread_exit(_Mtx._我的互斥量());
     }
 
 private:
@@ -647,16 +647,16 @@ public:
     timed_mutex& operator=(const timed_mutex&) = delete;
 
     void 加锁() { // 加锁 the 互斥量实现
-        独占锁实现<互斥量实现> _Lock(_My_mutex);
+        独占锁实现<互斥量实现> _加锁(_My_mutex);
         while (_My_locked != 0) {
-            _My_cond.wait(_Lock);
+            _My_cond.wait(_加锁);
         }
 
         _My_locked = UINT_MAX;
     }
 
     _NODISCARD_TRY_CHANGE_STATE bool 尝试加锁() noexcept /* strengthened */ { // try to 加锁 the 互斥量实现
-        锁守卫实现<互斥量实现> _Lock(_My_mutex);
+        锁守卫实现<互斥量实现> _加锁(_My_mutex);
         if (_My_locked != 0) {
             return false;
         } else {
@@ -668,7 +668,7 @@ public:
     void 解锁() { // 解锁 the 互斥量实现
         {
             // The 加锁 here is necessary
-            锁守卫实现<互斥量实现> _Lock(_My_mutex);
+            锁守卫实现<互斥量实现> _加锁(_My_mutex);
             _My_locked = 0;
         }
         _My_cond.notify_one();
@@ -684,8 +684,8 @@ public:
     _NODISCARD_TRY_CHANGE_STATE bool 加锁至时刻(const chrono::time_point<_Clock, _Duration>& _Abs_time) {
         // try to 加锁 the 互斥量实现 with timeout
         static_assert(chrono::_Is_clock_v<_Clock>, "Clock type required");
-        独占锁实现<互斥量实现> _Lock(_My_mutex);
-        if (!_My_cond.wait_until(_Lock, _Abs_time, _无符号整数为零{_My_locked})) {
+        独占锁实现<互斥量实现> _加锁(_My_mutex);
+        if (!_My_cond.wait_until(_加锁, _Abs_time, _无符号整数为零{_My_locked})) {
             return false;
         }
 
@@ -709,7 +709,7 @@ public:
     void 加锁() { // 加锁 the 互斥量实现
         const thread::id _Tid = this_thread::get_id();
 
-        独占锁实现<互斥量实现> _Lock(_My_mutex);
+        独占锁实现<互斥量实现> _加锁(_My_mutex);
 
         if (_Tid == _My_owner) {
             if (_My_locked < UINT_MAX) {
@@ -721,7 +721,7 @@ public:
             }
         } else {
             while (_My_locked != 0) {
-                _My_cond.wait(_Lock);
+                _My_cond.wait(_加锁);
             }
 
             _My_locked = 1;
@@ -732,7 +732,7 @@ public:
     _NODISCARD_TRY_CHANGE_STATE bool 尝试加锁() noexcept { // try to 加锁 the 互斥量实现
         const thread::id _Tid = this_thread::get_id();
 
-        锁守卫实现<互斥量实现> _Lock(_My_mutex);
+        锁守卫实现<互斥量实现> _加锁(_My_mutex);
 
         if (_Tid == _My_owner) {
             if (_My_locked < UINT_MAX) {
@@ -755,7 +755,7 @@ public:
         bool _Do_notify = false;
 
         {
-            锁守卫实现<互斥量实现> _Lock(_My_mutex);
+            锁守卫实现<互斥量实现> _加锁(_My_mutex);
             --_My_locked;
             if (_My_locked == 0) {
                 _Do_notify = true;
@@ -780,7 +780,7 @@ public:
         static_assert(chrono::_Is_clock_v<_Clock>, "Clock type required");
         const thread::id _Tid = this_thread::get_id();
 
-        独占锁实现<互斥量实现> _Lock(_My_mutex);
+        独占锁实现<互斥量实现> _加锁(_My_mutex);
 
         if (_Tid == _My_owner) {
             if (_My_locked < UINT_MAX) {
@@ -789,7 +789,7 @@ public:
                 return false;
             }
         } else {
-            if (!_My_cond.wait_until(_Lock, _Abs_time, _无符号整数为零{_My_locked})) {
+            if (!_My_cond.wait_until(_加锁, _Abs_time, _无符号整数为零{_My_locked})) {
                 return false;
             }
 

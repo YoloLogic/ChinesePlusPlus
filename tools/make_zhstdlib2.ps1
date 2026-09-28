@@ -66,6 +66,14 @@ $H = @{
     # 于是只用 <互斥量> 就能拿到 标准::一次标志 与 标准::一次调用。
     zhIncludes = @{ 'xcall_once.h' = '调用一次' }
     members = [ordered]@{
+      '_Mymtx' = '_我的互斥量'
+      '_Validate' = '_校验'
+      '_Verify_ownership_levels' = '_校验所有权层级'
+      '_Register' = '_注册'
+      '_Unregister' = '_注销'
+      '_Try_lock_range' = '_尝试加锁范围'
+      '_Try_lock1' = '_尝试加锁1'
+      '_Lock' = '_加锁'
       'lock' = '加锁'; 'unlock' = '解锁'; 'try_lock' = '尝试加锁'
       'try_lock_for' = '限时加锁'; 'try_lock_until' = '加锁至时刻'
       'native_handle' = '原生句柄'; 'owns_lock' = '持有锁'
@@ -157,6 +165,7 @@ $H = @{
     # 已经抄完的头才开（步 0，见 §3.8.1）
     zhIncludes = @{ 'mutex' = '互斥量'; 'condition_variable' = '条件变量' }
     members = [ordered]@{
+      '_Mymtx' = '_我的互斥量'
       'lock' = '加锁'; 'unlock' = '解锁'; 'try_lock' = '尝试加锁'
       'lock_shared' = '共享加锁'; 'unlock_shared' = '共享解锁'
       'try_lock_shared' = '尝试共享加锁'
@@ -3195,6 +3204,7 @@ $H = @{
     # 已经抄完的头才开这个开关（见步 0 的长注释）
     zhIncludes = @{ 'mutex' = '互斥量' }
     members = [ordered]@{ 'notify_all' = '通知全部'; 'notify_one' = '通知一个'
+      '_Mymtx' = '_我的互斥量'; '_Register' = '_注册'; '_Lock' = '_加锁'
                           'wait' = '等待'; 'wait_for' = '限时等待'
                           'wait_until' = '等待至时刻'
                           # 跨头成员名：这两个是 <互斥量> 里定下的译名，

@@ -79,7 +79,7 @@ public:
     限时共享互斥量实现& operator=(const 限时共享互斥量实现&) = delete;
 
     void 加锁() { // 加锁 exclusive
-        独占锁实现<互斥量实现> _加锁(_Mymtx);
+        独占锁实现<互斥量实现> _加锁(_我的互斥量);
         while (_Writing) {
             _Write_queue.wait(_加锁);
         }
@@ -91,7 +91,7 @@ public:
     }
 
     _NODISCARD_TRY_CHANGE_STATE bool 尝试加锁() { // try to 加锁 exclusive
-        锁守卫实现<互斥量实现> _加锁(_Mymtx);
+        锁守卫实现<互斥量实现> _加锁(_我的互斥量);
         if (_Writing || 0 < _Readers) {
             return false;
         } else { // set writing, no readers
@@ -112,7 +112,7 @@ public:
         static_assert(chrono::_Is_clock_v<_Clock>, "Clock type required");
         auto _Not_writing  = [this] { return !_Writing; };
         auto _Zero_readers = [this] { return _Readers == 0; };
-        独占锁实现<互斥量实现> _加锁(_Mymtx);
+        独占锁实现<互斥量实现> _加锁(_我的互斥量);
 
         if (!_Write_queue.wait_until(_加锁, _Abs_time, _Not_writing)) {
             return false;
@@ -132,7 +132,7 @@ public:
 
     void 解锁() { // 解锁 exclusive
         { // 解锁 before notifying, for efficiency
-            锁守卫实现<互斥量实现> _加锁(_Mymtx);
+            锁守卫实现<互斥量实现> _加锁(_我的互斥量);
 
             _Writing = false;
         }
@@ -141,7 +141,7 @@ public:
     }
 
     void 共享加锁() { // 加锁 non-exclusive
-        独占锁实现<互斥量实现> _加锁(_Mymtx);
+        独占锁实现<互斥量实现> _加锁(_我的互斥量);
         while (_Writing || _Readers == _Max_readers) {
             _Write_queue.wait(_加锁);
         }
@@ -150,7 +150,7 @@ public:
     }
 
     _NODISCARD_TRY_CHANGE_STATE bool 尝试共享加锁() { // try to 加锁 non-exclusive
-        锁守卫实现<互斥量实现> _加锁(_Mymtx);
+        锁守卫实现<互斥量实现> _加锁(_我的互斥量);
         if (_Writing || _Readers == _Max_readers) {
             return false;
         } else { // count another reader
@@ -171,7 +171,7 @@ public:
         static_assert(chrono::_Is_clock_v<_Clock>, "Clock type required");
         const auto _Can_acquire = [this] { return !_Writing && _Readers < _Max_readers; };
 
-        独占锁实现<互斥量实现> _加锁(_Mymtx);
+        独占锁实现<互斥量实现> _加锁(_我的互斥量);
 
         if (!_Write_queue.wait_until(_加锁, _Abs_time, _Can_acquire)) {
             return false;
@@ -186,7 +186,7 @@ public:
         bool _Local_writing;
 
         { // 解锁 before notifying, for efficiency
-            锁守卫实现<互斥量实现> _加锁(_Mymtx);
+            锁守卫实现<互斥量实现> _加锁(_我的互斥量);
             --_Readers;
             _Local_readers = _Readers;
             _Local_writing = _Writing;
@@ -200,7 +200,7 @@ public:
     }
 
 private:
-    互斥量实现 _Mymtx{};
+    互斥量实现 _我的互斥量{};
     条件变量实现 _Read_queue{};
     条件变量实现 _Write_queue{};
     _读计数类型 _Readers = 0;
