@@ -923,7 +923,7 @@ public:
         _最大桶尺寸() = _Newmax;
     }
 
-    void rehash(size_type _Buckets) { // rebuild table with at least _Buckets buckets
+    void 重哈希(size_type _Buckets) { // rebuild table with at least _Buckets buckets
         // don't violate a.bucket_count() >= a.尺寸() / a.max_load_factor() invariant:
         _Buckets = (_STD max)(_最小负载因子桶数(_List.尺寸()), _Buckets);
         if (_Buckets <= _Maxidx) { // we already have enough buckets; nothing to do
@@ -934,7 +934,7 @@ public:
     }
 
     void reserve(size_type _Maxcount) { // rebuild table with room for _Maxcount elements
-        rehash(_最小负载因子桶数(_Maxcount));
+        重哈希(_最小负载因子桶数(_Maxcount));
     }
 
     conditional_t<_Multi, iterator, pair<iterator, bool>> insert(const value_type& _Val) {
@@ -1727,7 +1727,7 @@ protected:
     }
 
     void _强制重哈希(size_type _Buckets) {
-        // Force rehash of elements in _List, distrusting existing bucket assignments in _Vec.
+        // Force 重哈希 of elements in _List, distrusting existing bucket assignments in _Vec.
         // Assumes _Buckets is greater than _Min_buckets, and that changing to that many buckets doesn't violate
         // load_factor() <= max_load_factor().
 

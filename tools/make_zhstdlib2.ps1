@@ -1428,6 +1428,8 @@ $H = @{
                           # §16.82 本头自己定义的两个公开 API（抄来那层翻 + 派生层补英文）
                           'hash_function'    = '散列函数'
                           'key_eq'           = '取键相等器'
+                          # §16.83 与 哈希内部件 同批：正文调 `_Mybase::rehash(...)`
+                          'rehash'           = '重哈希'
                           # §16.51 同步改名（本头正文调 `_Mybase::X` / `_Hash::X`）
                           '_Hash_equal'      = '_哈希相等'
                           '_Unchecked_begin' = '_非检查开始'
@@ -1442,6 +1444,7 @@ $H = @{
                  # §16.82 本头【自己定义】的两个公开 API（实测 hash_function/key_eq
                  #   只在两个无序头里有定义）-> 翻 + 派生层补回英文。
                  @('hash_function','散列函数'), @('key_eq','取键相等器'),
+                 @('rehash','重哈希'),
                  @('begin','开始'), @('end','结束'), @('empty','为空'),
                  @('get_allocator','取分配器') )
     deriveTypes = @( @('迭代器','iterator'), @('常量迭代器','const_iterator'),
@@ -1657,6 +1660,8 @@ $H = @{
       # §16.82 本头自己定义的两个公开 API（抄来那层翻 + 派生层补英文）
       'hash_function' = '散列函数'
       'key_eq'        = '取键相等器'
+      # §16.83 与 哈希内部件 同批：正文调 `_Mybase::rehash(...)`
+      'rehash'        = '重哈希'
       'insert_or_assign' = '插入或赋值'; 'try_emplace' = '尝试就地构造'
       'emplace' = '就地构造'
       # §16.52 正文 `this->emplace_hint(...)`（insert(const_iterator,…) 里）—— 同步
@@ -1689,6 +1694,7 @@ $H = @{
                  #   都是【继承自 _哈希】的公开 API，xhash 已把它们翻成汉语）
                  # §16.82 本头【自己定义】的两个公开 API（hash_function/key_eq）
                  @('hash_function','散列函数'), @('key_eq','取键相等器'),
+                 @('rehash','重哈希'),
                  @('size','尺寸'), @('clear','清空'),
                  @('begin','开始'), @('end','结束'), @('empty','为空'),
                  @('get_allocator','取分配器') )
@@ -2561,6 +2567,10 @@ $H = @{
       #   ⚠ `\b` 边界保护了 `emplace_hint` 与 `_List_node_emplace_op2`（都是词内 `_`）。
       'emplace'                   = '就地构造'
       'emplace_hint'              = '按提示就地构造'
+      # §16.83 `rehash` 是 `_Hash` 的公开 API，两个无序头的正文调 `_Mybase::rehash(...)`
+      #   -> 三个条目同批翻；公开层在两个无序头里靠 derive 补回英文。
+      #   ⚠ 不会误伤 `_Forced_rehash`（`\b` 边界：`_Forced_` 后紧跟 rehash，中间是 `_`）。
+      'rehash'                    = '重哈希'
       # ⚠ `max_size` 【不翻】：它也是借来的 `allocator_traits` 的契约成员
       #   （实测报「'std::allocator_traits<...>' 中没有名为「最大尺寸」的成员」）；
       #   而且 <链表> 也没翻它 -> 两边一致。

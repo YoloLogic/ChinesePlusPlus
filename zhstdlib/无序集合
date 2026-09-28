@@ -106,30 +106,30 @@ public:
     无序集合实现(const 无序集合实现& _Right, const 分配器类型& _Al) : _我的基类(_Right, _Al) {}
 
     explicit 无序集合实现(size_type _Buckets) : _我的基类(_键比较器(), 分配器类型()) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
     }
 
     无序集合实现(size_type _Buckets, const 分配器类型& _Al) : _我的基类(_键比较器(), _Al) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
     }
 
     无序集合实现(size_type _Buckets, const 散列器& _Hasharg) : _我的基类(_键比较器(_Hasharg), 分配器类型()) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
     }
 
     无序集合实现(size_type _Buckets, const 散列器& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg), _Al) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
     }
 
     无序集合实现(size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), 分配器类型()) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
     }
 
     无序集合实现(size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg, const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), _Al) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
     }
 
     template <class _Iter>
@@ -144,35 +144,35 @@ public:
 
     template <class _Iter>
     无序集合实现(_Iter _First, _Iter _Last, size_type _Buckets) : _我的基类(_键比较器(), 分配器类型()) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
     无序集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const 分配器类型& _Al)
         : _我的基类(_键比较器(), _Al) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
     无序集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const 散列器& _Hasharg)
         : _我的基类(_键比较器(_Hasharg), 分配器类型()) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
     无序集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const 散列器& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg), _Al) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
     无序集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), 分配器类型()) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
         this->insert(_First, _Last);
     }
 
@@ -180,7 +180,7 @@ public:
     无序集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg,
         const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), _Al) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
         this->insert(_First, _Last);
     }
 
@@ -197,35 +197,35 @@ public:
 
     template <_Container_compatible_range<value_type> _Rng>
     无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets) : _我的基类(_键比较器(), 分配器类型()) {
-        _我的基类::rehash(_Buckets);
+        _我的基类::重哈希(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 分配器类型& _Al)
         : _我的基类(_键比较器(), _Al) {
-        _我的基类::rehash(_Buckets);
+        _我的基类::重哈希(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 散列器& _Hasharg)
         : _我的基类(_键比较器(_Hasharg), 分配器类型()) {
-        _我的基类::rehash(_Buckets);
+        _我的基类::重哈希(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 散列器& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg), _Al) {
-        _我的基类::rehash(_Buckets);
+        _我的基类::重哈希(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), 分配器类型()) {
-        _我的基类::rehash(_Buckets);
+        _我的基类::重哈希(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
@@ -233,7 +233,7 @@ public:
     无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg,
         const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), _Al) {
-        _我的基类::rehash(_Buckets);
+        _我的基类::重哈希(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 #endif // _HAS_CXX23
@@ -267,40 +267,40 @@ public:
     }
 
     无序集合实现(initializer_list<value_type> _Ilist, size_type _Buckets) : _我的基类(_键比较器(), 分配器类型()) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
         this->insert(_Ilist);
     }
 
     无序集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const 分配器类型& _Al)
         : _我的基类(_键比较器(), _Al) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
         this->insert(_Ilist);
     }
 
     无序集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const 散列器& _Hasharg)
         : _我的基类(_键比较器(_Hasharg), 分配器类型()) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
         this->insert(_Ilist);
     }
 
     无序集合实现(
         initializer_list<value_type> _Ilist, size_type _Buckets, const 散列器& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg), _Al) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
         this->insert(_Ilist);
     }
 
     无序集合实现(
         initializer_list<value_type> _Ilist, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), 分配器类型()) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
         this->insert(_Ilist);
     }
 
     无序集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const 散列器& _Hasharg,
         const _Keyeq& _Keyeqarg, const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), _Al) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
         this->insert(_Ilist);
     }
 
@@ -447,30 +447,30 @@ public:
     无序多重集合实现(const 无序多重集合实现& _Right, const 分配器类型& _Al) : _我的基类(_Right, _Al) {}
 
     explicit 无序多重集合实现(size_type _Buckets) : _我的基类(_键比较器(), 分配器类型()) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
     }
 
     无序多重集合实现(size_type _Buckets, const 分配器类型& _Al) : _我的基类(_键比较器(), _Al) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
     }
 
     无序多重集合实现(size_type _Buckets, const 散列器& _Hasharg) : _我的基类(_键比较器(_Hasharg), 分配器类型()) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
     }
 
     无序多重集合实现(size_type _Buckets, const 散列器& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg), _Al) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
     }
 
     无序多重集合实现(size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), 分配器类型()) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
     }
 
     无序多重集合实现(size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg, const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), _Al) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
     }
 
     template <class _Iter>
@@ -485,35 +485,35 @@ public:
 
     template <class _Iter>
     无序多重集合实现(_Iter _First, _Iter _Last, size_type _Buckets) : _我的基类(_键比较器(), 分配器类型()) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
     无序多重集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const 分配器类型& _Al)
         : _我的基类(_键比较器(), _Al) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
     无序多重集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const 散列器& _Hasharg)
         : _我的基类(_键比较器(_Hasharg), 分配器类型()) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
     无序多重集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const 散列器& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg), _Al) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
         this->insert(_First, _Last);
     }
 
     template <class _Iter>
     无序多重集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), 分配器类型()) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
         this->insert(_First, _Last);
     }
 
@@ -521,7 +521,7 @@ public:
     无序多重集合实现(_Iter _First, _Iter _Last, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg,
         const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), _Al) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
         this->insert(_First, _Last);
     }
 
@@ -547,21 +547,21 @@ public:
 
     template <_Container_compatible_range<value_type> _Rng>
     无序多重集合实现(from_range_t, _Rng&& _Range, size_type _Buckets) : _我的基类(_键比较器(), 分配器类型()) {
-        _我的基类::rehash(_Buckets);
+        _我的基类::重哈希(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序多重集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 分配器类型& _Al)
         : _我的基类(_键比较器(), _Al) {
-        _我的基类::rehash(_Buckets);
+        _我的基类::重哈希(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序多重集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 散列器& _Hasharg)
         : _我的基类(_键比较器(_Hasharg), 分配器类型()) {
-        _我的基类::rehash(_Buckets);
+        _我的基类::重哈希(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
@@ -569,14 +569,14 @@ public:
     无序多重集合实现(
         from_range_t, _Rng&& _Range, size_type _Buckets, const 散列器& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg), _Al) {
-        _我的基类::rehash(_Buckets);
+        _我的基类::重哈希(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     无序多重集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), 分配器类型()) {
-        _我的基类::rehash(_Buckets);
+        _我的基类::重哈希(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 
@@ -584,7 +584,7 @@ public:
     无序多重集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg,
         const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), _Al) {
-        _我的基类::rehash(_Buckets);
+        _我的基类::重哈希(_Buckets);
         this->_Insert_range_unchecked(_RANGES _Ubegin(_Range), _RANGES _Uend(_Range));
     }
 #endif // _HAS_CXX23
@@ -610,40 +610,40 @@ public:
 
     无序多重集合实现(initializer_list<value_type> _Ilist, size_type _Buckets)
         : _我的基类(_键比较器(), 分配器类型()) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
         this->insert(_Ilist);
     }
 
     无序多重集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const 分配器类型& _Al)
         : _我的基类(_键比较器(), _Al) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
         this->insert(_Ilist);
     }
 
     无序多重集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const 散列器& _Hasharg)
         : _我的基类(_键比较器(_Hasharg), 分配器类型()) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
         this->insert(_Ilist);
     }
 
     无序多重集合实现(
         initializer_list<value_type> _Ilist, size_type _Buckets, const 散列器& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg), _Al) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
         this->insert(_Ilist);
     }
 
     无序多重集合实现(
         initializer_list<value_type> _Ilist, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), 分配器类型()) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
         this->insert(_Ilist);
     }
 
     无序多重集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const 散列器& _Hasharg,
         const _Keyeq& _Keyeqarg, const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), _Al) {
-        this->rehash(_Buckets);
+        this->重哈希(_Buckets);
         this->insert(_Ilist);
     }
 
@@ -813,6 +813,8 @@ _STL_RESTORE_CLANG_WARNINGS
     模板 <类型名... 参数> 声明类型(自动) hash_function(参数&&... 值) 常量 { 返回 基类::散列函数(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) key_eq(参数&&... 值) { 返回 基类::取键相等器(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) key_eq(参数&&... 值) 常量 { 返回 基类::取键相等器(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) rehash(参数&&... 值) { 返回 基类::重哈希(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) rehash(参数&&... 值) 常量 { 返回 基类::重哈希(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) begin(参数&&... 值) { 返回 基类::开始(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) begin(参数&&... 值) 常量 { 返回 基类::开始(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) end(参数&&... 值) { 返回 基类::结束(static_cast<参数&&>(值)...); }
