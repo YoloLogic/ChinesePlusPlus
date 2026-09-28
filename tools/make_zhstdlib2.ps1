@@ -2645,32 +2645,34 @@ $H = @{
     #   接上之后，`basic_string_view<...>` 才解析到**我们的** `基础字符串视图`，
     #   于是 `starts_with`/`ends_with`/`contains` 这三条"同一个词两个主人"的边界**销账**
     #   （两边现在都是我们的东西，可以同批翻）。
-    zhIncludes = @{ '__msvc_string_view.hpp' = '字符串视图内部件'
-                    # §17.15 借用面切换（与下面的类型表/成员表**同批**，§17.14 的判据）
-                    'xmemory' = '内存内部件' }
+    zhIncludes = @{ '__msvc_string_view.hpp' = '字符串视图内部件' }
     types   = [ordered]@{
       # ---- §17.12：本头正文里的 `basic_string_view<...>` 指到我们自己的视图 ----
       'basic_string_view'             = '基础字符串视图'
       # -----------------------------------------------------------------------
-      # §17.15 借用面切换：15 个 MSVC 内部件**类型**名（译名与 内存内部件 一致，守卫强制）
-      # ⚠ `allocator`/`allocator_traits` 不在里面：内存内部件 把这两个改了名，
-      #   它没有定义这两个英文名 -> 本头照旧解析到 std 那一份（铁律③ 的"伸手用 std"）。
+      #  §17.13 【实测：切换要**类型 + 成员**一起同步 —— 本轮已回退，留作记录】
+      #
+      #  只登记了 15 个**类型**名、加了 `zhIncludes = @{ xmemory = 内存内部件 }`，
+      #  生成时真头探针当场报：
+      #      字符串内部件:44:15: error:
+      #        '标准::细节::_字符串常量迭代器<_我的字符串>' 中没有名为 '_Adopt' 的成员
+      #  —— `_Adopt` 是 `_Iterator_base12` 的成员，而 内存内部件 里它已经叫 **`_收养`**
+      #     （§16.67/§16.70 那两批改的名）。
+      #  这就是 §16.50/§16.51 那条老教训：**切换内部件时，类型名与成员名必须一起同步**；
+      #  只做一半，报错会落在"上层正文调不到下层成员"上。
+      #
+      #  **下一轮该做的**：在 `zhIncludes` 加 `xmemory` 的同时，把 内存内部件 的
+      #  **成员改名表**（`_Adopt`->`_收养`、`_Alloc_proxy`->`_分配代理`、`_Orphan_all`->`_孤儿化全部`、
+      #  `_Swap_proxy_and_iterators`->`_交换代理与迭代器`、`_Get_first`->`_取第一`、
+      #  `_Get_value`->`_取值`、`_Get_val`->`_取本值`、`_Reload_proxy`->`_重载代理`、
+      #  `_Lock`->`_加锁`、`_Assign_locked/_Assign_unlocked`、`_Bind`、`_Clamp_to_end`、
+      #  `_Deallocate_plain`、`_Destroy_range`、`_Extract`、`_Release`、`_Emplace_back` 家族、
+      #  `_Construct_in_place(_by_deref)`、`_Uninitialized_move_unchecked`、
+      #  `_Copy_memcpy_*`/`_Fill_memset`/`_Zero_range`/`_Allocate_aligned`、
+      #  `_Allocate_at_least_helper`、`_Delete_plain_internal` …）
+      #  **整表**一并登记到本头的 members，再重新试切换。
+      #  判据：**切换的"一条链"= 类型表 + 成员表**，不是只看类型表。
       # -----------------------------------------------------------------------
-      '_Compressed_pair'              = '_压缩对'
-      '_Container_base'               = '_容器基类'
-      '_Iterator_base'                = '_迭代器基类'
-      '_Simple_types'                 = '_简单类型集'
-      '_Container_proxy_ptr'          = '_容器代理指针'
-      '_Rebind_alloc_t'               = '_重绑定分配器类型'
-      '_Pocma_values'                 = '_传播复制移动赋值取值'
-      '_Guide_size_type_t'            = '_推导尺寸类型'
-      '_Tidy_deallocate_guard'        = '_清理释放守卫'
-      '_Leave_proxy_unbound'          = '_离开代理未绑定'
-      '_Asan_aligned_pointers'        = '_地址消毒对齐指针'
-      '_Dest'                         = '_目标'
-      '_One_then_variadic_args_t'     = '_先一后变参实参'
-      '_Zero_then_variadic_args_t'    = '_先零后变参实参'
-      '_GET_PROXY_ALLOCATOR'          = '_取代理分配器'
       'basic_string'                  = '基础字符串实现'
       '_String_val'                   = '_字符串值'
       '_String_iterator'              = '_字符串迭代器'
@@ -2768,52 +2770,6 @@ $H = @{
       #   按词替换必然误伤（§16.61.9）。现在 view 是我们的 `基础字符串视图`、且我们那份
       #   已经叫 `开头为`/`结尾为`/`包含` -> 两边同批翻，边界消失。
       'starts_with' = '开头为'; 'ends_with' = '结尾为'; 'contains' = '包含'
-      # -----------------------------------------------------------------------
-      # §17.15 借用面切换的**成员表**（§17.14 的教训：类型表 + 成员表必须同批）。
-      #   这些是 内存内部件 里已经改成汉语的成员名；本头正文（`_String_val`/迭代器）会调它们。
-      #   ⚠ 译名必须与 内存内部件 **逐字一致** —— 跨头译名守卫强制。
-      #   ⚠ 【不登记】`_Construct_in_place(_by_deref)` / `_Destroy_range` / `_Extract` / `_Release`
-      #     —— 实测它们是**借来的 std 类型的成员/自由函数**（`allocator_traits` 那一侧；
-      #     本头用的正是 std 的 `allocator_traits`，见 §17.13），改名报
-      #     「使用了未声明的标识符 '_就地构造'」。同 §16.54.3 的"一个词两个主人"。
-      # -----------------------------------------------------------------------
-      '_Adopt' = '_收养'
-      '_Adopt_locked' = '_收养加锁'
-      '_Adopt_unlocked' = '_收养不加锁'
-      '_Alloc_proxy' = '_分配代理'
-      '_Allocate' = '_分配'
-      '_Assign_locked' = '_赋值加锁'
-      '_Assign_unlocked' = '_赋值不加锁'
-      '_Bind' = '_绑定'
-      '_Clamp_to_end' = '_夹取至末尾'
-      '_Deallocate_plain' = '_释放原生'
-      '_Emplace_back' = '_尾部就地构造'
-      '_Emplace_back_deref' = '_按解引用尾部就地构造'
-      '_Emplace_back_deref_move' = '_按解引用移动尾部就地构造'
-      '_Get_first' = '_取第一'
-      '_Get_val' = '_取本值'
-      '_Get_value' = '_取值'
-      '_Getcont' = '_取容器'
-      '_Lock' = '_加锁'
-      '_Orphan_all' = '_孤儿化全部'
-      '_Orphan_all_locked_v3' = '_孤儿化全部加锁3'
-      '_Orphan_all_unlocked_v3' = '_孤儿化全部不加锁3'
-      '_Orphan_me_locked_v3' = '_孤儿化本迭代器加锁3'
-      '_Orphan_me_unlocked_v3' = '_孤儿化本迭代器不加锁3'
-      '_Release' = '_释放'
-      '_Reload_proxy' = '_重载代理'
-      '_Swap_proxy_and_iterators' = '_交换代理与迭代器'
-      '_Swap_proxy_and_iterators_locked' = '_交换代理与迭代器加锁'
-      '_Swap_proxy_and_iterators_unlocked' = '_交换代理与迭代器不加锁'
-      '_Uninitialized_move_unchecked' = '_未初始化移动非检查'
-      '_Copy_memcpy_common' = '_内存复制公共'
-      '_Copy_memcpy_count' = '_内存复制计数'
-      '_Copy_memcpy_distance' = '_内存复制距离'
-      '_Fill_memset' = '_填充内存'
-      '_Zero_range' = '_清零范围'
-      '_Allocate_aligned' = '_按对齐分配'
-      '_Allocate_at_least_helper' = '_分配至少助手'
-      '_Delete_plain_internal' = '_删除原生内部'
       # ⚠ `swap` 照旧不改名（§3.12）。
       # -----------------------------------------------------------------------
       # §16.64 本头**自己定义**的内部助手（逐个量过"谁定义它"）：
