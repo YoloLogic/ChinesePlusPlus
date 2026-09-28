@@ -1,0 +1,80 @@
+# ============================================================================
+#  check_multiowner.ps1 -- 「多方定义边界」守卫（§17.27.40）
+#
+#  判据（§17.27.40）：
+#    一个名字要"全面汉化"，必须让【它所有的定义方】都归我们并改完。
+#    只要还有定义方在借来的头里，这个名字就只能是"局部汉化 + 记边界" ——
+#    强行在部分条目里改，必然出现"半边汉语、半边英文"（§17.27.10 实测）。
+#
+#  本工具做的事：
+#    1. 从生成器里读出【我们拥有的头】（条目键 = MSVC 头名）；
+#    2. 扫描全部 MSVC 内部头，得到每个名字的【定义方集合】
+#       （判据：`名字 ( … ) [const] [noexcept] {` 形态 = 有函数体）；
+#    3. 对【我们已登记的名字】逐个判定：
+#         定义方 > 1 且其中有"不归我们的头"  ->  多方定义边界（注册它必然花脸）
+#
+#  用法： pwsh -File tools\check_multiowner.ps1 [-Quiet]
+#  退出码：恒为 0 —— 这是【疑点清单】，不是门禁（见 §17.27.41）
+# ============================================================================
+param(
+    [string] $Generator = (Join-Path $PSScriptRoot 'make_zhstdlib2.ps1'),
+    [string] $VsInc = 'C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include',
+    [switch] $Quiet
+)
+
+$ErrorActionPreference = 'Stop'
+if (-not (Test-Path $Generator)) { throw "找不到生成器：$Generator" }
+if (-not (Test-Path $VsInc)) { throw "找不到微软头目录：$VsInc" }
+
+$g = [System.IO.File]::ReadAllText($Generator)
+
+# ---- 1) 我们拥有的头 = 条目键 ----
+$owned = @{}
+foreach ($m in [regex]::Matches($g, "(?m)^\s*'([A-Za-z_0-9.]+)'\s*=\s*@\{\s*$")) { $owned[$m.Groups[1].Value] = $true }
+
+# ---- 2) 我们已登记的名字（任何 '名字' = '…' 的键，只留合法标识符）----
+$names = @{}
+foreach ($m in [regex]::Matches($g, "'([A-Za-z_][A-Za-z0-9_]*)'[ \t]*=[ \t]*'")) { $names[$m.Groups[1].Value] = $true }
+
+# ---- 3) 扫描每个头的"定义了哪些名字" ----
+#   一次正则取"标识符紧跟 (…) 再跟 { "的形态，避免逐名字 × 逐文件的双重循环。
+$definers = @{}
+$defRx = [regex]'(?m)\b([A-Za-z_][A-Za-z0-9_]*)\s*\([^;{}]{0,240}?\)\s*(?:const)?\s*(?:noexcept)?\s*(?:/\*.*?\*/)?\s*\{'
+foreach ($f in (Get-ChildItem $VsInc -File)) {
+    $s = [System.IO.File]::ReadAllText($f.FullName)
+    foreach ($m in $defRx.Matches($s)) {
+        $n = $m.Groups[1].Value
+        if (-not $names.ContainsKey($n)) { continue }
+        if (-not $definers.ContainsKey($n)) { $definers[$n] = @{} }
+        $definers[$n][$f.Name] = $true
+    }
+}
+
+# ---- 4) 判定 ----
+$bad = @()
+foreach ($n in $definers.Keys) {
+    $d = @($definers[$n].Keys)
+    if ($d.Count -le 1) { continue }                       # 单一定义方：不是多方边界
+    $notOurs = @($d | Where-Object { -not $owned.ContainsKey($_) })
+    if ($notOurs.Count -eq 0) { continue }                 # 定义方全是我们的：可以改
+    $bad += [pscustomobject]@{ 名字 = $n; 定义方 = $d.Count; 不归我们 = ($notOurs -join ', ') }
+}
+
+if (-not $Quiet) {
+    Write-Host ("多方定义边界检查（§17.27.40）：扫描 {0} 个头、我们登记 {1} 个名字；命中 {2} 条" -f `
+        (Get-ChildItem $VsInc -File).Count, $names.Count, $bad.Count)
+    foreach ($b in ($bad | Sort-Object 名字)) {
+        Write-Host ("  ⚠ {0} —— 定义方 {1} 个，其中不归我们的：{2}" -f $b.名字, $b.定义方, $b.不归我们)
+    }
+    if ($bad.Count -eq 0) { Write-Host "  没有多方定义边界式登记" -ForegroundColor Green }
+}
+
+# 只报告，不作门禁（§17.27.41）
+
+# ---------------------------------------------------------------------------
+#  §17.27.41 为什么只报告、不作门禁：
+#    判据方向是对的（§17.27.40），但【粒度太粗】：size/begin/clear/swap 这类名字在 std 各处都有定义，
+#    而我们改的是"自己拷贝里那个类的成员" —— 合法。首跑 122 条里绝大多数属此类。
+#    真正该问的是 §16.53 的那个问题：**这个调用点上，实例属于谁？**（谁定义的不重要）
+#    所以本工具定位为【triage 辅助】：给出"名字 × 定义方"的分布，供进一步判定。
+# ---------------------------------------------------------------------------
