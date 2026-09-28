@@ -2276,6 +2276,14 @@ $H = @{
     #      别的头保持英文、指向 std 那一份，两边改名后不再同名、互不干扰。
     # -----------------------------------------------------------------------
     members = [ordered]@{
+      '_Destroy_in_place' = '_就地析构'
+      '_Uninitialized_copy' = '_未初始化复制'
+      '_Delete_plain_internal' = '_删除原生内部'
+      '_Unfancy' = '_去花式'
+      '_Unfancy_maybe_null' = '_去花式可空'
+      '_Erase_remove' = '_擦除并移除'
+      '_Erase_remove_if' = '_按条件擦除并移除'
+      '_Allocate_at_least_helper' = '_分配至少助手'
       '_Adopt' = '_收养'
       '_Adopt_locked' = '_收养加锁'
       '_Adopt_unlocked' = '_收养不加锁'

@@ -66,23 +66,23 @@ _类型* _Remove_vectorized(_类型* const _First, _类型* const _Last, const _
 使用 名域 std;
 struct _迭代器基类12;
 template <class _指针类型>
-_NODISCARD constexpr auto _Unfancy(_指针类型 _Ptr) noexcept { // converts from a fancy pointer to a plain pointer
+_NODISCARD constexpr auto _去花式(_指针类型 _Ptr) noexcept { // converts from a fancy pointer to a plain pointer
     return _STD addressof(*_Ptr);
 }
 
 template <class _类型>
-_NODISCARD constexpr _类型* _Unfancy(_类型* _Ptr) noexcept { // do nothing for plain pointers
+_NODISCARD constexpr _类型* _去花式(_类型* _Ptr) noexcept { // do nothing for plain pointers
     return _Ptr;
 }
 
 template <class _指针类型>
-constexpr auto _Unfancy_maybe_null(_指针类型 _Ptr) noexcept {
+constexpr auto _去花式可空(_指针类型 _Ptr) noexcept {
     // converts from a (potentially null) fancy pointer to a plain pointer
     return _Ptr ? _STD addressof(*_Ptr) : nullptr;
 }
 
 template <class _类型>
-constexpr _类型* _Unfancy_maybe_null(_类型* _Ptr) noexcept { // do nothing for plain pointers
+constexpr _类型* _去花式可空(_类型* _Ptr) noexcept { // do nothing for plain pointers
     return _Ptr;
 }
 
@@ -323,7 +323,7 @@ template <class _NoThrowFwdIt, class _NoThrowSentinel>
 _CONSTEXPR20 void _析构范围(_NoThrowFwdIt _First, _NoThrowSentinel _Last) noexcept;
 
 template <class _类型>
-_CONSTEXPR20 void _Destroy_in_place(_类型& _Obj) noexcept {
+_CONSTEXPR20 void _就地析构(_类型& _Obj) noexcept {
     if constexpr (is_array_v<_类型>) {
         _析构范围(_Obj, _Obj + extent_v<_类型>);
     } else {
@@ -1106,7 +1106,7 @@ _CONSTEXPR20 void _析构范围(_分配器指针类型<_Alloc> _First, const _�
     using _类型 = typename _Alloc::value_type;
     if constexpr (!conjunction_v<is_trivially_destructible<_类型>, _用默认析构<_Alloc, _类型*>>) {
         for (; _First != _Last; ++_First) {
-            分配器特征<_Alloc>::destroy(_Al, _Unfancy(_First));
+            分配器特征<_Alloc>::destroy(_Al, _去花式(_First));
         }
     }
 }
@@ -1116,7 +1116,7 @@ _CONSTEXPR20 void _析构范围(_NoThrowFwdIt _First, const _NoThrowSentinel _La
     // note that this is an optimization for debug mode codegen; in release mode the BE removes all of this
     if constexpr (!is_trivially_destructible_v<_Iter_value_t<_NoThrowFwdIt>>) {
         for (; _First != _Last; ++_First) {
-            _Destroy_in_place(*_First);
+            _就地析构(*_First);
         }
     }
 }
@@ -1223,7 +1223,7 @@ public:
 
     template <class _Alloc>
     _CONSTEXPR20 void _分配代理(_Alloc&& _Al) {
-        _容器代理* const _New_proxy = _Unfancy(_Al.allocate(1));
+        _容器代理* const _New_proxy = _去花式(_Al.allocate(1));
         _Construct_in_place(*_New_proxy, this);
         _Myproxy            = _New_proxy;
         _New_proxy->_Mycont = this;
@@ -1232,7 +1232,7 @@ public:
     template <class _Alloc>
     _CONSTEXPR20 void _重载代理(_Alloc&& _Old_alloc, _Alloc&& _New_alloc) {
         // pre: no iterators refer to the existing proxy
-        _容器代理* const _New_proxy = _Unfancy(_New_alloc.allocate(1));
+        _容器代理* const _New_proxy = _去花式(_New_alloc.allocate(1));
         _Construct_in_place(*_New_proxy, this);
         _New_proxy->_Mycont = this;
         _删除原生内部(_Old_alloc, _STD exchange(_Myproxy, _New_proxy));
@@ -1480,13 +1480,13 @@ struct _容器代理指针12 : _基本容器代理指针12 {
 
     _CONSTEXPR20 _容器代理指针12(_Alloc& _Al_, _离开代理未绑定) : _Al(_Al_) {
         // create a new unbound _容器代理
-        _Ptr = _Unfancy(_Al_.allocate(1));
+        _Ptr = _去花式(_Al_.allocate(1));
         _Construct_in_place(*_Ptr);
     }
 
     _CONSTEXPR20 _容器代理指针12(_Alloc& _Al_, _容器基类12& _Mycont) : _Al(_Al_) {
         // create a new _容器代理 pointing at _Mycont
-        _Ptr = _Unfancy(_Al_.allocate(1));
+        _Ptr = _去花式(_Al_.allocate(1));
         _Construct_in_place(*_Ptr, _STD addressof(_Mycont));
         _Mycont._Myproxy = _Ptr;
     }
@@ -1848,7 +1848,7 @@ public:
 
     template <class... _Types>
     _CONSTEXPR20 void _尾部就地构造(_Types&&... _Vals) { // construct a new element at *_Last and increment
-        分配器特征<_Alloc>::construct(_Al, _Unfancy(_Last), _STD forward<_Types>(_Vals)...);
+        分配器特征<_Alloc>::construct(_Al, _去花式(_Last), _STD forward<_Types>(_Vals)...);
         ++_Last;
     }
 
@@ -1864,7 +1864,7 @@ private:
 };
 
 template <class _InIt, class _Se, class _Alloc>
-_CONSTEXPR20 _分配器指针类型<_Alloc> _Uninitialized_copy(
+_CONSTEXPR20 _分配器指针类型<_Alloc> _未初始化复制(
     _InIt _First, _Se _Last, _分配器指针类型<_Alloc> _目标, _Alloc& _Al) {
     // copy [_First, _Last) to raw _目标, using _Al
     // note: only called internally from elsewhere in the STL
@@ -1878,7 +1878,7 @@ _CONSTEXPR20 _分配器指针类型<_Alloc> _Uninitialized_copy(
     auto _UFirst = _RANGES _Unwrap_iter<_Se>(_STD move(_First));
     auto _ULast  = _RANGES _Unwrap_sent<_InIt>(_STD move(_Last));
 #else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
-    // In pre-concepts world, _Uninitialized_copy should only ever be called with an iterator
+    // In pre-concepts world, _未初始化复制 should only ever be called with an iterator
     // and sentinel of the same type, so `_Get_unwrapped` is fine to call.
     auto _UFirst = _Get_unwrapped(_STD move(_First));
     auto _ULast  = _Get_unwrapped(_STD move(_Last));
@@ -1893,11 +1893,11 @@ _CONSTEXPR20 _分配器指针类型<_Alloc> _Uninitialized_copy(
 #endif // _HAS_CXX20
         {
             if constexpr (is_same_v<decltype(_UFirst), decltype(_ULast)>) {
-                _Copy_memmove(_To_address(_UFirst), _To_address(_ULast), _Unfancy(_目标));
+                _Copy_memmove(_To_address(_UFirst), _To_address(_ULast), _去花式(_目标));
                 _目标 += _ULast - _UFirst;
             } else {
                 const auto _Count = static_cast<size_t>(_ULast - _UFirst);
-                _Copy_memmove_n(_To_address(_UFirst), _Count, _Unfancy(_目标));
+                _Copy_memmove_n(_To_address(_UFirst), _Count, _去花式(_目标));
                 _目标 += _Count;
             }
             return _目标;
@@ -1934,7 +1934,7 @@ _CONSTEXPR20 _分配器指针类型<_Alloc> _Uninitialized_copy_n(
         if (!_STD is_constant_evaluated())
 #endif // _HAS_CXX20
         {
-            _Copy_memmove_n(_UFirst, _Count, _Unfancy(_目标));
+            _Copy_memmove_n(_UFirst, _Count, _去花式(_目标));
             _目标 += _Count;
             return _目标;
         }
@@ -1996,7 +1996,7 @@ _CONSTEXPR20 _分配器指针类型<_Alloc> _Uninitialized_move(
         if (!_STD is_constant_evaluated())
 #endif // _HAS_CXX20
         {
-            _Copy_memmove(_UFirst, _ULast, _Unfancy(_目标));
+            _Copy_memmove(_UFirst, _ULast, _去花式(_目标));
             return _目标 + (_ULast - _UFirst);
         }
     }
@@ -2019,7 +2019,7 @@ _CONSTEXPR20 _分配器指针类型<_Alloc> _Uninitialized_fill_n(
         if (!_STD is_constant_evaluated())
 #endif // _HAS_CXX20
         {
-            _填充内存(_Unfancy(_First), _Val, static_cast<size_t>(_Count));
+            _填充内存(_去花式(_First), _Val, static_cast<size_t>(_Count));
             return _First + _Count;
         }
     } else if constexpr (_Fill_zero_memset_is_safe<_类型*, _类型> && _用默认构造<_Alloc, _类型*, _类型>::value) {
@@ -2028,7 +2028,7 @@ _CONSTEXPR20 _分配器指针类型<_Alloc> _Uninitialized_fill_n(
 #endif // _HAS_CXX20
         {
             if (_Is_all_bits_zero(_Val)) {
-                _Fill_zero_memset(_Unfancy(_First), static_cast<size_t>(_Count));
+                _Fill_zero_memset(_去花式(_First), static_cast<size_t>(_Count));
                 return _First + _Count;
             }
         }
@@ -2090,7 +2090,7 @@ _CONSTEXPR20 _分配器指针类型<_Alloc> _Uninitialized_value_construct_n(
         if (!_STD is_constant_evaluated())
 #endif // _HAS_CXX20
         {
-            auto _PFirst = _Unfancy(_First);
+            auto _PFirst = _去花式(_First);
             _清零范围(_PFirst, _PFirst + _Count);
             return _First + _Count;
         }
@@ -2375,7 +2375,7 @@ _NODISCARD_REMOVE_ALG _CONSTEXPR20 _FwdIt remove_if(_FwdIt _First, const _FwdIt 
 }
 
 template <class _Container, class _Uty>
-_CONSTEXPR20 typename _Container::size_type _Erase_remove(_Container& _Cont, const _Uty& _Val) {
+_CONSTEXPR20 typename _Container::size_type _擦除并移除(_Container& _Cont, const _Uty& _Val) {
     // erase each element matching _Val
     auto _First          = _Cont.begin();
     const auto _Last     = _Cont.end();
@@ -2386,7 +2386,7 @@ _CONSTEXPR20 typename _Container::size_type _Erase_remove(_Container& _Cont, con
 }
 
 template <class _Container, class _Pr>
-_CONSTEXPR20 typename _Container::size_type _Erase_remove_if(_Container& _Cont, _Pr _Pred) {
+_CONSTEXPR20 typename _Container::size_type _按条件擦除并移除(_Container& _Cont, _Pr _Pred) {
     // erase each element satisfying _Pred
     auto _First          = _Cont.begin();
     const auto _Last     = _Cont.end();
