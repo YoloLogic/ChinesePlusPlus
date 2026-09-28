@@ -859,7 +859,7 @@ private:
         if constexpr (conjunction_v<is_nothrow_constructible<_Ty, _Valty...>,
                           _Uses_default_construct<_分配器, _Ty*, _Valty...>>) {
             _ASAN_VECTOR_MODIFY(1);
-            _Construct_in_place(*_Mylast, _STD forward<_Valty>(_Val)...);
+            _就地构造(*_Mylast, _STD forward<_Valty>(_Val)...);
         } else {
             _地址消毒向量延长守卫(static_cast<size_type>(_Mylast - _My_data._Myfirst) + 1);
             _分配器特征::construct(_Getal(), _去花式(_Mylast), _STD forward<_Valty>(_Val)...);

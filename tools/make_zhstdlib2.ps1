@@ -792,7 +792,9 @@ $H = @{
     dropTypes   = @('bad_optional_access')
     # §15.6 销账：<optional> 正文包含 <xsmf_control.h>，这里指向我们自己的汉语件；
     # 并把 _SMF_control 改成汉语名 _特殊成员控制（细节 里那份是我们自己的）。
-    zhIncludes = @{ 'xsmf_control.h' = '特殊成员控制' }
+    # §17.27.54 阶段(2) 链名接通：原件第 8 行直接 `#include <xutility>`，定义方现在是我们的
+    # `通用内部件`（§17.27.52/53）-> 一并指过来，`_Construct_in_place` 才指向我们那份。
+    zhIncludes = @{ 'xsmf_control.h' = '特殊成员控制'; 'xutility' = '通用内部件' }
     members = [ordered]@{
       'has_value' = '有值'; 'value_or' = '取值或'   # ⚠ value 故意【不】登记：
       #   它作为 ::value 出现在借来的 bool_constant<...>::value 里，改名会让约束恒假、
@@ -806,6 +808,9 @@ $H = @{
       '_Assign_from' = '_由之赋值'
       '_Construct' = '_构造'
       '_Construct_from' = '_由之构造'
+      # §17.27.54 链名接通：定义方 <xutility> 现在是我们的 `通用内部件`。
+      #   原件 <optional> 第 8 行就直接 `#include <xutility>` -> 本条目补 zhIncludes 指过来。
+      '_Construct_in_place' = '_就地构造'
     }
     data    = [ordered]@{}
     derive  = @( @('has_value','有值'), @('value_or','取值或'),
@@ -893,13 +898,20 @@ $H = @{
       #     会拿到基类的实现（静默错误，不是编译错误）。
       #   ⚠ `_Cast` / `_Construct_in_place` / `_Destroy_in_place` 定义在 <xutility>/<xmemory>
       #     -> 本头不翻（调用点留英文名，指到 std 那一份）。
-      #     §17.27.53 补充：这两个定义方现在**都是我们自己的**
-      #     （`_Construct_in_place` -> 通用内部件，`_Destroy_in_place` -> 内存内部件），
-      #     所以这里留英文属于**欠账**（阶段(3) 收），不再是"借来的没办法"。
+      #     §17.27.53/54 补充：这两个定义方现在**都是我们自己的**
+      #     （`_Construct_in_place` -> 通用内部件，`_Destroy_in_place` -> 内存内部件）。
+      #     本批已经把 `_Construct_in_place` 接上（见下表），`_Destroy_in_place` 与 `_Cast` 仍是欠账。
       '_Assign'       = '_赋值'
       '_Copy_impl'    = '_复制实现'
       '_Destroy_impl' = '_析构实现'
-      '_Emplace'      = '_就地构造'
+      # §17.27.54 **译名唯一性**：`_Emplace` 原译 `_就地构造` 与 `_Construct_in_place`
+      #   的译名**撞了**。这不是审美问题：`any` 的 `_Emplace` 正文里就调用了
+      #   `_STD _Construct_in_place(...)`（原件 any:315/322），两个名字都叫 `_就地构造` 之后，
+      #   类作用域查找会**先找到成员 `_Emplace` 自己** -> 静默自我递归（不是编译错误！）。
+      #   所以把成员 `_Emplace` 改名为 `_就地安置`，把 `_就地构造` 留给自由函数。
+      #   判据：**一个译名只对应一个英文名**（同一 TU 里名域作用域与类作用域会互相遮蔽）。
+      '_Emplace'      = '_就地安置'
+      '_Construct_in_place' = '_就地构造'
       '_Move_from'    = '_由之移动'
       '_Move_impl'    = '_移动实现'
       '_Rep'          = '_表示'
@@ -1001,6 +1013,8 @@ $H = @{
       '_Emplace_back_internal' = '_尾部就地构造内部'
       '_Map' = '_映射表'
       '_Emplace_front_internal' = '_首部就地构造内部'
+      # §17.27.54 链名接通：定义方 `通用内部件` 的品牌经 `内存内部件` 已可见 -> 调用点改名。
+      '_Construct_in_place' = '_就地构造'
       '_Get_data' = '_取数据'
       '_Orphan_off' = '_孤儿化偏移'
       '_Assign_range' = '_赋值范围'
@@ -1152,6 +1166,8 @@ $H = @{
       '_Splice' = '_接合'
       '_Transfer_back' = '_转移至末尾'
       '_Transfer_before' = '_转移至其前'
+      # §17.27.54 链名接通（同 deque）。
+      '_Construct_in_place' = '_就地构造'
       '_Unchecked_erase' = '_非检查擦除'
       'size' = '尺寸'; 'empty' = '为空'
       'begin' = '开始'; 'end' = '结束'
@@ -1336,6 +1352,8 @@ $H = @{
       '_Emplace_back_with_unused_capacity' = '_用未用容量尾部就地构造'
       '_Emplace_one_at_back' = '_尾部就地构造一个'
       '_Emplace_reallocate' = '_就地构造并重新分配'
+      # §17.27.54 链名接通（同 deque）。
+      '_Construct_in_place' = '_就地构造'
       '_Inc' = '_递增'
       '_Insert_counted_range' = '_插入计数范围'
       '_Insert_uncounted_range' = '_插入非计数范围'
@@ -1462,6 +1480,8 @@ $H = @{
       '_Sort2' = '_排序2'
       '_Splice_after' = '_接合其后'
       '_Take_head' = '_取走头部'
+      # §17.27.54 链名接通（同 deque）。
+      '_Construct_in_place' = '_就地构造'
       '_Transfer_back' = '_转移至末尾'
       '_Transfer_non_before_begin_ownership' = '_转移非首前所有权'
       '_Transfer_ownership' = '_转移所有权'
@@ -2630,7 +2650,10 @@ $H = @{
       '_Insert_range_unchecked' = '_插入范围非检查'
       '_Erase'            = '_擦除'
       '_Erase_unchecked'  = '_擦除非检查'
-      '_Emplace'          = '_就地构造'
+      '_Emplace'          = '_就地安置'
+      # §17.27.54 同上（与 `any` 同因）：`_Emplace` 与 `_Construct_in_place` 撞译名 -> 改成员名。
+      #   本头经 `内存内部件` 已能看到 `通用内部件` 的自由函数 `_就地构造`。
+      '_Construct_in_place' = '_就地构造'
       '_Emplace_hint'     = '_按提示就地构造'
       # ⚠ `_Extract` 【不登记】（§3.12 判据：同名另有一个主人）——
       #   本头正文里有 `std::_In_place_key_extract_set<...>::_Extract(...)`
@@ -2795,12 +2818,17 @@ $H = @{
     members = [ordered]@{
       # §16.48 成员层第一批：**确认属于 `_Hash` 自己**的那一批（同 §16.43.3 的做法）。
       # ⚠ 不含借用自 <xutility>/<xmemory> 的自由函数与宏：
-      #   _Adl_verify_range / _Construct_in_place / _Destroy_in_place / _Delete_plain_internal /
+      #   _Adl_verify_range / _Destroy_in_place / _Delete_plain_internal /
       #   _Xlength_error / _STL_VERIFY / _STL_INTERNAL_CHECK / _STL_ASSERT /
       #   _Destroy_range（xmemory 里有 7 处定义）/ _Hash_array_representation（xstring 里也有）
+      # §17.27.54 就地更正：上面这串里 **`_Construct_in_place` 已经不成立** ——
+      #   它的定义方 <xutility> 现在是我们的 `通用内部件`（§17.27.52/53）。
+      #   本头经 `链表`->`内存内部件`->`通用内部件` 已能看到那份 `_就地构造` -> 本批改名，见下。
       # ⚠ 也不含命中的**类型名与数据成员**（_Hash/_Hash_vec/_List/_Mypair/_Vec/_Buckets/
       #   _Pocca/_Pocma/_Pocs … 它们是 types 或 data，不是成员函数）
       # ⚠ `_Extract` / `_Release` 【保守排除】：它们在借用类型上同名出现过（§3.12 同名两个主人）。
+      # §17.27.54 本批接通 `_Construct_in_place`（定义方 = `通用内部件`，经 `链表` 传递可见）。
+      '_Construct_in_place'      = '_就地构造'
       '_Assign_grow'              = '_赋值扩容'
       '_Bump_erased'              = '_递增已擦除'
       '_Check_max_size'           = '_检查最大尺寸'
@@ -3019,6 +3047,8 @@ $H = @{
     #      每一条改回都是**欠账**，消除路径 = 把 `<字符串视图>` 也抄成我们自己的内部件。
     members = [ordered]@{
       '_Allocate_for_capacity' = '_按容量分配'
+      # §17.27.54 链名接通：本头经 `内存内部件` 已能看到 `通用内部件` 的 `_就地构造`。
+      '_Construct_in_place' = '_就地构造'
       '_Deallocate_for_capacity' = '_按容量释放'
       # ---- 容量与尺寸 ----
       'size' = '尺寸'; 'capacity' = '容量'
@@ -3596,6 +3626,73 @@ if ($zhClash.Count) {
     $zhClash | ForEach-Object { Write-Host $_ -ForegroundColor Red }
     Write-Host '  修法：统一成同一个译名；若确实同名不同义，到 $ZH_NAME_EXCEPTIONS 登记并写理由。' -ForegroundColor Yellow
     throw "跨头译名不一致，先修表再生成"
+}
+
+# ---------------------------------------------------------------------------
+#  §17.27.54 反向守卫：**一个译名只对应一个英文名**。
+#
+#  为什么需要（实测，而且是最阴的一种）：`<any>` 的成员 `_Emplace` 与自由函数
+#  `_Construct_in_place` 都译作 `_就地构造`，而 `_Emplace` 的**正文里**恰好调用了
+#  `_STD _Construct_in_place(...)`（原件 any:315/322）。两个名字一样之后，
+#  类作用域查找**先命中成员自己** -> 变成自我递归模板：
+#  **既不是编译错误，产品测试也照不出来**（返回类型/副作用都"对得上"）。
+#  所以必须机器拦住，不能靠记性（判据来自 §17.27.54）。
+#
+#  判据：同一 kind（types / members / data）下，一个译名只能对应一个英文名。
+#  ⚠ 跨 kind 不拦：类型名在名域作用域、成员名在类作用域，互不遮蔽。
+#  ⚠ 允许清单按【译名】登记，并逐个列出允许的英文名：
+#     连"又多了第三个英文名"也要报 —— 否则白名单会变成永久缺口。
+# ---------------------------------------------------------------------------
+$ZH_REVERSE_EXCEPTIONS = @{
+    '_标记' = @{ names = @('_Tag', '_Mark')
+                 why   = '两处都是不可见的实现细节名（nullopt 的 _Tag / 另一处的 _Mark），组合探针 73 头同引实测无碍。' }
+    '_代理分配器类型' = @{ names = @('_Alproxy_ty', '_Alproxy_type')
+                 why   = '同一别名的两种 MSVC 拼写（deque 与 list 各写各的），同一个实体。' }
+    '_等值区间' = @{ names = @('_Eqrange', '_Equal_range')
+                 why   = '同一查表助手两种拼写（xtree 与 xhash 各写各的），同一个概念。' }
+    '_取容器' = @{ names = @('_Getcont', '_Get_container')
+                 why   = '同一概念两种写法（成员版 _Getcont 与自由版 _Get_container），组合探针 73 头同引实测无碍。' }
+    '_造迭代器' = @{ names = @('_Make_iterator', '_Make_iter')
+                 why   = '同一助手两种拼写（vector 与 forward_list 各写各的）。' }
+    '释放' = @{ names = @('deallocate', 'release')
+                 why   = '两个都是 std 契约名（allocator::deallocate / unique_lock、shared_lock、semaphore 的 release），
+                          各自是**不同类**的成员 -> 类作用域互不可见；组合探针 73 头同引实测无碍。
+                          ⚠ 判据：白名单只收"类作用域不共现"的情形；凡【同一类】里两个名字撞译名，一律照报（那才是静默遮蔽）。' }
+}
+$zhReverse = @{}
+foreach ($en in ($H.Keys | Sort-Object)) {
+    foreach ($kind in @('types', 'members', 'data')) {
+        if (-not $H[$en].ContainsKey($kind)) { continue }
+        foreach ($k in $H[$en][$kind].Keys) {
+            $key = "$kind|" + $H[$en][$kind][$k]
+            if (-not $zhReverse.ContainsKey($key)) { $zhReverse[$key] = @() }
+            if ($zhReverse[$key] -notcontains $k) { $zhReverse[$key] += $k }
+        }
+    }
+}
+$zhReverseClash = @()
+foreach ($key in ($zhReverse.Keys | Sort-Object)) {
+    $names = @($zhReverse[$key] | Sort-Object)
+    if ($names.Count -le 1) { continue }
+    $parts = $key -split '\|', 2
+    $zh    = $parts[1]
+    if ($ZH_REVERSE_EXCEPTIONS.ContainsKey($zh)) {
+        $allowed = @($ZH_REVERSE_EXCEPTIONS[$zh].names)
+        $extra   = @($names | Where-Object { $allowed -notcontains $_ })
+        if ($extra.Count -eq 0) { continue }
+        $zhReverseClash += ("  [{0}] '{1}'：白名单外又多出 {2}（§17.27.54 白名单只认 {3}）" -f `
+            $parts[0], $zh, ($extra -join ' / '), ($allowed -join ' / '))
+        continue
+    }
+    $zhReverseClash += ("  [{0}] '{1}' 同时是 {2} 的译名" -f $parts[0], $zh, ($names -join ' / '))
+}
+Write-Host ("译名唯一性检查（§17.27.54）: 共 {0} 个译名，撞车 {1} 条" -f $zhReverse.Count, $zhReverseClash.Count)
+if ($zhReverseClash.Count) {
+    Write-Host "❌ 译名撞车（同一个译名、两个英文名）:" -ForegroundColor Red
+    $zhReverseClash | ForEach-Object { Write-Host $_ -ForegroundColor Red }
+    Write-Host '  危害：类作用域会遮蔽名域作用域 -> 可能是「静默自我递归」（不是编译错误，测试也照不出）。' -ForegroundColor Yellow
+    Write-Host '  修法：改掉其中一个译名；确属同一实体，到 $ZH_REVERSE_EXCEPTIONS 登记译名 + 允许的英文名 + 理由。' -ForegroundColor Yellow
+    throw "译名撞车，先修表再生成"
 }
 
 # ---------------------------------------------------------------------------

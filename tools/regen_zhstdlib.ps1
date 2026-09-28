@@ -97,8 +97,11 @@ foreach ($j in $jobs) {
         if (@($o | Where-Object { $_ -match '顺带引真头探针: 通过' }).Count) { $script:riOk++ }
         # 生成器里的"跨头译名一致性检查"（方案 §3.11）输出会被这里捕获而看不见，
         # 隐形规矩等于没有规矩 —— 所以对每个脚本的第一个头把它显式打出来一行。
+        #  §17.27.54：加"译名唯一性检查"（同一个译名不许对应两个英文名）。
+        #  这是 §16.30/§16.32 那条判据的第三次自查：**新守卫必须自己进这个名单**，
+        #  否则就是"新加的守卫在 regen 里看不见"。
         if ($h -eq $list[0]) {
-            $ck = @($o | Where-Object { $_ -match '跨头译名检查|跨头译名不一致|关键词表检查|撞上关键词' }) | Select-Object -First 2
+            $ck = @($o | Where-Object { $_ -match '跨头译名检查|跨头译名不一致|关键词表检查|撞上关键词|译名唯一性检查|译名撞车' }) | Select-Object -First 3
             foreach ($c in $ck) { Write-Host ("  {0}" -f ([string]$c).Trim()) }
         }
         $ok = ($last -match '^(\d+) / \1$') -or ($last -match '全部通过') -or ($last -match '^([0-9]+) / ([0-9]+)$' -and $Matches[1] -eq $Matches[2])

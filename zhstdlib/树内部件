@@ -344,9 +344,9 @@ struct _树节点 {
     static _结点指针 _建头节点(_Alloc& _Al) {
         static_assert(is_same_v<typename _Alloc::value_type, _树节点>, "Bad _建头节点 call");
         const auto _Pnode = _Al.allocate(1);
-        _Construct_in_place(_Pnode->_Left, _Pnode);
-        _Construct_in_place(_Pnode->_Parent, _Pnode);
-        _Construct_in_place(_Pnode->_Right, _Pnode);
+        _就地构造(_Pnode->_Left, _Pnode);
+        _就地构造(_Pnode->_Parent, _Pnode);
+        _就地构造(_Pnode->_Right, _Pnode);
         _Pnode->_Color = _黑;
         _Pnode->_Isnil = true;
         return _Pnode;
@@ -359,9 +359,9 @@ struct _树节点 {
         _Alloc_construct_ptr<_Alloc> _新节点(_Al);
         _新节点._Allocate();
         allocator_traits<_Alloc>::construct(_Al, _STD addressof(_新节点._Ptr->_Myval), _STD forward<_Valty>(_Val)...);
-        _Construct_in_place(_新节点._Ptr->_Left, _Myhead);
-        _Construct_in_place(_新节点._Ptr->_Parent, _Myhead);
-        _Construct_in_place(_新节点._Ptr->_Right, _Myhead);
+        _就地构造(_新节点._Ptr->_Left, _Myhead);
+        _就地构造(_新节点._Ptr->_Parent, _Myhead);
+        _就地构造(_新节点._Ptr->_Right, _Myhead);
         _新节点._Ptr->_Color = _红;
         _新节点._Ptr->_Isnil = false;
         return _新节点._Release();
@@ -829,9 +829,9 @@ struct _树临时节点 : _树临时节点分配器<_结点分配器> {
     explicit _树临时节点(_结点分配器& _Al_, _结点指针 _Myhead, _Valtys&&... _Vals)
         : _树临时节点分配器<_结点分配器>(_Al_) {
         _结点分配器特征::construct(this->_Al, _STD addressof(this->_Ptr->_Myval), _STD forward<_Valtys>(_Vals)...);
-        _Construct_in_place(this->_Ptr->_Left, _Myhead);
-        _Construct_in_place(this->_Ptr->_Parent, _Myhead);
-        _Construct_in_place(this->_Ptr->_Right, _Myhead);
+        _就地构造(this->_Ptr->_Left, _Myhead);
+        _就地构造(this->_Ptr->_Parent, _Myhead);
+        _就地构造(this->_Ptr->_Right, _Myhead);
         this->_Ptr->_Color = _红;
         this->_Ptr->_Isnil = false;
     }
@@ -1008,7 +1008,7 @@ private:
 
 protected:
     template <class... _Valtys>
-    pair<_结点指针, bool> _就地构造(_Valtys&&... _Vals) {
+    pair<_结点指针, bool> _就地安置(_Valtys&&... _Vals) {
         using _就地键提取器 = typename _Traits::template _就地键提取器<_Valtys...>;
         const auto _Scary             = _取检查值();
         _树查找结果<_结点指针> _Loc;
@@ -1046,7 +1046,7 @@ protected:
 public:
     template <class... _Valtys>
     pair<迭代器, bool> emplace(_Valtys&&... _Vals) {
-        const auto _Result = _就地构造(_STD forward<_Valtys>(_Vals)...);
+        const auto _Result = _就地安置(_STD forward<_Valtys>(_Vals)...);
         return {迭代器(_Result.first, _取检查值()), _Result.second};
     }
 
@@ -1233,24 +1233,24 @@ public:
 
     template <bool _Multi2 = _Multi, enable_if_t<!_Multi2, int> = 0>
     pair<迭代器, bool> insert(const value_type& _Val) {
-        const auto _Result = _就地构造(_Val);
+        const auto _Result = _就地安置(_Val);
         return {迭代器(_Result.first, _取检查值()), _Result.second};
     }
 
     template <bool _Multi2 = _Multi, enable_if_t<_Multi2, int> = 0>
     迭代器 insert(const value_type& _Val) {
-        return 迭代器(_就地构造(_Val).first, _取检查值());
+        return 迭代器(_就地安置(_Val).first, _取检查值());
     }
 
     template <bool _Multi2 = _Multi, enable_if_t<!_Multi2, int> = 0>
     pair<迭代器, bool> insert(value_type&& _Val) {
-        const auto _Result = _就地构造(_STD move(_Val));
+        const auto _Result = _就地安置(_STD move(_Val));
         return {迭代器(_Result.first, _取检查值()), _Result.second};
     }
 
     template <bool _Multi2 = _Multi, enable_if_t<_Multi2, int> = 0>
     迭代器 insert(value_type&& _Val) {
-        return 迭代器(_就地构造(_STD move(_Val)).first, _取检查值());
+        return 迭代器(_就地安置(_STD move(_Val)).first, _取检查值());
     }
 
     迭代器 insert(常量迭代器 _Where, const value_type& _Val) {

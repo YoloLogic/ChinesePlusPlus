@@ -912,7 +912,7 @@ private:
 
         size_type _New_capacity = _计算增长(_Count, _Small_string_capacity, max_size());
         const pointer _New_ptr  = _按容量分配(_Al, _New_capacity); // throws
-        _Construct_in_place(_My_data._Bx._Ptr, _New_ptr);
+        _就地构造(_My_data._Bx._Ptr, _New_ptr);
 
         _My_data._Mysize = _Count;
         _My_data._Myres  = _New_capacity;
@@ -955,7 +955,7 @@ private:
             if (_Count > _Small_string_capacity) {
                 size_type _New_capacity = _计算增长(_Count);
                 const pointer _New_ptr  = _按容量分配(_Al, _New_capacity); // throws
-                _Construct_in_place(_My_data._Bx._Ptr, _New_ptr);
+                _就地构造(_My_data._Bx._Ptr, _New_ptr);
                 _My_data._Myres = _New_capacity;
             }
         }
@@ -987,7 +987,7 @@ private:
                             _按容量释放(_Al, _My_data._Bx._Ptr, _My_data._Myres);
                             _My_data._Bx._Ptr = _New_ptr;
                         } else {
-                            _Construct_in_place(_My_data._Bx._Ptr, _New_ptr);
+                            _就地构造(_My_data._Bx._Ptr, _New_ptr);
                         }
                         _My_data._Myres = _New_capacity;
                     }
@@ -1066,7 +1066,7 @@ public:
             _New_capacity           = _计算增长(_New_size, _Small_string_capacity, max_size());
             const pointer _Fancyptr = _按容量分配(_取分配器(), _New_capacity); // throws
             _Ptr                    = _Unfancy(_Fancyptr);
-            _Construct_in_place(_My_data._Bx._Ptr, _Fancyptr);
+            _就地构造(_My_data._Bx._Ptr, _Fancyptr);
         }
 
         _My_data._Mysize = _New_size;
@@ -1137,7 +1137,7 @@ public:
         _容器代理指针<_分配器类型> _Proxy(_Alproxy, _My_data); // throws
         const pointer _Fancyptr = _按容量分配(_取分配器(), _New_capacity); // throws
         // nothrow hereafter
-        _Construct_in_place(_My_data._Bx._Ptr, _Fancyptr);
+        _就地构造(_My_data._Bx._Ptr, _Fancyptr);
         _My_data._Mysize = _New_size;
         _My_data._Myres  = _New_capacity;
         const auto _Ptr  = _Unfancy(_Fancyptr);
@@ -1177,7 +1177,7 @@ public:
         const bool _Is_large = _Actual_allocation_size >= _Least_allocation_size;
         if (_Is_large) {
             _ASAN_STRING_REMOVE(*this);
-            _Construct_in_place(_My_data._Bx._Ptr, _Refancy<pointer>(_Right));
+            _就地构造(_My_data._Bx._Ptr, _Refancy<pointer>(_Right));
             _My_data._Mysize = _Size;
             _My_data._Myres  = _Actual_allocation_size - 1;
             _ASAN_STRING_CREATE(*this);
@@ -1299,7 +1299,7 @@ private:
         if (_Right_data._已启用大串模式()) { // steal buffer
             _交换代理与迭代器(_Right);
 
-            _Construct_in_place(_My_data._Bx._Ptr, _Right_data._Bx._Ptr);
+            _就地构造(_My_data._Bx._Ptr, _Right_data._Bx._Ptr);
             _Right_data._Bx._切换到缓冲();
         } else { // copy small string buffer
             _Right_data._孤儿化全部();
@@ -1415,7 +1415,7 @@ public:
                     _Traits::copy(_Unfancy(_New_ptr), _Right_ptr, _Right_size + 1);
 
                     _清理释放();
-                    _Construct_in_place(_Mypair._Myval2._Bx._Ptr, _New_ptr);
+                    _就地构造(_Mypair._Myval2._Bx._Ptr, _New_ptr);
                     _Mypair._Myval2._Mysize = _Right_size;
                     _Mypair._Myval2._Myres  = _New_capacity;
                     _ASAN_STRING_CREATE(*this);
@@ -2521,7 +2521,7 @@ public:
         _Starts_large._Bx._切换到缓冲();
         _Traits::copy(_Starts_large._Bx._Buf, _Starts_small._Bx._Buf, _BUF_SIZE);
 
-        _Construct_in_place(_Starts_small._Bx._Ptr, _Ptr);
+        _就地构造(_Starts_small._Bx._Ptr, _Ptr);
     }
 
     _CONSTEXPR20 void _交换数据(基础字符串实现& _Right) noexcept {
@@ -3015,7 +3015,7 @@ private:
             _按容量释放(_Al, _Mypair._Myval2._Bx._Ptr, _Old_capacity);
             _Mypair._Myval2._Bx._Ptr = _New_ptr;
         } else {
-            _Construct_in_place(_Mypair._Myval2._Bx._Ptr, _New_ptr);
+            _就地构造(_Mypair._Myval2._Bx._Ptr, _New_ptr);
         }
 
         _ASAN_STRING_CREATE(*this);
@@ -3050,7 +3050,7 @@ private:
             _My_data._Bx._Ptr = _New_ptr;
         } else {
             _Fn(_Raw_new, _My_data._Bx._Buf, _Old_size, _Args...);
-            _Construct_in_place(_My_data._Bx._Ptr, _New_ptr);
+            _就地构造(_My_data._Bx._Ptr, _New_ptr);
         }
 
         _ASAN_STRING_CREATE(*this);

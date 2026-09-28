@@ -1058,7 +1058,7 @@ public:
         for (size_type _Block = 0; _Block != _Used_block_count; ++_Block) {
             const auto _New_block_idx = static_cast<_映射差异类型>(_Block);
             const auto _Old_block_idx = static_cast<_映射差异类型>((_First_used_block_idx + _Block) & _Mask);
-            _Construct_in_place(_New_map[_New_block_idx], _映射表()[_Old_block_idx]);
+            _就地构造(_New_map[_New_block_idx], _映射表()[_Old_block_idx]);
         }
 
         // null out the rest of the new map

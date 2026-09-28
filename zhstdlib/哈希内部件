@@ -1635,8 +1635,8 @@ protected:
         const size_t _Hashval, const _结点指针 _Insert_before, const _结点指针 _新节点) noexcept {
         const _结点指针 _Insert_after = _Insert_before->_Prev;
         ++_List._Mypair._Myval2._Mysize;
-        _Construct_in_place(_新节点->_Next, _Insert_before);
-        _Construct_in_place(_新节点->_Prev, _Insert_after);
+        _就地构造(_新节点->_Next, _Insert_before);
+        _就地构造(_新节点->_Prev, _Insert_after);
         _Insert_after->_Next  = _新节点;
         _Insert_before->_Prev = _新节点;
 

@@ -450,7 +450,7 @@ struct _单向链表后插操作2 {
         for (; 0 < _Count; --_Count) {
             _新节点._Allocate(); // throws
             _Alnode_traits::construct(_Al, _STD addressof(_新节点._Ptr->_Myval), _Carg...); // throws
-            _Construct_in_place(_Tail->_Next, _新节点._Ptr);
+            _就地构造(_Tail->_Next, _新节点._Ptr);
             _Tail = _新节点._Ptr;
         }
 
@@ -478,7 +478,7 @@ struct _单向链表后插操作2 {
             _新节点._Allocate(); // throws
             _Alnode_traits::construct(_Al, _STD addressof(_新节点._Ptr->_Myval), *_First); // throws
             const auto _Newtail = _新节点._Release();
-            _Construct_in_place(_Tail->_Next, _Newtail);
+            _就地构造(_Tail->_Next, _Newtail);
             _Tail = _Newtail;
             ++_First; // throws
         }
@@ -491,7 +491,7 @@ struct _单向链表后插操作2 {
             return _After;
         }
 
-        _Construct_in_place(_Local_tail->_Next, _After->_Next);
+        _就地构造(_Local_tail->_Next, _After->_Next);
         _After->_Next = _Head;
         _Tail         = pointer{};
 
@@ -503,7 +503,7 @@ struct _单向链表后插操作2 {
             return;
         }
 
-        _Construct_in_place(_Tail->_Next, pointer{});
+        _就地构造(_Tail->_Next, pointer{});
         pointer _Subject = _Head;
         while (_Subject) {
             value_type::_释放节点(_Al, _STD exchange(_Subject, _Subject->_Next));
@@ -736,7 +736,7 @@ private:
         _新节点._Allocate(); // throws
         _Alnode_traits::construct(
             _新节点._Al, _STD addressof(_新节点._Ptr->_Myval), _STD forward<_Valty>(_Val)...); // throws
-        _Construct_in_place(_新节点._Ptr->_Next, _Pnode->_Next);
+        _就地构造(_新节点._Ptr->_Next, _Pnode->_Next);
         _Pnode->_Next = _新节点._Release();
     }
 
