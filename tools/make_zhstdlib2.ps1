@@ -2355,6 +2355,16 @@ $H = @{
       'allocator_type'           = '分配器类型'
     }
     members = [ordered]@{
+      # §17.22 本头**自己定义**的内部助手（逐名量过"谁定义它"）-> 翻。
+      #   ⚠ 不登记（借来的）：_Allocate _Extract _Lock _Make _Proxy _Release _Unwrapped _Verify_range
+      #   ⚠ 公共 API 名（insert/erase/find/count/emplace/merge/…）属与 <集合>/<映射> 的**一条链**，
+      #     必须三处同批（§17.8 的判据），不在本批。
+      '_Alloc_sentinel_and_proxy' = '_分配哨兵与代理'
+      '_Copy' = '_复制'
+      '_Copy_nodes' = '_复制节点'
+      '_Copy_or_move' = '_复制或移动'
+      '_Reparent_ptr' = '_重挂父指针'
+      '_Sentinel' = '_哨兵'
       # §17.9 `_Kfn`（有序那一条链，**调用侧**）：实测本头正文里只有
       #   `_Traits::_Kfn(...)`（§17.6.1 逐行看过），定义在 <集合>/<映射> 的 traits 里
       #   -> 三处同批翻。与 §17.8 的无序链各自闭包、互不相干。

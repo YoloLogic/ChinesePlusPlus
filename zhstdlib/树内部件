@@ -898,17 +898,17 @@ public:
     using const_reverse_iterator = _STD reverse_iterator<常量迭代器>;
 
     enum class _策略 : bool {
-        _Copy,
+        _复制,
         _Move,
     };
 
     _树(const 键比较器& _Parg) : _Mypair(_One_then_variadic_args_t{}, _Parg, _Zero_then_variadic_args_t{}) {
-        _Alloc_sentinel_and_proxy();
+        _分配哨兵与代理();
     }
 
     _树(const 键比较器& _Parg, const 分配器类型& _Al)
         : _Mypair(_One_then_variadic_args_t{}, _Parg, _One_then_variadic_args_t{}, _Al) {
-        _Alloc_sentinel_and_proxy();
+        _分配哨兵与代理();
     }
 
     template <class _Any_alloc>
@@ -918,16 +918,16 @@ public:
         auto&& _Alproxy   = _GET_PROXY_ALLOCATOR(_结点分配器, _取分配器());
         const auto _Scary = _取检查值();
         _Container_proxy_ptr<_分配器类型> _Proxy(_Alproxy, *_Scary);
-        _树头作用域指针<_结点分配器, _迭代器检查值> _Sentinel(_取分配器(), *_Scary);
-        _Copy<_策略::_Copy>(_Right);
-        _Sentinel._Release();
+        _树头作用域指针<_结点分配器, _迭代器检查值> _哨兵(_取分配器(), *_Scary);
+        _复制<_策略::_复制>(_Right);
+        _哨兵._Release();
         _Proxy._Release();
     }
 
     _树(_树&& _Right)
         : _Mypair(_One_then_variadic_args_t{}, _Right.key_comp(), // intentionally copy comparator, see LWG-2227
               _One_then_variadic_args_t{}, _STD move(_Right._取分配器())) {
-        _Alloc_sentinel_and_proxy();
+        _分配哨兵与代理();
         _交换值不含比较器(_Right);
     }
 
@@ -939,15 +939,15 @@ public:
                 auto&& _Alproxy   = _GET_PROXY_ALLOCATOR(_结点分配器, _取分配器());
                 const auto _Scary = _取检查值();
                 _Container_proxy_ptr<_分配器类型> _Proxy(_Alproxy, *_Scary);
-                _树头作用域指针<_结点分配器, _迭代器检查值> _Sentinel(_取分配器(), *_Scary);
-                _Copy<_策略::_Move>(_Right);
-                _Sentinel._Release();
+                _树头作用域指针<_结点分配器, _迭代器检查值> _哨兵(_取分配器(), *_Scary);
+                _复制<_策略::_Move>(_Right);
+                _哨兵._Release();
                 _Proxy._Release();
                 return;
             }
         }
 
-        _Alloc_sentinel_and_proxy();
+        _分配哨兵与代理();
         _交换值不含比较器(_Right);
     }
 
@@ -983,7 +983,7 @@ public:
             if (_Al != _Right_al) {
                 clear();
                 _取比较器() = _Right._取比较器(); // intentionally copy comparator, see LWG-2227
-                _Copy<_策略::_Move>(_Right);
+                _复制<_策略::_Move>(_Right);
                 return *this;
             }
         }
@@ -1125,7 +1125,7 @@ public:
                 _Scary->_Myhead = _Newhead;
                 _Proxy._Bind(_Alproxy, _Scary);
                 _取比较器() = _Right._取比较器();
-                _Copy<_策略::_Copy>(_Right);
+                _复制<_策略::_复制>(_Right);
                 return *this;
             }
         }
@@ -1133,7 +1133,7 @@ public:
         clear();
         _取比较器() = _Right._取比较器();
         _Pocca(_Al, _Right_al);
-        _Copy<_策略::_Copy>(_Right);
+        _复制<_策略::_复制>(_Right);
 
         return *this;
     }
@@ -1652,10 +1652,10 @@ protected:
     }
 
     template <_策略 _Strat>
-    void _Copy(const _树& _Right) { // copy or move entire tree from _Right
+    void _复制(const _树& _Right) { // copy or move entire tree from _Right
         const auto _Scary        = _取检查值();
         const auto _Right_scary  = _Right._取检查值();
-        _Scary->_Myhead->_Parent = _Copy_nodes<_Strat>(_Right_scary->_Myhead->_Parent, _Scary->_Myhead);
+        _Scary->_Myhead->_Parent = _复制节点<_Strat>(_Right_scary->_Myhead->_Parent, _Scary->_Myhead);
         _Scary->_Mysize          = _Right_scary->_Mysize;
         if (!_Scary->_Myhead->_Parent->_Isnil) { // nonempty tree, look for new smallest and largest
             _Scary->_Myhead->_Left  = _迭代器检查值::_最小(_Scary->_Myhead->_Parent);
@@ -1667,8 +1667,8 @@ protected:
     }
 
     template <_策略 _Strat, class _Ty>
-    _结点指针 _Copy_or_move(_Ty& _Val) {
-        if constexpr (_Strat == _策略::_Copy) {
+    _结点指针 _复制或移动(_Ty& _Val) {
+        if constexpr (_Strat == _策略::_复制) {
             return _建节点(_Val);
         } else {
             if constexpr (_Is_set) {
@@ -1680,20 +1680,20 @@ protected:
     }
 
     template <_策略 _Strat>
-    _结点指针 _Copy_nodes(_结点指针 _Rootnode, _结点指针 _Wherenode) {
+    _结点指针 _复制节点(_结点指针 _Rootnode, _结点指针 _Wherenode) {
         // copy entire subtree, recursively
         const auto _Scary = _取检查值();
         _结点指针 _Newroot = _Scary->_Myhead; // point at nil node
 
         if (!_Rootnode->_Isnil) { // copy or move a node, then any subtrees
-            _Newroot          = _Copy_or_move<_Strat>(_Rootnode->_Myval); // memorize new root
+            _Newroot          = _复制或移动<_Strat>(_Rootnode->_Myval); // memorize new root
             _Newroot->_Parent = _Wherenode;
             _Newroot->_Color  = _Rootnode->_Color;
 
             typename _迭代器检查值::template _擦树并孤立守卫<_结点分配器> _Guard{_Scary, _取分配器(), _Newroot};
 
-            _Newroot->_Left  = _Copy_nodes<_Strat>(_Rootnode->_Left, _Newroot);
-            _Newroot->_Right = _Copy_nodes<_Strat>(_Rootnode->_Right, _Newroot);
+            _Newroot->_Left  = _复制节点<_Strat>(_Rootnode->_Left, _Newroot);
+            _Newroot->_Right = _复制节点<_Strat>(_Rootnode->_Right, _Newroot);
 
             _Guard._Val_ptr = nullptr;
         }
@@ -1896,7 +1896,7 @@ public:
             _Extracted->_Color = _红;
 
             const auto _Inserted = _Scary->_插入节点(_Loc._Location, _Extracted);
-            _Reparent_ptr(_Inserted, _That);
+            _重挂父指针(_Inserted, _That);
         }
     }
 
@@ -1913,7 +1913,7 @@ public:
 
 protected:
     template <class _Other_traits>
-    void _Reparent_ptr(const _结点指针 _Ptr, _树<_Other_traits>& _Old_parent) {
+    void _重挂父指针(const _结点指针 _Ptr, _树<_Other_traits>& _Old_parent) {
         (void) _Ptr;
         (void) _Old_parent;
 #if _ITERATOR_DEBUG_LEVEL == 2
@@ -1951,7 +1951,7 @@ protected:
     }
 #endif // _HAS_CXX17
 
-    void _Alloc_sentinel_and_proxy() {
+    void _分配哨兵与代理() {
         const auto _Scary = _取检查值();
         auto&& _Alproxy   = _GET_PROXY_ALLOCATOR(_结点分配器, _取分配器());
         _Container_proxy_ptr<_结点分配器> _Proxy(_Alproxy, *_Scary);
