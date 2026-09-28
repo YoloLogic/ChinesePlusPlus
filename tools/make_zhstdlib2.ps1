@@ -282,6 +282,7 @@ $H = @{
       '_Stop_requested' = '_已请求停止'
       '_Stop_possible'  = '_可停止'
     }
+    zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
     # ⚠ swap 不放进来：它是类内定义的 friend 自由函数，只能靠 ADL 找到，
     #   `基类::交换` 这种限定查找找不到它（生成器的转发用的是限定查找）。
@@ -3274,6 +3275,7 @@ $H = @{
                           'arrival_token' = '到达令牌' }
     members = [ordered]@{ 'arrive' = '到达'; 'arrive_and_drop' = '到达并退出'
                           'arrive_and_wait' = '到达并等待'; 'wait' = '等待' }
+    zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
     derive  = @( @('arrive','到达'), @('arrive_and_drop','到达并退出'),
                  @('arrive_and_wait','到达并等待'), @('wait','等待') )
