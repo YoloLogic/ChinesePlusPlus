@@ -1840,7 +1840,16 @@ $H = @{
                           'local_iterator'      = '局部迭代器'
                           'const_local_iterator' = '常量局部迭代器'
                           }
-    members = [ordered]@{ 
+    members = [ordered]@{
+      '_Alloc' = '_分配器';
+      '_First' = '_首个';
+      '_Getal' = '_取分配器';
+      '_Guide_size_type_t' = '_推导尺寸类型';
+      '_In_place_key_extract_set' = '_就地键提取集合';
+      '_Insert_range_unchecked' = '_插入范围非检查';
+      '_Last' = '_最后';
+      '_List_node' = '_链表节点';
+      '_Traits' = '_特征'; 
       # §17.27.60 台账收尾（阶段(3) 第一批）：这些名字的定义方是 通用内部件（我们的 xutility 拷贝，
       #   §17.27.52 已给定义方解毒）；本头能看到它 -> 调用点跟改，指向我们那份。
       '_Ubegin' = '_解包首'
@@ -2081,6 +2090,19 @@ $H = @{
                           'const_local_iterator' = '常量局部迭代器'
                           }
     members = [ordered]@{
+      '_Valty' = '_值参数类型';
+      '_Alloc' = '_分配器';
+      '_First' = '_首个';
+      '_Ty' = '_类型';
+      '_Guide_size_type_t' = '_推导尺寸类型';
+      '_In_place_key_extract_map' = '_就地键提取映射';
+      '_Last' = '_最后';
+      '_Newnode' = '_新节点';
+      '_Range_key_type' = '_范围键类型';
+      '_Range_mapped_type' = '_范围映射类型';
+      '_Range_to_alloc_type' = '_范围到分配器类型';
+      '_Result' = '_结果';
+      '_Traits' = '_特征';
       # §17.27.60 台账收尾（阶段(3) 第一批）：这些名字的定义方是 通用内部件（我们的 xutility 拷贝，
       #   §17.27.52 已给定义方解毒）；本头能看到它 -> 调用点跟改，指向我们那份。
       '_Make_iter' = '_造迭代器'
@@ -3060,6 +3082,7 @@ $H = @{
       '_In_place_key_extractor'       = '_就地键提取器'
     }
     members = [ordered]@{
+      '_Extract' = '_摘取';
       # §17.27.73 A 桶批量（§17.27.62 工作表）：A 桶 = 唯一定义方归我们 -> 可直接登记；
       #   译名取自已登记条目（跨头译名守卫据此保证一致）。
       '_Freenode' = '_释放节点'

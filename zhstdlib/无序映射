@@ -24,31 +24,31 @@ _STL_DISABLE_CLANG_WARNINGS
 名域 标准 { 名域 细节 {
 使用 名域 std;
 template <class _Kty, // key type
-    class _Ty, // mapped type
+    class _类型, // mapped type
     class _Tr, // comparator predicate type
-    class _Alloc, // actual allocator type (should be value allocator)
+    class _分配器, // actual allocator type (should be value allocator)
     bool _Mfl> // true if multiple equivalent keys are permitted
 class _无序映射特征 : public _Tr { // traits required to make _哈希 behave like a map
 public:
     using 键类型            = _Kty;
-    using value_type          = pair<const _Kty, _Ty>;
-    using _可变值类型 = pair<_Kty, _Ty>;
+    using value_type          = pair<const _Kty, _类型>;
+    using _可变值类型 = pair<_Kty, _类型>;
     using 键比较器         = _Tr;
-    using 分配器类型      = _Alloc;
+    using 分配器类型      = _分配器;
 #if _HAS_CXX17
-    using 结点类型 = _Node_handle<_链表节点<value_type, typename allocator_traits<_Alloc>::void_pointer>, _Alloc,
-        _Node_handle_map_base, _Kty, _Ty>;
+    using 结点类型 = _Node_handle<_链表节点<value_type, typename allocator_traits<_分配器>::void_pointer>, _分配器,
+        _Node_handle_map_base, _Kty, _类型>;
 #endif // _HAS_CXX17
 
     static constexpr bool _Multi    = _Mfl;
     static constexpr bool _Standard = true;
 
     template <class... _Args>
-    using _就地键提取器 = _In_place_key_extract_map<_Kty, _Args...>;
+    using _就地键提取器 = _就地键提取映射<_Kty, _Args...>;
 
     _无序映射特征() = default;
 
-    explicit _无序映射特征(const _Tr& _Traits) noexcept(is_nothrow_copy_constructible_v<_Tr>) : _Tr(_Traits) {}
+    explicit _无序映射特征(const _Tr& _特征) noexcept(is_nothrow_copy_constructible_v<_Tr>) : _Tr(_特征) {}
 
     using 值比较 = void; // TRANSITION, remove when _Standard becomes unconditionally true
 
@@ -58,19 +58,19 @@ public:
     }
 };
 
-_EXPORT_STD template <class _Kty, class _Ty, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>,
-    class _Alloc = allocator<pair<const _Kty, _Ty>>>
-class 无序映射实现 : public _哈希<_无序映射特征<_Kty, _Ty, _无序哈希比较<_Kty, _Hasher, _Keyeq>, _Alloc, false>> {
+_EXPORT_STD template <class _Kty, class _类型, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>,
+    class _分配器 = allocator<pair<const _Kty, _类型>>>
+class 无序映射实现 : public _哈希<_无序映射特征<_Kty, _类型, _无序哈希比较<_Kty, _Hasher, _Keyeq>, _分配器, false>> {
     // hash table of {key, mapped} values, unique keys
 public:
-    static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<pair<const _Kty, _Ty>, typename _Alloc::value_type>,
+    static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<pair<const _Kty, _类型>, typename _分配器::value_type>,
         _MISMATCHED_ALLOCATOR_MESSAGE("无序映射实现<Key, Value, Hasher, Eq, Allocator>", "pair<const Key, Value>"));
     static_assert(is_object_v<_Kty>, "The C++ Standard forbids containers of non-object types "
                                      "because of [container.requirements].");
 
 private:
     using _我的特征      = _无序哈希比较<_Kty, _Hasher, _Keyeq>;
-    using _我的基类        = _哈希<_无序映射特征<_Kty, _Ty, _我的特征, _Alloc, false>>;
+    using _我的基类        = _哈希<_无序映射特征<_Kty, _类型, _我的特征, _分配器, false>>;
     using _结点分配器        = typename _我的基类::_结点分配器;
     using _结点分配器特征 = typename _我的基类::_结点分配器特征;
     using _结点指针       = typename _我的基类::_结点指针;
@@ -79,10 +79,10 @@ private:
 public:
     using 散列器      = _Hasher;
     using 键类型    = _Kty;
-    using 映射类型 = _Ty;
+    using 映射类型 = _类型;
     using 键相等器   = _Keyeq;
 
-    using value_type      = pair<const _Kty, _Ty>;
+    using value_type      = pair<const _Kty, _类型>;
     using 分配器类型  = typename _我的基类::分配器类型;
     using size_type       = typename _我的基类::size_type;
     using difference_type = typename _我的基类::difference_type;
@@ -137,55 +137,55 @@ public:
     }
 
     template <class _Iter>
-    无序映射实现(_Iter _First, _Iter _Last) : _我的基类(_键比较器(), 分配器类型()) {
-        insert(_First, _Last);
+    无序映射实现(_Iter _首个, _Iter _最后) : _我的基类(_键比较器(), 分配器类型()) {
+        insert(_首个, _最后);
     }
 
     template <class _Iter>
-    无序映射实现(_Iter _First, _Iter _Last, const 分配器类型& _Al) : _我的基类(_键比较器(), _Al) {
-        insert(_First, _Last);
+    无序映射实现(_Iter _首个, _Iter _最后, const 分配器类型& _Al) : _我的基类(_键比较器(), _Al) {
+        insert(_首个, _最后);
     }
 
     template <class _Iter>
-    无序映射实现(_Iter _First, _Iter _Last, size_type _Buckets) : _我的基类(_键比较器(), 分配器类型()) {
+    无序映射实现(_Iter _首个, _Iter _最后, size_type _Buckets) : _我的基类(_键比较器(), 分配器类型()) {
         _我的基类::重哈希(_Buckets);
-        insert(_First, _Last);
+        insert(_首个, _最后);
     }
 
     template <class _Iter>
-    无序映射实现(_Iter _First, _Iter _Last, size_type _Buckets, const 分配器类型& _Al)
+    无序映射实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 分配器类型& _Al)
         : _我的基类(_键比较器(), _Al) {
         _我的基类::重哈希(_Buckets);
-        insert(_First, _Last);
+        insert(_首个, _最后);
     }
 
     template <class _Iter>
-    无序映射实现(_Iter _First, _Iter _Last, size_type _Buckets, const 散列器& _Hasharg)
+    无序映射实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 散列器& _Hasharg)
         : _我的基类(_键比较器(_Hasharg), 分配器类型()) {
         _我的基类::重哈希(_Buckets);
-        insert(_First, _Last);
+        insert(_首个, _最后);
     }
 
     template <class _Iter>
-    无序映射实现(_Iter _First, _Iter _Last, size_type _Buckets, const 散列器& _Hasharg, const 分配器类型& _Al)
+    无序映射实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 散列器& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg), _Al) {
         _我的基类::重哈希(_Buckets);
-        insert(_First, _Last);
+        insert(_首个, _最后);
     }
 
     template <class _Iter>
-    无序映射实现(_Iter _First, _Iter _Last, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg)
+    无序映射实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), 分配器类型()) {
         _我的基类::重哈希(_Buckets);
-        insert(_First, _Last);
+        insert(_首个, _最后);
     }
 
     template <class _Iter>
-    无序映射实现(_Iter _First, _Iter _Last, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg,
+    无序映射实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg,
         const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), _Al) {
         _我的基类::重哈希(_Buckets);
-        insert(_First, _Last);
+        insert(_首个, _最后);
     }
 
 #if _HAS_CXX23
@@ -268,26 +268,26 @@ public:
 
     using _我的基类::insert;
 
-    template <class _Valty, enable_if_t<is_constructible_v<value_type, _Valty>, int> = 0>
-    pair<iterator, bool> insert(_Valty&& _Val) {
-        return this->就地构造(_STD forward<_Valty>(_Val));
+    template <class _值参数类型, enable_if_t<is_constructible_v<value_type, _值参数类型>, int> = 0>
+    pair<iterator, bool> insert(_值参数类型&& _Val) {
+        return this->就地构造(_STD forward<_值参数类型>(_Val));
     }
 
-    template <class _Valty, enable_if_t<is_constructible_v<value_type, _Valty>, int> = 0>
-    iterator insert(const_iterator _Where, _Valty&& _Val) {
-        return this->按提示就地构造(_Where, _STD forward<_Valty>(_Val));
+    template <class _值参数类型, enable_if_t<is_constructible_v<value_type, _值参数类型>, int> = 0>
+    iterator insert(const_iterator _Where, _值参数类型&& _Val) {
+        return this->按提示就地构造(_Where, _STD forward<_值参数类型>(_Val));
     }
 
     template <class... _Mappedty>
     pair<iterator, bool> 尝试就地构造(const 键类型& _Keyval, _Mappedty&&... _Mapval) {
-        const auto _Result = this->_尝试就地构造(_Keyval, _STD forward<_Mappedty>(_Mapval)...);
-        return {this->_List._造迭代器(_Result.first), _Result.second};
+        const auto _结果 = this->_尝试就地构造(_Keyval, _STD forward<_Mappedty>(_Mapval)...);
+        return {this->_List._造迭代器(_结果.first), _结果.second};
     }
 
     template <class... _Mappedty>
     pair<iterator, bool> 尝试就地构造(键类型&& _Keyval, _Mappedty&&... _Mapval) {
-        const auto _Result = this->_尝试就地构造(_STD move(_Keyval), _STD forward<_Mappedty>(_Mapval)...);
-        return {this->_List._造迭代器(_Result.first), _Result.second};
+        const auto _结果 = this->_尝试就地构造(_STD move(_Keyval), _STD forward<_Mappedty>(_Mapval)...);
+        return {this->_List._造迭代器(_结果.first), _结果.second};
     }
 
     template <class... _Mappedty>
@@ -315,15 +315,15 @@ private:
 
         this->_检查最大尺寸();
         // invalidates _Keyval:
-        _链表节点就地构造操作2<_结点分配器> _Newnode(
+        _链表节点就地构造操作2<_结点分配器> _新节点(
             this->_取分配器(), _STD forward<_Keyty>(_Keyval_arg), _STD forward<_Mappedty>(_Mapval));
         if (this->_检查需重哈希1()) {
             this->_为1重哈希();
-            _Target = this->_查找最后(_Newnode._Ptr->_Myval.first, _Hashval);
+            _Target = this->_查找最后(_新节点._Ptr->_Myval.first, _Hashval);
         }
 
         return {this->_List._造迭代器(
-                    this->_在之前插入新节点(_Hashval, _Target._Insert_before, _Newnode._Release())),
+                    this->_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release())),
             true};
     }
 
@@ -339,15 +339,15 @@ private:
 
         this->_检查最大尺寸();
         // invalidates _Keyval:
-        _链表节点就地构造操作2<_结点分配器> _Newnode(
+        _链表节点就地构造操作2<_结点分配器> _新节点(
             this->_取分配器(), _STD forward<_Keyty>(_Keyval_arg), _STD forward<_Mappedty>(_Mapval));
         if (this->_检查需重哈希1()) {
             this->_为1重哈希();
-            _Target = this->_按提示查找(_Hint, _Newnode._Ptr->_Myval.first, _Hashval);
+            _Target = this->_按提示查找(_Hint, _新节点._Ptr->_Myval.first, _Hashval);
         }
 
         return this->_List._造迭代器(
-            this->_在之前插入新节点(_Hashval, _Target._Insert_before, _Newnode._Release()));
+            this->_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release()));
     }
 
 public:
@@ -459,101 +459,101 @@ public:
 
 #if _HAS_CXX17
 template <class _Iter, class _Hasher = hash<_Guide_key_t<_Iter>>, class _Keyeq = equal_to<_Guide_key_t<_Iter>>,
-    class _Alloc = allocator<_Guide_pair_t<_Iter>>,
+    class _分配器 = allocator<_Guide_pair_t<_Iter>>,
     enable_if_t<
-        conjunction_v<_Is_iterator<_Iter>, _是哈希器<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_Alloc>>,
+        conjunction_v<_Is_iterator<_Iter>, _是哈希器<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_分配器>>,
         int> = 0>
-无序映射实现(_Iter, _Iter, _Guide_size_type_t<_Alloc> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(), _Alloc = _Alloc())
-    -> 无序映射实现<_Guide_key_t<_Iter>, _Guide_val_t<_Iter>, _Hasher, _Keyeq, _Alloc>;
+无序映射实现(_Iter, _Iter, _推导尺寸类型<_分配器> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(), _分配器 = _分配器())
+    -> 无序映射实现<_Guide_key_t<_Iter>, _Guide_val_t<_Iter>, _Hasher, _Keyeq, _分配器>;
 
-template <class _Kty, class _Ty, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>,
-    class _Alloc = allocator<pair<const _Kty, _Ty>>,
-    enable_if_t<conjunction_v<_是哈希器<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_Alloc>>, int> = 0>
-无序映射实现(initializer_list<pair<_Kty, _Ty>>, _Guide_size_type_t<_Alloc> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(),
-    _Alloc = _Alloc()) -> 无序映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>;
+template <class _Kty, class _类型, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>,
+    class _分配器 = allocator<pair<const _Kty, _类型>>,
+    enable_if_t<conjunction_v<_是哈希器<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_分配器>>, int> = 0>
+无序映射实现(initializer_list<pair<_Kty, _类型>>, _推导尺寸类型<_分配器> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(),
+    _分配器 = _分配器()) -> 无序映射实现<_Kty, _类型, _Hasher, _Keyeq, _分配器>;
 
-template <class _Iter, class _Alloc, enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_allocator<_Alloc>>, int> = 0>
-无序映射实现(_Iter, _Iter, _Alloc) -> 无序映射实现<_Guide_key_t<_Iter>, _Guide_val_t<_Iter>,
-    hash<_Guide_key_t<_Iter>>, equal_to<_Guide_key_t<_Iter>>, _Alloc>;
+template <class _Iter, class _分配器, enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_allocator<_分配器>>, int> = 0>
+无序映射实现(_Iter, _Iter, _分配器) -> 无序映射实现<_Guide_key_t<_Iter>, _Guide_val_t<_Iter>,
+    hash<_Guide_key_t<_Iter>>, equal_to<_Guide_key_t<_Iter>>, _分配器>;
 
-template <class _Iter, class _Alloc, enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_allocator<_Alloc>>, int> = 0>
-无序映射实现(_Iter, _Iter, _Guide_size_type_t<_Alloc>, _Alloc) -> 无序映射实现<_Guide_key_t<_Iter>,
-    _Guide_val_t<_Iter>, hash<_Guide_key_t<_Iter>>, equal_to<_Guide_key_t<_Iter>>, _Alloc>;
+template <class _Iter, class _分配器, enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_allocator<_分配器>>, int> = 0>
+无序映射实现(_Iter, _Iter, _推导尺寸类型<_分配器>, _分配器) -> 无序映射实现<_Guide_key_t<_Iter>,
+    _Guide_val_t<_Iter>, hash<_Guide_key_t<_Iter>>, equal_to<_Guide_key_t<_Iter>>, _分配器>;
 
-template <class _Iter, class _Hasher, class _Alloc,
-    enable_if_t<conjunction_v<_Is_iterator<_Iter>, _是哈希器<_Hasher>, _Is_allocator<_Alloc>>, int> = 0>
-无序映射实现(_Iter, _Iter, _Guide_size_type_t<_Alloc>, _Hasher, _Alloc)
-    -> 无序映射实现<_Guide_key_t<_Iter>, _Guide_val_t<_Iter>, _Hasher, equal_to<_Guide_key_t<_Iter>>, _Alloc>;
+template <class _Iter, class _Hasher, class _分配器,
+    enable_if_t<conjunction_v<_Is_iterator<_Iter>, _是哈希器<_Hasher>, _Is_allocator<_分配器>>, int> = 0>
+无序映射实现(_Iter, _Iter, _推导尺寸类型<_分配器>, _Hasher, _分配器)
+    -> 无序映射实现<_Guide_key_t<_Iter>, _Guide_val_t<_Iter>, _Hasher, equal_to<_Guide_key_t<_Iter>>, _分配器>;
 
-template <class _Kty, class _Ty, class _Alloc, enable_if_t<_Is_allocator<_Alloc>::value, int> = 0>
-无序映射实现(initializer_list<pair<_Kty, _Ty>>, _Alloc)
-    -> 无序映射实现<_Kty, _Ty, hash<_Kty>, equal_to<_Kty>, _Alloc>;
+template <class _Kty, class _类型, class _分配器, enable_if_t<_Is_allocator<_分配器>::value, int> = 0>
+无序映射实现(initializer_list<pair<_Kty, _类型>>, _分配器)
+    -> 无序映射实现<_Kty, _类型, hash<_Kty>, equal_to<_Kty>, _分配器>;
 
-template <class _Kty, class _Ty, class _Alloc, enable_if_t<_Is_allocator<_Alloc>::value, int> = 0>
-无序映射实现(initializer_list<pair<_Kty, _Ty>>, _Guide_size_type_t<_Alloc>, _Alloc)
-    -> 无序映射实现<_Kty, _Ty, hash<_Kty>, equal_to<_Kty>, _Alloc>;
+template <class _Kty, class _类型, class _分配器, enable_if_t<_Is_allocator<_分配器>::value, int> = 0>
+无序映射实现(initializer_list<pair<_Kty, _类型>>, _推导尺寸类型<_分配器>, _分配器)
+    -> 无序映射实现<_Kty, _类型, hash<_Kty>, equal_to<_Kty>, _分配器>;
 
-template <class _Kty, class _Ty, class _Hasher, class _Alloc,
-    enable_if_t<conjunction_v<_是哈希器<_Hasher>, _Is_allocator<_Alloc>>, int> = 0>
-无序映射实现(initializer_list<pair<_Kty, _Ty>>, _Guide_size_type_t<_Alloc>, _Hasher, _Alloc)
-    -> 无序映射实现<_Kty, _Ty, _Hasher, equal_to<_Kty>, _Alloc>;
+template <class _Kty, class _类型, class _Hasher, class _分配器,
+    enable_if_t<conjunction_v<_是哈希器<_Hasher>, _Is_allocator<_分配器>>, int> = 0>
+无序映射实现(initializer_list<pair<_Kty, _类型>>, _推导尺寸类型<_分配器>, _Hasher, _分配器)
+    -> 无序映射实现<_Kty, _类型, _Hasher, equal_to<_Kty>, _分配器>;
 
 #if _HAS_CXX23
-template <_RANGES input_range _Rng, _Hasher_for_container _Hasher = hash<_Range_key_type<_Rng>>,
-    class _Keyeq                    = equal_to<_Range_key_type<_Rng>>,
-    _Allocator_for_container _Alloc = allocator<_Range_to_alloc_type<_Rng>>>
+template <_RANGES input_range _Rng, _Hasher_for_container _Hasher = hash<_范围键类型<_Rng>>,
+    class _Keyeq                    = equal_to<_范围键类型<_Rng>>,
+    _Allocator_for_container _分配器 = allocator<_范围到分配器类型<_Rng>>>
     requires (!_Allocator_for_container<_Keyeq>)
-无序映射实现(from_range_t, _Rng&&, _Guide_size_type_t<_Alloc> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(),
-    _Alloc = _Alloc()) -> 无序映射实现<_Range_key_type<_Rng>, _Range_mapped_type<_Rng>, _Hasher, _Keyeq, _Alloc>;
+无序映射实现(from_range_t, _Rng&&, _推导尺寸类型<_分配器> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(),
+    _分配器 = _分配器()) -> 无序映射实现<_范围键类型<_Rng>, _范围映射类型<_Rng>, _Hasher, _Keyeq, _分配器>;
 
-template <_RANGES input_range _Rng, _Allocator_for_container _Alloc>
-无序映射实现(from_range_t, _Rng&&, _Guide_size_type_t<_Alloc>, _Alloc) -> 无序映射实现<_Range_key_type<_Rng>,
-    _Range_mapped_type<_Rng>, hash<_Range_key_type<_Rng>>, equal_to<_Range_key_type<_Rng>>, _Alloc>;
+template <_RANGES input_range _Rng, _Allocator_for_container _分配器>
+无序映射实现(from_range_t, _Rng&&, _推导尺寸类型<_分配器>, _分配器) -> 无序映射实现<_范围键类型<_Rng>,
+    _范围映射类型<_Rng>, hash<_范围键类型<_Rng>>, equal_to<_范围键类型<_Rng>>, _分配器>;
 
-template <_RANGES input_range _Rng, _Allocator_for_container _Alloc>
-无序映射实现(from_range_t, _Rng&&, _Alloc) -> 无序映射实现<_Range_key_type<_Rng>, _Range_mapped_type<_Rng>,
-    hash<_Range_key_type<_Rng>>, equal_to<_Range_key_type<_Rng>>, _Alloc>;
+template <_RANGES input_range _Rng, _Allocator_for_container _分配器>
+无序映射实现(from_range_t, _Rng&&, _分配器) -> 无序映射实现<_范围键类型<_Rng>, _范围映射类型<_Rng>,
+    hash<_范围键类型<_Rng>>, equal_to<_范围键类型<_Rng>>, _分配器>;
 
-template <_RANGES input_range _Rng, _Hasher_for_container _Hasher, _Allocator_for_container _Alloc>
-无序映射实现(from_range_t, _Rng&&, _Guide_size_type_t<_Alloc>, _Hasher, _Alloc)
-    -> 无序映射实现<_Range_key_type<_Rng>, _Range_mapped_type<_Rng>, _Hasher, equal_to<_Range_key_type<_Rng>>, _Alloc>;
+template <_RANGES input_range _Rng, _Hasher_for_container _Hasher, _Allocator_for_container _分配器>
+无序映射实现(from_range_t, _Rng&&, _推导尺寸类型<_分配器>, _Hasher, _分配器)
+    -> 无序映射实现<_范围键类型<_Rng>, _范围映射类型<_Rng>, _Hasher, equal_to<_范围键类型<_Rng>>, _分配器>;
 #endif // _HAS_CXX23
 #endif // _HAS_CXX17
 
-_EXPORT_STD template <class _Kty, class _Ty, class _Hasher, class _Keyeq, class _Alloc>
-void swap(无序映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>& _Left,
-    无序映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>& _Right) noexcept(noexcept(_Left.swap(_Right))) {
+_EXPORT_STD template <class _Kty, class _类型, class _Hasher, class _Keyeq, class _分配器>
+void swap(无序映射实现<_Kty, _类型, _Hasher, _Keyeq, _分配器>& _Left,
+    无序映射实现<_Kty, _类型, _Hasher, _Keyeq, _分配器>& _Right) noexcept(noexcept(_Left.swap(_Right))) {
     _Left.swap(_Right);
 }
 
 #if _HAS_CXX20
-_EXPORT_STD template <class _Kty, class _Ty, class _Hasher, class _Keyeq, class _Alloc, class _Pr>
-无序映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>::size_type erase_if(
-    无序映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>& _Cont, _Pr _Pred) {
+_EXPORT_STD template <class _Kty, class _类型, class _Hasher, class _Keyeq, class _分配器, class _Pr>
+无序映射实现<_Kty, _类型, _Hasher, _Keyeq, _分配器>::size_type erase_if(
+    无序映射实现<_Kty, _类型, _Hasher, _Keyeq, _分配器>& _Cont, _Pr _Pred) {
     return _Erase_nodes_if(_Cont, _传递函数(_Pred));
 }
 #endif // _HAS_CXX20
 
-_EXPORT_STD template <class _Kty, class _Ty, class _Hasher, class _Keyeq, class _Alloc>
-_NODISCARD bool operator==(const 无序映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>& _Left,
-    const 无序映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>& _Right) {
+_EXPORT_STD template <class _Kty, class _类型, class _Hasher, class _Keyeq, class _分配器>
+_NODISCARD bool operator==(const 无序映射实现<_Kty, _类型, _Hasher, _Keyeq, _分配器>& _Left,
+    const 无序映射实现<_Kty, _类型, _Hasher, _Keyeq, _分配器>& _Right) {
     return _哈希相等(_Left, _Right);
 }
 
 #if !_HAS_CXX20
-template <class _Kty, class _Ty, class _Hasher, class _Keyeq, class _Alloc>
-_NODISCARD bool operator!=(const 无序映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>& _Left,
-    const 无序映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>& _Right) {
+template <class _Kty, class _类型, class _Hasher, class _Keyeq, class _分配器>
+_NODISCARD bool operator!=(const 无序映射实现<_Kty, _类型, _Hasher, _Keyeq, _分配器>& _Left,
+    const 无序映射实现<_Kty, _类型, _Hasher, _Keyeq, _分配器>& _Right) {
     return !(_Left == _Right);
 }
 #endif // !_HAS_CXX20
 
-_EXPORT_STD template <class _Kty, class _Ty, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>,
-    class _Alloc = allocator<pair<const _Kty, _Ty>>>
-class 无序多重映射实现 : public _哈希<_无序映射特征<_Kty, _Ty, _无序哈希比较<_Kty, _Hasher, _Keyeq>, _Alloc, true>> {
+_EXPORT_STD template <class _Kty, class _类型, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>,
+    class _分配器 = allocator<pair<const _Kty, _类型>>>
+class 无序多重映射实现 : public _哈希<_无序映射特征<_Kty, _类型, _无序哈希比较<_Kty, _Hasher, _Keyeq>, _分配器, true>> {
     // hash table of {key, mapped} values, non-unique keys
 public:
-    static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<pair<const _Kty, _Ty>, typename _Alloc::value_type>,
+    static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<pair<const _Kty, _类型>, typename _分配器::value_type>,
         _MISMATCHED_ALLOCATOR_MESSAGE(
             "无序多重映射实现<Key, Value, Hasher, Eq, Allocator>", "pair<const Key, Value>"));
     static_assert(is_object_v<_Kty>, "The C++ Standard forbids containers of non-object types "
@@ -561,7 +561,7 @@ public:
 
 private:
     using _我的特征      = _无序哈希比较<_Kty, _Hasher, _Keyeq>;
-    using _我的基类        = _哈希<_无序映射特征<_Kty, _Ty, _我的特征, _Alloc, true>>;
+    using _我的基类        = _哈希<_无序映射特征<_Kty, _类型, _我的特征, _分配器, true>>;
     using _结点分配器        = typename _我的基类::_结点分配器;
     using _结点分配器特征 = typename _我的基类::_结点分配器特征;
     using _键比较器   = typename _我的基类::_键比较器;
@@ -569,10 +569,10 @@ private:
 public:
     using 散列器      = _Hasher;
     using 键类型    = _Kty;
-    using 映射类型 = _Ty;
+    using 映射类型 = _类型;
     using 键相等器   = _Keyeq;
 
-    using value_type      = pair<const _Kty, _Ty>;
+    using value_type      = pair<const _Kty, _类型>;
     using 分配器类型  = typename _我的基类::分配器类型;
     using size_type       = typename _我的基类::size_type;
     using difference_type = typename _我的基类::difference_type;
@@ -624,55 +624,55 @@ public:
     }
 
     template <class _Iter>
-    无序多重映射实现(_Iter _First, _Iter _Last) : _我的基类(_键比较器(), 分配器类型()) {
-        insert(_First, _Last);
+    无序多重映射实现(_Iter _首个, _Iter _最后) : _我的基类(_键比较器(), 分配器类型()) {
+        insert(_首个, _最后);
     }
 
     template <class _Iter>
-    无序多重映射实现(_Iter _First, _Iter _Last, const 分配器类型& _Al) : _我的基类(_键比较器(), _Al) {
-        insert(_First, _Last);
+    无序多重映射实现(_Iter _首个, _Iter _最后, const 分配器类型& _Al) : _我的基类(_键比较器(), _Al) {
+        insert(_首个, _最后);
     }
 
     template <class _Iter>
-    无序多重映射实现(_Iter _First, _Iter _Last, size_type _Buckets) : _我的基类(_键比较器(), 分配器类型()) {
+    无序多重映射实现(_Iter _首个, _Iter _最后, size_type _Buckets) : _我的基类(_键比较器(), 分配器类型()) {
         _我的基类::重哈希(_Buckets);
-        insert(_First, _Last);
+        insert(_首个, _最后);
     }
 
     template <class _Iter>
-    无序多重映射实现(_Iter _First, _Iter _Last, size_type _Buckets, const 分配器类型& _Al)
+    无序多重映射实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 分配器类型& _Al)
         : _我的基类(_键比较器(), _Al) {
         _我的基类::重哈希(_Buckets);
-        insert(_First, _Last);
+        insert(_首个, _最后);
     }
 
     template <class _Iter>
-    无序多重映射实现(_Iter _First, _Iter _Last, size_type _Buckets, const 散列器& _Hasharg)
+    无序多重映射实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 散列器& _Hasharg)
         : _我的基类(_键比较器(_Hasharg), 分配器类型()) {
         _我的基类::重哈希(_Buckets);
-        insert(_First, _Last);
+        insert(_首个, _最后);
     }
 
     template <class _Iter>
-    无序多重映射实现(_Iter _First, _Iter _Last, size_type _Buckets, const 散列器& _Hasharg, const 分配器类型& _Al)
+    无序多重映射实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 散列器& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg), _Al) {
         _我的基类::重哈希(_Buckets);
-        insert(_First, _Last);
+        insert(_首个, _最后);
     }
 
     template <class _Iter>
-    无序多重映射实现(_Iter _First, _Iter _Last, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg)
+    无序多重映射实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), 分配器类型()) {
         _我的基类::重哈希(_Buckets);
-        insert(_First, _Last);
+        insert(_首个, _最后);
     }
 
     template <class _Iter>
-    无序多重映射实现(_Iter _First, _Iter _Last, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg,
+    无序多重映射实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg,
         const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), _Al) {
         _我的基类::重哈希(_Buckets);
-        insert(_First, _Last);
+        insert(_首个, _最后);
     }
 
 #if _HAS_CXX23
@@ -752,14 +752,14 @@ public:
 
     using _我的基类::insert;
 
-    template <class _Valty, enable_if_t<is_constructible_v<value_type, _Valty>, int> = 0>
-    iterator insert(_Valty&& _Val) {
-        return this->就地构造(_STD forward<_Valty>(_Val));
+    template <class _值参数类型, enable_if_t<is_constructible_v<value_type, _值参数类型>, int> = 0>
+    iterator insert(_值参数类型&& _Val) {
+        return this->就地构造(_STD forward<_值参数类型>(_Val));
     }
 
-    template <class _Valty, enable_if_t<is_constructible_v<value_type, _Valty>, int> = 0>
-    iterator insert(const_iterator _Where, _Valty&& _Val) {
-        return this->按提示就地构造(_Where, _STD forward<_Valty>(_Val));
+    template <class _值参数类型, enable_if_t<is_constructible_v<value_type, _值参数类型>, int> = 0>
+    iterator insert(const_iterator _Where, _值参数类型&& _Val) {
+        return this->按提示就地构造(_Where, _STD forward<_值参数类型>(_Val));
     }
 
     无序多重映射实现(initializer_list<value_type> _Ilist) : _我的基类(_键比较器(), 分配器类型()) {
@@ -829,93 +829,93 @@ public:
 
 #if _HAS_CXX17
 template <class _Iter, class _Hasher = hash<_Guide_key_t<_Iter>>, class _Keyeq = equal_to<_Guide_key_t<_Iter>>,
-    class _Alloc = allocator<_Guide_pair_t<_Iter>>,
+    class _分配器 = allocator<_Guide_pair_t<_Iter>>,
     enable_if_t<
-        conjunction_v<_Is_iterator<_Iter>, _是哈希器<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_Alloc>>,
+        conjunction_v<_Is_iterator<_Iter>, _是哈希器<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_分配器>>,
         int> = 0>
-无序多重映射实现(_Iter, _Iter, _Guide_size_type_t<_Alloc> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(),
-    _Alloc = _Alloc()) -> 无序多重映射实现<_Guide_key_t<_Iter>, _Guide_val_t<_Iter>, _Hasher, _Keyeq, _Alloc>;
+无序多重映射实现(_Iter, _Iter, _推导尺寸类型<_分配器> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(),
+    _分配器 = _分配器()) -> 无序多重映射实现<_Guide_key_t<_Iter>, _Guide_val_t<_Iter>, _Hasher, _Keyeq, _分配器>;
 
-template <class _Kty, class _Ty, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>,
-    class _Alloc = allocator<pair<const _Kty, _Ty>>,
-    enable_if_t<conjunction_v<_是哈希器<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_Alloc>>, int> = 0>
-无序多重映射实现(initializer_list<pair<_Kty, _Ty>>, _Guide_size_type_t<_Alloc> = 0, _Hasher = _Hasher(),
-    _Keyeq = _Keyeq(), _Alloc = _Alloc()) -> 无序多重映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>;
+template <class _Kty, class _类型, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>,
+    class _分配器 = allocator<pair<const _Kty, _类型>>,
+    enable_if_t<conjunction_v<_是哈希器<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_分配器>>, int> = 0>
+无序多重映射实现(initializer_list<pair<_Kty, _类型>>, _推导尺寸类型<_分配器> = 0, _Hasher = _Hasher(),
+    _Keyeq = _Keyeq(), _分配器 = _分配器()) -> 无序多重映射实现<_Kty, _类型, _Hasher, _Keyeq, _分配器>;
 
-template <class _Iter, class _Alloc, enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_allocator<_Alloc>>, int> = 0>
-无序多重映射实现(_Iter, _Iter, _Alloc) -> 无序多重映射实现<_Guide_key_t<_Iter>, _Guide_val_t<_Iter>,
-    hash<_Guide_key_t<_Iter>>, equal_to<_Guide_key_t<_Iter>>, _Alloc>;
+template <class _Iter, class _分配器, enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_allocator<_分配器>>, int> = 0>
+无序多重映射实现(_Iter, _Iter, _分配器) -> 无序多重映射实现<_Guide_key_t<_Iter>, _Guide_val_t<_Iter>,
+    hash<_Guide_key_t<_Iter>>, equal_to<_Guide_key_t<_Iter>>, _分配器>;
 
-template <class _Iter, class _Alloc, enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_allocator<_Alloc>>, int> = 0>
-无序多重映射实现(_Iter, _Iter, _Guide_size_type_t<_Alloc>, _Alloc) -> 无序多重映射实现<_Guide_key_t<_Iter>,
-    _Guide_val_t<_Iter>, hash<_Guide_key_t<_Iter>>, equal_to<_Guide_key_t<_Iter>>, _Alloc>;
+template <class _Iter, class _分配器, enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_allocator<_分配器>>, int> = 0>
+无序多重映射实现(_Iter, _Iter, _推导尺寸类型<_分配器>, _分配器) -> 无序多重映射实现<_Guide_key_t<_Iter>,
+    _Guide_val_t<_Iter>, hash<_Guide_key_t<_Iter>>, equal_to<_Guide_key_t<_Iter>>, _分配器>;
 
-template <class _Iter, class _Hasher, class _Alloc,
-    enable_if_t<conjunction_v<_Is_iterator<_Iter>, _是哈希器<_Hasher>, _Is_allocator<_Alloc>>, int> = 0>
-无序多重映射实现(_Iter, _Iter, _Guide_size_type_t<_Alloc>, _Hasher, _Alloc)
-    -> 无序多重映射实现<_Guide_key_t<_Iter>, _Guide_val_t<_Iter>, _Hasher, equal_to<_Guide_key_t<_Iter>>, _Alloc>;
+template <class _Iter, class _Hasher, class _分配器,
+    enable_if_t<conjunction_v<_Is_iterator<_Iter>, _是哈希器<_Hasher>, _Is_allocator<_分配器>>, int> = 0>
+无序多重映射实现(_Iter, _Iter, _推导尺寸类型<_分配器>, _Hasher, _分配器)
+    -> 无序多重映射实现<_Guide_key_t<_Iter>, _Guide_val_t<_Iter>, _Hasher, equal_to<_Guide_key_t<_Iter>>, _分配器>;
 
-template <class _Kty, class _Ty, class _Alloc, enable_if_t<_Is_allocator<_Alloc>::value, int> = 0>
-无序多重映射实现(initializer_list<pair<_Kty, _Ty>>, _Alloc)
-    -> 无序多重映射实现<_Kty, _Ty, hash<_Kty>, equal_to<_Kty>, _Alloc>;
+template <class _Kty, class _类型, class _分配器, enable_if_t<_Is_allocator<_分配器>::value, int> = 0>
+无序多重映射实现(initializer_list<pair<_Kty, _类型>>, _分配器)
+    -> 无序多重映射实现<_Kty, _类型, hash<_Kty>, equal_to<_Kty>, _分配器>;
 
-template <class _Kty, class _Ty, class _Alloc, enable_if_t<_Is_allocator<_Alloc>::value, int> = 0>
-无序多重映射实现(initializer_list<pair<_Kty, _Ty>>, _Guide_size_type_t<_Alloc>, _Alloc)
-    -> 无序多重映射实现<_Kty, _Ty, hash<_Kty>, equal_to<_Kty>, _Alloc>;
+template <class _Kty, class _类型, class _分配器, enable_if_t<_Is_allocator<_分配器>::value, int> = 0>
+无序多重映射实现(initializer_list<pair<_Kty, _类型>>, _推导尺寸类型<_分配器>, _分配器)
+    -> 无序多重映射实现<_Kty, _类型, hash<_Kty>, equal_to<_Kty>, _分配器>;
 
-template <class _Kty, class _Ty, class _Hasher, class _Alloc,
-    enable_if_t<conjunction_v<_是哈希器<_Hasher>, _Is_allocator<_Alloc>>, int> = 0>
-无序多重映射实现(initializer_list<pair<_Kty, _Ty>>, _Guide_size_type_t<_Alloc>, _Hasher, _Alloc)
-    -> 无序多重映射实现<_Kty, _Ty, _Hasher, equal_to<_Kty>, _Alloc>;
+template <class _Kty, class _类型, class _Hasher, class _分配器,
+    enable_if_t<conjunction_v<_是哈希器<_Hasher>, _Is_allocator<_分配器>>, int> = 0>
+无序多重映射实现(initializer_list<pair<_Kty, _类型>>, _推导尺寸类型<_分配器>, _Hasher, _分配器)
+    -> 无序多重映射实现<_Kty, _类型, _Hasher, equal_to<_Kty>, _分配器>;
 
 #if _HAS_CXX23
-template <_RANGES input_range _Rng, _Hasher_for_container _Hasher = hash<_Range_key_type<_Rng>>,
-    class _Keyeq                    = equal_to<_Range_key_type<_Rng>>,
-    _Allocator_for_container _Alloc = allocator<_Range_to_alloc_type<_Rng>>>
+template <_RANGES input_range _Rng, _Hasher_for_container _Hasher = hash<_范围键类型<_Rng>>,
+    class _Keyeq                    = equal_to<_范围键类型<_Rng>>,
+    _Allocator_for_container _分配器 = allocator<_范围到分配器类型<_Rng>>>
     requires (!_Allocator_for_container<_Keyeq>)
-无序多重映射实现(from_range_t, _Rng&&, _Guide_size_type_t<_Alloc> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(),
-    _Alloc = _Alloc()) -> 无序多重映射实现<_Range_key_type<_Rng>, _Range_mapped_type<_Rng>, _Hasher, _Keyeq, _Alloc>;
+无序多重映射实现(from_range_t, _Rng&&, _推导尺寸类型<_分配器> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(),
+    _分配器 = _分配器()) -> 无序多重映射实现<_范围键类型<_Rng>, _范围映射类型<_Rng>, _Hasher, _Keyeq, _分配器>;
 
-template <_RANGES input_range _Rng, _Allocator_for_container _Alloc>
-无序多重映射实现(from_range_t, _Rng&&, _Guide_size_type_t<_Alloc>, _Alloc)
-    -> 无序多重映射实现<_Range_key_type<_Rng>, _Range_mapped_type<_Rng>, hash<_Range_key_type<_Rng>>,
-        equal_to<_Range_key_type<_Rng>>, _Alloc>;
+template <_RANGES input_range _Rng, _Allocator_for_container _分配器>
+无序多重映射实现(from_range_t, _Rng&&, _推导尺寸类型<_分配器>, _分配器)
+    -> 无序多重映射实现<_范围键类型<_Rng>, _范围映射类型<_Rng>, hash<_范围键类型<_Rng>>,
+        equal_to<_范围键类型<_Rng>>, _分配器>;
 
-template <_RANGES input_range _Rng, _Allocator_for_container _Alloc>
-无序多重映射实现(from_range_t, _Rng&&, _Alloc) -> 无序多重映射实现<_Range_key_type<_Rng>, _Range_mapped_type<_Rng>,
-    hash<_Range_key_type<_Rng>>, equal_to<_Range_key_type<_Rng>>, _Alloc>;
+template <_RANGES input_range _Rng, _Allocator_for_container _分配器>
+无序多重映射实现(from_range_t, _Rng&&, _分配器) -> 无序多重映射实现<_范围键类型<_Rng>, _范围映射类型<_Rng>,
+    hash<_范围键类型<_Rng>>, equal_to<_范围键类型<_Rng>>, _分配器>;
 
-template <_RANGES input_range _Rng, _Hasher_for_container _Hasher, _Allocator_for_container _Alloc>
-无序多重映射实现(from_range_t, _Rng&&, _Guide_size_type_t<_Alloc>, _Hasher, _Alloc)
-    -> 无序多重映射实现<_Range_key_type<_Rng>, _Range_mapped_type<_Rng>, _Hasher, equal_to<_Range_key_type<_Rng>>,
-        _Alloc>;
+template <_RANGES input_range _Rng, _Hasher_for_container _Hasher, _Allocator_for_container _分配器>
+无序多重映射实现(from_range_t, _Rng&&, _推导尺寸类型<_分配器>, _Hasher, _分配器)
+    -> 无序多重映射实现<_范围键类型<_Rng>, _范围映射类型<_Rng>, _Hasher, equal_to<_范围键类型<_Rng>>,
+        _分配器>;
 #endif // _HAS_CXX23
 #endif // _HAS_CXX17
 
-_EXPORT_STD template <class _Kty, class _Ty, class _Hasher, class _Keyeq, class _Alloc>
-void swap(无序多重映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>& _Left,
-    无序多重映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>& _Right) noexcept(noexcept(_Left.swap(_Right))) {
+_EXPORT_STD template <class _Kty, class _类型, class _Hasher, class _Keyeq, class _分配器>
+void swap(无序多重映射实现<_Kty, _类型, _Hasher, _Keyeq, _分配器>& _Left,
+    无序多重映射实现<_Kty, _类型, _Hasher, _Keyeq, _分配器>& _Right) noexcept(noexcept(_Left.swap(_Right))) {
     _Left.swap(_Right);
 }
 
 #if _HAS_CXX20
-_EXPORT_STD template <class _Kty, class _Ty, class _Hasher, class _Keyeq, class _Alloc, class _Pr>
-无序多重映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>::size_type erase_if(
-    无序多重映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>& _Cont, _Pr _Pred) {
+_EXPORT_STD template <class _Kty, class _类型, class _Hasher, class _Keyeq, class _分配器, class _Pr>
+无序多重映射实现<_Kty, _类型, _Hasher, _Keyeq, _分配器>::size_type erase_if(
+    无序多重映射实现<_Kty, _类型, _Hasher, _Keyeq, _分配器>& _Cont, _Pr _Pred) {
     return _Erase_nodes_if(_Cont, _传递函数(_Pred));
 }
 #endif // _HAS_CXX20
 
-_EXPORT_STD template <class _Kty, class _Ty, class _Hasher, class _Keyeq, class _Alloc>
-_NODISCARD bool operator==(const 无序多重映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>& _Left,
-    const 无序多重映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>& _Right) {
+_EXPORT_STD template <class _Kty, class _类型, class _Hasher, class _Keyeq, class _分配器>
+_NODISCARD bool operator==(const 无序多重映射实现<_Kty, _类型, _Hasher, _Keyeq, _分配器>& _Left,
+    const 无序多重映射实现<_Kty, _类型, _Hasher, _Keyeq, _分配器>& _Right) {
     return _哈希相等(_Left, _Right);
 }
 
 #if !_HAS_CXX20
-template <class _Kty, class _Ty, class _Hasher, class _Keyeq, class _Alloc>
-_NODISCARD bool operator!=(const 无序多重映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>& _Left,
-    const 无序多重映射实现<_Kty, _Ty, _Hasher, _Keyeq, _Alloc>& _Right) {
+template <class _Kty, class _类型, class _Hasher, class _Keyeq, class _分配器>
+_NODISCARD bool operator!=(const 无序多重映射实现<_Kty, _类型, _Hasher, _Keyeq, _分配器>& _Left,
+    const 无序多重映射实现<_Kty, _类型, _Hasher, _Keyeq, _分配器>& _Right) {
     return !(_Left == _Right);
 }
 #endif // !_HAS_CXX20
@@ -930,12 +930,12 @@ namespace _DEPRECATE_TR1_NAMESPACE tr1 {
 #if _HAS_CXX17
 namespace pmr {
     使用 名域 std::pmr;   // 嵌套名域暂不翻，但里面的名字要靠它找到（步 2b）
-    _EXPORT_STD template <class _Kty, class _Ty, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>>
-    using 无序映射实现 = 无序映射实现<_Kty, _Ty, _Hasher, _Keyeq, polymorphic_allocator<pair<const _Kty, _Ty>>>;
+    _EXPORT_STD template <class _Kty, class _类型, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>>
+    using 无序映射实现 = 无序映射实现<_Kty, _类型, _Hasher, _Keyeq, polymorphic_allocator<pair<const _Kty, _类型>>>;
 
-    _EXPORT_STD template <class _Kty, class _Ty, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>>
+    _EXPORT_STD template <class _Kty, class _类型, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>>
     using 无序多重映射实现 =
-        无序多重映射实现<_Kty, _Ty, _Hasher, _Keyeq, polymorphic_allocator<pair<const _Kty, _Ty>>>;
+        无序多重映射实现<_Kty, _类型, _Hasher, _Keyeq, polymorphic_allocator<pair<const _Kty, _类型>>>;
 } // namespace pmr
 #endif // _HAS_CXX17
 } }

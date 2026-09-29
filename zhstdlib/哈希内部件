@@ -608,7 +608,7 @@ public:
             const auto _Target = _查找最后(_Keyval, _Hashval);
             return _List._造迭代器(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release()));
         } else if constexpr (_就地键提取器::_Extractable) {
-            const auto& _Keyval = _就地键提取器::_Extract(_Vals...);
+            const auto& _Keyval = _就地键提取器::_摘取(_Vals...);
             const auto _Hashval = _Traitsobj(_Keyval);
             auto _Target        = _查找最后(_Keyval, _Hashval);
             if (_Target._Duplicate) {
@@ -660,7 +660,7 @@ public:
             const auto _Target = _按提示查找(_Hint._Ptr, _Keyval, _Hashval);
             return _List._造迭代器(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release()));
         } else if constexpr (_就地键提取器::_Extractable) {
-            const auto& _Keyval = _就地键提取器::_Extract(_Vals...);
+            const auto& _Keyval = _就地键提取器::_摘取(_Vals...);
             const auto _Hashval = _Traitsobj(_Keyval);
             auto _Target        = _按提示查找(_Hint._Ptr, _Keyval, _Hashval);
             if (_Target._Duplicate) {
@@ -1388,11 +1388,11 @@ public:
         _STL_VERIFY(_Where._Ptr != _List_data->_Myhead, "cannot extract 结束()");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
-        return 结点类型::_Make(_Extract(_Where._解包()), _List._取分配器());
+        return 结点类型::_Make(_摘取(_Where._解包()), _List._取分配器());
     }
 
     结点类型 extract(const 键类型& _Keyval) {
-        const auto _Ptr = _Extract(_Keyval);
+        const auto _Ptr = _摘取(_Keyval);
         if (!_Ptr) {
             return 结点类型{};
         }
@@ -1404,7 +1404,7 @@ public:
     template <class _Kx>
         requires (_Traits::template _Supports_transparency<_哈希, _Kx>)
     结点类型 extract(_Kx&& _Keyval) {
-        const auto _Ptr = _Extract(_Keyval);
+        const auto _Ptr = _摘取(_Keyval);
         if (!_Ptr) {
             return 结点类型{};
         }
@@ -1513,14 +1513,14 @@ public:
     }
 
 protected:
-    _结点指针 _Extract(const _非检查常量迭代器 _Where) {
+    _结点指针 _摘取(const _非检查常量迭代器 _Where) {
         const size_type _Bucket = bucket(_Traits::_取键(*_Where));
         _擦除桶(_Where._Ptr, _Bucket);
         return _List._Mypair._Myval2._Unlinknode(_Where._Ptr);
     }
 
     template <class _Kx>
-    _结点指针 _Extract(const _Kx& _Keyval) {
+    _结点指针 _摘取(const _Kx& _Keyval) {
         const size_t _Hashval = _Traitsobj(_Keyval);
         _结点指针 _Target;
         if constexpr (_Traits::_Multi) {
