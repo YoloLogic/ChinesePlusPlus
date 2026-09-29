@@ -5031,10 +5031,14 @@ $H = @{
   'atomic' = @{
     zh      = '原子'
     realInclude = @('atomic')
+    # §17.19.20：xatomic.h 已是我们的内部件 -> 借用面切过来，原子相关名字就能在拷贝层落地
+    zhIncludes = @{ 'xatomic.h' = '原子内部件' }
     types   = [ordered]@{
       'atomic'                 = '原子实现'
       'atomic_flag'            = '原子标志实现'
       'atomic_ref'             = '原子引用实现'
+      'memory_order'           = '内存序'
+
       '_Atomic_storage'        = '_原子存储'
       '_Atomic_padded'         = '_原子填充'
       '_Atomic_storage_traits' = '_原子存储特征'
@@ -5072,6 +5076,10 @@ $H = @{
       'atomic_wait' = '原子等待'; 'atomic_notify_one' = '原子通知一个'; 'atomic_notify_all' = '原子通知全部'
       'atomic_thread_fence' = '线程栅栏'; 'atomic_signal_fence' = '信号栅栏'
       'kill_dependency' = '消除依赖'
+      'memory_order_relaxed' = '内存序松弛'; 'memory_order_consume' = '内存序消费'
+      'memory_order_acquire' = '内存序获取'; 'memory_order_release' = '内存序释放'
+      'memory_order_acq_rel' = '内存序获取释放'; 'memory_order_seq_cst' = '内存序顺序一致'
+      '_Atomic_address_as' = '_原子取地址为'
       # 全局作用域 extern C 匿名枚举（与 vcruntime 共享）：真头在场会重定义 -> 改成汉语名（§17.19.18）
       # 同段里的全局函数（真头也定义 -> 重定义）与宏（宏体已含汉语 -> 宏名必须一起改，§16.24）
       '_Check_memory_order' = '_检查内存序'
@@ -5129,14 +5137,14 @@ $H = @{
       '',
       '// ---- 其余公开类型/常量的中文名（主类 原子 由派生层给出；英文原名一并保留）----',
       '使用 原子标志 = 细节::原子标志实现;',
-      '使用 内存序 = std::memory_order;',
+      '使用 内存序 = 细节::内存序;',
       '模板 <类型名 元素> 使用 原子引用 = 细节::原子引用实现<元素>;',
-      '内联 常量表达式 自动 内存序松弛 = std::memory_order_relaxed;',
-      '内联 常量表达式 自动 内存序消费 = std::memory_order_consume;',
-      '内联 常量表达式 自动 内存序获取 = std::memory_order_acquire;',
-      '内联 常量表达式 自动 内存序释放 = std::memory_order_release;',
-      '内联 常量表达式 自动 内存序获取释放 = std::memory_order_acq_rel;',
-      '内联 常量表达式 自动 内存序顺序一致 = std::memory_order_seq_cst;',
+      '内联 常量表达式 自动 内存序松弛 = 细节::内存序松弛;',
+      '内联 常量表达式 自动 内存序消费 = 细节::内存序消费;',
+      '内联 常量表达式 自动 内存序获取 = 细节::内存序获取;',
+      '内联 常量表达式 自动 内存序释放 = 细节::内存序释放;',
+      '内联 常量表达式 自动 内存序获取释放 = 细节::内存序获取释放;',
+      '内联 常量表达式 自动 内存序顺序一致 = 细节::内存序顺序一致;',
       '',
       '',
       '// ---- 自由函数的中文名（英文原名仍可由 标准:: 的英文转发或 std:: 使用）----',
@@ -5150,6 +5158,34 @@ $H = @{
       @('与微软原头并存','#包含 <原子>`n#包含 <atomic>`n整数 主函数(){ 标准::原子<整数> 甲{0}; std::atomic<整数> 乙{0}; 甲.存储(1); 乙.store(1); 返回 甲.载入() == 乙.load() ? 0 : 1; }'),
       @('英文原名与中文名并用','#包含 <原子>`n整数 主函数(){ 标准::原子<整数> 甲{0}; 甲.store(5); 返回 甲.load() == 甲.载入() ? 0 : 1; }'),
       @('★守卫：内存序 / 原子标志 / 线程栅栏 的中文名都在','#包含 <原子>`n整数 主函数(){ 标准::原子标志 标; 标.清空(); 标准::线程栅栏(标准::内存序顺序一致); 返回 标.测试() ? 1 : 0; }')
+    )
+  }
+
+  # ==========================================================================
+  #  §17.19.20 抄 xatomic.h 成内部件（原子内部件）：销掉 <原子> 的借用面欠账
+  #  · `memory_order` / `memory_order_*` / `_Atomic_address_as` / `_Atomic_counter_t`
+  #    的**定义**就在 xatomic.h 里 —— 抄下来之后它们能在拷贝层落地（汉语名），
+  #    不再只能"在公开层别名到 std"（§17.19.18 第 5 条的欠账就此销掉）。
+  #  · 消费者侧（<原子> 等）的借用面切换按 §17.27.60.1 的批处理链同步（下一步做）。
+  # ==========================================================================
+  'xatomic.h' = @{
+    zh      = '原子内部件'
+    realInclude = @('atomic')
+    noPub   = $true
+    types   = [ordered]@{ 'memory_order'      = '内存序'
+                          '_Atomic_counter_t' = '_原子计数器类型' }
+    members = [ordered]@{ 'memory_order_relaxed' = '内存序松弛'
+                          'memory_order_consume' = '内存序消费'
+                          'memory_order_acquire' = '内存序获取'
+                          'memory_order_release' = '内存序释放'
+                          'memory_order_acq_rel' = '内存序获取释放'
+                          'memory_order_seq_cst' = '内存序顺序一致'
+                          '_Atomic_address_as' = '_原子取地址为' }
+    data    = [ordered]@{}
+    tests = @(
+      @('只引中文头','#包含 <原子内部件>`n整数 主函数(){ 标准::细节::内存序 序 = 标准::细节::内存序松弛; 返回 序 == 标准::细节::内存序松弛 ? 0 : 1; }'),
+      @('与微软原头并存','#包含 <原子内部件>`n#包含 <atomic>`n整数 主函数(){ std::memory_order 甲 = std::memory_order_relaxed; 标准::细节::内存序 乙 = 标准::细节::内存序松弛; 返回 (甲 == std::memory_order_relaxed && 乙 == 标准::细节::内存序松弛) ? 0 : 1; }'),
+      @('★守卫：_原子取地址为 能用（借来的定义侧也要跟着改）','#包含 <原子内部件>`n整数 主函数(){ 整数 甲 = 7; 自动 针 = 标准::细节::_原子取地址为<整数>(甲); 返回 (*针 == 7) ? 0 : 1; }')
     )
   }
 
