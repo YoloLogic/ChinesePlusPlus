@@ -440,6 +440,7 @@ $H = @{
                           # §16.27：自有内部件也要翻（长名、无二义，不是边界）
                           '_Buffer_for_bitset' = '_位缓冲' }
     members = [ordered]@{
+
       '_Alloc' = '_分配器';
       '_Allocate' = '_分配';
       '_Construct' = '_构造';
@@ -1054,6 +1055,31 @@ $H = @{
                           '_Is_bidi'              = '_是双向'
                           '_Pop_direction'        = '_弹出方向' }
     members = [ordered]@{
+      '_Alloc' = '_分配器';
+      '_Alloc_temporary2' = '_分配器临时对象2';
+      '_Compressed_pair' = '_压缩对';
+      '_Construct' = '_构造';
+      '_Difference_type' = '_差异类型';
+      '_First' = '_首个';
+      '_Get_first' = '_取第一';
+      '_Get_value' = '_取值';
+      '_Getal' = '_取分配器';
+      '_Last' = '_最后';
+      '_Lock' = '_加锁';
+      '_Mycont' = '_我的容器';
+      '_Myptr' = '_我的指针';
+      '_Mysize' = '_我的尺寸';
+      '_One_then_variadic_args_t' = '_先一后变参实参';
+      '_Pocma_values' = '_传播复制移动赋值取值';
+      '_Rebind_alloc_t' = '_重绑定分配器类型';
+      '_Simple_types' = '_简单类型集';
+      '_Take_contents' = '_接管内容';
+      '_Ty' = '_类型';
+      '_Unchecked_begin' = '_非检查开始';
+      '_Unchecked_end' = '_非检查结束';
+      '_Uty' = '_结果类型';
+      '_Valty' = '_值参数类型';
+      '_Zero_then_variadic_args_t' = '_先零后变参实参';
       # §17.27.60 台账收尾（阶段(3) 第一批）：这些名字的定义方是 通用内部件（我们的 xutility 拷贝，
       #   §17.27.52 已给定义方解毒）；本头能看到它 -> 调用点跟改，指向我们那份。
       # ⚠ `_Get_final_iterator_unwrapped` **不登记**：本头那两处写的是
@@ -1817,6 +1843,7 @@ $H = @{
     deriveTypes = @( @('container_type','容器类型') )
     # ⚠ 不翻 uses_allocator / formatter —— 它们是 std 的模板，改名会断（同 <栈>）
     members = [ordered]@{
+
       '_Get_unwrapped' = '_取解包';
       '_Adaptor_formatter_base' = '_适配器格式化基类'
       '_Alloc' = '_分配器'
@@ -3226,6 +3253,13 @@ $H = @{
       '_In_place_key_extractor'       = '_就地键提取器'
     }
     members = [ordered]@{
+
+
+
+
+
+
+
       '_Zero_then_variadic_args_t' = '_先零后变参实参';
       '_List_val' = '_链表值';
       '_Compressed_pair' = '_压缩对';
@@ -3941,7 +3975,7 @@ $H = @{
     # ⚠ 不翻 allocator_traits / rebind / enable_if_t 等 std 的名字
     members = [ordered]@{ 'inner_allocator' = '内层分配器'
       '_Alloc' = '_分配器';
-      '_Get_rebind_type' = '_取重绑定类型';
+
       '_Ty' = '_类型';
                           'outer_allocator' = '外层分配器'
                           'select_on_container_copy_construction' = '复制时选择'

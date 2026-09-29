@@ -1,13 +1,17 @@
-# §17.27.60.1 台账批处理（第 91 轮固化）—— 用法：
-#   pwsh -NoProfile -File build\zh_batch.ps1 -Products 线程,作用域分配器,栈,映射
+# §17.27.60.1 台账批处理（第 91 轮固化，第 92 轮加 -Exclude）—— 用法：
+#   pwsh -NoProfile -File tools\zh_ledger_batch.ps1 -Products 线程,栈,映射
+#   pwsh -NoProfile -File tools\zh_ledger_batch.ps1 -Products 双端队列 -Exclude _Tidy,_Tidy_guard
 # 判据链（§17.27.60.1.6/.7）：
 #   插入全部 -> 重生 -> 从错误/守卫消息回读问题名字 -> 【删掉那一行】-> 再重生（最多 4 轮）
 # 三类可回读消息：`members 表 _X`（守卫，英文名直读）、`（成员名）'_中文名'`、
 #   `未声明的标识符（名字）'_中文名'`（后两类用译名->英文反查表换回）。
-param([string[]] $Products)
+# -Exclude 用于"通用接口成员"这类**已知要留英文**的名字（例：`_Tidy` —— xmemory 的
+#   `_Tidy_guard` 调 `_Target->_Tidy()`，改名要所有参与者一起改，属协调改名，不在这条链里）。
+param([string[]] $Products, [string[]] $Exclude)
 $ErrorActionPreference = 'Stop'
 # ⚠ 用 pwsh -File 调用时，逗号表会被当成【一个字符串】传进来 -> 这里自己拆开。
 $Products = @($Products | ForEach-Object { $_ -split ',' } | Where-Object { $_ })
+$Exclude  = @($Exclude  | ForEach-Object { $_ -split ',' } | Where-Object { $_ })
 $gen = 'E:\Chinese++\tools\make_zhstdlib2.ps1'
 
 function Get-ZhMap([string]$path) {
@@ -49,7 +53,7 @@ foreach ($prod in $Products) {
   $row = Get-Content 'E:\Chinese++\build\cross_entry_names.txt' | Where-Object { $_ -match $pat } | Select-Object -First 1
   if (-not $row) { "$prod : 不在台账里（跳过）"; continue }
   $todo = @(($row -split '——')[1].Trim() -split '\s+')
-  $dropped = @()
+  $dropped = @($Exclude)   # 已知要留英文的名字（通用接口成员等，见文件头）
   for ($it = 1; $it -le 4; $it++) {
     $r = Get-EntryRange $prod
     if (-not $r) { "$prod : 找不到条目"; break }
@@ -66,6 +70,10 @@ foreach ($prod in $Products) {
     if ($LASTEXITCODE -eq 0 -and $fails -eq 0) { "$prod : 通过（ok=" + @($o | Select-String '\[ok\]').Count + " / 第 $it 轮 / 边界 $($dropped.Count)）"; break }
     $culprits = @()
     foreach ($m in [regex]::Matches($txt, "members 表\s+(_[A-Za-z0-9_]+)")) { $culprits += $m.Groups[1].Value }
+    # §17.27.60.1.10：`改回英文: _X` 是第四类可回读消息 —— 它说明**这个名字在本产物里落不了地**
+    #   （定义侧不可达/借用类成员），必须【删掉登记】而不是留着：留着会同时坑两件事 ——
+    #   被改写的调用点和没改的定义侧对不上（编译期），以及 `登记≠落地·第三层` 把它算成失败。
+    foreach ($m in [regex]::Matches($txt, "改回英文:\s*(_[A-Za-z0-9_]+)")) { $culprits += $m.Groups[1].Value }
     foreach ($m in [regex]::Matches($txt, "（成员名）\s*'([^']+)'")) { $v = $m.Groups[1].Value; if ($todo -contains $v) { $culprits += $v } elseif ($inv.ContainsKey($v)) { $culprits += $inv[$v] } }
     foreach ($m in [regex]::Matches($txt, "未声明的标识符（名字）\s*'([^']+)'")) { $v = $m.Groups[1].Value; if ($todo -contains $v) { $culprits += $v } elseif ($inv.ContainsKey($v)) { $culprits += $inv[$v] } }
     $culprits = @($culprits | Sort-Object -Unique | Where-Object { ($todo -contains $_) -and ($dropped -notcontains $_) })
