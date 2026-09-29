@@ -4001,6 +4001,59 @@ $H = @{
       @('与 std::string_view 互转','#包含 <字符串视图>`n#包含 <string_view>`n整数 主函数(){ 标准::字符串视图 视 = "甲乙";`n  std::string_view 转(视.数据(), 视.尺寸()); 标准::字符串视图 回(转.data(), 转.size());`n  返回 (整数)回.尺寸() == (整数)视.尺寸() ? 0 : 1; }')
     )
   }
+  # ==========================================================================
+  #  阶段(4) 第一个「真汉语实现」的公开头：<源码位置>（std::source_location）
+  #
+  #  为什么挑它先做（Step 3 起步，证据来自"借用链"统计）：
+  #    它是候选公开头里唯一【零未汉化依赖】的小头（74 行，只 include <yvals_core.h> 与 <cstdint>，
+  #    两个都已在甲类别名轨道做完），所以不欠任何借用链，能做干净。
+  #
+  #  ⚠ §17.19.5 【默认实参的调用点语义不能被转发吞掉】
+  #    `current()` 的默认实参是 __builtin_LINE()/__builtin_COLUMN()/__builtin_FILE()/__builtin_FUNCSIG()。
+  #    若用派生层的通用模板转发（`模板 <类型名... 参数> current(参数&&...)`），默认实参就在【本头】里
+  #    求值 -> 报出来的是头文件的位置，语义直接错。所以这一条在 deriveExtra 里手写，
+  #    并把默认实参原样带上（#if 也照抄，否则 _USE_DETAILED_FUNCTION_NAME_IN_SOURCE_LOCATION=0
+  #    时中文名与英文名两边不一致）。守卫 = tests 里那条"行号必须等于 3"的锐利测试。
+  # ==========================================================================
+  'source_location' = @{
+    zh      = '源码位置'
+    realInclude = @('source_location')   # §16.29「乙」：与真 <source_location> 并存
+    types   = [ordered]@{ 'source_location' = '源码位置' }
+    members = [ordered]@{ 'current' = '当前'; 'line' = '行号'; 'column' = '列号'
+                          'file_name' = '文件名'; 'function_name' = '函数名' }
+    data    = [ordered]@{ '_Line' = '_行号'; '_Column' = '_列号'
+                          '_File' = '_文件'; '_Function' = '_函数'
+                          # 形参与局部量也一并汉化（本头很小，能一次做干净）
+                          '_Line_' = '_行号_'; '_Column_' = '_列号_'
+                          '_File_' = '_文件_'; '_Function_' = '_函数_'
+                          '_Result' = '_结果' }
+    derive  = @( @('line','行号'), @('column','列号'),
+                 @('file_name','文件名'), @('function_name','函数名') )
+    deriveExtra = ( @(
+      '    // §17.19.3 通用规则（本条目也踩到了）：实现层按值返回【实现类型】，派生类型必须有一条',
+      '    //   转发构造 —— 否则 返回 基类::当前(...) 报"没有可行的转换"。',
+      '    模板 <类型名 源> constexpr 源码位置(常量 源& 值) : 基类(值) {}',
+      '',
+      '    // §17.19.5：默认实参必须在【调用点】求值 —— 通用模板转发会把它们在本头里求值。',
+      '    静态 立即求值 源码位置 current(const uint_least32_t _行号_ = __builtin_LINE(),',
+      '        const uint_least32_t _列号_ = __builtin_COLUMN(), const char* const _文件_ = __builtin_FILE(),',
+      '#if _USE_DETAILED_FUNCTION_NAME_IN_SOURCE_LOCATION',
+      '        const char* const _函数_ = __builtin_FUNCSIG()) 不抛出 {',
+      '#else // ^^^ detailed / basic vvv',
+      '        const char* const _函数_ = __builtin_FUNCTION()) 不抛出 {',
+      '#endif // ^^^ basic ^^^',
+      '        返回 基类::当前(_行号_, _列号_, _文件_, _函数_);',
+      '    }'
+    ) -join "`r`n" )
+    stdHash = $false
+    tparam  = @{ decl = ''; args = '' }
+    tests = @(
+      @('只引中文头','#包含 <源码位置>`n整数 主函数(){ 标准::源码位置 甲 = 标准::源码位置::当前(); 返回 甲.行号() > 0 ? 0 : 1; }'),
+      @('与微软原头并存','#包含 <源码位置>`n#包含 <source_location>`n整数 主函数(){ 标准::源码位置 甲 = 标准::源码位置::当前(); std::source_location 乙 = std::source_location::current(); 返回 甲.行号() == 乙.line() ? 0 : 1; }'),
+      @('英文原名与中文名并用','#包含 <源码位置>`n整数 主函数(){ 标准::源码位置 甲 = 标准::源码位置::current(); 返回 (整数)甲.line() > 0 && (整数)甲.行号() > 0 ? 0 : 1; }'),
+      @('★守卫 §17.19.5：current() 必须报【调用点】的行号，不能被转发吞成头里的行号','#包含 <源码位置>`n整数 主函数(){`n    标准::源码位置 甲 = 标准::源码位置::当前();`n    返回 甲.行号() == 3 ? 0 : 1;`n}')
+    )
+  }
 }
 
 # ---------------------------------------------------------------------------
