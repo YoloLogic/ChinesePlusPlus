@@ -42,9 +42,9 @@ using _Meta_front =
     // extract the first type in a sequence (head of list)
     typename _Meta_front_<_List>::type;
 
-template <template <class...> class _List, class _First, class... _Rest>
-struct _Meta_front_<_List<_First, _Rest...>> {
-    using type = _First;
+template <template <class...> class _List, class _首个, class... _Rest>
+struct _Meta_front_<_List<_首个, _Rest...>> {
+    using type = _首个;
 };
 
 template <class _List>
@@ -54,21 +54,21 @@ using _Meta_pop_front =
     // subsequence including all but the first type (tail of list)
     typename _Meta_pop_front_<_List>::type;
 
-template <template <class...> class _List, class _First, class... _Rest>
-struct _Meta_pop_front_<_List<_First, _Rest...>> {
+template <template <class...> class _List, class _首个, class... _Rest>
+struct _Meta_pop_front_<_List<_首个, _Rest...>> {
     using type = _List<_Rest...>;
 };
 
-template <class _List, class _Ty>
+template <class _List, class _类型>
 struct _Meta_push_front_;
-template <class _List, class _Ty>
+template <class _List, class _类型>
 using _Meta_push_front =
     // prepend a new type onto a sequence
-    typename _Meta_push_front_<_List, _Ty>::type;
+    typename _Meta_push_front_<_List, _类型>::type;
 
-template <template <class...> class _List, class... _Types, class _Ty>
-struct _Meta_push_front_<_List<_Types...>, _Ty> {
-    using type = _List<_Ty, _Types...>;
+template <template <class...> class _List, class... _Types, class _类型>
+struct _Meta_push_front_<_List<_Types...>, _类型> {
+    using type = _List<_类型, _Types...>;
 };
 
 template <class _Void, template <class...> class _Fn, class... _Args>
@@ -80,17 +80,17 @@ struct _Meta_quote_helper_<void_t<_Fn<_Args...>>, _Fn, _Args...> {
 template <template <class...> class _Fn>
 struct _Meta_quote { // encapsulate a template into a meta-callable type
     template <class... _Types>
-    using _Invoke = typename _Meta_quote_helper_<void, _Fn, _Types...>::type;
+    using _调用 = typename _Meta_quote_helper_<void, _Fn, _Types...>::type;
 };
 
 template <class _Fn, class... _Args>
 using _Meta_invoke = // invoke meta-callable _Fn with _Args
-    typename _Fn::template _Invoke<_Args...>;
+    typename _Fn::template _调用<_Args...>;
 
 template <class _Fn, class... _Args>
 struct _Meta_bind_back { // construct a meta-callable that passes its arguments and _Args to _Fn
     template <class... _Types>
-    using _Invoke = _Meta_invoke<_Fn, _Types..., _Args...>;
+    using _调用 = _Meta_invoke<_Fn, _Types..., _Args...>;
 };
 
 template <class _Fn, class _List>
@@ -106,10 +106,10 @@ struct _Meta_apply_<_Fn, _List<_Types...>> {
     using type = _Meta_invoke<_Fn, _Types...>;
 };
 
-template <class _Fn, class _Ty, _Ty... _Idxs>
-struct _Meta_apply_<_Fn, integer_sequence<_Ty, _Idxs...>> {
+template <class _Fn, class _类型, _类型... _Idxs>
+struct _Meta_apply_<_Fn, integer_sequence<_类型, _Idxs...>> {
     // invoke meta-callable _Fn with the elements of an integer_sequence
-    using type = _Meta_invoke<_Fn, integral_constant<_Ty, _Idxs>...>;
+    using type = _Meta_invoke<_Fn, integral_constant<_类型, _Idxs>...>;
 };
 
 template <class _Fn, class _List>
@@ -126,17 +126,17 @@ struct _Meta_transform_<_Fn, _List<_Types...>> {
 
 template <class, class, template <class...> class>
 struct _Meta_repeat_n_c_;
-template <size_t _Count, class _Ty, template <class...> class _Continue>
+template <size_t _Count, class _类型, template <class...> class _Continue>
 using _Meta_repeat_n_c =
-    // construct a sequence consisting of repetitions of _Ty
-    typename _Meta_repeat_n_c_<_Ty, make_index_sequence<_Count>, _Continue>::type;
+    // construct a sequence consisting of repetitions of _类型
+    typename _Meta_repeat_n_c_<_类型, make_index_sequence<_Count>, _Continue>::type;
 
-template <class _Ty, size_t>
-using _Meta_repeat_first_helper = _Ty;
+template <class _类型, size_t>
+using _Meta_repeat_first_helper = _类型;
 
-template <class _Ty, size_t... _Idxs, template <class...> class _Continue>
-struct _Meta_repeat_n_c_<_Ty, index_sequence<_Idxs...>, _Continue> {
-    using type = _Continue<_Meta_repeat_first_helper<_Ty, _Idxs>...>;
+template <class _类型, size_t... _Idxs, template <class...> class _Continue>
+struct _Meta_repeat_n_c_<_类型, index_sequence<_Idxs...>, _Continue> {
+    using type = _Continue<_Meta_repeat_first_helper<_类型, _Idxs>...>;
 };
 
 template <class _List, size_t _Idx, class = void>
@@ -154,12 +154,12 @@ struct _Meta_at_<_List<_Types...>, _Idx, void_t<__type_pack_element<_Idx, _Types
 #else // ^^^ defined(__clang__) / !defined(__clang__) vvv
 template <class... _VoidPtrs>
 struct _Meta_at_impl {
-    template <class _Ty, class... _Types>
-    static _Ty _Eval(_VoidPtrs..., _Ty*, _Types*...); // undefined
+    template <class _类型, class... _Types>
+    static _类型 _Eval(_VoidPtrs..., _类型*, _Types*...); // undefined
 };
 
-template <class _Ty>
-constexpr _Identity<_Ty>* _Type_as_pointer() {
+template <class _类型>
+constexpr _Identity<_类型>* _Type_as_pointer() {
     return nullptr;
 }
 
@@ -172,10 +172,10 @@ struct _Meta_at_<_List<_Types...>, _Idx, enable_if_t<(_Idx < sizeof...(_Types))>
 
 template <class>
 struct _Meta_as_list_;
-template <class _Ty>
+template <class _类型>
 using _Meta_as_list =
-    // convert _Ty to a _Meta_list
-    typename _Meta_as_list_<_Ty>::type;
+    // convert _类型 to a _Meta_list
+    typename _Meta_as_list_<_类型>::type;
 
 template <template <class...> class _List, class... _Types>
 struct _Meta_as_list_<_List<_Types...>> {
@@ -183,10 +183,10 @@ struct _Meta_as_list_<_List<_Types...>> {
     using type = _Meta_list<_Types...>;
 };
 
-template <class _Ty, _Ty... _Idxs>
-struct _Meta_as_list_<integer_sequence<_Ty, _Idxs...>> {
+template <class _类型, _类型... _Idxs>
+struct _Meta_as_list_<integer_sequence<_类型, _Idxs...>> {
     // convert an integer_sequence to a _Meta_list of integral_constants
-    using type = _Meta_list<integral_constant<_Ty, _Idxs>...>;
+    using type = _Meta_list<integral_constant<_类型, _Idxs>...>;
 };
 
 template <class _List>
@@ -196,9 +196,9 @@ using _Meta_as_integer_sequence =
     // convert a list of integral_constants to an integer_sequence
     typename _Meta_as_integer_sequence_<_List>::type;
 
-template <template <class...> class _List, class _Ty, _Ty... _Idxs>
-struct _Meta_as_integer_sequence_<_List<integral_constant<_Ty, _Idxs>...>> {
-    using type = integer_sequence<_Ty, _Idxs...>;
+template <template <class...> class _List, class _类型, _类型... _Idxs>
+struct _Meta_as_integer_sequence_<_List<integral_constant<_类型, _Idxs>...>> {
+    using type = integer_sequence<_类型, _Idxs...>;
 };
 
 template <class...>
@@ -287,35 +287,35 @@ struct _Meta_cartesian_product_<_List1<_List2<_Items...>, _Lists...>> {
 _EXPORT_STD template <class... _Types>
 class 变体实现;
 
-_EXPORT_STD template <class _Ty>
+_EXPORT_STD template <class _类型>
 struct 变体尺寸; // undefined
-template <class _Ty>
-struct 变体尺寸<const _Ty> : 变体尺寸<_Ty>::type {};
-template <class _Ty>
-struct _CXX20_DEPRECATE_VOLATILE 变体尺寸<volatile _Ty> : 变体尺寸<_Ty>::type {};
-template <class _Ty>
-struct _CXX20_DEPRECATE_VOLATILE 变体尺寸<const volatile _Ty> : 变体尺寸<_Ty>::type {};
-_EXPORT_STD template <class _Ty>
-constexpr size_t variant_size_v = 变体尺寸<_Ty>::value;
+template <class _类型>
+struct 变体尺寸<const _类型> : 变体尺寸<_类型>::type {};
+template <class _类型>
+struct _CXX20_DEPRECATE_VOLATILE 变体尺寸<volatile _类型> : 变体尺寸<_类型>::type {};
+template <class _类型>
+struct _CXX20_DEPRECATE_VOLATILE 变体尺寸<const volatile _类型> : 变体尺寸<_类型>::type {};
+_EXPORT_STD template <class _类型>
+constexpr size_t variant_size_v = 变体尺寸<_类型>::value;
 
 template <class... _Types>
 struct 变体尺寸<变体实现<_Types...>> : integral_constant<size_t, sizeof...(_Types)> {};
 
-_EXPORT_STD template <size_t _Idx, class _Ty>
+_EXPORT_STD template <size_t _Idx, class _类型>
 struct 变体替体; // undefined
-_EXPORT_STD template <size_t _Idx, class _Ty>
-using variant_alternative_t = typename 变体替体<_Idx, _Ty>::type;
-template <size_t _Idx, class _Ty>
-struct 变体替体<_Idx, const _Ty> {
-    using type = add_const_t<variant_alternative_t<_Idx, _Ty>>;
+_EXPORT_STD template <size_t _Idx, class _类型>
+using variant_alternative_t = typename 变体替体<_Idx, _类型>::type;
+template <size_t _Idx, class _类型>
+struct 变体替体<_Idx, const _类型> {
+    using type = add_const_t<variant_alternative_t<_Idx, _类型>>;
 };
-template <size_t _Idx, class _Ty>
-struct _CXX20_DEPRECATE_VOLATILE 变体替体<_Idx, volatile _Ty> {
-    using type = add_volatile_t<variant_alternative_t<_Idx, _Ty>>;
+template <size_t _Idx, class _类型>
+struct _CXX20_DEPRECATE_VOLATILE 变体替体<_Idx, volatile _类型> {
+    using type = add_volatile_t<variant_alternative_t<_Idx, _类型>>;
 };
-template <size_t _Idx, class _Ty>
-struct _CXX20_DEPRECATE_VOLATILE 变体替体<_Idx, const volatile _Ty> {
-    using type = add_cv_t<variant_alternative_t<_Idx, _Ty>>;
+template <size_t _Idx, class _类型>
+struct _CXX20_DEPRECATE_VOLATILE 变体替体<_Idx, const volatile _类型> {
+    using type = add_cv_t<variant_alternative_t<_Idx, _类型>>;
 };
 template <size_t _Idx, class... _Types>
 struct 变体替体<_Idx, 变体实现<_Types...>> {
@@ -336,12 +336,12 @@ class _Variant_storage_ {}; // empty storage (empty "_Types" case)
 template <class... _Types>
 using _Variant_storage = _Variant_storage_<conjunction_v<is_trivially_destructible<_Types>...>, _Types...>;
 
-template <class _First, class... _Rest>
-class _Variant_storage_<true, _First, _Rest...> { // Storage for 变体实现 alternatives (trivially destructible case)
+template <class _首个, class... _Rest>
+class _Variant_storage_<true, _首个, _Rest...> { // Storage for 变体实现 alternatives (trivially destructible case)
 public:
     static constexpr size_t _Size = 1 + sizeof...(_Rest);
     union {
-        remove_cv_t<_First> _Head;
+        remove_cv_t<_首个> _Head;
         _Variant_storage<_Rest...> _Tail;
     };
 
@@ -349,7 +349,7 @@ public:
 
     template <class... _Types>
     constexpr explicit _Variant_storage_(integral_constant<size_t, 0>, _Types&&... _Args)
-        noexcept(is_nothrow_constructible_v<_First, _Types...>)
+        noexcept(is_nothrow_constructible_v<_首个, _Types...>)
         : _Head(static_cast<_Types&&>(_Args)...) {} // initialize _Head with _Args...
 
     template <size_t _Idx, class... _Types, enable_if_t<(_Idx > 0), int> = 0>
@@ -357,26 +357,26 @@ public:
         noexcept(is_nothrow_constructible_v<_Variant_storage<_Rest...>, integral_constant<size_t, _Idx - 1>, _Types...>)
         : _Tail(integral_constant<size_t, _Idx - 1>{}, static_cast<_Types&&>(_Args)...) {} // initialize _Tail (recurse)
 
-    _NODISCARD constexpr _First& _Get() & noexcept {
+    _NODISCARD constexpr _首个& _Get() & noexcept {
         return _Head;
     }
-    _NODISCARD constexpr const _First& _Get() const& noexcept {
+    _NODISCARD constexpr const _首个& _Get() const& noexcept {
         return _Head;
     }
-    _NODISCARD constexpr _First&& _Get() && noexcept {
+    _NODISCARD constexpr _首个&& _Get() && noexcept {
         return _STD move(_Head);
     }
-    _NODISCARD constexpr const _First&& _Get() const&& noexcept {
+    _NODISCARD constexpr const _首个&& _Get() const&& noexcept {
         return _STD move(_Head);
     }
 };
 
-template <class _First, class... _Rest>
-class _Variant_storage_<false, _First, _Rest...> { // Storage for 变体实现 alternatives (non-trivially destructible case)
+template <class _首个, class... _Rest>
+class _Variant_storage_<false, _首个, _Rest...> { // Storage for 变体实现 alternatives (non-trivially destructible case)
 public:
     static constexpr size_t _Size = 1 + sizeof...(_Rest);
     union {
-        remove_cv_t<_First> _Head;
+        remove_cv_t<_首个> _Head;
         _Variant_storage<_Rest...> _Tail;
     };
 
@@ -393,7 +393,7 @@ public:
 
     template <class... _Types>
     constexpr explicit _Variant_storage_(integral_constant<size_t, 0>, _Types&&... _Args)
-        noexcept(is_nothrow_constructible_v<_First, _Types...>)
+        noexcept(is_nothrow_constructible_v<_首个, _Types...>)
         : _Head(static_cast<_Types&&>(_Args)...) {} // initialize _Head with _Args...
 
     template <size_t _Idx, class... _Types, enable_if_t<(_Idx > 0), int> = 0>
@@ -406,16 +406,16 @@ public:
     _Variant_storage_& operator=(_Variant_storage_&&)      = default;
     _Variant_storage_& operator=(const _Variant_storage_&) = default;
 
-    _NODISCARD constexpr _First& _Get() & noexcept {
+    _NODISCARD constexpr _首个& _Get() & noexcept {
         return _Head;
     }
-    _NODISCARD constexpr const _First& _Get() const& noexcept {
+    _NODISCARD constexpr const _首个& _Get() const& noexcept {
         return _Head;
     }
-    _NODISCARD constexpr _First&& _Get() && noexcept {
+    _NODISCARD constexpr _首个&& _Get() && noexcept {
         return _STD move(_Head);
     }
-    _NODISCARD constexpr const _First&& _Get() const&& noexcept {
+    _NODISCARD constexpr const _首个&& _Get() const&& noexcept {
         return _STD move(_Head);
     }
 };
@@ -423,21 +423,21 @@ public:
 #ifdef __cplusplus_winrt // TRANSITION, VSO-586813
 // C++/CX is unable to store hats in unions. We instead store them inside a
 // wrapper to enable minimal hats-in-variants support.
-template <class _Ty>
+template <class _类型>
 struct _Variant_item {
-    remove_cv_t<_Ty> _Item;
+    remove_cv_t<_类型> _Item;
 
     template <class... _Types>
-    constexpr _Variant_item(_Types&&... _Args) noexcept(is_nothrow_constructible_v<_Ty, _Types...>)
+    constexpr _Variant_item(_Types&&... _Args) noexcept(is_nothrow_constructible_v<_类型, _Types...>)
         : _Item(static_cast<_Types&&>(_Args)...) {}
 };
 
-template <class _First, class... _Rest>
-class _Variant_storage_<false, _First ^, _Rest...> { // Storage for 变体实现 alternatives (^ case)
+template <class _首个, class... _Rest>
+class _Variant_storage_<false, _首个 ^, _Rest...> { // Storage for 变体实现 alternatives (^ case)
 public:
     static constexpr size_t _Size = 1 + sizeof...(_Rest);
     union {
-        _Variant_item<_First ^> _Head;
+        _Variant_item<_首个 ^> _Head;
         _Variant_storage<_Rest...> _Tail;
     };
 
@@ -450,7 +450,7 @@ public:
 
     template <class... _Types>
     constexpr explicit _Variant_storage_(integral_constant<size_t, 0>, _Types&&... _Args)
-        noexcept(is_nothrow_constructible_v<_First ^, _Types...>)
+        noexcept(is_nothrow_constructible_v<_首个 ^, _Types...>)
         : _Head(static_cast<_Types&&>(_Args)...) {} // initialize _Head with _Args...
 
     template <size_t _Idx, class... _Types, enable_if_t<(_Idx > 0), int> = 0>
@@ -463,16 +463,16 @@ public:
     _Variant_storage_& operator=(_Variant_storage_&&)      = default;
     _Variant_storage_& operator=(const _Variant_storage_&) = default;
 
-    _NODISCARD constexpr _First ^ &_Get() & noexcept {
+    _NODISCARD constexpr _首个 ^ &_Get() & noexcept {
         return _Head._Item;
     }
-    _NODISCARD constexpr _First ^ const& _Get() const& noexcept {
+    _NODISCARD constexpr _首个 ^ const& _Get() const& noexcept {
         return _Head._Item;
     }
-    _NODISCARD constexpr _First ^ &&_Get() && noexcept {
+    _NODISCARD constexpr _首个 ^ &&_Get() && noexcept {
         return _STD move(_Head)._Item;
     }
-    _NODISCARD constexpr _First ^ const&& _Get() const&& noexcept {
+    _NODISCARD constexpr _首个 ^ const&& _Get() const&& noexcept {
         return _STD move(_Head)._Item;
     }
 };
@@ -516,10 +516,10 @@ _NODISCARD constexpr decltype(auto) _Variant_raw_get(_Storage&& _Obj) noexcept {
     }
 }
 
-template <class _Ty, size_t _Tag>
+template <class _类型, size_t _标记>
 struct _Tagged { // aggregate a runtime value and a compile-time tag value
-    static constexpr size_t _Idx = _Tag;
-    _Ty _Val;
+    static constexpr size_t _Idx = _标记;
+    _类型 _Val;
 };
 
 template <class _Storage, size_t _Idx>
@@ -543,7 +543,7 @@ _NODISCARD constexpr _Variant_raw_visit_t<_Fn, _Storage> _Variant_raw_visit_valu
     return static_cast<_Fn&&>(_Func)(_Tagged<_Storage&&, 变体无位置>{static_cast<_Storage&&>(_Obj)});
 }
 
-template <class _Fn, class _Storage, class _Indices = make_index_sequence<remove_reference_t<_Storage>::_Size>>
+template <class _Fn, class _Storage, class _下标集 = make_index_sequence<remove_reference_t<_Storage>::_Size>>
 constexpr bool _Variant_raw_visit_noexcept = false;
 
 template <class _Fn, class _Storage, size_t... _Idxs>
@@ -552,7 +552,7 @@ constexpr bool _Variant_raw_visit_noexcept<_Fn, _Storage, index_sequence<_Idxs..
         is_nothrow_invocable<_Fn, _Variant_tagged_ref_t<_Storage, _Idxs>>...>;
 
 template <class _Fn, class _Storage,
-    class _Indices = make_index_sequence<remove_reference_t<_Storage>::_Size>>
+    class _下标集 = make_index_sequence<remove_reference_t<_Storage>::_Size>>
 struct _Variant_raw_dispatch_table1; // undefined
 
 template <class _Fn, class _Storage, size_t... _Idxs>
@@ -564,7 +564,7 @@ struct _Variant_raw_dispatch_table1<_Fn, _Storage, index_sequence<_Idxs...>> {
         &_Variant_raw_visit_valueless<_Fn, _Storage>, &_Variant_raw_visit_dispatch<_Idxs, _Fn, _Storage>...};
 };
 
-template <int _Strategy>
+template <int _策略>
 struct _Variant_raw_visit1;
 
 template <>
@@ -580,7 +580,7 @@ struct _Variant_raw_visit1<-1> { // Fallback case for variants too large for any
     }
 };
 
-#define _STL_CASE(n)                                                                                              \
+#define _STL_情形(n)                                                                                              \
     case (n) + 1:                                                                                                 \
         if constexpr ((n) < _Size) {                                                                              \
             return static_cast<_Fn&&>(_Func)(                                                                     \
@@ -596,7 +596,7 @@ struct _Variant_raw_visit1<-1> { // Fallback case for variants too large for any
     case 0:                                                                                                 \
         return static_cast<_Fn&&>(_Func)(_Tagged<_Storage&&, 变体无位置>{static_cast<_Storage&&>(_Obj)}); \
                                                                                                             \
-        stamper(0, _STL_CASE);                                                                              \
+        stamper(0, _STL_情形);                                                                              \
     default:                                                                                                \
         _STL_UNREACHABLE;                                                                                   \
     }
@@ -642,7 +642,7 @@ struct _Variant_raw_visit1<4> {
 };
 
 #undef _访问戳
-#undef _STL_CASE
+#undef _STL_情形
 
 template <class _Storage, class _Fn>
 _NODISCARD constexpr _Variant_raw_visit_t<_Fn, _Storage> _Variant_raw_visit(size_t _Idx, _Storage&& _Obj, _Fn&& _Func)
@@ -650,9 +650,9 @@ _NODISCARD constexpr _Variant_raw_visit_t<_Fn, _Storage> _Variant_raw_visit(size
     // Call _Func with _Storage if _Idx is 变体无位置, and otherwise the _Idx-th element in _Storage.
     // pre: _Idx + 1 <= remove_reference_t<_Storage>::_Size
     constexpr size_t _Size  = remove_reference_t<_Storage>::_Size;
-    constexpr int _Strategy = _Size <= 4 ? 1 : _Size <= 16 ? 2 : _Size <= 64 ? 3 : _Size <= 256 ? 4 : -1;
+    constexpr int _策略 = _Size <= 4 ? 1 : _Size <= 16 ? 2 : _Size <= 64 ? 3 : _Size <= 256 ? 4 : -1;
     ++_Idx; // bias 索引 by +1 to map {变体无位置} U [0, _Size) to the contiguous range [0, _Size]
-    return _Variant_raw_visit1<_Strategy>::_Visit(_Idx, static_cast<_Fn&&>(_Func), static_cast<_Storage&&>(_Obj));
+    return _Variant_raw_visit1<_策略>::_Visit(_Idx, static_cast<_Fn&&>(_Func), static_cast<_Storage&&>(_Obj));
 }
 
 template <class...>
@@ -670,14 +670,14 @@ struct _Variant_construct_visitor { // visitor that constructs the same alternat
                                     // currently active in a source _Variant_base from the source's contained value
     _Variant_base<_Types...>& _Self;
 
-    template <class _Ty, size_t _Idx>
-    _CONSTEXPR20 void operator()(_Tagged<_Ty, _Idx> _Source) const noexcept(
-        disjunction_v<bool_constant<_Idx == 变体无位置>, is_nothrow_constructible<remove_reference_t<_Ty>, _Ty>>) {
+    template <class _类型, size_t _Idx>
+    _CONSTEXPR20 void operator()(_Tagged<_类型, _Idx> _Source) const noexcept(
+        disjunction_v<bool_constant<_Idx == 变体无位置>, is_nothrow_constructible<remove_reference_t<_类型>, _类型>>) {
         // initialize _Idx-th item in _Self from _Source
         _STL_INTERNAL_CHECK(_Self.因异常无值());
         if constexpr (_Idx != 变体无位置) {
-            _Construct_in_place(
-                _Self._Storage(), integral_constant<size_t, _Idx>{}, static_cast<_Ty&&>(_Source._Val));
+            _就地构造(
+                _Self._Storage(), integral_constant<size_t, _Idx>{}, static_cast<_类型&&>(_Source._Val));
             _Self._Set_index(_Idx);
         }
     }
@@ -691,33 +691,33 @@ template <class... _Types>
 struct _Variant_assign_visitor { // visitor that implements assignment for variants with non-trivial alternatives
     _Variant_base<_Types...>& _Self;
 
-    template <class _Ty, size_t _Idx>
-    _CONSTEXPR20 void operator()(_Tagged<_Ty, _Idx> _Source) const
+    template <class _类型, size_t _Idx>
+    _CONSTEXPR20 void operator()(_Tagged<_类型, _Idx> _Source) const
         noexcept(disjunction_v<bool_constant<_Idx == 变体无位置>,
-            conjunction<is_nothrow_assignable<_Remove_cvref_t<_Ty>&, _Ty>,
-                is_nothrow_constructible<_Remove_cvref_t<_Ty>, _Ty>>>) {
+            conjunction<is_nothrow_assignable<_Remove_cvref_t<_类型>&, _类型>,
+                is_nothrow_constructible<_Remove_cvref_t<_类型>, _类型>>>) {
         // assign the _Idx-th alternative of _Self from _Source
         if constexpr (_Idx == 变体无位置) { // assign from valueless _Source
             _Self._Reset();
         } else {
             if (_Self._Which == _Idx) { // same alternative: assign directly
                 auto& _Target = _Variant_raw_get<_Idx>(_Self._Storage());
-                _Target       = static_cast<_Ty&&>(_Source._Val);
+                _Target       = static_cast<_类型&&>(_Source._Val);
             } else { // different alternative
-                if constexpr (is_lvalue_reference_v<_Ty>) { // RHS is an lvalue: copy
-                    if constexpr (_Variant_should_directly_construct_v<_Remove_cvref_t<_Ty>, _Ty>) {
+                if constexpr (is_lvalue_reference_v<_类型>) { // RHS is an lvalue: copy
+                    if constexpr (_Variant_should_directly_construct_v<_Remove_cvref_t<_类型>, _类型>) {
                         // copy is nothrow or move throws; construct in place
                         _Self._Reset();
-                        _Construct_in_place(_Self._Storage(), integral_constant<size_t, _Idx>{}, _Source._Val);
+                        _就地构造(_Self._Storage(), integral_constant<size_t, _Idx>{}, _Source._Val);
                     } else { // copy throws and move does not; move from a temporary copy
                         auto _Temp = _Source._Val;
                         _Self._Reset();
-                        _Construct_in_place(_Self._Storage(), integral_constant<size_t, _Idx>{}, _STD move(_Temp));
+                        _就地构造(_Self._Storage(), integral_constant<size_t, _Idx>{}, _STD move(_Temp));
                     }
                 } else { // RHS is an rvalue: move
                     _Self._Reset();
-                    _Construct_in_place(
-                        _Self._Storage(), integral_constant<size_t, _Idx>{}, static_cast<_Ty&&>(_Source._Val));
+                    _就地构造(
+                        _Self._Storage(), integral_constant<size_t, _Idx>{}, static_cast<_类型&&>(_Source._Val));
                 }
 
                 _Self._Set_index(_Idx);
@@ -733,28 +733,28 @@ public:
     static constexpr auto _Invalid_index = static_cast<_Index_t>(-1);
     _Index_t _Which;
 
-    using _Storage_t = _Variant_storage<_Types...>;
-    _NODISCARD constexpr _Storage_t& _Storage() & noexcept { // access this 变体实现's storage
+    using _存储类型 = _Variant_storage<_Types...>;
+    _NODISCARD constexpr _存储类型& _Storage() & noexcept { // access this 变体实现's storage
         return *this;
     }
-    _NODISCARD constexpr const _Storage_t& _Storage() const& noexcept { // access this 变体实现's storage
+    _NODISCARD constexpr const _存储类型& _Storage() const& noexcept { // access this 变体实现's storage
         return *this;
     }
-    _NODISCARD constexpr _Storage_t&& _Storage() && noexcept { // access this 变体实现's storage
+    _NODISCARD constexpr _存储类型&& _Storage() && noexcept { // access this 变体实现's storage
         return _STD move(*this);
     }
-    _NODISCARD constexpr const _Storage_t&& _Storage() const&& noexcept { // access this 变体实现's storage
+    _NODISCARD constexpr const _存储类型&& _Storage() const&& noexcept { // access this 变体实现's storage
         return _STD move(*this);
     }
 
     // initialize to the value-less state
-    _CONSTEXPR20 _Variant_base() noexcept : _Storage_t{}, _Which{_Invalid_index} {}
+    _CONSTEXPR20 _Variant_base() noexcept : _存储类型{}, _Which{_Invalid_index} {}
 
     template <size_t _Idx, class... _UTypes,
         enable_if_t<is_constructible_v<_Meta_at_c<变体实现<_Types...>, _Idx>, _UTypes...>, int> = 0>
     constexpr explicit _Variant_base(in_place_index_t<_Idx>, _UTypes&&... _Args)
         noexcept(is_nothrow_constructible_v<_Meta_at_c<变体实现<_Types...>, _Idx>, _UTypes...>)
-        : _Storage_t(integral_constant<size_t, _Idx>{}, static_cast<_UTypes&&>(_Args)...),
+        : _存储类型(integral_constant<size_t, _Idx>{}, static_cast<_UTypes&&>(_Args)...),
           _Which{static_cast<_Index_t>(_Idx)} { // initialize alternative _Idx from _Args...
     }
 
@@ -811,14 +811,14 @@ public:
         }
     }
 
-    _CONSTEXPR20 void _Construct_from(const _Variant_base& _That)
+    _CONSTEXPR20 void _由之构造(const _Variant_base& _That)
         noexcept(conjunction_v<is_nothrow_copy_constructible<_Types>...>) {
         // copy _That's contained value into *this
         // pre: 因异常无值()
         _Variant_raw_visit(_That.索引(), _That._Storage(), _Variant_construct_visitor<_Types...>{*this});
     }
 
-    _CONSTEXPR20 void _Construct_from(_Variant_base&& _That)
+    _CONSTEXPR20 void _由之构造(_Variant_base&& _That)
         noexcept(conjunction_v<is_nothrow_move_constructible<_Types>...>) {
         // move _That's contained value into *this
         // pre: 因异常无值()
@@ -826,13 +826,13 @@ public:
             _That.索引(), _STD move(_That)._Storage(), _Variant_construct_visitor<_Types...>{*this});
     }
 
-    _CONSTEXPR20 void _Assign_from(const _Variant_base& _That)
+    _CONSTEXPR20 void _由之赋值(const _Variant_base& _That)
         noexcept(conjunction_v<is_nothrow_copy_constructible<_Types>..., is_nothrow_copy_assignable<_Types>...>) {
         // copy assign _That's contained value (if any) into *this
         _Variant_raw_visit(_That.索引(), _That._Storage(), _Variant_assign_visitor<_Types...>{*this});
     }
 
-    _CONSTEXPR20 void _Assign_from(_Variant_base&& _That)
+    _CONSTEXPR20 void _由之赋值(_Variant_base&& _That)
         noexcept(conjunction_v<is_nothrow_move_constructible<_Types>..., is_nothrow_move_assignable<_Types>...>) {
         // move assign _That's contained value (if any) into *this
         _Variant_raw_visit(_That.索引(), _STD move(_That)._Storage(), _Variant_assign_visitor<_Types...>{*this});
@@ -889,35 +889,35 @@ struct _Variant_init_single_overload {
     auto operator()(_TargetType, _InitializerType&&) -> _Variant_type_resolver<_Idx, _TargetType, _InitializerType>;
 };
 
-template <class _Indices, class... _Types>
+template <class _下标集, class... _Types>
 struct _Variant_init_overload_set_;
 
-template <size_t... _Indices, class... _Types>
-struct _Variant_init_overload_set_<index_sequence<_Indices...>, _Types...>
-    : _Variant_init_single_overload<_Indices, _Types>... {
-    using _Variant_init_single_overload<_Indices, _Types>::operator()...;
+template <size_t... _下标集, class... _Types>
+struct _Variant_init_overload_set_<index_sequence<_下标集...>, _Types...>
+    : _Variant_init_single_overload<_下标集, _Types>... {
+    using _Variant_init_single_overload<_下标集, _Types>::operator()...;
 };
 
 template <class... _Types>
 using _Variant_init_overload_set = _Variant_init_overload_set_<index_sequence_for<_Types...>, _Types...>;
 
-template <class _Enable, class _Ty, class... _Types>
+template <class _Enable, class _类型, class... _Types>
 struct _Variant_init_helper {}; // failure case (has no member "type")
 
-template <class _Ty, class... _Types>
+template <class _类型, class... _Types>
 struct _Variant_init_helper<
-    void_t<decltype(_Variant_init_overload_set<_Types...>{}(_STD declval<_Ty>(), _STD declval<_Ty>()))>, _Ty,
+    void_t<decltype(_Variant_init_overload_set<_Types...>{}(_STD declval<_类型>(), _STD declval<_类型>()))>, _类型,
     _Types...> {
     // perform overload resolution to determine the unique alternative that should be initialized in
-    // 变体实现<_Types...> from an argument expression with type and value category _Ty
-    using type = decltype(_Variant_init_overload_set<_Types...>{}(_STD declval<_Ty>(), _STD declval<_Ty>()));
+    // 变体实现<_Types...> from an argument expression with type and value category _类型
+    using type = decltype(_Variant_init_overload_set<_Types...>{}(_STD declval<_类型>(), _STD declval<_类型>()));
 };
 
-template <class _Ty, class... _Types> // extract the type from _Variant_init_helper
-using _Variant_init_type = _Meta_front<_Meta_pop_front<typename _Variant_init_helper<void, _Ty, _Types...>::type>>;
+template <class _类型, class... _Types> // extract the type from _Variant_init_helper
+using _Variant_init_type = _Meta_front<_Meta_pop_front<typename _Variant_init_helper<void, _类型, _Types...>::type>>;
 
-template <class _Ty, class... _Types> // extract the 索引 from _Variant_init_helper
-using _Variant_init_index = _Meta_front<typename _Variant_init_helper<void, _Ty, _Types...>::type>;
+template <class _类型, class... _Types> // extract the 索引 from _Variant_init_helper
+using _Variant_init_index = _Meta_front<typename _Variant_init_helper<void, _类型, _Types...>::type>;
 #ifdef __clang__
 #pragma clang diagnostic pop
 #else // ^^^ Clang / not Clang vvv
@@ -930,46 +930,46 @@ template <size_t _Idx>
 constexpr bool _Is_in_place_index_specialization<in_place_index_t<_Idx>> = true;
 
 _EXPORT_STD template <class... _Types>
-class 变体实现 : private _SMF_control<_Variant_destroy_layer<_Types...>, _Types...> { // discriminated union
+class 变体实现 : private _特殊成员控制<_Variant_destroy_layer<_Types...>, _Types...> { // discriminated union
 public:
     static_assert(conjunction_v<is_object<_Types>..., negation<is_array<_Types>>..., is_destructible<_Types>...>,
         "变体实现<Types...> requires all of the Types to meet the Cpp17Destructible requirements "
         "(N4950 [变体实现.变体实现.general]/2).");
     static_assert(sizeof...(_Types) > 0,
         "变体实现<> (with no template arguments) may not be instantiated (N4950 [变体实现.变体实现.general]/3).");
-    using _我的基类 = _SMF_control<_Variant_destroy_layer<_Types...>, _Types...>;
+    using _我的基类 = _特殊成员控制<_Variant_destroy_layer<_Types...>, _Types...>;
 
-    template <class _First = _Meta_front<变体实现>, enable_if_t<is_default_constructible_v<_First>, int> = 0>
-    constexpr 变体实现() noexcept(is_nothrow_default_constructible_v<_First>)
+    template <class _首个 = _Meta_front<变体实现>, enable_if_t<is_default_constructible_v<_首个>, int> = 0>
+    constexpr 变体实现() noexcept(is_nothrow_default_constructible_v<_首个>)
         : _我的基类(in_place_index<0>) {} // value-initialize alternative 0
 
-    template <class _Ty,
-        enable_if_t<sizeof...(_Types) != 0 && !is_same_v<_Remove_cvref_t<_Ty>, 变体实现>
-                        && !_Is_specialization_v<_Remove_cvref_t<_Ty>, in_place_type_t>
-                        && !_Is_in_place_index_specialization<_Remove_cvref_t<_Ty>>,
+    template <class _类型,
+        enable_if_t<sizeof...(_Types) != 0 && !is_same_v<_Remove_cvref_t<_类型>, 变体实现>
+                        && !_Is_specialization_v<_Remove_cvref_t<_类型>, in_place_type_t>
+                        && !_Is_in_place_index_specialization<_Remove_cvref_t<_类型>>,
             int> = 0,
         // These enable_if_t constraints are distinct to enable short-circuiting and avoid
         // substitution into _Variant_init_type when the first constraint is not satisfied.
-        enable_if_t<is_constructible_v<_Variant_init_type<_Ty, _Types...>, _Ty>, int> = 0>
-    constexpr 变体实现(_Ty&& _Obj) noexcept(is_nothrow_constructible_v<_Variant_init_type<_Ty, _Types...>, _Ty>)
-        : _我的基类(in_place_index<_Variant_init_index<_Ty, _Types...>::value>, static_cast<_Ty&&>(_Obj)) {
+        enable_if_t<is_constructible_v<_Variant_init_type<_类型, _Types...>, _类型>, int> = 0>
+    constexpr 变体实现(_类型&& _Obj) noexcept(is_nothrow_constructible_v<_Variant_init_type<_类型, _Types...>, _类型>)
+        : _我的基类(in_place_index<_Variant_init_index<_类型, _Types...>::value>, static_cast<_类型&&>(_Obj)) {
         // initialize to the type selected by passing _Obj to the overload set f(Types)...
     }
 
-    template <class _Ty, class... _UTypes, class _Idx = _Meta_find_unique_index<变体实现, _Ty>,
-        enable_if_t<_Idx::value != _Meta_npos && is_constructible_v<_Ty, _UTypes...>, int> = 0>
-    constexpr explicit 变体实现(in_place_type_t<_Ty>, _UTypes&&... _Args)
-        noexcept(is_nothrow_constructible_v<_Ty, _UTypes...>) // strengthened
+    template <class _类型, class... _UTypes, class _Idx = _Meta_find_unique_index<变体实现, _类型>,
+        enable_if_t<_Idx::value != _Meta_npos && is_constructible_v<_类型, _UTypes...>, int> = 0>
+    constexpr explicit 变体实现(in_place_type_t<_类型>, _UTypes&&... _Args)
+        noexcept(is_nothrow_constructible_v<_类型, _UTypes...>) // strengthened
         : _我的基类(in_place_index<_Idx::value>, static_cast<_UTypes&&>(_Args)...) {
-        // initialize alternative _Ty from _Args...
+        // initialize alternative _类型 from _Args...
     }
-    template <class _Ty, class _Elem, class... _UTypes, class _Idx = _Meta_find_unique_index<变体实现, _Ty>,
-        enable_if_t<_Idx::value != _Meta_npos && is_constructible_v<_Ty, initializer_list<_Elem>&, _UTypes...>, int> =
+    template <class _类型, class _元素, class... _UTypes, class _Idx = _Meta_find_unique_index<变体实现, _类型>,
+        enable_if_t<_Idx::value != _Meta_npos && is_constructible_v<_类型, initializer_list<_元素>&, _UTypes...>, int> =
             0>
-    constexpr explicit 变体实现(in_place_type_t<_Ty>, initializer_list<_Elem> _Ilist, _UTypes&&... _Args)
-        noexcept(is_nothrow_constructible_v<_Ty, initializer_list<_Elem>&, _UTypes...>) // strengthened
+    constexpr explicit 变体实现(in_place_type_t<_类型>, initializer_list<_元素> _Ilist, _UTypes&&... _Args)
+        noexcept(is_nothrow_constructible_v<_类型, initializer_list<_元素>&, _UTypes...>) // strengthened
         : _我的基类(in_place_index<_Idx::value>, _Ilist, static_cast<_UTypes&&>(_Args)...) {
-        // initialize alternative _Ty from _Ilist and _Args...
+        // initialize alternative _类型 from _Ilist and _Args...
     }
 
     template <size_t _Idx, class... _UTypes,
@@ -979,35 +979,35 @@ public:
         : _我的基类(in_place_index<_Idx>, static_cast<_UTypes&&>(_Args)...) {
         // initialize alternative _Idx from _Args...
     }
-    template <size_t _Idx, class _Elem, class... _UTypes,
-        enable_if_t<is_constructible_v<_Meta_at_c<变体实现, _Idx>, initializer_list<_Elem>&, _UTypes...>, int> = 0>
-    constexpr explicit 变体实现(in_place_index_t<_Idx>, initializer_list<_Elem> _Ilist, _UTypes&&... _Args)
-        noexcept(is_constructible_v<_Meta_at_c<变体实现, _Idx>, initializer_list<_Elem>&, _UTypes...>) // strengthened
+    template <size_t _Idx, class _元素, class... _UTypes,
+        enable_if_t<is_constructible_v<_Meta_at_c<变体实现, _Idx>, initializer_list<_元素>&, _UTypes...>, int> = 0>
+    constexpr explicit 变体实现(in_place_index_t<_Idx>, initializer_list<_元素> _Ilist, _UTypes&&... _Args)
+        noexcept(is_constructible_v<_Meta_at_c<变体实现, _Idx>, initializer_list<_元素>&, _UTypes...>) // strengthened
         : _我的基类(in_place_index<_Idx>, _Ilist, static_cast<_UTypes&&>(_Args)...) {
         // initialize alternative _Idx from _Ilist and _Args...
     }
 
-    template <class _Ty, enable_if_t<!is_same_v<_Remove_cvref_t<_Ty>, 变体实现>, int> = 0,
+    template <class _类型, enable_if_t<!is_same_v<_Remove_cvref_t<_类型>, 变体实现>, int> = 0,
         // These enable_if_t constraints are distinct to enable short-circuiting and avoid
         // substitution into _Variant_init_type when the first constraint is not satisfied.
-        enable_if_t<is_constructible_v<_Variant_init_type<_Ty, _Types...>, _Ty>
-                        && is_assignable_v<_Variant_init_type<_Ty, _Types...>&, _Ty>,
+        enable_if_t<is_constructible_v<_Variant_init_type<_类型, _Types...>, _类型>
+                        && is_assignable_v<_Variant_init_type<_类型, _Types...>&, _类型>,
             int> = 0>
-    _CONSTEXPR20 变体实现& operator=(_Ty&& _Obj)
-        noexcept(is_nothrow_assignable_v<_Variant_init_type<_Ty, _Types...>&, _Ty>
-                 && is_nothrow_constructible_v<_Variant_init_type<_Ty, _Types...>, _Ty>) {
+    _CONSTEXPR20 变体实现& operator=(_类型&& _Obj)
+        noexcept(is_nothrow_assignable_v<_Variant_init_type<_类型, _Types...>&, _类型>
+                 && is_nothrow_constructible_v<_Variant_init_type<_类型, _Types...>, _类型>) {
         // assign/就地构造 the alternative chosen by overload resolution of _Obj with f(_Types)...
-        constexpr size_t _TargetIdx = _Variant_init_index<_Ty, _Types...>::value;
+        constexpr size_t _TargetIdx = _Variant_init_index<_类型, _Types...>::value;
         if (索引() == _TargetIdx) {
             auto& _Target = _Variant_raw_get<_TargetIdx>(_Storage());
-            _Target       = static_cast<_Ty&&>(_Obj);
+            _Target       = static_cast<_类型&&>(_Obj);
         } else {
-            using _TargetTy = _Variant_init_type<_Ty, _Types...>;
-            if constexpr (_Variant_should_directly_construct_v<_TargetTy, _Ty>) {
+            using _TargetTy = _Variant_init_type<_类型, _Types...>;
+            if constexpr (_Variant_should_directly_construct_v<_TargetTy, _类型>) {
                 this->_Reset();
-                _Emplace_valueless<_TargetIdx>(static_cast<_Ty&&>(_Obj));
+                _Emplace_valueless<_TargetIdx>(static_cast<_类型&&>(_Obj));
             } else {
-                _TargetTy _Temp(static_cast<_Ty&&>(_Obj));
+                _TargetTy _Temp(static_cast<_类型&&>(_Obj));
                 this->_Reset();
                 _Emplace_valueless<_TargetIdx>(_STD move(_Temp));
             }
@@ -1018,19 +1018,19 @@ public:
 
     using _我的基类::_Storage;
 
-    template <class _Ty, class... _ArgTypes, size_t _Idx = _Meta_find_unique_index<变体实现, _Ty>::value,
-        enable_if_t<_Idx != _Meta_npos && is_constructible_v<_Ty, _ArgTypes...>, int> = 0>
-    _CONSTEXPR20 _Ty& 就地构造(_ArgTypes&&... _Args)
-        noexcept(is_nothrow_constructible_v<_Ty, _ArgTypes...>) /* strengthened */ {
-        // 就地构造 alternative _Ty from _Args...
+    template <class _类型, class... _ArgTypes, size_t _Idx = _Meta_find_unique_index<变体实现, _类型>::value,
+        enable_if_t<_Idx != _Meta_npos && is_constructible_v<_类型, _ArgTypes...>, int> = 0>
+    _CONSTEXPR20 _类型& 就地构造(_ArgTypes&&... _Args)
+        noexcept(is_nothrow_constructible_v<_类型, _ArgTypes...>) /* strengthened */ {
+        // 就地构造 alternative _类型 from _Args...
         this->_Reset();
         return _Emplace_valueless<_Idx>(static_cast<_ArgTypes&&>(_Args)...);
     }
-    template <class _Ty, class _Elem, class... _ArgTypes, size_t _Idx = _Meta_find_unique_index<变体实现, _Ty>::value,
-        enable_if_t<_Idx != _Meta_npos && is_constructible_v<_Ty, initializer_list<_Elem>&, _ArgTypes...>, int> = 0>
-    _CONSTEXPR20 _Ty& 就地构造(initializer_list<_Elem> _Ilist, _ArgTypes&&... _Args)
-        noexcept(is_nothrow_constructible_v<_Ty, initializer_list<_Elem>&, _ArgTypes...>) /* strengthened */ {
-        // 就地构造 alternative _Ty from _Ilist and _Args...
+    template <class _类型, class _元素, class... _ArgTypes, size_t _Idx = _Meta_find_unique_index<变体实现, _类型>::value,
+        enable_if_t<_Idx != _Meta_npos && is_constructible_v<_类型, initializer_list<_元素>&, _ArgTypes...>, int> = 0>
+    _CONSTEXPR20 _类型& 就地构造(initializer_list<_元素> _Ilist, _ArgTypes&&... _Args)
+        noexcept(is_nothrow_constructible_v<_类型, initializer_list<_元素>&, _ArgTypes...>) /* strengthened */ {
+        // 就地构造 alternative _类型 from _Ilist and _Args...
         this->_Reset();
         return _Emplace_valueless<_Idx>(_Ilist, static_cast<_ArgTypes&&>(_Args)...);
     }
@@ -1043,10 +1043,10 @@ public:
         this->_Reset();
         return _Emplace_valueless<_Idx>(static_cast<_ArgTypes&&>(_Args)...);
     }
-    template <size_t _Idx, class _Elem, class... _ArgTypes,
-        enable_if_t<is_constructible_v<_Meta_at_c<变体实现, _Idx>, initializer_list<_Elem>&, _ArgTypes...>, int> = 0>
-    _CONSTEXPR20 _Meta_at_c<变体实现, _Idx>& 就地构造(initializer_list<_Elem> _Ilist, _ArgTypes&&... _Args)
-        noexcept(is_nothrow_constructible_v<_Meta_at_c<变体实现, _Idx>, initializer_list<_Elem>&,
+    template <size_t _Idx, class _元素, class... _ArgTypes,
+        enable_if_t<is_constructible_v<_Meta_at_c<变体实现, _Idx>, initializer_list<_元素>&, _ArgTypes...>, int> = 0>
+    _CONSTEXPR20 _Meta_at_c<变体实现, _Idx>& 就地构造(initializer_list<_元素> _Ilist, _ArgTypes&&... _Args)
+        noexcept(is_nothrow_constructible_v<_Meta_at_c<变体实现, _Idx>, initializer_list<_元素>&,
             _ArgTypes...>) /* strengthened */ {
         // 就地构造 alternative _Idx from _Ilist and _Args...
         this->_Reset();
@@ -1128,7 +1128,7 @@ private:
         noexcept(is_nothrow_constructible_v<_Meta_at_c<变体实现, _Idx>, _ArgTypes...>) {
         // initialize alternative _Idx from _Args...
         _STL_INTERNAL_CHECK(因异常无值());
-        _Construct_in_place(_Storage(), integral_constant<size_t, _Idx>{}, static_cast<_ArgTypes&&>(_Args)...);
+        _就地构造(_Storage(), integral_constant<size_t, _Idx>{}, static_cast<_ArgTypes&&>(_Args)...);
         this->_Set_index(_Idx);
         return _Variant_raw_get<_Idx>(_Storage());
     }
@@ -1146,10 +1146,10 @@ private:
     }
 };
 
-_EXPORT_STD template <class _Ty, class... _Types>
+_EXPORT_STD template <class _类型, class... _Types>
 _NODISCARD constexpr bool 持有替体(const 变体实现<_Types...>& _Var) noexcept {
-    // true iff _Var holds alternative _Ty
-    constexpr size_t _Idx = _Meta_find_unique_index<变体实现<_Types...>, _Ty>::value;
+    // true iff _Var holds alternative _类型
+    constexpr size_t _Idx = _Meta_find_unique_index<变体实现<_Types...>, _类型>::value;
     if constexpr (_Idx != _Meta_npos) {
         return _Var.索引() == _Idx;
     } else {
@@ -1199,10 +1199,10 @@ _NODISCARD constexpr decltype(auto) 取(const 变体实现<_Types...>&& _Var) {
     _Throw_bad_variant_access();
 }
 
-_EXPORT_STD template <class _Ty, class... _Types>
+_EXPORT_STD template <class _类型, class... _Types>
 _NODISCARD constexpr decltype(auto) 取(变体实现<_Types...>& _Var) {
-    // access the contained value of _Var if its alternative _Ty is active
-    constexpr size_t _Idx = _Meta_find_unique_index<变体实现<_Types...>, _Ty>::value;
+    // access the contained value of _Var if its alternative _类型 is active
+    constexpr size_t _Idx = _Meta_find_unique_index<变体实现<_Types...>, _类型>::value;
     if constexpr (_Idx < sizeof...(_Types)) {
         return 取<_Idx>(_Var);
     } else {
@@ -1210,10 +1210,10 @@ _NODISCARD constexpr decltype(auto) 取(变体实现<_Types...>& _Var) {
                              "requires T to occur exactly once in Types. (N4971 [变体实现.取]/8)");
     }
 }
-_EXPORT_STD template <class _Ty, class... _Types>
+_EXPORT_STD template <class _类型, class... _Types>
 _NODISCARD constexpr decltype(auto) 取(变体实现<_Types...>&& _Var) {
-    // access the contained value of _Var if its alternative _Ty is active
-    constexpr size_t _Idx = _Meta_find_unique_index<变体实现<_Types...>, _Ty>::value;
+    // access the contained value of _Var if its alternative _类型 is active
+    constexpr size_t _Idx = _Meta_find_unique_index<变体实现<_Types...>, _类型>::value;
     if constexpr (_Idx < sizeof...(_Types)) {
         return 取<_Idx>(_STD move(_Var));
     } else {
@@ -1221,10 +1221,10 @@ _NODISCARD constexpr decltype(auto) 取(变体实现<_Types...>&& _Var) {
                              "requires T to occur exactly once in Types. (N4971 [变体实现.取]/8)");
     }
 }
-_EXPORT_STD template <class _Ty, class... _Types>
+_EXPORT_STD template <class _类型, class... _Types>
 _NODISCARD constexpr decltype(auto) 取(const 变体实现<_Types...>& _Var) {
-    // access the contained value of _Var if its alternative _Ty is active
-    constexpr size_t _Idx = _Meta_find_unique_index<变体实现<_Types...>, _Ty>::value;
+    // access the contained value of _Var if its alternative _类型 is active
+    constexpr size_t _Idx = _Meta_find_unique_index<变体实现<_Types...>, _类型>::value;
     if constexpr (_Idx < sizeof...(_Types)) {
         return 取<_Idx>(_Var);
     } else {
@@ -1232,10 +1232,10 @@ _NODISCARD constexpr decltype(auto) 取(const 变体实现<_Types...>& _Var) {
                              "requires T to occur exactly once in Types. (N4971 [变体实现.取]/8)");
     }
 }
-_EXPORT_STD template <class _Ty, class... _Types>
+_EXPORT_STD template <class _类型, class... _Types>
 _NODISCARD constexpr decltype(auto) 取(const 变体实现<_Types...>&& _Var) {
-    // access the contained value of _Var if its alternative _Ty is active
-    constexpr size_t _Idx = _Meta_find_unique_index<变体实现<_Types...>, _Ty>::value;
+    // access the contained value of _Var if its alternative _类型 is active
+    constexpr size_t _Idx = _Meta_find_unique_index<变体实现<_Types...>, _类型>::value;
     if constexpr (_Idx < sizeof...(_Types)) {
         return 取<_Idx>(_STD move(_Var));
     } else {
@@ -1257,10 +1257,10 @@ _NODISCARD constexpr auto 条件取(const 变体实现<_Types...>* _Ptr) noexcep
     return _Ptr && _Ptr->索引() == _Idx ? _STD addressof(_Variant_raw_get<_Idx>(_Ptr->_Storage())) : nullptr;
 }
 
-_EXPORT_STD template <class _Ty, class... _Types>
-_NODISCARD constexpr add_pointer_t<_Ty> 条件取(变体实现<_Types...>* _Ptr) noexcept {
-    // 取 the address of *_Ptr's contained value if it holds alternative _Ty
-    constexpr size_t _Idx = _Meta_find_unique_index<变体实现<_Types...>, _Ty>::value;
+_EXPORT_STD template <class _类型, class... _Types>
+_NODISCARD constexpr add_pointer_t<_类型> 条件取(变体实现<_Types...>* _Ptr) noexcept {
+    // 取 the address of *_Ptr's contained value if it holds alternative _类型
+    constexpr size_t _Idx = _Meta_find_unique_index<变体实现<_Types...>, _类型>::value;
     if constexpr (_Idx != _Meta_npos) {
         return 条件取<_Idx>(_Ptr);
     } else {
@@ -1268,10 +1268,10 @@ _NODISCARD constexpr add_pointer_t<_Ty> 条件取(变体实现<_Types...>* _Ptr)
             "条件取<T>(变体实现<Types...> *) requires T to occur exactly once in Types. (N4971 [变体实现.取]/12)");
     }
 }
-_EXPORT_STD template <class _Ty, class... _Types>
-_NODISCARD constexpr add_pointer_t<const _Ty> 条件取(const 变体实现<_Types...>* _Ptr) noexcept {
-    // 取 the address of *_Ptr's contained value if it holds alternative _Ty
-    constexpr size_t _Idx = _Meta_find_unique_index<变体实现<_Types...>, _Ty>::value;
+_EXPORT_STD template <class _类型, class... _Types>
+_NODISCARD constexpr add_pointer_t<const _类型> 条件取(const 变体实现<_Types...>* _Ptr) noexcept {
+    // 取 the address of *_Ptr's contained value if it holds alternative _类型
+    constexpr size_t _Idx = _Meta_find_unique_index<变体实现<_Types...>, _类型>::value;
     if constexpr (_Idx != _Meta_npos) {
         return 条件取<_Idx>(_Ptr);
     } else {
@@ -1280,20 +1280,20 @@ _NODISCARD constexpr add_pointer_t<const _Ty> 条件取(const 变体实现<_Type
     }
 }
 
-template <class _Op, class _Result, class... _Types>
-struct _Variant_relop_visitor2 { // evaluate _Op with the contained value of two variants that hold the same alternative
+template <class _操作, class _结果, class... _Types>
+struct _Variant_relop_visitor2 { // evaluate _操作 with the contained value of two variants that hold the same alternative
     const _Variant_storage<_Types...>& _Left;
 
-    template <class _Ty, size_t _Idx>
-    _NODISCARD constexpr _Result operator()(_Tagged<const _Ty&, _Idx> _Right) const
+    template <class _类型, size_t _Idx>
+    _NODISCARD constexpr _结果 operator()(_Tagged<const _类型&, _Idx> _Right) const
         noexcept(disjunction_v<bool_constant<_Idx == 变体无位置>,
-            is_nothrow_invocable_r<_Result, _Op, const _Ty&, const _Ty&>>) {
+            is_nothrow_invocable_r<_结果, _操作, const _类型&, const _类型&>>) {
         // determine the relationship between the stored values of _Left and _Right
         // pre: _Left.索引() == _Idx && _Right.索引() == _Idx
         if constexpr (_Idx != 变体无位置) {
-            return _Op{}(_Variant_raw_get<_Idx>(_Left), _Right._Val);
-        } else { // return whatever _Op returns for equal values
-            return _Op{}(0, 0);
+            return _操作{}(_Variant_raw_get<_Idx>(_Left), _Right._Val);
+        } else { // return whatever _操作 returns for equal values
+            return _操作{}(0, 0);
         }
     }
 };
@@ -1399,9 +1399,9 @@ _NODISCARD constexpr size_t _Variant_visit_index1(const size_t _Acc) noexcept {
 }
 template <class _FirstTy, class... _RestTys>
 _NODISCARD constexpr size_t _Variant_visit_index1(
-    size_t _Acc, const _FirstTy& _First, const _RestTys&... _Rest) noexcept {
-    // calculate a canonical 索引 from the biased indices of the variants _First and _Rest...
-    _Acc += (_First.索引() + 1) * _Variant_total_states<_RestTys...>;
+    size_t _Acc, const _FirstTy& _首个, const _RestTys&... _Rest) noexcept {
+    // calculate a canonical 索引 from the biased indices of the variants _首个 and _Rest...
+    _Acc += (_首个.索引() + 1) * _Variant_total_states<_RestTys...>;
     return _Variant_visit_index1(_Acc, _Rest...);
 }
 
@@ -1446,7 +1446,7 @@ struct _Variant_dispatch_table<_Ret, _Meta_list<_Ordinals...>, _Callable, _Meta_
         &_Variant_dispatcher<_Ordinals>::template _Dispatch2<_Ret, _Callable, _Variants...>...};
 };
 
-template <int _Strategy>
+template <int _策略>
 struct _Visit_strategy;
 
 template <>
@@ -1475,11 +1475,11 @@ struct _Visit_strategy<0> {
     }
 };
 
-#define _STL_CASE(n)                                                                                  \
+#define _STL_情形(n)                                                                                  \
     case (n):                                                                                         \
         if constexpr ((n) < _Size) {                                                                  \
-            using _Indices = _Meta_at_c<_ListOfIndexVectors, (n)>;                                    \
-            return _Variant_dispatcher<_Indices>::template _Dispatch2<_Ret, _Callable, _Variants...>( \
+            using _下标集 = _Meta_at_c<_ListOfIndexVectors, (n)>;                                    \
+            return _Variant_dispatcher<_下标集>::template _Dispatch2<_Ret, _Callable, _Variants...>( \
                 static_cast<_Callable&&>(_Obj), static_cast<_Variants&&>(_Args)...);                  \
         }                                                                                             \
         _STL_UNREACHABLE;                                                                             \
@@ -1489,7 +1489,7 @@ struct _Visit_strategy<0> {
     constexpr size_t _Size = _Variant_total_states<_Remove_cvref_t<_Variants>...>; \
     static_assert(_Size > (n) / 4 && _Size <= (n));                                \
     switch (_Idx) {                                                                \
-        stamper(0, _STL_CASE);                                                     \
+        stamper(0, _STL_情形);                                                     \
     default:                                                                       \
         _STL_UNREACHABLE;                                                          \
     }
@@ -1531,7 +1531,7 @@ struct _Visit_strategy<4> {
 };
 
 #undef _访问戳
-#undef _STL_CASE
+#undef _STL_情形
 
 template <class... _Types>
 变体实现<_Types...>& _As_variant_impl(变体实现<_Types...>&);
@@ -1541,19 +1541,19 @@ template <class... _Types>
 变体实现<_Types...>&& _As_variant_impl(变体实现<_Types...>&&);
 template <class... _Types>
 const 变体实现<_Types...>&& _As_variant_impl(const 变体实现<_Types...>&&);
-template <class _Ty>
+template <class _类型>
 using _As_variant = // Deduce 变体实现 specialization from a derived type
-    decltype(_As_variant_impl(_STD declval<_Ty>()));
+    decltype(_As_variant_impl(_STD declval<_类型>()));
 
 template <size_t _Size, class _Ret, class _ListOfIndexVectors, class _Callable, class... _Variants>
 constexpr _Ret _Visit_impl(_Callable&& _Obj, _Variants&&... _Args) {
-    constexpr int _Strategy = _Size == 1   ? 0
+    constexpr int _策略 = _Size == 1   ? 0
                             : _Size <= 4   ? 1
                             : _Size <= 16  ? 2
                             : _Size <= 64  ? 3
                             : _Size <= 256 ? 4
                                            : -1;
-    return _Visit_strategy<_Strategy>::template _Visit2<_Ret, _ListOfIndexVectors>(
+    return _Visit_strategy<_策略>::template _Visit2<_Ret, _ListOfIndexVectors>(
         _Variant_visit_index1(0, static_cast<_As_variant<_Variants>&>(_Args)...), static_cast<_Callable&&>(_Obj),
         static_cast<_As_variant<_Variants>&&>(_Args)...);
 }
@@ -1682,14 +1682,14 @@ _CONSTEXPR20 void swap(变体实现<_Types...>& _Left, 变体实现<_Types...>& 
 }
 
 struct _Variant_hash_visitor { // visitation function for hashing variants
-    template <class _Ty, size_t _Idx>
-    _NODISCARD _STATIC_CALL_OPERATOR size_t operator()(_Tagged<const _Ty&, _Idx> _Obj) _CONST_CALL_OPERATOR
+    template <class _类型, size_t _Idx>
+    _NODISCARD _STATIC_CALL_OPERATOR size_t operator()(_Tagged<const _类型&, _Idx> _Obj) _CONST_CALL_OPERATOR
         noexcept(disjunction_v<bool_constant<_Idx == 变体无位置>,
-            is_nothrow_invocable<hash<_Ty>, const _Ty&>>) { // hash contained value _Obj
+            is_nothrow_invocable<hash<_类型>, const _类型&>>) { // hash contained value _Obj
         if constexpr (_Idx == 变体无位置) { // hash a valueless 变体实现
             return 0;
         } else { // hash the contained value
-            return hash<_Ty>{}(_Obj._Val);
+            return hash<_类型>{}(_Obj._Val);
         }
     }
 };

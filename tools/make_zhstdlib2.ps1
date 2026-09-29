@@ -1897,6 +1897,7 @@ $H = @{
                           'const_local_iterator' = '常量局部迭代器'
                           }
     members = [ordered]@{
+      '_Get_first' = '_取第一';
       '_Alloc' = '_分配器';
       '_First' = '_首个';
       '_Getal' = '_取分配器';
@@ -2146,6 +2147,7 @@ $H = @{
                           'const_local_iterator' = '常量局部迭代器'
                           }
     members = [ordered]@{
+      '_Get_first' = '_取第一';
       '_Valty' = '_值参数类型';
       '_Alloc' = '_分配器';
       '_First' = '_首个';
@@ -2670,6 +2672,16 @@ $H = @{
     #        我们的 `通用内部件`（§17.27.53 废止 §17.17.2），本头按"指向我们那份"处理。
     # -----------------------------------------------------------------------
     members = [ordered]@{
+      '_Uty' = '_结果类型';
+      '_Tidy' = '_清理';
+      '_Size_type' = '_尺寸类型';
+      '_Result' = '_结果';
+      '_Mycont' = '_我的容器';
+      '_Last' = '_最后';
+      '_Idl_distance' = '_IDL距离';
+      '_First' = '_首个';
+      '_Alty' = '_分配器类型';
+      '_Alloc' = '_分配器';
       # §17.19.4：通用守卫 _清理释放守卫 的【定义体】在本头（xmemory 拷贝）里，它调
       #   _Target->_Tidy_deallocate()。字符串实现（xstring 拷贝）把这个成员翻成了
       #   _清理释放() -> 两处口径不一致，只有真踩到那条路径才炸：
@@ -3090,7 +3102,7 @@ $H = @{
       # -----------------------------------------------------------------------
       '_Aliter'                       = '_分配器迭代器'
       '_Aliter_traits'                = '_分配器迭代器特征'
-      '_Aliter_scary_val'             = '_分配器迭代器检查值'
+
       '_Adapter'                      = '_适配器'
       '_Value_compare'                = '_值比较器'
       '_Equal_range_result'           = '_等值区间结果'
@@ -3160,6 +3172,29 @@ $H = @{
       '_In_place_key_extractor'       = '_就地键提取器'
     }
     members = [ordered]@{
+      '_Zero_then_variadic_args_t' = '_先零后变参实参';
+      '_List_val' = '_链表值';
+      '_Compressed_pair' = '_压缩对';
+      '_Elem' = '_元素';
+      '_Emplace' = '_就地安置';
+      '_First' = '_首个';
+      '_Get_first' = '_取第一';
+      '_Insert_after' = '_插入其后';
+      '_Last' = '_最后';
+      '_List_node' = '_链表节点';
+      '_List_node_emplace_op2' = '_链表节点就地构造操作2';
+      '_Move_allocator_tag' = '_移动分配器标记';
+
+      '_Mycont' = '_我的容器';
+      '_One_then_variadic_args_t' = '_先一后变参实参';
+      '_Pocma_values' = '_传播复制移动赋值取值';
+      '_Rebind_alloc_t' = '_重绑定分配器类型';
+      '_Result' = '_结果';
+      '_Simple_types' = '_简单类型集';
+      '_Swap_proxy_and_iterators' = '_交换代理与迭代器';
+      '_Traits' = '_特征';
+
+      '_Alloc' = '_分配器';
       '_Mysize' = '_我的尺寸';
       '_Extract' = '_摘取';
       # §17.27.73 A 桶批量（§17.27.62 工作表）：A 桶 = 唯一定义方归我们 -> 可直接登记；
@@ -4535,7 +4570,22 @@ $H = @{
     # §17.27.58 copyFixes：std::hash 的特化必须写在 名域 std 里，而我们的类型在 细节:: —— 单态 在那里
     #   不可见（实测：'使用了未声明的标识符 单态'），所以把特化里的名字【限定】成 细节::单态。
     copyFixes = @( @('hash<单态>', 'hash<细节::单态>') )
-    members = [ordered]@{ 'index' = '索引'; 'valueless_by_exception' = '因异常无值'
+    members = [ordered]@{
+      '_STL_CASE' = '_STL_情形';
+      '_Ty' = '_类型';
+      '_Tag' = '_标记';
+      '_Strategy' = '_策略';
+      '_Storage_t' = '_存储类型';
+      '_SMF_control' = '_特殊成员控制';
+      '_Result' = '_结果';
+      '_Op' = '_操作';
+      '_Invoke' = '_调用';
+      '_Indices' = '_下标集';
+      '_First' = '_首个';
+      '_Elem' = '_元素';
+      '_Construct_in_place' = '_就地构造';
+      '_Construct_from' = '_由之构造';
+      '_Assign_from' = '_由之赋值'; 'index' = '索引'; 'valueless_by_exception' = '因异常无值'
                           'emplace' = '就地构造'; 'visit' = '访问'
                           'get' = '取'; 'get_if' = '条件取'
                           'holds_alternative' = '持有替体'
