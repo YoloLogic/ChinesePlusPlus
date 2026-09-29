@@ -3585,6 +3585,7 @@ $H = @{
     #   『对 X 的调用有歧义』（§17.27.52 实测：链表:1794 `_Pass_fn`）。
     #   判据：**凡本头在名域作用域有定义、且其它产品无限定调用的自由函数，一律改名**
     #   （下表即按此判据从原件正则扫出，见 §17.27.52；成员名不受影响：成员查找只看类作用域）。
+    copyFixes = @( @('extern "C++" [[noreturn]] _CRTIMP2_PURE void __CLRCALL_PURE_OR_CDECL _Xlength_error(_In_z_ const char*);', ''), @('extern "C++" [[noreturn]] _CRTIMP2_PURE void __CLRCALL_PURE_OR_CDECL _Xout_of_range(_In_z_ const char*);', '') )
     members = [ordered]@{
       '_As_const_pointer' = '_作为常量指针'
       '_Equal_rev_pred' = '_相等反转谓词'
