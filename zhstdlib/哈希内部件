@@ -547,7 +547,7 @@ public:
                 auto& _List_data       = _List._Mypair._Myval2;
                 auto& _Right_list_data = _Right._List._Mypair._Myval2;
                 _List_data._Myhead     = _STD exchange(_Right_list_data._Myhead, _Newhead._Release());
-                _List_data._Mysize     = _STD exchange(_Right_list_data._Mysize, size_type{0});
+                _List_data._我的尺寸     = _STD exchange(_Right_list_data._我的尺寸, size_type{0});
                 _List_proxy._Bind(_Alproxy, _STD addressof(_List_data));
                 _List_data._Swap_proxy_and_iterators(_Right_list_data);
 
@@ -1016,7 +1016,7 @@ private:
             const auto _Oldnext = _Next;
             _Next               = _Oldnext->_Next;
             _节点::_释放节点(_List._取分配器(), _Oldnext);
-            --_List._Mypair._Myval2._Mysize;
+            --_List._Mypair._Myval2._我的尺寸;
         }
 
         ~_范围擦除器() noexcept {
@@ -1162,7 +1162,7 @@ public:
         //   (2) The hash function operator() may throw exceptions, and
         //   (3) 清空() is a noexcept function.
         // We do comply with LWG-2550 if the hash function is noexcept, or if the container was 为空.
-        const auto _Oldsize = _List._Mypair._Myval2._Mysize;
+        const auto _Oldsize = _List._Mypair._Myval2._我的尺寸;
         if (_Oldsize == 0) {
             return;
         }
@@ -1491,7 +1491,7 @@ public:
             _That._擦除桶(_Candidate, _Source_bucket);
             _Candidate->_Prev->_Next = _Candidate->_Next;
             _Candidate->_Next->_Prev = _Candidate->_Prev;
-            --_That._List._Mypair._Myval2._Mysize;
+            --_That._List._Mypair._Myval2._我的尺寸;
             _就地析构(_Candidate->_Next); // TRANSITION, ABI
             _就地析构(_Candidate->_Prev);
 #if _ITERATOR_DEBUG_LEVEL == 2
@@ -1634,7 +1634,7 @@ protected:
     _结点指针 _在之前插入新节点(
         const size_t _Hashval, const _结点指针 _Insert_before, const _结点指针 _新节点) noexcept {
         const _结点指针 _Insert_after = _Insert_before->_Prev;
-        ++_List._Mypair._Myval2._Mysize;
+        ++_List._Mypair._Myval2._我的尺寸;
         _就地构造(_新节点->_Next, _Insert_before);
         _就地构造(_新节点->_Prev, _Insert_after);
         _Insert_after->_Next  = _新节点;
@@ -1664,20 +1664,20 @@ protected:
     }
 
     void _检查最大尺寸() const {
-        const size_type _Oldsize = _List._Mypair._Myval2._Mysize;
+        const size_type _Oldsize = _List._Mypair._Myval2._我的尺寸;
         if (_Oldsize == _List.max_size()) {
             _Xlength_error("unordered_map/set too long");
         }
     }
 
     bool _检查需重哈希1() const noexcept {
-        const size_type _Oldsize = _List._Mypair._Myval2._Mysize;
+        const size_type _Oldsize = _List._Mypair._Myval2._我的尺寸;
         const auto _Newsize      = _Oldsize + 1;
         return max_load_factor() < static_cast<float>(_Newsize) / static_cast<float>(bucket_count());
     }
 
     void _为1重哈希() {
-        const auto _Oldsize = _List._Mypair._Myval2._Mysize;
+        const auto _Oldsize = _List._Mypair._Myval2._我的尺寸;
         const auto _Newsize = _Oldsize + 1;
         _强制重哈希(_期望扩容桶数(_Newsize));
     }
