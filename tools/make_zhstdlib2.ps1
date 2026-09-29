@@ -69,7 +69,7 @@ $H = @{
       '_First' = '_首个'
       '_Last' = '_最后'
       '_Result' = '_结果'
-      '_Rep' = '_表示'
+      '_Rep' = '_表示';
       '_Pass_fn' = '_传递函数'
       '_Mymtx' = '_我的互斥量'
       '_Validate' = '_校验'
@@ -170,6 +170,7 @@ $H = @{
     # 已经抄完的头才开（步 0，见 §3.8.1）
     zhIncludes = @{ 'mutex' = '互斥量'; 'condition_variable' = '条件变量' }
     members = [ordered]@{
+      '_Rep' = '_表示';
       '_Mymtx' = '_我的互斥量'
       'lock' = '加锁'; 'unlock' = '解锁'; 'try_lock' = '尝试加锁'
       'lock_shared' = '共享加锁'; 'unlock_shared' = '共享解锁'
@@ -1414,7 +1415,7 @@ $H = @{
       '_Swap_val' = '_交换值'
       '_Ubegin' = '_解包首'
       '_Uend' = '_解包尾'
-      '_Myptr' = '_我的指针'
+      '_Myptr' = '_我的指针';
       '_Uninitialized_fill_n' = '_未初始化填充若干'
       '_Uninitialized_move' = '_未初始化移动'
       # §17.27.60 台账收尾（阶段(3) 第一批）：这些名字的定义方是 通用内部件（我们的 xutility 拷贝，
@@ -1607,7 +1608,7 @@ $H = @{
       '_Make_iter' = '_造迭代器'
       '_Merge1' = '_归并1'
       '_Newnode' = '_新节点'
-      '_Op' = '_操作'
+      '_Op' = '_操作';
       '_Resize' = '_调整尺寸'
       '_Sort' = '_排序'
       '_Sort2' = '_排序2'
@@ -1696,7 +1697,7 @@ $H = @{
       '_Comp' = '_比较器'
       '_First' = '_首个'
       '_Last' = '_最后'
-      '_Ty' = '_类型'
+      '_Ty' = '_类型';
       '_Valty' = '_值参数类型'
       'emplace' = '就地构造'; 'pop' = '弹出'
       'push' = '压入'; 'push_range' = '范围压入'
@@ -2352,7 +2353,8 @@ $H = @{
                           # §16.34：原文注释是 "constructs _Ty, never destroys" ——
                           #   它构造了 _Ty 却故意不析构，所以取「永不析构」而不是音译。
                           '_Immortalizer_impl' = '_永不析构实现' }
-    members = [ordered]@{ 'call_once' = '一次调用' }
+    members = [ordered]@{
+      '_Op' = '_操作'; 'call_once' = '一次调用' }
     data    = [ordered]@{}
     derive  = @()
     stdHash = $false
@@ -3424,7 +3426,7 @@ $H = @{
       '_Large_mode_engaged' = '_已启用大串模式'
       '_Move_assign_from_buffer' = '_由缓冲移动赋值'
       '_Move_construct_from_substr' = '_由子串移动构造'
-      '_Myptr' = '_我的指针'
+      '_Myptr' = '_我的指针';
       '_Reallocate_for' = '_为重分配'
       '_Reallocate_grow_by' = '_按增量重分配'
       '_Release_to_buffer' = '_释放至缓冲'
@@ -3534,7 +3536,7 @@ $H = @{
     members = [ordered]@{
       # §17.27.60 台账收尾（阶段(3) 第一批）：这些名字的定义方是 通用内部件（我们的 xutility 拷贝，
       #   §17.27.52 已给定义方解毒）；本头能看到它 -> 调用点跟改，指向我们那份。
-      '_Myptr' = '_我的指针'
+      '_Myptr' = '_我的指针';
       '_Find_vectorized' = '_查找向量化'
       '_Find_last_vectorized' = '_查找末个向量化'
       '_Find_end_vectorized' = '_查找末段向量化'
@@ -3831,7 +3833,9 @@ $H = @{
                           '_Common_duration' = '_公共时长' }
     # 已经抄完的头才开这个开关（见步 0 的长注释）
     zhIncludes = @{ 'mutex' = '互斥量' }
-    members = [ordered]@{ 'notify_all' = '通知全部'; 'notify_one' = '通知一个'
+    members = [ordered]@{
+      '_Rep' = '_表示';
+      '_Myptr' = '_我的指针'; 'notify_all' = '通知全部'; 'notify_one' = '通知一个'
       '_Mymtx' = '_我的互斥量'; '_Register' = '_注册'; '_Lock' = '_加锁'
                           'wait' = '等待'; 'wait_for' = '限时等待'
                           'wait_until' = '等待至时刻'
@@ -4105,7 +4109,7 @@ $H = @{
       '_Result' = '_结果'
       '_Seek_wrapped' = '_定位包装'
       '_To_address' = '_取地址'
-      '_Ty' = '_类型'
+      '_Ty' = '_类型';
       '_Uend' = '_解包尾'
       'accumulate' = '累加'; 'reduce' = '归约'
       'inner_product' = '内积'; 'transform_reduce' = '变换归约'
@@ -4207,7 +4211,7 @@ $H = @{
       '_Max' = '_最大'
       '_Min' = '_最小'
       '_Tidy_deallocate_guard' = '_清理释放守卫'
-      '_Ty' = '_类型'
+      '_Ty' = '_类型';
                           'shift' = '移位'; 'cshift' = '循环移位'; 'apply' = '应用'
                           'resize' = '调整尺寸'; 'begin' = '开始'; 'end' = '结束'
                           'start' = '起始'; 'stride' = '步长'
@@ -4267,6 +4271,7 @@ $H = @{
                           '_Num_base' = '_数值基类'; '_Num_int_base' = '_整数数值基类'
                           '_Num_float_base' = '_浮点数值基类' }
     members = [ordered]@{
+      '_Ty' = '_类型';
       # 枚举值（名域作用域的名字，靠 members 表改名）
       'denorm_indeterminate' = '非规格不确定'; 'denorm_absent' = '非规格不存在'; 'denorm_present' = '非规格存在'
       'round_indeterminate' = '舍入不确定'; 'round_toward_zero' = '向零舍入'

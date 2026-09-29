@@ -53,7 +53,7 @@ private:
 
 _EXPORT_STD class 条件变量任意实现 { // class for waiting for conditions with any kind of 互斥量实现
 public:
-    条件变量任意实现() : _Myptr{_STD make_shared<互斥量实现>()} {
+    条件变量任意实现() : _我的指针{_STD make_shared<互斥量实现>()} {
 #ifdef _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR
         _Cnd_init_in_situ(_Mycnd());
 #endif // ^^^ defined(_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR) ^^^
@@ -65,18 +65,18 @@ public:
     条件变量任意实现& operator=(const 条件变量任意实现&) = delete;
 
     void 通知一个() noexcept { // wake up one waiter
-        锁守卫实现<互斥量实现> _Guard{*_Myptr};
+        锁守卫实现<互斥量实现> _Guard{*_我的指针};
         _Cnd_signal(_Mycnd());
     }
 
     void 通知全部() noexcept { // wake up all waiters
-        锁守卫实现<互斥量实现> _Guard{*_Myptr};
+        锁守卫实现<互斥量实现> _Guard{*_我的指针};
         _Cnd_broadcast(_Mycnd());
     }
 
     template <class _加锁>
     void 等待(_加锁& _Lck) noexcept /* terminates */ { // 等待 for signal
-        const shared_ptr<互斥量实现> _Ptr = _Myptr; // for immunity to *this destruction
+        const shared_ptr<互斥量实现> _Ptr = _我的指针; // for immunity to *this destruction
         独占锁实现<互斥量实现> _Guard{*_Ptr};
         _解锁卫兵<_加锁> _Unlock_outer{_Lck};
         _Cnd_wait(_Mycnd(), _Ptr->_我的互斥量());
@@ -116,9 +116,9 @@ public:
         return true;
     }
 
-    template <class _加锁, class _Rep, class _Period>
-    cv_status 限时等待(_加锁& _Lck, const chrono::duration<_Rep, _Period>& _Rel_time) { // 等待 for duration
-        if (_Rel_time <= chrono::duration<_Rep, _Period>::zero()) {
+    template <class _加锁, class _表示, class _Period>
+    cv_status 限时等待(_加锁& _Lck, const chrono::duration<_表示, _Period>& _Rel_time) { // 等待 for duration
+        if (_Rel_time <= chrono::duration<_表示, _Period>::zero()) {
             _解锁卫兵<_加锁> _Unlock_outer{_Lck};
             (void) _Unlock_outer;
             return cv_status::timeout;
@@ -127,7 +127,7 @@ public:
         const auto _Rel_time_ms = _Clamped_rel_time_ms_count(_Rel_time);
 
         // 等待 for signal with timeout
-        const shared_ptr<互斥量实现> _Ptr = _Myptr; // for immunity to *this destruction
+        const shared_ptr<互斥量实现> _Ptr = _我的指针; // for immunity to *this destruction
         const auto _Start            = _CHRONO steady_clock::now();
         const auto _Target           = _Start + _Rel_time;
 
@@ -147,8 +147,8 @@ public:
         }
     }
 
-    template <class _加锁, class _Rep, class _Period, class _Predicate>
-    bool 限时等待(_加锁& _Lck, const chrono::duration<_Rep, _Period>& _Rel_time, _Predicate _Pred) {
+    template <class _加锁, class _表示, class _Period, class _Predicate>
+    bool 限时等待(_加锁& _Lck, const chrono::duration<_表示, _Period>& _Rel_time, _Predicate _Pred) {
         // 等待 for signal with timeout and check predicate
         return 等待至时刻(_Lck, _To_absolute_time(_Rel_time), _STD move(_Pred));
     }
@@ -182,14 +182,14 @@ public:
                 return true;
             }
 
-            独占锁实现<互斥量实现> _Guard{*_Myptr};
+            独占锁实现<互斥量实现> _Guard{*_我的指针};
             if (_Stoken.stop_requested()) {
                 _Guard.解锁();
                 return _Pred();
             }
 
             _解锁卫兵<_加锁> _Unlock_outer{_Lck};
-            _Cnd_wait(_Mycnd(), _Myptr->_我的互斥量());
+            _Cnd_wait(_Mycnd(), _我的指针->_我的互斥量());
             _Guard.解锁();
         } // relock
     }
@@ -204,7 +204,7 @@ public:
                 return true;
             }
 
-            独占锁实现<互斥量实现> _Guard{*_Myptr};
+            独占锁实现<互斥量实现> _Guard{*_我的指针};
             if (_Stoken.stop_requested()) {
                 break;
             }
@@ -218,21 +218,21 @@ public:
             }
 
             const unsigned long _Rel_ms_count = _Clamped_rel_time_ms_count(_Abs_time - _Now)._Count;
-            (void) _Cnd_timedwait_for_unchecked(_Mycnd(), _Myptr->_我的互斥量(), _Rel_ms_count);
+            (void) _Cnd_timedwait_for_unchecked(_Mycnd(), _我的指针->_我的互斥量(), _Rel_ms_count);
             _Guard_unlocks_before_locking_outer.解锁();
         } // relock
 
         return _Pred();
     }
 
-    template <class _加锁, class _Rep, class _Period, class _Predicate>
-    bool 限时等待(_加锁& _Lck, stop_token _Stoken, const chrono::duration<_Rep, _Period>& _Rel_time, _Predicate _Pred) {
+    template <class _加锁, class _表示, class _Period, class _Predicate>
+    bool 限时等待(_加锁& _Lck, stop_token _Stoken, const chrono::duration<_表示, _Period>& _Rel_time, _Predicate _Pred) {
         return 等待至时刻(_Lck, _STD move(_Stoken), _To_absolute_time(_Rel_time), _STD move(_Pred));
     }
 #endif // _HAS_CXX20
 
 private:
-    shared_ptr<互斥量实现> _Myptr;
+    shared_ptr<互斥量实现> _我的指针;
 
     _Cnd_internal_imp_t _Cnd_storage{};
 

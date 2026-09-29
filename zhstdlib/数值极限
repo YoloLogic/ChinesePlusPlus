@@ -68,54 +68,54 @@ struct _数值基类 { // base for all types, with common defaults
     static constexpr int 基数                     = 0;
 };
 
-_EXPORT_STD template <class _Ty>
-class 数值极限实现 : public _数值基类 { // numeric limits for arbitrary type _Ty (say little or nothing)
+_EXPORT_STD template <class _类型>
+class 数值极限实现 : public _数值基类 { // numeric limits for arbitrary type _类型 (say little or nothing)
 public:
-    _NODISCARD static constexpr _Ty(最小)() noexcept {
-        return _Ty();
+    _NODISCARD static constexpr _类型(最小)() noexcept {
+        return _类型();
     }
 
-    _NODISCARD static constexpr _Ty(最大)() noexcept {
-        return _Ty();
+    _NODISCARD static constexpr _类型(最大)() noexcept {
+        return _类型();
     }
 
-    _NODISCARD static constexpr _Ty 最低() noexcept {
-        return _Ty();
+    _NODISCARD static constexpr _类型 最低() noexcept {
+        return _类型();
     }
 
-    _NODISCARD static constexpr _Ty 机器精度() noexcept {
-        return _Ty();
+    _NODISCARD static constexpr _类型 机器精度() noexcept {
+        return _类型();
     }
 
-    _NODISCARD static constexpr _Ty 舍入误差() noexcept {
-        return _Ty();
+    _NODISCARD static constexpr _类型 舍入误差() noexcept {
+        return _类型();
     }
 
-    _NODISCARD static constexpr _Ty 非规格最小() noexcept {
-        return _Ty();
+    _NODISCARD static constexpr _类型 非规格最小() noexcept {
+        return _类型();
     }
 
-    _NODISCARD static constexpr _Ty 无穷() noexcept {
-        return _Ty();
+    _NODISCARD static constexpr _类型 无穷() noexcept {
+        return _类型();
     }
 
-    _NODISCARD static constexpr _Ty 静默非数() noexcept {
-        return _Ty();
+    _NODISCARD static constexpr _类型 静默非数() noexcept {
+        return _类型();
     }
 
-    _NODISCARD static constexpr _Ty 信号非数() noexcept {
-        return _Ty();
+    _NODISCARD static constexpr _类型 信号非数() noexcept {
+        return _类型();
     }
 };
 
-template <class _Ty>
-class 数值极限实现<const _Ty> : public 数值极限实现<_Ty> {}; // numeric limits for const types
+template <class _类型>
+class 数值极限实现<const _类型> : public 数值极限实现<_类型> {}; // numeric limits for const types
 
-template <class _Ty>
-class 数值极限实现<volatile _Ty> : public 数值极限实现<_Ty> {}; // numeric limits for volatile types
+template <class _类型>
+class 数值极限实现<volatile _类型> : public 数值极限实现<_类型> {}; // numeric limits for volatile types
 
-template <class _Ty>
-class 数值极限实现<const volatile _Ty> : public 数值极限实现<_Ty> {}; // numeric limits for const volatile types
+template <class _类型>
+class 数值极限实现<const volatile _类型> : public 数值极限实现<_类型> {}; // numeric limits for const volatile types
 
 struct _整数数值基类 : _数值基类 { // base for integer types
     static constexpr bool 有界     = true;

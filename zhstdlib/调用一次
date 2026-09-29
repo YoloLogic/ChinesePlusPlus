@@ -100,9 +100,9 @@ void(一次调用)(一次标志实现& _Once, _Fn&& _Fx, _Args&&... _Ax)
     }
 
     if (_Pending != 0) {
-        _一次初始化完成器 _Op{_Once, _Init_once_init_failed};
+        _一次初始化完成器 _操作{_Once, _Init_once_init_failed};
         _STD invoke(_STD forward<_Fn>(_Fx), _STD forward<_Args>(_Ax)...);
-        _Op._DwFlags = 0;
+        _操作._DwFlags = 0;
     }
 }
 

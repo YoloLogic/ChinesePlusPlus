@@ -100,9 +100,9 @@ public:
         }
     }
 
-    template <class _Rep, class _Period>
+    template <class _表示, class _Period>
     _NODISCARD_TRY_CHANGE_STATE bool 限时加锁(
-        const chrono::duration<_Rep, _Period>& _Rel_time) { // try to 加锁 for duration
+        const chrono::duration<_表示, _Period>& _Rel_time) { // try to 加锁 for duration
         return 加锁至时刻(_To_absolute_time(_Rel_time));
     }
 
@@ -159,8 +159,8 @@ public:
         }
     }
 
-    template <class _Rep, class _Period>
-    _NODISCARD_TRY_CHANGE_STATE bool 限时共享加锁(const chrono::duration<_Rep, _Period>& _Rel_time) {
+    template <class _表示, class _Period>
+    _NODISCARD_TRY_CHANGE_STATE bool 限时共享加锁(const chrono::duration<_表示, _Period>& _Rel_time) {
         // try to 加锁 non-exclusive for relative time
         return 共享加锁至时刻(_To_absolute_time(_Rel_time));
     }
@@ -228,8 +228,8 @@ public:
     _NODISCARD_CTOR_LOCK 共享锁实现(mutex_type& _Mtx, 接管锁类型) noexcept // strengthened
         : _Pmtx(_STD addressof(_Mtx)), _Owns(true) {} // construct with 互斥量实现 and adopt ownership
 
-    template <class _Rep, class _Period>
-    _NODISCARD_CTOR_LOCK 共享锁实现(mutex_type& _Mtx, const chrono::duration<_Rep, _Period>& _Rel_time)
+    template <class _表示, class _Period>
+    _NODISCARD_CTOR_LOCK 共享锁实现(mutex_type& _Mtx, const chrono::duration<_表示, _Period>& _Rel_time)
         : _Pmtx(_STD addressof(_Mtx)), _Owns(_Mtx.限时共享加锁(_Rel_time)) {
         // construct with 互斥量实现 and try to 加锁 for relative time
     }
@@ -272,8 +272,8 @@ public:
         return _Owns;
     }
 
-    template <class _Rep, class _Period>
-    _NODISCARD_TRY_CHANGE_STATE bool 限时加锁(const chrono::duration<_Rep, _Period>& _Rel_time) {
+    template <class _表示, class _Period>
+    _NODISCARD_TRY_CHANGE_STATE bool 限时加锁(const chrono::duration<_表示, _Period>& _Rel_time) {
         // try to 加锁 the 互斥量实现 for _Rel_time
         _校验();
         _Owns = _Pmtx->限时共享加锁(_Rel_time);
