@@ -1,0 +1,118 @@
+#include <iomanip>
+// iomanip standard header
+
+// Copyright (c) Microsoft Corporation.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#ifndef _ZH_IOMANIP_
+#define _ZH_IOMANIP_
+#include <yvals_core.h>
+#if _STL_COMPILER_PREPROCESSOR
+#include <istream>
+#include <type_traits>
+#include <xlocmon>
+#include <xloctime>
+
+#pragma pack(push, _CRT_PACKING)
+#pragma warning(push, _STL_WARNING_LEVEL)
+#pragma warning(disable : _STL_DISABLED_WARNINGS)
+_STL_DISABLE_CLANG_WARNINGS
+#pragma push_macro("new")
+#undef new
+
+名域 标准 { 名域 细节 {
+使用 名域 std;
+// [dropTypes] 这里删掉了抄来的 _Fillobj 定义。
+// 它的身份必须是 std 的那个（铁律 4：捕获按类型匹配），所以改用真头的 std::_Fillobj。
+_EXPORT_STD template <class _Elem>
+_NODISCARD _Fillobj<_Elem> setfill(_Elem _Ch) {
+    return _Fillobj<_Elem>(_Ch);
+}
+
+// [dropTypes] 这里删掉了抄来的 _Monobj 定义。
+// 它的身份必须是 std 的那个（铁律 4：捕获按类型匹配），所以改用真头的 std::_Monobj。
+_EXPORT_STD template <class _Money>
+_NODISCARD _Monobj<_Money> get_money(_Money& _Val_arg, bool _Intl_arg = false) {
+    return _Monobj<_Money>(_Val_arg, _Intl_arg);
+}
+
+_EXPORT_STD template <class _Money>
+_NODISCARD _Monobj<const _Money> put_money(const _Money& _Val_arg, bool _Intl_arg = false) {
+    return _Monobj<const _Money>(_Val_arg, _Intl_arg);
+}
+
+// [dropTypes] 这里删掉了抄来的 _Timeobj 定义。
+// 它的身份必须是 std 的那个（铁律 4：捕获按类型匹配），所以改用真头的 std::_Timeobj。
+_EXPORT_STD template <class _Elem>
+_NODISCARD _Timeobj<_Elem, tm*> get_time(tm* _Tptr_arg, const _Elem* _Fmt_arg) {
+    return _Timeobj<_Elem, tm*>(_Tptr_arg, _Fmt_arg);
+}
+
+_EXPORT_STD template <class _Elem>
+_NODISCARD _Timeobj<_Elem, const tm*> put_time(const tm* _Tptr_arg, const _Elem* _Fmt_arg) {
+    return _Timeobj<_Elem, const tm*>(_Tptr_arg, _Fmt_arg);
+}
+
+// [dropTypes] 这里删掉了抄来的 _Quote_out 定义。
+// 它的身份必须是 std 的那个（铁律 4：捕获按类型匹配），所以改用真头的 std::_Quote_out。
+// [dropTypes] 这里删掉了抄来的 _Quote_in 定义。
+// 它的身份必须是 std 的那个（铁律 4：捕获按类型匹配），所以改用真头的 std::_Quote_in。
+_EXPORT_STD template <class _Elem>
+_NODISCARD _Quote_out<_Elem, void, size_t> quoted(
+    const _Elem* _Ptr, _Elem _Delim = _Elem('"'), _Elem _Escape = _Elem('\\')) {
+    const size_t _Size = char_traits<_Elem>::length(_Ptr);
+    return {_Ptr, _Size, _Delim, _Escape};
+}
+
+_EXPORT_STD template <class _Elem, class _Traits, class _Alloc>
+_NODISCARD _Quote_out<_Elem, _Traits, typename basic_string<_Elem, _Traits, _Alloc>::size_type> quoted(
+    const basic_string<_Elem, _Traits, _Alloc>& _Str, _Elem _Delim = _Elem('"'), _Elem _Escape = _Elem('\\')) {
+    return {_Str.c_str(), _Str.size(), _Delim, _Escape};
+}
+
+#if _HAS_CXX17
+_EXPORT_STD template <class _Elem, class _Traits>
+_NODISCARD _Quote_out<_Elem, _Traits, size_t> quoted(
+    const basic_string_view<_Elem, _Traits> _Str, _Elem _Delim = _Elem('"'), _Elem _Escape = _Elem('\\')) {
+    return {_Str.data(), _Str.size(), _Delim, _Escape};
+}
+#endif // _HAS_CXX17
+
+_EXPORT_STD template <class _Elem, class _Traits, class _Alloc>
+_NODISCARD _Quote_in<_Elem, _Traits, _Alloc> quoted(
+    basic_string<_Elem, _Traits, _Alloc>& _Str, _Elem _Delim = _Elem('"'), _Elem _Escape = _Elem('\\')) {
+    return {_Str, _Delim, _Escape};
+}
+
+// [dropTypes] 这里删掉了抄来的 _Smanip 定义。
+// 它的身份必须是 std 的那个（铁律 4：捕获按类型匹配），所以改用真头的 std::_Smanip。
+_EXPORT_STD extern "C++" _NODISCARD _MRTIMP2 _Smanip<ios_base::fmtflags> __cdecl resetiosflags(ios_base::fmtflags);
+_EXPORT_STD extern "C++" _NODISCARD _MRTIMP2 _Smanip<ios_base::fmtflags> __cdecl setiosflags(ios_base::fmtflags);
+_EXPORT_STD extern "C++" _NODISCARD _MRTIMP2 _Smanip<int> __cdecl setbase(int);
+_EXPORT_STD extern "C++" _NODISCARD _MRTIMP2 _Smanip<streamsize> __cdecl setprecision(streamsize);
+_EXPORT_STD extern "C++" _NODISCARD _MRTIMP2 _Smanip<streamsize> __cdecl setw(streamsize);
+} }
+#pragma pop_macro("new")
+_STL_RESTORE_CLANG_WARNINGS
+#pragma warning(pop)
+#pragma pack(pop)
+#endif // _STL_COMPILER_PREPROCESSOR
+// [ZH-DERIVE-LAYER] 汉语派生层（英文兼容层）从这一行开始 —— 本行【以上】属抄来那层，有英文名就是欠账
+名域 标准 {
+
+// ---- 11 个操纵器的中文名：转发到 std::（它们是 CRT 契约名，改了就链不上）----
+模板 <类型名... 参数> 声明类型(自动) 设宽度(参数&&... 值) { 返回 std::setw(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> 声明类型(自动) 设填充(参数&&... 值) { 返回 std::setfill(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> 声明类型(自动) 设进制(参数&&... 值) { 返回 std::setbase(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> 声明类型(自动) 设精度(参数&&... 值) { 返回 std::setprecision(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> 声明类型(自动) 设标志(参数&&... 值) { 返回 std::setiosflags(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> 声明类型(自动) 重置标志(参数&&... 值) { 返回 std::resetiosflags(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> 声明类型(自动) 取货币(参数&&... 值) { 返回 std::get_money(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> 声明类型(自动) 放货币(参数&&... 值) { 返回 std::put_money(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> 声明类型(自动) 取时间格式(参数&&... 值) { 返回 std::get_time(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> 声明类型(自动) 放时间格式(参数&&... 值) { 返回 std::put_time(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> 声明类型(自动) 带引号(参数&&... 值) { 返回 std::quoted(static_cast<参数&&>(值)...); }
+
+}  // 名域 标准
+
+#endif // _IOMANIP_
