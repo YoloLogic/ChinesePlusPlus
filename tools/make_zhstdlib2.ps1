@@ -5008,6 +5008,132 @@ $H = @{
       @('★守卫 §17.19.15：与 <cmath> 同名的那 7 个，中文名照样可用','#包含 <复数>`n整数 主函数(){ 标准::复数<双精度> 甲(0.0, 0.0); 返回 标准::正弦(甲) == 标准::sin(甲) && 标准::平方根(标准::复数<双精度>(4.0, 0.0)) == 标准::复数<双精度>(2.0, 0.0) ? 0 : 1; }')
     )
   }
+  # ==========================================================================
+  #  §17.19.18 <atomic>（原子）：第 9 个真汉语公开头（阶段(4)）
+  #  · 借用面：realInclude 让真头在场；`xatomic.h` / `xatomic_wait.h` / `xthreads.h`
+  #    仍借 std 的 —— 消除路径 = 以后把这三个内部头也抄成我们的内部件（欠账，见方案 §17.19.18）。
+  #  · 命名（只按已有译名，不另造）：atomic → 原子实现（公开层 标准::原子）、
+  #    memory_order → 内存序、fetch_add → 取加、notify_one → 通知一个、wait → 等待。
+  # ==========================================================================
+  'atomic' = @{
+    zh      = '原子'
+    realInclude = @('atomic')
+    types   = [ordered]@{
+      'atomic'                 = '原子实现'
+      'atomic_flag'            = '原子标志实现'
+      'atomic_ref'             = '原子引用实现'
+      '_Atomic_storage'        = '_原子存储'
+      '_Atomic_padded'         = '_原子填充'
+      '_Atomic_storage_traits' = '_原子存储特征'
+      '_Atomic_storage_types'  = '_原子存储类型'
+      '_Atomic_lock_guard'     = '_原子锁守卫'
+      '_Storage_for'           = '_存储用于'
+      '_Form_mask_t'           = '_形式掩码类型'
+      '_Atomic_integral'          = '_原子整数'
+      '_Atomic_integral_facade'   = '_原子整数门面'
+      '_Atomic_pointer'           = '_原子指针'
+      '_Atomic_nonobject_pointer' = '_原子非对象指针'
+      '_Atomic_floating'          = '_原子浮点'
+    }
+    members = [ordered]@{
+      'load' = '载入'; 'store' = '存储'; 'exchange' = '置换'
+      'compare_exchange_weak' = '比较交换弱'
+      'compare_exchange_strong' = '比较交换强'
+      'fetch_add' = '取加'; 'fetch_sub' = '取减'; 'fetch_and' = '取与'
+      'fetch_or' = '取或'; 'fetch_xor' = '取异或'
+      'is_lock_free' = '无锁'
+      'wait' = '等待'; 'notify_one' = '通知一个'; 'notify_all' = '通知全部'
+      'test' = '测试'; 'test_and_set' = '测试并置位'; 'clear' = '清空'
+      'atomic_store' = '原子存储'; 'atomic_load' = '原子载入'; 'atomic_exchange' = '原子置换'
+      'atomic_compare_exchange_weak' = '原子比较交换弱'
+      'atomic_compare_exchange_strong' = '原子比较交换强'
+      'atomic_fetch_add' = '原子取加'; 'atomic_fetch_sub' = '原子取减'
+      'atomic_fetch_and' = '原子取与'; 'atomic_fetch_or' = '原子取或'; 'atomic_fetch_xor' = '原子取异或'
+      'atomic_is_lock_free' = '原子无锁'
+      'atomic_wait' = '原子等待'; 'atomic_notify_one' = '原子通知一个'; 'atomic_notify_all' = '原子通知全部'
+      'atomic_thread_fence' = '线程栅栏'; 'atomic_signal_fence' = '信号栅栏'
+      'kill_dependency' = '消除依赖'
+      # 全局作用域 extern C 匿名枚举（与 vcruntime 共享）：真头在场会重定义 -> 改成汉语名（§17.19.18）
+      # 同段里的全局函数（真头也定义 -> 重定义）与宏（宏体已含汉语 -> 宏名必须一起改，§16.24）
+      '_Check_memory_order' = '_检查内存序'
+      '_Atomic_thread_fence' = '_原子线程栅栏'
+      '_INVALID_MEMORY_ORDER' = '_非法内存序'
+      # 同名两份（我们抄的 + xatomic.h 借来的）造成的【歧义】-> 按 §17.19.12.1：把我们那份改中文名
+      '_Check_load_memory_order' = '_检查载入内存序'
+      '_Check_store_memory_order' = '_检查存储内存序'
+      '_Init_spinlock_for_ref' = '_为引用初始化自旋锁'
+      '_Store_and_unlock' = '_存储并解锁'
+      '_Combine_cas_memory_orders' = '_合并CAS内存序'
+      # 全局作用域 extern C 匿名枚举（与 vcruntime 共享）：真头在场会重定义 -> 枚举成员改成汉语名
+      '_Atomic_memory_order_relaxed' = '_原子内存序松弛'
+      '_Atomic_memory_order_consume' = '_原子内存序消费'
+      '_Atomic_memory_order_acquire' = '_原子内存序获取'
+      '_Atomic_memory_order_release' = '_原子内存序释放'
+      '_Atomic_memory_order_acq_rel' = '_原子内存序获取释放'
+      '_Atomic_memory_order_seq_cst' = '_原子内存序顺序一致'
+      # §16.24 x 守卫步：这些宏的名字被守卫步加了 _ZH_ 前缀，而宏体里已有汉语 -> 两种写法成对登记
+      '_ATOMIC_CHOOSE_INTRINSIC' = '_原子选择内建'
+      '_ZH_ATOMIC_CHOOSE_INTRINSIC' = '_原子选择内建'
+      '_ATOMIC_LOAD_ARM64' = '_原子载入ARM64'
+      '_ZH_ATOMIC_LOAD_ARM64' = '_原子载入ARM64'
+      '_ATOMIC_POST_LOAD_BARRIER_AS_NEEDED' = '_原子载入后栅栏按需'
+      '_ZH_ATOMIC_POST_LOAD_BARRIER_AS_NEEDED' = '_原子载入后栅栏按需'
+      '_ATOMIC_STORE_SEQ_CST_ARM' = '_原子存储顺序一致ARM'
+      '_ZH_ATOMIC_STORE_SEQ_CST_ARM' = '_原子存储顺序一致ARM'
+      '_ATOMIC_STORE_SEQ_CST_ARM64' = '_原子存储顺序一致ARM64'
+      '_ZH_ATOMIC_STORE_SEQ_CST_ARM64' = '_原子存储顺序一致ARM64'
+      '_ATOMIC_STORE_SEQ_CST_X86_X64' = '_原子存储顺序一致X86X64'
+      '_ZH_ATOMIC_STORE_SEQ_CST_X86_X64' = '_原子存储顺序一致X86X64'
+      '_ATOMIC_STORE_32_SEQ_CST_X86_X64' = '_原子存储32顺序一致X86X64'
+      '_ZH_ATOMIC_STORE_32_SEQ_CST_X86_X64' = '_原子存储32顺序一致X86X64'
+      '_ATOMIC_STORE_64_SEQ_CST_IX86' = '_原子存储64顺序一致IX86'
+      '_ZH_ATOMIC_STORE_64_SEQ_CST_IX86' = '_原子存储64顺序一致IX86'
+      '_ATOMIC_STORE_SEQ_CST' = '_原子存储顺序一致'
+      '_ZH_ATOMIC_STORE_SEQ_CST' = '_原子存储顺序一致'
+      '_ATOMIC_STORE_32_SEQ_CST' = '_原子存储32顺序一致'
+      '_ZH_ATOMIC_STORE_32_SEQ_CST' = '_原子存储32顺序一致'
+      '_ATOMIC_STORE_64_SEQ_CST' = '_原子存储64顺序一致'
+      '_ZH_ATOMIC_STORE_64_SEQ_CST' = '_原子存储64顺序一致'
+      '__LOAD_ACQUIRE_ARM64' = '__载入获取ARM64'
+      '__STORE_RELEASE' = '__存储释放'
+    }
+    data    = [ordered]@{}
+    derive  = @( @('load','载入'), @('store','存储'), @('exchange','置换'),
+                 @('compare_exchange_weak','比较交换弱'), @('compare_exchange_strong','比较交换强'),
+                 @('fetch_add','取加'), @('fetch_sub','取减'), @('fetch_and','取与'),
+                 @('fetch_or','取或'), @('fetch_xor','取异或'),
+                 @('is_lock_free','无锁'), @('wait','等待'),
+                 @('notify_one','通知一个'), @('notify_all','通知全部'),
+                 @('test','测试'), @('test_and_set','测试并置位'), @('clear','清空') )
+    extra   = ( @(
+      '名域 标准 {',
+      '',
+      '// ---- 其余公开类型/常量的中文名（主类 原子 由派生层给出；英文原名一并保留）----',
+      '使用 原子标志 = 细节::原子标志实现;',
+      '使用 内存序 = std::memory_order;',
+      '模板 <类型名 元素> 使用 原子引用 = 细节::原子引用实现<元素>;',
+      '内联 常量表达式 自动 内存序松弛 = std::memory_order_relaxed;',
+      '内联 常量表达式 自动 内存序消费 = std::memory_order_consume;',
+      '内联 常量表达式 自动 内存序获取 = std::memory_order_acquire;',
+      '内联 常量表达式 自动 内存序释放 = std::memory_order_release;',
+      '内联 常量表达式 自动 内存序获取释放 = std::memory_order_acq_rel;',
+      '内联 常量表达式 自动 内存序顺序一致 = std::memory_order_seq_cst;',
+      '',
+      '',
+      '// ---- 自由函数的中文名（英文原名仍可由 标准:: 的英文转发或 std:: 使用）----',
+      '内联 空型 线程栅栏(内存序 序) 不抛出 { 细节::线程栅栏(序); }',
+      '内联 空型 信号栅栏(内存序 序) 不抛出 { 细节::信号栅栏(序); }',
+      '}  // 名域 标准'
+    ) -join "`r`n" )
+    tparam  = @{ decl = '模板 <类型名 元素>'; args = '<元素>' }
+    tests = @(
+      @('只引中文头','#包含 <原子>`n整数 主函数(){ 标准::原子<整数> 甲{0}; 甲.存储(3); 返回 甲.载入() == 3 ? 0 : 1; }'),
+      @('与微软原头并存','#包含 <原子>`n#包含 <atomic>`n整数 主函数(){ 标准::原子<整数> 甲{0}; std::atomic<整数> 乙{0}; 甲.存储(1); 乙.store(1); 返回 甲.载入() == 乙.load() ? 0 : 1; }'),
+      @('英文原名与中文名并用','#包含 <原子>`n整数 主函数(){ 标准::原子<整数> 甲{0}; 甲.store(5); 返回 甲.load() == 甲.载入() ? 0 : 1; }'),
+      @('★守卫：内存序 / 原子标志 / 线程栅栏 的中文名都在','#包含 <原子>`n整数 主函数(){ 标准::原子标志 标; 标.清空(); 标准::线程栅栏(标准::内存序顺序一致); 返回 标.测试() ? 1 : 0; }')
+    )
+  }
+
 }
 
 # ---------------------------------------------------------------------------
@@ -5083,6 +5209,30 @@ if ($zhClash.Count) {
 #     连"又多了第三个英文名"也要报 —— 否则白名单会变成永久缺口。
 # ---------------------------------------------------------------------------
 $ZH_REVERSE_EXCEPTIONS = @{
+    '_非法内存序' = @{ names = @('_INVALID_MEMORY_ORDER')
+                 why   = '_ATOMIC_* 族宏的两种写法（守卫步加 _ZH_ 前缀），同一个宏（§17.19.18 第 7 条）。' }
+    '_原子选择内建' = @{ names = @('_ATOMIC_CHOOSE_INTRINSIC', '_ZH_ATOMIC_CHOOSE_INTRINSIC')
+                 why   = '_ATOMIC_* 族宏的两种写法（守卫步加 _ZH_ 前缀），同一个宏（§17.19.18 第 7 条）。' }
+    '_原子载入ARM64' = @{ names = @('_ATOMIC_LOAD_ARM64', '_ZH_ATOMIC_LOAD_ARM64')
+                 why   = '_ATOMIC_* 族宏的两种写法（守卫步加 _ZH_ 前缀），同一个宏（§17.19.18 第 7 条）。' }
+    '_原子载入后栅栏按需' = @{ names = @('_ATOMIC_POST_LOAD_BARRIER_AS_NEEDED', '_ZH_ATOMIC_POST_LOAD_BARRIER_AS_NEEDED')
+                 why   = '_ATOMIC_* 族宏的两种写法（守卫步加 _ZH_ 前缀），同一个宏（§17.19.18 第 7 条）。' }
+    '_原子存储顺序一致ARM' = @{ names = @('_ATOMIC_STORE_SEQ_CST_ARM', '_ZH_ATOMIC_STORE_SEQ_CST_ARM')
+                 why   = '_ATOMIC_* 族宏的两种写法（守卫步加 _ZH_ 前缀），同一个宏（§17.19.18 第 7 条）。' }
+    '_原子存储顺序一致ARM64' = @{ names = @('_ATOMIC_STORE_SEQ_CST_ARM64', '_ZH_ATOMIC_STORE_SEQ_CST_ARM64')
+                 why   = '_ATOMIC_* 族宏的两种写法（守卫步加 _ZH_ 前缀），同一个宏（§17.19.18 第 7 条）。' }
+    '_原子存储顺序一致X86X64' = @{ names = @('_ATOMIC_STORE_SEQ_CST_X86_X64', '_ZH_ATOMIC_STORE_SEQ_CST_X86_X64')
+                 why   = '_ATOMIC_* 族宏的两种写法（守卫步加 _ZH_ 前缀），同一个宏（§17.19.18 第 7 条）。' }
+    '_原子存储32顺序一致X86X64' = @{ names = @('_ATOMIC_STORE_32_SEQ_CST_X86_X64', '_ZH_ATOMIC_STORE_32_SEQ_CST_X86_X64')
+                 why   = '_ATOMIC_* 族宏的两种写法（守卫步加 _ZH_ 前缀），同一个宏（§17.19.18 第 7 条）。' }
+    '_原子存储64顺序一致IX86' = @{ names = @('_ATOMIC_STORE_64_SEQ_CST_IX86', '_ZH_ATOMIC_STORE_64_SEQ_CST_IX86')
+                 why   = '_ATOMIC_* 族宏的两种写法（守卫步加 _ZH_ 前缀），同一个宏（§17.19.18 第 7 条）。' }
+    '_原子存储顺序一致' = @{ names = @('_ATOMIC_STORE_SEQ_CST', '_ZH_ATOMIC_STORE_SEQ_CST')
+                 why   = '_ATOMIC_* 族宏的两种写法（守卫步加 _ZH_ 前缀），同一个宏（§17.19.18 第 7 条）。' }
+    '_原子存储32顺序一致' = @{ names = @('_ATOMIC_STORE_32_SEQ_CST', '_ZH_ATOMIC_STORE_32_SEQ_CST')
+                 why   = '_ATOMIC_* 族宏的两种写法（守卫步加 _ZH_ 前缀），同一个宏（§17.19.18 第 7 条）。' }
+    '_原子存储64顺序一致' = @{ names = @('_ATOMIC_STORE_64_SEQ_CST', '_ZH_ATOMIC_STORE_64_SEQ_CST')
+                 why   = '_ATOMIC_* 族宏的两种写法（守卫步加 _ZH_ 前缀），同一个宏（§17.19.18 第 7 条）。' }
     '_标记' = @{ names = @('_Tag', '_Mark')
                  why   = '两处都是不可见的实现细节名（nullopt 的 _Tag / 另一处的 _Mark），组合探针 73 头同引实测无碍。' }
     '_代理分配器类型' = @{ names = @('_Alproxy_ty', '_Alproxy_type')
@@ -6243,5 +6393,6 @@ foreach ($c in $cases) {
 Write-Host ("  {0} / {1}" -f $pass, $cases.Count)
 }
 Remove-Item -Recurse -Force $t -ErrorAction SilentlyContinue
+
 
 
