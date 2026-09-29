@@ -36,7 +36,13 @@ $utf8 = New-Object System.Text.UTF8Encoding($false)
 function Get-Entries([string]$file) {
     $out = @()
     foreach ($line in [System.IO.File]::ReadAllLines($file)) {
-        if ($line -match "^\s+'([a-z_][a-z0-9_.]*)'\s*=\s*@\{") { $out += $Matches[1] }
+        # ⚠ §17.19.1：键名【可以是中文】（薄壳条目就叫 '字符串'）。原来这里是
+        #   [a-z_][a-z0-9_.]*，于是中文条目一个都扫不到 —— 又一次"全量是假的"。
+        #   判据同上：扫描用的正则必须能匹配表里所有合法的键形态。
+        # ⚠ 判据：**顶层条目恰好缩进两空格**，条目【内部嵌套表】是四空格（如
+        #   `'_标记' = @{ names = @('_Tag', '_Mark') }`）。第一版放宽成任意缩进后，
+        #   6 个嵌套键被当成表项 -> regen 里出现 6 个"表里没有 _标记"的假失败。
+        if ($line -match "^  '([^']+)'\s*=\s*@\{") { $out += $Matches[1] }
     }
     return $out
 }
