@@ -5678,7 +5678,7 @@ for ($round = 1; $round -le $maxRounds; $round++) {
     #  **一个"通过"如果盖住了一次回退，它就不是守卫。**
     #  所以这里把【具体哪个名字】改回英文逐个打出来，让人看得见、能去销账。
     # -----------------------------------------------------------------------
-    $revNames = @{}; $revWhere = @{}
+    $revNames = @{}; $revWhere = @{}; $revZhOf = @{}
     $doneLines = @{}
     foreach ($h in ($hits | Sort-Object Line,Col -Descending)) {
         if (-not $rev.ContainsKey($h.Name)) { continue }
@@ -5696,14 +5696,41 @@ for ($round = 1; $round -le $maxRounds; $round++) {
         $lines[$idx] = $line.Remove($ci,$h.Name.Length).Insert($ci,$rev[$h.Name]); $fixed++
         $revNames[$rev[$h.Name]] = $true
         $revWhere[$rev[$h.Name]] = ("第 {0} 行" -f $h.Line)
+        $revZhOf[$rev[$h.Name]] = $h.Name          # 英文 -> 中文（§17.19.17.1 要拿它扫干净）
         $doneLines[$h.Line] = $true
+    }
+    # -----------------------------------------------------------------------
+    #  §17.19.17.1 撤回必须【文件级一致】—— 编译器只看得见它**编到**的那几处。
+    #
+    #  实测（第 83 轮，monostate）：活代码里的 `单态` 被撤回英文，而 `#else`（非 C++20）
+    #  分支编译不到、也就没人撤回，于是产品里【两种写法并存】：活代码 `monostate`、
+    #  死代码 `单态`（一个全库没有定义的标识符）。全库照样编过 —— 因为那条分支永不编译；
+    #  而 `<变体>` 的中文 API 其实是缺的（没有 `标准::单态`）。
+    #  判据：**一次撤回 = 这个文件的一次改名撤销**，不是"改掉编译器报的那几处"。
+    #  所以这里把该名字在本文件里的中文写法一次扫干净，并把"编译器看不见的处数"响亮打出来。
+    # -----------------------------------------------------------------------
+    $revExtra = @{}
+    if ($revNames.Count) {
+        $txt = ($lines -join "`n")
+        foreach ($en in @($revNames.Keys)) {
+            $zh = $revZhOf[$en]
+            if (-not $zh) { continue }
+            $rx = '(?<![\w])' + [regex]::Escape($zh) + '(?![\w])'
+            $n  = [regex]::Matches($txt, $rx).Count
+            if ($n -gt 0) { $txt = [regex]::Replace($txt, $rx, $en); $revExtra[$en] = $n }
+        }
+        if ($revExtra.Count) { $lines = $txt -split "`n" }
     }
     [System.IO.File]::WriteAllLines($outPath, $lines, $utf8)
     Write-Host ("  校对第 {0} 轮（测试#{1}）: 指出 {2} 处，改回英文 {3} 处" -f $round,($ti+1),$hits.Count,$fixed)
     if ($revNames.Count) {
         foreach ($rn in ($revNames.Keys | Sort-Object)) {
-            Write-Host ("    ⚠ 改回英文: {0}（{1}）—— 这是【欠账】，要么补前向声明/别名，要么登记进方案文档" -f `
-                $rn, $revWhere[$rn]) -ForegroundColor Yellow
+            $extra = ''
+            if ($revExtra.ContainsKey($rn)) {
+                $extra = ("；另有 {0} 处在【编译器看不见的分支】里残留，已一并改回（§17.19.17.1）" -f $revExtra[$rn])
+            }
+            Write-Host ("    ⚠ 改回英文: {0}（{1}）{2} —— 这是【欠账】，要么补前向声明/别名，要么登记进方案文档" -f `
+                $rn, $revWhere[$rn], $extra) -ForegroundColor Yellow
         }
     }
     if ($fixed -eq 0) { break }

@@ -354,13 +354,29 @@ $orph = 0; if ($orphans.Count) { $orph = 1 }
 Write-Host "=== 公开层转发守卫（§17.19.16.2）===" -ForegroundColor Cyan
 & pwsh -NoProfile -File (Join-Path $root 'tools\check_zhforward.ps1')
 $fw = $LASTEXITCODE
+
+# ---------------------------------------------------------------------------
+#  §17.19.17.1 中文类型名定义守卫 —— "半成品改名"的静态前哨。
+#
+#  为什么加它（第 83 轮的欠账）：<变体> 曾经是半成品改名 —— 活代码 `monostate`、
+#  `#else` 死分支里 `单态`，而 `单态` 全库没有定义。它照样编过（死分支永不编译），
+#  中文 API 却是缺的。发现它靠人肉 grep"两种写法一半一半"，本守卫把"用了但没定义"
+#  变成机器判据（不需要编译器）。
+#  可见化：下面会打印 `类型位置的中文限定名 N 处 / …，全部有定义`。
+#  ⚠ 它的判据边界写在 §17.19.17.1：它只查【带限定】的类型位置用法；
+#    修复前那一例是**不带限定**的（死分支里），所以真正的兜底是"撤回必须文件级一致"
+#    （生成器里那段 §17.19.17.1 的扫尾），这条守卫是另一道（互补的）防线。
+# ---------------------------------------------------------------------------
+Write-Host "=== 中文类型名定义守卫（§17.19.17.1）===" -ForegroundColor Cyan
+& pwsh -NoProfile -File (Join-Path $root 'tools\check_zhdef.ps1')
+$zd = $LASTEXITCODE
 Write-Host "=== 边界台账守卫（B/D 桶）===" -ForegroundColor Cyan
 & pwsh -NoProfile -File (Join-Path $root 'tools\check_multiowner.ps1') -Quiet -Check
 $bd = $LASTEXITCODE
 
-if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0 -and $bd -eq 0 -and $orph -eq 0 -and $fw -eq 0) {
-    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 边界台账 + 孤儿产物 + 公开层转发 + 铁律①：全部通过" -ForegroundColor Green
+if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0 -and $bd -eq 0 -and $orph -eq 0 -and $fw -eq 0 -and $zd -eq 0) {
+    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 边界台账 + 孤儿产物 + 公开层转发 + 中文类型名定义 + 铁律①：全部通过" -ForegroundColor Green
     exit 0
 }
-Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；边界台账守卫退出码 {5}；孤儿产物守卫退出码 {6}；铁律①守卫退出码 {4}；公开层转发守卫退出码 {7}" -f $fail, $v, $ex, $ud, $og, $bd, $orph, $fw) -ForegroundColor Red
+Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；边界台账守卫退出码 {5}；孤儿产物守卫退出码 {6}；铁律①守卫退出码 {4}；公开层转发守卫退出码 {7}；中文类型名定义守卫退出码 {8}" -f $fail, $v, $ex, $ud, $og, $bd, $orph, $fw, $zd) -ForegroundColor Red
 exit 1
