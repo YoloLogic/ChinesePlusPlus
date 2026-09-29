@@ -267,6 +267,7 @@ $H = @{
       '_Callback_fn'         = '_回调函数指针'
     }
     members = [ordered]@{
+      '_Store_and_unlock' = '_存储并解锁';
       '_Transfer_ownership' = '_转移所有权';
       'request_stop'   = '请求停止'
       'stop_requested' = '已请求停止'
@@ -440,6 +441,7 @@ $H = @{
                           # §16.27：自有内部件也要翻（长名、无二义，不是边界）
                           '_Buffer_for_bitset' = '_位缓冲' }
     members = [ordered]@{
+
 
       '_Alloc' = '_分配器';
       '_Allocate' = '_分配';
@@ -1055,6 +1057,8 @@ $H = @{
                           '_Is_bidi'              = '_是双向'
                           '_Pop_direction'        = '_弹出方向' }
     members = [ordered]@{
+      '_Tidy' = '_清理';
+      '_Tidy_guard' = '_清理守卫';
       '_Alloc' = '_分配器';
       '_Alloc_temporary2' = '_分配器临时对象2';
       '_Compressed_pair' = '_压缩对';
@@ -1843,6 +1847,7 @@ $H = @{
     deriveTypes = @( @('container_type','容器类型') )
     # ⚠ 不翻 uses_allocator / formatter —— 它们是 std 的模板，改名会断（同 <栈>）
     members = [ordered]@{
+
 
       '_Get_unwrapped' = '_取解包';
       '_Adaptor_formatter_base' = '_适配器格式化基类'
@@ -3260,6 +3265,13 @@ $H = @{
 
 
 
+
+
+
+
+
+
+
       '_Zero_then_variadic_args_t' = '_先零后变参实参';
       '_List_val' = '_链表值';
       '_Compressed_pair' = '_压缩对';
@@ -3974,6 +3986,7 @@ $H = @{
                           '_Secret_scoped_allocator_construct_tag' = '_作用域构造内部标号' }
     # ⚠ 不翻 allocator_traits / rebind / enable_if_t 等 std 的名字
     members = [ordered]@{ 'inner_allocator' = '内层分配器'
+      '_Get_rebind_type' = '_取重绑定类型';
       '_Alloc' = '_分配器';
 
       '_Ty' = '_类型';
@@ -5036,6 +5049,12 @@ $H = @{
       '_Atomic_floating'          = '_原子浮点'
     }
     members = [ordered]@{
+      '_Dest' = '_目标';
+      '_Lock' = '_加锁';
+      '_Rep' = '_表示';
+      '_Result' = '_结果';
+      '_Ty' = '_类型';
+      '_Uty' = '_结果类型';
       'load' = '载入'; 'store' = '存储'; 'exchange' = '置换'
       'compare_exchange_weak' = '比较交换弱'
       'compare_exchange_strong' = '比较交换强'

@@ -601,7 +601,7 @@ public:
 _EXPORT_STD template <class _类型, class _分配器 = allocator<_类型>>
 class 双端队列实现 {
 private:
-    friend _Tidy_guard<双端队列实现>;
+    friend _清理守卫<双端队列实现>;
     static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<_类型, typename _分配器::value_type>,
         _MISMATCHED_ALLOCATOR_MESSAGE("双端队列实现<T, Allocator>", "T"));
     static_assert(is_object_v<_类型>, "The C++ Standard forbids containers of non-object types "
@@ -654,7 +654,7 @@ public:
         : _Mypair(_先一后变参实参{}, _Al) {
         _代理分配器类型 _Alproxy(_取分配器());
         _容器代理指针12<_代理分配器类型> _Proxy(_Alproxy, _取数据());
-        _Tidy_guard<双端队列实现> _Guard{this};
+        _清理守卫<双端队列实现> _Guard{this};
         调整尺寸(_Count);
         _Guard._Target = nullptr;
         _Proxy._Release();
@@ -732,7 +732,7 @@ private:
         _代理分配器类型 _Alproxy(_取分配器());
         _容器代理指针12<_代理分配器类型> _Proxy(_Alproxy, _取数据());
 
-        _Tidy_guard<双端队列实现> _Guard{this};
+        _清理守卫<双端队列实现> _Guard{this};
         for (; _首个 != _最后; ++_首个) {
             _尾部就地构造内部(*_首个);
         }
@@ -745,7 +745,7 @@ private:
         _代理分配器类型 _Alproxy(_取分配器());
         _容器代理指针12<_代理分配器类型> _Proxy(_Alproxy, _取数据());
 
-        _Tidy_guard<双端队列实现> _Guard{this};
+        _清理守卫<双端队列实现> _Guard{this};
         for (; _Count > 0; --_Count) {
             _尾部就地构造内部(_Val);
         }
@@ -773,7 +773,7 @@ private:
 
 public:
     ~双端队列实现() noexcept {
-        _Tidy();
+        _清理();
         _代理分配器类型 _Proxy_allocator(_取分配器());
         _删除原生内部(_Proxy_allocator, _STD exchange(_取数据()._Myproxy, nullptr));
     }
@@ -787,7 +787,7 @@ public:
         auto& _Right_al = _Right._取分配器();
         if constexpr (_Choose_pocca_v<_分配器类型>) {
             if (_Al != _Right_al) {
-                _Tidy();
+                _清理();
                 _取数据()._重载代理(static_cast<_代理分配器类型>(_Al), static_cast<_代理分配器类型>(_Right_al));
             }
         }
@@ -811,7 +811,7 @@ public:
                 _代理分配器类型 _Alproxy(_Al);
                 _代理分配器类型 _Right_alproxy(_Right_al);
                 _容器代理指针12<_代理分配器类型> _Proxy(_Right_alproxy, _离开代理未绑定{});
-                _Tidy();
+                _清理();
                 _Pocma(_Al, _Right_al);
                 _Proxy._绑定(_Alproxy, _STD addressof(_取数据()));
                 _接管内容(_Right);
@@ -825,7 +825,7 @@ public:
             }
         }
 
-        _Tidy();
+        _清理();
         _Pocma(_Al, _Right_al);
         _接管内容(_Right);
 
@@ -1575,7 +1575,7 @@ private:
 
 public:
     void 清空() noexcept { // 擦除 all
-        _Tidy();
+        _清理();
     }
 
     void swap(双端队列实现& _Right) noexcept /* strengthened */ {
@@ -1669,7 +1669,7 @@ private:
         _映射表尺寸() = 0;
     }
 
-    void _Tidy() noexcept { // free all storage
+    void _清理() noexcept { // free all storage
         _孤儿化全部();
 
         while (!为空()) {
