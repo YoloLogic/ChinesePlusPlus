@@ -42,6 +42,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
 
 OUT = os.path.join(HERE, '汉语编程Chinese++输入法词库.txt')
+OUT_GBK = os.path.join(HERE, '汉语编程Chinese++输入法词库.GBK.txt')
 MAX_CHARS = 64          # 用户要求：每条长度小于 64 个汉字
 
 CHEATSHEET_CANDS = [
@@ -233,11 +234,21 @@ def main():
     print('')
     print('合计 %d 条   最长 %d 字 —— %s' % (len(ordered), len(longest), longest))
 
-    with open(OUT, 'w', encoding='utf-8-sig', newline='\r\n') as f:
-        f.write('\n'.join(ordered) + '\n')
+    body = '\n'.join(ordered) + '\n'
 
+    # 仓库里留 UTF-8：可读、可 diff
+    with open(OUT, 'w', encoding='utf-8-sig', newline='\r\n') as f:
+        f.write(body)
     print('已写出: %s' % OUT)
-    print('  编码 UTF-8 with BOM   换行 CRLF   %d 行' % len(ordered))
+    print('  UTF-8 with BOM   换行 CRLF   %d 行' % len(ordered))
+
+    # 给搜狗的那份：GB18030（GBK 的超集），无 BOM、CRLF。
+    # 依据：搜狗文本词库要求「字符编码集为 ANSI、GBK 或 GB18030；
+    # 换行符为 Windows 风格，即 Windows(CR LF)」。
+    with open(OUT_GBK, 'w', encoding='gb18030', newline='\r\n') as f:
+        f.write(body)
+    print('已写出: %s' % OUT_GBK)
+    print('  GB18030   无 BOM   换行 CRLF   %d 行' % len(ordered))
 
 
 if __name__ == '__main__':
