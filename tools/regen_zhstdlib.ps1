@@ -65,7 +65,9 @@ $preCount = 0
 foreach ($j in $jobs) {
     if ($j.Once) { continue }
     foreach ($h in @($j.Entries | Where-Object { $Exclude -notcontains $_ } | Sort-Object)) {
-        & pwsh -NoProfile -File (Join-Path $root "tools\$($j.Script)") -Header $h *> $null
+                $env:ZH_NO_TEST = '1'
+& pwsh -NoProfile -File (Join-Path $root "tools\$($j.Script)") -Header $h *> $null
+        Remove-Item Env:\ZH_NO_TEST -ErrorAction SilentlyContinue
         $preCount++
     }
 }
