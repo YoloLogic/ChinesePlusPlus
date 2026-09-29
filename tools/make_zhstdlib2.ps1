@@ -4419,6 +4419,54 @@ $H = @{
       @('异常类型身份（铁律④ 机器守卫）','#包含 <变体>`n静态断言(std::is_same<标准::变体访问错误, std::bad_variant_access>::value, "");`n整数 主函数(){ 返回 0; }')
     )
   }
+  'charconv' = @{
+    zh      = '字符转换'
+    realInclude = @('charconv')
+    zhIncludes = @{ 'xutility' = '通用内部件' }
+    # §17.19.12/12.1：同名助手族按【编译器信号】定类（prologue = 形态一的 using-声明；
+    #   members 里的中文名 = 形态二/三的改名）。不用文本启发式去猜"我们有没有定义"。
+    prologue = '使用 std::_Bit_scan_reverse; 使用 std::_Floating_to_chars_ryu; 使用 std::_Floating_to_chars_scientific_precision; 使用 std::_Floating_to_chars_fixed_precision;'
+    noPub   = $true
+    pub     = '字符转换'
+    types   = [ordered]@{}
+    members = [ordered]@{ 'to_chars' = '数值转字符'; 'from_chars' = '字符转数值'
+                          '_Floating_from_chars' = '_浮点转数值'
+                          '_Floating_to_chars' = '_浮点转字符'
+                          '_Floating_to_chars_hex_shortest' = '_浮点转字符十六进制最短'
+                          '_Floating_to_chars_hex_precision' = '_浮点转字符十六进制精度'
+                          '_Floating_to_chars_general_precision' = '_浮点转字符通用精度'
+                          '_Convert_decimal_string_to_floating_type' = '_十进制串转浮点类型'
+                          '_Convert_hexadecimal_string_to_floating_type' = '_十六进制串转浮点类型'
+                          '_Ordinary_floating_from_chars' = '_常规浮点转数值' }
+    data    = [ordered]@{}
+    derive  = @()
+    extra   = ( @(
+      '名域 标准 {',
+      '',
+      '使用 数值转字符结果 = std::to_chars_result;',
+      '使用 字符转数值结果 = std::from_chars_result;',
+      '使用 字符格式       = std::chars_format;',
+      '内联 常量表达式 自动 科学     = std::chars_format::scientific;',
+      '内联 常量表达式 自动 定点     = std::chars_format::fixed;',
+      '内联 常量表达式 自动 十六进制 = std::chars_format::hex;',
+      '内联 常量表达式 自动 通用     = std::chars_format::general;',
+      '',
+      '模板 <类型名... 参数> 声明类型(自动) 数值转字符(参数&&... 值) { 返回 细节::数值转字符(static_cast<参数&&>(值)...); }',
+      '模板 <类型名... 参数> 声明类型(自动) 字符转数值(参数&&... 值) { 返回 细节::字符转数值(static_cast<参数&&>(值)...); }',
+      '模板 <类型名... 参数> 声明类型(自动) to_chars(参数&&... 值) { 返回 细节::数值转字符(static_cast<参数&&>(值)...); }',
+      '模板 <类型名... 参数> 声明类型(自动) from_chars(参数&&... 值) { 返回 细节::字符转数值(static_cast<参数&&>(值)...); }',
+      '',
+      '}  // 名域 标准'
+    ) -join "`r`n" )
+    tparam  = @{ decl = ''; args = '' }
+    tests = @(
+      @('只引中文头','#包含 <字符转换>`n整数 主函数(){ 字符 缓[16]; 自动 果 = 标准::数值转字符(缓, 缓 + 16, 42); 返回 果.ptr != 缓 ? 0 : 1; }'),
+      @('与微软原头并存','#包含 <字符转换>`n#包含 <charconv>`n整数 主函数(){ 字符 甲[16]; 字符 乙[16];`n  标准::数值转字符(甲, 甲 + 16, 42); std::to_chars(乙, 乙 + 16, 42);`n  返回 甲[0] == 乙[0] ? 0 : 1; }'),
+      @('英文原名与中文名并用','#包含 <字符转换>`n整数 主函数(){ 字符 甲[16]; 字符 乙[16];`n  标准::数值转字符(甲, 甲 + 16, 42); 标准::to_chars(乙, 乙 + 16, 42);`n  返回 甲[0] == 乙[0] ? 0 : 1; }'),
+      @('★守卫 §17.19.12：格式枚举可用（隐藏 / 歧义的现场）','#包含 <字符转换>`n整数 主函数(){ 返回 标准::通用 == std::chars_format::general && 标准::十六进制 == std::chars_format::hex ? 0 : 1; }'),
+      @('结果类型身份（铁律④ 机器守卫）','#包含 <字符转换>`n静态断言(std::is_same<标准::数值转字符结果, std::to_chars_result>::value, "");`n静态断言(std::is_same<标准::字符转数值结果, std::from_chars_result>::value, "");`n整数 主函数(){ 返回 0; }')
+    )
+  }
 }
 
 # ---------------------------------------------------------------------------
