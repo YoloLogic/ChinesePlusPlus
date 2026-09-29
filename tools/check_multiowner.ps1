@@ -19,7 +19,10 @@
 param(
     [string] $Generator = (Join-Path $PSScriptRoot 'make_zhstdlib2.ps1'),
     [string] $VsInc = 'C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include',
-    [switch] $Quiet
+    [switch] $Quiet,
+    # §17.27.63 边界台账（B/D 桶）：生成物路径 + 过期检查
+    [string] $LedgerPath = (Join-Path (Split-Path -Parent $PSScriptRoot) 'docs\标准库汉化\边界台账.md'),
+    [switch] $Check
 )
 
 $ErrorActionPreference = 'Stop'
@@ -55,7 +58,7 @@ $bad = @()
 foreach ($n in $definers.Keys) {
     $d = @($definers[$n].Keys)
     if ($d.Count -le 1) { continue }                       # 单一定义方：不是多方边界
-    $notOurs = @($d | Where-Object { -not $owned.ContainsKey($_) })
+    $notOurs = @($d | Where-Object { -not $owned.ContainsKey($_) } | Sort-Object)
     if ($notOurs.Count -eq 0) { continue }                 # 定义方全是我们的：可以改
     $bad += [pscustomobject]@{ 名字 = $n; 定义方 = $d.Count; 不归我们 = ($notOurs -join ', ') }
 }
@@ -89,7 +92,7 @@ $cats = [ordered]@{ 'A 单一定义方·我们的' = @(); 'B 单一定义方·�
 foreach ($n in $names.Keys) {
     if (-not $definers.ContainsKey($n)) { $cats['E 无函数体定义（宏/变量/typedef）'] += $n; continue }
     $d = @($definers[$n].Keys)
-    $notOurs = @($d | Where-Object { -not $owned.ContainsKey($_) })
+    $notOurs = @($d | Where-Object { -not $owned.ContainsKey($_) } | Sort-Object)
     if ($d.Count -eq 1) { if ($notOurs.Count -eq 0) { $cats['A 单一定义方·我们的'] += $n } else { $cats['B 单一定义方·借来的'] += $n } }
     else { if ($notOurs.Count -eq 0) { $cats['C 多定义方·全是我们的'] += $n } else { $cats['D 多定义方·含借来的'] += $n } }
 }
@@ -113,7 +116,7 @@ foreach ($k in $cats.Keys) {
         $line = "  $n"
         if ($definers.ContainsKey($n)) {
             $d = @($definers[$n].Keys)
-            $notOurs = @($d | Where-Object { -not $owned.ContainsKey($_) })
+            $notOurs = @($d | Where-Object { -not $owned.ContainsKey($_) } | Sort-Object)
             $line += ("    # 定义方 {0} 个{1}" -f $d.Count, $(if ($notOurs.Count) { '，不归我们的：' + ($notOurs -join ', ') } else { '' }))
         }
         $out += $line
@@ -121,3 +124,67 @@ foreach ($k in $cats.Keys) {
     [System.IO.File]::WriteAllLines((Join-Path $bucketDir ("bucket_$letter.txt")), $out, (New-Object System.Text.UTF8Encoding($false)))
 }
 Write-Host ("  工作表已导出到 {0}\bucket_[ABCDE].txt（§17.27.62：判据要能变成工作表）" -f $bucketDir) -ForegroundColor Gray
+
+# ---------------------------------------------------------------------------
+#  §17.27.63 边界台账（B/D 桶）—— 【生成物】+ 过期检查
+#
+#  为什么还要一份台账：§17.27.42 判出了四类桶，但 B/D（= 边界）一直只打在屏幕上，
+#  **屏幕上的东西滚过去就没了**。而边界台账是"欠账的登记表"：它必须可 diff、可核对数量、
+#  可被门禁检查 —— 否则"记了"只是"我以为记了"。
+#  判据同 §16.40（用法对照表）：**手写的登记表一定会漂移，所以要由机器生成、由机器核对。**
+# ---------------------------------------------------------------------------
+$mkd = New-Object System.Collections.ArrayList
+[void]$mkd.Add('# 边界台账（B 桶 / D 桶）')
+[void]$mkd.Add('')
+[void]$mkd.Add('> **本文件是生成物**，手改无效。生成：`pwsh -File tools\check_multiowner.ps1`；')
+[void]$mkd.Add('> 过期检查由 `tools\regen_zhstdlib.ps1` 执行（同"用法对照表守卫"的做法）。')
+[void]$mkd.Add('>')
+[void]$mkd.Add('> **边界的含义**：这个名字在【借来的头】里也有定义方。所以在我们把那个头也抄下来之前，')
+[void]$mkd.Add('> **两侧都必须保持英文** —— 这是 §17.27.43 用两侧实验夹出来的结论，不是保守。')
+[void]$mkd.Add('')
+$totalNames = (($cats.Values | ForEach-Object { @($_).Count } | Measure-Object -Sum).Sum)
+$bNames = @($cats['B 单一定义方·借来的'] | Sort-Object)
+$dNames = @($cats['D 多定义方·含借来的'] | Sort-Object)
+[void]$mkd.Add(("**指纹**：B 桶 {0} 个 / D 桶 {1} 个（我们登记的名字共 {2} 个；生成时扫描 {3} 个头）" -f `
+    $bNames.Count, $dNames.Count, $totalNames, (Get-ChildItem $VsInc -File).Count))
+[void]$mkd.Add('')
+[void]$mkd.Add('## B 桶：单一定义方 · 借来的')
+[void]$mkd.Add('')
+[void]$mkd.Add('消除路径：**把那个借用头也抄成我们的内部件**（抄完即变成 A 桶，可整批翻）。')
+[void]$mkd.Add('')
+[void]$mkd.Add('| 名字 | 借来的定义方 | 消除路径 |')
+[void]$mkd.Add('| --- | --- | --- |')
+foreach ($n in $bNames) {
+    $notOurs = @($definers[$n].Keys | Where-Object { -not $owned.ContainsKey($_) } | Sort-Object)   # 排序：台账必须可复现（哈希表枚举顺序不稳定）
+    [void]$mkd.Add(("| ``{0}`` | {1} | 抄 ``{2}`` |" -f $n, ($notOurs -join ', '), ($notOurs -join '`` / ``')))
+}
+[void]$mkd.Add('')
+[void]$mkd.Add('## D 桶：多定义方 · 含借来的')
+[void]$mkd.Add('')
+[void]$mkd.Add('消除路径：**抄完所有借用定义方后整批翻**（在那之前保持英文）。')
+[void]$mkd.Add('')
+[void]$mkd.Add('| 名字 | 借来的定义方 | 我方定义方数 | 消除路径 |')
+[void]$mkd.Add('| --- | --- | --- | --- |')
+foreach ($n in $dNames) {
+    $all = @($definers[$n].Keys | Sort-Object)
+    $notOurs = @($all | Where-Object { -not $owned.ContainsKey($_) })
+    $ours = @($all | Where-Object { $owned.ContainsKey($_) } | Sort-Object)
+    [void]$mkd.Add(("| ``{0}`` | {1} | {2} | 抄完借用方后整批翻 |" -f $n, ($notOurs -join ', '), $ours.Count))
+}
+$mkdText = ($mkd -join "`r`n") + "`r`n"
+if ($Check) {
+    $old = if (Test-Path $LedgerPath) { [System.IO.File]::ReadAllText($LedgerPath) } else { '' }
+    if ($old.Replace("`r`n", "`n") -eq $mkdText.Replace("`r`n", "`n")) {
+        Write-Host ("边界台账：最新（B {0} / D {1}）" -f $bNames.Count, $dNames.Count)
+        exit 0
+    } else {
+        Write-Host ("❌ 边界台账【已过期】：{0}" -f $LedgerPath) -ForegroundColor Red
+        Write-Host "   修法：pwsh -File tools\check_multiowner.ps1  然后一起提交。" -ForegroundColor Yellow
+        exit 1
+    }
+} else {
+    $ldir = Split-Path -Parent $LedgerPath
+    if (-not (Test-Path $ldir)) { New-Item -ItemType Directory -Force $ldir | Out-Null }
+    [System.IO.File]::WriteAllText($LedgerPath, $mkdText, (New-Object System.Text.UTF8Encoding($false)))
+    Write-Host ("  边界台账已写入 {0}（B {1} / D {2}）" -f $LedgerPath, $bNames.Count, $dNames.Count) -ForegroundColor Gray
+}

@@ -263,9 +263,23 @@ if ($rngNames.Count) {
 }
 Write-Host ''
 
-if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0) {
-    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 铁律①：全部通过" -ForegroundColor Green
+# ---------------------------------------------------------------------------
+#  §17.27.63 边界台账守卫（B/D 桶）—— **欠账的登记表也必须由机器核对**。
+#
+#  为什么加它：§17.27.42 判出四类桶之后，B/D（= 边界）一直只打在屏幕上，
+#  而屏幕上的东西**滚过去就没了** —— 台账是"欠账的登记表"，它必须可 diff、
+#  可核对数量、可被门禁检查，否则"记了"只是"我以为记了"。
+#  判据同 §16.40（用法对照表）：手写的登记表一定会漂移，所以
+#  台账由 tools\check_multiowner.ps1 **生成**，这里只核对它是否最新。
+#  可见化：下面这行会打印 `边界台账：最新（B x / D y）`。
+# ---------------------------------------------------------------------------
+Write-Host "=== 边界台账守卫（B/D 桶）===" -ForegroundColor Cyan
+& pwsh -NoProfile -File (Join-Path $root 'tools\check_multiowner.ps1') -Quiet -Check
+$bd = $LASTEXITCODE
+
+if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0 -and $bd -eq 0) {
+    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 边界台账 + 铁律①：全部通过" -ForegroundColor Green
     exit 0
 }
-Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；铁律①守卫退出码 {4}" -f $fail, $v, $ex, $ud, $og) -ForegroundColor Red
+Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；边界台账守卫退出码 {5}；铁律①守卫退出码 {4}" -f $fail, $v, $ex, $ud, $og, $bd) -ForegroundColor Red
 exit 1
