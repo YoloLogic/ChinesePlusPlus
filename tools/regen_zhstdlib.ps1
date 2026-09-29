@@ -370,13 +370,22 @@ $fw = $LASTEXITCODE
 Write-Host "=== 中文类型名定义守卫（§17.19.17.1）===" -ForegroundColor Cyan
 & pwsh -NoProfile -File (Join-Path $root 'tools\check_zhdef.ps1')
 $zd = $LASTEXITCODE
+# ---------------------------------------------------------------------------
+#  §17.19.21 标准头覆盖守卫 —— 把"世界应该有什么而我们还缺什么"变成数字。
+#  为什么加它（第 98 轮实测）：`#包含 <迭代器>` 报「找不到文件 '迭代器'」——
+#  <iterator> 这个核心头竟然一直不存在，因为从来没人机器地问过"缺哪个头"。
+#  可见化：下面会打印 `已覆盖 X / 标准头 Y（缺 Z）`，台账写到 docs\标准库汉化\头文件覆盖台账.md。
+# ---------------------------------------------------------------------------
+Write-Host "=== 标准头覆盖守卫（§17.19.21）===" -ForegroundColor Cyan
+& pwsh -NoProfile -File (Join-Path $root 'tools\check_zhcover.ps1') -Check
+$cv = $LASTEXITCODE
 Write-Host "=== 边界台账守卫（B/D 桶）===" -ForegroundColor Cyan
 & pwsh -NoProfile -File (Join-Path $root 'tools\check_multiowner.ps1') -Quiet -Check
 $bd = $LASTEXITCODE
 
-if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0 -and $bd -eq 0 -and $orph -eq 0 -and $fw -eq 0 -and $zd -eq 0) {
-    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 边界台账 + 孤儿产物 + 公开层转发 + 中文类型名定义 + 铁律①：全部通过" -ForegroundColor Green
+if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0 -and $bd -eq 0 -and $orph -eq 0 -and $fw -eq 0 -and $zd -eq 0 -and $cv -eq 0) {
+    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 边界台账 + 孤儿产物 + 公开层转发 + 中文类型名定义 + 标准头覆盖 + 铁律①：全部通过" -ForegroundColor Green
     exit 0
 }
-Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；边界台账守卫退出码 {5}；孤儿产物守卫退出码 {6}；铁律①守卫退出码 {4}；公开层转发守卫退出码 {7}；中文类型名定义守卫退出码 {8}" -f $fail, $v, $ex, $ud, $og, $bd, $orph, $fw, $zd) -ForegroundColor Red
+Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；边界台账守卫退出码 {5}；孤儿产物守卫退出码 {6}；铁律①守卫退出码 {4}；公开层转发守卫退出码 {7}；中文类型名定义守卫退出码 {8}；标准头覆盖退出码 {9}" -f $fail, $v, $ex, $ud, $og, $bd, $orph, $fw, $zd, $cv) -ForegroundColor Red
 exit 1
