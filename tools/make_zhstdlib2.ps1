@@ -66,6 +66,10 @@ $H = @{
     # 于是只用 <互斥量> 就能拿到 标准::一次标志 与 标准::一次调用。
     zhIncludes = @{ 'xcall_once.h' = '调用一次'; 'thread' = '线程' }
     members = [ordered]@{
+      '_First' = '_首个'
+      '_Last' = '_最后'
+      '_Result' = '_结果'
+      '_Rep' = '_表示'
       '_Pass_fn' = '_传递函数'
       '_Mymtx' = '_我的互斥量'
       '_Validate' = '_校验'
@@ -1687,6 +1691,13 @@ $H = @{
     deriveTypes = @( @('container_type','容器类型') )
     # ⚠ 不翻 uses_allocator / formatter —— 它们是 std 的模板，改名会断（同 <栈>）
     members = [ordered]@{
+      '_Adaptor_formatter_base' = '_适配器格式化基类'
+      '_Alloc' = '_分配器'
+      '_Comp' = '_比较器'
+      '_First' = '_首个'
+      '_Last' = '_最后'
+      '_Ty' = '_类型'
+      '_Valty' = '_值参数类型'
       'emplace' = '就地构造'; 'pop' = '弹出'
       'push' = '压入'; 'push_range' = '范围压入'
       # §16.74 与 `<栈>` **同批**的协调改名（两个条目同译名，跨头译名守卫强制）：
@@ -4075,6 +4086,18 @@ $H = @{
     zhIncludes = @{ 'xutility' = '通用内部件' }
     types   = [ordered]@{}
     members = [ordered]@{
+      '_Adl_verify_range' = '_ADL校验范围'
+      '_Dest' = '_目标'
+      '_First' = '_首个'
+      '_Get_unwrapped' = '_取解包'
+      '_Idl_distance' = '_IDL距离'
+      '_Last' = '_最后'
+      '_Pass_fn' = '_传递函数'
+      '_Result' = '_结果'
+      '_Seek_wrapped' = '_定位包装'
+      '_To_address' = '_取地址'
+      '_Ty' = '_类型'
+      '_Uend' = '_解包尾'
       'accumulate' = '累加'; 'reduce' = '归约'
       'inner_product' = '内积'; 'transform_reduce' = '变换归约'
       'partial_sum' = '部分和'

@@ -32,7 +32,7 @@ _STL_DISABLE_CLANG_WARNINGS
 
 名域 标准 { 名域 细节 {
 使用 名域 std;
-_EXPORT_STD template <class _Ty, class _Container = deque<_Ty>>
+_EXPORT_STD template <class _类型, class _Container = deque<_类型>>
 class 队列实现 {
 public:
     using value_type      = typename _Container::value_type;
@@ -41,8 +41,8 @@ public:
     using size_type       = typename _Container::size_type;
     using 容器类型  = _Container;
 
-    static_assert(is_same_v<_Ty, value_type>, "container adaptors require consistent types");
-    static_assert(is_object_v<_Ty>, "The C++ Standard forbids container adaptors of non-object types "
+    static_assert(is_same_v<_类型, value_type>, "container adaptors require consistent types");
+    static_assert(is_object_v<_类型>, "The C++ Standard forbids container adaptors of non-object types "
                                     "because of [container.requirements].");
 
     队列实现() = default;
@@ -54,42 +54,42 @@ public:
 
 #if _HAS_CXX23
     template <_Iterator_for_container _InIt>
-    队列实现(_InIt _First, _InIt _Last) noexcept(is_nothrow_constructible_v<_Container, _InIt, _InIt>) // strengthened
-        : c(_STD move(_First), _STD move(_Last)) {}
+    队列实现(_InIt _首个, _InIt _最后) noexcept(is_nothrow_constructible_v<_Container, _InIt, _InIt>) // strengthened
+        : c(_STD move(_首个), _STD move(_最后)) {}
 
-    template <_Container_compatible_range<_Ty> _Rng>
+    template <_Container_compatible_range<_类型> _Rng>
     队列实现(from_range_t, _Rng&& _Range) : c(_RANGES to<_Container>(_STD forward<_Rng>(_Range))) {}
 #endif // _HAS_CXX23
 
-    template <class _Alloc, enable_if_t<uses_allocator_v<_Container, _Alloc>, int> = 0>
-    explicit 队列实现(const _Alloc& _Al) noexcept(is_nothrow_constructible_v<_Container, const _Alloc&>) // strengthened
+    template <class _分配器, enable_if_t<uses_allocator_v<_Container, _分配器>, int> = 0>
+    explicit 队列实现(const _分配器& _Al) noexcept(is_nothrow_constructible_v<_Container, const _分配器&>) // strengthened
         : c(_Al) {}
 
-    template <class _Alloc, enable_if_t<uses_allocator_v<_Container, _Alloc>, int> = 0>
-    队列实现(const _Container& _Cont, const _Alloc& _Al) : c(_Cont, _Al) {}
+    template <class _分配器, enable_if_t<uses_allocator_v<_Container, _分配器>, int> = 0>
+    队列实现(const _Container& _Cont, const _分配器& _Al) : c(_Cont, _Al) {}
 
-    template <class _Alloc, enable_if_t<uses_allocator_v<_Container, _Alloc>, int> = 0>
-    队列实现(_Container&& _Cont, const _Alloc& _Al)
-        noexcept(is_nothrow_constructible_v<_Container, _Container, const _Alloc&>) // strengthened
+    template <class _分配器, enable_if_t<uses_allocator_v<_Container, _分配器>, int> = 0>
+    队列实现(_Container&& _Cont, const _分配器& _Al)
+        noexcept(is_nothrow_constructible_v<_Container, _Container, const _分配器&>) // strengthened
         : c(_STD move(_Cont), _Al) {}
 
-    template <class _Alloc, enable_if_t<uses_allocator_v<_Container, _Alloc>, int> = 0>
-    队列实现(const 队列实现& _Right, const _Alloc& _Al) : c(_Right.c, _Al) {}
+    template <class _分配器, enable_if_t<uses_allocator_v<_Container, _分配器>, int> = 0>
+    队列实现(const 队列实现& _Right, const _分配器& _Al) : c(_Right.c, _Al) {}
 
-    template <class _Alloc, enable_if_t<uses_allocator_v<_Container, _Alloc>, int> = 0>
-    队列实现(队列实现&& _Right, const _Alloc& _Al)
-        noexcept(is_nothrow_constructible_v<_Container, _Container, const _Alloc&>) // strengthened
+    template <class _分配器, enable_if_t<uses_allocator_v<_Container, _分配器>, int> = 0>
+    队列实现(队列实现&& _Right, const _分配器& _Al)
+        noexcept(is_nothrow_constructible_v<_Container, _Container, const _分配器&>) // strengthened
         : c(_STD move(_Right.c), _Al) {}
 
 #if _HAS_CXX23
-    template <_Iterator_for_container _InIt, class _Alloc>
-        requires uses_allocator_v<_Container, _Alloc>
-    队列实现(_InIt _First, _InIt _Last, const _Alloc& _Al)
-        noexcept(is_nothrow_constructible_v<_Container, _InIt, _InIt, const _Alloc&>) // strengthened
-        : c(_STD move(_First), _STD move(_Last), _Al) {}
+    template <_Iterator_for_container _InIt, class _分配器>
+        requires uses_allocator_v<_Container, _分配器>
+    队列实现(_InIt _首个, _InIt _最后, const _分配器& _Al)
+        noexcept(is_nothrow_constructible_v<_Container, _InIt, _InIt, const _分配器&>) // strengthened
+        : c(_STD move(_首个), _STD move(_最后), _Al) {}
 
-    template <_Container_compatible_range<_Ty> _Rng, class _Alloc>
-    队列实现(from_range_t, _Rng&& _Range, const _Alloc& _Al)
+    template <_Container_compatible_range<_类型> _Rng, class _分配器>
+    队列实现(from_range_t, _Rng&& _Range, const _分配器& _Al)
         : c(_RANGES to<_Container>(_STD forward<_Rng>(_Range), _Al)) {}
 #endif // _HAS_CXX23
 
@@ -126,7 +126,7 @@ public:
     }
 
 #if _HAS_CXX23
-    template <_Container_compatible_range<_Ty> _Rng>
+    template <_Container_compatible_range<_类型> _Rng>
     void 范围压入(_Rng&& _Range) {
         if constexpr (requires { c.append_range(_STD forward<_Rng>(_Range)); }) {
             c.append_range(_STD forward<_Rng>(_Range));
@@ -136,12 +136,12 @@ public:
     }
 #endif // _HAS_CXX23
 
-    template <class... _Valty>
-    _ADAPTOR_EMPLACE_RETURN 就地构造(_Valty&&... _Val) {
+    template <class... _值参数类型>
+    _ADAPTOR_EMPLACE_RETURN 就地构造(_值参数类型&&... _Val) {
 #if _HAS_CXX17
-        return c.emplace_back(_STD forward<_Valty>(_Val)...);
+        return c.emplace_back(_STD forward<_值参数类型>(_Val)...);
 #else // ^^^ _HAS_CXX17 / !_HAS_CXX17 vvv
-        c.emplace_back(_STD forward<_Valty>(_Val)...);
+        c.emplace_back(_STD forward<_值参数类型>(_Val)...);
 #endif // ^^^ !_HAS_CXX17 ^^^
     }
 
@@ -166,75 +166,75 @@ protected:
 template <class _Container, enable_if_t<!_Is_allocator<_Container>::value, int> = 0>
 队列实现(_Container) -> 队列实现<typename _Container::value_type, _Container>;
 
-template <class _Container, class _Alloc,
-    enable_if_t<conjunction_v<negation<_Is_allocator<_Container>>, uses_allocator<_Container, _Alloc>>, int> = 0>
-队列实现(_Container, _Alloc) -> 队列实现<typename _Container::value_type, _Container>;
+template <class _Container, class _分配器,
+    enable_if_t<conjunction_v<negation<_Is_allocator<_Container>>, uses_allocator<_Container, _分配器>>, int> = 0>
+队列实现(_Container, _分配器) -> 队列实现<typename _Container::value_type, _Container>;
 #endif // _HAS_CXX17
 
 #if _HAS_CXX23
-template <_Iterator_for_container _InIt, _Allocator_for_container _Alloc = allocator<_Iter_value_t<_InIt>>>
-队列实现(_InIt, _InIt, _Alloc = _Alloc()) -> 队列实现<_Iter_value_t<_InIt>, deque<_Iter_value_t<_InIt>, _Alloc>>;
+template <_Iterator_for_container _InIt, _Allocator_for_container _分配器 = allocator<_Iter_value_t<_InIt>>>
+队列实现(_InIt, _InIt, _分配器 = _分配器()) -> 队列实现<_Iter_value_t<_InIt>, deque<_Iter_value_t<_InIt>, _分配器>>;
 
-template <_RANGES input_range _Rng, _Allocator_for_container _Alloc = allocator<_RANGES range_value_t<_Rng>>>
-队列实现(from_range_t, _Rng&&, _Alloc = _Alloc())
-    -> 队列实现<_RANGES range_value_t<_Rng>, deque<_RANGES range_value_t<_Rng>, _Alloc>>;
+template <_RANGES input_range _Rng, _Allocator_for_container _分配器 = allocator<_RANGES range_value_t<_Rng>>>
+队列实现(from_range_t, _Rng&&, _分配器 = _分配器())
+    -> 队列实现<_RANGES range_value_t<_Rng>, deque<_RANGES range_value_t<_Rng>, _分配器>>;
 #endif // _HAS_CXX23
 
-_EXPORT_STD template <class _Ty, class _Container>
-_NODISCARD bool operator==(const 队列实现<_Ty, _Container>& _Left, const 队列实现<_Ty, _Container>& _Right) {
+_EXPORT_STD template <class _类型, class _Container>
+_NODISCARD bool operator==(const 队列实现<_类型, _Container>& _Left, const 队列实现<_类型, _Container>& _Right) {
     return _Left._取容器() == _Right._取容器();
 }
 
-_EXPORT_STD template <class _Ty, class _Container>
-_NODISCARD bool operator!=(const 队列实现<_Ty, _Container>& _Left, const 队列实现<_Ty, _Container>& _Right) {
+_EXPORT_STD template <class _类型, class _Container>
+_NODISCARD bool operator!=(const 队列实现<_类型, _Container>& _Left, const 队列实现<_类型, _Container>& _Right) {
     return _Left._取容器() != _Right._取容器();
 }
 
-_EXPORT_STD template <class _Ty, class _Container>
-_NODISCARD bool operator<(const 队列实现<_Ty, _Container>& _Left, const 队列实现<_Ty, _Container>& _Right) {
+_EXPORT_STD template <class _类型, class _Container>
+_NODISCARD bool operator<(const 队列实现<_类型, _Container>& _Left, const 队列实现<_类型, _Container>& _Right) {
     return _Left._取容器() < _Right._取容器();
 }
 
-_EXPORT_STD template <class _Ty, class _Container>
-_NODISCARD bool operator>(const 队列实现<_Ty, _Container>& _Left, const 队列实现<_Ty, _Container>& _Right) {
+_EXPORT_STD template <class _类型, class _Container>
+_NODISCARD bool operator>(const 队列实现<_类型, _Container>& _Left, const 队列实现<_类型, _Container>& _Right) {
     return _Left._取容器() > _Right._取容器();
 }
 
-_EXPORT_STD template <class _Ty, class _Container>
-_NODISCARD bool operator<=(const 队列实现<_Ty, _Container>& _Left, const 队列实现<_Ty, _Container>& _Right) {
+_EXPORT_STD template <class _类型, class _Container>
+_NODISCARD bool operator<=(const 队列实现<_类型, _Container>& _Left, const 队列实现<_类型, _Container>& _Right) {
     return _Left._取容器() <= _Right._取容器();
 }
 
-_EXPORT_STD template <class _Ty, class _Container>
-_NODISCARD bool operator>=(const 队列实现<_Ty, _Container>& _Left, const 队列实现<_Ty, _Container>& _Right) {
+_EXPORT_STD template <class _类型, class _Container>
+_NODISCARD bool operator>=(const 队列实现<_类型, _Container>& _Left, const 队列实现<_类型, _Container>& _Right) {
     return _Left._取容器() >= _Right._取容器();
 }
 
 #if _HAS_CXX20
-_EXPORT_STD template <class _Ty, three_way_comparable _Container>
+_EXPORT_STD template <class _类型, three_way_comparable _Container>
 _NODISCARD compare_three_way_result_t<_Container> operator<=>(
-    const 队列实现<_Ty, _Container>& _Left, const 队列实现<_Ty, _Container>& _Right) {
+    const 队列实现<_类型, _Container>& _Left, const 队列实现<_类型, _Container>& _Right) {
     return _Left._取容器() <=> _Right._取容器();
 }
 #endif // _HAS_CXX20
 
-_EXPORT_STD template <class _Ty, class _Container, enable_if_t<_Is_swappable<_Container>::value, int> = 0>
-void swap(队列实现<_Ty, _Container>& _Left, 队列实现<_Ty, _Container>& _Right) noexcept(noexcept(_Left.swap(_Right))) {
+_EXPORT_STD template <class _类型, class _Container, enable_if_t<_Is_swappable<_Container>::value, int> = 0>
+void swap(队列实现<_类型, _Container>& _Left, 队列实现<_类型, _Container>& _Right) noexcept(noexcept(_Left.swap(_Right))) {
     _Left.swap(_Right);
 }
 
-template <class _Ty, class _Container, class _Alloc>
-struct uses_allocator<队列实现<_Ty, _Container>, _Alloc> : uses_allocator<_Container, _Alloc>::type {};
+template <class _类型, class _Container, class _分配器>
+struct uses_allocator<队列实现<_类型, _Container>, _分配器> : uses_allocator<_Container, _分配器>::type {};
 
 #if _HAS_CXX23
 // Per LWG-3997, `_CharT` in library-provided `formatter` specializations is
 // constrained to character types supported by `format`.
-template <_Format_supported_charT _CharT, class _Ty, formattable<_CharT> _Container>
-struct formatter<队列实现<_Ty, _Container>, _CharT>
-    : _Adaptor_formatter_base<队列实现<_Ty, _Container>, _CharT, _RANGES ref_view> {};
+template <_Format_supported_charT _CharT, class _类型, formattable<_CharT> _Container>
+struct formatter<队列实现<_类型, _Container>, _CharT>
+    : _适配器格式化基类<队列实现<_类型, _Container>, _CharT, _RANGES ref_view> {};
 #endif // _HAS_CXX23
 
-_EXPORT_STD template <class _Ty, class _Container = vector<_Ty>, class _Pr = less<typename _Container::value_type>>
+_EXPORT_STD template <class _类型, class _Container = vector<_类型>, class _Pr = less<typename _Container::value_type>>
 class 优先队列实现 {
 public:
     using value_type      = typename _Container::value_type;
@@ -244,8 +244,8 @@ public:
     using 容器类型  = _Container;
     using 值比较   = _Pr;
 
-    static_assert(is_same_v<_Ty, value_type>, "container adaptors require consistent types");
-    static_assert(is_object_v<_Ty>, "The C++ Standard forbids container adaptors of non-object types "
+    static_assert(is_same_v<_类型, value_type>, "container adaptors require consistent types");
+    static_assert(is_object_v<_类型>, "The C++ Standard forbids container adaptors of non-object types "
                                     "because of [container.requirements].");
 
     优先队列实现() = default;
@@ -264,106 +264,106 @@ public:
     }
 
     template <class _InIt, enable_if_t<_Is_iterator_v<_InIt>, int> = 0>
-    优先队列实现(_InIt _First, _InIt _Last, const _Pr& _Pred, const _Container& _Cont) : c(_Cont), comp(_Pred) {
-        c.insert(c.end(), _First, _Last);
+    优先队列实现(_InIt _首个, _InIt _最后, const _Pr& _Pred, const _Container& _Cont) : c(_Cont), comp(_Pred) {
+        c.insert(c.end(), _首个, _最后);
         _造堆();
     }
 
     template <class _InIt, enable_if_t<_Is_iterator_v<_InIt>, int> = 0>
-    优先队列实现(_InIt _First, _InIt _Last) : c(_First, _Last), comp() {
+    优先队列实现(_InIt _首个, _InIt _最后) : c(_首个, _最后), comp() {
         _造堆();
     }
 
     template <class _InIt, enable_if_t<_Is_iterator_v<_InIt>, int> = 0>
-    优先队列实现(_InIt _First, _InIt _Last, const _Pr& _Pred) : c(_First, _Last), comp(_Pred) {
+    优先队列实现(_InIt _首个, _InIt _最后, const _Pr& _Pred) : c(_首个, _最后), comp(_Pred) {
         _造堆();
     }
 
     template <class _InIt, enable_if_t<_Is_iterator_v<_InIt>, int> = 0>
-    优先队列实现(_InIt _First, _InIt _Last, const _Pr& _Pred, _Container&& _Cont) : c(_STD move(_Cont)), comp(_Pred) {
-        c.insert(c.end(), _First, _Last);
+    优先队列实现(_InIt _首个, _InIt _最后, const _Pr& _Pred, _Container&& _Cont) : c(_STD move(_Cont)), comp(_Pred) {
+        c.insert(c.end(), _首个, _最后);
         _造堆();
     }
 
 #if _HAS_CXX23
-    template <_Container_compatible_range<_Ty> _Rng>
+    template <_Container_compatible_range<_类型> _Rng>
     优先队列实现(from_range_t, _Rng&& _Range, const _Pr& _Pred = _Pr())
         : c(_RANGES to<_Container>(_STD forward<_Rng>(_Range))), comp(_Pred) {
         _造堆();
     }
 #endif // _HAS_CXX23
 
-    template <class _Alloc, enable_if_t<uses_allocator_v<_Container, _Alloc>, int> = 0>
-    explicit 优先队列实现(const _Alloc& _Al)
-        noexcept(is_nothrow_constructible_v<_Container, const _Alloc&>
+    template <class _分配器, enable_if_t<uses_allocator_v<_Container, _分配器>, int> = 0>
+    explicit 优先队列实现(const _分配器& _Al)
+        noexcept(is_nothrow_constructible_v<_Container, const _分配器&>
                  && is_nothrow_default_constructible_v<值比较>) // strengthened
         : c(_Al), comp() {}
 
-    template <class _Alloc, enable_if_t<uses_allocator_v<_Container, _Alloc>, int> = 0>
-    优先队列实现(const _Pr& _Pred, const _Alloc& _Al)
-        noexcept(is_nothrow_constructible_v<_Container, const _Alloc&>
+    template <class _分配器, enable_if_t<uses_allocator_v<_Container, _分配器>, int> = 0>
+    优先队列实现(const _Pr& _Pred, const _分配器& _Al)
+        noexcept(is_nothrow_constructible_v<_Container, const _分配器&>
                  && is_nothrow_copy_constructible_v<值比较>) // strengthened
         : c(_Al), comp(_Pred) {}
 
-    template <class _Alloc, enable_if_t<uses_allocator_v<_Container, _Alloc>, int> = 0>
-    优先队列实现(const _Pr& _Pred, const _Container& _Cont, const _Alloc& _Al) : c(_Cont, _Al), comp(_Pred) {
+    template <class _分配器, enable_if_t<uses_allocator_v<_Container, _分配器>, int> = 0>
+    优先队列实现(const _Pr& _Pred, const _Container& _Cont, const _分配器& _Al) : c(_Cont, _Al), comp(_Pred) {
         _造堆();
     }
 
-    template <class _Alloc, enable_if_t<uses_allocator_v<_Container, _Alloc>, int> = 0>
-    优先队列实现(const _Pr& _Pred, _Container&& _Cont, const _Alloc& _Al) : c(_STD move(_Cont), _Al), comp(_Pred) {
+    template <class _分配器, enable_if_t<uses_allocator_v<_Container, _分配器>, int> = 0>
+    优先队列实现(const _Pr& _Pred, _Container&& _Cont, const _分配器& _Al) : c(_STD move(_Cont), _Al), comp(_Pred) {
         _造堆();
     }
 
-    template <class _Alloc, enable_if_t<uses_allocator_v<_Container, _Alloc>, int> = 0>
-    优先队列实现(const 优先队列实现& _Right, const _Alloc& _Al) : c(_Right.c, _Al), comp(_Right.comp) {}
+    template <class _分配器, enable_if_t<uses_allocator_v<_Container, _分配器>, int> = 0>
+    优先队列实现(const 优先队列实现& _Right, const _分配器& _Al) : c(_Right.c, _Al), comp(_Right.comp) {}
 
-    template <class _Alloc, enable_if_t<uses_allocator_v<_Container, _Alloc>, int> = 0>
-    优先队列实现(优先队列实现&& _Right, const _Alloc& _Al)
-        noexcept(is_nothrow_constructible_v<_Container, _Container, const _Alloc&>
+    template <class _分配器, enable_if_t<uses_allocator_v<_Container, _分配器>, int> = 0>
+    优先队列实现(优先队列实现&& _Right, const _分配器& _Al)
+        noexcept(is_nothrow_constructible_v<_Container, _Container, const _分配器&>
                  && is_nothrow_move_constructible_v<值比较>) // strengthened
         : c(_STD move(_Right.c), _Al), comp(_STD move(_Right.comp)) {}
 
-    template <class _InIt, class _Alloc,
-        enable_if_t<_Is_iterator_v<_InIt> && uses_allocator_v<_Container, _Alloc>, int> = 0>
-    优先队列实现(_InIt _First, _InIt _Last, const _Alloc& _Al) : c(_First, _Last, _Al), comp() {
+    template <class _InIt, class _分配器,
+        enable_if_t<_Is_iterator_v<_InIt> && uses_allocator_v<_Container, _分配器>, int> = 0>
+    优先队列实现(_InIt _首个, _InIt _最后, const _分配器& _Al) : c(_首个, _最后, _Al), comp() {
         _造堆();
     }
 
-    template <class _InIt, class _Alloc,
-        enable_if_t<_Is_iterator_v<_InIt> && uses_allocator_v<_Container, _Alloc>, int> = 0>
-    优先队列实现(_InIt _First, _InIt _Last, const _Pr& _Pred, const _Alloc& _Al)
-        : c(_First, _Last, _Al), comp(_Pred) {
+    template <class _InIt, class _分配器,
+        enable_if_t<_Is_iterator_v<_InIt> && uses_allocator_v<_Container, _分配器>, int> = 0>
+    优先队列实现(_InIt _首个, _InIt _最后, const _Pr& _Pred, const _分配器& _Al)
+        : c(_首个, _最后, _Al), comp(_Pred) {
         _造堆();
     }
 
-    template <class _InIt, class _Alloc,
-        enable_if_t<_Is_iterator_v<_InIt> && uses_allocator_v<_Container, _Alloc>, int> = 0>
-    优先队列实现(_InIt _First, _InIt _Last, const _Pr& _Pred, const _Container& _Cont, const _Alloc& _Al)
+    template <class _InIt, class _分配器,
+        enable_if_t<_Is_iterator_v<_InIt> && uses_allocator_v<_Container, _分配器>, int> = 0>
+    优先队列实现(_InIt _首个, _InIt _最后, const _Pr& _Pred, const _Container& _Cont, const _分配器& _Al)
         : c(_Cont, _Al), comp(_Pred) {
-        c.insert(c.end(), _First, _Last);
+        c.insert(c.end(), _首个, _最后);
         _造堆();
     }
 
-    template <class _InIt, class _Alloc,
-        enable_if_t<_Is_iterator_v<_InIt> && uses_allocator_v<_Container, _Alloc>, int> = 0>
-    优先队列实现(_InIt _First, _InIt _Last, const _Pr& _Pred, _Container&& _Cont, const _Alloc& _Al)
+    template <class _InIt, class _分配器,
+        enable_if_t<_Is_iterator_v<_InIt> && uses_allocator_v<_Container, _分配器>, int> = 0>
+    优先队列实现(_InIt _首个, _InIt _最后, const _Pr& _Pred, _Container&& _Cont, const _分配器& _Al)
         : c(_STD move(_Cont), _Al), comp(_Pred) {
-        c.insert(c.end(), _First, _Last);
+        c.insert(c.end(), _首个, _最后);
         _造堆();
     }
 
 #if _HAS_CXX23
-    template <_Container_compatible_range<_Ty> _Rng, class _Alloc>
-        requires uses_allocator_v<_Container, _Alloc>
-    优先队列实现(from_range_t, _Rng&& _Range, const _Pr& _Pred, const _Alloc& _Al)
+    template <_Container_compatible_range<_类型> _Rng, class _分配器>
+        requires uses_allocator_v<_Container, _分配器>
+    优先队列实现(from_range_t, _Rng&& _Range, const _Pr& _Pred, const _分配器& _Al)
         : c(_RANGES to<_Container>(_STD forward<_Rng>(_Range), _Al)), comp(_Pred) {
         _造堆();
     }
 
-    template <_Container_compatible_range<_Ty> _Rng, class _Alloc>
-        requires uses_allocator_v<_Container, _Alloc>
-    优先队列实现(from_range_t, _Rng&& _Range, const _Alloc& _Al)
+    template <_Container_compatible_range<_类型> _Rng, class _分配器>
+        requires uses_allocator_v<_Container, _分配器>
+    优先队列实现(from_range_t, _Rng&& _Range, const _分配器& _Al)
         : c(_RANGES to<_Container>(_STD forward<_Rng>(_Range), _Al)), comp() {
         _造堆();
     }
@@ -392,7 +392,7 @@ public:
     }
 
 #if _HAS_CXX23
-    template <_Container_compatible_range<_Ty> _Rng>
+    template <_Container_compatible_range<_类型> _Rng>
     void 范围压入(_Rng&& _Range) {
         const size_type _Old_size = c.size();
 
@@ -416,9 +416,9 @@ public:
     }
 #endif // _HAS_CXX23
 
-    template <class... _Valty>
-    void 就地构造(_Valty&&... _Val) {
-        c.emplace_back(_STD forward<_Valty>(_Val)...);
+    template <class... _值参数类型>
+    void 就地构造(_值参数类型&&... _Val) {
+        c.emplace_back(_STD forward<_值参数类型>(_Val)...);
         _STD push_heap(c.begin(), c.end(), _Pass_fn(comp));
     }
 
@@ -455,23 +455,23 @@ template <class _Iter, class _Pr = less<_Iter_value_t<_Iter>>, class _Container 
 优先队列实现(_Iter, _Iter, _Pr = _Pr(), _Container = _Container())
     -> 优先队列实现<_Iter_value_t<_Iter>, _Container, _Pr>;
 
-template <class _Pr, class _Container, class _Alloc,
+template <class _Pr, class _Container, class _分配器,
     enable_if_t<conjunction_v<negation<_Is_allocator<_Pr>>, negation<_Is_allocator<_Container>>,
-                    uses_allocator<_Container, _Alloc>>,
+                    uses_allocator<_Container, _分配器>>,
         int> = 0>
-优先队列实现(_Pr, _Container, _Alloc) -> 优先队列实现<typename _Container::value_type, _Container, _Pr>;
+优先队列实现(_Pr, _Container, _分配器) -> 优先队列实现<typename _Container::value_type, _Container, _Pr>;
 
-template <class _Iter, class _Alloc, class _Container = vector<_Iter_value_t<_Iter>, _Alloc>,
-    enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_allocator<_Alloc>, uses_allocator<_Container, _Alloc>>, int> = 0>
-优先队列实现(_Iter, _Iter, _Alloc) -> 优先队列实现<_Iter_value_t<_Iter>, _Container, less<_Iter_value_t<_Iter>>>;
+template <class _Iter, class _分配器, class _Container = vector<_Iter_value_t<_Iter>, _分配器>,
+    enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_allocator<_分配器>, uses_allocator<_Container, _分配器>>, int> = 0>
+优先队列实现(_Iter, _Iter, _分配器) -> 优先队列实现<_Iter_value_t<_Iter>, _Container, less<_Iter_value_t<_Iter>>>;
 
-template <class _Iter, class _Compare, class _Alloc, class _Container = vector<_Iter_value_t<_Iter>, _Alloc>,
-    enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_allocator<_Alloc>, uses_allocator<_Container, _Alloc>>, int> = 0>
-优先队列实现(_Iter, _Iter, _Compare, _Alloc) -> 优先队列实现<_Iter_value_t<_Iter>, _Container, _Compare>;
+template <class _Iter, class _Compare, class _分配器, class _Container = vector<_Iter_value_t<_Iter>, _分配器>,
+    enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_allocator<_分配器>, uses_allocator<_Container, _分配器>>, int> = 0>
+优先队列实现(_Iter, _Iter, _Compare, _分配器) -> 优先队列实现<_Iter_value_t<_Iter>, _Container, _Compare>;
 
-template <class _Iter, class _Compare, class _Container, class _Alloc,
-    enable_if_t<conjunction_v<_Is_iterator<_Iter>, uses_allocator<_Container, _Alloc>>, int> = 0>
-优先队列实现(_Iter, _Iter, _Compare, _Container, _Alloc)
+template <class _Iter, class _Compare, class _Container, class _分配器,
+    enable_if_t<conjunction_v<_Is_iterator<_Iter>, uses_allocator<_Container, _分配器>>, int> = 0>
+优先队列实现(_Iter, _Iter, _Compare, _Container, _分配器)
     -> 优先队列实现<typename _Container::value_type, _Container, _Compare>;
 
 #if _HAS_CXX23
@@ -480,33 +480,33 @@ template <_RANGES input_range _Rng, class _Pr = less<_RANGES range_value_t<_Rng>
 优先队列实现(from_range_t, _Rng&&, _Pr = _Pr())
     -> 优先队列实现<_RANGES range_value_t<_Rng>, vector<_RANGES range_value_t<_Rng>>, _Pr>;
 
-template <_RANGES input_range _Rng, class _Pr, class _Alloc,
-    enable_if_t<conjunction_v<negation<_Is_allocator<_Pr>>, _Is_allocator<_Alloc>>, int> = 0>
-优先队列实现(from_range_t, _Rng&&, _Pr, _Alloc)
-    -> 优先队列实现<_RANGES range_value_t<_Rng>, vector<_RANGES range_value_t<_Rng>, _Alloc>, _Pr>;
+template <_RANGES input_range _Rng, class _Pr, class _分配器,
+    enable_if_t<conjunction_v<negation<_Is_allocator<_Pr>>, _Is_allocator<_分配器>>, int> = 0>
+优先队列实现(from_range_t, _Rng&&, _Pr, _分配器)
+    -> 优先队列实现<_RANGES range_value_t<_Rng>, vector<_RANGES range_value_t<_Rng>, _分配器>, _Pr>;
 
-template <_RANGES input_range _Rng, class _Alloc, enable_if_t<_Is_allocator<_Alloc>::value, int> = 0>
-优先队列实现(from_range_t, _Rng&&, _Alloc)
-    -> 优先队列实现<_RANGES range_value_t<_Rng>, vector<_RANGES range_value_t<_Rng>, _Alloc>>;
+template <_RANGES input_range _Rng, class _分配器, enable_if_t<_Is_allocator<_分配器>::value, int> = 0>
+优先队列实现(from_range_t, _Rng&&, _分配器)
+    -> 优先队列实现<_RANGES range_value_t<_Rng>, vector<_RANGES range_value_t<_Rng>, _分配器>>;
 #endif // _HAS_CXX23
 #endif // _HAS_CXX17
 
-_EXPORT_STD template <class _Ty, class _Container, class _Pr,
+_EXPORT_STD template <class _类型, class _Container, class _Pr,
     enable_if_t<_Is_swappable<_Container>::value && _Is_swappable<_Pr>::value, int> = 0>
-void swap(优先队列实现<_Ty, _Container, _Pr>& _Left, 优先队列实现<_Ty, _Container, _Pr>& _Right)
+void swap(优先队列实现<_类型, _Container, _Pr>& _Left, 优先队列实现<_类型, _Container, _Pr>& _Right)
     noexcept(noexcept(_Left.swap(_Right))) {
     _Left.swap(_Right);
 }
 
-template <class _Ty, class _Container, class _Pr, class _Alloc>
-struct uses_allocator<优先队列实现<_Ty, _Container, _Pr>, _Alloc> : uses_allocator<_Container, _Alloc>::type {};
+template <class _类型, class _Container, class _Pr, class _分配器>
+struct uses_allocator<优先队列实现<_类型, _Container, _Pr>, _分配器> : uses_allocator<_Container, _分配器>::type {};
 
 #if _HAS_CXX23
 // Per LWG-3997, `_CharT` in library-provided `formatter` specializations is
 // constrained to character types supported by `format`.
-template <_Format_supported_charT _CharT, class _Ty, formattable<_CharT> _Container, class _Comp>
-struct formatter<优先队列实现<_Ty, _Container, _Comp>, _CharT>
-    : _Adaptor_formatter_base<优先队列实现<_Ty, _Container, _Comp>, _CharT, _RANGES ref_view> {};
+template <_Format_supported_charT _CharT, class _类型, formattable<_CharT> _Container, class _比较器>
+struct formatter<优先队列实现<_类型, _Container, _比较器>, _CharT>
+    : _适配器格式化基类<优先队列实现<_类型, _Container, _比较器>, _CharT, _RANGES ref_view> {};
 #endif // _HAS_CXX23
 } }
 

@@ -264,6 +264,47 @@ if ($rngNames.Count) {
 Write-Host ''
 
 # ---------------------------------------------------------------------------
+#  §17.27.60.1 跨条目未同步译名台账（可见化 + 工作表；**暂不作门禁**）
+#
+#  发现（本轮机器量出来的）：译名登记是【逐条目】的 —— 同一个英文名可能
+#  在 A 条目翻了、在 B 条目还是英文。实测 28 个产品 / 84 个名字
+#  （例 `_Alloc` `_Allocate` `_Construct` `_Comp` `_First`）。
+#  它不是"没译名"，而是"译名没跨条目同步"，所以修法很机械：
+#  **按已有译名补登记**（不许另造新译名）。
+#
+#  ⚠ 为什么暂不作门禁：改名要求**定义方在本条目可见** —— 借来的定义方改了会编不过，
+#    所以它是"按条目 + 按可见性"的批量作业（配方见方案 §17.27.60.1）。
+#    判据（§17.27.3）：新发现必须有机器可见的落点 —— 这里落在
+#    【每次 regen 都打印的计数】+【可 diff 的工作表】上。
+# ---------------------------------------------------------------------------
+$genText = [System.IO.File]::ReadAllText((Join-Path $root 'tools\make_zhstdlib2.ps1'))
+$zhMap = @{}
+foreach ($m in [regex]::Matches($genText, "'(?<en>[A-Za-z_][A-Za-z0-9_]*)'\s*=\s*'(?<zh>[^']+)'")) {
+    $en = $m.Groups['en'].Value; $zh = $m.Groups['zh'].Value
+    if (-not $zhMap.ContainsKey($en) -and $zh -ne $en) { $zhMap[$en] = $zh }
+}
+$crossProd = 0; $crossNames = @{}; $ws = New-Object System.Collections.ArrayList
+[void]$ws.Add('# 跨条目未同步译名（§17.27.60.1）—— 判据：同一个英文名在 A 条目翻了、B 条目还是英文')
+[void]$ws.Add('# 生成的：tools\regen_zhstdlib.ps1；修法：按已有译名补登记进该条目的 members 表（不另造新译名）')
+foreach ($pf in (Get-ChildItem (Join-Path $root 'zhstdlib') -File)) {
+    $ft = [System.IO.File]::ReadAllText($pf.FullName)
+    $mi = $ft.IndexOf('// [ZH-DERIVE-LAYER]')
+    $cp = if ($mi -ge 0) { $ft.Substring(0, $mi) } else { $ft }
+    $seen = @{}
+    foreach ($m in [regex]::Matches($cp, '\b_[A-Za-z][A-Za-z0-9_]*\b')) {
+        $n = $m.Value
+        if ($zhMap.ContainsKey($n)) { $seen[$n] = $true; $crossNames[$n] = $true }
+    }
+    if ($seen.Count) { $crossProd++; [void]$ws.Add(("  {0}: {1} 个 —— {2}" -f $pf.Name, $seen.Count, (($seen.Keys | Sort-Object) -join ' '))) }
+}
+$wsDir = Join-Path $root 'build'
+if (-not (Test-Path $wsDir)) { New-Item -ItemType Directory -Force $wsDir | Out-Null }
+[System.IO.File]::WriteAllLines((Join-Path $wsDir 'cross_entry_names.txt'), $ws, (New-Object System.Text.UTF8Encoding($false)))
+Write-Host ("=== 跨条目未同步译名台账（§17.27.60.1）：{0} 个产品 / {1} 个名字（工作表 build\cross_entry_names.txt）===" -f $crossProd, $crossNames.Count) -ForegroundColor Cyan
+Write-Host '    （不是"没译名"，而是"译名没跨条目同步"；修法=按已有译名补登记，配方见方案 §17.27.60.1）' -ForegroundColor Gray
+Write-Host ''
+
+# ---------------------------------------------------------------------------
 #  §17.27.63 边界台账守卫（B/D 桶）—— **欠账的登记表也必须由机器核对**。
 #
 #  为什么加它：§17.27.42 判出四类桶之后，B/D（= 边界）一直只打在屏幕上，
