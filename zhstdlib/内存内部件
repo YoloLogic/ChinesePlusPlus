@@ -97,11 +97,11 @@ struct _NODISCARD _清理守卫 { // class with destructor that calls _Tidy
 };
 
 template <class _类型>
-struct _NODISCARD _清理释放守卫 { // class with destructor that calls _Tidy_deallocate
+struct _NODISCARD _清理释放守卫 { // class with destructor that calls _清理释放
     _类型* _Target;
     _CONSTEXPR20 ~_清理释放守卫() {
         if (_Target) {
-            _Target->_Tidy_deallocate();
+            _Target->_清理释放();
         }
     }
 };
