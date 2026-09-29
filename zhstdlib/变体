@@ -1649,12 +1649,12 @@ constexpr _Ret 访问(_Callable&& _Obj, _Variants&&... _Args) {
 }
 #endif // _HAS_CXX20
 
-_EXPORT_STD _NODISCARD constexpr bool operator==(monostate, monostate) noexcept {
+_EXPORT_STD _NODISCARD constexpr bool operator==(单态, 单态) noexcept {
     return true;
 }
 
 #if _HAS_CXX20
-_EXPORT_STD _NODISCARD constexpr strong_ordering operator<=>(monostate, monostate) noexcept {
+_EXPORT_STD _NODISCARD constexpr strong_ordering operator<=>(单态, 单态) noexcept {
     return strong_ordering::equal;
 }
 #else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
@@ -1705,11 +1705,11 @@ struct hash<变体实现<_Types...>> : _Conditionally_enabled_hash<变体实现<
 };
 
 template <>
-struct hash<细节::monostate> {
-    using _ARGUMENT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS = monostate;
+struct hash<细节::单态> {
+    using _ARGUMENT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS = 单态;
     using _RESULT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS   = size_t;
 
-    _NODISCARD _STATIC_CALL_OPERATOR size_t operator()(monostate) _CONST_CALL_OPERATOR noexcept {
+    _NODISCARD _STATIC_CALL_OPERATOR size_t operator()(单态) _CONST_CALL_OPERATOR noexcept {
         return 1729; // Arbitrary value
     }
 };
@@ -1761,6 +1761,10 @@ _STL_RESTORE_CLANG_WARNINGS
 
 // 铁律④：异常类型只能用 std 那一个（realInclude 保证它在），这里只补中文名。
 使用 变体访问错误 = std::bad_variant_access;
+
+// §17.19.17 类型名也要有中文名：单态 的【定义】在 通用内部件（我们的 xutility 拷贝）的
+//   标准::细节 里；定义侧已改名，本头那些引用会自动跟成 单态。这里给公开层一个别名。
+使用 单态 = 细节::单态;
 
 // ---- 自由函数的中文名 ----
 模板 <类型名... 参数> 声明类型(自动) 访问(参数&&... 值) { 返回 细节::访问(static_cast<参数&&>(值)...); }
