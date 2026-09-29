@@ -4234,6 +4234,115 @@ $H = @{
       @('切片 / 掩码数组 的汉语名可用（辅助类别名）','#包含 <数值数组>`n整数 主函数(){ 标准::数值数组<整数> 甲 = {1, 2, 3, 4}; 标准::切片 切(0, 2, 2);`n  标准::数值数组<整数> 乙 = 甲[切];`n  返回 乙.求和() == 4 ? 0 : 1; }')
     )
   }
+  # ==========================================================================
+  #  阶段(4) 第四个真汉语公开头：<数值极限>（std::numeric_limits）
+  #
+  #  挑它的判据（沿用 §17.19.5 借用链统计，且**这次把 .h 内部件也算进去**）：
+  #    1007 行、零未汉化【公开头】依赖（只引 cfloat/climits/cwchar 这些 C 包装头 +
+  #    内部件 xtr1common / _STL_INTRIN_HEADER，照别的产品做法引真头即可），且是 C++11 就活跃的头。
+  #  ⚠ 与 <数值数组> 不同：这里没有自由函数，所以**不需要** extra 的双名转发。
+  #
+  #  ⚠ 变量成员与函数成员要分开处理（本轮设计判据）：
+  #    · `min()` / `max()` 这类是**静态 constexpr 函数** -> 走 derive 的通用转发（带括号，语义一致）；
+  #    · `is_specialized` / `is_signed` 这类是**静态 constexpr 变量** -> 通用转发会把它变成函数 ✗，
+  #      所以用 deriveExtra 手写 `static constexpr auto 英文名 = 基类::中文名;`
+  #      （用 auto 避免写被改名的枚举类型名）。
+  # ==========================================================================
+  'limits' = @{
+    zh      = '数值极限'
+    realInclude = @('limits')   # §16.29「乙」：与真 <limits> 并存
+    pub     = '数值极限'
+    types   = [ordered]@{ 'numeric_limits' = '数值极限实现'
+                          'float_denorm_style' = '浮点非规格方式'
+                          'float_round_style'  = '浮点舍入方式'
+                          '_Num_base' = '_数值基类'; '_Num_int_base' = '_整数数值基类'
+                          '_Num_float_base' = '_浮点数值基类' }
+    members = [ordered]@{
+      # 枚举值（名域作用域的名字，靠 members 表改名）
+      'denorm_indeterminate' = '非规格不确定'; 'denorm_absent' = '非规格不存在'; 'denorm_present' = '非规格存在'
+      'round_indeterminate' = '舍入不确定'; 'round_toward_zero' = '向零舍入'
+      'round_to_nearest' = '就近舍入'; 'round_toward_infinity' = '向正无穷舍入'
+      'round_toward_neg_infinity' = '向负无穷舍入'
+      # 静态函数成员
+      'min' = '最小'; 'max' = '最大'; 'lowest' = '最低'; 'epsilon' = '机器精度'
+      'round_error' = '舍入误差'; 'infinity' = '无穷'; 'quiet_NaN' = '静默非数'
+      'signaling_NaN' = '信号非数'; 'denorm_min' = '非规格最小'
+      'digits' = '位数'; 'digits10' = '十进制位数'; 'max_digits10' = '最大十进制位数'
+      'radix' = '基数'; 'min_exponent' = '最小指数'; 'min_exponent10' = '最小十进制指数'
+      'max_exponent' = '最大指数'; 'max_exponent10' = '最大十进制指数'
+      # 静态变量成员
+      'is_specialized' = '已特化'; 'is_signed' = '带符号'; 'is_integer' = '整数类型'
+      'is_exact' = '精确'; 'is_iec559' = '符合IEC559'; 'is_bounded' = '有界'
+      'is_modulo' = '取模'; 'has_infinity' = '有无穷'; 'has_quiet_NaN' = '有静默非数'
+      'has_signaling_NaN' = '有信号非数'; 'has_denorm' = '有非规格'
+      'has_denorm_loss' = '非规格损失'; 'traps' = '陷阱'; 'tinyness_before' = '先测微小'
+      'round_style' = '舍入方式'
+    }
+    data    = [ordered]@{}
+    # ⚠ numeric_limits 的成员大多是【静态】——通用转发器是非静态成员函数，
+    #   套上去会报"调用非静态成员函数时没有对象实参"，所以这里 derive 留空、全部手写。
+    derive  = @()
+    deriveExtra = ( @(
+      '    // 变量成员的英文名（通用转发会把变量变成函数，所以逐个手写；auto 免去写被改名的枚举类型名）。',
+      '    static constexpr auto is_specialized    = 基类::已特化;',
+      '    static constexpr auto is_signed         = 基类::带符号;',
+      '    static constexpr auto is_integer        = 基类::整数类型;',
+      '    static constexpr auto is_exact          = 基类::精确;',
+      '    static constexpr auto is_iec559         = 基类::符合IEC559;',
+      '    static constexpr auto is_bounded        = 基类::有界;',
+      '    static constexpr auto is_modulo         = 基类::取模;',
+      '    static constexpr auto has_infinity      = 基类::有无穷;',
+      '    static constexpr auto has_quiet_NaN     = 基类::有静默非数;',
+      '    static constexpr auto has_signaling_NaN = 基类::有信号非数;',
+      '    static constexpr auto has_denorm        = 基类::有非规格;',
+      '    static constexpr auto has_denorm_loss   = 基类::非规格损失;',
+      '    static constexpr auto traps             = 基类::陷阱;',
+      '    static constexpr auto tinyness_before   = 基类::先测微小;',
+      '    static constexpr auto round_style       = 基类::舍入方式;',
+      '',
+      '    // 静态【函数】成员：同样手写（带括号，语义与 std 一致）。',
+      '    static constexpr auto min() { 返回 基类::最小(); }',
+      '    static constexpr auto max() { 返回 基类::最大(); }',
+      '    static constexpr auto lowest() { 返回 基类::最低(); }',
+      '    static constexpr auto epsilon() { 返回 基类::机器精度(); }',
+      '    static constexpr auto round_error() { 返回 基类::舍入误差(); }',
+      '    static constexpr auto infinity() { 返回 基类::无穷(); }',
+      '    static constexpr auto quiet_NaN() { 返回 基类::静默非数(); }',
+      '    static constexpr auto signaling_NaN() { 返回 基类::信号非数(); }',
+      '    static constexpr auto denorm_min() { 返回 基类::非规格最小(); }',
+      '    static constexpr auto digits() { 返回 基类::位数(); }',
+      '    static constexpr auto digits10() { 返回 基类::十进制位数(); }',
+      '    static constexpr auto max_digits10() { 返回 基类::最大十进制位数(); }',
+      '    static constexpr auto radix() { 返回 基类::基数(); }',
+      '    static constexpr auto min_exponent() { 返回 基类::最小指数(); }',
+      '    static constexpr auto min_exponent10() { 返回 基类::最小十进制指数(); }',
+      '    static constexpr auto max_exponent() { 返回 基类::最大指数(); }',
+      '    static constexpr auto max_exponent10() { 返回 基类::最大十进制指数(); }'
+    ) -join "`r`n" )
+    extra   = ( @(
+      '名域 标准 {',
+      '',
+      '// 两个枚举与它们的枚举值：抄来层在 细节::，公开层补别名/引入（枚举值用 using 引入名域作用域）。',
+      '使用 浮点舍入方式   = 细节::浮点舍入方式;',
+      '使用 浮点非规格方式 = 细节::浮点非规格方式;',
+      '// 英文原名也要能用（否则"标准::float_round_style"这种写法就没了）。',
+      '使用 float_round_style  = 细节::浮点舍入方式;',
+      '使用 float_denorm_style = 细节::浮点非规格方式;'
+      '使用 细节::舍入不确定; 使用 细节::向零舍入; 使用 细节::就近舍入;',
+      '使用 细节::向正无穷舍入; 使用 细节::向负无穷舍入;',
+      '使用 细节::非规格不确定; 使用 细节::非规格不存在; 使用 细节::非规格存在;',
+      '',
+      '}  // 名域 标准'
+    ) -join "`r`n" )
+    tparam  = @{ decl = '模板 <类型名 元素>'; args = '<元素>' }
+    tests = @(
+      @('只引中文头','#包含 <数值极限>`n整数 主函数(){ 返回 标准::数值极限<整数>::最大() > 0 ? 0 : 1; }'),
+      @('与微软原头并存','#包含 <数值极限>`n#包含 <limits>`n整数 主函数(){ 返回 标准::数值极限<整数>::最大() == std::numeric_limits<整数>::max() ? 0 : 1; }'),
+      @('英文原名与中文名并用','#包含 <数值极限>`n整数 主函数(){ 返回 标准::数值极限<整数>::max() == 标准::数值极限<整数>::最大() ? 0 : 1; }'),
+      @('★守卫：常量表达式 + 变量成员的两条路都要通','#包含 <数值极限>`n静态断言(标准::数值极限<双精度>::已特化);`n静态断言(标准::数值极限<双精度>::is_specialized);`n静态断言(标准::数值极限<双精度>::符合IEC559);`n静态断言(标准::数值极限<整数>::带符号);`n整数 主函数(){ 返回 标准::数值极限<双精度>::无穷() > 标准::数值极限<双精度>::最大() ? 0 : 1; }'),
+      @('枚举（含英文原名）','#包含 <数值极限>`n整数 主函数(){ 标准::浮点舍入方式 方式 = 标准::就近舍入;`n  标准::float_round_style 原名 = 标准::就近舍入;`n  返回 方式 == 原名 ? 0 : 1; }')
+    )
+  }
 }
 
 # ---------------------------------------------------------------------------
