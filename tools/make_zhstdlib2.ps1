@@ -1014,6 +1014,7 @@ $H = @{
       #   `_RANGES _Get_final_iterator_unwrapped(...)`（限定在 std::ranges）——
       #   登记后会被"编译器校对"改回英文（拷贝层 0 命中，守卫照出来）。
       #   属**边界**：要收它得先把 `_RANGES X` 也纳入改名/去限定（像 `_STD X` 那样）。
+      '_Make_iter' = '_造迭代器'
       '_Get_final_iterator_unwrapped' = '_取末尾迭代器解包'
       '_Ubegin' = '_解包首'
       '_Uend' = '_解包尾'
@@ -1197,6 +1198,11 @@ $H = @{
     members = [ordered]@{
       # §17.27.60 台账收尾（阶段(3) 第一批）：这些名字的定义方是 通用内部件（我们的 xutility 拷贝，
       #   §17.27.52 已给定义方解毒）；本头能看到它 -> 调用点跟改，指向我们那份。
+      '_Freenode' = '_释放节点'
+      '_Buyheadnode' = '_建头节点'
+      '_Freenode0' = '_释放节点0'
+      '_Make_iter' = '_造迭代器'
+      '_Swap_val' = '_交换值'
       '_Ubegin' = '_解包首'
       '_Uend' = '_解包尾'
       '_Pass_fn' = '_传递函数'
@@ -1400,6 +1406,8 @@ $H = @{
     members = [ordered]@{
       # §17.27.73 A 桶批量（§17.27.62 工作表）：A 桶 = 唯一定义方归我们 -> 可直接登记；
       #   译名取自已登记条目（跨头译名守卫据此保证一致）。
+      '_Make_iter' = '_造迭代器'
+      '_Swap_val' = '_交换值'
       '_Ubegin' = '_解包首'
       '_Uend' = '_解包尾'
       '_Myptr' = '_我的指针'
@@ -2047,6 +2055,7 @@ $H = @{
     members = [ordered]@{
       # §17.27.60 台账收尾（阶段(3) 第一批）：这些名字的定义方是 通用内部件（我们的 xutility 拷贝，
       #   §17.27.52 已给定义方解毒）；本头能看到它 -> 调用点跟改，指向我们那份。
+      '_Make_iter' = '_造迭代器'
       '_Ubegin' = '_解包首'
       '_Uend' = '_解包尾'
       '_Pass_fn' = '_传递函数'
@@ -3006,6 +3015,10 @@ $H = @{
     members = [ordered]@{
       # §17.27.73 A 桶批量（§17.27.62 工作表）：A 桶 = 唯一定义方归我们 -> 可直接登记；
       #   译名取自已登记条目（跨头译名守卫据此保证一致）。
+      '_Freenode' = '_释放节点'
+      '_Buyheadnode' = '_建头节点'
+      '_Freenode0' = '_释放节点0'
+      '_Make_iter' = '_造迭代器'
       '_Ubegin' = '_解包首'
       '_Uend' = '_解包尾'
       '_Delete_plain_internal' = '_删除原生内部'
@@ -4983,4 +4996,5 @@ foreach ($c in $cases) {
 }
 Write-Host ("  {0} / {1}" -f $pass, $cases.Count)
 Remove-Item -Recurse -Force $t -ErrorAction SilentlyContinue
+
 

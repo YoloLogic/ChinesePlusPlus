@@ -417,7 +417,7 @@ public:
     }
 #endif // _MSVC_STL_DESTRUCTOR_TOMBSTONES
 
-    _CONSTEXPR20 void _Swap_val(_向量值& _Right) noexcept {
+    _CONSTEXPR20 void _交换值(_向量值& _Right) noexcept {
         this->_交换代理与迭代器(_Right);
         swap(_Myfirst, _Right._Myfirst); // intentional ADL
         swap(_Mylast, _Right._Mylast); // intentional ADL
@@ -1827,7 +1827,7 @@ public:
     _CONSTEXPR20 void swap(向量实现& _Right) noexcept /* strengthened */ {
         if (this != _STD addressof(_Right)) {
             _Pocs(_Getal(), _Right._Getal());
-            _Mypair._Myval2._Swap_val(_Right._Mypair._Myval2);
+            _Mypair._Myval2._交换值(_Right._Mypair._Myval2);
         }
     }
 
@@ -3157,7 +3157,7 @@ public:
         }
     }
 
-    _CONSTEXPR20 iterator _Make_iter(const_iterator _Where) noexcept {
+    _CONSTEXPR20 iterator _造迭代器(const_iterator _Where) noexcept {
         iterator _Tmp = 开始();
         if (0 < this->_Mysize) {
             _Tmp += _Where - 开始();
@@ -3442,7 +3442,7 @@ public:
 #endif // _HAS_CXX23
 
     _CONSTEXPR20 iterator 擦除(const_iterator _Where_arg) noexcept /* strengthened */ {
-        iterator _Where      = _Make_iter(_Where_arg);
+        iterator _Where      = _造迭代器(_Where_arg);
         difference_type _Off = _Where - 开始();
 
 #if _ITERATOR_DEBUG_LEVEL == 2
@@ -3461,8 +3461,8 @@ public:
 
     _CONSTEXPR20 iterator 擦除(const_iterator _First_arg, const_iterator _Last_arg) noexcept
     /* strengthened */ {
-        iterator _First      = _Make_iter(_First_arg);
-        iterator _Last       = _Make_iter(_Last_arg);
+        iterator _First      = _造迭代器(_First_arg);
+        iterator _Last       = _造迭代器(_Last_arg);
         difference_type _Off = _First - 开始();
 
         if (_First != _Last) { // worth doing, copy down over hole

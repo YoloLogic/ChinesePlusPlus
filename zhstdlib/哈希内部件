@@ -214,11 +214,11 @@ struct _链表头构造指针 {
     _结点分配器& _Al;
     pointer _Newhead;
 
-    explicit _链表头构造指针(_结点分配器& _Al_) : _Al(_Al_), _Newhead(value_type::_Buyheadnode(_Al)) {}
+    explicit _链表头构造指针(_结点分配器& _Al_) : _Al(_Al_), _Newhead(value_type::_建头节点(_Al)) {}
 
     template <class _值类型集>
     _链表头构造指针(_结点分配器& _Al_, _List_val<_值类型集>& _Mycont)
-        : _Al(_Al_), _Newhead(value_type::_Buyheadnode(_Al)) {
+        : _Al(_Al_), _Newhead(value_type::_建头节点(_Al)) {
         _Mycont._Myhead = _Newhead;
     }
 
@@ -231,7 +231,7 @@ struct _链表头构造指针 {
 
     ~_链表头构造指针() {
         if (_Newhead) {
-            value_type::_Freenode0(_Al, _Newhead);
+            value_type::_释放节点0(_Al, _Newhead);
         }
     }
 };
@@ -606,13 +606,13 @@ public:
             }
 
             const auto _Target = _查找最后(_Keyval, _Hashval);
-            return _List._Make_iter(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release()));
+            return _List._造迭代器(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release()));
         } else if constexpr (_就地键提取器::_Extractable) {
             const auto& _Keyval = _就地键提取器::_Extract(_Vals...);
             const auto _Hashval = _Traitsobj(_Keyval);
             auto _Target        = _查找最后(_Keyval, _Hashval);
             if (_Target._Duplicate) {
-                return {_List._Make_iter(_Target._Duplicate), false};
+                return {_List._造迭代器(_Target._Duplicate), false};
             }
 
             _检查最大尺寸();
@@ -624,14 +624,14 @@ public:
             }
 
             return {
-                _List._Make_iter(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release())), true};
+                _List._造迭代器(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release())), true};
         } else {
             _List_node_emplace_op2<_结点分配器> _新节点(_List._取分配器(), _STD forward<_Valtys>(_Vals)...);
             const auto& _Keyval = _Traits::_取键(_新节点._Ptr->_Myval);
             const auto _Hashval = _Traitsobj(_Keyval);
             auto _Target        = _查找最后(_Keyval, _Hashval);
             if (_Target._Duplicate) {
-                return {_List._Make_iter(_Target._Duplicate), false};
+                return {_List._造迭代器(_Target._Duplicate), false};
             }
 
             _检查最大尺寸();
@@ -641,7 +641,7 @@ public:
             }
 
             return {
-                _List._Make_iter(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release())), true};
+                _List._造迭代器(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release())), true};
         }
     }
 
@@ -658,13 +658,13 @@ public:
             }
 
             const auto _Target = _按提示查找(_Hint._Ptr, _Keyval, _Hashval);
-            return _List._Make_iter(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release()));
+            return _List._造迭代器(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release()));
         } else if constexpr (_就地键提取器::_Extractable) {
             const auto& _Keyval = _就地键提取器::_Extract(_Vals...);
             const auto _Hashval = _Traitsobj(_Keyval);
             auto _Target        = _按提示查找(_Hint._Ptr, _Keyval, _Hashval);
             if (_Target._Duplicate) {
-                return _List._Make_iter(_Target._Duplicate);
+                return _List._造迭代器(_Target._Duplicate);
             }
 
             _检查最大尺寸();
@@ -675,14 +675,14 @@ public:
                 _Target = _按提示查找(_Hint._Ptr, _Traits::_取键(_新节点._Ptr->_Myval), _Hashval);
             }
 
-            return _List._Make_iter(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release()));
+            return _List._造迭代器(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release()));
         } else {
             _List_node_emplace_op2<_结点分配器> _新节点(_List._取分配器(), _STD forward<_Valtys>(_Vals)...);
             const auto& _Keyval = _Traits::_取键(_新节点._Ptr->_Myval);
             const auto _Hashval = _Traitsobj(_Keyval);
             auto _Target        = _按提示查找(_Hint._Ptr, _Keyval, _Hashval);
             if (_Target._Duplicate) {
-                return _List._Make_iter(_Target._Duplicate);
+                return _List._造迭代器(_Target._Duplicate);
             }
 
             _检查最大尺寸();
@@ -691,7 +691,7 @@ public:
                 _Target = _按提示查找(_Hint._Ptr, _Traits::_取键(_新节点._Ptr->_Myval), _Hashval);
             }
 
-            return _List._Make_iter(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release()));
+            return _List._造迭代器(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release()));
         }
     }
 
@@ -872,7 +872,7 @@ public:
     }
 
     _NODISCARD 局部迭代器 开始(size_type _Bucket) noexcept /* strengthened */ {
-        return _List._Make_iter(_Vec._Mypair._Myval2._Myfirst[_Bucket << 1]._Ptr);
+        return _List._造迭代器(_Vec._Mypair._Myval2._Myfirst[_Bucket << 1]._Ptr);
     }
 
     _NODISCARD 常量局部迭代器 开始(size_type _Bucket) const noexcept /* strengthened */ {
@@ -885,7 +885,7 @@ public:
             _Bucket_hi = _Bucket_hi->_Next;
         }
 
-        return _List._Make_iter(_Bucket_hi);
+        return _List._造迭代器(_Bucket_hi);
     }
 
     _NODISCARD 常量局部迭代器 结束(size_type _Bucket) const noexcept /* strengthened */ {
@@ -1015,7 +1015,7 @@ private:
         void _递增已擦除() noexcept {
             const auto _Oldnext = _Next;
             _Next               = _Oldnext->_Next;
-            _节点::_Freenode(_List._取分配器(), _Oldnext);
+            _节点::_释放节点(_List._取分配器(), _Oldnext);
             --_List._Mypair._Myval2._Mysize;
         }
 
@@ -1130,16 +1130,16 @@ private:
 public:
     template <class _Iter = iterator, enable_if_t<!is_same_v<_Iter, const_iterator>, int> = 0>
     iterator erase(iterator _Plist) noexcept(_Nothrow_hash<_Traits, 键类型>) /* strengthened */ {
-        return _List._Make_iter(_非检查擦除(_Plist._Ptr));
+        return _List._造迭代器(_非检查擦除(_Plist._Ptr));
     }
 
     iterator erase(const_iterator _Plist) noexcept(_Nothrow_hash<_Traits, 键类型>) /* strengthened */ {
-        return _List._Make_iter(_非检查擦除(_Plist._Ptr));
+        return _List._造迭代器(_非检查擦除(_Plist._Ptr));
     }
 
     iterator erase(const_iterator _First, const_iterator _Last)
         noexcept(_Nothrow_hash<_Traits, 键类型>) /* strengthened */ {
-        return _List._Make_iter(_非检查擦除(_First._Ptr, _Last._Ptr));
+        return _List._造迭代器(_非检查擦除(_First._Ptr, _Last._Ptr));
     }
 
     size_type erase(const 键类型& _Keyval) noexcept(noexcept(_擦除(_Keyval))) /* strengthened */ {
@@ -1231,14 +1231,14 @@ private:
 
 public:
     _NODISCARD iterator find(const 键类型& _Keyval) {
-        return _List._Make_iter(_查找(_Keyval, _Traitsobj(_Keyval)));
+        return _List._造迭代器(_查找(_Keyval, _Traitsobj(_Keyval)));
     }
 
 #if _HAS_CXX20
     template <class _KeyTy>
         requires _Traits::_Has_transparent_overloads
     _NODISCARD iterator find(const _KeyTy& _Keyval) {
-        return _List._Make_iter(_查找(_Keyval, _Traitsobj(_Keyval)));
+        return _List._造迭代器(_查找(_Keyval, _Traitsobj(_Keyval)));
     }
 #endif // _HAS_CXX20
 
@@ -1343,7 +1343,7 @@ private:
 public:
     _NODISCARD pair<iterator, iterator> equal_range(const 键类型& _Keyval) {
         const auto _Result = _等值区间(_Keyval, _Traitsobj(_Keyval));
-        return {_List._Make_iter(_Result._First._Ptr), _List._Make_iter(_Result._Last._Ptr)};
+        return {_List._造迭代器(_Result._First._Ptr), _List._造迭代器(_Result._Last._Ptr)};
     }
 
 #if _HAS_CXX20
@@ -1351,7 +1351,7 @@ public:
         requires _Traits::_Has_transparent_overloads
     _NODISCARD pair<iterator, iterator> equal_range(const _KeyTy& _Keyval) {
         const auto _Result = _等值区间(_Keyval, _Traitsobj(_Keyval));
-        return {_List._Make_iter(_Result._First._Ptr), _List._Make_iter(_Result._Last._Ptr)};
+        return {_List._造迭代器(_Result._First._Ptr), _List._造迭代器(_Result._Last._Ptr)};
     }
 #endif // _HAS_CXX20
 
@@ -1427,7 +1427,7 @@ public:
         auto _Target          = _按提示查找(_Hint._Ptr, _Keyval, _Hashval);
         if constexpr (!_Traits::_Multi) {
             if (_Target._Duplicate) {
-                return _List._Make_iter(_Target._Duplicate);
+                return _List._造迭代器(_Target._Duplicate);
             }
         }
 
@@ -1440,7 +1440,7 @@ public:
         const auto _Released = _Handle._Release();
         _就地析构(_Released->_Next); // TRANSITION, ABI
         _就地析构(_Released->_Prev);
-        return _List._Make_iter(_在之前插入新节点(_Hashval, _Target._Insert_before, _Released));
+        return _List._造迭代器(_在之前插入新节点(_Hashval, _Target._Insert_before, _Released));
     }
 
     template <class>
@@ -1559,7 +1559,7 @@ public:
         auto _Target          = _查找最后(_Keyval, _Hashval);
         if constexpr (!_Traits::_Multi) {
             if (_Target._Duplicate) {
-                return {_List._Make_iter(_Target._Duplicate), false, _STD move(_Handle)};
+                return {_List._造迭代器(_Target._Duplicate), false, _STD move(_Handle)};
             }
         }
 
@@ -1574,9 +1574,9 @@ public:
         _就地析构(_Released->_Prev);
         const auto _新节点 = _在之前插入新节点(_Hashval, _Target._Insert_before, _Released);
         if constexpr (_Traits::_Multi) {
-            return _List._Make_iter(_新节点);
+            return _List._造迭代器(_新节点);
         } else {
-            return {_List._Make_iter(_新节点), true, 结点类型{}};
+            return {_List._造迭代器(_新节点), true, 结点类型{}};
         }
     }
 #endif // _HAS_CXX17

@@ -933,7 +933,7 @@ public:
         return _非检查常量迭代器(_Myoff() + _Mysize(), _STD addressof(_取数据()));
     }
 
-    iterator _Make_iter(const_iterator _Where) const noexcept {
+    iterator _造迭代器(const_iterator _Where) const noexcept {
         return iterator(_Where._Myoff, _STD addressof(_取数据()));
     }
 
@@ -1523,8 +1523,8 @@ public:
 
     iterator 擦除(const_iterator _First_arg, const_iterator _Last_arg)
         noexcept(is_nothrow_move_assignable_v<value_type>) /* strengthened */ {
-        iterator _First = _Make_iter(_First_arg);
-        iterator _Last  = _Make_iter(_Last_arg);
+        iterator _First = _造迭代器(_First_arg);
+        iterator _Last  = _造迭代器(_Last_arg);
 
 #if _ITERATOR_DEBUG_LEVEL == 2
         _STL_VERIFY(_First <= _Last && 开始() <= _First && _Last <= 结束(), "双端队列实现 擦除 iterator outside range");

@@ -298,7 +298,7 @@ struct _链表节点 { // 链表实现 node
     _链表节点& operator=(const _链表节点&) = delete;
 
     template <class _结点分配器>
-    static _结点指针 _Buyheadnode(_结点分配器& _Al) {
+    static _结点指针 _建头节点(_结点分配器& _Al) {
         const auto _Result = _Al.allocate(1);
         _就地构造(_Result->_Next, _Result);
         _就地构造(_Result->_Prev, _Result);
@@ -306,18 +306,18 @@ struct _链表节点 { // 链表实现 node
     }
 
     template <class _结点分配器>
-    static void _Freenode0(_结点分配器& _Al, _结点指针 _Ptr) noexcept {
+    static void _释放节点0(_结点分配器& _Al, _结点指针 _Ptr) noexcept {
         // destroy pointer members in _Ptr and deallocate with _Al
-        static_assert(is_same_v<typename _结点分配器::value_type, _链表节点>, "Bad _Freenode0 call");
+        static_assert(is_same_v<typename _结点分配器::value_type, _链表节点>, "Bad _释放节点0 call");
         _就地析构(_Ptr->_Next);
         _就地析构(_Ptr->_Prev);
         allocator_traits<_结点分配器>::deallocate(_Al, _Ptr, 1);
     }
 
     template <class _结点分配器>
-    static void _Freenode(_结点分配器& _Al, _结点指针 _Ptr) noexcept { // destroy all members in _Ptr and deallocate with _Al
+    static void _释放节点(_结点分配器& _Al, _结点指针 _Ptr) noexcept { // destroy all members in _Ptr and deallocate with _Al
         allocator_traits<_结点分配器>::destroy(_Al, _STD addressof(_Ptr->_Myval));
-        _Freenode0(_Al, _Ptr);
+        _释放节点0(_Al, _Ptr);
     }
 
     template <class _结点分配器>
@@ -328,7 +328,7 @@ struct _链表节点 { // 链表实现 node
         auto _Pnode = _Head->_Next;
         for (_结点指针 _Pnext; _Pnode; _Pnode = _Pnext) {
             _Pnext = _Pnode->_Next;
-            _Freenode(_Al, _Pnode);
+            _释放节点(_Al, _Pnode);
         }
     }
 };
@@ -749,7 +749,7 @@ struct _链表节点插入操作2 {
         _就地构造(_Tail->_Next, pointer{});
         pointer _Subject = _Head;
         while (_Subject) {
-            value_type::_Freenode(_Al, _STD exchange(_Subject, _Subject->_Next));
+            value_type::_释放节点(_Al, _STD exchange(_Subject, _Subject->_Next));
         }
     }
 
@@ -916,7 +916,7 @@ public:
 
     链表实现(链表实现&& _Right) noexcept(false) : _Mypair(_One_then_variadic_args_t{}, _STD move(_Right._取分配器())) {
         _分配哨兵与代理();
-        _Swap_val(_Right);
+        _交换值(_Right);
     }
 
     链表实现(链表实现&& _Right, const _Identity_t<_Alloc>& _Al) : _Mypair(_One_then_variadic_args_t{}, _Al) {
@@ -929,7 +929,7 @@ public:
         }
 
         _分配哨兵与代理();
-        _Swap_val(_Right);
+        _交换值(_Right);
     }
 
     链表实现& operator=(链表实现&& _Right) noexcept(_结点分配器特征::is_always_equal::value) {
@@ -947,7 +947,7 @@ public:
                 _容器代理指针<_分配器类型> _Proxy(_Right_alproxy, _离开代理未绑定{});
                 auto& _My_data      = _Mypair._Myval2;
                 auto& _Right_data   = _Right._Mypair._Myval2;
-                const auto _Newhead = _STD exchange(_Right_data._Myhead, _节点::_Buyheadnode(_Right_al));
+                const auto _Newhead = _STD exchange(_Right_data._Myhead, _节点::_建头节点(_Right_al));
                 const auto _Newsize = _STD exchange(_Right_data._Mysize, size_type{0});
                 _Tidy();
                 _Pocma(_Al, _Right_al);
@@ -967,13 +967,13 @@ public:
 
         清空();
         _Pocma(_Al, _Right_al);
-        _Swap_val(_Right);
+        _交换值(_Right);
 
         return *this;
     }
 
 private:
-    void _Swap_val(链表实现& _Right) noexcept { // swap with _Right, same allocator
+    void _交换值(链表实现& _Right) noexcept { // swap with _Right, same allocator
         using _STD swap;
         auto& _My_data    = _Mypair._Myval2;
         auto& _Right_data = _Right._Mypair._Myval2;
@@ -1023,7 +1023,7 @@ public:
         _STL_VERIFY(_Where._取容器() == _STD addressof(_Mypair._Myval2), "链表实现 就地构造 iterator outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
-        return _Make_iter(_Emplace(_Where._Ptr, _STD forward<_Valty>(_Val)...));
+        return _造迭代器(_Emplace(_Where._Ptr, _STD forward<_Valty>(_Val)...));
     }
 
     template <class... _Valty>
@@ -1075,7 +1075,7 @@ private:
         auto&& _Right_alproxy = _取代理分配器(_结点分配器, _Right_al);
         _容器代理指针<_分配器类型> _Proxy(_Right_alproxy, _离开代理未绑定{});
         auto _Right_al_non_const = _Right_al;
-        auto _Newhead            = _节点::_Buyheadnode(_Right_al_non_const);
+        auto _Newhead            = _节点::_建头节点(_Right_al_non_const);
         _Tidy();
         _Pocca(_Al, _Right_al);
         _Mypair._Myval2._Myhead = _Newhead;
@@ -1135,7 +1135,7 @@ public:
         return _非检查常量迭代器(_Mypair._Myval2._Myhead, nullptr);
     }
 
-    iterator _Make_iter(_结点指针 _Where) const noexcept {
+    iterator _造迭代器(_结点指针 _Where) const noexcept {
         return iterator(_Where, _STD addressof(_Mypair._Myval2));
     }
 
@@ -1390,7 +1390,7 @@ public:
 #if _ITERATOR_DEBUG_LEVEL == 2
         _STL_VERIFY(_Where._取容器() == _STD addressof(_Mypair._Myval2), "链表实现 插入 iterator outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
-        return _Make_iter(_Emplace(_Where._Ptr, _Val));
+        return _造迭代器(_Emplace(_Where._Ptr, _Val));
     }
 
     iterator 插入(const_iterator _Where, _CRT_GUARDOVERFLOW size_type _Count, const _Ty& _Val) {
@@ -1400,7 +1400,7 @@ public:
 #endif // _ITERATOR_DEBUG_LEVEL == 2
         _链表节点插入操作2<_结点分配器> _Op(_取分配器());
         _Op._追加n(_Count, _Val);
-        return _Make_iter(_Op._接在其前(_Mypair._Myval2, _Where._Ptr));
+        return _造迭代器(_Op._接在其前(_Mypair._Myval2, _Where._Ptr));
     }
 
     template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
@@ -1411,7 +1411,7 @@ public:
         _ADL校验范围(_First, _Last);
         _链表节点插入操作2<_结点分配器> _Op(_取分配器());
         _Op._追加范围非检查(_取解包(_First), _取解包(_Last));
-        return _Make_iter(_Op._接在其前(_Mypair._Myval2, _Where._Ptr));
+        return _造迭代器(_Op._接在其前(_Mypair._Myval2, _Where._Ptr));
     }
 
 #if _HAS_CXX23
@@ -1422,7 +1422,7 @@ public:
 #endif // _ITERATOR_DEBUG_LEVEL == 2
         _链表节点插入操作2<_结点分配器> _Op(_取分配器());
         _Op._追加范围非检查(_解包首(_Range), _解包尾(_Range));
-        return _Make_iter(_Op._接在其前(_Mypair._Myval2, _Where._Ptr));
+        return _造迭代器(_Op._接在其前(_Mypair._Myval2, _Where._Ptr));
     }
 #endif // _HAS_CXX23
 
@@ -1431,8 +1431,8 @@ public:
         _STL_VERIFY(_Where._取容器() == _STD addressof(_Mypair._Myval2), "链表实现 擦除 iterator outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
         const auto _Result = _Where._Ptr->_Next;
-        _节点::_Freenode(_取分配器(), _Mypair._Myval2._Unlinknode(_Where._Ptr));
-        return _Make_iter(_Result);
+        _节点::_释放节点(_取分配器(), _Mypair._Myval2._Unlinknode(_Where._Ptr));
+        return _造迭代器(_Result);
     }
 
 private:
@@ -1442,14 +1442,14 @@ private:
         --_Mypair._Myval2._Mysize;
         _Pnode->_Prev->_Next = _Result;
         _Result->_Prev       = _Pnode->_Prev;
-        _节点::_Freenode(_取分配器(), _Pnode);
+        _节点::_释放节点(_取分配器(), _Pnode);
         return _Result;
     }
 
 public:
     iterator 擦除(const const_iterator _First, const const_iterator _Last) noexcept /* strengthened */ {
         _ADL校验范围(_First, _Last);
-        return _Make_iter(_非检查擦除(_First._Ptr, _Last._Ptr));
+        return _造迭代器(_非检查擦除(_First._Ptr, _Last._Ptr));
     }
 
 private:
@@ -1493,7 +1493,7 @@ private:
         size_type _Erasures = 0;
         do {
             const auto _Next = _First->_Next;
-            _节点::_Freenode(_Al, _First);
+            _节点::_释放节点(_Al, _First);
             _First = _Next;
             ++_Erasures;
         } while (_First != _Last);
@@ -1518,14 +1518,14 @@ private:
         auto& _My_data = _Mypair._Myval2;
         _My_data._孤儿化全部();
         _节点::_释放非头节点(_Al, _My_data._Myhead);
-        _节点::_Freenode0(_Al, _My_data._Myhead);
+        _节点::_释放节点0(_Al, _My_data._Myhead);
     }
 
 public:
     void swap(链表实现& _Right) noexcept /* strengthened */ {
         if (this != _STD addressof(_Right)) {
             _Pocs(_取分配器(), _Right._取分配器());
-            _Swap_val(_Right);
+            _交换值(_Right);
         }
     }
 
