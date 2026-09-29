@@ -388,6 +388,27 @@ $H = [ordered]@{
       @('类型身份必须相同（铁律 4）','#包含 <类型信息>`n静态断言(std::is_same<标准::类型转换失败, std::bad_cast>::value, "");`n静态断言(std::is_same<标准::类型信息, std::type_info>::value, "");`n整数 主函数(){ 返回 0; }')
     )
   }
+  # §17.27.60.2（阶段(4) 别名轨道）：<compare> —— 比较类别是【身份参与语义】的类型
+  #   用户代码会拿 `<=>` 的结果与 std::strong_ordering::equal 直接比较；抄一份改名会让两侧类型不同，
+  #   与 std 的常量比不了（铁律④）。所以只能别名，与 <类型信息>/<比> 同类。
+  'compare' = @{ zh = '比较'; src = 'compare'; reason = '铁律④：比较类别身份参与语义 —— 与 std::strong_ordering::equal 直接比较，抄/派生会让两侧类型不同。'; a = @(
+      @('类型','强序','std::strong_ordering'),
+      @('类型','弱序','std::weak_ordering'),
+      @('类型','偏序','std::partial_ordering'),
+      # 判定函数：成员在 std 类型上改不了名，做成中文转发（同 <类型信息> 的手法）
+      @('函数','是否相等','std::is_eq'),
+      @('函数','是否不等','std::is_neq'),
+      @('函数','是否小于','std::is_lt'),
+      @('函数','是否小于等于','std::is_lteq'),
+      @('函数','是否大于','std::is_gt'),
+      @('函数','是否大于等于','std::is_gteq')
+  )
+    tests = @(
+      @('只引中文头 + 类型身份相同','#包含 <比较>`n静态断言(std::is_same<标准::强序, std::strong_ordering>::value, "");`n整数 主函数(){ 返回 0; }'),
+      @('与 <compare> 并存 + 判定函数可用','#包含 <比较>`n#包含 <compare>`n整数 主函数(){ 自动 果 = 1 <=> 2; 返回 标准::是否小于(果) ? 0 : 1; }'),
+      @('弱序 / 偏序 同类型（铁律④ 守卫）','#包含 <比较>`n静态断言(std::is_same<标准::弱序, std::weak_ordering>::value, "");`n静态断言(std::is_same<标准::偏序, std::partial_ordering>::value, "");`n整数 主函数(){ 返回 0; }')
+    )
+  }
   'numbers' = @{ zh = '数字'; src = 'numbers'; a = @(
       @('常量','圆周率','std::numbers::pi','双精度'),
       @('常量','自然常数','std::numbers::e','双精度'),
