@@ -1,0 +1,86 @@
+  # ==========================================================================
+  #  §17.19.18 <atomic>（原子）：第 9 个真汉语公开头（阶段(4)）
+  #  · 借用面：realInclude 让真头在场；`xatomic.h` / `xatomic_wait.h` / `xthreads.h`
+  #    仍借 std 的 —— 消除路径 = 以后把这三个内部头也抄成我们的内部件（欠账，见方案 §17.19.18）。
+  #  · 命名（只按已有译名，不另造）：atomic → 原子实现（公开层 标准::原子）、
+  #    memory_order → 内存序、fetch_add → 取加、notify_one → 通知一个、wait → 等待。
+  # ==========================================================================
+  'atomic' = @{
+    zh      = '原子'
+    realInclude = @('atomic')
+    pub     = '原子'
+    types   = [ordered]@{
+      'atomic'                 = '原子实现'
+      'atomic_flag'            = '原子标志实现'
+      'atomic_ref'             = '原子引用实现'
+      '_Storage_for'           = '_存储用于'
+      '_Form_mask_t'           = '_形式掩码类型'
+    }
+    members = [ordered]@{
+      'load' = '载入'; 'store' = '存储'; 'exchange' = '置换'
+      'compare_exchange_weak' = '比较交换弱'
+      'compare_exchange_strong' = '比较交换强'
+      'fetch_add' = '取加'; 'fetch_sub' = '取减'; 'fetch_and' = '取与'
+      'fetch_or' = '取或'; 'fetch_xor' = '取异或'
+      'is_lock_free' = '无锁'
+      'wait' = '等待'; 'notify_one' = '通知一个'; 'notify_all' = '通知全部'
+      'test' = '测试'; 'test_and_set' = '测试并置位'; 'clear' = '清空'
+      'atomic_store' = '原子存储'; 'atomic_load' = '原子载入'; 'atomic_exchange' = '原子置换'
+      'atomic_compare_exchange_weak' = '原子比较交换弱'
+      'atomic_compare_exchange_strong' = '原子比较交换强'
+      'atomic_fetch_add' = '原子取加'; 'atomic_fetch_sub' = '原子取减'
+      'atomic_fetch_and' = '原子取与'; 'atomic_fetch_or' = '原子取或'; 'atomic_fetch_xor' = '原子取异或'
+      'atomic_is_lock_free' = '原子无锁'
+      'atomic_wait' = '原子等待'; 'atomic_notify_one' = '原子通知一个'; 'atomic_notify_all' = '原子通知全部'
+      'atomic_thread_fence' = '线程栅栏'; 'atomic_signal_fence' = '信号栅栏'
+      'kill_dependency' = '消除依赖'
+      # 全局作用域 extern C 匿名枚举（与 vcruntime 共享）：真头在场会重定义 -> 改成汉语名（§17.19.18）
+      # 同段里的全局函数（真头也定义 -> 重定义）与宏（宏体已含汉语 -> 宏名必须一起改，§16.24）
+      '_Check_memory_order' = '_检查内存序'
+      '_Atomic_thread_fence' = '_原子线程栅栏'
+      '_INVALID_MEMORY_ORDER' = '_非法内存序'
+      # 同名两份（我们抄的 + xatomic.h 借来的）造成的【歧义】-> 按 §17.19.12.1：把我们那份改中文名
+      '_Check_load_memory_order' = '_检查载入内存序'
+      '_Check_store_memory_order' = '_检查存储内存序'
+      '_Init_spinlock_for_ref' = '_为引用初始化自旋锁'
+      '_Store_and_unlock' = '_存储并解锁'
+      # 全局作用域 extern C 匿名枚举（与 vcruntime 共享）：真头在场会重定义 -> 枚举成员改成汉语名
+      '_Atomic_memory_order_relaxed' = '_原子内存序松弛'
+      '_Atomic_memory_order_consume' = '_原子内存序消费'
+      '_Atomic_memory_order_acquire' = '_原子内存序获取'
+      '_Atomic_memory_order_release' = '_原子内存序释放'
+      '_Atomic_memory_order_acq_rel' = '_原子内存序获取释放'
+      '_Atomic_memory_order_seq_cst' = '_原子内存序顺序一致'
+    }
+    data    = [ordered]@{}
+    derive  = @( @('load','载入'), @('store','存储'), @('exchange','置换'),
+                 @('compare_exchange_weak','比较交换弱'), @('compare_exchange_strong','比较交换强'),
+                 @('fetch_add','取加'), @('fetch_sub','取减'), @('fetch_and','取与'),
+                 @('fetch_or','取或'), @('fetch_xor','取异或'),
+                 @('is_lock_free','无锁'), @('wait','等待'),
+                 @('notify_one','通知一个'), @('notify_all','通知全部'),
+                 @('test','测试'), @('test_and_set','测试并置位'), @('clear','清空') )
+    extra   = ( @(
+      '名域 标准 {',
+      '',
+      '// ---- 其余公开类型/常量的中文名（主类 原子 由派生层给出；英文原名一并保留）----',
+      '使用 原子标志 = 细节::原子标志实现;',
+      '使用 内存序 = std::memory_order;',
+      '模板 <类型名 元素> 使用 原子引用 = 细节::原子引用实现<元素>;',
+      '内联 常量表达式 自动 内存序松弛 = std::memory_order_relaxed;',
+      '内联 常量表达式 自动 内存序消费 = std::memory_order_consume;',
+      '内联 常量表达式 自动 内存序获取 = std::memory_order_acquire;',
+      '内联 常量表达式 自动 内存序释放 = std::memory_order_release;',
+      '内联 常量表达式 自动 内存序获取释放 = std::memory_order_acq_rel;',
+      '内联 常量表达式 自动 内存序顺序一致 = std::memory_order_seq_cst;',
+      '',
+      '}  // 名域 标准'
+    ) -join "`r`n" )
+    tparam  = @{ decl = '模板 <类型名 元素>'; args = '<元素>' }
+    tests = @(
+      @('只引中文头','#包含 <原子>`n整数 主函数(){ 标准::原子<整数> 甲{0}; 甲.存储(3); 返回 甲.载入() == 3 ? 0 : 1; }'),
+      @('与微软原头并存','#包含 <原子>`n#包含 <atomic>`n整数 主函数(){ 标准::原子<整数> 甲{0}; std::atomic<整数> 乙{0}; 甲.存储(1); 乙.store(1); 返回 甲.载入() == 乙.load() ? 0 : 1; }'),
+      @('英文原名与中文名并用','#包含 <原子>`n整数 主函数(){ 标准::原子<整数> 甲{0}; 甲.store(5); 返回 甲.load() == 甲.载入() ? 0 : 1; }'),
+      @('★守卫：内存序 / 原子标志 / 线程栅栏 的中文名都在','#包含 <原子>`n整数 主函数(){ 标准::原子标志 标; 标.清除(); 标准::线程栅栏(标准::内存序顺序一致); 返回 标.测试() ? 1 : 0; }')
+    )
+  }
