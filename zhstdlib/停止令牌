@@ -57,8 +57,8 @@ protected:
     inline void _脱离() noexcept;
 
 private:
-    template <bool _Transfer_ownership>
-    void _执行附着(conditional_t<_Transfer_ownership, _停止状态*&, _停止状态* const> _State) noexcept;
+    template <bool _转移所有权>
+    void _执行附着(conditional_t<_转移所有权, _停止状态*&, _停止状态* const> _State) noexcept;
 
 protected:
     _停止状态* _Parent       = nullptr;
@@ -246,9 +246,9 @@ private:
     _停止状态* _State;
 };
 
-template <bool _Transfer_ownership>
+template <bool _转移所有权>
 void _停止回调基类::_执行附着(
-    conditional_t<_Transfer_ownership, _停止状态*&, _停止状态* const> _State_raw) noexcept {
+    conditional_t<_转移所有权, _停止状态*&, _停止状态* const> _State_raw) noexcept {
     const auto _State = _State_raw; // avoid an indirection in all of the below
     if (_State == nullptr) {
         return;
@@ -281,7 +281,7 @@ void _停止回调基类::_执行附着(
         // stop possible, do the insert
         _Parent = _State;
         _Next   = _Head;
-        if constexpr (_Transfer_ownership) {
+        if constexpr (_转移所有权) {
             _State_raw = nullptr;
         } else {
             _State->_Stop_tokens.fetch_add(1, memory_order_relaxed);

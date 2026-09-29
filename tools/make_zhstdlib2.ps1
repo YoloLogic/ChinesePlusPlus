@@ -267,6 +267,7 @@ $H = @{
       '_Callback_fn'         = '_回调函数指针'
     }
     members = [ordered]@{
+      '_Transfer_ownership' = '_转移所有权';
       'request_stop'   = '请求停止'
       'stop_requested' = '已请求停止'
       'stop_possible'  = '可停止'
@@ -814,6 +815,8 @@ $H = @{
     # `通用内部件`（§17.27.52/53）-> 一并指过来，`_Construct_in_place` 才指向我们那份。
     zhIncludes = @{ 'xsmf_control.h' = '特殊成员控制'; 'xutility' = '通用内部件' }
     members = [ordered]@{
+      '_Ty' = '_类型';
+      '_Elem' = '_元素';
       'has_value' = '有值'; 'value_or' = '取值或'   # ⚠ value 故意【不】登记：
       #   它作为 ::value 出现在借来的 bool_constant<...>::value 里，改名会让约束恒假、
       #   SFINAE 删掉 optional 的转换构造（实测，见方案 §15.5）。中文名改在派生层手写。
@@ -1692,6 +1695,7 @@ $H = @{
     deriveTypes = @( @('container_type','容器类型') )
     # ⚠ 不翻 uses_allocator / formatter —— 它们是 std 的模板，改名会断（同 <栈>）
     members = [ordered]@{
+      '_Get_unwrapped' = '_取解包';
       '_Adaptor_formatter_base' = '_适配器格式化基类'
       '_Alloc' = '_分配器'
       '_Comp' = '_比较器'
@@ -2354,6 +2358,7 @@ $H = @{
                           #   它构造了 _Ty 却故意不析构，所以取「永不析构」而不是音译。
                           '_Immortalizer_impl' = '_永不析构实现' }
     members = [ordered]@{
+      '_Ty' = '_类型';
       '_Op' = '_操作'; 'call_once' = '一次调用' }
     data    = [ordered]@{}
     derive  = @()
@@ -3794,7 +3799,8 @@ $H = @{
     types   = [ordered]@{ 'counting_semaphore' = '计数信号量实现'
                           '_Semaphore_max' = '_信号量最大值'
                           }
-    members = [ordered]@{ 'acquire' = '获取'; 'try_acquire' = '尝试获取'
+    members = [ordered]@{
+      '_Rep' = '_表示'; 'acquire' = '获取'; 'try_acquire' = '尝试获取'
                           'try_acquire_for' = '尝试限时获取'
                           'try_acquire_until' = '尝试获取至时刻'
                           'release' = '释放'; 'max' = '最大' }

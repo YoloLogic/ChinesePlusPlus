@@ -56,11 +56,11 @@ struct _由调用结果构造标记 {
 };
 #endif // _HAS_CXX23
 
-template <class _Ty, bool = is_trivially_destructible_v<_Ty>>
-struct _可选析构基类 { // either contains a value of _Ty or is empty (trivial destructor)
+template <class _类型, bool = is_trivially_destructible_v<_类型>>
+struct _可选析构基类 { // either contains a value of _类型 or is empty (trivial destructor)
     union {
         _非平凡哑类型 _Dummy;
-        remove_cv_t<_Ty> _Value;
+        remove_cv_t<_类型> _Value;
     };
     bool _Has_value;
 
@@ -68,13 +68,13 @@ struct _可选析构基类 { // either contains a value of _Ty or is empty (triv
 
     template <class... _Types>
     constexpr explicit _可选析构基类(in_place_t, _Types&&... _Args)
-        noexcept(is_nothrow_constructible_v<_Ty, _Types...>)
+        noexcept(is_nothrow_constructible_v<_类型, _Types...>)
         : _Value(_STD forward<_Types>(_Args)...), _Has_value{true} {} // initialize contained value with _Args...
 
 #if _HAS_CXX23
     template <class _Fn, class _Ux>
     constexpr _可选析构基类(_由调用结果构造标记, _Fn&& _Func, _Ux&& _Arg)
-        noexcept(noexcept(static_cast<_Ty>(_STD invoke(_STD forward<_Fn>(_Func), _STD forward<_Ux>(_Arg)))))
+        noexcept(noexcept(static_cast<_类型>(_STD invoke(_STD forward<_Fn>(_Func), _STD forward<_Ux>(_Arg)))))
         : _Value(_STD invoke(_STD forward<_Fn>(_Func), _STD forward<_Ux>(_Arg))), _Has_value{true} {}
 #endif // _HAS_CXX23
 
@@ -86,17 +86,17 @@ struct _可选析构基类 { // either contains a value of _Ty or is empty (triv
     }
 };
 
-template <class _Ty>
-struct _可选析构基类<_Ty, false> { // either contains a value of _Ty or is empty (non-trivial destructor)
+template <class _类型>
+struct _可选析构基类<_类型, false> { // either contains a value of _类型 or is empty (non-trivial destructor)
     union {
         _非平凡哑类型 _Dummy;
-        remove_cv_t<_Ty> _Value;
+        remove_cv_t<_类型> _Value;
     };
     bool _Has_value;
 
     _CONSTEXPR20 ~_可选析构基类() noexcept {
         if (_Has_value) {
-            _Value.~_Ty();
+            _Value.~_类型();
 
 #if _MSVC_STL_DESTRUCTOR_TOMBSTONES
             // For the non-trivially destructible case, we can set the 可选实现 to be empty.
@@ -111,13 +111,13 @@ struct _可选析构基类<_Ty, false> { // either contains a value of _Ty or is
 
     template <class... _Types>
     constexpr explicit _可选析构基类(in_place_t, _Types&&... _Args)
-        noexcept(is_nothrow_constructible_v<_Ty, _Types...>)
+        noexcept(is_nothrow_constructible_v<_类型, _Types...>)
         : _Value(_STD forward<_Types>(_Args)...), _Has_value{true} {} // initialize contained value with _Args...
 
 #if _HAS_CXX23
     template <class _Fn, class _Ux>
     constexpr _可选析构基类(_由调用结果构造标记, _Fn&& _Func, _Ux&& _Arg)
-        noexcept(noexcept(static_cast<_Ty>(_STD invoke(_STD forward<_Fn>(_Func), _STD forward<_Ux>(_Arg)))))
+        noexcept(noexcept(static_cast<_类型>(_STD invoke(_STD forward<_Fn>(_Func), _STD forward<_Ux>(_Arg)))))
         : _Value(_STD invoke(_STD forward<_Fn>(_Func), _STD forward<_Ux>(_Arg))), _Has_value{true} {}
 #endif // _HAS_CXX23
 
@@ -128,19 +128,19 @@ struct _可选析构基类<_Ty, false> { // either contains a value of _Ty or is
 
     _CONSTEXPR20 void 重置() noexcept {
         if (_Has_value) {
-            _Value.~_Ty();
+            _Value.~_类型();
             _Has_value = false;
         }
     }
 };
 
-template <class _Ty>
-struct _可选构造基类 : _可选析构基类<_Ty> {
+template <class _类型>
+struct _可选构造基类 : _可选析构基类<_类型> {
     // Provide non-trivial SMF implementations for the _特殊成员控制 machinery
-    using _可选析构基类<_Ty>::_可选析构基类;
+    using _可选析构基类<_类型>::_可选析构基类;
 
     template <class... _Types>
-    _CONSTEXPR20 _Ty& _构造(_Types&&... _Args) noexcept(is_nothrow_constructible_v<_Ty, _Types...>) {
+    _CONSTEXPR20 _类型& _构造(_Types&&... _Args) noexcept(is_nothrow_constructible_v<_类型, _Types...>) {
         // transition from the empty to the value-containing state
         _STL_INTERNAL_CHECK(!this->_Has_value);
         _就地构造(this->_Value, _STD forward<_Types>(_Args)...);
@@ -150,10 +150,10 @@ struct _可选构造基类 : _可选析构基类<_Ty> {
 
     template <class _Ty2>
     _CONSTEXPR20 void _赋值(_Ty2&& _Right)
-        noexcept(is_nothrow_assignable_v<_Ty&, _Ty2> && is_nothrow_constructible_v<_Ty, _Ty2>) {
+        noexcept(is_nothrow_assignable_v<_类型&, _Ty2> && is_nothrow_constructible_v<_类型, _Ty2>) {
         // assign / initialize the contained value from _Right
         if (this->_Has_value) {
-            static_cast<_Ty&>(this->_Value) = _STD forward<_Ty2>(_Right);
+            static_cast<_类型&>(this->_Value) = _STD forward<_Ty2>(_Right);
         } else {
             _构造(_STD forward<_Ty2>(_Right));
         }
@@ -161,7 +161,7 @@ struct _可选构造基类 : _可选析构基类<_Ty> {
 
     template <class _Self>
     _CONSTEXPR20 void _由之构造(_Self&& _Right)
-        noexcept(is_nothrow_constructible_v<_Ty, decltype(*_STD forward<_Self>(_Right))>) {
+        noexcept(is_nothrow_constructible_v<_类型, decltype(*_STD forward<_Self>(_Right))>) {
         // initialize contained value from _Right iff it contains a value
         if (_Right._Has_value) {
             _构造(*_STD forward<_Self>(_Right));
@@ -170,8 +170,8 @@ struct _可选构造基类 : _可选析构基类<_Ty> {
 
     template <class _Self>
     _CONSTEXPR20 void _由之赋值(_Self&& _Right)
-        noexcept(is_nothrow_constructible_v<_Ty, decltype(*_STD forward<_Self>(_Right))>
-                 && is_nothrow_assignable_v<_Ty&, decltype(*_STD forward<_Self>(_Right))>) {
+        noexcept(is_nothrow_constructible_v<_类型, decltype(*_STD forward<_Self>(_Right))>
+                 && is_nothrow_assignable_v<_类型&, decltype(*_STD forward<_Self>(_Right))>) {
         // assign/initialize/destroy contained value from _Right
         if (_Right._Has_value) {
             _赋值(*_STD forward<_Self>(_Right));
@@ -180,7 +180,7 @@ struct _可选构造基类 : _可选析构基类<_Ty> {
         }
     }
 
-    _NODISCARD constexpr _Ty& operator*() & noexcept {
+    _NODISCARD constexpr _类型& operator*() & noexcept {
 #if _MSVC_STL_HARDENING_OPTIONAL || _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(this->_Has_value, "operator*() called on empty 可选实现");
 #endif
@@ -188,7 +188,7 @@ struct _可选构造基类 : _可选析构基类<_Ty> {
         return this->_Value;
     }
 
-    _NODISCARD constexpr const _Ty& operator*() const& noexcept {
+    _NODISCARD constexpr const _类型& operator*() const& noexcept {
 #if _MSVC_STL_HARDENING_OPTIONAL || _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(this->_Has_value, "operator*() called on empty 可选实现");
 #endif
@@ -196,7 +196,7 @@ struct _可选构造基类 : _可选析构基类<_Ty> {
         return this->_Value;
     }
 
-    _NODISCARD constexpr _Ty&& operator*() && noexcept {
+    _NODISCARD constexpr _类型&& operator*() && noexcept {
 #if _MSVC_STL_HARDENING_OPTIONAL || _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(this->_Has_value, "operator*() called on empty 可选实现");
 #endif
@@ -204,7 +204,7 @@ struct _可选构造基类 : _可选析构基类<_Ty> {
         return _STD move(this->_Value);
     }
 
-    _NODISCARD constexpr const _Ty&& operator*() const&& noexcept {
+    _NODISCARD constexpr const _类型&& operator*() const&& noexcept {
 #if _MSVC_STL_HARDENING_OPTIONAL || _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(this->_Has_value, "operator*() called on empty 可选实现");
 #endif
@@ -213,10 +213,10 @@ struct _可选构造基类 : _可选析构基类<_Ty> {
     }
 };
 
-_EXPORT_STD template <class _Ty>
-class 可选实现 : private _特殊成员控制<_可选构造基类<_Ty>, _Ty> {
+_EXPORT_STD template <class _类型>
+class 可选实现 : private _特殊成员控制<_可选构造基类<_类型>, _类型> {
 private:
-    using _我的基类 = _特殊成员控制<_可选构造基类<_Ty>, _Ty>;
+    using _我的基类 = _特殊成员控制<_可选构造基类<_类型>, _类型>;
 
     template <class>
     friend class 可选实现;
@@ -224,64 +224,64 @@ private:
 #if _HAS_CXX23
     template <class _Fn, class _Ux>
     constexpr 可选实现(_由调用结果构造标记 _标记, _Fn&& _Func, _Ux&& _Arg)
-        noexcept(noexcept(static_cast<_Ty>(_STD invoke(_STD forward<_Fn>(_Func), _STD forward<_Ux>(_Arg)))))
+        noexcept(noexcept(static_cast<_类型>(_STD invoke(_STD forward<_Fn>(_Func), _STD forward<_Ux>(_Arg)))))
         : _我的基类(_标记, _STD forward<_Fn>(_Func), _STD forward<_Ux>(_Arg)) {}
 #endif // _HAS_CXX23
 
 public:
-    static_assert(!_Is_any_of_v<remove_cv_t<_Ty>, 空值类型, in_place_t>,
+    static_assert(!_Is_any_of_v<remove_cv_t<_类型>, 空值类型, in_place_t>,
         "T in 可选实现<T> must be a type other than 空值类型 or in_place_t (N4950 [可选实现.可选实现.general]/3).");
-    static_assert(is_object_v<_Ty> && is_destructible_v<_Ty> && !is_array_v<_Ty>,
+    static_assert(is_object_v<_类型> && is_destructible_v<_类型> && !is_array_v<_类型>,
         "T in 可选实现<T> must meet the Cpp17Destructible requirements (N4950 [可选实现.可选实现.general]/3).");
 
-    using 值类型 = _Ty;
+    using 值类型 = _类型;
 
     constexpr 可选实现() noexcept {}
     constexpr 可选实现(空值类型) noexcept {}
 
-    template <class... _Types, enable_if_t<is_constructible_v<_Ty, _Types...>, int> = 0>
+    template <class... _Types, enable_if_t<is_constructible_v<_类型, _Types...>, int> = 0>
     constexpr explicit 可选实现(in_place_t, _Types&&... _Args)
-        noexcept(is_nothrow_constructible_v<_Ty, _Types...>) // strengthened
+        noexcept(is_nothrow_constructible_v<_类型, _Types...>) // strengthened
         : _我的基类(in_place, _STD forward<_Types>(_Args)...) {}
 
-    template <class _Elem, class... _Types,
-        enable_if_t<is_constructible_v<_Ty, initializer_list<_Elem>&, _Types...>, int> = 0>
-    constexpr explicit 可选实现(in_place_t, initializer_list<_Elem> _Ilist, _Types&&... _Args)
-        noexcept(is_nothrow_constructible_v<_Ty, initializer_list<_Elem>&, _Types...>) // strengthened
+    template <class _元素, class... _Types,
+        enable_if_t<is_constructible_v<_类型, initializer_list<_元素>&, _Types...>, int> = 0>
+    constexpr explicit 可选实现(in_place_t, initializer_list<_元素> _Ilist, _Types&&... _Args)
+        noexcept(is_nothrow_constructible_v<_类型, initializer_list<_元素>&, _Types...>) // strengthened
         : _我的基类(in_place, _Ilist, _STD forward<_Types>(_Args)...) {}
 
     template <class _Ty2>
     using _允许直接转换 = bool_constant<conjunction_v<negation<is_same<_Remove_cvref_t<_Ty2>, 可选实现>>,
         negation<is_same<_Remove_cvref_t<_Ty2>, in_place_t>>,
-        negation<conjunction<is_same<remove_cv_t<_Ty>, bool>, _Is_specialization<_Remove_cvref_t<_Ty2>, 可选实现>>>,
-        is_constructible<_Ty, _Ty2>>>;
+        negation<conjunction<is_same<remove_cv_t<_类型>, bool>, _Is_specialization<_Remove_cvref_t<_Ty2>, 可选实现>>>,
+        is_constructible<_类型, _Ty2>>>;
 
-    template <class _Ty2 = remove_cv_t<_Ty>, enable_if_t<_允许直接转换<_Ty2>::value, int> = 0>
-    constexpr explicit(!is_convertible_v<_Ty2, _Ty>) 可选实现(_Ty2&& _Right)
-        noexcept(is_nothrow_constructible_v<_Ty, _Ty2>) // strengthened
+    template <class _Ty2 = remove_cv_t<_类型>, enable_if_t<_允许直接转换<_Ty2>::value, int> = 0>
+    constexpr explicit(!is_convertible_v<_Ty2, _类型>) 可选实现(_Ty2&& _Right)
+        noexcept(is_nothrow_constructible_v<_类型, _Ty2>) // strengthened
         : _我的基类(in_place, _STD forward<_Ty2>(_Right)) {}
 
     template <class _Ty2>
     struct _允许解包
-        : bool_constant<disjunction_v<is_same<remove_cv_t<_Ty>, bool>,
-              negation<disjunction<is_same<_Ty, _Ty2>, is_constructible<_Ty, 可选实现<_Ty2>&>,
-                  is_constructible<_Ty, const 可选实现<_Ty2>&>, is_constructible<_Ty, const 可选实现<_Ty2>>,
-                  is_constructible<_Ty, 可选实现<_Ty2>>, is_convertible<可选实现<_Ty2>&, _Ty>,
-                  is_convertible<const 可选实现<_Ty2>&, _Ty>, is_convertible<const 可选实现<_Ty2>, _Ty>,
-                  is_convertible<可选实现<_Ty2>, _Ty>>>>> {};
+        : bool_constant<disjunction_v<is_same<remove_cv_t<_类型>, bool>,
+              negation<disjunction<is_same<_类型, _Ty2>, is_constructible<_类型, 可选实现<_Ty2>&>,
+                  is_constructible<_类型, const 可选实现<_Ty2>&>, is_constructible<_类型, const 可选实现<_Ty2>>,
+                  is_constructible<_类型, 可选实现<_Ty2>>, is_convertible<可选实现<_Ty2>&, _类型>,
+                  is_convertible<const 可选实现<_Ty2>&, _类型>, is_convertible<const 可选实现<_Ty2>, _类型>,
+                  is_convertible<可选实现<_Ty2>, _类型>>>>> {};
 
     template <class _Ty2,
-        enable_if_t<conjunction_v<_允许解包<_Ty2>, is_constructible<_Ty, const _Ty2&>>, int> = 0>
-    _CONSTEXPR20 explicit(!is_convertible_v<const _Ty2&, _Ty>) 可选实现(const 可选实现<_Ty2>& _Right)
-        noexcept(is_nothrow_constructible_v<_Ty, const _Ty2&>) /* strengthened */ {
+        enable_if_t<conjunction_v<_允许解包<_Ty2>, is_constructible<_类型, const _Ty2&>>, int> = 0>
+    _CONSTEXPR20 explicit(!is_convertible_v<const _Ty2&, _类型>) 可选实现(const 可选实现<_Ty2>& _Right)
+        noexcept(is_nothrow_constructible_v<_类型, const _Ty2&>) /* strengthened */ {
         if (_Right) {
             this->_构造(*_Right);
         }
     }
 
-    template <class _Ty2, enable_if_t<conjunction_v<_允许解包<_Ty2>, is_constructible<_Ty, _Ty2>>, int> = 0>
-    _CONSTEXPR20 explicit(!is_convertible_v<_Ty2, _Ty>) 可选实现(可选实现<_Ty2>&& _Right)
-        noexcept(is_nothrow_constructible_v<_Ty, _Ty2>) /* strengthened */ {
+    template <class _Ty2, enable_if_t<conjunction_v<_允许解包<_Ty2>, is_constructible<_类型, _Ty2>>, int> = 0>
+    _CONSTEXPR20 explicit(!is_convertible_v<_Ty2, _类型>) 可选实现(可选实现<_Ty2>&& _Right)
+        noexcept(is_nothrow_constructible_v<_类型, _Ty2>) /* strengthened */ {
         if (_Right) {
             this->_构造(_STD move(*_Right));
         }
@@ -292,28 +292,28 @@ public:
         return *this;
     }
 
-    template <class _Ty2 = remove_cv_t<_Ty>,
+    template <class _Ty2 = remove_cv_t<_类型>,
         enable_if_t<conjunction_v<negation<is_same<可选实现, _Remove_cvref_t<_Ty2>>>,
-                        negation<conjunction<is_scalar<_Ty>, is_same<_Ty, decay_t<_Ty2>>>>, is_constructible<_Ty, _Ty2>,
-                        is_assignable<_Ty&, _Ty2>>,
+                        negation<conjunction<is_scalar<_类型>, is_same<_类型, decay_t<_Ty2>>>>, is_constructible<_类型, _Ty2>,
+                        is_assignable<_类型&, _Ty2>>,
             int>         = 0>
     _CONSTEXPR20 可选实现& operator=(_Ty2&& _Right)
-        noexcept(is_nothrow_assignable_v<_Ty&, _Ty2> && is_nothrow_constructible_v<_Ty, _Ty2>) /* strengthened */ {
+        noexcept(is_nothrow_assignable_v<_类型&, _Ty2> && is_nothrow_constructible_v<_类型, _Ty2>) /* strengthened */ {
         this->_赋值(_STD forward<_Ty2>(_Right));
         return *this;
     }
 
     template <class _Ty2>
     struct _允许解包赋值
-        : bool_constant<!disjunction_v<is_same<_Ty, _Ty2>, is_assignable<_Ty&, 可选实现<_Ty2>&>,
-              is_assignable<_Ty&, const 可选实现<_Ty2>&>, is_assignable<_Ty&, const 可选实现<_Ty2>>,
-              is_assignable<_Ty&, 可选实现<_Ty2>>>> {};
+        : bool_constant<!disjunction_v<is_same<_类型, _Ty2>, is_assignable<_类型&, 可选实现<_Ty2>&>,
+              is_assignable<_类型&, const 可选实现<_Ty2>&>, is_assignable<_类型&, const 可选实现<_Ty2>>,
+              is_assignable<_类型&, 可选实现<_Ty2>>>> {};
 
     template <class _Ty2, enable_if_t<conjunction_v<_允许解包赋值<_Ty2>,
-                                          is_constructible<_Ty, const _Ty2&>, is_assignable<_Ty&, const _Ty2&>>,
+                                          is_constructible<_类型, const _Ty2&>, is_assignable<_类型&, const _Ty2&>>,
                               int> = 0>
     _CONSTEXPR20 可选实现& operator=(const 可选实现<_Ty2>& _Right) noexcept(
-        is_nothrow_assignable_v<_Ty&, const _Ty2&> && is_nothrow_constructible_v<_Ty, const _Ty2&>) /* strengthened */ {
+        is_nothrow_assignable_v<_类型&, const _Ty2&> && is_nothrow_constructible_v<_类型, const _Ty2&>) /* strengthened */ {
         if (_Right) {
             this->_赋值(*_Right);
         } else {
@@ -323,11 +323,11 @@ public:
         return *this;
     }
 
-    template <class _Ty2, enable_if_t<conjunction_v<_允许解包赋值<_Ty2>, is_constructible<_Ty, _Ty2>,
-                                          is_assignable<_Ty&, _Ty2>>,
+    template <class _Ty2, enable_if_t<conjunction_v<_允许解包赋值<_Ty2>, is_constructible<_类型, _Ty2>,
+                                          is_assignable<_类型&, _Ty2>>,
                               int> = 0>
     _CONSTEXPR20 可选实现& operator=(可选实现<_Ty2>&& _Right)
-        noexcept(is_nothrow_assignable_v<_Ty&, _Ty2> && is_nothrow_constructible_v<_Ty, _Ty2>) /* strengthened */ {
+        noexcept(is_nothrow_assignable_v<_类型&, _Ty2> && is_nothrow_constructible_v<_类型, _Ty2>) /* strengthened */ {
         if (_Right) {
             this->_赋值(_STD move(*_Right));
         } else {
@@ -338,31 +338,31 @@ public:
     }
 
     template <class... _Types>
-    _CONSTEXPR20 _Ty& 就地构造(_Types&&... _Args)
-        noexcept(is_nothrow_constructible_v<_Ty, _Types...>) /* strengthened */ {
+    _CONSTEXPR20 _类型& 就地构造(_Types&&... _Args)
+        noexcept(is_nothrow_constructible_v<_类型, _Types...>) /* strengthened */ {
         重置();
         return this->_构造(_STD forward<_Types>(_Args)...);
     }
 
-    template <class _Elem, class... _Types,
-        enable_if_t<is_constructible_v<_Ty, initializer_list<_Elem>&, _Types...>, int> = 0>
-    _CONSTEXPR20 _Ty& 就地构造(initializer_list<_Elem> _Ilist, _Types&&... _Args)
-        noexcept(is_nothrow_constructible_v<_Ty, initializer_list<_Elem>&, _Types...>) /* strengthened */ {
+    template <class _元素, class... _Types,
+        enable_if_t<is_constructible_v<_类型, initializer_list<_元素>&, _Types...>, int> = 0>
+    _CONSTEXPR20 _类型& 就地构造(initializer_list<_元素> _Ilist, _Types&&... _Args)
+        noexcept(is_nothrow_constructible_v<_类型, initializer_list<_元素>&, _Types...>) /* strengthened */ {
         重置();
         return this->_构造(_Ilist, _STD forward<_Types>(_Args)...);
     }
 
     _CONSTEXPR20 void swap(可选实现& _Right)
-        noexcept(is_nothrow_move_constructible_v<_Ty> && is_nothrow_swappable_v<_Ty>) {
-        if constexpr (is_move_constructible_v<_Ty>) {
+        noexcept(is_nothrow_move_constructible_v<_类型> && is_nothrow_swappable_v<_类型>) {
+        if constexpr (is_move_constructible_v<_类型>) {
             static_assert(
-                is_swappable_v<_Ty>, "可选实现<T>::swap requires T to be swappable (N4993 [可选实现.swap]/2).");
+                is_swappable_v<_类型>, "可选实现<T>::swap requires T to be swappable (N4993 [可选实现.swap]/2).");
         } else {
             static_assert(false, "可选实现<T>::swap requires T to be move constructible (N4993 [可选实现.swap]/1).");
         }
         using _STD swap;
-        if constexpr (_Is_trivially_swappable_v<_Ty>) {
-            using _平凡基类型 = _可选析构基类<_Ty>;
+        if constexpr (_Is_trivially_swappable_v<_类型>) {
+            using _平凡基类型 = _可选析构基类<_类型>;
             _STD swap(static_cast<_平凡基类型&>(*this), static_cast<_平凡基类型&>(_Right));
         } else {
             const bool _Engaged = this->_Has_value;
@@ -379,14 +379,14 @@ public:
         }
     }
 
-    _NODISCARD constexpr const _Ty* operator->() const noexcept {
+    _NODISCARD constexpr const _类型* operator->() const noexcept {
 #if _MSVC_STL_HARDENING_OPTIONAL || _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(this->_Has_value, "operator->() called on empty 可选实现");
 #endif
 
         return _STD addressof(this->_Value);
     }
-    _NODISCARD constexpr _Ty* operator->() noexcept {
+    _NODISCARD constexpr _类型* operator->() noexcept {
 #if _MSVC_STL_HARDENING_OPTIONAL || _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(this->_Has_value, "operator->() called on empty 可选实现");
 #endif
@@ -403,28 +403,28 @@ public:
         return this->_Has_value;
     }
 
-    _NODISCARD constexpr const _Ty& value() const& {
+    _NODISCARD constexpr const _类型& value() const& {
         if (!this->_Has_value) {
             _Throw_bad_optional_access();
         }
 
         return this->_Value;
     }
-    _NODISCARD constexpr _Ty& value() & {
+    _NODISCARD constexpr _类型& value() & {
         if (!this->_Has_value) {
             _Throw_bad_optional_access();
         }
 
         return this->_Value;
     }
-    _NODISCARD constexpr _Ty&& value() && {
+    _NODISCARD constexpr _类型&& value() && {
         if (!this->_Has_value) {
             _Throw_bad_optional_access();
         }
 
         return _STD move(this->_Value);
     }
-    _NODISCARD constexpr const _Ty&& value() const&& {
+    _NODISCARD constexpr const _类型&& value() const&& {
         if (!this->_Has_value) {
             _Throw_bad_optional_access();
         }
@@ -432,48 +432,48 @@ public:
         return _STD move(this->_Value);
     }
 
-    template <class _Ty2 = remove_cv_t<_Ty>>
-    _NODISCARD constexpr remove_cv_t<_Ty> 取值或(_Ty2&& _Right) const& {
-        static_assert(is_convertible_v<const _Ty&, remove_cv_t<_Ty>>,
+    template <class _Ty2 = remove_cv_t<_类型>>
+    _NODISCARD constexpr remove_cv_t<_类型> 取值或(_Ty2&& _Right) const& {
+        static_assert(is_convertible_v<const _类型&, remove_cv_t<_类型>>,
             "The const overload of 可选实现<T>::取值或 requires const T& to be convertible to remove_cv_t<T> "
             "(N4950 [可选实现.observe]/15 as modified by LWG-3424).");
-        static_assert(is_convertible_v<_Ty2, remove_cv_t<_Ty>>,
+        static_assert(is_convertible_v<_Ty2, remove_cv_t<_类型>>,
             "可选实现<T>::取值或(U) requires U to be convertible to remove_cv_t<T> "
             "(N4950 [可选实现.observe]/15 as modified by LWG-3424).");
 
         if (this->_Has_value) {
-            return static_cast<const _Ty&>(this->_Value);
+            return static_cast<const _类型&>(this->_Value);
         }
 
-        return static_cast<remove_cv_t<_Ty>>(_STD forward<_Ty2>(_Right));
+        return static_cast<remove_cv_t<_类型>>(_STD forward<_Ty2>(_Right));
     }
-    template <class _Ty2 = remove_cv_t<_Ty>>
-    _NODISCARD constexpr remove_cv_t<_Ty> 取值或(_Ty2&& _Right) && {
-        static_assert(is_convertible_v<_Ty, remove_cv_t<_Ty>>,
+    template <class _Ty2 = remove_cv_t<_类型>>
+    _NODISCARD constexpr remove_cv_t<_类型> 取值或(_Ty2&& _Right) && {
+        static_assert(is_convertible_v<_类型, remove_cv_t<_类型>>,
             "The rvalue overload of 可选实现<T>::取值或 requires T to be convertible to remove_cv_t<T> "
             "(N4950 [可选实现.observe]/17 as modified by LWG-3424).");
-        static_assert(is_convertible_v<_Ty2, remove_cv_t<_Ty>>,
+        static_assert(is_convertible_v<_Ty2, remove_cv_t<_类型>>,
             "可选实现<T>::取值或(U) requires U to be convertible to remove_cv_t<T> "
             "(N4950 [可选实现.observe]/17 as modified by LWG-3424).");
 
         if (this->_Has_value) {
-            return static_cast<_Ty&&>(this->_Value);
+            return static_cast<_类型&&>(this->_Value);
         }
 
-        return static_cast<remove_cv_t<_Ty>>(_STD forward<_Ty2>(_Right));
+        return static_cast<remove_cv_t<_类型>>(_STD forward<_Ty2>(_Right));
     }
 
 #if _HAS_CXX23
     template <class _Fn>
     constexpr auto 且则(_Fn&& _Func) & {
-        using _结果类型 = invoke_result_t<_Fn, _Ty&>;
+        using _结果类型 = invoke_result_t<_Fn, _类型&>;
 
         static_assert(_Is_specialization_v<remove_cvref_t<_结果类型>, 可选实现>,
             "可选实现<T>::且则(F) requires the return type of F to be a specialization of 可选实现 "
             "(N4950 [可选实现.monadic]/2).");
 
         if (this->_Has_value) {
-            return _STD invoke(_STD forward<_Fn>(_Func), static_cast<_Ty&>(this->_Value));
+            return _STD invoke(_STD forward<_Fn>(_Func), static_cast<_类型&>(this->_Value));
         } else {
             return remove_cvref_t<_结果类型>{};
         }
@@ -481,14 +481,14 @@ public:
 
     template <class _Fn>
     constexpr auto 且则(_Fn&& _Func) const& {
-        using _结果类型 = invoke_result_t<_Fn, const _Ty&>;
+        using _结果类型 = invoke_result_t<_Fn, const _类型&>;
 
         static_assert(_Is_specialization_v<remove_cvref_t<_结果类型>, 可选实现>,
             "可选实现<T>::且则(F) requires the return type of F to be a specialization of 可选实现 "
             "(N4950 [可选实现.monadic]/2).");
 
         if (this->_Has_value) {
-            return _STD invoke(_STD forward<_Fn>(_Func), static_cast<const _Ty&>(this->_Value));
+            return _STD invoke(_STD forward<_Fn>(_Func), static_cast<const _类型&>(this->_Value));
         } else {
             return remove_cvref_t<_结果类型>{};
         }
@@ -496,14 +496,14 @@ public:
 
     template <class _Fn>
     constexpr auto 且则(_Fn&& _Func) && {
-        using _结果类型 = invoke_result_t<_Fn, _Ty>;
+        using _结果类型 = invoke_result_t<_Fn, _类型>;
 
         static_assert(_Is_specialization_v<remove_cvref_t<_结果类型>, 可选实现>,
             "可选实现<T>::且则(F) requires the return type of F to be a specialization of 可选实现 "
             "(N4950 [可选实现.monadic]/5).");
 
         if (this->_Has_value) {
-            return _STD invoke(_STD forward<_Fn>(_Func), static_cast<_Ty&&>(this->_Value));
+            return _STD invoke(_STD forward<_Fn>(_Func), static_cast<_类型&&>(this->_Value));
         } else {
             return remove_cvref_t<_结果类型>{};
         }
@@ -511,14 +511,14 @@ public:
 
     template <class _Fn>
     constexpr auto 且则(_Fn&& _Func) const&& {
-        using _结果类型 = invoke_result_t<_Fn, const _Ty>;
+        using _结果类型 = invoke_result_t<_Fn, const _类型>;
 
         static_assert(_Is_specialization_v<remove_cvref_t<_结果类型>, 可选实现>,
             "可选实现<T>::且则(F) requires the return type of F to be a specialization of 可选实现 "
             "(N4950 [可选实现.monadic]/5).");
 
         if (this->_Has_value) {
-            return _STD invoke(_STD forward<_Fn>(_Func), static_cast<const _Ty&&>(this->_Value));
+            return _STD invoke(_STD forward<_Fn>(_Func), static_cast<const _类型&&>(this->_Value));
         } else {
             return remove_cvref_t<_结果类型>{};
         }
@@ -526,7 +526,7 @@ public:
 
     template <class _Fn>
     constexpr auto 变换(_Fn&& _Func) & {
-        using _结果类型 = remove_cv_t<invoke_result_t<_Fn, _Ty&>>;
+        using _结果类型 = remove_cv_t<invoke_result_t<_Fn, _类型&>>;
 
         static_assert(!_Is_any_of_v<_结果类型, 空值类型, in_place_t>,
             "可选实现<T>::变换(F) requires the return type of F to be a type other than 空值类型 or in_place_t "
@@ -537,7 +537,7 @@ public:
 
         if (this->_Has_value) {
             return 可选实现<_结果类型>{
-                _由调用结果构造标记{}, _STD forward<_Fn>(_Func), static_cast<_Ty&>(this->_Value)};
+                _由调用结果构造标记{}, _STD forward<_Fn>(_Func), static_cast<_类型&>(this->_Value)};
         } else {
             return 可选实现<_结果类型>{};
         }
@@ -545,7 +545,7 @@ public:
 
     template <class _Fn>
     constexpr auto 变换(_Fn&& _Func) const& {
-        using _结果类型 = remove_cv_t<invoke_result_t<_Fn, const _Ty&>>;
+        using _结果类型 = remove_cv_t<invoke_result_t<_Fn, const _类型&>>;
 
         static_assert(!_Is_any_of_v<_结果类型, 空值类型, in_place_t>,
             "可选实现<T>::变换(F) requires the return type of F to be a type other than 空值类型 or in_place_t "
@@ -556,7 +556,7 @@ public:
 
         if (this->_Has_value) {
             return 可选实现<_结果类型>{
-                _由调用结果构造标记{}, _STD forward<_Fn>(_Func), static_cast<const _Ty&>(this->_Value)};
+                _由调用结果构造标记{}, _STD forward<_Fn>(_Func), static_cast<const _类型&>(this->_Value)};
         } else {
             return 可选实现<_结果类型>{};
         }
@@ -564,7 +564,7 @@ public:
 
     template <class _Fn>
     constexpr auto 变换(_Fn&& _Func) && {
-        using _结果类型 = remove_cv_t<invoke_result_t<_Fn, _Ty>>;
+        using _结果类型 = remove_cv_t<invoke_result_t<_Fn, _类型>>;
 
         static_assert(!_Is_any_of_v<_结果类型, 空值类型, in_place_t>,
             "可选实现<T>::变换(F) requires the return type of F to be a type other than 空值类型 or in_place_t "
@@ -575,7 +575,7 @@ public:
 
         if (this->_Has_value) {
             return 可选实现<_结果类型>{
-                _由调用结果构造标记{}, _STD forward<_Fn>(_Func), static_cast<_Ty&&>(this->_Value)};
+                _由调用结果构造标记{}, _STD forward<_Fn>(_Func), static_cast<_类型&&>(this->_Value)};
         } else {
             return 可选实现<_结果类型>{};
         }
@@ -583,7 +583,7 @@ public:
 
     template <class _Fn>
     constexpr auto 变换(_Fn&& _Func) const&& {
-        using _结果类型 = remove_cv_t<invoke_result_t<_Fn, const _Ty>>;
+        using _结果类型 = remove_cv_t<invoke_result_t<_Fn, const _类型>>;
 
         static_assert(!_Is_any_of_v<_结果类型, 空值类型, in_place_t>,
             "可选实现<T>::变换(F) requires the return type of F to be a type other than 空值类型 or in_place_t "
@@ -594,14 +594,14 @@ public:
 
         if (this->_Has_value) {
             return 可选实现<_结果类型>{
-                _由调用结果构造标记{}, _STD forward<_Fn>(_Func), static_cast<const _Ty&&>(this->_Value)};
+                _由调用结果构造标记{}, _STD forward<_Fn>(_Func), static_cast<const _类型&&>(this->_Value)};
         } else {
             return 可选实现<_结果类型>{};
         }
     }
 
     template <invocable<> _Fn>
-        requires copy_constructible<_Ty>
+        requires copy_constructible<_类型>
     constexpr 可选实现 或则(_Fn&& _Func) const& {
         static_assert(is_same_v<remove_cvref_t<invoke_result_t<_Fn>>, 可选实现>,
             "可选实现<T>::或则(F) requires F to return an 可选实现<T> (N4950 [可选实现.monadic]/14).");
@@ -614,7 +614,7 @@ public:
     }
 
     template <invocable<> _Fn>
-        requires move_constructible<_Ty>
+        requires move_constructible<_类型>
     constexpr 可选实现 或则(_Fn&& _Func) && {
         static_assert(is_same_v<remove_cvref_t<invoke_result_t<_Fn>>, 可选实现>,
             "可选实现<T>::或则(F) requires F to return an 可选实现<T> (N4950 [可选实现.monadic]/17).");
@@ -630,8 +630,8 @@ public:
     using _我的基类::重置;
 };
 
-template <class _Ty>
-可选实现(_Ty) -> 可选实现<_Ty>;
+template <class _类型>
+可选实现(_类型) -> 可选实现<_类型>;
 
 _EXPORT_STD template <class _Ty1, class _Ty2>
 _NODISCARD constexpr bool operator==(const 可选实现<_Ty1>& _Left, const 可选实现<_Ty2>& _Right)
@@ -749,70 +749,70 @@ _NODISCARD constexpr compare_three_way_result_t<_Ty1, _Ty2> operator<=>(const �
 }
 #endif // _HAS_CXX20
 
-_EXPORT_STD template <class _Ty>
-_NODISCARD constexpr bool operator==(const 可选实现<_Ty>& _Left, 空值类型) noexcept {
+_EXPORT_STD template <class _类型>
+_NODISCARD constexpr bool operator==(const 可选实现<_类型>& _Left, 空值类型) noexcept {
     return !_Left.有值();
 }
 
 #if _HAS_CXX20
-_EXPORT_STD template <class _Ty>
-_NODISCARD constexpr strong_ordering operator<=>(const 可选实现<_Ty>& _Left, 空值类型) noexcept {
+_EXPORT_STD template <class _类型>
+_NODISCARD constexpr strong_ordering operator<=>(const 可选实现<_类型>& _Left, 空值类型) noexcept {
     return _Left.有值() <=> false;
 }
 #else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
-template <class _Ty>
-_NODISCARD constexpr bool operator==(空值类型, const 可选实现<_Ty>& _Right) noexcept {
+template <class _类型>
+_NODISCARD constexpr bool operator==(空值类型, const 可选实现<_类型>& _Right) noexcept {
     return !_Right.有值();
 }
 
-template <class _Ty>
-_NODISCARD constexpr bool operator!=(const 可选实现<_Ty>& _Left, 空值类型) noexcept {
+template <class _类型>
+_NODISCARD constexpr bool operator!=(const 可选实现<_类型>& _Left, 空值类型) noexcept {
     return _Left.有值();
 }
-template <class _Ty>
-_NODISCARD constexpr bool operator!=(空值类型, const 可选实现<_Ty>& _Right) noexcept {
+template <class _类型>
+_NODISCARD constexpr bool operator!=(空值类型, const 可选实现<_类型>& _Right) noexcept {
     return _Right.有值();
 }
 
-template <class _Ty>
-_NODISCARD constexpr bool operator<(const 可选实现<_Ty>&, 空值类型) noexcept {
+template <class _类型>
+_NODISCARD constexpr bool operator<(const 可选实现<_类型>&, 空值类型) noexcept {
     return false;
 }
-template <class _Ty>
-_NODISCARD constexpr bool operator<(空值类型, const 可选实现<_Ty>& _Right) noexcept {
+template <class _类型>
+_NODISCARD constexpr bool operator<(空值类型, const 可选实现<_类型>& _Right) noexcept {
     return _Right.有值();
 }
 
-template <class _Ty>
-_NODISCARD constexpr bool operator>(const 可选实现<_Ty>& _Left, 空值类型) noexcept {
+template <class _类型>
+_NODISCARD constexpr bool operator>(const 可选实现<_类型>& _Left, 空值类型) noexcept {
     return _Left.有值();
 }
-template <class _Ty>
-_NODISCARD constexpr bool operator>(空值类型, const 可选实现<_Ty>&) noexcept {
+template <class _类型>
+_NODISCARD constexpr bool operator>(空值类型, const 可选实现<_类型>&) noexcept {
     return false;
 }
 
-template <class _Ty>
-_NODISCARD constexpr bool operator<=(const 可选实现<_Ty>& _Left, 空值类型) noexcept {
+template <class _类型>
+_NODISCARD constexpr bool operator<=(const 可选实现<_类型>& _Left, 空值类型) noexcept {
     return !_Left.有值();
 }
-template <class _Ty>
-_NODISCARD constexpr bool operator<=(空值类型, const 可选实现<_Ty>&) noexcept {
+template <class _类型>
+_NODISCARD constexpr bool operator<=(空值类型, const 可选实现<_类型>&) noexcept {
     return true;
 }
 
-template <class _Ty>
-_NODISCARD constexpr bool operator>=(const 可选实现<_Ty>&, 空值类型) noexcept {
+template <class _类型>
+_NODISCARD constexpr bool operator>=(const 可选实现<_类型>&, 空值类型) noexcept {
     return true;
 }
-template <class _Ty>
-_NODISCARD constexpr bool operator>=(空值类型, const 可选实现<_Ty>& _Right) noexcept {
+template <class _类型>
+_NODISCARD constexpr bool operator>=(空值类型, const 可选实现<_类型>& _Right) noexcept {
     return !_Right.有值();
 }
 #endif // ^^^ !_HAS_CXX20 ^^^
 
-template <class _Ty>
-using _启用若可转布尔 = enable_if_t<is_convertible_v<_Ty, bool>, int>;
+template <class _类型>
+using _启用若可转布尔 = enable_if_t<is_convertible_v<_类型, bool>, int>;
 
 template <class _Lhs, class _Rhs>
 using _启用若可与相等比较 =
@@ -954,35 +954,35 @@ _NODISCARD constexpr compare_three_way_result_t<_Ty1, _Ty2> operator<=>(const �
 }
 #endif // _HAS_CXX20
 
-_EXPORT_STD template <class _Ty, enable_if_t<is_move_constructible_v<_Ty> && is_swappable_v<_Ty>, int> = 0>
-_CONSTEXPR20 void swap(可选实现<_Ty>& _Left, 可选实现<_Ty>& _Right) noexcept(noexcept(_Left.swap(_Right))) {
+_EXPORT_STD template <class _类型, enable_if_t<is_move_constructible_v<_类型> && is_swappable_v<_类型>, int> = 0>
+_CONSTEXPR20 void swap(可选实现<_类型>& _Left, 可选实现<_类型>& _Right) noexcept(noexcept(_Left.swap(_Right))) {
     _Left.swap(_Right);
 }
 
-_EXPORT_STD template <class _Ty, enable_if_t<is_constructible_v<decay_t<_Ty>, _Ty>, int> = 0> // LWG-3627
-_NODISCARD constexpr 可选实现<decay_t<_Ty>> make_optional(_Ty&& _Value)
-    noexcept(noexcept(可选实现<decay_t<_Ty>>{_STD forward<_Ty>(_Value)})) /* strengthened */ {
-    return 可选实现<decay_t<_Ty>>{_STD forward<_Ty>(_Value)};
+_EXPORT_STD template <class _类型, enable_if_t<is_constructible_v<decay_t<_类型>, _类型>, int> = 0> // LWG-3627
+_NODISCARD constexpr 可选实现<decay_t<_类型>> make_optional(_类型&& _Value)
+    noexcept(noexcept(可选实现<decay_t<_类型>>{_STD forward<_类型>(_Value)})) /* strengthened */ {
+    return 可选实现<decay_t<_类型>>{_STD forward<_类型>(_Value)};
 }
-_EXPORT_STD template <class _Ty, class... _Types, enable_if_t<is_constructible_v<_Ty, _Types...>, int> = 0>
-_NODISCARD constexpr 可选实现<_Ty> make_optional(_Types&&... _Args)
-    noexcept(noexcept(可选实现<_Ty>{in_place, _STD forward<_Types>(_Args)...})) /* strengthened */ {
-    return 可选实现<_Ty>{in_place, _STD forward<_Types>(_Args)...};
+_EXPORT_STD template <class _类型, class... _Types, enable_if_t<is_constructible_v<_类型, _Types...>, int> = 0>
+_NODISCARD constexpr 可选实现<_类型> make_optional(_Types&&... _Args)
+    noexcept(noexcept(可选实现<_类型>{in_place, _STD forward<_Types>(_Args)...})) /* strengthened */ {
+    return 可选实现<_类型>{in_place, _STD forward<_Types>(_Args)...};
 }
-_EXPORT_STD template <class _Ty, class _Elem, class... _Types,
-    enable_if_t<is_constructible_v<_Ty, initializer_list<_Elem>&, _Types...>, int> = 0>
-_NODISCARD constexpr 可选实现<_Ty> make_optional(initializer_list<_Elem> _Ilist, _Types&&... _Args)
-    noexcept(noexcept(可选实现<_Ty>{in_place, _Ilist, _STD forward<_Types>(_Args)...})) /* strengthened */ {
-    return 可选实现<_Ty>{in_place, _Ilist, _STD forward<_Types>(_Args)...};
+_EXPORT_STD template <class _类型, class _元素, class... _Types,
+    enable_if_t<is_constructible_v<_类型, initializer_list<_元素>&, _Types...>, int> = 0>
+_NODISCARD constexpr 可选实现<_类型> make_optional(initializer_list<_元素> _Ilist, _Types&&... _Args)
+    noexcept(noexcept(可选实现<_类型>{in_place, _Ilist, _STD forward<_Types>(_Args)...})) /* strengthened */ {
+    return 可选实现<_类型>{in_place, _Ilist, _STD forward<_Types>(_Args)...};
 }
 
-template <class _Ty>
-struct hash<可选实现<_Ty>>
-    : _Conditionally_enabled_hash<可选实现<_Ty>, is_default_constructible_v<hash<remove_const_t<_Ty>>>> {
-    static size_t _Do_hash(const 可选实现<_Ty>& _Opt) noexcept(_Is_nothrow_hashable<remove_const_t<_Ty>>::value) {
+template <class _类型>
+struct hash<可选实现<_类型>>
+    : _Conditionally_enabled_hash<可选实现<_类型>, is_default_constructible_v<hash<remove_const_t<_类型>>>> {
+    static size_t _Do_hash(const 可选实现<_类型>& _Opt) noexcept(_Is_nothrow_hashable<remove_const_t<_类型>>::value) {
         constexpr size_t _Unspecified_value = 0;
         if (_Opt) {
-            return hash<remove_const_t<_Ty>>{}(*_Opt);
+            return hash<remove_const_t<_类型>>{}(*_Opt);
         }
 
         return _Unspecified_value;

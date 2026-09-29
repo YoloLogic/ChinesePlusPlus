@@ -29,8 +29,8 @@ _EXPORT_STD struct 一次标志实现 { // opaque data structure for 一次调�
     void* _Opaque;
 };
 
-template <class _Ty>
-union _永不析构实现 { // constructs _Ty, never destroys
+template <class _类型>
+union _永不析构实现 { // constructs _类型, never destroys
     constexpr _永不析构实现() noexcept : _Storage{} {}
     _永不析构实现(const _永不析构实现&)            = delete;
     _永不析构实现& operator=(const _永不析构实现&) = delete;
@@ -38,7 +38,7 @@ union _永不析构实现 { // constructs _Ty, never destroys
         // do nothing
     }
 
-    _Ty _Storage;
+    _类型 _Storage;
 };
 
 #if defined(_M_CEE) || defined(_M_ARM64EC) || defined(_M_HYBRID) \

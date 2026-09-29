@@ -31,8 +31,8 @@ _STL_DISABLE_CLANG_WARNINGS
 名域 标准 { 名域 细节 {
 使用 名域 std;
 
-template <class _Rep, class _Period>
-_NODISCARD unsigned long long _Semaphore_deadline(const chrono::duration<_Rep, _Period>& _Rel_time) {
+template <class _表示, class _Period>
+_NODISCARD unsigned long long _Semaphore_deadline(const chrono::duration<_表示, _Period>& _Rel_time) {
     return __std_atomic_wait_get_deadline(
         chrono::duration_cast<chrono::duration<unsigned long long, milli>>(_Rel_time).count());
 }
@@ -145,8 +145,8 @@ public:
         return _Counter.compare_exchange_weak(_Current, _Current - 1);
     }
 
-    template <class _Rep, class _Period>
-    _NODISCARD_TRY_CHANGE_STATE bool 尝试限时获取(const chrono::duration<_Rep, _Period>& _Rel_time) {
+    template <class _表示, class _Period>
+    _NODISCARD_TRY_CHANGE_STATE bool 尝试限时获取(const chrono::duration<_表示, _Period>& _Rel_time) {
         auto _Deadline     = _Semaphore_deadline(_Rel_time);
         ptrdiff_t _Current = _Counter.load(memory_order_relaxed);
         for (;;) {
@@ -257,8 +257,8 @@ public:
         return reinterpret_cast<const bool&>(_Prev);
     }
 
-    template <class _Rep, class _Period>
-    _NODISCARD_TRY_CHANGE_STATE bool 尝试限时获取(const chrono::duration<_Rep, _Period>& _Rel_time) {
+    template <class _表示, class _Period>
+    _NODISCARD_TRY_CHANGE_STATE bool 尝试限时获取(const chrono::duration<_表示, _Period>& _Rel_time) {
         auto _Deadline = _Semaphore_deadline(_Rel_time);
         for (;;) {
             // "happens after 释放" ordering is provided by this exchange, so loads and waits can be relaxed
