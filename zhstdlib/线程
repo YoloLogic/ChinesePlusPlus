@@ -54,19 +54,19 @@ private:
     friend 可停线程实现;
 #endif // _HAS_CXX20
 
-    template <class _元组, size_t... _Indices>
+    template <class _元组, size_t... _下标集>
     static unsigned int __stdcall _调用(void* _RawVals) noexcept /* terminates */ {
         // adapt invoke of user's callable object to _beginthreadex's 线程实现 procedure
         const unique_ptr<_元组> _FnVals(static_cast<_元组*>(_RawVals));
         _元组& _Tup = *_FnVals.get(); // avoid ADL, handle incomplete types
-        _STD invoke(_STD move(_STD get<_Indices>(_Tup))...);
+        _STD invoke(_STD move(_STD get<_下标集>(_Tup))...);
         _Cnd_do_broadcast_at_thread_exit(); // TRANSITION, ABI
         return 0;
     }
 
-    template <class _元组, size_t... _Indices>
-    _NODISCARD static constexpr auto _取调用(index_sequence<_Indices...>) noexcept {
-        return &_调用<_元组, _Indices...>;
+    template <class _元组, size_t... _下标集>
+    _NODISCARD static constexpr auto _取调用(index_sequence<_下标集...>) noexcept {
+        return &_调用<_元组, _下标集...>;
     }
 
 #pragma warning(push) // pointer or reference to potentially throwing function passed to 'extern "C"' function under
@@ -165,9 +165,9 @@ private:
     _Thrd_t _Thr;
 };
 
-template <class _Rep, class _Period>
-_NODISCARD auto _To_absolute_time(const chrono::duration<_Rep, _Period>& _Rel_time) noexcept {
-    constexpr auto _Zero                 = chrono::duration<_Rep, _Period>::zero();
+template <class _表示, class _Period>
+_NODISCARD auto _To_absolute_time(const chrono::duration<_表示, _Period>& _Rel_time) noexcept {
+    constexpr auto _Zero                 = chrono::duration<_表示, _Period>::zero();
     const auto _Now                      = chrono::steady_clock::now();
     decltype(_Now + _Rel_time) _Abs_time = _Now; // return common type
     if (_Rel_time > _Zero) {
@@ -220,8 +220,8 @@ namespace 本线程 {
         }
     }
 
-    _EXPORT_STD template <class _Rep, class _Period>
-    void 睡眠时长(const chrono::duration<_Rep, _Period>& _Rel_time) {
+    _EXPORT_STD template <class _表示, class _Period>
+    void 睡眠时长(const chrono::duration<_表示, _Period>& _Rel_time) {
         睡至时刻(_To_absolute_time(_Rel_time));
     }
 } // namespace 本线程
@@ -320,10 +320,10 @@ struct formatter<线程实现::id, _CharT> {
     _FormatContext::iterator format(线程实现::id _Val, _FormatContext& _Format_ctx) const {
         _STL_INTERNAL_STATIC_ASSERT(sizeof(_Thrd_id_t) == 4);
         _CharT _Buff[10]; // can hold 2^32 - 1
-        _CharT* const _Last        = _STD end(_Buff);
-        const _CharT* const _First = _UIntegral_to_buff(_Last, _Val._取底层标识());
-        return _Impl._Format(_Format_ctx, static_cast<int>(_Last - _First), _Fmt_align::_Right,
-            [&](_FormatContext::iterator _Out) { return _RANGES copy(_First, _Last, _STD move(_Out)).out; });
+        _CharT* const _最后        = _STD end(_Buff);
+        const _CharT* const _首个 = _UIntegral_to_buff(_最后, _Val._取底层标识());
+        return _Impl._Format(_Format_ctx, static_cast<int>(_最后 - _首个), _Fmt_align::_Right,
+            [&](_FormatContext::iterator _Out) { return _RANGES copy(_首个, _最后, _STD move(_Out)).out; });
     }
 
 private:

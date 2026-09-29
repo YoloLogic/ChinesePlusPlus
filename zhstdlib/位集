@@ -30,19 +30,19 @@ _STL_DISABLE_CLANG_WARNINGS
 
 extern "C" {
 __declspec(noalias) void __stdcall __std_bitset_to_string_1(
-    char* _Dest, const void* _Src, size_t _Size_bits, char _Elem0, char _Elem1) noexcept;
+    char* _目标, const void* _Src, size_t _Size_bits, char _Elem0, char _Elem1) noexcept;
 __declspec(noalias) void __stdcall __std_bitset_to_string_2(
-    wchar_t* _Dest, const void* _Src, size_t _Size_bits, wchar_t _Elem0, wchar_t _Elem1) noexcept;
-__declspec(noalias) bool __stdcall __std_bitset_from_string_1(void* _Dest, const char* _Src, size_t _Size_bytes,
+    wchar_t* _目标, const void* _Src, size_t _Size_bits, wchar_t _Elem0, wchar_t _Elem1) noexcept;
+__declspec(noalias) bool __stdcall __std_bitset_from_string_1(void* _目标, const char* _Src, size_t _Size_bytes,
     size_t _Size_bits, size_t _Size_chars, char _Elem0, char _Elem1) noexcept;
-__declspec(noalias) bool __stdcall __std_bitset_from_string_2(void* _Dest, const wchar_t* _Src, size_t _Size_bytes,
+__declspec(noalias) bool __stdcall __std_bitset_from_string_2(void* _目标, const wchar_t* _Src, size_t _Size_bytes,
     size_t _Size_bits, size_t _Size_chars, wchar_t _Elem0, wchar_t _Elem1) noexcept;
 } // extern "C"
 #endif // _USE_STD_VECTOR_ALGORITHMS
 
 名域 标准 { 名域 细节 {
 使用 名域 std;
-template <class _Elem, size_t _Bits, bool _Dynamic = (_Bits * sizeof(_Elem) > _STD_BITSET_TO_STREAM_STACK_RESERVATION)>
+template <class _元素, size_t _Bits, bool _Dynamic = (_Bits * sizeof(_元素) > _STD_BITSET_TO_STREAM_STACK_RESERVATION)>
 struct _位缓冲 {
     _位缓冲() noexcept                            = default;
     _位缓冲(const _位缓冲&)            = delete;
@@ -52,22 +52,22 @@ struct _位缓冲 {
         delete[] _Buf;
     }
 
-    void _Allocate() {
-        _Buf = new _Elem[_Bits];
+    void _分配() {
+        _Buf = new _元素[_Bits];
     }
 
-    _Elem* _Buf = nullptr;
+    _元素* _Buf = nullptr;
 };
 
-template <class _Elem, size_t _Bits>
-struct _位缓冲<_Elem, _Bits, false> {
+template <class _元素, size_t _Bits>
+struct _位缓冲<_元素, _Bits, false> {
     _位缓冲() noexcept { /* intentionally not initializing _Buf */ }
     _位缓冲(const _位缓冲&)            = delete;
     _位缓冲& operator=(const _位缓冲&) = delete;
 
-    void _Allocate() noexcept {}
+    void _分配() noexcept {}
 
-    _Elem _Buf[(_Bits != 0) ? _Bits : 1];
+    _元素 _Buf[(_Bits != 0) ? _Bits : 1];
 };
 
 _EXPORT_STD template <size_t _Bits>
@@ -147,25 +147,25 @@ public:
     constexpr 位集实现(unsigned long long _Val) noexcept : _Array{static_cast<_类型>(_Need_mask ? _Val & _Mask : _Val)} {}
 
 private:
-    template <class _Traits, class _Elem>
-    _CONSTEXPR23 void _Construct(const _Elem* const _Ptr, size_t _Count, const _Elem _Elem0, const _Elem _Elem1) {
+    template <class _特征, class _元素>
+    _CONSTEXPR23 void _构造(const _元素* const _Ptr, size_t _Count, const _元素 _Elem0, const _元素 _Elem1) {
 #if _USE_STD_VECTOR_ALGORITHMS
         constexpr size_t _Bitset_from_string_vector_threshold = 16;
         if constexpr (_Bits >= _Bitset_from_string_vector_threshold
-                      && _Is_implementation_handled_char_traits<_Traits> && sizeof(_Elem) <= 2) {
+                      && _Is_implementation_handled_char_traits<_特征> && sizeof(_元素) <= 2) {
             if (!_Is_constant_evaluated()) {
-                bool _Result;
+                bool _结果;
 
-                if constexpr (sizeof(_Elem) == 1) {
-                    _Result = __std_bitset_from_string_1(_Array, reinterpret_cast<const char*>(_Ptr), sizeof(_Array),
+                if constexpr (sizeof(_元素) == 1) {
+                    _结果 = __std_bitset_from_string_1(_Array, reinterpret_cast<const char*>(_Ptr), sizeof(_Array),
                         _Bits, _Count, static_cast<char>(_Elem0), static_cast<char>(_Elem1));
                 } else {
-                    _STL_INTERNAL_STATIC_ASSERT(sizeof(_Elem) == 2);
-                    _Result = __std_bitset_from_string_2(_Array, reinterpret_cast<const wchar_t*>(_Ptr), sizeof(_Array),
+                    _STL_INTERNAL_STATIC_ASSERT(sizeof(_元素) == 2);
+                    _结果 = __std_bitset_from_string_2(_Array, reinterpret_cast<const wchar_t*>(_Ptr), sizeof(_Array),
                         _Bits, _Count, static_cast<wchar_t>(_Elem0), static_cast<wchar_t>(_Elem1));
                 }
 
-                if (!_Result) {
+                if (!_结果) {
                     _抛无效参数();
                 }
 
@@ -176,7 +176,7 @@ private:
         if (_Count > _Bits) {
             for (size_t _Idx = _Bits; _Idx < _Count; ++_Idx) {
                 const auto _Ch = _Ptr[_Idx];
-                if (!_Traits::eq(_Elem1, _Ch) && !_Traits::eq(_Elem0, _Ch)) {
+                if (!_特征::eq(_Elem1, _Ch) && !_特征::eq(_Elem0, _Ch)) {
                     _抛无效参数();
                 }
             }
@@ -187,13 +187,13 @@ private:
         size_t _Wpos = 0;
         if (_Count != 0) {
             size_t _Bits_used_in_word = 0;
-            auto _Last                = _Ptr + _Count;
+            auto _最后                = _Ptr + _Count;
             _类型 _This_word            = 0;
             do {
-                --_Last;
-                const auto _Ch = *_Last;
-                _This_word |= static_cast<_类型>(_Traits::eq(_Elem1, _Ch)) << _Bits_used_in_word;
-                if (!_Traits::eq(_Elem1, _Ch) && !_Traits::eq(_Elem0, _Ch)) {
+                --_最后;
+                const auto _Ch = *_最后;
+                _This_word |= static_cast<_类型>(_特征::eq(_Elem1, _Ch)) << _Bits_used_in_word;
+                if (!_特征::eq(_Elem1, _Ch) && !_特征::eq(_Elem0, _Ch)) {
                     _抛无效参数();
                 }
 
@@ -203,7 +203,7 @@ private:
                     _This_word         = 0;
                     _Bits_used_in_word = 0;
                 }
-            } while (_Ptr != _Last);
+            } while (_Ptr != _最后);
 
             if (_Bits_used_in_word != 0) {
                 _Array[_Wpos] = _This_word;
@@ -217,11 +217,11 @@ private:
     }
 
 public:
-    template <class _Elem, class _Traits, class _Alloc>
-    _CONSTEXPR23 explicit 位集实现(const basic_string<_Elem, _Traits, _Alloc>& _Str,
-        typename basic_string<_Elem, _Traits, _Alloc>::size_type _Pos   = 0,
-        typename basic_string<_Elem, _Traits, _Alloc>::size_type _Count = basic_string<_Elem, _Traits, _Alloc>::npos,
-        _Elem _Elem0 = static_cast<_Elem>('0'), _Elem _Elem1 = static_cast<_Elem>('1')) {
+    template <class _元素, class _特征, class _分配器>
+    _CONSTEXPR23 explicit 位集实现(const basic_string<_元素, _特征, _分配器>& _Str,
+        typename basic_string<_元素, _特征, _分配器>::size_type _Pos   = 0,
+        typename basic_string<_元素, _特征, _分配器>::size_type _Count = basic_string<_元素, _特征, _分配器>::npos,
+        _元素 _Elem0 = static_cast<_元素>('0'), _元素 _Elem1 = static_cast<_元素>('1')) {
         // construct from [_Pos, _Pos + _Count) elements in string
         if (_Str.尺寸() < _Pos) {
             _抛范围错(); // _Pos off end
@@ -231,18 +231,18 @@ public:
             _Count = _Str.尺寸() - _Pos; // trim _Count to 尺寸
         }
 
-        _Construct<_Traits>(_Str.data() + _Pos, _Count, _Elem0, _Elem1);
+        _构造<_特征>(_Str.data() + _Pos, _Count, _Elem0, _Elem1);
     }
 
-    template <class _Elem>
-    _CONSTEXPR23 explicit 位集实现(const _Elem* _Ntcts,
-        typename basic_string<_Elem>::size_type _Count = basic_string<_Elem>::npos,
-        _Elem _Elem0 = static_cast<_Elem>('0'), _Elem _Elem1 = static_cast<_Elem>('1')) {
-        if (_Count == basic_string<_Elem>::npos) {
-            _Count = char_traits<_Elem>::length(_Ntcts);
+    template <class _元素>
+    _CONSTEXPR23 explicit 位集实现(const _元素* _Ntcts,
+        typename basic_string<_元素>::size_type _Count = basic_string<_元素>::npos,
+        _元素 _Elem0 = static_cast<_元素>('0'), _元素 _Elem1 = static_cast<_元素>('1')) {
+        if (_Count == basic_string<_元素>::npos) {
+            _Count = char_traits<_元素>::length(_Ntcts);
         }
 
-        _Construct<char_traits<_Elem>>(_Ntcts, _Count, _Elem0, _Elem1);
+        _构造<char_traits<_元素>>(_Ntcts, _Count, _Elem0, _Elem1);
     }
 
     _CONSTEXPR23 位集实现& operator&=(const 位集实现& _Right) noexcept {
@@ -413,12 +413,12 @@ public:
         }
     }
 
-    template <class _Elem = char, class _Tr = char_traits<_Elem>, class _Alloc = allocator<_Elem>>
-    _NODISCARD _CONSTEXPR23 basic_string<_Elem, _Tr, _Alloc> 转字符串(
-        const _Elem _Elem0 = static_cast<_Elem>('0'), const _Elem _Elem1 = static_cast<_Elem>('1')) const {
+    template <class _元素 = char, class _Tr = char_traits<_元素>, class _分配器 = allocator<_元素>>
+    _NODISCARD _CONSTEXPR23 basic_string<_元素, _Tr, _分配器> 转字符串(
+        const _元素 _Elem0 = static_cast<_元素>('0'), const _元素 _Elem1 = static_cast<_元素>('1')) const {
         // convert 位集实现 to string
-        basic_string<_Elem, _Tr, _Alloc> _Str;
-        _Str._Resize_and_overwrite(_Bits, [this, _Elem0, _Elem1](_Elem* _Buf, size_t _Len) {
+        basic_string<_元素, _Tr, _分配器> _Str;
+        _Str._Resize_and_overwrite(_Bits, [this, _Elem0, _Elem1](_元素* _Buf, size_t _Len) {
             _转字符串(_Buf, _Len, _Elem0, _Elem1);
             return _Len;
         });
@@ -516,18 +516,18 @@ public:
         return _Array[_Wpos];
     }
 
-    template <class _Elem>
+    template <class _元素>
     _CONSTEXPR23 void _转字符串(
-        _Elem* const _Buf, const size_t _Len, const _Elem _Elem0, const _Elem _Elem1) const noexcept {
+        _元素* const _Buf, const size_t _Len, const _元素 _Elem0, const _元素 _Elem1) const noexcept {
 #if _USE_STD_VECTOR_ALGORITHMS
         constexpr size_t _Bitset_to_string_vector_threshold = 32;
-        if constexpr (_Bits >= _Bitset_to_string_vector_threshold && is_integral_v<_Elem> && sizeof(_Elem) <= 2) {
+        if constexpr (_Bits >= _Bitset_to_string_vector_threshold && is_integral_v<_元素> && sizeof(_元素) <= 2) {
             if (!_Is_constant_evaluated()) {
-                if constexpr (sizeof(_Elem) == 1) {
+                if constexpr (sizeof(_元素) == 1) {
                     __std_bitset_to_string_1(reinterpret_cast<char*>(_Buf), _Array, _Len, static_cast<char>(_Elem0),
                         static_cast<char>(_Elem1));
                 } else {
-                    _STL_INTERNAL_STATIC_ASSERT(sizeof(_Elem) == 2);
+                    _STL_INTERNAL_STATIC_ASSERT(sizeof(_元素) == 2);
                     __std_bitset_to_string_2(reinterpret_cast<wchar_t*>(_Buf), _Array, _Len,
                         static_cast<wchar_t>(_Elem0), static_cast<wchar_t>(_Elem1));
                 }
@@ -609,35 +609,35 @@ _NODISCARD _CONSTEXPR23 位集实现<_Bits> operator^(const 位集实现<_Bits>&
     return _Ans;
 }
 
-_EXPORT_STD template <class _Elem, class _Tr, size_t _Bits>
-basic_ostream<_Elem, _Tr>& operator<<(basic_ostream<_Elem, _Tr>& _Ostr, const 位集实现<_Bits>& _Right) {
-    using _字符类型             = typename basic_ostream<_Elem, _Tr>::_字符类型;
+_EXPORT_STD template <class _元素, class _Tr, size_t _Bits>
+basic_ostream<_元素, _Tr>& operator<<(basic_ostream<_元素, _Tr>& _Ostr, const 位集实现<_Bits>& _Right) {
+    using _字符类型             = typename basic_ostream<_元素, _Tr>::_字符类型;
     const _字符类型& _Ctype_fac = _STD use_facet<_字符类型>(_Ostr.getloc());
-    const _Elem _Elem0       = _Ctype_fac.widen('0');
-    const _Elem _Elem1       = _Ctype_fac.widen('1');
+    const _元素 _Elem0       = _Ctype_fac.widen('0');
+    const _元素 _Elem1       = _Ctype_fac.widen('1');
 
-    _位缓冲<_Elem, _Bits> _Buf;
-    _Buf._Allocate();
+    _位缓冲<_元素, _Bits> _Buf;
+    _Buf._分配();
     _Right._转字符串(_Buf._Buf, _Bits, _Elem0, _Elem1);
     _Ostr.write(_Buf._Buf, _Bits);
     return _Ostr;
 }
 
-_EXPORT_STD template <class _Elem, class _Tr, size_t _Bits>
-basic_istream<_Elem, _Tr>& operator>>(basic_istream<_Elem, _Tr>& _Istr, 位集实现<_Bits>& _Right) {
-    using _输入流类型                    = basic_istream<_Elem, _Tr>;
+_EXPORT_STD template <class _元素, class _Tr, size_t _Bits>
+basic_istream<_元素, _Tr>& operator>>(basic_istream<_元素, _Tr>& _Istr, 位集实现<_Bits>& _Right) {
+    using _输入流类型                    = basic_istream<_元素, _Tr>;
     using _字符类型                     = typename _输入流类型::_字符类型;
     const _字符类型& _Ctype_fac         = _STD use_facet<_字符类型>(_Istr.getloc());
-    const _Elem _Elem0               = _Ctype_fac.widen('0');
-    const _Elem _Elem1               = _Ctype_fac.widen('1');
+    const _元素 _Elem0               = _Ctype_fac.widen('0');
+    const _元素 _Elem1               = _Ctype_fac.widen('1');
     typename _输入流类型::iostate _State = _输入流类型::goodbit;
     size_t _Count                    = 0;
-    _位缓冲<_Elem, _Bits> _Buf;
+    _位缓冲<_元素, _Bits> _Buf;
     const typename _输入流类型::sentry _Ok(_Istr);
 
     if (_Ok) { // valid stream, extract elements
         _TRY_IO_BEGIN
-        _Buf._Allocate();
+        _Buf._分配();
         typename _Tr::int_type _Meta = _Istr.rdbuf()->sgetc();
         for (; _Count < _Bits; ++_Count, _Meta = _Istr.rdbuf()->snextc()) {
             // 测试 _Meta
@@ -646,7 +646,7 @@ basic_istream<_Elem, _Tr>& operator>>(basic_istream<_Elem, _Tr>& _Istr, 位集�
                 break;
             }
 
-            const _Elem _Char = _Tr::to_char_type(_Meta);
+            const _元素 _Char = _Tr::to_char_type(_Meta);
 
             if (!_Tr::eq(_Char, _Elem0) && !_Tr::eq(_Char, _Elem1)) {
                 break; // invalid element

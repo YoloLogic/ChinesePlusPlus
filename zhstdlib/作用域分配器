@@ -19,33 +19,33 @@ _STL_DISABLE_CLANG_WARNINGS
 
 名域 标准 { 名域 细节 {
 使用 名域 std;
-template <class _Alloc, class = void>
+template <class _分配器, class = void>
 struct _作用域最外层助手 { // gets the outermost allocator
-    static decltype(auto) _Fn(_Alloc& _Al) { // gets the outermost allocator
+    static decltype(auto) _Fn(_分配器& _Al) { // gets the outermost allocator
         return _Al;
     }
 };
 
-template <class _Alloc>
-struct _作用域最外层助手<_Alloc,
-    void_t<decltype(_STD declval<_Alloc&>().外层分配器())>> { // gets the outermost allocator
-    using _外层分配器 = decltype(_STD declval<_Alloc&>().外层分配器());
+template <class _分配器>
+struct _作用域最外层助手<_分配器,
+    void_t<decltype(_STD declval<_分配器&>().外层分配器())>> { // gets the outermost allocator
+    using _外层分配器 = decltype(_STD declval<_分配器&>().外层分配器());
 
-    static decltype(auto) _Fn(_Alloc& _Al) { // gets the outermost allocator
+    static decltype(auto) _Fn(_分配器& _Al) { // gets the outermost allocator
         return _作用域最外层助手<_外层分配器>::_Fn(_Al.外层分配器());
     }
 };
 
-template <class _Alloc>
-decltype(auto) _作用域最外层(_Alloc& _Al) { // gets the outermost allocator
-    return _作用域最外层助手<_Alloc>::_Fn(_Al);
+template <class _分配器>
+decltype(auto) _作用域最外层(_分配器& _Al) { // gets the outermost allocator
+    return _作用域最外层助手<_分配器>::_Fn(_Al);
 }
 
-template <class _Alloc>
-using _作用域最外层类型 = remove_reference_t<decltype(_作用域最外层(_STD declval<_Alloc&>()))>;
+template <class _分配器>
+using _作用域最外层类型 = remove_reference_t<decltype(_作用域最外层(_STD declval<_分配器&>()))>;
 
-template <class _Alloc>
-using _作用域最外层特征 = allocator_traits<_作用域最外层类型<_Alloc>>;
+template <class _分配器>
+using _作用域最外层特征 = allocator_traits<_作用域最外层类型<_分配器>>;
 
 _EXPORT_STD template <class _Outer, class... _Inner>
 class 作用域分配器适配器实现;
@@ -225,17 +225,17 @@ public:
         return _外层特征::最大尺寸(外层分配器());
     }
 
-    template <class _Ty, class... _Types>
-    void 构造(_Ty* _Ptr, _Types&&... _Args) { // 构造 with varying allocator styles
+    template <class _类型, class... _Types>
+    void 构造(_类型* _Ptr, _Types&&... _Args) { // 构造 with varying allocator styles
 #if _HAS_CXX20
         _STD apply(
             [_Ptr, this](auto&&... _New_args) {
                 _作用域最外层特征<作用域分配器适配器实现>::构造(
                     _作用域最外层(*this), _Ptr, _STD forward<decltype(_New_args)>(_New_args)...);
             },
-            _STD uses_allocator_construction_args<_Ty>(内层分配器(), _STD forward<_Types>(_Args)...));
+            _STD uses_allocator_construction_args<_类型>(内层分配器(), _STD forward<_Types>(_Args)...));
 #else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
-        if constexpr (_Is_cv_pair<_Ty>) {
+        if constexpr (_Is_cv_pair<_类型>) {
             _Uses_alloc_construct_pair(
                 _Ptr, _作用域最外层(*this), 内层分配器(), _STD forward<_Types>(_Args)...);
         } else {
@@ -245,8 +245,8 @@ public:
 #endif // ^^^ !_HAS_CXX20 ^^^
     }
 
-    template <class _Ty>
-    void 析构(_Ty* _Ptr) { // 析构 object at _Ptr
+    template <class _类型>
+    void 析构(_类型* _Ptr) { // 析构 object at _Ptr
         _作用域最外层特征<作用域分配器适配器实现>::析构(_作用域最外层(*this), _Ptr);
     }
 

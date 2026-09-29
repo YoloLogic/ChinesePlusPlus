@@ -361,6 +361,10 @@ $H = @{
     }
     zhIncludes = @{ 'stop_token' = '停止令牌' }
     members = [ordered]@{
+      '_First' = '_首个';
+      '_Indices' = '_下标集';
+      '_Last' = '_最后';
+      '_Rep' = '_表示';
       '_Get_invoke' = '_取调用'
       '_Get_underlying_id' = '_取底层标识'
       '_Invoke' = '_调用'
@@ -436,6 +440,15 @@ $H = @{
                           # §16.27：自有内部件也要翻（长名、无二义，不是边界）
                           '_Buffer_for_bitset' = '_位缓冲' }
     members = [ordered]@{
+      '_Alloc' = '_分配器';
+      '_Allocate' = '_分配';
+      '_Construct' = '_构造';
+      '_Dest' = '_目标';
+      '_Elem' = '_元素';
+      '_Last' = '_最后';
+
+      '_Result' = '_结果';
+      '_Traits' = '_特征';
       # §17.25 本头**自己定义**的内部助手 -> 翻（译名与既有口径一致，守卫强制）
       '_Flip_unchecked' = '_翻转非检查'
       '_Getword' = '_取字'
@@ -677,6 +690,19 @@ $H = @{
                           #   改名会让 xtree 里的读取点找不到它。中文名欠账，
                           #   消除路径 = 与 树内部件 同步改（通路已开）。
     members = [ordered]@{
+      '_Alloc' = '_分配器';
+      '_First' = '_首个';
+      '_Insert_range_unchecked' = '_插入范围非检查';
+      '_Last' = '_最后';
+      '_Range_key_type' = '_范围键类型';
+      '_Range_mapped_type' = '_范围映射类型';
+      '_Range_to_alloc_type' = '_范围到分配器类型';
+      '_Result' = '_结果';
+      '_Try_emplace' = '_尝试就地构造';
+      '_Try_emplace_hint' = '_按提示尝试就地构造';
+      '_Ty' = '_类型';
+      '_Unchecked_end_iter' = '_非检查结束迭代器';
+      '_Valty' = '_值参数类型';
       '_In_place_key_extract_map' = '_就地键提取映射';
       # §17.27.60 台账收尾（阶段(3) 第一批）：这些名字的定义方是 通用内部件（我们的 xutility 拷贝，
       #   §17.27.52 已给定义方解毒）；本头能看到它 -> 调用点跟改，指向我们那份。
@@ -1455,6 +1481,34 @@ $H = @{
     # vector<bool> 特化也定义在本文件里，同一个 types 改名会一起覆盖 ——
     # 于是 细节::向量实现<bool, 分配器> 自动指到那个特化，派生层不用特殊处理。
     members = [ordered]@{
+      '_Alloc_temporary2' = '_分配器临时对象2';
+      '_Compressed_pair' = '_压缩对';
+      '_Container_proxy' = '_容器代理';
+      '_Dest' = '_目标';
+      '_Elem' = '_元素';
+      '_First' = '_首个';
+      '_Get_first' = '_取第一';
+      '_Get_value' = '_取值';
+      '_Getal' = '_取分配器';
+      '_Last' = '_最后';
+      '_Lock' = '_加锁';
+      '_Max' = '_最大';
+      '_Mysize' = '_我的尺寸';
+      '_One_then_variadic_args_t' = '_先一后变参实参';
+      '_Pocma_values' = '_传播复制移动赋值取值';
+      '_Rebind_alloc_t' = '_重绑定分配器类型';
+      '_Result' = '_结果';
+      '_Simple_types' = '_简单类型集';
+      '_Take_contents' = '_接管内容';
+      '_Tidy' = '_清理';
+      '_Tidy_guard' = '_清理守卫';
+      '_Ty' = '_类型';
+      '_Unchecked_begin' = '_非检查开始';
+      '_Unchecked_end' = '_非检查结束';
+      '_Uses_default_construct' = '_用默认构造';
+      '_Uty' = '_结果类型';
+      '_Valty' = '_值参数类型';
+      '_Zero_then_variadic_args_t' = '_先零后变参实参';
       # §17.27.73 A 桶批量（§17.27.62 工作表）：A 桶 = 唯一定义方归我们 -> 可直接登记；
       #   译名取自已登记条目（跨头译名守卫据此保证一致）。
       '_Make_iter' = '_造迭代器'
@@ -3472,6 +3526,23 @@ $H = @{
     #      报行列号 -> 按字节偏移改回 -> 进 `⚠ 生成器告警台账`）。
     #      每一条改回都是**欠账**，消除路径 = 把 `<字符串视图>` 也抄成我们自己的内部件。
     members = [ordered]@{
+      '_Alloc' = '_分配器';
+      '_Construct' = '_构造';
+      '_Ctype' = '_字符类型';
+      '_Difference_type' = '_差异类型';
+      '_Elem' = '_元素';
+      '_First' = '_首个';
+      '_Get_comparison_category_t' = '_取比较类别类型';
+      '_Last' = '_最后';
+      '_Max' = '_最大';
+      '_Mycont' = '_我的容器';
+      '_Mysize' = '_我的尺寸';
+      '_Op' = '_操作';
+      '_Result' = '_结果';
+      '_Size_type' = '_尺寸类型';
+      '_Traits' = '_特征';
+      '_Ty' = '_类型';
+      '_Uty' = '_结果类型';
       # §17.27.73 A 桶批量（§17.27.62 工作表）：A 桶 = 唯一定义方归我们 -> 可直接登记；
       #   译名取自已登记条目（跨头译名守卫据此保证一致）。
       '_Ubegin' = '_解包首'
@@ -3697,6 +3768,14 @@ $H = @{
     #     它们之所以在 `字符串内部件` 那边是边界，是因为**那边调的是本头的同名成员** ——
     #     等两个头接起来、两边同批翻之后，那三条边界才销账（下一轮）。
     members = [ordered]@{
+      '_Dest' = '_目标';
+      '_Elem' = '_元素';
+      '_First' = '_首个';
+      '_Last' = '_最后';
+      '_Mysize' = '_我的尺寸';
+      '_Prevent_inheriting_unwrap' = '_阻止继承解包';
+      '_Traits' = '_特征';
+      '_Ty' = '_类型';
       # §17.27.60 台账收尾（阶段(3) 第一批）：这些名字的定义方是 通用内部件（我们的 xutility 拷贝，
       #   §17.27.52 已给定义方解毒）；本头能看到它 -> 调用点跟改，指向我们那份。
       '_Myptr' = '_我的指针';
@@ -3861,6 +3940,9 @@ $H = @{
                           '_Secret_scoped_allocator_construct_tag' = '_作用域构造内部标号' }
     # ⚠ 不翻 allocator_traits / rebind / enable_if_t 等 std 的名字
     members = [ordered]@{ 'inner_allocator' = '内层分配器'
+      '_Alloc' = '_分配器';
+      '_Get_rebind_type' = '_取重绑定类型';
+      '_Ty' = '_类型';
                           'outer_allocator' = '外层分配器'
                           'select_on_container_copy_construction' = '复制时选择'
                           'construct' = '构造'; 'destroy' = '析构'
@@ -3892,6 +3974,11 @@ $H = @{
     deriveTypes = @( @('container_type','容器类型') )
     # ⚠ 不翻 uses_allocator / formatter —— 它们是 std 的模板，改名会断
     members = [ordered]@{ 'emplace' = '就地构造'; 'empty' = '为空'; 'pop' = '弹出'
+      '_Alloc' = '_分配器';
+      '_First' = '_首个';
+      '_Last' = '_最后';
+      '_Ty' = '_类型';
+      '_Valty' = '_值参数类型';
                           'push' = '压入'; 'push_range' = '范围压入'
                           'top' = '栈顶'
                           # §16.73 本头**自己定义**的内部助手（`stack::_Get_container`）-> 翻。
@@ -4650,6 +4737,13 @@ $H = @{
     pub     = '字符转换'
     types   = [ordered]@{}
     members = [ordered]@{ 'to_chars' = '数值转字符'; 'from_chars' = '字符转数值'
+      '_Adl_verify_range' = '_ADL校验范围';
+      '_Copy_n_unchecked4' = '_复制N个非检查4';
+      '_Elem' = '_元素';
+      '_First' = '_首个';
+      '_Last' = '_最后';
+      '_Result' = '_结果';
+      '_Traits' = '_特征';
                           '_Floating_from_chars' = '_浮点转数值'
                           '_Floating_to_chars' = '_浮点转字符'
                           '_Floating_to_chars_hex_shortest' = '_浮点转字符十六进制最短'

@@ -25,7 +25,7 @@ _STL_DISABLE_CLANG_WARNINGS
 
 名域 标准 { 名域 细节 {
 使用 名域 std;
-_EXPORT_STD template <class _Ty, class _Container = deque<_Ty>>
+_EXPORT_STD template <class _类型, class _Container = deque<_类型>>
 class 栈实现 {
 public:
     using value_type      = typename _Container::value_type;
@@ -34,8 +34,8 @@ public:
     using size_type       = typename _Container::size_type;
     using 容器类型  = _Container;
 
-    static_assert(is_same_v<_Ty, value_type>, "container adaptors require consistent types");
-    static_assert(is_object_v<_Ty>, "The C++ Standard forbids container adaptors of non-object types "
+    static_assert(is_same_v<_类型, value_type>, "container adaptors require consistent types");
+    static_assert(is_object_v<_类型>, "The C++ Standard forbids container adaptors of non-object types "
                                     "because of [container.requirements].");
 
     栈实现() = default;
@@ -47,42 +47,42 @@ public:
 
 #if _HAS_CXX23
     template <_Iterator_for_container _InIt>
-    栈实现(_InIt _First, _InIt _Last) noexcept(is_nothrow_constructible_v<_Container, _InIt, _InIt>) // strengthened
-        : c(_STD move(_First), _STD move(_Last)) {}
+    栈实现(_InIt _首个, _InIt _最后) noexcept(is_nothrow_constructible_v<_Container, _InIt, _InIt>) // strengthened
+        : c(_STD move(_首个), _STD move(_最后)) {}
 
-    template <_Container_compatible_range<_Ty> _Rng>
+    template <_Container_compatible_range<_类型> _Rng>
     栈实现(from_range_t, _Rng&& _Range) : c(_RANGES to<_Container>(_STD forward<_Rng>(_Range))) {}
 #endif // _HAS_CXX23
 
-    template <class _Alloc, enable_if_t<uses_allocator_v<_Container, _Alloc>, int> = 0>
-    explicit 栈实现(const _Alloc& _Al) noexcept(is_nothrow_constructible_v<_Container, const _Alloc&>) // strengthened
+    template <class _分配器, enable_if_t<uses_allocator_v<_Container, _分配器>, int> = 0>
+    explicit 栈实现(const _分配器& _Al) noexcept(is_nothrow_constructible_v<_Container, const _分配器&>) // strengthened
         : c(_Al) {}
 
-    template <class _Alloc, enable_if_t<uses_allocator_v<_Container, _Alloc>, int> = 0>
-    栈实现(const _Container& _Cont, const _Alloc& _Al) : c(_Cont, _Al) {}
+    template <class _分配器, enable_if_t<uses_allocator_v<_Container, _分配器>, int> = 0>
+    栈实现(const _Container& _Cont, const _分配器& _Al) : c(_Cont, _Al) {}
 
-    template <class _Alloc, enable_if_t<uses_allocator_v<_Container, _Alloc>, int> = 0>
-    栈实现(_Container&& _Cont, const _Alloc& _Al)
-        noexcept(is_nothrow_constructible_v<_Container, _Container, const _Alloc&>) // strengthened
+    template <class _分配器, enable_if_t<uses_allocator_v<_Container, _分配器>, int> = 0>
+    栈实现(_Container&& _Cont, const _分配器& _Al)
+        noexcept(is_nothrow_constructible_v<_Container, _Container, const _分配器&>) // strengthened
         : c(_STD move(_Cont), _Al) {}
 
-    template <class _Alloc, enable_if_t<uses_allocator_v<_Container, _Alloc>, int> = 0>
-    栈实现(const 栈实现& _Right, const _Alloc& _Al) : c(_Right.c, _Al) {}
+    template <class _分配器, enable_if_t<uses_allocator_v<_Container, _分配器>, int> = 0>
+    栈实现(const 栈实现& _Right, const _分配器& _Al) : c(_Right.c, _Al) {}
 
-    template <class _Alloc, enable_if_t<uses_allocator_v<_Container, _Alloc>, int> = 0>
-    栈实现(栈实现&& _Right, const _Alloc& _Al)
-        noexcept(is_nothrow_constructible_v<_Container, _Container, const _Alloc&>) // strengthened
+    template <class _分配器, enable_if_t<uses_allocator_v<_Container, _分配器>, int> = 0>
+    栈实现(栈实现&& _Right, const _分配器& _Al)
+        noexcept(is_nothrow_constructible_v<_Container, _Container, const _分配器&>) // strengthened
         : c(_STD move(_Right.c), _Al) {}
 
 #if _HAS_CXX23
-    template <_Iterator_for_container _InIt, class _Alloc>
-        requires uses_allocator_v<_Container, _Alloc>
-    栈实现(_InIt _First, _InIt _Last, const _Alloc& _Al)
-        noexcept(is_nothrow_constructible_v<_Container, _InIt, _InIt, const _Alloc&>) // strengthened
-        : c(_STD move(_First), _STD move(_Last), _Al) {}
+    template <_Iterator_for_container _InIt, class _分配器>
+        requires uses_allocator_v<_Container, _分配器>
+    栈实现(_InIt _首个, _InIt _最后, const _分配器& _Al)
+        noexcept(is_nothrow_constructible_v<_Container, _InIt, _InIt, const _分配器&>) // strengthened
+        : c(_STD move(_首个), _STD move(_最后), _Al) {}
 
-    template <_Container_compatible_range<_Ty> _Rng, class _Alloc>
-    栈实现(from_range_t, _Rng&& _Range, const _Alloc& _Al)
+    template <_Container_compatible_range<_类型> _Rng, class _分配器>
+    栈实现(from_range_t, _Rng&& _Range, const _分配器& _Al)
         : c(_RANGES to<_Container>(_STD forward<_Rng>(_Range), _Al)) {}
 #endif // _HAS_CXX23
 
@@ -111,7 +111,7 @@ public:
     }
 
 #if _HAS_CXX23
-    template <_Container_compatible_range<_Ty> _Rng>
+    template <_Container_compatible_range<_类型> _Rng>
     void 范围压入(_Rng&& _Range) {
         if constexpr (requires { c.append_range(_STD forward<_Rng>(_Range)); }) {
             c.append_range(_STD forward<_Rng>(_Range));
@@ -121,12 +121,12 @@ public:
     }
 #endif // _HAS_CXX23
 
-    template <class... _Valty>
-    _ADAPTOR_EMPLACE_RETURN 就地构造(_Valty&&... _Val) {
+    template <class... _值参数类型>
+    _ADAPTOR_EMPLACE_RETURN 就地构造(_值参数类型&&... _Val) {
 #if _HAS_CXX17
-        return c.emplace_back(_STD forward<_Valty>(_Val)...);
+        return c.emplace_back(_STD forward<_值参数类型>(_Val)...);
 #else // ^^^ _HAS_CXX17 / !_HAS_CXX17 vvv
-        c.emplace_back(_STD forward<_Valty>(_Val)...);
+        c.emplace_back(_STD forward<_值参数类型>(_Val)...);
 #endif // ^^^ !_HAS_CXX17 ^^^
     }
 
@@ -151,74 +151,74 @@ protected:
 template <class _Container, enable_if_t<!_Is_allocator<_Container>::value, int> = 0>
 栈实现(_Container) -> 栈实现<typename _Container::value_type, _Container>;
 
-template <class _Container, class _Alloc,
-    enable_if_t<conjunction_v<negation<_Is_allocator<_Container>>, uses_allocator<_Container, _Alloc>>, int> = 0>
-栈实现(_Container, _Alloc) -> 栈实现<typename _Container::value_type, _Container>;
+template <class _Container, class _分配器,
+    enable_if_t<conjunction_v<negation<_Is_allocator<_Container>>, uses_allocator<_Container, _分配器>>, int> = 0>
+栈实现(_Container, _分配器) -> 栈实现<typename _Container::value_type, _Container>;
 #endif // _HAS_CXX17
 
 #if _HAS_CXX23
-template <_Iterator_for_container _InIt, _Allocator_for_container _Alloc = allocator<_Iter_value_t<_InIt>>>
-栈实现(_InIt, _InIt, _Alloc = _Alloc()) -> 栈实现<_Iter_value_t<_InIt>, deque<_Iter_value_t<_InIt>, _Alloc>>;
+template <_Iterator_for_container _InIt, _Allocator_for_container _分配器 = allocator<_Iter_value_t<_InIt>>>
+栈实现(_InIt, _InIt, _分配器 = _分配器()) -> 栈实现<_Iter_value_t<_InIt>, deque<_Iter_value_t<_InIt>, _分配器>>;
 
 template <_RANGES input_range _Rng>
 栈实现(from_range_t, _Rng&&) -> 栈实现<_RANGES range_value_t<_Rng>>;
 
-template <_RANGES input_range _Rng, _Allocator_for_container _Alloc>
-栈实现(from_range_t, _Rng&&, _Alloc) -> 栈实现<_RANGES range_value_t<_Rng>, deque<_RANGES range_value_t<_Rng>, _Alloc>>;
+template <_RANGES input_range _Rng, _Allocator_for_container _分配器>
+栈实现(from_range_t, _Rng&&, _分配器) -> 栈实现<_RANGES range_value_t<_Rng>, deque<_RANGES range_value_t<_Rng>, _分配器>>;
 #endif // _HAS_CXX23
 
-_EXPORT_STD template <class _Ty, class _Container>
-_NODISCARD bool operator==(const 栈实现<_Ty, _Container>& _Left, const 栈实现<_Ty, _Container>& _Right) {
+_EXPORT_STD template <class _类型, class _Container>
+_NODISCARD bool operator==(const 栈实现<_类型, _Container>& _Left, const 栈实现<_类型, _Container>& _Right) {
     return _Left._取容器() == _Right._取容器();
 }
 
-_EXPORT_STD template <class _Ty, class _Container>
-_NODISCARD bool operator!=(const 栈实现<_Ty, _Container>& _Left, const 栈实现<_Ty, _Container>& _Right) {
+_EXPORT_STD template <class _类型, class _Container>
+_NODISCARD bool operator!=(const 栈实现<_类型, _Container>& _Left, const 栈实现<_类型, _Container>& _Right) {
     return _Left._取容器() != _Right._取容器();
 }
 
-_EXPORT_STD template <class _Ty, class _Container>
-_NODISCARD bool operator<(const 栈实现<_Ty, _Container>& _Left, const 栈实现<_Ty, _Container>& _Right) {
+_EXPORT_STD template <class _类型, class _Container>
+_NODISCARD bool operator<(const 栈实现<_类型, _Container>& _Left, const 栈实现<_类型, _Container>& _Right) {
     return _Left._取容器() < _Right._取容器();
 }
 
-_EXPORT_STD template <class _Ty, class _Container>
-_NODISCARD bool operator>(const 栈实现<_Ty, _Container>& _Left, const 栈实现<_Ty, _Container>& _Right) {
+_EXPORT_STD template <class _类型, class _Container>
+_NODISCARD bool operator>(const 栈实现<_类型, _Container>& _Left, const 栈实现<_类型, _Container>& _Right) {
     return _Left._取容器() > _Right._取容器();
 }
 
-_EXPORT_STD template <class _Ty, class _Container>
-_NODISCARD bool operator<=(const 栈实现<_Ty, _Container>& _Left, const 栈实现<_Ty, _Container>& _Right) {
+_EXPORT_STD template <class _类型, class _Container>
+_NODISCARD bool operator<=(const 栈实现<_类型, _Container>& _Left, const 栈实现<_类型, _Container>& _Right) {
     return _Left._取容器() <= _Right._取容器();
 }
 
-_EXPORT_STD template <class _Ty, class _Container>
-_NODISCARD bool operator>=(const 栈实现<_Ty, _Container>& _Left, const 栈实现<_Ty, _Container>& _Right) {
+_EXPORT_STD template <class _类型, class _Container>
+_NODISCARD bool operator>=(const 栈实现<_类型, _Container>& _Left, const 栈实现<_类型, _Container>& _Right) {
     return _Left._取容器() >= _Right._取容器();
 }
 
 #if _HAS_CXX20
-_EXPORT_STD template <class _Ty, three_way_comparable _Container>
+_EXPORT_STD template <class _类型, three_way_comparable _Container>
 _NODISCARD compare_three_way_result_t<_Container> operator<=>(
-    const 栈实现<_Ty, _Container>& _Left, const 栈实现<_Ty, _Container>& _Right) {
+    const 栈实现<_类型, _Container>& _Left, const 栈实现<_类型, _Container>& _Right) {
     return _Left._取容器() <=> _Right._取容器();
 }
 #endif // _HAS_CXX20
 
-_EXPORT_STD template <class _Ty, class _Container, enable_if_t<_Is_swappable<_Container>::value, int> = 0>
-void swap(栈实现<_Ty, _Container>& _Left, 栈实现<_Ty, _Container>& _Right) noexcept(noexcept(_Left.swap(_Right))) {
+_EXPORT_STD template <class _类型, class _Container, enable_if_t<_Is_swappable<_Container>::value, int> = 0>
+void swap(栈实现<_类型, _Container>& _Left, 栈实现<_类型, _Container>& _Right) noexcept(noexcept(_Left.swap(_Right))) {
     _Left.swap(_Right);
 }
 
-template <class _Ty, class _Container, class _Alloc>
-struct uses_allocator<栈实现<_Ty, _Container>, _Alloc> : uses_allocator<_Container, _Alloc>::type {};
+template <class _类型, class _Container, class _分配器>
+struct uses_allocator<栈实现<_类型, _Container>, _分配器> : uses_allocator<_Container, _分配器>::type {};
 
 #if _HAS_CXX23
 // Per LWG-3997, `_CharT` in library-provided `formatter` specializations is
 // constrained to character types supported by `format`.
-template <_Format_supported_charT _CharT, class _Ty, formattable<_CharT> _Container>
-struct formatter<栈实现<_Ty, _Container>, _CharT>
-    : _适配器格式化基类<栈实现<_Ty, _Container>, _CharT, _RANGES ref_view> {};
+template <_Format_supported_charT _CharT, class _类型, formattable<_CharT> _Container>
+struct formatter<栈实现<_类型, _Container>, _CharT>
+    : _适配器格式化基类<栈实现<_类型, _Container>, _CharT, _RANGES ref_view> {};
 #endif // _HAS_CXX23
 } }
 

@@ -39,8 +39,8 @@ _STL_INTERNAL_STATIC_ASSERT(_STD size(_Charconv_digits) == 36);
 
 template <class _RawTy>
 _NODISCARD _CONSTEXPR23 to_chars_result _Integer_to_chars(
-    char* _First, char* const _Last, const _RawTy _Raw_value, const int _Base) noexcept {
-    _Adl_verify_range(_First, _Last);
+    char* _首个, char* const _最后, const _RawTy _Raw_value, const int _Base) noexcept {
+    _ADL校验范围(_首个, _最后);
     _STL_ASSERT(_Base >= 2 && _Base <= 36, "invalid base in 数值转字符()");
 
     using _Unsigned = make_unsigned_t<_RawTy>;
@@ -49,11 +49,11 @@ _NODISCARD _CONSTEXPR23 to_chars_result _Integer_to_chars(
 
     if constexpr (is_signed_v<_RawTy>) {
         if (_Raw_value < 0) {
-            if (_First == _Last) {
-                return {_Last, errc::value_too_large};
+            if (_首个 == _最后) {
+                return {_最后, errc::value_too_large};
             }
 
-            *_First++ = '-';
+            *_首个++ = '-';
 
             _Value = static_cast<_Unsigned>(0 - _Value);
         }
@@ -151,61 +151,61 @@ _NODISCARD _CONSTEXPR23 to_chars_result _Integer_to_chars(
 
     const ptrdiff_t _Digits_written = _Buff_end - _RNext;
 
-    if (_Last - _First < _Digits_written) {
-        return {_Last, errc::value_too_large};
+    if (_最后 - _首个 < _Digits_written) {
+        return {_最后, errc::value_too_large};
     }
 
-    _Copy_n_unchecked4(_RNext, _Digits_written, _First);
+    _复制N个非检查4(_RNext, _Digits_written, _首个);
 
-    return {_First + _Digits_written, errc{}};
+    return {_首个 + _Digits_written, errc{}};
 }
 
 _EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(
-    char* const _First, char* const _Last, const char _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_to_chars(_First, _Last, _Value, _Base);
+    char* const _首个, char* const _最后, const char _Value, const int _Base = 10) noexcept /* strengthened */ {
+    return _Integer_to_chars(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(
-    char* const _First, char* const _Last, const signed char _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_to_chars(_First, _Last, _Value, _Base);
+    char* const _首个, char* const _最后, const signed char _Value, const int _Base = 10) noexcept /* strengthened */ {
+    return _Integer_to_chars(_首个, _最后, _Value, _Base);
 }
-_EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(char* const _First, char* const _Last, const unsigned char _Value,
+_EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(char* const _首个, char* const _最后, const unsigned char _Value,
     const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_to_chars(_First, _Last, _Value, _Base);
+    return _Integer_to_chars(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(
-    char* const _First, char* const _Last, const short _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_to_chars(_First, _Last, _Value, _Base);
+    char* const _首个, char* const _最后, const short _Value, const int _Base = 10) noexcept /* strengthened */ {
+    return _Integer_to_chars(_首个, _最后, _Value, _Base);
 }
-_EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(char* const _First, char* const _Last, const unsigned short _Value,
+_EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(char* const _首个, char* const _最后, const unsigned short _Value,
     const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_to_chars(_First, _Last, _Value, _Base);
+    return _Integer_to_chars(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(
-    char* const _First, char* const _Last, const int _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_to_chars(_First, _Last, _Value, _Base);
+    char* const _首个, char* const _最后, const int _Value, const int _Base = 10) noexcept /* strengthened */ {
+    return _Integer_to_chars(_首个, _最后, _Value, _Base);
 }
-_EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(char* const _First, char* const _Last, const unsigned int _Value,
+_EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(char* const _首个, char* const _最后, const unsigned int _Value,
     const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_to_chars(_First, _Last, _Value, _Base);
+    return _Integer_to_chars(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(
-    char* const _First, char* const _Last, const long _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_to_chars(_First, _Last, _Value, _Base);
+    char* const _首个, char* const _最后, const long _Value, const int _Base = 10) noexcept /* strengthened */ {
+    return _Integer_to_chars(_首个, _最后, _Value, _Base);
 }
-_EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(char* const _First, char* const _Last, const unsigned long _Value,
+_EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(char* const _首个, char* const _最后, const unsigned long _Value,
     const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_to_chars(_First, _Last, _Value, _Base);
+    return _Integer_to_chars(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(
-    char* const _First, char* const _Last, const long long _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_to_chars(_First, _Last, _Value, _Base);
+    char* const _首个, char* const _最后, const long long _Value, const int _Base = 10) noexcept /* strengthened */ {
+    return _Integer_to_chars(_首个, _最后, _Value, _Base);
 }
-_EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(char* const _First, char* const _Last,
+_EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(char* const _首个, char* const _最后,
     const unsigned long long _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_to_chars(_First, _Last, _Value, _Base);
+    return _Integer_to_chars(_首个, _最后, _Value, _Base);
 }
 
-_EXPORT_STD to_chars_result 数值转字符(char* _First, char* _Last, bool _Value, int _Base = 10) = delete;
+_EXPORT_STD to_chars_result 数值转字符(char* _首个, char* _最后, bool _Value, int _Base = 10) = delete;
 
 _EXPORT_STD struct from_chars_result {
     const char* ptr;
@@ -238,16 +238,16 @@ _NODISCARD _CONSTEXPR23 unsigned char _Digit_from_char(const char _Ch) noexcept 
 
 template <class _RawTy>
 _NODISCARD _CONSTEXPR23 from_chars_result _Integer_from_chars(
-    const char* const _First, const char* const _Last, _RawTy& _Raw_value, const int _Base) noexcept {
-    _Adl_verify_range(_First, _Last);
+    const char* const _首个, const char* const _最后, _RawTy& _Raw_value, const int _Base) noexcept {
+    _ADL校验范围(_首个, _最后);
     _STL_ASSERT(_Base >= 2 && _Base <= 36, "invalid base in 字符转数值()");
 
     bool _Minus_sign = false;
 
-    const char* _Next = _First;
+    const char* _Next = _首个;
 
     if constexpr (is_signed_v<_RawTy>) {
-        if (_Next != _Last && *_Next == '-') {
+        if (_Next != _最后 && *_Next == '-') {
             _Minus_sign = true;
             ++_Next;
         }
@@ -282,7 +282,7 @@ _NODISCARD _CONSTEXPR23 from_chars_result _Integer_from_chars(
 
     bool _Overflowed = false;
 
-    for (; _Next != _Last; ++_Next) {
+    for (; _Next != _最后; ++_Next) {
         const unsigned char _Digit = _Digit_from_char(*_Next);
 
         if (_Digit >= _Base) {
@@ -297,8 +297,8 @@ _NODISCARD _CONSTEXPR23 from_chars_result _Integer_from_chars(
         }
     }
 
-    if (_Next - _First == static_cast<ptrdiff_t>(_Minus_sign)) {
-        return {_First, errc::invalid_argument};
+    if (_Next - _首个 == static_cast<ptrdiff_t>(_Minus_sign)) {
+        return {_首个, errc::invalid_argument};
     }
 
     if (_Overflowed) {
@@ -317,48 +317,48 @@ _NODISCARD _CONSTEXPR23 from_chars_result _Integer_from_chars(
 }
 
 _EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(
-    const char* const _First, const char* const _Last, char& _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_from_chars(_First, _Last, _Value, _Base);
+    const char* const _首个, const char* const _最后, char& _Value, const int _Base = 10) noexcept /* strengthened */ {
+    return _Integer_from_chars(_首个, _最后, _Value, _Base);
 }
-_EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(const char* const _First, const char* const _Last,
+_EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(const char* const _首个, const char* const _最后,
     signed char& _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_from_chars(_First, _Last, _Value, _Base);
+    return _Integer_from_chars(_首个, _最后, _Value, _Base);
 }
-_EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(const char* const _First, const char* const _Last,
+_EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(const char* const _首个, const char* const _最后,
     unsigned char& _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_from_chars(_First, _Last, _Value, _Base);
+    return _Integer_from_chars(_首个, _最后, _Value, _Base);
 }
-_EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(const char* const _First, const char* const _Last, short& _Value,
+_EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(const char* const _首个, const char* const _最后, short& _Value,
     const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_from_chars(_First, _Last, _Value, _Base);
+    return _Integer_from_chars(_首个, _最后, _Value, _Base);
 }
-_EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(const char* const _First, const char* const _Last,
+_EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(const char* const _首个, const char* const _最后,
     unsigned short& _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_from_chars(_First, _Last, _Value, _Base);
+    return _Integer_from_chars(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(
-    const char* const _First, const char* const _Last, int& _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_from_chars(_First, _Last, _Value, _Base);
+    const char* const _首个, const char* const _最后, int& _Value, const int _Base = 10) noexcept /* strengthened */ {
+    return _Integer_from_chars(_首个, _最后, _Value, _Base);
 }
-_EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(const char* const _First, const char* const _Last,
+_EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(const char* const _首个, const char* const _最后,
     unsigned int& _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_from_chars(_First, _Last, _Value, _Base);
+    return _Integer_from_chars(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(
-    const char* const _First, const char* const _Last, long& _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_from_chars(_First, _Last, _Value, _Base);
+    const char* const _首个, const char* const _最后, long& _Value, const int _Base = 10) noexcept /* strengthened */ {
+    return _Integer_from_chars(_首个, _最后, _Value, _Base);
 }
-_EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(const char* const _First, const char* const _Last,
+_EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(const char* const _首个, const char* const _最后,
     unsigned long& _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_from_chars(_First, _Last, _Value, _Base);
+    return _Integer_from_chars(_首个, _最后, _Value, _Base);
 }
-_EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(const char* const _First, const char* const _Last,
+_EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(const char* const _首个, const char* const _最后,
     long long& _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_from_chars(_First, _Last, _Value, _Base);
+    return _Integer_from_chars(_首个, _最后, _Value, _Base);
 }
-_EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(const char* const _First, const char* const _Last,
+_EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(const char* const _首个, const char* const _最后,
     unsigned long long& _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_from_chars(_First, _Last, _Value, _Base);
+    return _Integer_from_chars(_首个, _最后, _Value, _Base);
 }
 
 // vvvvvvvvvv DERIVED FROM corecrt_internal_big_integer.h vvvvvvvvvv
@@ -543,9 +543,9 @@ _NODISCARD inline bool _Add(_Big_integer_flt& _Xval, const uint32_t _Value) noex
 
     uint32_t _Carry = _Value;
     for (uint32_t _Ix = 0; _Ix != _Xval._Myused; ++_Ix) {
-        const uint64_t _Result = static_cast<uint64_t>(_Xval._Mydata[_Ix]) + _Carry;
-        _Xval._Mydata[_Ix]     = static_cast<uint32_t>(_Result);
-        _Carry                 = static_cast<uint32_t>(_Result >> 32);
+        const uint64_t _结果 = static_cast<uint64_t>(_Xval._Mydata[_Ix]) + _Carry;
+        _Xval._Mydata[_Ix]     = static_cast<uint32_t>(_结果);
+        _Carry                 = static_cast<uint32_t>(_结果 >> 32);
     }
 
     if (_Carry != 0) {
@@ -578,9 +578,9 @@ _NODISCARD inline uint32_t _Multiply_core(
     uint32_t* const _Multiplicand, const uint32_t _Multiplicand_count, const uint32_t _Multiplier) noexcept {
     uint32_t _Carry = 0;
     for (uint32_t _Ix = 0; _Ix != _Multiplicand_count; ++_Ix) {
-        const uint64_t _Result = static_cast<uint64_t>(_Multiplicand[_Ix]) * _Multiplier + _Carry;
-        _Multiplicand[_Ix]     = static_cast<uint32_t>(_Result);
-        _Carry                 = static_cast<uint32_t>(_Result >> 32);
+        const uint64_t _结果 = static_cast<uint64_t>(_Multiplicand[_Ix]) * _Multiplier + _Carry;
+        _Multiplicand[_Ix]     = static_cast<uint32_t>(_结果);
+        _Carry                 = static_cast<uint32_t>(_结果 >> 32);
     }
 
     return _Carry;
@@ -648,13 +648,13 @@ _NODISCARD inline bool _Multiply(_Big_integer_flt& _Multiplicand, const _Big_int
     const uint32_t _Cu1 = _Multiplier_is_shorter ? _Multiplier._Myused : _Multiplicand._Myused;
     const uint32_t _Cu2 = _Multiplier_is_shorter ? _Multiplicand._Myused : _Multiplier._Myused;
 
-    _Big_integer_flt _Result{};
+    _Big_integer_flt _结果{};
     for (uint32_t _Iu1 = 0; _Iu1 != _Cu1; ++_Iu1) {
         const uint32_t _U_cur = _Rgu1[_Iu1];
         if (_U_cur == 0) {
-            if (_Iu1 == _Result._Myused) {
-                _Result._Mydata[_Iu1] = 0;
-                _Result._Myused       = _Iu1 + 1;
+            if (_Iu1 == _结果._Myused) {
+                _结果._Mydata[_Iu1] = 0;
+                _结果._Myused       = _Iu1 + 1;
             }
 
             continue;
@@ -663,21 +663,21 @@ _NODISCARD inline bool _Multiply(_Big_integer_flt& _Multiplicand, const _Big_int
         uint32_t _U_carry = 0;
         uint32_t _Iu_res  = _Iu1;
         for (uint32_t _Iu2 = 0; _Iu2 != _Cu2 && _Iu_res != _Big_integer_flt::_Element_count; ++_Iu2, ++_Iu_res) {
-            if (_Iu_res == _Result._Myused) {
-                _Result._Mydata[_Iu_res] = 0;
-                _Result._Myused          = _Iu_res + 1;
+            if (_Iu_res == _结果._Myused) {
+                _结果._Mydata[_Iu_res] = 0;
+                _结果._Myused          = _Iu_res + 1;
             }
 
-            _U_carry = _Add_multiply_carry(_Result._Mydata[_Iu_res], _U_cur, _Rgu2[_Iu2], _U_carry);
+            _U_carry = _Add_multiply_carry(_结果._Mydata[_Iu_res], _U_cur, _Rgu2[_Iu2], _U_carry);
         }
 
         while (_U_carry != 0 && _Iu_res != _Big_integer_flt::_Element_count) {
-            if (_Iu_res == _Result._Myused) {
-                _Result._Mydata[_Iu_res] = 0;
-                _Result._Myused          = _Iu_res + 1;
+            if (_Iu_res == _结果._Myused) {
+                _结果._Mydata[_Iu_res] = 0;
+                _结果._Myused          = _Iu_res + 1;
             }
 
-            _U_carry = _Add_carry(_Result._Mydata[_Iu_res++], 0, _U_carry);
+            _U_carry = _Add_carry(_结果._Mydata[_Iu_res++], 0, _U_carry);
         }
 
         if (_Iu_res == _Big_integer_flt::_Element_count) {
@@ -686,8 +686,8 @@ _NODISCARD inline bool _Multiply(_Big_integer_flt& _Multiplicand, const _Big_int
         }
     }
 
-    // Store the _Result in the _Multiplicand and compute the actual number of elements used:
-    _Multiplicand = _Result;
+    // Store the _结果 in the _Multiplicand and compute the actual number of elements used:
+    _Multiplicand = _结果;
     return true;
 }
 
@@ -975,21 +975,21 @@ struct _Floating_point_string {
     uint8_t _Mymantissa[768];
 };
 
-// Stores a positive or negative zero into the _Result object
+// Stores a positive or negative zero into the _结果 object
 template <class _FloatingType>
-void _Assemble_floating_point_zero(const bool _Is_negative, _FloatingType& _Result) noexcept {
+void _Assemble_floating_point_zero(const bool _Is_negative, _FloatingType& _结果) noexcept {
     using _Floating_traits = _Floating_type_traits<_FloatingType>;
     using _Uint_type       = typename _Floating_traits::_Uint_type;
 
     _Uint_type _Sign_component = _Is_negative;
     _Sign_component <<= _Floating_traits::_Sign_shift;
 
-    _Result = _Bit_cast<_FloatingType>(_Sign_component);
+    _结果 = _Bit_cast<_FloatingType>(_Sign_component);
 }
 
-// Stores a positive or negative infinity into the _Result object
+// Stores a positive or negative infinity into the _结果 object
 template <class _FloatingType>
-void _Assemble_floating_point_infinity(const bool _Is_negative, _FloatingType& _Result) noexcept {
+void _Assemble_floating_point_infinity(const bool _Is_negative, _FloatingType& _结果) noexcept {
     using _Floating_traits = _Floating_type_traits<_FloatingType>;
     using _Uint_type       = typename _Floating_traits::_Uint_type;
 
@@ -998,7 +998,7 @@ void _Assemble_floating_point_infinity(const bool _Is_negative, _FloatingType& _
 
     constexpr _Uint_type _Exponent_component = _Floating_traits::_Shifted_exponent_mask;
 
-    _Result = _Bit_cast<_FloatingType>(_Sign_component | _Exponent_component);
+    _结果 = _Bit_cast<_FloatingType>(_Sign_component | _Exponent_component);
 }
 
 // Determines whether a mantissa should be rounded up according to round_to_nearest given [1] the value of the least
@@ -1093,18 +1093,18 @@ _NODISCARD inline uint64_t _Right_shift_with_rounding(
 }
 
 // Converts the floating-point value [sign] (mantissa / 2^(precision-1)) * 2^exponent into the correct form for
-// _FloatingType and stores the result into the _Result object.
+// _FloatingType and stores the result into the _结果 object.
 // The caller must ensure that the mantissa and exponent are correctly computed such that either:
 // [1] min_exponent <= exponent <= max_exponent && 2^(precision-1) <= mantissa <= 2^precision, or
 // [2] exponent == min_exponent && 0 < mantissa <= 2^(precision-1).
 // (The caller should round the mantissa before calling this function. The caller doesn't need to renormalize the
 // mantissa when the mantissa carries over to a higher bit after rounding up.)
 
-// This function correctly handles overflow and stores an infinity in the _Result object.
+// This function correctly handles overflow and stores an infinity in the _结果 object.
 // (The result overflows if and only if exponent == max_exponent && mantissa == 2^precision)
 template <class _FloatingType>
 void _Assemble_floating_point_value_no_shift(const bool _Is_negative, const int32_t _Exponent,
-    const typename _Floating_type_traits<_FloatingType>::_Uint_type _Mantissa, _FloatingType& _Result) noexcept {
+    const typename _Floating_type_traits<_FloatingType>::_Uint_type _Mantissa, _FloatingType& _结果) noexcept {
     // The following code assembles floating-point values based on an alternative interpretation of the IEEE 754 binary
     // floating-point format. It is valid for all of the following cases:
     // [1] normal value,
@@ -1131,37 +1131,37 @@ void _Assemble_floating_point_value_no_shift(const bool _Is_negative, const int3
     _Uint_type _Exponent_component = static_cast<uint32_t>(_Exponent + (_Floating_traits::_Exponent_bias - 1));
     _Exponent_component <<= _Floating_traits::_Exponent_shift;
 
-    _Result = _Bit_cast<_FloatingType>(_Sign_component | (_Exponent_component + _Mantissa));
+    _结果 = _Bit_cast<_FloatingType>(_Sign_component | (_Exponent_component + _Mantissa));
 }
 
 // Converts the floating-point value [sign] (mantissa / 2^(precision-1)) * 2^exponent into the correct form for
-// _FloatingType and stores the result into the _Result object. The caller must ensure that the mantissa and exponent
+// _FloatingType and stores the result into the _结果 object. The caller must ensure that the mantissa and exponent
 // are correctly computed such that either [1] the most significant bit of the mantissa is in the correct position for
 // the _FloatingType, or [2] the exponent has been correctly adjusted to account for the shift of the mantissa that will
 // be required.
 
-// This function correctly handles range errors and stores a zero or infinity in the _Result object
+// This function correctly handles range errors and stores a zero or infinity in the _结果 object
 // on underflow and overflow errors, respectively. This function correctly forms denormal numbers when required.
 
-// If the provided mantissa has more bits of precision than can be stored in the _Result object, the mantissa is
+// If the provided mantissa has more bits of precision than can be stored in the _结果 object, the mantissa is
 // rounded to the available precision. Thus, if possible, the caller should provide a mantissa with at least one
 // more bit of precision than is required, to ensure that the mantissa is correctly rounded.
 // (The caller should not round the mantissa before calling this function.)
 template <class _FloatingType>
 _NODISCARD errc _Assemble_floating_point_value(const uint64_t _Initial_mantissa, const int32_t _Initial_exponent,
-    const bool _Is_negative, const bool _Has_zero_tail, _FloatingType& _Result) noexcept {
-    using _Traits = _Floating_type_traits<_FloatingType>;
+    const bool _Is_negative, const bool _Has_zero_tail, _FloatingType& _结果) noexcept {
+    using _特征 = _Floating_type_traits<_FloatingType>;
 
     // Assume that the number is representable as a normal value.
     // Compute the number of bits by which we must adjust the mantissa to shift it into the correct position,
     // and compute the resulting base two exponent for the normalized mantissa:
     const uint32_t _Initial_mantissa_bits = _Bit_scan_reverse(_Initial_mantissa);
-    const int32_t _Normal_mantissa_shift  = static_cast<int32_t>(_Traits::_Mantissa_bits - _Initial_mantissa_bits);
+    const int32_t _Normal_mantissa_shift  = static_cast<int32_t>(_特征::_Mantissa_bits - _Initial_mantissa_bits);
     const int32_t _Normal_exponent        = _Initial_exponent - _Normal_mantissa_shift;
 
-    if (_Normal_exponent > _Traits::_Maximum_binary_exponent) {
+    if (_Normal_exponent > _特征::_Maximum_binary_exponent) {
         // The exponent is too large to be represented by the floating-point type; report the overflow condition:
-        _Assemble_floating_point_infinity(_Is_negative, _Result);
+        _Assemble_floating_point_infinity(_Is_negative, _结果);
         return errc::result_out_of_range; // Overflow example: "1e+1000"
     }
 
@@ -1169,13 +1169,13 @@ _NODISCARD errc _Assemble_floating_point_value(const uint64_t _Initial_mantissa,
     int32_t _Exponent  = _Normal_exponent;
     errc _Error_code{};
 
-    if (_Normal_exponent < _Traits::_Minimum_binary_exponent) {
+    if (_Normal_exponent < _特征::_Minimum_binary_exponent) {
         // The exponent is too small to be represented by the floating-point type as a normal value, but it may be
         // representable as a denormal value.
 
         // The exponent of subnormal values (as defined by the mathematical model of floating-point numbers, not the
         // exponent field in the bit representation) is equal to the minimum exponent of normal values.
-        _Exponent = _Traits::_Minimum_binary_exponent;
+        _Exponent = _特征::_Minimum_binary_exponent;
 
         // Compute the number of bits by which we need to shift the mantissa in order to form a denormal number.
         const int32_t _Denormal_mantissa_shift = _Initial_exponent - _Exponent;
@@ -1216,7 +1216,7 @@ _NODISCARD errc _Assemble_floating_point_value(const uint64_t _Initial_mantissa,
 
             // The increment of the exponent may have generated a value too large to be represented.
             // In this case, report the overflow:
-            if (_Mantissa > _Traits::_Normal_mantissa_mask && _Exponent == _Traits::_Maximum_binary_exponent) {
+            if (_Mantissa > _特征::_Normal_mantissa_mask && _Exponent == _特征::_Maximum_binary_exponent) {
                 _Error_code = errc::result_out_of_range; // Overflow example: "1.ffffffp+127" for float
                                                          // Overflow example: "1.fffffffffffff8p+1023" for double
             }
@@ -1226,24 +1226,24 @@ _NODISCARD errc _Assemble_floating_point_value(const uint64_t _Initial_mantissa,
     }
 
     // Assemble the floating-point value from the computed components:
-    using _Uint_type = typename _Traits::_Uint_type;
+    using _Uint_type = typename _特征::_Uint_type;
 
-    _Assemble_floating_point_value_no_shift(_Is_negative, _Exponent, static_cast<_Uint_type>(_Mantissa), _Result);
+    _Assemble_floating_point_value_no_shift(_Is_negative, _Exponent, static_cast<_Uint_type>(_Mantissa), _结果);
 
     return _Error_code;
 }
 
 // This function is part of the fast track for integer floating-point strings. It takes an integer and a sign and
-// converts the value into its _FloatingType representation, storing the result in the _Result object. If the value
+// converts the value into its _FloatingType representation, storing the result in the _结果 object. If the value
 // is not representable, +/-infinity is stored and overflow is reported (since this function deals with only integers,
 // underflow is impossible).
 template <class _FloatingType>
 _NODISCARD errc _Assemble_floating_point_value_from_big_integer_flt(const _Big_integer_flt& _Integer_value,
     const uint32_t _Integer_bits_of_precision, const bool _Is_negative, const bool _Has_nonzero_fractional_part,
-    _FloatingType& _Result) noexcept {
-    using _Traits = _Floating_type_traits<_FloatingType>;
+    _FloatingType& _结果) noexcept {
+    using _特征 = _Floating_type_traits<_FloatingType>;
 
-    constexpr int32_t _Base_exponent = _Traits::_Mantissa_bits - 1;
+    constexpr int32_t _Base_exponent = _特征::_Mantissa_bits - 1;
 
     // Very fast case: If we have 64 bits of precision or fewer,
     // we can just take the two low order elements from the _Big_integer_flt:
@@ -1255,7 +1255,7 @@ _NODISCARD errc _Assemble_floating_point_value_from_big_integer_flt(const _Big_i
         const uint64_t _Mantissa      = _Mantissa_low + (static_cast<uint64_t>(_Mantissa_high) << 32);
 
         return _Assemble_floating_point_value(
-            _Mantissa, _Exponent, _Is_negative, !_Has_nonzero_fractional_part, _Result);
+            _Mantissa, _Exponent, _Is_negative, !_Has_nonzero_fractional_part, _结果);
     }
 
     const uint32_t _Top_element_bits  = _Integer_bits_of_precision % 32;
@@ -1276,7 +1276,7 @@ _NODISCARD errc _Assemble_floating_point_value_from_big_integer_flt(const _Big_i
             _Has_zero_tail = _Integer_value._Mydata[_Ix] == 0;
         }
 
-        return _Assemble_floating_point_value(_Mantissa, _Exponent, _Is_negative, _Has_zero_tail, _Result);
+        return _Assemble_floating_point_value(_Mantissa, _Exponent, _Is_negative, _Has_zero_tail, _结果);
     }
 
     // Not quite so fast case: The top 64 bits span three elements in the _Big_integer_flt. Assemble the three pieces:
@@ -1304,22 +1304,22 @@ _NODISCARD errc _Assemble_floating_point_value_from_big_integer_flt(const _Big_i
         _Has_zero_tail = _Integer_value._Mydata[_Ix] == 0;
     }
 
-    return _Assemble_floating_point_value(_Mantissa, _Exponent, _Is_negative, _Has_zero_tail, _Result);
+    return _Assemble_floating_point_value(_Mantissa, _Exponent, _Is_negative, _Has_zero_tail, _结果);
 }
 
-// Accumulates the decimal digits in [_First_digit, _Last_digit) into the _Result high-precision integer.
+// Accumulates the decimal digits in [_First_digit, _Last_digit) into the _结果 high-precision integer.
 // This function assumes that no overflow will occur.
 inline void _Accumulate_decimal_digits_into_big_integer_flt(
-    const uint8_t* const _First_digit, const uint8_t* const _Last_digit, _Big_integer_flt& _Result) noexcept {
+    const uint8_t* const _First_digit, const uint8_t* const _Last_digit, _Big_integer_flt& _结果) noexcept {
     // We accumulate nine digit chunks, transforming the base ten string into base one billion on the fly,
     // allowing us to reduce the number of high-precision multiplication and addition operations by 8/9.
     uint32_t _Accumulator       = 0;
     uint32_t _Accumulator_count = 0;
     for (const uint8_t* _It = _First_digit; _It != _Last_digit; ++_It) {
         if (_Accumulator_count == 9) {
-            [[maybe_unused]] const bool _Success1 = _Multiply(_Result, 1'000'000'000); // assumes no overflow
+            [[maybe_unused]] const bool _Success1 = _Multiply(_结果, 1'000'000'000); // assumes no overflow
             _STL_INTERNAL_CHECK(_Success1);
-            [[maybe_unused]] const bool _Success2 = _Add(_Result, _Accumulator); // assumes no overflow
+            [[maybe_unused]] const bool _Success2 = _Add(_结果, _Accumulator); // assumes no overflow
             _STL_INTERNAL_CHECK(_Success2);
 
             _Accumulator       = 0;
@@ -1333,9 +1333,9 @@ inline void _Accumulate_decimal_digits_into_big_integer_flt(
 
     if (_Accumulator_count != 0) {
         [[maybe_unused]] const bool _Success3 =
-            _Multiply_by_power_of_ten(_Result, _Accumulator_count); // assumes no overflow
+            _Multiply_by_power_of_ten(_结果, _Accumulator_count); // assumes no overflow
         _STL_INTERNAL_CHECK(_Success3);
-        [[maybe_unused]] const bool _Success4 = _Add(_Result, _Accumulator); // assumes no overflow
+        [[maybe_unused]] const bool _Success4 = _Add(_结果, _Accumulator); // assumes no overflow
         _STL_INTERNAL_CHECK(_Success4);
     }
 }
@@ -1345,13 +1345,13 @@ inline void _Accumulate_decimal_digits_into_big_integer_flt(
 // the object is passed to this function. This function converts the decimal real value to floating-point.
 template <class _FloatingType>
 _NODISCARD errc _十进制串转浮点类型(
-    const _Floating_point_string& _Data, _FloatingType& _Result, bool _Has_zero_tail) noexcept {
-    using _Traits = _Floating_type_traits<_FloatingType>;
+    const _Floating_point_string& _Data, _FloatingType& _结果, bool _Has_zero_tail) noexcept {
+    using _特征 = _Floating_type_traits<_FloatingType>;
 
     // To generate an N bit mantissa we require N + 1 bits of precision. The extra bit is used to correctly round
     // the mantissa (if there are fewer bits than this available, then that's totally okay;
     // in that case we use what we have and we don't need to round).
-    constexpr uint32_t _Required_bits_of_precision = static_cast<uint32_t>(_Traits::_Mantissa_bits + 1);
+    constexpr uint32_t _Required_bits_of_precision = static_cast<uint32_t>(_特征::_Mantissa_bits + 1);
 
     // The input is of the form 0.mantissa * 10^exponent, where 'mantissa' are the decimal digits of the mantissa
     // and 'exponent' is the decimal exponent. We decompose the mantissa into two parts: an integer part and a
@@ -1374,7 +1374,7 @@ _NODISCARD errc _十进制串转浮点类型(
 
     if (_Integer_digits_missing > 0) {
         if (!_Multiply_by_power_of_ten(_Integer_value, _Integer_digits_missing)) {
-            _Assemble_floating_point_infinity(_Data._Myis_negative, _Result);
+            _Assemble_floating_point_infinity(_Data._Myis_negative, _结果);
             return errc::result_out_of_range; // Overflow example: "1e+2000"
         }
     }
@@ -1388,7 +1388,7 @@ _NODISCARD errc _十进制串转浮点类型(
 
         if (_Integer_bits_of_precision >= _Required_bits_of_precision || _Has_zero_fractional_part) {
             return _Assemble_floating_point_value_from_big_integer_flt(
-                _Integer_value, _Integer_bits_of_precision, _Data._Myis_negative, !_Has_zero_fractional_part, _Result);
+                _Integer_value, _Integer_bits_of_precision, _Data._Myis_negative, !_Has_zero_fractional_part, _结果);
         }
     }
 
@@ -1408,7 +1408,7 @@ _NODISCARD errc _十进制串转浮点类型(
     if (!_Multiply_by_power_of_ten(_Fractional_denominator, _Fractional_denominator_exponent)) {
         // If there were any digits in the integer part, it is impossible to underflow (because the exponent
         // cannot possibly be small enough), so if we underflow here it is a true underflow and we return zero.
-        _Assemble_floating_point_zero(_Data._Myis_negative, _Result);
+        _Assemble_floating_point_zero(_Data._Myis_negative, _结果);
         return errc::result_out_of_range; // Underflow example: "1e-2000"
     }
 
@@ -1444,7 +1444,7 @@ _NODISCARD errc _十进制串转浮点类型(
         // Thus, we need to do the division to correctly round the result.
         if (_Fractional_shift > _Remaining_bits_of_precision_required) {
             return _Assemble_floating_point_value_from_big_integer_flt(_Integer_value, _Integer_bits_of_precision,
-                _Data._Myis_negative, _Fractional_digits_present != 0 || !_Has_zero_tail, _Result);
+                _Data._Myis_negative, _Fractional_digits_present != 0 || !_Has_zero_tail, _结果);
         }
 
         _Remaining_bits_of_precision_required -= _Fractional_shift;
@@ -1492,21 +1492,21 @@ _NODISCARD errc _十进制串转浮点类型(
                                       : -static_cast<int32_t>(_Fractional_exponent) - 1;
 
     return _Assemble_floating_point_value(
-        _Complete_mantissa, _Final_exponent, _Data._Myis_negative, _Has_zero_tail, _Result);
+        _Complete_mantissa, _Final_exponent, _Data._Myis_negative, _Has_zero_tail, _结果);
 }
 
 template <class _FloatingType>
 _NODISCARD errc _十六进制串转浮点类型(
-    const _Floating_point_string& _Data, _FloatingType& _Result, bool _Has_zero_tail) noexcept {
-    using _Traits = _Floating_type_traits<_FloatingType>;
+    const _Floating_point_string& _Data, _FloatingType& _结果, bool _Has_zero_tail) noexcept {
+    using _特征 = _Floating_type_traits<_FloatingType>;
 
     uint64_t _Mantissa = 0;
-    int32_t _Exponent  = _Data._Myexponent + _Traits::_Mantissa_bits - 1;
+    int32_t _Exponent  = _Data._Myexponent + _特征::_Mantissa_bits - 1;
 
     // Accumulate bits into the mantissa buffer
     const uint8_t* const _Mantissa_last = _Data._Mymantissa + _Data._Mymantissa_count;
     const uint8_t* _Mantissa_it         = _Data._Mymantissa;
-    while (_Mantissa_it != _Mantissa_last && _Mantissa <= _Traits::_Normal_mantissa_mask) {
+    while (_Mantissa_it != _Mantissa_last && _Mantissa <= _特征::_Normal_mantissa_mask) {
         _Mantissa *= 16;
         _Mantissa += *_Mantissa_it++;
         _Exponent -= 4; // The exponent is in binary; log2(16) == 4
@@ -1516,7 +1516,7 @@ _NODISCARD errc _十六进制串转浮点类型(
         _Has_zero_tail = *_Mantissa_it++ == 0;
     }
 
-    return _Assemble_floating_point_value(_Mantissa, _Exponent, _Data._Myis_negative, _Has_zero_tail, _Result);
+    return _Assemble_floating_point_value(_Mantissa, _Exponent, _Data._Myis_negative, _Has_zero_tail, _结果);
 }
 
 // ^^^^^^^^^^ DERIVED FROM corecrt_internal_strtox.h ^^^^^^^^^^
@@ -1569,7 +1569,7 @@ _NODISCARD errc _十六进制串转浮点类型(
 //     P sign[opt] digit-sequence
 
 template <class _Floating>
-_NODISCARD from_chars_result _常规浮点转数值(const char* const _First, const char* const _Last,
+_NODISCARD from_chars_result _常规浮点转数值(const char* const _首个, const char* const _最后,
     _Floating& _Value, const chars_format _Fmt, const bool _Minus_sign, const char* _Next) noexcept {
     // vvvvvvvvvv DERIVED FROM corecrt_internal_strtox.h WITH SIGNIFICANT MODIFICATIONS vvvvvvvvvv
 
@@ -1591,14 +1591,14 @@ _NODISCARD from_chars_result _常规浮点转数值(const char* const _First, co
     const char* const _Whole_begin = _Next;
 
     // Skip past any leading zeroes in the mantissa:
-    for (; _Next != _Last && *_Next == '0'; ++_Next) {
+    for (; _Next != _最后 && *_Next == '0'; ++_Next) {
     }
     const char* const _Leading_zero_end = _Next;
 
     bool _Has_zero_tail = true;
 
     // Scan the integer part of the mantissa:
-    for (; _Next != _Last; ++_Next) {
+    for (; _Next != _最后; ++_Next) {
         const unsigned char _Digit_value = _Digit_from_char(*_Next);
 
         if (_Digit_value >= _Base) {
@@ -1621,7 +1621,7 @@ _NODISCARD from_chars_result _常规浮点转数值(const char* const _First, co
     ptrdiff_t _Exponent_adjustment = _Whole_end - _Leading_zero_end;
 
     // [_Whole_end, _Dot_end) will contain 0 or 1 '.' characters
-    if (_Next != _Last && *_Next == '.') {
+    if (_Next != _最后 && *_Next == '.') {
         ++_Next;
     }
     const char* const _Dot_end = _Next;
@@ -1631,14 +1631,14 @@ _NODISCARD from_chars_result _常规浮点转数值(const char* const _First, co
     // If we haven't yet scanned any nonzero digits, continue skipping over zeroes,
     // updating the exponent adjustment to account for the zeroes we are skipping:
     if (_Exponent_adjustment == 0) {
-        for (; _Next != _Last && *_Next == '0'; ++_Next) {
+        for (; _Next != _最后 && *_Next == '0'; ++_Next) {
         }
 
         _Exponent_adjustment = _Dot_end - _Next;
     }
 
     // Scan the fractional part of the mantissa:
-    for (; _Next != _Last; ++_Next) {
+    for (; _Next != _最后; ++_Next) {
         const unsigned char _Digit_value = _Digit_from_char(*_Next);
 
         if (_Digit_value >= _Base) {
@@ -1655,7 +1655,7 @@ _NODISCARD from_chars_result _常规浮点转数值(const char* const _First, co
 
     // We must have at least 1 digit/hexit
     if (_Whole_begin == _Whole_end && _Dot_end == _Frac_end) {
-        return {_First, errc::invalid_argument};
+        return {_首个, errc::invalid_argument};
     }
 
     const char _Exponent_prefix{_Is_hexadecimal ? 'p' : 'e'};
@@ -1670,15 +1670,15 @@ _NODISCARD from_chars_result _常规浮点转数值(const char* const _First, co
     if (_Fmt != chars_format::fixed // N4950 [charconv.from.chars]/6.3
                                     // "if fmt has chars_format::fixed set but not chars_format::scientific,
                                     // the optional exponent part shall not appear"
-        && _Next != _Last && (static_cast<unsigned char>(*_Next) | 0x20) == _Exponent_prefix) { // found exponent prefix
+        && _Next != _最后 && (static_cast<unsigned char>(*_Next) | 0x20) == _Exponent_prefix) { // found exponent prefix
         const char* _Unread = _Next + 1;
 
-        if (_Unread != _Last && (*_Unread == '+' || *_Unread == '-')) { // found optional sign
+        if (_Unread != _最后 && (*_Unread == '+' || *_Unread == '-')) { // found optional sign
             _Exponent_is_negative = *_Unread == '-';
             ++_Unread;
         }
 
-        while (_Unread != _Last) {
+        while (_Unread != _最后) {
             const unsigned char _Digit_value = _Digit_from_char(*_Unread);
 
             if (_Digit_value >= 10) {
@@ -1709,7 +1709,7 @@ _NODISCARD from_chars_result _常规浮点转数值(const char* const _First, co
         && _Frac_end == _Exponent_end) { // N4950 [charconv.from.chars]/6.2
                                          // "if fmt has chars_format::scientific set but not chars_format::fixed,
                                          // the otherwise optional exponent part shall appear"
-        return {_First, errc::invalid_argument};
+        return {_首个, errc::invalid_argument};
     }
 
     // Remove trailing zeroes from mantissa:
@@ -1809,10 +1809,10 @@ _NODISCARD from_chars_result _常规浮点转数值(const char* const _First, co
 }
 
 _NODISCARD inline bool _Starts_with_case_insensitive(
-    const char* _First, const char* const _Last, const char* _Lowercase) noexcept {
+    const char* _首个, const char* const _最后, const char* _Lowercase) noexcept {
     // pre: _Lowercase contains only ['a', 'z'] and is null-terminated
-    for (; _First != _Last && *_Lowercase != '\0'; ++_First, ++_Lowercase) {
-        if ((static_cast<unsigned char>(*_First) | 0x20) != *_Lowercase) {
+    for (; _首个 != _最后 && *_Lowercase != '\0'; ++_首个, ++_Lowercase) {
+        if ((static_cast<unsigned char>(*_首个) | 0x20) != *_Lowercase) {
             return false;
         }
     }
@@ -1821,17 +1821,17 @@ _NODISCARD inline bool _Starts_with_case_insensitive(
 }
 
 template <class _Floating>
-_NODISCARD from_chars_result _Infinity_from_chars(const char* const _First, const char* const _Last, _Floating& _Value,
+_NODISCARD from_chars_result _Infinity_from_chars(const char* const _首个, const char* const _最后, _Floating& _Value,
     const bool _Minus_sign, const char* _Next) noexcept {
     // pre: _Next points at 'i' (case-insensitively)
-    if (!_Starts_with_case_insensitive(_Next + 1, _Last, "nf")) { // definitely invalid
-        return {_First, errc::invalid_argument};
+    if (!_Starts_with_case_insensitive(_Next + 1, _最后, "nf")) { // definitely invalid
+        return {_首个, errc::invalid_argument};
     }
 
     // definitely inf
     _Next += 3;
 
-    if (_Starts_with_case_insensitive(_Next, _Last, "inity")) { // definitely infinity
+    if (_Starts_with_case_insensitive(_Next, _最后, "inity")) { // definitely infinity
         _Next += 5;
     }
 
@@ -1841,11 +1841,11 @@ _NODISCARD from_chars_result _Infinity_from_chars(const char* const _First, cons
 }
 
 template <class _Floating>
-_NODISCARD from_chars_result _Nan_from_chars(const char* const _First, const char* const _Last, _Floating& _Value,
+_NODISCARD from_chars_result _Nan_from_chars(const char* const _首个, const char* const _最后, _Floating& _Value,
     bool _Minus_sign, const char* _Next) noexcept {
     // pre: _Next points at 'n' (case-insensitively)
-    if (!_Starts_with_case_insensitive(_Next + 1, _Last, "an")) { // definitely invalid
-        return {_First, errc::invalid_argument};
+    if (!_Starts_with_case_insensitive(_Next + 1, _最后, "an")) { // definitely invalid
+        return {_首个, errc::invalid_argument};
     }
 
     // definitely nan
@@ -1853,10 +1853,10 @@ _NODISCARD from_chars_result _Nan_from_chars(const char* const _First, const cha
 
     bool _Quiet = true;
 
-    if (_Next != _Last && *_Next == '(') { // possibly nan(n-char-sequence[opt])
+    if (_Next != _最后 && *_Next == '(') { // possibly nan(n-char-sequence[opt])
         const char* const _Seq_begin = _Next + 1;
 
-        for (const char* _Temp = _Seq_begin; _Temp != _Last; ++_Temp) {
+        for (const char* _Temp = _Seq_begin; _Temp != _最后; ++_Temp) {
             if (*_Temp == ')') { // definitely nan(n-char-sequence[opt])
                 _Next = _Temp + 1;
 
@@ -1884,17 +1884,17 @@ _NODISCARD from_chars_result _Nan_from_chars(const char* const _First, const cha
     // numeric_limits::quiet_NaN() returns a quiet NaN with no payload bits set.
     // This implementation of 字符转数值() has chosen to be consistent with numeric_limits.
 
-    using _Traits    = _Floating_type_traits<_Floating>;
-    using _Uint_type = typename _Traits::_Uint_type;
+    using _特征    = _Floating_type_traits<_Floating>;
+    using _Uint_type = typename _特征::_Uint_type;
 
-    _Uint_type _Uint_value = _Traits::_Shifted_exponent_mask;
+    _Uint_type _Uint_value = _特征::_Shifted_exponent_mask;
 
     if (_Minus_sign) {
-        _Uint_value |= _Traits::_Shifted_sign_mask;
+        _Uint_value |= _特征::_Shifted_sign_mask;
     }
 
     if (_Quiet) {
-        _Uint_value |= _Traits::_Special_nan_mantissa_mask;
+        _Uint_value |= _特征::_Special_nan_mantissa_mask;
     } else {
         _Uint_value |= 1;
     }
@@ -1906,8 +1906,8 @@ _NODISCARD from_chars_result _Nan_from_chars(const char* const _First, const cha
 
 template <class _Floating>
 _NODISCARD from_chars_result _浮点转数值(
-    const char* const _First, const char* const _Last, _Floating& _Value, const chars_format _Fmt) noexcept {
-    _Adl_verify_range(_First, _Last);
+    const char* const _首个, const char* const _最后, _Floating& _Value, const chars_format _Fmt) noexcept {
+    _ADL校验范围(_首个, _最后);
 
     _STL_ASSERT(_Fmt == chars_format::general || _Fmt == chars_format::scientific || _Fmt == chars_format::fixed
                     || _Fmt == chars_format::hex,
@@ -1915,18 +1915,18 @@ _NODISCARD from_chars_result _浮点转数值(
 
     bool _Minus_sign = false;
 
-    const char* _Next = _First;
+    const char* _Next = _首个;
 
-    if (_Next == _Last) {
-        return {_First, errc::invalid_argument};
+    if (_Next == _最后) {
+        return {_首个, errc::invalid_argument};
     }
 
     if (*_Next == '-') {
         _Minus_sign = true;
         ++_Next;
 
-        if (_Next == _Last) {
-            return {_First, errc::invalid_argument};
+        if (_Next == _最后) {
+            return {_首个, errc::invalid_argument};
         }
     }
 
@@ -1942,39 +1942,39 @@ _NODISCARD from_chars_result _浮点转数值(
     const unsigned char _Folded_start = static_cast<unsigned char>(static_cast<unsigned char>(*_Next) | 0x20);
 
     if (_Folded_start <= 'f') { // possibly an ordinary number
-        return _常规浮点转数值(_First, _Last, _Value, _Fmt, _Minus_sign, _Next);
+        return _常规浮点转数值(_首个, _最后, _Value, _Fmt, _Minus_sign, _Next);
     } else if (_Folded_start == 'i') { // possibly inf
-        return _Infinity_from_chars(_First, _Last, _Value, _Minus_sign, _Next);
+        return _Infinity_from_chars(_首个, _最后, _Value, _Minus_sign, _Next);
     } else if (_Folded_start == 'n') { // possibly nan
-        return _Nan_from_chars(_First, _Last, _Value, _Minus_sign, _Next);
+        return _Nan_from_chars(_首个, _最后, _Value, _Minus_sign, _Next);
     } else { // definitely invalid
-        return {_First, errc::invalid_argument};
+        return {_首个, errc::invalid_argument};
     }
 }
 
-_EXPORT_STD inline from_chars_result 字符转数值(const char* const _First, const char* const _Last, float& _Value,
+_EXPORT_STD inline from_chars_result 字符转数值(const char* const _首个, const char* const _最后, float& _Value,
     const chars_format _Fmt = chars_format::general) noexcept /* strengthened */ {
-    return _浮点转数值(_First, _Last, _Value, _Fmt);
+    return _浮点转数值(_首个, _最后, _Value, _Fmt);
 }
-_EXPORT_STD inline from_chars_result 字符转数值(const char* const _First, const char* const _Last, double& _Value,
+_EXPORT_STD inline from_chars_result 字符转数值(const char* const _首个, const char* const _最后, double& _Value,
     const chars_format _Fmt = chars_format::general) noexcept /* strengthened */ {
-    return _浮点转数值(_First, _Last, _Value, _Fmt);
+    return _浮点转数值(_首个, _最后, _Value, _Fmt);
 }
-_EXPORT_STD inline from_chars_result 字符转数值(const char* const _First, const char* const _Last, long double& _Value,
+_EXPORT_STD inline from_chars_result 字符转数值(const char* const _首个, const char* const _最后, long double& _Value,
     const chars_format _Fmt = chars_format::general) noexcept /* strengthened */ {
     double _Dbl; // intentionally default-init
-    const from_chars_result _Result = _浮点转数值(_First, _Last, _Dbl, _Fmt);
+    const from_chars_result _结果 = _浮点转数值(_首个, _最后, _Dbl, _Fmt);
 
-    if (_Result.ec == errc{}) {
+    if (_结果.ec == errc{}) {
         _Value = _Dbl;
     }
 
-    return _Result;
+    return _结果;
 }
 
 template <class _Floating>
 _NODISCARD to_chars_result _浮点转字符十六进制精度(
-    char* _First, char* const _Last, const _Floating _Value, int _Precision) noexcept {
+    char* _首个, char* const _最后, const _Floating _Value, int _Precision) noexcept {
 
     // * Determine the effective _Precision.
     // * Later, we'll decrement _Precision when printing each hexit after the decimal point.
@@ -1993,12 +1993,12 @@ _NODISCARD to_chars_result _浮点转字符十六进制精度(
     }
 
     // * Extract the _Ieee_mantissa and _Ieee_exponent.
-    using _Traits    = _Floating_type_traits<_Floating>;
-    using _Uint_type = typename _Traits::_Uint_type;
+    using _特征    = _Floating_type_traits<_Floating>;
+    using _Uint_type = typename _特征::_Uint_type;
 
     const _Uint_type _Uint_value    = _Bit_cast<_Uint_type>(_Value);
-    const _Uint_type _Ieee_mantissa = _Uint_value & _Traits::_Denormal_mantissa_mask;
-    const int32_t _Ieee_exponent    = static_cast<int32_t>(_Uint_value >> _Traits::_Exponent_shift);
+    const _Uint_type _Ieee_mantissa = _Uint_value & _特征::_Denormal_mantissa_mask;
+    const int32_t _Ieee_exponent    = static_cast<int32_t>(_Uint_value >> _特征::_Exponent_shift);
 
     // * Prepare the _Adjusted_mantissa. This is aligned to hexit boundaries,
     // * with the implicit bit restored (0 for zero values and subnormal values, 1 for normal values).
@@ -2020,11 +2020,11 @@ _NODISCARD to_chars_result _浮点转字符十六进制精度(
             // C11 7.21.6.1 "The fprintf function"/8: "If the value is zero, the exponent is zero."
             _Unbiased_exponent = 0;
         } else { // subnormal
-            _Unbiased_exponent = 1 - _Traits::_Exponent_bias;
+            _Unbiased_exponent = 1 - _特征::_Exponent_bias;
         }
     } else { // normal
         _Adjusted_mantissa |= _Uint_type{1} << _Adjusted_explicit_bits; // implicit bit is 1
-        _Unbiased_exponent = _Ieee_exponent - _Traits::_Exponent_bias;
+        _Unbiased_exponent = _Ieee_exponent - _特征::_Exponent_bias;
     }
 
     // _Unbiased_exponent is within [-126, 127] for float, [-1022, 1023] for double.
@@ -2060,10 +2060,10 @@ _NODISCARD to_chars_result _浮点转字符十六进制精度(
         }
 
         // _Precision might be enormous; avoid integer overflow by testing it separately.
-        ptrdiff_t _Buffer_size = _Last - _First;
+        ptrdiff_t _Buffer_size = _最后 - _首个;
 
         if (_Buffer_size < _Precision) {
-            return {_Last, errc::value_too_large};
+            return {_最后, errc::value_too_large};
         }
 
         _Buffer_size -= _Precision;
@@ -2075,7 +2075,7 @@ _NODISCARD to_chars_result _浮点转字符十六进制精度(
                                                   + _Exponent_length; // exponent
 
         if (_Buffer_size < _Length_excluding_precision) {
-            return {_Last, errc::value_too_large};
+            return {_最后, errc::value_too_large};
         }
     }
 
@@ -2140,7 +2140,7 @@ _NODISCARD to_chars_result _浮点转字符十六进制精度(
         _STL_INTERNAL_CHECK(_Nibble < 3);
         const char _Leading_hexit = static_cast<char>('0' + _Nibble);
 
-        *_First++ = _Leading_hexit;
+        *_首个++ = _Leading_hexit;
 
         constexpr _Uint_type _Mask = (_Uint_type{1} << _Adjusted_explicit_bits) - 1;
         _Adjusted_mantissa &= _Mask;
@@ -2151,7 +2151,7 @@ _NODISCARD to_chars_result _浮点转字符十六进制精度(
     // C11 7.21.6.1 "The fprintf function"/8:
     // "if the precision is zero and the # flag is not specified, no decimal-point character appears."
     if (_Precision > 0) {
-        *_First++ = '.';
+        *_首个++ = '.';
 
         int32_t _Number_of_bits_remaining = _Adjusted_explicit_bits; // 24 for float, 52 for double
 
@@ -2164,7 +2164,7 @@ _NODISCARD to_chars_result _浮点转字符十六进制精度(
             _STL_INTERNAL_CHECK(_Nibble < 16);
             const char _Hexit = _Charconv_digits[_Nibble];
 
-            *_First++ = _Hexit;
+            *_首个++ = _Hexit;
 
             // _Precision is the number of hexits that still need to be printed.
             --_Precision;
@@ -2175,8 +2175,8 @@ _NODISCARD to_chars_result _浮点转字符十六进制精度(
 
             if (_Number_of_bits_remaining == 0) {
                 // We've finished printing _Adjusted_mantissa, so all remaining hexits are '0'.
-                _CSTD memset(_First, '0', static_cast<size_t>(_Precision));
-                _First += _Precision;
+                _CSTD memset(_首个, '0', static_cast<size_t>(_Precision));
+                _首个 += _Precision;
                 break;
             }
 
@@ -2194,16 +2194,16 @@ _NODISCARD to_chars_result _浮点转字符十六进制精度(
 
     // Performance note: We should take advantage of the known ranges of possible exponents.
 
-    *_First++ = 'p';
-    *_First++ = _Sign_character;
+    *_首个++ = 'p';
+    *_首个++ = _Sign_character;
 
     // We've already printed '-' if necessary, so uint32_t _Absolute_exponent avoids testing that again.
-    return 数值转字符(_First, _Last, _Absolute_exponent);
+    return 数值转字符(_首个, _最后, _Absolute_exponent);
 }
 
 template <class _Floating>
 _NODISCARD to_chars_result _浮点转字符十六进制最短(
-    char* _First, char* const _Last, const _Floating _Value) noexcept {
+    char* _首个, char* const _最后, const _Floating _Value) noexcept {
 
     // This prints "1.728p+0" instead of "2.e5p-1".
     // This prints "0.000002p-126" instead of "1p-149" for float.
@@ -2211,8 +2211,8 @@ _NODISCARD to_chars_result _浮点转字符十六进制最短(
     // This prioritizes being consistent with printf's de facto behavior (and hex-precision's behavior)
     // over minimizing the number of characters printed.
 
-    using _Traits    = _Floating_type_traits<_Floating>;
-    using _Uint_type = typename _Traits::_Uint_type;
+    using _特征    = _Floating_type_traits<_Floating>;
+    using _Uint_type = typename _特征::_Uint_type;
 
     const _Uint_type _Uint_value = _Bit_cast<_Uint_type>(_Value);
 
@@ -2222,45 +2222,45 @@ _NODISCARD to_chars_result _浮点转字符十六进制最短(
         const char* const _Str = "0p+0";
         constexpr size_t _Len  = 4;
 
-        if (_Last - _First < static_cast<ptrdiff_t>(_Len)) {
-            return {_Last, errc::value_too_large};
+        if (_最后 - _首个 < static_cast<ptrdiff_t>(_Len)) {
+            return {_最后, errc::value_too_large};
         }
 
-        _CSTD memcpy(_First, _Str, _Len);
+        _CSTD memcpy(_首个, _Str, _Len);
 
-        return {_First + _Len, errc{}};
+        return {_首个 + _Len, errc{}};
     }
 
-    const _Uint_type _Ieee_mantissa = _Uint_value & _Traits::_Denormal_mantissa_mask;
-    const int32_t _Ieee_exponent    = static_cast<int32_t>(_Uint_value >> _Traits::_Exponent_shift);
+    const _Uint_type _Ieee_mantissa = _Uint_value & _特征::_Denormal_mantissa_mask;
+    const int32_t _Ieee_exponent    = static_cast<int32_t>(_Uint_value >> _特征::_Exponent_shift);
 
     char _Leading_hexit; // implicit bit
     int32_t _Unbiased_exponent;
 
     if (_Ieee_exponent == 0) { // subnormal
         _Leading_hexit     = '0';
-        _Unbiased_exponent = 1 - _Traits::_Exponent_bias;
+        _Unbiased_exponent = 1 - _特征::_Exponent_bias;
     } else { // normal
         _Leading_hexit     = '1';
-        _Unbiased_exponent = _Ieee_exponent - _Traits::_Exponent_bias;
+        _Unbiased_exponent = _Ieee_exponent - _特征::_Exponent_bias;
     }
 
     // Performance note: Consider avoiding per-character bounds checking when there's plenty of space.
 
-    if (_First == _Last) {
-        return {_Last, errc::value_too_large};
+    if (_首个 == _最后) {
+        return {_最后, errc::value_too_large};
     }
 
-    *_First++ = _Leading_hexit;
+    *_首个++ = _Leading_hexit;
 
     if (_Ieee_mantissa == 0) {
         // The fraction bits are all 0. Trim them away, including the decimal point.
     } else {
-        if (_First == _Last) {
-            return {_Last, errc::value_too_large};
+        if (_首个 == _最后) {
+            return {_最后, errc::value_too_large};
         }
 
-        *_First++ = '.';
+        *_首个++ = '.';
 
         // The hexits after the decimal point correspond to the explicitly stored fraction bits.
         // float explicitly stores 23 fraction bits. 23 / 4 == 5.75, so we'll print at most 6 hexits.
@@ -2290,11 +2290,11 @@ _NODISCARD to_chars_result _浮点转字符十六进制最短(
             _STL_INTERNAL_CHECK(_Nibble < 16);
             const char _Hexit = _Charconv_digits[_Nibble];
 
-            if (_First == _Last) {
-                return {_Last, errc::value_too_large};
+            if (_首个 == _最后) {
+                return {_最后, errc::value_too_large};
             }
 
-            *_First++ = _Hexit;
+            *_首个++ = _Hexit;
 
             const _Uint_type _Mask = (_Uint_type{1} << _Number_of_bits_remaining) - 1;
             _Adjusted_mantissa &= _Mask;
@@ -2310,40 +2310,40 @@ _NODISCARD to_chars_result _浮点转字符十六进制最短(
     // float: _Unbiased_exponent is within [-126, 127].
     // double: _Unbiased_exponent is within [-1022, 1023].
 
-    if (_Last - _First < 2) {
-        return {_Last, errc::value_too_large};
+    if (_最后 - _首个 < 2) {
+        return {_最后, errc::value_too_large};
     }
 
-    *_First++ = 'p';
+    *_首个++ = 'p';
 
     if (_Unbiased_exponent < 0) {
-        *_First++          = '-';
+        *_首个++          = '-';
         _Unbiased_exponent = -_Unbiased_exponent;
     } else {
-        *_First++ = '+';
+        *_首个++ = '+';
     }
 
     // We've already printed '-' if necessary, so static_cast<uint32_t> avoids testing that again.
-    return 数值转字符(_First, _Last, static_cast<uint32_t>(_Unbiased_exponent));
+    return 数值转字符(_首个, _最后, static_cast<uint32_t>(_Unbiased_exponent));
 }
 
 template <class _Floating>
 _NODISCARD inline to_chars_result _浮点转字符通用精度(
-    char* _First, char* const _Last, const _Floating _Value, int _Precision) noexcept {
+    char* _首个, char* const _最后, const _Floating _Value, int _Precision) noexcept {
 
-    using _Traits    = _Floating_type_traits<_Floating>;
-    using _Uint_type = typename _Traits::_Uint_type;
+    using _特征    = _Floating_type_traits<_Floating>;
+    using _Uint_type = typename _特征::_Uint_type;
 
     const _Uint_type _Uint_value = _Bit_cast<_Uint_type>(_Value);
 
     if (_Uint_value == 0) { // zero detected; write "0" and return; _Precision is irrelevant due to zero-trimming
-        if (_First == _Last) {
-            return {_Last, errc::value_too_large};
+        if (_首个 == _最后) {
+            return {_最后, errc::value_too_large};
         }
 
-        *_First++ = '0';
+        *_首个++ = '0';
 
-        return {_First, errc{}};
+        return {_首个, errc{}};
     }
 
     // C11 7.21.6.1 "The fprintf function"/5:
@@ -2397,7 +2397,7 @@ _NODISCARD inline to_chars_result _浮点转字符通用精度(
             }
         }
 
-        return _STD find_if(_Table_begin, _Table_end, [=](const _Uint_type _Elem) { return _Uint_value <= _Elem; });
+        return _STD find_if(_Table_begin, _Table_end, [=](const _Uint_type _元素) { return _Uint_value <= _元素; });
     }();
 
     const ptrdiff_t _Table_index     = _Table_lower_bound - _Table_begin;
@@ -2460,31 +2460,31 @@ _NODISCARD inline to_chars_result _浮点转字符通用精度(
 
     // Copy the significand to the output range.
     const ptrdiff_t _Significand_distance = _Significand_last - _Significand_first;
-    if (_Last - _First < _Significand_distance) {
-        return {_Last, errc::value_too_large};
+    if (_最后 - _首个 < _Significand_distance) {
+        return {_最后, errc::value_too_large};
     }
-    _CSTD memcpy(_First, _Significand_first, static_cast<size_t>(_Significand_distance));
-    _First += _Significand_distance;
+    _CSTD memcpy(_首个, _Significand_first, static_cast<size_t>(_Significand_distance));
+    _首个 += _Significand_distance;
 
     // Copy the exponent to the output range.
     if (!_Use_fixed_notation) {
         const ptrdiff_t _Exponent_distance = _Exponent_last - _Exponent_first;
-        if (_Last - _First < _Exponent_distance) {
-            return {_Last, errc::value_too_large};
+        if (_最后 - _首个 < _Exponent_distance) {
+            return {_最后, errc::value_too_large};
         }
-        _CSTD memcpy(_First, _Exponent_first, static_cast<size_t>(_Exponent_distance));
-        _First += _Exponent_distance;
+        _CSTD memcpy(_首个, _Exponent_first, static_cast<size_t>(_Exponent_distance));
+        _首个 += _Exponent_distance;
     }
 
-    return {_First, errc{}};
+    return {_首个, errc{}};
 }
 
 enum class _Floating_to_chars_overload { _Plain, _Format_only, _Format_precision };
 
 template <_Floating_to_chars_overload _Overload, class _Floating>
 _NODISCARD to_chars_result _浮点转字符(
-    char* _First, char* const _Last, _Floating _Value, const chars_format _Fmt, const int _Precision) noexcept {
-    _Adl_verify_range(_First, _Last);
+    char* _首个, char* const _最后, _Floating _Value, const chars_format _Fmt, const int _Precision) noexcept {
+    _ADL校验范围(_首个, _最后);
 
     if constexpr (_Overload == _Floating_to_chars_overload::_Plain) {
         _STL_INTERNAL_CHECK(_Fmt == chars_format{}); // plain overload must pass chars_format{} internally
@@ -2494,40 +2494,40 @@ _NODISCARD to_chars_result _浮点转字符(
             "invalid format in 数值转字符()");
     }
 
-    using _Traits    = _Floating_type_traits<_Floating>;
-    using _Uint_type = typename _Traits::_Uint_type;
+    using _特征    = _Floating_type_traits<_Floating>;
+    using _Uint_type = typename _特征::_Uint_type;
 
     _Uint_type _Uint_value = _Bit_cast<_Uint_type>(_Value);
 
-    const bool _Was_negative = (_Uint_value & _Traits::_Shifted_sign_mask) != 0;
+    const bool _Was_negative = (_Uint_value & _特征::_Shifted_sign_mask) != 0;
 
     if (_Was_negative) { // sign bit detected; write minus sign and clear sign bit
-        if (_First == _Last) {
-            return {_Last, errc::value_too_large};
+        if (_首个 == _最后) {
+            return {_最后, errc::value_too_large};
         }
 
-        *_First++ = '-';
+        *_首个++ = '-';
 
-        _Uint_value &= ~_Traits::_Shifted_sign_mask;
+        _Uint_value &= ~_特征::_Shifted_sign_mask;
         _Value = _Bit_cast<_Floating>(_Uint_value);
     }
 
-    if ((_Uint_value & _Traits::_Shifted_exponent_mask) == _Traits::_Shifted_exponent_mask) {
+    if ((_Uint_value & _特征::_Shifted_exponent_mask) == _特征::_Shifted_exponent_mask) {
         // inf/nan detected; write appropriate string and return
         const char* _Str;
         size_t _Len;
 
-        const _Uint_type _Mantissa = _Uint_value & _Traits::_Denormal_mantissa_mask;
+        const _Uint_type _Mantissa = _Uint_value & _特征::_Denormal_mantissa_mask;
 
         if (_Mantissa == 0) {
             _Str = "inf";
             _Len = 3;
-        } else if (_Was_negative && _Mantissa == _Traits::_Special_nan_mantissa_mask) {
+        } else if (_Was_negative && _Mantissa == _特征::_Special_nan_mantissa_mask) {
             // When a NaN value has the sign bit set, the quiet bit set, and all other mantissa bits cleared,
             // the UCRT interprets it to mean "indeterminate", and indicates this by printing "-nan(ind)".
             _Str = "nan(ind)";
             _Len = 8;
-        } else if ((_Mantissa & _Traits::_Special_nan_mantissa_mask) != 0) {
+        } else if ((_Mantissa & _特征::_Special_nan_mantissa_mask) != 0) {
             _Str = "nan";
             _Len = 3;
         } else {
@@ -2535,76 +2535,76 @@ _NODISCARD to_chars_result _浮点转字符(
             _Len = 9;
         }
 
-        if (_Last - _First < static_cast<ptrdiff_t>(_Len)) {
-            return {_Last, errc::value_too_large};
+        if (_最后 - _首个 < static_cast<ptrdiff_t>(_Len)) {
+            return {_最后, errc::value_too_large};
         }
 
-        _CSTD memcpy(_First, _Str, _Len);
+        _CSTD memcpy(_首个, _Str, _Len);
 
-        return {_First + _Len, errc{}};
+        return {_首个 + _Len, errc{}};
     }
 
     if constexpr (_Overload == _Floating_to_chars_overload::_Plain) {
-        return _Floating_to_chars_ryu(_First, _Last, _Value, chars_format{});
+        return _Floating_to_chars_ryu(_首个, _最后, _Value, chars_format{});
     } else if constexpr (_Overload == _Floating_to_chars_overload::_Format_only) {
         if (_Fmt == chars_format::hex) {
-            return _浮点转字符十六进制最短(_First, _Last, _Value);
+            return _浮点转字符十六进制最短(_首个, _最后, _Value);
         }
 
-        return _Floating_to_chars_ryu(_First, _Last, _Value, _Fmt);
+        return _Floating_to_chars_ryu(_首个, _最后, _Value, _Fmt);
     } else if constexpr (_Overload == _Floating_to_chars_overload::_Format_precision) {
         switch (_Fmt) {
         case chars_format::scientific:
-            return _Floating_to_chars_scientific_precision(_First, _Last, _Value, _Precision);
+            return _Floating_to_chars_scientific_precision(_首个, _最后, _Value, _Precision);
         case chars_format::fixed:
-            return _Floating_to_chars_fixed_precision(_First, _Last, _Value, _Precision);
+            return _Floating_to_chars_fixed_precision(_首个, _最后, _Value, _Precision);
         case chars_format::general:
-            return _浮点转字符通用精度(_First, _Last, _Value, _Precision);
+            return _浮点转字符通用精度(_首个, _最后, _Value, _Precision);
         case chars_format::hex:
         default: // avoid warning C4715: not all control paths return a value
-            return _浮点转字符十六进制精度(_First, _Last, _Value, _Precision);
+            return _浮点转字符十六进制精度(_首个, _最后, _Value, _Precision);
         }
     }
 }
 
-_EXPORT_STD inline to_chars_result 数值转字符(char* const _First, char* const _Last, const float _Value) noexcept
+_EXPORT_STD inline to_chars_result 数值转字符(char* const _首个, char* const _最后, const float _Value) noexcept
 /* strengthened */ {
-    return _浮点转字符<_Floating_to_chars_overload::_Plain>(_First, _Last, _Value, chars_format{}, 0);
+    return _浮点转字符<_Floating_to_chars_overload::_Plain>(_首个, _最后, _Value, chars_format{}, 0);
 }
-_EXPORT_STD inline to_chars_result 数值转字符(char* const _First, char* const _Last, const double _Value) noexcept
+_EXPORT_STD inline to_chars_result 数值转字符(char* const _首个, char* const _最后, const double _Value) noexcept
 /* strengthened */ {
-    return _浮点转字符<_Floating_to_chars_overload::_Plain>(_First, _Last, _Value, chars_format{}, 0);
+    return _浮点转字符<_Floating_to_chars_overload::_Plain>(_首个, _最后, _Value, chars_format{}, 0);
 }
-_EXPORT_STD inline to_chars_result 数值转字符(char* const _First, char* const _Last, const long double _Value) noexcept
+_EXPORT_STD inline to_chars_result 数值转字符(char* const _首个, char* const _最后, const long double _Value) noexcept
 /* strengthened */ {
     return _浮点转字符<_Floating_to_chars_overload::_Plain>(
-        _First, _Last, static_cast<double>(_Value), chars_format{}, 0);
+        _首个, _最后, static_cast<double>(_Value), chars_format{}, 0);
 }
 _EXPORT_STD inline to_chars_result 数值转字符(
-    char* const _First, char* const _Last, const float _Value, const chars_format _Fmt) noexcept /* strengthened */ {
-    return _浮点转字符<_Floating_to_chars_overload::_Format_only>(_First, _Last, _Value, _Fmt, 0);
+    char* const _首个, char* const _最后, const float _Value, const chars_format _Fmt) noexcept /* strengthened */ {
+    return _浮点转字符<_Floating_to_chars_overload::_Format_only>(_首个, _最后, _Value, _Fmt, 0);
 }
 _EXPORT_STD inline to_chars_result 数值转字符(
-    char* const _First, char* const _Last, const double _Value, const chars_format _Fmt) noexcept /* strengthened */ {
-    return _浮点转字符<_Floating_to_chars_overload::_Format_only>(_First, _Last, _Value, _Fmt, 0);
+    char* const _首个, char* const _最后, const double _Value, const chars_format _Fmt) noexcept /* strengthened */ {
+    return _浮点转字符<_Floating_to_chars_overload::_Format_only>(_首个, _最后, _Value, _Fmt, 0);
 }
-_EXPORT_STD inline to_chars_result 数值转字符(char* const _First, char* const _Last, const long double _Value,
+_EXPORT_STD inline to_chars_result 数值转字符(char* const _首个, char* const _最后, const long double _Value,
     const chars_format _Fmt) noexcept /* strengthened */ {
     return _浮点转字符<_Floating_to_chars_overload::_Format_only>(
-        _First, _Last, static_cast<double>(_Value), _Fmt, 0);
+        _首个, _最后, static_cast<double>(_Value), _Fmt, 0);
 }
-_EXPORT_STD inline to_chars_result 数值转字符(char* const _First, char* const _Last, const float _Value,
+_EXPORT_STD inline to_chars_result 数值转字符(char* const _首个, char* const _最后, const float _Value,
     const chars_format _Fmt, const int _Precision) noexcept /* strengthened */ {
-    return _浮点转字符<_Floating_to_chars_overload::_Format_precision>(_First, _Last, _Value, _Fmt, _Precision);
+    return _浮点转字符<_Floating_to_chars_overload::_Format_precision>(_首个, _最后, _Value, _Fmt, _Precision);
 }
-_EXPORT_STD inline to_chars_result 数值转字符(char* const _First, char* const _Last, const double _Value,
+_EXPORT_STD inline to_chars_result 数值转字符(char* const _首个, char* const _最后, const double _Value,
     const chars_format _Fmt, const int _Precision) noexcept /* strengthened */ {
-    return _浮点转字符<_Floating_to_chars_overload::_Format_precision>(_First, _Last, _Value, _Fmt, _Precision);
+    return _浮点转字符<_Floating_to_chars_overload::_Format_precision>(_首个, _最后, _Value, _Fmt, _Precision);
 }
-_EXPORT_STD inline to_chars_result 数值转字符(char* const _First, char* const _Last, const long double _Value,
+_EXPORT_STD inline to_chars_result 数值转字符(char* const _首个, char* const _最后, const long double _Value,
     const chars_format _Fmt, const int _Precision) noexcept /* strengthened */ {
     return _浮点转字符<_Floating_to_chars_overload::_Format_precision>(
-        _First, _Last, static_cast<double>(_Value), _Fmt, _Precision);
+        _首个, _最后, static_cast<double>(_Value), _Fmt, _Precision);
 }
 
 } }

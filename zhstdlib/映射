@@ -25,19 +25,19 @@ _STL_DISABLE_CLANG_WARNINGS
 名域 标准 { 名域 细节 {
 使用 名域 std;
 template <class _Kty, // key type
-    class _Ty, // mapped type
+    class _类型, // mapped type
     class _Pr, // comparator predicate type
-    class _Alloc, // actual allocator type (should be value allocator)
+    class _分配器, // actual allocator type (should be value allocator)
     bool _Mfl> // true if multiple equivalent keys are permitted
 class _映射特征 { // traits required to make _树 behave like a 映射实现
 public:
     using 键类型       = _Kty;
-    using value_type     = pair<const _Kty, _Ty>;
+    using value_type     = pair<const _Kty, _类型>;
     using 键比较器    = _Pr;
-    using 分配器类型 = _Alloc;
+    using 分配器类型 = _分配器;
 #if _HAS_CXX17
-    using 结点类型 = _Node_handle<_树节点<value_type, typename allocator_traits<_Alloc>::void_pointer>, _Alloc,
-        _Node_handle_map_base, _Kty, _Ty>;
+    using 结点类型 = _Node_handle<_树节点<value_type, typename allocator_traits<_分配器>::void_pointer>, _分配器,
+        _Node_handle_map_base, _Kty, _类型>;
 #endif // _HAS_CXX17
 
     static constexpr bool _Multi = _Mfl;
@@ -70,22 +70,22 @@ public:
     }
 };
 
-_EXPORT_STD template <class _Kty, class _Ty, class _Pr = less<_Kty>, class _Alloc = allocator<pair<const _Kty, _Ty>>>
-class 映射实现 : public _树<_映射特征<_Kty, _Ty, _Pr, _Alloc, false>> {
+_EXPORT_STD template <class _Kty, class _类型, class _Pr = less<_Kty>, class _分配器 = allocator<pair<const _Kty, _类型>>>
+class 映射实现 : public _树<_映射特征<_Kty, _类型, _Pr, _分配器, false>> {
     // ordered red-black tree of {key, mapped} values, unique keys
 public:
-    static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<pair<const _Kty, _Ty>, typename _Alloc::value_type>,
+    static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<pair<const _Kty, _类型>, typename _分配器::value_type>,
         _MISMATCHED_ALLOCATOR_MESSAGE("映射实现<Key, Value, Compare, Allocator>", "pair<const Key, Value>"));
     static_assert(is_object_v<_Kty>, "The C++ Standard forbids containers of non-object types "
                                      "because of [container.requirements].");
 
-    using _我的基类                = _树<_映射特征<_Kty, _Ty, _Pr, _Alloc, false>>;
+    using _我的基类                = _树<_映射特征<_Kty, _类型, _Pr, _分配器, false>>;
     using _结点指针               = typename _我的基类::_结点指针;
     using 键类型               = _Kty;
-    using 映射类型            = _Ty;
+    using 映射类型            = _类型;
     using 键比较器            = _Pr;
     using 值比较          = typename _我的基类::值比较;
-    using value_type             = pair<const _Kty, _Ty>;
+    using value_type             = pair<const _Kty, _类型>;
     using 分配器类型         = typename _我的基类::分配器类型;
     using size_type              = typename _我的基类::size_type;
     using difference_type        = typename _我的基类::difference_type;
@@ -118,44 +118,44 @@ public:
     映射实现(const 键比较器& _Pred, const 分配器类型& _Al) : _我的基类(_Pred, _Al) {}
 
     template <class _Iter>
-    映射实现(_Iter _First, _Iter _Last) : _我的基类(键比较器()) {
-        insert(_First, _Last);
+    映射实现(_Iter _首个, _Iter _最后) : _我的基类(键比较器()) {
+        insert(_首个, _最后);
     }
 
     template <class _Iter>
-    映射实现(_Iter _First, _Iter _Last, const 键比较器& _Pred) : _我的基类(_Pred) {
-        insert(_First, _Last);
+    映射实现(_Iter _首个, _Iter _最后, const 键比较器& _Pred) : _我的基类(_Pred) {
+        insert(_首个, _最后);
     }
 
     template <class _Iter>
-    映射实现(_Iter _First, _Iter _Last, const 分配器类型& _Al) : _我的基类(键比较器(), _Al) {
-        insert(_First, _Last);
+    映射实现(_Iter _首个, _Iter _最后, const 分配器类型& _Al) : _我的基类(键比较器(), _Al) {
+        insert(_首个, _最后);
     }
 
     template <class _Iter>
-    映射实现(_Iter _First, _Iter _Last, const 键比较器& _Pred, const 分配器类型& _Al) : _我的基类(_Pred, _Al) {
-        insert(_First, _Last);
+    映射实现(_Iter _首个, _Iter _最后, const 键比较器& _Pred, const 分配器类型& _Al) : _我的基类(_Pred, _Al) {
+        insert(_首个, _最后);
     }
 
 #if _HAS_CXX23
     template <_Container_compatible_range<value_type> _Rng>
     映射实现(from_range_t, _Rng&& _Range) : _我的基类(键比较器()) {
-        this->_Insert_range_unchecked(_解包首(_Range), _解包尾(_Range));
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     映射实现(from_range_t, _Rng&& _Range, const 键比较器& _Pred) : _我的基类(_Pred) {
-        this->_Insert_range_unchecked(_解包首(_Range), _解包尾(_Range));
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     映射实现(from_range_t, _Rng&& _Range, const 键比较器& _Pred, const 分配器类型& _Al) : _我的基类(_Pred, _Al) {
-        this->_Insert_range_unchecked(_解包首(_Range), _解包尾(_Range));
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     映射实现(from_range_t, _Rng&& _Range, const 分配器类型& _Al) : _我的基类(键比较器(), _Al) {
-        this->_Insert_range_unchecked(_解包首(_Range), _解包尾(_Range));
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 #endif // _HAS_CXX23
 
@@ -174,7 +174,7 @@ public:
     }
 
     映射类型& operator[](键类型&& _Keyval) { // find element matching _Keyval or insert value-initialized value
-        return _Try_emplace(_STD move(_Keyval)).first->_Myval.second;
+        return _尝试就地构造(_STD move(_Keyval)).first->_Myval.second;
     }
 
     void swap(映射实现& _Right) noexcept(noexcept(_我的基类::swap(_Right))) {
@@ -183,19 +183,19 @@ public:
 
     using _我的基类::insert;
 
-    template <class _Valty, enable_if_t<is_constructible_v<value_type, _Valty>, int> = 0>
-    pair<迭代器, bool> insert(_Valty&& _Val) {
-        return this->就地构造(_STD forward<_Valty>(_Val));
+    template <class _值参数类型, enable_if_t<is_constructible_v<value_type, _值参数类型>, int> = 0>
+    pair<迭代器, bool> insert(_值参数类型&& _Val) {
+        return this->就地构造(_STD forward<_值参数类型>(_Val));
     }
 
-    template <class _Valty, enable_if_t<is_constructible_v<value_type, _Valty>, int> = 0>
-    迭代器 insert(常量迭代器 _Where, _Valty&& _Val) {
-        return this->emplace_hint(_Where, _STD forward<_Valty>(_Val));
+    template <class _值参数类型, enable_if_t<is_constructible_v<value_type, _值参数类型>, int> = 0>
+    迭代器 insert(常量迭代器 _Where, _值参数类型&& _Val) {
+        return this->emplace_hint(_Where, _STD forward<_值参数类型>(_Val));
     }
 
 private:
     template <class _Keyty, class... _Mappedty>
-    pair<_结点指针, bool> _Try_emplace(_Keyty&& _Keyval, _Mappedty&&... _Mapval) {
+    pair<_结点指针, bool> _尝试就地构造(_Keyty&& _Keyval, _Mappedty&&... _Mapval) {
         const auto _Loc = _我的基类::_查找下界(_Keyval);
         if (_我的基类::_下界重复项(_Loc._Bound, _Keyval)) {
             return {_Loc._Bound, false};
@@ -214,7 +214,7 @@ private:
     }
 
     template <class _Keyty, class... _Mappedty>
-    _结点指针 _Try_emplace_hint(const _结点指针 _Hint, _Keyty&& _Keyval, _Mappedty&&... _Mapval) {
+    _结点指针 _按提示尝试就地构造(const _结点指针 _Hint, _Keyty&& _Keyval, _Mappedty&&... _Mapval) {
         const auto _Loc = _我的基类::_按提示查找(_Hint, _Keyval);
         if (_Loc._Duplicate) {
             return _Loc._Location._Parent;
@@ -235,25 +235,25 @@ private:
 public:
     template <class... _Mappedty>
     pair<迭代器, bool> 尝试就地构造(const 键类型& _Keyval, _Mappedty&&... _Mapval) {
-        const auto _Result = _Try_emplace(_Keyval, _STD forward<_Mappedty>(_Mapval)...);
-        return {迭代器(_Result.first, _我的基类::_取检查值()), _Result.second};
+        const auto _结果 = _尝试就地构造(_Keyval, _STD forward<_Mappedty>(_Mapval)...);
+        return {迭代器(_结果.first, _我的基类::_取检查值()), _结果.second};
     }
 
     template <class... _Mappedty>
     迭代器 尝试就地构造(const 常量迭代器 _Hint, const 键类型& _Keyval, _Mappedty&&... _Mapval) {
         return 迭代器(
-            _Try_emplace_hint(_Hint._Ptr, _Keyval, _STD forward<_Mappedty>(_Mapval)...), _我的基类::_取检查值());
+            _按提示尝试就地构造(_Hint._Ptr, _Keyval, _STD forward<_Mappedty>(_Mapval)...), _我的基类::_取检查值());
     }
 
     template <class... _Mappedty>
     pair<迭代器, bool> 尝试就地构造(键类型&& _Keyval, _Mappedty&&... _Mapval) {
-        const auto _Result = _Try_emplace(_STD move(_Keyval), _STD forward<_Mappedty>(_Mapval)...);
-        return {迭代器(_Result.first, _我的基类::_取检查值()), _Result.second};
+        const auto _结果 = _尝试就地构造(_STD move(_Keyval), _STD forward<_Mappedty>(_Mapval)...);
+        return {迭代器(_结果.first, _我的基类::_取检查值()), _结果.second};
     }
 
     template <class... _Mappedty>
     迭代器 尝试就地构造(const 常量迭代器 _Hint, 键类型&& _Keyval, _Mappedty&&... _Mapval) {
-        return 迭代器(_Try_emplace_hint(_Hint._Ptr, _STD move(_Keyval), _STD forward<_Mappedty>(_Mapval)...),
+        return 迭代器(_按提示尝试就地构造(_Hint._Ptr, _STD move(_Keyval), _STD forward<_Mappedty>(_Mapval)...),
             _我的基类::_取检查值());
     }
 
@@ -299,8 +299,8 @@ private:
 public:
     template <class _Mappedty>
     pair<迭代器, bool> 插入或赋值(const 键类型& _Keyval, _Mappedty&& _Mapval) {
-        const auto _Result = _Insert_or_assign(_Keyval, _STD forward<_Mappedty>(_Mapval));
-        return {迭代器(_Result.first, _我的基类::_取检查值()), _Result.second};
+        const auto _结果 = _Insert_or_assign(_Keyval, _STD forward<_Mappedty>(_Mapval));
+        return {迭代器(_结果.first, _我的基类::_取检查值()), _结果.second};
     }
 
     template <class _Mappedty>
@@ -311,8 +311,8 @@ public:
 
     template <class _Mappedty>
     pair<迭代器, bool> 插入或赋值(键类型&& _Keyval, _Mappedty&& _Mapval) {
-        const auto _Result = _Insert_or_assign(_STD move(_Keyval), _STD forward<_Mappedty>(_Mapval));
-        return {迭代器(_Result.first, _我的基类::_取检查值()), _Result.second};
+        const auto _结果 = _Insert_or_assign(_STD move(_Keyval), _STD forward<_Mappedty>(_Mapval));
+        return {迭代器(_结果.first, _我的基类::_取检查值()), _结果.second};
     }
 
     template <class _Mappedty>
@@ -345,7 +345,7 @@ public:
     }
 
     映射类型& operator[](const 键类型& _Keyval) {
-        return _Try_emplace(_Keyval).first->_Myval.second;
+        return _尝试就地构造(_Keyval).first->_Myval.second;
     }
 
     _NODISCARD 映射类型& 取值(const 键类型& _Keyval) {
@@ -371,102 +371,102 @@ public:
 };
 
 #if _HAS_CXX17
-template <class _Iter, class _Pr = less<_Guide_key_t<_Iter>>, class _Alloc = allocator<_Guide_pair_t<_Iter>>,
-    enable_if_t<conjunction_v<_Is_iterator<_Iter>, negation<_Is_allocator<_Pr>>, _Is_allocator<_Alloc>>, int> = 0>
-映射实现(_Iter, _Iter, _Pr = _Pr(), _Alloc = _Alloc()) -> 映射实现<_Guide_key_t<_Iter>, _Guide_val_t<_Iter>, _Pr, _Alloc>;
+template <class _Iter, class _Pr = less<_Guide_key_t<_Iter>>, class _分配器 = allocator<_Guide_pair_t<_Iter>>,
+    enable_if_t<conjunction_v<_Is_iterator<_Iter>, negation<_Is_allocator<_Pr>>, _Is_allocator<_分配器>>, int> = 0>
+映射实现(_Iter, _Iter, _Pr = _Pr(), _分配器 = _分配器()) -> 映射实现<_Guide_key_t<_Iter>, _Guide_val_t<_Iter>, _Pr, _分配器>;
 
-template <class _Kty, class _Ty, class _Pr = less<_Kty>, class _Alloc = allocator<pair<const _Kty, _Ty>>,
-    enable_if_t<conjunction_v<negation<_Is_allocator<_Pr>>, _Is_allocator<_Alloc>>, int> = 0>
-映射实现(initializer_list<pair<_Kty, _Ty>>, _Pr = _Pr(), _Alloc = _Alloc()) -> 映射实现<_Kty, _Ty, _Pr, _Alloc>;
+template <class _Kty, class _类型, class _Pr = less<_Kty>, class _分配器 = allocator<pair<const _Kty, _类型>>,
+    enable_if_t<conjunction_v<negation<_Is_allocator<_Pr>>, _Is_allocator<_分配器>>, int> = 0>
+映射实现(initializer_list<pair<_Kty, _类型>>, _Pr = _Pr(), _分配器 = _分配器()) -> 映射实现<_Kty, _类型, _Pr, _分配器>;
 
-template <class _Iter, class _Alloc, enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_allocator<_Alloc>>, int> = 0>
-映射实现(_Iter, _Iter, _Alloc) -> 映射实现<_Guide_key_t<_Iter>, _Guide_val_t<_Iter>, less<_Guide_key_t<_Iter>>, _Alloc>;
+template <class _Iter, class _分配器, enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_allocator<_分配器>>, int> = 0>
+映射实现(_Iter, _Iter, _分配器) -> 映射实现<_Guide_key_t<_Iter>, _Guide_val_t<_Iter>, less<_Guide_key_t<_Iter>>, _分配器>;
 
-template <class _Kty, class _Ty, class _Alloc, enable_if_t<_Is_allocator<_Alloc>::value, int> = 0>
-映射实现(initializer_list<pair<_Kty, _Ty>>, _Alloc) -> 映射实现<_Kty, _Ty, less<_Kty>, _Alloc>;
+template <class _Kty, class _类型, class _分配器, enable_if_t<_Is_allocator<_分配器>::value, int> = 0>
+映射实现(initializer_list<pair<_Kty, _类型>>, _分配器) -> 映射实现<_Kty, _类型, less<_Kty>, _分配器>;
 
 #if _HAS_CXX23
-template <_RANGES input_range _Rng, class _Pr = less<_Range_key_type<_Rng>>,
-    _Allocator_for_container _Alloc = allocator<_Range_to_alloc_type<_Rng>>>
+template <_RANGES input_range _Rng, class _Pr = less<_范围键类型<_Rng>>,
+    _Allocator_for_container _分配器 = allocator<_范围到分配器类型<_Rng>>>
     requires (!_Allocator_for_container<_Pr>)
-映射实现(from_range_t, _Rng&&, _Pr = _Pr(), _Alloc = _Alloc())
-    -> 映射实现<_Range_key_type<_Rng>, _Range_mapped_type<_Rng>, _Pr, _Alloc>;
+映射实现(from_range_t, _Rng&&, _Pr = _Pr(), _分配器 = _分配器())
+    -> 映射实现<_范围键类型<_Rng>, _范围映射类型<_Rng>, _Pr, _分配器>;
 
-template <_RANGES input_range _Rng, _Allocator_for_container _Alloc>
-映射实现(from_range_t, _Rng&&, _Alloc)
-    -> 映射实现<_Range_key_type<_Rng>, _Range_mapped_type<_Rng>, less<_Range_key_type<_Rng>>, _Alloc>;
+template <_RANGES input_range _Rng, _Allocator_for_container _分配器>
+映射实现(from_range_t, _Rng&&, _分配器)
+    -> 映射实现<_范围键类型<_Rng>, _范围映射类型<_Rng>, less<_范围键类型<_Rng>>, _分配器>;
 #endif // _HAS_CXX23
 #endif // _HAS_CXX17
 
-_EXPORT_STD template <class _Kty, class _Ty, class _Pr, class _Alloc>
-_NODISCARD bool operator==(const 映射实现<_Kty, _Ty, _Pr, _Alloc>& _Left, const 映射实现<_Kty, _Ty, _Pr, _Alloc>& _Right) {
+_EXPORT_STD template <class _Kty, class _类型, class _Pr, class _分配器>
+_NODISCARD bool operator==(const 映射实现<_Kty, _类型, _Pr, _分配器>& _Left, const 映射实现<_Kty, _类型, _Pr, _分配器>& _Right) {
     return _Left.size() == _Right.size()
-        && _STD equal(_Left._非检查开始(), _Left._Unchecked_end_iter(), _Right._非检查开始());
+        && _STD equal(_Left._非检查开始(), _Left._非检查结束迭代器(), _Right._非检查开始());
 }
 
 #if _HAS_CXX20
-_EXPORT_STD template <class _Kty, class _Ty, class _Pr, class _Alloc>
-_NODISCARD _Synth_three_way_result<pair<const _Kty, _Ty>> operator<=>(
-    const 映射实现<_Kty, _Ty, _Pr, _Alloc>& _Left, const 映射实现<_Kty, _Ty, _Pr, _Alloc>& _Right) {
-    return _STD lexicographical_compare_three_way(_Left._非检查开始(), _Left._Unchecked_end_iter(),
-        _Right._非检查开始(), _Right._Unchecked_end_iter(), _Synth_three_way{});
+_EXPORT_STD template <class _Kty, class _类型, class _Pr, class _分配器>
+_NODISCARD _Synth_three_way_result<pair<const _Kty, _类型>> operator<=>(
+    const 映射实现<_Kty, _类型, _Pr, _分配器>& _Left, const 映射实现<_Kty, _类型, _Pr, _分配器>& _Right) {
+    return _STD lexicographical_compare_three_way(_Left._非检查开始(), _Left._非检查结束迭代器(),
+        _Right._非检查开始(), _Right._非检查结束迭代器(), _Synth_three_way{});
 }
 #else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
-template <class _Kty, class _Ty, class _Pr, class _Alloc>
-_NODISCARD bool operator!=(const 映射实现<_Kty, _Ty, _Pr, _Alloc>& _Left, const 映射实现<_Kty, _Ty, _Pr, _Alloc>& _Right) {
+template <class _Kty, class _类型, class _Pr, class _分配器>
+_NODISCARD bool operator!=(const 映射实现<_Kty, _类型, _Pr, _分配器>& _Left, const 映射实现<_Kty, _类型, _Pr, _分配器>& _Right) {
     return !(_Left == _Right);
 }
 
-template <class _Kty, class _Ty, class _Pr, class _Alloc>
-_NODISCARD bool operator<(const 映射实现<_Kty, _Ty, _Pr, _Alloc>& _Left, const 映射实现<_Kty, _Ty, _Pr, _Alloc>& _Right) {
+template <class _Kty, class _类型, class _Pr, class _分配器>
+_NODISCARD bool operator<(const 映射实现<_Kty, _类型, _Pr, _分配器>& _Left, const 映射实现<_Kty, _类型, _Pr, _分配器>& _Right) {
     return _STD lexicographical_compare(
-        _Left._非检查开始(), _Left._Unchecked_end_iter(), _Right._非检查开始(), _Right._Unchecked_end_iter());
+        _Left._非检查开始(), _Left._非检查结束迭代器(), _Right._非检查开始(), _Right._非检查结束迭代器());
 }
 
-template <class _Kty, class _Ty, class _Pr, class _Alloc>
-_NODISCARD bool operator>(const 映射实现<_Kty, _Ty, _Pr, _Alloc>& _Left, const 映射实现<_Kty, _Ty, _Pr, _Alloc>& _Right) {
+template <class _Kty, class _类型, class _Pr, class _分配器>
+_NODISCARD bool operator>(const 映射实现<_Kty, _类型, _Pr, _分配器>& _Left, const 映射实现<_Kty, _类型, _Pr, _分配器>& _Right) {
     return _Right < _Left;
 }
 
-template <class _Kty, class _Ty, class _Pr, class _Alloc>
-_NODISCARD bool operator<=(const 映射实现<_Kty, _Ty, _Pr, _Alloc>& _Left, const 映射实现<_Kty, _Ty, _Pr, _Alloc>& _Right) {
+template <class _Kty, class _类型, class _Pr, class _分配器>
+_NODISCARD bool operator<=(const 映射实现<_Kty, _类型, _Pr, _分配器>& _Left, const 映射实现<_Kty, _类型, _Pr, _分配器>& _Right) {
     return !(_Right < _Left);
 }
 
-template <class _Kty, class _Ty, class _Pr, class _Alloc>
-_NODISCARD bool operator>=(const 映射实现<_Kty, _Ty, _Pr, _Alloc>& _Left, const 映射实现<_Kty, _Ty, _Pr, _Alloc>& _Right) {
+template <class _Kty, class _类型, class _Pr, class _分配器>
+_NODISCARD bool operator>=(const 映射实现<_Kty, _类型, _Pr, _分配器>& _Left, const 映射实现<_Kty, _类型, _Pr, _分配器>& _Right) {
     return !(_Left < _Right);
 }
 #endif // ^^^ !_HAS_CXX20 ^^^
 
-_EXPORT_STD template <class _Kty, class _Ty, class _Pr, class _Alloc>
-void swap(映射实现<_Kty, _Ty, _Pr, _Alloc>& _Left, 映射实现<_Kty, _Ty, _Pr, _Alloc>& _Right)
+_EXPORT_STD template <class _Kty, class _类型, class _Pr, class _分配器>
+void swap(映射实现<_Kty, _类型, _Pr, _分配器>& _Left, 映射实现<_Kty, _类型, _Pr, _分配器>& _Right)
     noexcept(noexcept(_Left.swap(_Right))) {
     _Left.swap(_Right);
 }
 
 #if _HAS_CXX20
-_EXPORT_STD template <class _Kty, class _Ty, class _Keylt, class _Alloc, class _Pr>
-映射实现<_Kty, _Ty, _Keylt, _Alloc>::size_type erase_if(映射实现<_Kty, _Ty, _Keylt, _Alloc>& _Cont, _Pr _Pred) {
+_EXPORT_STD template <class _Kty, class _类型, class _Keylt, class _分配器, class _Pr>
+映射实现<_Kty, _类型, _Keylt, _分配器>::size_type erase_if(映射实现<_Kty, _类型, _Keylt, _分配器>& _Cont, _Pr _Pred) {
     return _Erase_nodes_if(_Cont, _传递函数(_Pred));
 }
 #endif // _HAS_CXX20
 
-_EXPORT_STD template <class _Kty, class _Ty, class _Pr = less<_Kty>, class _Alloc = allocator<pair<const _Kty, _Ty>>>
-class 多重映射实现 : public _树<_映射特征<_Kty, _Ty, _Pr, _Alloc, true>> {
+_EXPORT_STD template <class _Kty, class _类型, class _Pr = less<_Kty>, class _分配器 = allocator<pair<const _Kty, _类型>>>
+class 多重映射实现 : public _树<_映射特征<_Kty, _类型, _Pr, _分配器, true>> {
     // ordered red-black tree of {key, mapped} values, non-unique keys
 public:
-    static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<pair<const _Kty, _Ty>, typename _Alloc::value_type>,
+    static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<pair<const _Kty, _类型>, typename _分配器::value_type>,
         _MISMATCHED_ALLOCATOR_MESSAGE("多重映射实现<Key, Value, Compare, Allocator>", "pair<const Key, Value>"));
     static_assert(is_object_v<_Kty>, "The C++ Standard forbids containers of non-object types "
                                      "because of [container.requirements].");
 
-    using _我的基类                = _树<_映射特征<_Kty, _Ty, _Pr, _Alloc, true>>;
+    using _我的基类                = _树<_映射特征<_Kty, _类型, _Pr, _分配器, true>>;
     using 键类型               = _Kty;
-    using 映射类型            = _Ty;
+    using 映射类型            = _类型;
     using 键比较器            = _Pr;
     using 值比较          = typename _我的基类::值比较;
-    using value_type             = pair<const _Kty, _Ty>;
+    using value_type             = pair<const _Kty, _类型>;
     using 分配器类型         = typename _我的基类::分配器类型;
     using size_type              = typename _我的基类::size_type;
     using difference_type        = typename _我的基类::difference_type;
@@ -496,44 +496,44 @@ public:
     多重映射实现(const 键比较器& _Pred, const 分配器类型& _Al) : _我的基类(_Pred, _Al) {}
 
     template <class _Iter>
-    多重映射实现(_Iter _First, _Iter _Last) : _我的基类(键比较器()) {
-        insert(_First, _Last);
+    多重映射实现(_Iter _首个, _Iter _最后) : _我的基类(键比较器()) {
+        insert(_首个, _最后);
     }
 
     template <class _Iter>
-    多重映射实现(_Iter _First, _Iter _Last, const 键比较器& _Pred) : _我的基类(_Pred) {
-        insert(_First, _Last);
+    多重映射实现(_Iter _首个, _Iter _最后, const 键比较器& _Pred) : _我的基类(_Pred) {
+        insert(_首个, _最后);
     }
 
     template <class _Iter>
-    多重映射实现(_Iter _First, _Iter _Last, const 分配器类型& _Al) : _我的基类(键比较器(), _Al) {
-        insert(_First, _Last);
+    多重映射实现(_Iter _首个, _Iter _最后, const 分配器类型& _Al) : _我的基类(键比较器(), _Al) {
+        insert(_首个, _最后);
     }
 
     template <class _Iter>
-    多重映射实现(_Iter _First, _Iter _Last, const 键比较器& _Pred, const 分配器类型& _Al) : _我的基类(_Pred, _Al) {
-        insert(_First, _Last);
+    多重映射实现(_Iter _首个, _Iter _最后, const 键比较器& _Pred, const 分配器类型& _Al) : _我的基类(_Pred, _Al) {
+        insert(_首个, _最后);
     }
 
 #if _HAS_CXX23
     template <_Container_compatible_range<value_type> _Rng>
     多重映射实现(from_range_t, _Rng&& _Range) : _我的基类(键比较器()) {
-        this->_Insert_range_unchecked(_解包首(_Range), _解包尾(_Range));
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     多重映射实现(from_range_t, _Rng&& _Range, const 键比较器& _Pred) : _我的基类(_Pred) {
-        this->_Insert_range_unchecked(_解包首(_Range), _解包尾(_Range));
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     多重映射实现(from_range_t, _Rng&& _Range, const 键比较器& _Pred, const 分配器类型& _Al) : _我的基类(_Pred, _Al) {
-        this->_Insert_range_unchecked(_解包首(_Range), _解包尾(_Range));
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 
     template <_Container_compatible_range<value_type> _Rng>
     多重映射实现(from_range_t, _Rng&& _Range, const 分配器类型& _Al) : _我的基类(键比较器(), _Al) {
-        this->_Insert_range_unchecked(_解包首(_Range), _解包尾(_Range));
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 #endif // _HAS_CXX23
 
@@ -552,9 +552,9 @@ public:
         return *this;
     }
 
-    template <class... _Valty>
-    迭代器 就地构造(_Valty&&... _Val) {
-        return _我的基类::就地构造(_STD forward<_Valty>(_Val)...).first;
+    template <class... _值参数类型>
+    迭代器 就地构造(_值参数类型&&... _Val) {
+        return _我的基类::就地构造(_STD forward<_值参数类型>(_Val)...).first;
     }
 
     void swap(多重映射实现& _Right) noexcept(noexcept(_我的基类::swap(_Right))) {
@@ -563,14 +563,14 @@ public:
 
     using _我的基类::insert;
 
-    template <class _Valty, enable_if_t<is_constructible_v<value_type, _Valty>, int> = 0>
-    迭代器 insert(_Valty&& _Val) {
-        return this->就地构造(_STD forward<_Valty>(_Val));
+    template <class _值参数类型, enable_if_t<is_constructible_v<value_type, _值参数类型>, int> = 0>
+    迭代器 insert(_值参数类型&& _Val) {
+        return this->就地构造(_STD forward<_值参数类型>(_Val));
     }
 
-    template <class _Valty, enable_if_t<is_constructible_v<value_type, _Valty>, int> = 0>
-    迭代器 insert(常量迭代器 _Where, _Valty&& _Val) {
-        return this->emplace_hint(_Where, _STD forward<_Valty>(_Val));
+    template <class _值参数类型, enable_if_t<is_constructible_v<value_type, _值参数类型>, int> = 0>
+    迭代器 insert(常量迭代器 _Where, _值参数类型&& _Val) {
+        return this->emplace_hint(_Where, _STD forward<_值参数类型>(_Val));
     }
 
     多重映射实现(initializer_list<value_type> _Ilist) : _我的基类(键比较器()) {
@@ -601,90 +601,90 @@ public:
 };
 
 #if _HAS_CXX17
-template <class _Iter, class _Pr = less<_Guide_key_t<_Iter>>, class _Alloc = allocator<_Guide_pair_t<_Iter>>,
-    enable_if_t<conjunction_v<_Is_iterator<_Iter>, negation<_Is_allocator<_Pr>>, _Is_allocator<_Alloc>>, int> = 0>
-多重映射实现(_Iter, _Iter, _Pr = _Pr(), _Alloc = _Alloc())
-    -> 多重映射实现<_Guide_key_t<_Iter>, _Guide_val_t<_Iter>, _Pr, _Alloc>;
+template <class _Iter, class _Pr = less<_Guide_key_t<_Iter>>, class _分配器 = allocator<_Guide_pair_t<_Iter>>,
+    enable_if_t<conjunction_v<_Is_iterator<_Iter>, negation<_Is_allocator<_Pr>>, _Is_allocator<_分配器>>, int> = 0>
+多重映射实现(_Iter, _Iter, _Pr = _Pr(), _分配器 = _分配器())
+    -> 多重映射实现<_Guide_key_t<_Iter>, _Guide_val_t<_Iter>, _Pr, _分配器>;
 
-template <class _Kty, class _Ty, class _Pr = less<_Kty>, class _Alloc = allocator<pair<const _Kty, _Ty>>,
-    enable_if_t<conjunction_v<negation<_Is_allocator<_Pr>>, _Is_allocator<_Alloc>>, int> = 0>
-多重映射实现(initializer_list<pair<_Kty, _Ty>>, _Pr = _Pr(), _Alloc = _Alloc()) -> 多重映射实现<_Kty, _Ty, _Pr, _Alloc>;
+template <class _Kty, class _类型, class _Pr = less<_Kty>, class _分配器 = allocator<pair<const _Kty, _类型>>,
+    enable_if_t<conjunction_v<negation<_Is_allocator<_Pr>>, _Is_allocator<_分配器>>, int> = 0>
+多重映射实现(initializer_list<pair<_Kty, _类型>>, _Pr = _Pr(), _分配器 = _分配器()) -> 多重映射实现<_Kty, _类型, _Pr, _分配器>;
 
-template <class _Iter, class _Alloc, enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_allocator<_Alloc>>, int> = 0>
-多重映射实现(_Iter, _Iter, _Alloc) -> 多重映射实现<_Guide_key_t<_Iter>, _Guide_val_t<_Iter>, less<_Guide_key_t<_Iter>>, _Alloc>;
+template <class _Iter, class _分配器, enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_allocator<_分配器>>, int> = 0>
+多重映射实现(_Iter, _Iter, _分配器) -> 多重映射实现<_Guide_key_t<_Iter>, _Guide_val_t<_Iter>, less<_Guide_key_t<_Iter>>, _分配器>;
 
-template <class _Kty, class _Ty, class _Alloc, enable_if_t<_Is_allocator<_Alloc>::value, int> = 0>
-多重映射实现(initializer_list<pair<_Kty, _Ty>>, _Alloc) -> 多重映射实现<_Kty, _Ty, less<_Kty>, _Alloc>;
+template <class _Kty, class _类型, class _分配器, enable_if_t<_Is_allocator<_分配器>::value, int> = 0>
+多重映射实现(initializer_list<pair<_Kty, _类型>>, _分配器) -> 多重映射实现<_Kty, _类型, less<_Kty>, _分配器>;
 
 #if _HAS_CXX23
-template <_RANGES input_range _Rng, class _Pr = less<_Range_key_type<_Rng>>,
-    _Allocator_for_container _Alloc = allocator<_Range_to_alloc_type<_Rng>>>
+template <_RANGES input_range _Rng, class _Pr = less<_范围键类型<_Rng>>,
+    _Allocator_for_container _分配器 = allocator<_范围到分配器类型<_Rng>>>
     requires (!_Allocator_for_container<_Pr>)
-多重映射实现(from_range_t, _Rng&&, _Pr = _Pr(), _Alloc = _Alloc())
-    -> 多重映射实现<_Range_key_type<_Rng>, _Range_mapped_type<_Rng>, _Pr, _Alloc>;
+多重映射实现(from_range_t, _Rng&&, _Pr = _Pr(), _分配器 = _分配器())
+    -> 多重映射实现<_范围键类型<_Rng>, _范围映射类型<_Rng>, _Pr, _分配器>;
 
-template <_RANGES input_range _Rng, _Allocator_for_container _Alloc>
-多重映射实现(from_range_t, _Rng&&, _Alloc)
-    -> 多重映射实现<_Range_key_type<_Rng>, _Range_mapped_type<_Rng>, less<_Range_key_type<_Rng>>, _Alloc>;
+template <_RANGES input_range _Rng, _Allocator_for_container _分配器>
+多重映射实现(from_range_t, _Rng&&, _分配器)
+    -> 多重映射实现<_范围键类型<_Rng>, _范围映射类型<_Rng>, less<_范围键类型<_Rng>>, _分配器>;
 #endif // _HAS_CXX23
 #endif // _HAS_CXX17
 
-_EXPORT_STD template <class _Kty, class _Ty, class _Pr, class _Alloc>
+_EXPORT_STD template <class _Kty, class _类型, class _Pr, class _分配器>
 _NODISCARD bool operator==(
-    const 多重映射实现<_Kty, _Ty, _Pr, _Alloc>& _Left, const 多重映射实现<_Kty, _Ty, _Pr, _Alloc>& _Right) {
+    const 多重映射实现<_Kty, _类型, _Pr, _分配器>& _Left, const 多重映射实现<_Kty, _类型, _Pr, _分配器>& _Right) {
     return _Left.size() == _Right.size()
-        && _STD equal(_Left._非检查开始(), _Left._Unchecked_end_iter(), _Right._非检查开始());
+        && _STD equal(_Left._非检查开始(), _Left._非检查结束迭代器(), _Right._非检查开始());
 }
 
 #if _HAS_CXX20
-_EXPORT_STD template <class _Kty, class _Ty, class _Pr, class _Alloc>
-_NODISCARD _Synth_three_way_result<pair<const _Kty, _Ty>> operator<=>(
-    const 多重映射实现<_Kty, _Ty, _Pr, _Alloc>& _Left, const 多重映射实现<_Kty, _Ty, _Pr, _Alloc>& _Right) {
-    return _STD lexicographical_compare_three_way(_Left._非检查开始(), _Left._Unchecked_end_iter(),
-        _Right._非检查开始(), _Right._Unchecked_end_iter(), _Synth_three_way{});
+_EXPORT_STD template <class _Kty, class _类型, class _Pr, class _分配器>
+_NODISCARD _Synth_three_way_result<pair<const _Kty, _类型>> operator<=>(
+    const 多重映射实现<_Kty, _类型, _Pr, _分配器>& _Left, const 多重映射实现<_Kty, _类型, _Pr, _分配器>& _Right) {
+    return _STD lexicographical_compare_three_way(_Left._非检查开始(), _Left._非检查结束迭代器(),
+        _Right._非检查开始(), _Right._非检查结束迭代器(), _Synth_three_way{});
 }
 #else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
-template <class _Kty, class _Ty, class _Pr, class _Alloc>
+template <class _Kty, class _类型, class _Pr, class _分配器>
 _NODISCARD bool operator!=(
-    const 多重映射实现<_Kty, _Ty, _Pr, _Alloc>& _Left, const 多重映射实现<_Kty, _Ty, _Pr, _Alloc>& _Right) {
+    const 多重映射实现<_Kty, _类型, _Pr, _分配器>& _Left, const 多重映射实现<_Kty, _类型, _Pr, _分配器>& _Right) {
     return !(_Left == _Right);
 }
 
-template <class _Kty, class _Ty, class _Pr, class _Alloc>
+template <class _Kty, class _类型, class _Pr, class _分配器>
 _NODISCARD bool operator<(
-    const 多重映射实现<_Kty, _Ty, _Pr, _Alloc>& _Left, const 多重映射实现<_Kty, _Ty, _Pr, _Alloc>& _Right) {
+    const 多重映射实现<_Kty, _类型, _Pr, _分配器>& _Left, const 多重映射实现<_Kty, _类型, _Pr, _分配器>& _Right) {
     return _STD lexicographical_compare(
-        _Left._非检查开始(), _Left._Unchecked_end_iter(), _Right._非检查开始(), _Right._Unchecked_end_iter());
+        _Left._非检查开始(), _Left._非检查结束迭代器(), _Right._非检查开始(), _Right._非检查结束迭代器());
 }
 
-template <class _Kty, class _Ty, class _Pr, class _Alloc>
+template <class _Kty, class _类型, class _Pr, class _分配器>
 _NODISCARD bool operator>(
-    const 多重映射实现<_Kty, _Ty, _Pr, _Alloc>& _Left, const 多重映射实现<_Kty, _Ty, _Pr, _Alloc>& _Right) {
+    const 多重映射实现<_Kty, _类型, _Pr, _分配器>& _Left, const 多重映射实现<_Kty, _类型, _Pr, _分配器>& _Right) {
     return _Right < _Left;
 }
 
-template <class _Kty, class _Ty, class _Pr, class _Alloc>
+template <class _Kty, class _类型, class _Pr, class _分配器>
 _NODISCARD bool operator<=(
-    const 多重映射实现<_Kty, _Ty, _Pr, _Alloc>& _Left, const 多重映射实现<_Kty, _Ty, _Pr, _Alloc>& _Right) {
+    const 多重映射实现<_Kty, _类型, _Pr, _分配器>& _Left, const 多重映射实现<_Kty, _类型, _Pr, _分配器>& _Right) {
     return !(_Right < _Left);
 }
 
-template <class _Kty, class _Ty, class _Pr, class _Alloc>
+template <class _Kty, class _类型, class _Pr, class _分配器>
 _NODISCARD bool operator>=(
-    const 多重映射实现<_Kty, _Ty, _Pr, _Alloc>& _Left, const 多重映射实现<_Kty, _Ty, _Pr, _Alloc>& _Right) {
+    const 多重映射实现<_Kty, _类型, _Pr, _分配器>& _Left, const 多重映射实现<_Kty, _类型, _Pr, _分配器>& _Right) {
     return !(_Left < _Right);
 }
 #endif // ^^^ !_HAS_CXX20 ^^^
 
-_EXPORT_STD template <class _Kty, class _Ty, class _Pr, class _Alloc>
-void swap(多重映射实现<_Kty, _Ty, _Pr, _Alloc>& _Left, 多重映射实现<_Kty, _Ty, _Pr, _Alloc>& _Right)
+_EXPORT_STD template <class _Kty, class _类型, class _Pr, class _分配器>
+void swap(多重映射实现<_Kty, _类型, _Pr, _分配器>& _Left, 多重映射实现<_Kty, _类型, _Pr, _分配器>& _Right)
     noexcept(noexcept(_Left.swap(_Right))) {
     _Left.swap(_Right);
 }
 
 #if _HAS_CXX20
-_EXPORT_STD template <class _Kty, class _Ty, class _Keylt, class _Alloc, class _Pr>
-多重映射实现<_Kty, _Ty, _Keylt, _Alloc>::size_type erase_if(多重映射实现<_Kty, _Ty, _Keylt, _Alloc>& _Cont, _Pr _Pred) {
+_EXPORT_STD template <class _Kty, class _类型, class _Keylt, class _分配器, class _Pr>
+多重映射实现<_Kty, _类型, _Keylt, _分配器>::size_type erase_if(多重映射实现<_Kty, _类型, _Keylt, _分配器>& _Cont, _Pr _Pred) {
     return _Erase_nodes_if(_Cont, _传递函数(_Pred));
 }
 #endif // _HAS_CXX20
@@ -692,11 +692,11 @@ _EXPORT_STD template <class _Kty, class _Ty, class _Keylt, class _Alloc, class _
 #if _HAS_CXX17
 namespace pmr {
     使用 名域 std::pmr;   // 嵌套名域暂不翻，但里面的名字要靠它找到（步 2b）
-    _EXPORT_STD template <class _Kty, class _Ty, class _Pr = less<_Kty>>
-    using 映射实现 = 映射实现<_Kty, _Ty, _Pr, polymorphic_allocator<pair<const _Kty, _Ty>>>;
+    _EXPORT_STD template <class _Kty, class _类型, class _Pr = less<_Kty>>
+    using 映射实现 = 映射实现<_Kty, _类型, _Pr, polymorphic_allocator<pair<const _Kty, _类型>>>;
 
-    _EXPORT_STD template <class _Kty, class _Ty, class _Pr = less<_Kty>>
-    using 多重映射实现 = 多重映射实现<_Kty, _Ty, _Pr, polymorphic_allocator<pair<const _Kty, _Ty>>>;
+    _EXPORT_STD template <class _Kty, class _类型, class _Pr = less<_Kty>>
+    using 多重映射实现 = 多重映射实现<_Kty, _类型, _Pr, polymorphic_allocator<pair<const _Kty, _类型>>>;
 } // namespace pmr
 #endif // _HAS_CXX17
 } }
