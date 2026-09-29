@@ -38,15 +38,15 @@ _STL_DISABLE_CLANG_WARNINGS
 
 inline constexpr size_t _Any_trivial_space_size = (_Small_object_num_ptrs - 1) * sizeof(void*);
 
-template <class _Ty>
+template <class _类型>
 constexpr bool _Any_is_trivial =
-    alignof(_Ty) <= alignof(max_align_t) && is_trivially_copyable_v<_Ty> && sizeof(_Ty) <= _Any_trivial_space_size;
+    alignof(_类型) <= alignof(max_align_t) && is_trivially_copyable_v<_类型> && sizeof(_类型) <= _Any_trivial_space_size;
 
 inline constexpr size_t _Any_small_space_size = (_Small_object_num_ptrs - 2) * sizeof(void*);
 
-template <class _Ty>
-constexpr bool _Any_is_small = alignof(_Ty) <= alignof(max_align_t)
-                            && is_nothrow_move_constructible_v<_Ty> && sizeof(_Ty) <= _Any_small_space_size;
+template <class _类型>
+constexpr bool _Any_is_small = alignof(_类型) <= alignof(max_align_t)
+                            && is_nothrow_move_constructible_v<_类型> && sizeof(_类型) <= _Any_small_space_size;
 
 enum class _任意表示 : uintptr_t { _Trivial, _Big, _Small };
 
@@ -54,18 +54,18 @@ struct _任意大对象类型信息 { // Hand-rolled vtable for types that must 
     using _析构函数指针 = void __CLRCALL_PURE_OR_CDECL(void*) _NOEXCEPT_FNPTR;
     using _复制函数指针    = void* __CLRCALL_PURE_OR_CDECL(const void*);
 
-    template <class _Ty>
+    template <class _类型>
     static void __CLRCALL_PURE_OR_CDECL _析构实现(void* const _Target) noexcept {
-        ::delete static_cast<_Ty*>(_Target);
+        ::delete static_cast<_类型*>(_Target);
     }
 
-    template <class _Ty>
+    template <class _类型>
     _NODISCARD static void* __CLRCALL_PURE_OR_CDECL _复制实现(const void* const _Source) {
-        return ::new _Ty(*static_cast<const _Ty*>(_Source));
+        return ::new _类型(*static_cast<const _类型*>(_Source));
     }
 
     _析构函数指针* _Destroy;
-    _复制函数指针* _Copy;
+    _复制函数指针* _复制;
 };
 
 struct _任意小对象类型信息 { // Hand-rolled vtable for nontrivial types that can be stored internally in an 任意实现
@@ -73,32 +73,32 @@ struct _任意小对象类型信息 { // Hand-rolled vtable for nontrivial types
     using _复制函数指针    = void __CLRCALL_PURE_OR_CDECL(void*, const void*);
     using _移动函数指针    = void __CLRCALL_PURE_OR_CDECL(void*, void*) _NOEXCEPT_FNPTR;
 
-    template <class _Ty>
+    template <class _类型>
     static void __CLRCALL_PURE_OR_CDECL _析构实现(void* const _Target) noexcept {
-        _就地析构(*static_cast<_Ty*>(_Target));
+        _就地析构(*static_cast<_类型*>(_Target));
     }
 
-    template <class _Ty>
+    template <class _类型>
     static void __CLRCALL_PURE_OR_CDECL _复制实现(void* const _Target, const void* const _Source) {
-        _就地构造(*static_cast<_Ty*>(_Target), *static_cast<const _Ty*>(_Source));
+        _就地构造(*static_cast<_类型*>(_Target), *static_cast<const _类型*>(_Source));
     }
 
-    template <class _Ty>
+    template <class _类型>
     static void __CLRCALL_PURE_OR_CDECL _移动实现(void* const _Target, void* const _Source) noexcept {
-        _就地构造(*static_cast<_Ty*>(_Target), _STD move(*static_cast<_Ty*>(_Source)));
+        _就地构造(*static_cast<_类型*>(_Target), _STD move(*static_cast<_类型*>(_Source)));
     }
 
     _析构函数指针* _Destroy;
-    _复制函数指针* _Copy;
+    _复制函数指针* _复制;
     _移动函数指针* _Move;
 };
 
-template <class _Ty>
-constexpr _任意大对象类型信息 _Any_big_RTTI_obj = {&_任意大对象类型信息::_析构实现<_Ty>, &_任意大对象类型信息::_复制实现<_Ty>};
+template <class _类型>
+constexpr _任意大对象类型信息 _Any_big_RTTI_obj = {&_任意大对象类型信息::_析构实现<_类型>, &_任意大对象类型信息::_复制实现<_类型>};
 
-template <class _Ty>
+template <class _类型>
 constexpr _任意小对象类型信息 _Any_small_RTTI_obj = {
-    &_任意小对象类型信息::_析构实现<_Ty>, &_任意小对象类型信息::_复制实现<_Ty>, &_任意小对象类型信息::_移动实现<_Ty>};
+    &_任意小对象类型信息::_析构实现<_类型>, &_任意小对象类型信息::_复制实现<_类型>, &_任意小对象类型信息::_移动实现<_类型>};
 
 _EXPORT_STD class 任意实现 { // storage for 任意实现 (CopyConstructible) 所属类型
 public:
@@ -110,11 +110,11 @@ public:
         switch (_表示()) {
         case _任意表示::_Small:
             _Storage._SmallStorage._RTTI = _That._Storage._SmallStorage._RTTI;
-            _Storage._SmallStorage._RTTI->_Copy(&_Storage._SmallStorage._Data, &_That._Storage._SmallStorage._Data);
+            _Storage._SmallStorage._RTTI->_复制(&_Storage._SmallStorage._Data, &_That._Storage._SmallStorage._Data);
             break;
         case _任意表示::_Big:
             _Storage._BigStorage._RTTI = _That._Storage._BigStorage._RTTI;
-            _Storage._BigStorage._Ptr  = _Storage._BigStorage._RTTI->_Copy(_That._Storage._BigStorage._Ptr);
+            _Storage._BigStorage._Ptr  = _Storage._BigStorage._RTTI->_复制(_That._Storage._BigStorage._Ptr);
             break;
         case _任意表示::_Trivial:
         default:
@@ -144,11 +144,11 @@ public:
         _就地安置<decay_t<_ValueType>>(_STD forward<_Types>(_Args)...);
     }
 
-    template <class _ValueType, class _Elem, class... _Types,
-        enable_if_t<conjunction_v<is_constructible<decay_t<_ValueType>, initializer_list<_Elem>&, _Types...>,
+    template <class _ValueType, class _元素, class... _Types,
+        enable_if_t<conjunction_v<is_constructible<decay_t<_ValueType>, initializer_list<_元素>&, _Types...>,
                         is_copy_constructible<decay_t<_ValueType>>>,
             int> = 0>
-    explicit 任意实现(in_place_type_t<_ValueType>, initializer_list<_Elem> _Ilist, _Types&&... _Args) {
+    explicit 任意实现(in_place_type_t<_ValueType>, initializer_list<_元素> _Ilist, _Types&&... _Args) {
         // in-place initialize a value of 所属类型 decay_t<_ValueType> with _Ilist and _Args...
         _就地安置<decay_t<_ValueType>>(_Ilist, _STD forward<_Types>(_Args)...);
     }
@@ -161,7 +161,7 @@ public:
         // or _Trivial mode; see _表示(). The rest of the bits encode the type_info pointer that's used
         // to remember what 所属类型 of object we're storing; see _类型信息(). So, we'll take the tombstone value,
         // clear out the two LSBs with the _Rep_mask, then set the bits for _Small mode.
-        // _Small mode will prevent the most misuse, as the pseudo-vtable will be used for _Destroy, _Copy, and _Move.
+        // _Small mode will prevent the most misuse, as the pseudo-vtable will be used for _Destroy, _复制, and _Move.
         // _Big mode wouldn't use the pseudo-vtable for _Move, and _Trivial mode doesn't have a pseudo-vtable at all.
         const uintptr_t _Tombstone_value{_MSVC_STL_UINTPTR_TOMBSTONE_VALUE};
         // Set the pseudo-vtable pointer:
@@ -201,11 +201,11 @@ public:
         重置();
         return _就地安置<decay_t<_ValueType>>(_STD forward<_Types>(_Args)...);
     }
-    template <class _ValueType, class _Elem, class... _Types,
-        enable_if_t<conjunction_v<is_constructible<decay_t<_ValueType>, initializer_list<_Elem>&, _Types...>,
+    template <class _ValueType, class _元素, class... _Types,
+        enable_if_t<conjunction_v<is_constructible<decay_t<_ValueType>, initializer_list<_元素>&, _Types...>,
                         is_copy_constructible<decay_t<_ValueType>>>,
             int> = 0>
-    decay_t<_ValueType>& 就地构造(initializer_list<_Elem> _Ilist, _Types&&... _Args) {
+    decay_t<_ValueType>& 就地构造(initializer_list<_元素> _Ilist, _Types&&... _Args) {
         // replace contained value with an object of 所属类型 decay_t<_ValueType> initialized from _Ilist and _Args...
         重置();
         return _就地安置<decay_t<_ValueType>>(_Ilist, _STD forward<_Types>(_Args)...);
@@ -373,9 +373,9 @@ _EXPORT_STD template <class _ValueType, class... _Types,
 _NODISCARD 任意实现 造任意(_Types&&... _Args) { // construct an 任意实现 containing a _ValueType initialized with _Args...
     return 任意实现{in_place_type<_ValueType>, _STD forward<_Types>(_Args)...};
 }
-_EXPORT_STD template <class _ValueType, class _Elem, class... _Types,
-    enable_if_t<is_constructible_v<任意实现, in_place_type_t<_ValueType>, initializer_list<_Elem>&, _Types...>, int> = 0>
-_NODISCARD 任意实现 造任意(initializer_list<_Elem> _Ilist, _Types&&... _Args) {
+_EXPORT_STD template <class _ValueType, class _元素, class... _Types,
+    enable_if_t<is_constructible_v<任意实现, in_place_type_t<_ValueType>, initializer_list<_元素>&, _Types...>, int> = 0>
+_NODISCARD 任意实现 造任意(initializer_list<_元素> _Ilist, _Types&&... _Args) {
     // construct an 任意实现 containing a _ValueType initialized with _Ilist and _Args...
     return 任意实现{in_place_type<_ValueType>, _Ilist, _STD forward<_Types>(_Args)...};
 }
@@ -411,42 +411,42 @@ _NODISCARD _ValueType* 任意转换(任意实现* const _Any) noexcept {
     }
 }
 
-_EXPORT_STD template <class _Ty>
-_NODISCARD remove_cv_t<_Ty> 任意转换(const 任意实现& _Any) {
-    static_assert(is_constructible_v<remove_cv_t<_Ty>, const _Remove_cvref_t<_Ty>&>,
+_EXPORT_STD template <class _类型>
+_NODISCARD remove_cv_t<_类型> 任意转换(const 任意实现& _Any) {
+    static_assert(is_constructible_v<remove_cv_t<_类型>, const _Remove_cvref_t<_类型>&>,
         "任意转换<T>(const 任意实现&) requires remove_cv_t<T> to be constructible from "
         "const remove_cv_t<remove_reference_t<T>>&");
 
-    const auto _Ptr = 任意转换<_Remove_cvref_t<_Ty>>(&_Any);
+    const auto _Ptr = 任意转换<_Remove_cvref_t<_类型>>(&_Any);
     if (!_Ptr) {
         _Throw_bad_any_cast();
     }
 
-    return static_cast<remove_cv_t<_Ty>>(*_Ptr);
+    return static_cast<remove_cv_t<_类型>>(*_Ptr);
 }
-_EXPORT_STD template <class _Ty>
-_NODISCARD remove_cv_t<_Ty> 任意转换(任意实现& _Any) {
-    static_assert(is_constructible_v<remove_cv_t<_Ty>, _Remove_cvref_t<_Ty>&>,
+_EXPORT_STD template <class _类型>
+_NODISCARD remove_cv_t<_类型> 任意转换(任意实现& _Any) {
+    static_assert(is_constructible_v<remove_cv_t<_类型>, _Remove_cvref_t<_类型>&>,
         "任意转换<T>(任意实现&) requires remove_cv_t<T> to be constructible from remove_cv_t<remove_reference_t<T>>&");
 
-    const auto _Ptr = 任意转换<_Remove_cvref_t<_Ty>>(&_Any);
+    const auto _Ptr = 任意转换<_Remove_cvref_t<_类型>>(&_Any);
     if (!_Ptr) {
         _Throw_bad_any_cast();
     }
 
-    return static_cast<remove_cv_t<_Ty>>(*_Ptr);
+    return static_cast<remove_cv_t<_类型>>(*_Ptr);
 }
-_EXPORT_STD template <class _Ty>
-_NODISCARD remove_cv_t<_Ty> 任意转换(任意实现&& _Any) {
-    static_assert(is_constructible_v<remove_cv_t<_Ty>, _Remove_cvref_t<_Ty>>,
+_EXPORT_STD template <class _类型>
+_NODISCARD remove_cv_t<_类型> 任意转换(任意实现&& _Any) {
+    static_assert(is_constructible_v<remove_cv_t<_类型>, _Remove_cvref_t<_类型>>,
         "任意转换<T>(任意实现&&) requires remove_cv_t<T> to be constructible from remove_cv_t<remove_reference_t<T>>");
 
-    const auto _Ptr = 任意转换<_Remove_cvref_t<_Ty>>(&_Any);
+    const auto _Ptr = 任意转换<_Remove_cvref_t<_类型>>(&_Any);
     if (!_Ptr) {
         _Throw_bad_any_cast();
     }
 
-    return static_cast<remove_cv_t<_Ty>>(_STD move(*_Ptr));
+    return static_cast<remove_cv_t<_类型>>(_STD move(*_Ptr));
 }
 
 } }

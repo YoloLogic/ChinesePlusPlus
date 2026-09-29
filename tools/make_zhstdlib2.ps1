@@ -530,7 +530,15 @@ $H = @{
                           #     但那要连 树内部件 里的读取点一起改，属下一批。
                           # ⚠ _Alnode / _Alnode_traits 同理（`typename _Mybase::X`）。
                           }
-    members = [ordered]@{ 'emplace' = '就地构造'
+    members = [ordered]@{
+      '_Getal' = '_取分配器';
+      '_In_place_key_extract_set' = '_就地键提取集合';
+      '_Alloc' = '_分配器';
+      '_First' = '_首个';
+      '_Valty' = '_值参数类型';
+      '_Unchecked_end_iter' = '_非检查结束迭代器';
+      '_Last' = '_最后';
+      '_Insert_range_unchecked' = '_插入范围非检查'; 'emplace' = '就地构造'
       # §17.27.60 台账收尾（阶段(3) 第一批）：这些名字的定义方是 通用内部件（我们的 xutility 拷贝，
       #   §17.27.52 已给定义方解毒）；本头能看到它 -> 调用点跟改，指向我们那份。
       '_Ubegin' = '_解包首'
@@ -669,6 +677,7 @@ $H = @{
                           #   改名会让 xtree 里的读取点找不到它。中文名欠账，
                           #   消除路径 = 与 树内部件 同步改（通路已开）。
     members = [ordered]@{
+      '_In_place_key_extract_map' = '_就地键提取映射';
       # §17.27.60 台账收尾（阶段(3) 第一批）：这些名字的定义方是 通用内部件（我们的 xutility 拷贝，
       #   §17.27.52 已给定义方解毒）；本头能看到它 -> 调用点跟改，指向我们那份。
       '_Ubegin' = '_解包首'
@@ -903,6 +912,9 @@ $H = @{
     realInclude = @('any')
     dropTypes   = @('bad_any_cast')
     members = [ordered]@{
+      '_Copy' = '_复制';
+      '_Elem' = '_元素';
+      '_Ty' = '_类型';
       'reset' = '重置'; 'has_value' = '有值'
       # ⚠ `类型` 是关键词（class），所以 type() 不能叫「类型」
       'type' = '所属类型'; 'emplace' = '就地构造'
@@ -2285,6 +2297,14 @@ $H = @{
     #   实测漏了它：error: namespace 'std' 中没有名为 'dynamic_extent' 的成员；
     #   你是不是想写 '细节::dynamic_extent'？ / 没有变量模板匹配部分特化
     members = [ordered]@{
+      '_Unchecked_begin' = '_非检查开始';
+      '_Unchecked_end' = '_非检查结束';
+      '_First' = '_首个';
+      '_Last' = '_最后';
+      '_Myptr' = '_我的指针';
+      '_Mysize' = '_我的尺寸';
+      '_Sentinel' = '_哨兵';
+      '_Ty' = '_类型';
       'size' = '尺寸'; 'size_bytes' = '字节尺寸'; 'empty' = '为空'
       'data' = '数据'; 'front' = '前'; 'back' = '后'
       'begin' = '开始'; 'end' = '结束'
@@ -2800,6 +2820,7 @@ $H = @{
       'allocator_type'           = '分配器类型'
     }
     members = [ordered]@{
+      '_Extract' = '_摘取';
       '_Ubegin' = '_解包首'
       '_Uend' = '_解包尾'
       '_Delete_plain_internal' = '_删除原生内部'
@@ -3777,7 +3798,10 @@ $H = @{
                           '_Arrival_token' = '_到达令牌'
                           '_Counter_t' = '_计数器类型'
                           'arrival_token' = '到达令牌' }
-    members = [ordered]@{ 'arrive' = '到达'; 'arrive_and_drop' = '到达并退出'
+    members = [ordered]@{
+      '_One_then_variadic_args_t' = '_先一后变参实参';
+      '_Get_first' = '_取第一';
+      '_Compressed_pair' = '_压缩对'; 'arrive' = '到达'; 'arrive_and_drop' = '到达并退出'
                           'arrive_and_wait' = '到达并等待'; 'wait' = '等待' }
     zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
@@ -4590,7 +4614,11 @@ $H = @{
     # 本轮判定：**不切借用面**（本头不与我们的容器/串/极限做类型混用，也没有友元/私有访问问题）。
     pub     = '复数'
     types   = [ordered]@{ 'complex' = '复数实现' }
-    members = [ordered]@{ 'real' = '实部'; 'imag' = '虚部'
+    members = [ordered]@{
+      '_Ty' = '_类型';
+      '_Traits' = '_特征';
+      '_Result' = '_结果';
+      '_Elem' = '_元素'; 'real' = '实部'; 'imag' = '虚部'
                           'abs' = '模'; 'arg' = '幅角'; 'norm' = '模方'; 'conj' = '共轭'
                           'proj' = '投影'; 'polar' = '极坐标'
                           'log10' = '常用对数'

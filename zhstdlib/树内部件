@@ -525,7 +525,7 @@ public:
         _Wherenode->_Parent = _Pnode;
     }
 
-    _结点指针 _Extract(_非检查常量迭代器 _Where) noexcept {
+    _结点指针 _摘取(_非检查常量迭代器 _Where) noexcept {
         _结点指针 _Erasednode = _Where._Ptr; // node to erase
         ++_Where; // save successor 迭代器 for return
 
@@ -1014,7 +1014,7 @@ protected:
         _树查找结果<_结点指针> _Loc;
         _结点指针 _Inserted;
         if constexpr (!_Multi && _就地键提取器::_Extractable) {
-            const auto& _Keyval = _就地键提取器::_Extract(_Vals...);
+            const auto& _Keyval = _就地键提取器::_摘取(_Vals...);
             _Loc                = _查找下界(_Keyval);
             if (_下界重复项(_Loc._Bound, _Keyval)) {
                 return {_Loc._Bound, false};
@@ -1058,7 +1058,7 @@ protected:
         _树查找提示结果<_结点指针> _Loc;
         _结点指针 _Inserted;
         if constexpr (!_Multi && _就地键提取器::_Extractable) {
-            _Loc = _按提示查找(_Hint, _就地键提取器::_Extract(_Vals...));
+            _Loc = _按提示查找(_Hint, _就地键提取器::_摘取(_Vals...));
             if (_Loc._Duplicate) {
                 return _Loc._Location._Parent;
             }
@@ -1301,7 +1301,7 @@ private:
         const auto _Scary                    = _取检查值();
         _非检查常量迭代器 _Successor = _Where;
         ++_Successor; // save successor 迭代器 for return
-        _结点指针 _Erasednode = _Scary->_Extract(_Where); // node to erase
+        _结点指针 _Erasednode = _Scary->_摘取(_Where); // node to erase
         _Scary->_孤立指针(_Erasednode);
         _节点::_释放节点(_取分配器(), _Erasednode); // delete erased node
         return _Successor._Ptr; // return successor nodeptr
@@ -1749,7 +1749,7 @@ public:
         _STL_VERIFY(_Where._取容器() == _Scary && !_Where._Ptr->_Isnil, "map/set erase 迭代器 outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
-        const auto _Ptr = _Scary->_Extract(_Where._解包());
+        const auto _Ptr = _Scary->_摘取(_Where._解包());
         _Scary->_孤立指针(_Ptr);
         return 结点类型::_Make(_Ptr, _取分配器());
     }
@@ -1889,7 +1889,7 @@ public:
             _检查增一();
 
             // nothrow hereafter for this iteration
-            const auto _Extracted = _That_scary->_Extract(_非检查常量迭代器(_Attempt_node, nullptr));
+            const auto _Extracted = _That_scary->_摘取(_非检查常量迭代器(_Attempt_node, nullptr));
             _Extracted->_Left     = _Head;
             // _Extracted->_Parent handled in _插入节点
             _Extracted->_Right = _Head;
