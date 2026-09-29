@@ -26,6 +26,7 @@ _STL_DISABLE_CLANG_WARNINGS
 
 名域 标准 { 名域 细节 {
 使用 名域 std;
+模板 <类型名 元素, 类型名 特征, 类型名 分配器> 类型 基础字符串缓冲;
 template <class _我的字符串>
 class _字符串常量迭代器 : public _迭代器基类 {
 public:
@@ -543,7 +544,7 @@ _EXPORT_STD template <class _Elem, class _Traits = char_traits<_Elem>, class _Al
 class 基础字符串实现 { // null-terminated transparent array of elements
 private:
     friend _清理释放守卫<基础字符串实现>;
-    friend basic_stringbuf<_Elem, _Traits, _Alloc>;
+    friend 基础字符串缓冲<_Elem, _Traits, _Alloc>;
 
     using _分配器类型        = _重绑定分配器类型<_Alloc, _Elem>;
     using _分配器特征 = allocator_traits<_分配器类型>;
@@ -1168,7 +1169,7 @@ public:
 #if _HAS_CXX20
     _NODISCARD bool _由缓冲移动赋值(
         _Elem* const _Right, const size_type _Size, const size_type _Actual_allocation_size) {
-        // Move assign from a buffer, used exclusively by basic_stringbuf; returns _已启用大串模式()
+        // Move assign from a buffer, used exclusively by 基础字符串缓冲; returns _已启用大串模式()
         auto& _My_data = _Mypair._Myval2;
         _STL_INTERNAL_CHECK(!_My_data._已启用大串模式() && _My_data._Mysize == 0);
         _STL_INTERNAL_CHECK(_Size < _Actual_allocation_size); // So there is room for null terminator
@@ -1198,7 +1199,7 @@ public:
     };
 
     _NODISCARD _已释放缓冲 _释放至缓冲(_Alloc& _Al) {
-        // Release to a buffer, or allocate a new one if in small string mode; used exclusively by basic_stringbuf
+        // Release to a buffer, or allocate a new one if in small string mode; used exclusively by 基础字符串缓冲
         _已释放缓冲 _Result;
         auto& _My_data = _Mypair._Myval2;
         _Result._Size  = _My_data._Mysize;
