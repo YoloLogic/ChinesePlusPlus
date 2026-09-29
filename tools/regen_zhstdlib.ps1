@@ -314,13 +314,41 @@ Write-Host ''
 #  台账由 tools\check_multiowner.ps1 **生成**，这里只核对它是否最新。
 #  可见化：下面这行会打印 `边界台账：最新（B x / D y）`。
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+#  §17.27.63.2 孤儿产物守卫 —— 回退条目时必须同时删掉它的产物。
+#
+#  实测（第 74 轮）：<字符转换> 试做失败、生成器条目已回退，但产物文件 `zhstdlib\字符转换` 还留在盘上；
+#  而「全量验证」会扫 `zhstdlib\` 下的【所有】产物 -> 那个坏产物把门禁顶红，
+#  现象极像"环境残留"，害得我在三个方向上白跑了三轮门禁才找到真凶是孤儿文件。
+#
+#  判据（§17.27.3：新发现必须有机器落点）：**产物目录里每个文件都必须能在某个生成器里找到出处**，
+#  否则直接报红并指名文件 —— 修法只有一句话：把孤儿删掉，或把条目补回来。
+#  ⚠ 判据写成"文件名字面量出现在三个生成器里"，而不是"与 zh 表精确比对"：
+#    make_zhc.ps1 的产品名不在 `zh = ` 字段里，精确比对会造出 26 个假孤儿。
+# ---------------------------------------------------------------------------
+$genText = ''
+foreach ($j in $jobs) {
+    $gp = Join-Path $root "tools\$($j.Script)"
+    if (Test-Path $gp) { $genText += [System.IO.File]::ReadAllText($gp) }
+}
+$genText += [System.IO.File]::ReadAllText((Join-Path $root 'tools\make_zhc.ps1'))
+$orphans = @()
+foreach ($pf in (Get-ChildItem (Join-Path $root 'zhstdlib') -File)) {
+    if ($genText.IndexOf("'" + $pf.Name + "'") -lt 0) { $orphans += $pf.Name }
+}
+Write-Host ("=== 孤儿产物守卫（§17.27.63.2）：{0} 个产物，孤儿 {1} 个 ===" -f (Get-ChildItem (Join-Path $root 'zhstdlib') -File).Count, $orphans.Count) -ForegroundColor Cyan
+if ($orphans.Count) {
+    Write-Host ("    ❌ 没有出处的产物：{0}" -f ($orphans -join ', ')) -ForegroundColor Red
+    Write-Host '    修法：删掉孤儿（回退条目时必须同时删产物），或把条目补回来。' -ForegroundColor Yellow
+}
+$orph = 0; if ($orphans.Count) { $orph = 1 }
 Write-Host "=== 边界台账守卫（B/D 桶）===" -ForegroundColor Cyan
 & pwsh -NoProfile -File (Join-Path $root 'tools\check_multiowner.ps1') -Quiet -Check
 $bd = $LASTEXITCODE
 
-if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0 -and $bd -eq 0) {
-    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 边界台账 + 铁律①：全部通过" -ForegroundColor Green
+if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0 -and $bd -eq 0 -and $orph -eq 0) {
+    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 边界台账 + 孤儿产物 + 铁律①：全部通过" -ForegroundColor Green
     exit 0
 }
-Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；边界台账守卫退出码 {5}；铁律①守卫退出码 {4}" -f $fail, $v, $ex, $ud, $og, $bd) -ForegroundColor Red
+Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；边界台账守卫退出码 {5}；孤儿产物守卫退出码 {6}；铁律①守卫退出码 {4}" -f $fail, $v, $ex, $ud, $og, $bd, $orph) -ForegroundColor Red
 exit 1
