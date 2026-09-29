@@ -342,13 +342,25 @@ if ($orphans.Count) {
     Write-Host '    修法：删掉孤儿（回退条目时必须同时删产物），或把条目补回来。' -ForegroundColor Yellow
 }
 $orph = 0; if ($orphans.Count) { $orph = 1 }
+# ---------------------------------------------------------------------------
+#  §17.19.16.2 公开层转发守卫 —— 让"默认不用可变参模板转发"这条配方**可见**。
+#
+#  为什么加它（第 82 轮）：<复数> 单头 5/5 全绿，门禁却在「全量验证」报红 ——
+#  <C数学> 与 <复数> 都写了逐字相同的可变参模板（同处 `标准`），编译器判【重定义】。
+#  组合探针能抓，但那是编译时的、只报第一条。本守卫是它的**静态前哨**：
+#  清点命名空间作用域的转发声明与"可变参转发"风险集，并把重定义风险直接判成红。
+#  可见化：下面会打印 `命名空间作用域转发 N 条 / ... / 重定义风险 0 对`。
+# ---------------------------------------------------------------------------
+Write-Host "=== 公开层转发守卫（§17.19.16.2）===" -ForegroundColor Cyan
+& pwsh -NoProfile -File (Join-Path $root 'tools\check_zhforward.ps1')
+$fw = $LASTEXITCODE
 Write-Host "=== 边界台账守卫（B/D 桶）===" -ForegroundColor Cyan
 & pwsh -NoProfile -File (Join-Path $root 'tools\check_multiowner.ps1') -Quiet -Check
 $bd = $LASTEXITCODE
 
-if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0 -and $bd -eq 0 -and $orph -eq 0) {
-    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 边界台账 + 孤儿产物 + 铁律①：全部通过" -ForegroundColor Green
+if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0 -and $bd -eq 0 -and $orph -eq 0 -and $fw -eq 0) {
+    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 边界台账 + 孤儿产物 + 公开层转发 + 铁律①：全部通过" -ForegroundColor Green
     exit 0
 }
-Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；边界台账守卫退出码 {5}；孤儿产物守卫退出码 {6}；铁律①守卫退出码 {4}" -f $fail, $v, $ex, $ud, $og, $bd, $orph) -ForegroundColor Red
+Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；边界台账守卫退出码 {5}；孤儿产物守卫退出码 {6}；铁律①守卫退出码 {4}；公开层转发守卫退出码 {7}" -f $fail, $v, $ex, $ud, $og, $bd, $orph, $fw) -ForegroundColor Red
 exit 1
