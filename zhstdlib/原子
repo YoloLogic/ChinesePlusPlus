@@ -353,7 +353,7 @@ _NODISCARD inline 内存序 _合并CAS内存序(
 }
 
 template <class _Integral, class _类型>
-_NODISCARD _Integral _Atomic_reinterpret_as(const _类型& _Source) noexcept {
+_NODISCARD _Integral _原子重解释为(const _类型& _Source) noexcept {
     // interprets _Source as the supplied integral type
     static_assert(is_integral_v<_Integral>, "Tried to reinterpret memory as non-integral");
     if constexpr (is_integral_v<_类型> && sizeof(_Integral) == sizeof(_类型)) {
@@ -439,13 +439,13 @@ void _Atomic_wait_direct(
     const auto _Storage_ptr =
         const_cast<const void*>(static_cast<const volatile void*>(_STD addressof(_This->_Storage)));
     for (;;) {
-        const _Value_type _Observed_bytes = _Atomic_reinterpret_as<_Value_type>(_This->载入(_Order));
+        const _Value_type _Observed_bytes = _原子重解释为<_Value_type>(_This->载入(_Order));
         if (_Expected_bytes != _Observed_bytes) {
 #if _CMPXCHG_MASK_OUT_PADDING_BITS
             using _TVal = _Remove_cvref_t<_类型>;
             if constexpr (_Might_have_non_value_bits<_TVal>) {
                 _存储用于<_TVal> _Mask{_Form_mask};
-                const _Value_type _Mask_val = _Atomic_reinterpret_as<_Value_type>(_Mask._Ref());
+                const _Value_type _Mask_val = _原子重解释为<_Value_type>(_Mask._Ref());
 
                 if (((_Expected_bytes ^ _Observed_bytes) & _Mask_val) == 0) {
                     _Expected_bytes = _Observed_bytes;
@@ -521,7 +521,7 @@ private:
 
 #if _HAS_CXX20
 template <class _Spinlock_t>
-bool __stdcall _Atomic_wait_compare_non_lock_free(
+bool __stdcall _原子等待比较非无锁(
     const void* _Storage, void* _Comparand, size_t _Size, void* _Spinlock_raw) noexcept {
     _Spinlock_t& _Spinlock = *static_cast<_Spinlock_t*>(_Spinlock_raw);
     _Atomic_lock_acquire(_Spinlock);
@@ -531,7 +531,7 @@ bool __stdcall _Atomic_wait_compare_non_lock_free(
 }
 
 #ifdef _WIN64
-inline bool __stdcall _Atomic_wait_compare_16_bytes(const void* _Storage, void* _Comparand, size_t, void*) noexcept {
+inline bool __stdcall _原子等待比较16字节(const void* _Storage, void* _Comparand, size_t, void*) noexcept {
     const auto _目标              = static_cast<long long*>(const_cast<void*>(_Storage));
     const auto _Cmp               = static_cast<const long long*>(_Comparand);
     alignas(16) long long _Tmp[2] = {_Cmp[0], _Cmp[1]};
@@ -648,7 +648,7 @@ struct _原子存储 {
             } // unlock
 
             ::__std_atomic_wait_indirect(_Storage_ptr, _Expected_ptr, sizeof(_TVal), &_Spinlock,
-                &_Atomic_wait_compare_non_lock_free<decltype(_Spinlock)>, __std_atomic_wait_no_timeout);
+                &_原子等待比较非无锁<decltype(_Spinlock)>, __std_atomic_wait_no_timeout);
         }
     }
 
@@ -692,13 +692,13 @@ struct _原子存储<_类型, 1> { // lock-free using 1-byte intrinsics
 
     void 存储(const _TVal _Value) noexcept { // 存储 with sequential consistency
         const auto _Mem      = _原子取地址为<char>(_Storage);
-        const char _As_bytes = _Atomic_reinterpret_as<char>(_Value);
+        const char _As_bytes = _原子重解释为<char>(_Value);
         _原子存储顺序一致(8, _Mem, _As_bytes)
     }
 
     void 存储(const _TVal _Value, const 内存序 _Order) noexcept { // 存储 with given memory order
         const auto _Mem      = _原子取地址为<char>(_Storage);
-        const char _As_bytes = _Atomic_reinterpret_as<char>(_Value);
+        const char _As_bytes = _原子重解释为<char>(_Value);
 
         _检查存储内存序(_Order);
 
@@ -728,23 +728,23 @@ struct _原子存储<_类型, 1> { // lock-free using 1-byte intrinsics
         // 置换 with given memory order
         char _As_bytes;
         _原子选择内建(static_cast<unsigned int>(_Order), _As_bytes, _InterlockedExchange8,
-            _原子取地址为<char>(_Storage), _Atomic_reinterpret_as<char>(_Value));
+            _原子取地址为<char>(_Storage), _原子重解释为<char>(_Value));
         return reinterpret_cast<_TVal&>(_As_bytes);
     }
 
     bool 比较交换强(_TVal& _Expected, const _TVal _Desired,
         const 内存序 _Order = 内存序顺序一致) noexcept { // CAS with given memory order
-        char _Expected_bytes = _Atomic_reinterpret_as<char>(_Expected); // read before 原子实现 operation
+        char _Expected_bytes = _原子重解释为<char>(_Expected); // read before 原子实现 operation
         char _Prev_bytes;
 
 #if _CMPXCHG_MASK_OUT_PADDING_BITS
         if constexpr (_Might_have_non_value_bits<_TVal>) {
             _存储用于<_TVal> _Mask{_Form_mask};
-            const char _Mask_val = _Atomic_reinterpret_as<char>(_Mask._Ref());
+            const char _Mask_val = _原子重解释为<char>(_Mask._Ref());
 
             for (;;) {
                 _原子选择内建(static_cast<unsigned int>(_Order), _Prev_bytes, _InterlockedCompareExchange8,
-                    _原子取地址为<char>(_Storage), _Atomic_reinterpret_as<char>(_Desired),
+                    _原子取地址为<char>(_Storage), _原子重解释为<char>(_Desired),
                     _Expected_bytes);
                 if (_Prev_bytes == _Expected_bytes) {
                     return true;
@@ -759,7 +759,7 @@ struct _原子存储<_类型, 1> { // lock-free using 1-byte intrinsics
         }
 #endif // _CMPXCHG_MASK_OUT_PADDING_BITS
         _原子选择内建(static_cast<unsigned int>(_Order), _Prev_bytes, _InterlockedCompareExchange8,
-            _原子取地址为<char>(_Storage), _Atomic_reinterpret_as<char>(_Desired), _Expected_bytes);
+            _原子取地址为<char>(_Storage), _原子重解释为<char>(_Desired), _Expected_bytes);
         if (_Prev_bytes == _Expected_bytes) {
             return true;
         }
@@ -770,7 +770,7 @@ struct _原子存储<_类型, 1> { // lock-free using 1-byte intrinsics
 
 #if _HAS_CXX20
     void 等待(const _TVal _Expected, const 内存序 _Order = 内存序顺序一致) const noexcept {
-        _Atomic_wait_direct(this, _Atomic_reinterpret_as<char>(_Expected), _Order);
+        _Atomic_wait_direct(this, _原子重解释为<char>(_Expected), _Order);
     }
 
     void 通知一个() noexcept {
@@ -799,13 +799,13 @@ struct _原子存储<_类型, 2> { // lock-free using 2-byte intrinsics
 
     void 存储(const _TVal _Value) noexcept { // 存储 with sequential consistency
         const auto _Mem       = _原子取地址为<short>(_Storage);
-        const short _As_bytes = _Atomic_reinterpret_as<short>(_Value);
+        const short _As_bytes = _原子重解释为<short>(_Value);
         _原子存储顺序一致(16, _Mem, _As_bytes)
     }
 
     void 存储(const _TVal _Value, const 内存序 _Order) noexcept { // 存储 with given memory order
         const auto _Mem       = _原子取地址为<short>(_Storage);
-        const short _As_bytes = _Atomic_reinterpret_as<short>(_Value);
+        const short _As_bytes = _原子重解释为<short>(_Value);
 
         _检查存储内存序(_Order);
 
@@ -835,22 +835,22 @@ struct _原子存储<_类型, 2> { // lock-free using 2-byte intrinsics
         // 置换 with given memory order
         short _As_bytes;
         _原子选择内建(static_cast<unsigned int>(_Order), _As_bytes, _InterlockedExchange16,
-            _原子取地址为<short>(_Storage), _Atomic_reinterpret_as<short>(_Value));
+            _原子取地址为<short>(_Storage), _原子重解释为<short>(_Value));
         return reinterpret_cast<_TVal&>(_As_bytes);
     }
 
     bool 比较交换强(_TVal& _Expected, const _TVal _Desired,
         const 内存序 _Order = 内存序顺序一致) noexcept { // CAS with given memory order
-        short _Expected_bytes = _Atomic_reinterpret_as<short>(_Expected); // read before 原子实现 operation
+        short _Expected_bytes = _原子重解释为<short>(_Expected); // read before 原子实现 operation
         short _Prev_bytes;
 #if _CMPXCHG_MASK_OUT_PADDING_BITS
         if constexpr (_Might_have_non_value_bits<_类型>) {
             _存储用于<_TVal> _Mask{_Form_mask};
-            const short _Mask_val = _Atomic_reinterpret_as<short>(_Mask._Ref());
+            const short _Mask_val = _原子重解释为<short>(_Mask._Ref());
 
             for (;;) {
                 _原子选择内建(static_cast<unsigned int>(_Order), _Prev_bytes, _InterlockedCompareExchange16,
-                    _原子取地址为<short>(_Storage), _Atomic_reinterpret_as<short>(_Desired),
+                    _原子取地址为<short>(_Storage), _原子重解释为<short>(_Desired),
                     _Expected_bytes);
                 if (_Prev_bytes == _Expected_bytes) {
                     return true;
@@ -865,7 +865,7 @@ struct _原子存储<_类型, 2> { // lock-free using 2-byte intrinsics
         }
 #endif // _CMPXCHG_MASK_OUT_PADDING_BITS
         _原子选择内建(static_cast<unsigned int>(_Order), _Prev_bytes, _InterlockedCompareExchange16,
-            _原子取地址为<short>(_Storage), _Atomic_reinterpret_as<short>(_Desired), _Expected_bytes);
+            _原子取地址为<short>(_Storage), _原子重解释为<short>(_Desired), _Expected_bytes);
         if (_Prev_bytes == _Expected_bytes) {
             return true;
         }
@@ -876,7 +876,7 @@ struct _原子存储<_类型, 2> { // lock-free using 2-byte intrinsics
 
 #if _HAS_CXX20
     void 等待(const _TVal _Expected, const 内存序 _Order = 内存序顺序一致) const noexcept {
-        _Atomic_wait_direct(this, _Atomic_reinterpret_as<short>(_Expected), _Order);
+        _Atomic_wait_direct(this, _原子重解释为<short>(_Expected), _Order);
     }
 
     void 通知一个() noexcept {
@@ -905,13 +905,13 @@ struct _原子存储<_类型, 4> { // lock-free using 4-byte intrinsics
 
     void 存储(const _TVal _Value) noexcept { // 存储 with sequential consistency
         const auto _Mem     = _原子取地址为<int>(_Storage);
-        const int _As_bytes = _Atomic_reinterpret_as<int>(_Value);
+        const int _As_bytes = _原子重解释为<int>(_Value);
         _原子存储32顺序一致(_Mem, _As_bytes)
     }
 
     void 存储(const _TVal _Value, const 内存序 _Order) noexcept { // 存储 with given memory order
         const auto _Mem     = _原子取地址为<int>(_Storage);
-        const int _As_bytes = _Atomic_reinterpret_as<int>(_Value);
+        const int _As_bytes = _原子重解释为<int>(_Value);
 
         _检查存储内存序(_Order);
 
@@ -941,22 +941,22 @@ struct _原子存储<_类型, 4> { // lock-free using 4-byte intrinsics
         // 置换 with given memory order
         long _As_bytes;
         _原子选择内建(static_cast<unsigned int>(_Order), _As_bytes, _InterlockedExchange,
-            _原子取地址为<long>(_Storage), _Atomic_reinterpret_as<long>(_Value));
+            _原子取地址为<long>(_Storage), _原子重解释为<long>(_Value));
         return reinterpret_cast<_TVal&>(_As_bytes);
     }
 
     bool 比较交换强(_TVal& _Expected, const _TVal _Desired,
         const 内存序 _Order = 内存序顺序一致) noexcept { // CAS with given memory order
-        long _Expected_bytes = _Atomic_reinterpret_as<long>(_Expected); // read before 原子实现 operation
+        long _Expected_bytes = _原子重解释为<long>(_Expected); // read before 原子实现 operation
         long _Prev_bytes;
 #if _CMPXCHG_MASK_OUT_PADDING_BITS
         if constexpr (_Might_have_non_value_bits<_TVal>) {
             _存储用于<_TVal> _Mask{_Form_mask};
-            const long _Mask_val = _Atomic_reinterpret_as<long>(_Mask);
+            const long _Mask_val = _原子重解释为<long>(_Mask);
 
             for (;;) {
                 _原子选择内建(static_cast<unsigned int>(_Order), _Prev_bytes, _InterlockedCompareExchange,
-                    _原子取地址为<long>(_Storage), _Atomic_reinterpret_as<long>(_Desired),
+                    _原子取地址为<long>(_Storage), _原子重解释为<long>(_Desired),
                     _Expected_bytes);
                 if (_Prev_bytes == _Expected_bytes) {
                     return true;
@@ -971,7 +971,7 @@ struct _原子存储<_类型, 4> { // lock-free using 4-byte intrinsics
         }
 #endif // _CMPXCHG_MASK_OUT_PADDING_BITS
         _原子选择内建(static_cast<unsigned int>(_Order), _Prev_bytes, _InterlockedCompareExchange,
-            _原子取地址为<long>(_Storage), _Atomic_reinterpret_as<long>(_Desired), _Expected_bytes);
+            _原子取地址为<long>(_Storage), _原子重解释为<long>(_Desired), _Expected_bytes);
         if (_Prev_bytes == _Expected_bytes) {
             return true;
         }
@@ -982,7 +982,7 @@ struct _原子存储<_类型, 4> { // lock-free using 4-byte intrinsics
 
 #if _HAS_CXX20
     void 等待(const _TVal _Expected, const 内存序 _Order = 内存序顺序一致) const noexcept {
-        _Atomic_wait_direct(this, _Atomic_reinterpret_as<long>(_Expected), _Order);
+        _Atomic_wait_direct(this, _原子重解释为<long>(_Expected), _Order);
     }
 
     void 通知一个() noexcept {
@@ -1011,13 +1011,13 @@ struct _原子存储<_类型, 8> { // lock-free using 8-byte intrinsics
 
     void 存储(const _TVal _Value) noexcept { // 存储 with sequential consistency
         const auto _Mem           = _原子取地址为<long long>(_Storage);
-        const long long _As_bytes = _Atomic_reinterpret_as<long long>(_Value);
+        const long long _As_bytes = _原子重解释为<long long>(_Value);
         _原子存储64顺序一致(_Mem, _As_bytes);
     }
 
     void 存储(const _TVal _Value, const 内存序 _Order) noexcept { // 存储 with given memory order
         const auto _Mem           = _原子取地址为<long long>(_Storage);
-        const long long _As_bytes = _Atomic_reinterpret_as<long long>(_Value);
+        const long long _As_bytes = _原子重解释为<long long>(_Value);
 
         _检查存储内存序(_Order);
 
@@ -1063,24 +1063,24 @@ struct _原子存储<_类型, 8> { // lock-free using 8-byte intrinsics
         // 置换 with given memory order
         long long _As_bytes;
         _原子选择内建(static_cast<unsigned int>(_Order), _As_bytes, _InterlockedExchange64,
-            _原子取地址为<long long>(_Storage), _Atomic_reinterpret_as<long long>(_Value));
+            _原子取地址为<long long>(_Storage), _原子重解释为<long long>(_Value));
         return reinterpret_cast<_TVal&>(_As_bytes);
     }
 #endif // ^^^ !defined(_M_IX86) ^^^
 
     bool 比较交换强(_TVal& _Expected, const _TVal _Desired,
         const 内存序 _Order = 内存序顺序一致) noexcept { // CAS with given memory order
-        long long _Expected_bytes = _Atomic_reinterpret_as<long long>(_Expected); // read before 原子实现 operation
+        long long _Expected_bytes = _原子重解释为<long long>(_Expected); // read before 原子实现 operation
         long long _Prev_bytes;
 
 #if _CMPXCHG_MASK_OUT_PADDING_BITS
         if constexpr (_Might_have_non_value_bits<_TVal>) {
             _存储用于<_TVal> _Mask{_Form_mask};
-            const long long _Mask_val = _Atomic_reinterpret_as<long long>(_Mask);
+            const long long _Mask_val = _原子重解释为<long long>(_Mask);
 
             for (;;) {
                 _原子选择内建(static_cast<unsigned int>(_Order), _Prev_bytes, _InterlockedCompareExchange64,
-                    _原子取地址为<long long>(_Storage), _Atomic_reinterpret_as<long long>(_Desired),
+                    _原子取地址为<long long>(_Storage), _原子重解释为<long long>(_Desired),
                     _Expected_bytes);
                 if (_Prev_bytes == _Expected_bytes) {
                     return true;
@@ -1095,7 +1095,7 @@ struct _原子存储<_类型, 8> { // lock-free using 8-byte intrinsics
         }
 #endif // _CMPXCHG_MASK_OUT_PADDING_BITS
         _原子选择内建(static_cast<unsigned int>(_Order), _Prev_bytes, _InterlockedCompareExchange64,
-            _原子取地址为<long long>(_Storage), _Atomic_reinterpret_as<long long>(_Desired),
+            _原子取地址为<long long>(_Storage), _原子重解释为<long long>(_Desired),
             _Expected_bytes);
         if (_Prev_bytes == _Expected_bytes) {
             return true;
@@ -1107,7 +1107,7 @@ struct _原子存储<_类型, 8> { // lock-free using 8-byte intrinsics
 
 #if _HAS_CXX20
     void 等待(const _TVal _Expected, const 内存序 _Order = 内存序顺序一致) const noexcept {
-        _Atomic_wait_direct(this, _Atomic_reinterpret_as<long long>(_Expected), _Order);
+        _Atomic_wait_direct(this, _原子重解释为<long long>(_Expected), _Order);
     }
 
     void 通知一个() noexcept {
@@ -1282,7 +1282,7 @@ struct _原子存储<_类型&, 16> { // lock-free using 16-byte intrinsics
             }
 
             ::__std_atomic_wait_indirect(_Storage_ptr, _Expected_ptr, sizeof(_TVal), nullptr,
-                &_Atomic_wait_compare_16_bytes, __std_atomic_wait_no_timeout);
+                &_原子等待比较16字节, __std_atomic_wait_no_timeout);
         }
     }
 

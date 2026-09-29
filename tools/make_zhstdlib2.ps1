@@ -5080,6 +5080,9 @@ $H = @{
       'memory_order_acquire' = '内存序获取'; 'memory_order_release' = '内存序释放'
       'memory_order_acq_rel' = '内存序获取释放'; 'memory_order_seq_cst' = '内存序顺序一致'
       '_Atomic_address_as' = '_原子取地址为'
+      '_Atomic_reinterpret_as' = '_原子重解释为'
+      '_Atomic_wait_compare_16_bytes' = '_原子等待比较16字节'
+      '_Atomic_wait_compare_non_lock_free' = '_原子等待比较非无锁'
       # 全局作用域 extern C 匿名枚举（与 vcruntime 共享）：真头在场会重定义 -> 改成汉语名（§17.19.18）
       # 同段里的全局函数（真头也定义 -> 重定义）与宏（宏体已含汉语 -> 宏名必须一起改，§16.24）
       '_Check_memory_order' = '_检查内存序'
