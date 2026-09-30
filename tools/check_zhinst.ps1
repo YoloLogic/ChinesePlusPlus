@@ -66,6 +66,15 @@ function Get-RoleArg([string] $decl, [string[]] $all, [int] $idx) {
     if ($nm -match '键相等|_Keyeq') { return 'std::equal_to<整数>' }
     if ($nm -match '相等|_Eq') { return 'std::equal_to<整数>' }
     if ($nm -match '特征|traits|_Traits') { return 'std::char_traits<字符>' }
+    #  §17.27 视图/范围类模板的形参要**真范围**（给 `整数` 会报「约束未满足」，实测 19 处）；
+    #  `_Ki` 是 subrange_kind 枚举值、`比` 是 `ratio<>`（给 `1` 会撞静态断言）。
+    if ($nm -match '^_Vw$|^_Rng$|^_Range$|视图|可借范围|范围类型|可作视图') { return '标准::向量<整数>' }
+    if ($nm -match '^_Pat$|^_Pattern$|^模式$') { return '标准::向量<整数>' }
+    if ($nm -match '^_Ki$|^_Kind$|^种类$') { return 'std::ranges::subrange_kind::sized' }
+    if ($nm -match '^比|^_R1$|^_R2$|^_R$|ratio') { return 'std::ratio<1, 1>' }
+    if ($nm -match '^_CharT$|^_Elem$|^_元素$|字符类型') { return '字符' }
+    if ($nm -match '^_Out$|^_OutIt$|输出迭代') { return '整数*' }
+    if ($nm -match '^_It$|^_Se$|^_Iter$|^_Iterator$') { return '整数*' }
     return '整数'
 }
 function Get-TemplateArgs([string] $decl) {
@@ -240,6 +249,36 @@ function Get-FixPath([string] $reason, [string] $kind) {
     if ($reason -match '-无探针') { return '扩见证表（`Get-Witness` / `Get-TemplateArgs`），或补一条真用例' }
     return '补一条真用例，或扩见证表（判责规则见 tools\check_zhinst.ps1 顶部）'
 }
+#  §17.27 **静态宿主推断**：`types` 里的成员 typedef（`尺寸类型`/`常量局部迭代器`/`键类型`…）
+#  不是 `细节::` 下的顶层类型，而是某个类模板的成员。宿主不用猜、也不用编译器试：
+#  在产物正文里找到它的声明行（`使用 名 = …` / `using 名 = …`），往上找**最近的、缩进更小的**
+#  类/结构声明 —— 深拷贝的缩进是稳定的（每层 4 空格）。宿主自身的模板实参用同一套合成。
+#  返回 ''=推断不出；否则返回宿主表达式（两次都返回：调用方自己决定试哪个命名空间）。
+function Get-EnclosingHost([string] $text, [string] $name) {
+    if (-not $text) { return '' }
+    $lines = $text -split "`n"
+    $declIdx = -1; $declIndent = 0
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        if ($lines[$i] -match ('^\s*(?:使用|using)\s+' + [regex]::Escape($name) + '\s*=')) {
+            $declIdx = $i
+            $declIndent = ([regex]::Match($lines[$i], '^\s*')).Length
+            break
+        }
+    }
+    if ($declIdx -lt 0) { return '' }
+    for ($i = $declIdx - 1; $i -ge 0; $i--) {
+        $l = $lines[$i]
+        if ($l -notmatch '\S') { continue }
+        if (([regex]::Match($l, '^\s*')).Length -ge $declIndent) { continue }
+        $cm = [regex]::Match($l, '^\s*(?:类型|类|结构|class|struct)\s+([\w\u4e00-\u9fff]+)')
+        if ($cm.Success) {
+            $cls = $cm.Groups[1].Value
+            $ia = Get-ImplArgsFromText $text $cls
+            return [pscustomobject]@{ Class = $cls; Args = $ia }
+        }
+    }
+    return ''
+}
 function Get-WitnessIncludes([string[]] $kinds) {
     $inc = @()
     if ($kinds -contains '引') { $inc += '随机' }
@@ -413,6 +452,7 @@ foreach ($p in $dtab.PSObject.Properties) {
     }
     $hostImps = @()
     $implArgs = @{}   # 内部件名 -> 它自己的合成实参（从产物正文的 `模板 <…> 类型 X` 精确取）
+    $memberHost = @{}  # §17.27 成员 typedef 名 -> 静态推断出的宿主 @{Class;Args}
     if (($p.Value.PSObject.Properties.Name -contains 'types') -and $p.Value.types) {
         foreach ($k in $p.Value.types.PSObject.Properties) {
             $v = [string]$k.Value
@@ -423,6 +463,9 @@ foreach ($p in $dtab.PSObject.Properties) {
                 $ia = Get-ImplArgsFromText $ptxt $v
                 $hostImps += $(if ($ia) { "标准::细节::$v<$ia>" } else { "标准::细节::$v" })
                 $implArgs[$v] = $ia
+                #  §17.27 这个成员 typedef 的**真实宿主**（静态推断，零编译）
+                $eh = Get-EnclosingHost $ptxt $v
+                if ($eh) { $memberHost[$v] = $eh }
             }
         }
     }
@@ -440,7 +483,7 @@ foreach ($p in $dtab.PSObject.Properties) {
     }
     $tests = ''
     if (($p.Value.PSObject.Properties.Name -contains 'tests') -and $p.Value.tests) { foreach ($tc in $p.Value.tests) { $tests += ([string]$tc[1]) + "`n" } }
-    $products += [pscustomobject]@{ Track = '深度'; Product = $zh; TParam = $tp; Names = @($names | Sort-Object Name -Unique); Tests = $tests; HostPub = $hostPub; HostImps = @($hostImps); ImplArgs = $implArgs }
+    $products += [pscustomobject]@{ Track = '深度'; Product = $zh; TParam = $tp; Names = @($names | Sort-Object Name -Unique); Tests = $tests; HostPub = $hostPub; HostImps = @($hostImps); ImplArgs = $implArgs; MemberHost = $memberHost }
 }
 
 # ③ C 轨道（表在源码里）
@@ -487,7 +530,7 @@ New-Item -ItemType Directory -Force $work | Out-Null
 
 $rows = @(); $failAll = @(); $uncoveredAll = @()
 foreach ($p in $products) {
-    $items = @(); $probed = @(); $byTest = @(); $uncovered = @{}; $tplItems = @()
+    $items = @(); $probed = @(); $byTest = @(); $uncovered = @{}; $tplItems = @(); $needInc = @()
     $nid = 0   # §17.22.1 探针变量名用**有序计数器**，不用 `GetHashCode`（每进程随机 -> 台账不可复算）
     foreach ($n in @($p.Names | Sort-Object Name -Unique)) {
         $used = $false
@@ -504,7 +547,7 @@ foreach ($p in $products) {
                 $tplItems += $tpn; $probed += $n.Name; $used = $true; continue
             }
         }
-        $line = $null; $line2 = $null; $line3 = $null
+        $line = $null; $line2 = $null; $line3 = $null; $line4 = $null
         switch ($n.Kind) {
             '类型' { $line = ("    {0}* 针{1} = 空指针; (空型)针{1};" -f ('标准::' + $n.Name), $id) }
             #  §17.23 内部件多半是**类模板**：`标准::细节::映射实现` 不是类型、`映射实现<整数,整数,整数,整数>` 才是。
@@ -514,9 +557,16 @@ foreach ($p in $products) {
                 $ia = ''
                 if ($p.ImplArgs -and $p.ImplArgs.ContainsKey($n.Name)) { $ia = [string]$p.ImplArgs[$n.Name] }
                 if ($ia) { $line2 = ("    标准::细节::{0}<{1}>* 针{2} = 空指针; (空型)针{2};" -f $n.Name, $ia, $id) }
-                #  ⚠ `types` 里**混着成员 typedef**（`尺寸类型`/`插入返回类型`/`常量迭代器`/`常量引用`）——
-                #    它们不是 `细节::` 下的类，而是公开宿主的成员；再加一条宿主限定候选（§17.23）。
+                #  `types` 里混着成员 typedef（`尺寸类型`/`常量迭代器`）—— 它们不是 `细节::` 下的类，
+                #  而是公开宿主的成员；一条宿主限定候选（§17.23）。公开宿主不是唯一可能
+                #  （`范围` 的视图挂在 `标准::范围视图` 下），那部分由 §17.27 的"报错自带候选路径"补。
                 if ($p.HostPub) { $line3 = ("    {0}::{1}* 针{2} = 空指针; (空型)针{2};" -f $p.HostPub, $n.Name, $id) }
+                #  §17.27 静态推断出的宿主：成员 typedef 的真实归属（标准::细节::X<实参>::名）
+                if ($p.MemberHost -and $p.MemberHost.ContainsKey($n.Name)) {
+                    $mh = $p.MemberHost[$n.Name]
+                    $ha2 = [string]$mh.Args
+                    $line4 = ("    标准::细节::{0}{1}::{2}* 针{3} = 空指针; (空型)针{3};" -f $mh.Class, $(if ($ha2) { "<$ha2>" } else { '' }), $n.Name, $id)
+                }
             }
             '模板类型' { $a = Get-TemplateArgs $n.Template; if ($a) { $line = ("    {0}<{1}>* 针{2} = 空指针; (空型)针{2};" -f ('标准::' + $n.Name), $a, $id) } elseif ($n.Template) { $line = ("    标准::{0}<>* 针{1} = 空指针; (空型)针{1};" -f $n.Name, $id) } }
             #  §17.26 形参**全带默认值**的模板别名（`模板 <类型名 值类型 = 空型> 使用 按位与 = std::bit_and<值类型>;`）
@@ -562,10 +612,16 @@ foreach ($p in $products) {
         #  ⚠ 同一名字可能有多条候选（裸名 / 带实参 / 宿主限定），它们会**同处一个 TU** ——
         #    变量名必须逐条区分，否则 `针<id>` 重定义（实测：6 个产物因此编不过）。
         $ci = 0
-        foreach ($ln in @($line, $line2, $line3)) {
+        foreach ($ln in @($line, $line2, $line3, $line4)) {
             if ($ln) {
                 $ci++
                 $lnx = $(if ($ci -eq 1) { $ln } else { ([string]$ln).Replace([string]$id, "$id`_$ci") })
+                #  §17.27 合成实参里可能用到**别的中文头**（视图要 `标准::向量<整数>`、引擎要
+                #  `标准::默认随机引擎`、复数见证要 `标准::复数`）—— 探针 TU 必须把它引进来，
+                #  否则实参类型本身没定义，报错会伪装成"这个名字不行"（实测白丢一批）。
+                if ($lnx -match '标准::向量' -and $needInc -notcontains '向量') { $needInc += '向量' }
+                if ($lnx -match '默认随机引擎' -and $needInc -notcontains '随机') { $needInc += '随机' }
+                if ($lnx -match '标准::复数' -and $needInc -notcontains '复数') { $needInc += '复数' }
                 $items += [pscustomobject]@{ Line = $lnx; Name = $n.Name; Kind = $n.Kind }
                 $probed += $n.Name; $used = $true
             }
@@ -583,7 +639,7 @@ foreach ($p in $products) {
     $prodFile = Join-Path $out $p.Product
     $stdFlag = '-std=c++20'
     if ((Test-Path $prodFile) -and ([System.IO.File]::ReadAllText($prodFile) -match '_HAS_CXX23')) { $stdFlag = '-std=c++23' }
-    $extraInc = @()   #  §17.21：模板函数探针需要额外中文头（见证用了随机引擎 -> <随机>、范围 -> <向量>）
+    $extraInc = @($needInc)   #  §17.27：合成实参用到的中文头（向量/随机/复数）要引进来
     function Invoke-Probe([string[]] $lines, [string] $tag) {
         $src = Join-Path $work ("p_$safe$tag.cpp"); $exe = Join-Path $work ("p_$safe$tag.exe")
         $inc = "#包含 <$($p.Product)>`n"
@@ -634,6 +690,19 @@ foreach ($p in $products) {
             foreach ($it in $items) {
                 $ri = Invoke-Probe @($it.Line) ('_n' + (Get-StableId $it.Name))
                 if ($ri.CC -eq 0) { $okNames[$it.Name] = $true; continue }
+                #  §17.27 **报错自带候选路径**：编译器对这类名字会说
+                #  「namespace '标准' 中没有名为 '变换视图' 的类型；你是不是想写（类型名）'标准::范围视图::变换视图'？」
+                #  —— 拿它再试一次（1 次编译/名字）。这条把"宿主不是公开宿主"的那批救回来，
+                #  而且**不靠我们猜宿主**：路径是编译器自己给的。
+                $sm = [regex]::Match([string]$ri.Err, '你是不是想写[^'']*''([^'']+)''')
+                if ($sm.Success) {
+                    $sug = $sm.Groups[1].Value
+                    $lnS = ([string]$it.Line).Replace('标准::' + $it.Name, $sug)
+                    if ($lnS -ne [string]$it.Line) {
+                        $riS = Invoke-Probe @($lnS) ('_s' + (Get-StableId $sug))
+                        if ($riS.CC -eq 0) { $okNames[$it.Name] = $true; continue }
+                    }
+                }
                 $soft = $false; $why = ''
                 if ($it.Kind -in @('模板类型', '模板别名', '内部实现类')) { $soft = $true; $why = '探针不可表达（合成实参不适用）：' + (Get-ErrBrief $ri.Err) }
                 elseif ($it.Kind -eq '函数' -and ($ri.Err -match 'overloaded|重载')) { $soft = $true; $why = '探针不可表达（重载函数：需具体实参）' }
