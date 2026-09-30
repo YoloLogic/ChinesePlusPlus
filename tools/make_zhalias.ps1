@@ -34,6 +34,56 @@ $utf8 = New-Object System.Text.UTF8Encoding($false)
 #            @('函数','中文名','std::原名')      —— 通用一模板转发
 #            @('原样','<整行代码>')              —— 原样发出（成员要转发成自由函数时用）
 $H = [ordered]@{
+# §17.19.29 <strstream>（弃用的串流）—— 铁律③：类型身份参与语义，只能别名
+'strstream' = @{ zh = '串流'; src = 'strstream';
+  reason = '铁律③ + C++17 起弃用：strstreambuf/istrstream 都是 std 的类，派生/改名会与 std 的继承链脱钩。';
+  a = @(
+    @('原样','使用 串流缓冲 = std::strstreambuf;'),
+    @('原样','使用 输入串流 = std::istrstream;'),
+    @('原样','使用 输出串流 = std::ostrstream;'),
+    @('原样','使用 输入输出串流 = std::strstream;')
+  )
+  tests = @(
+    @('只引中文头','#包含 <串流>`n整数 主函数(){ 标准::输入输出串流 甲; 甲 << 7; 返回 0; }'),
+    @('与微软原头并存','#包含 <串流>`n#包含 <strstream>`n静态断言(std::is_same<标准::串流缓冲, std::strstreambuf>::value, "");`n整数 主函数(){ 返回 0; }')
+  )
+}
+# §17.19.29 <codecvt>（弃用的编码转换）
+'codecvt' = @{ zh = '编码转换'; src = 'codecvt';
+  reason = '铁律③：codecvt_utf8 等是 std 的 facet 模板，locale 按类型身份取用。';
+  a = @(
+    @('原样','使用 编码转换模式 = std::codecvt_mode;'),
+    @('原样','内联 常量表达式 自动 编码小端 = std::little_endian;'),
+    @('原样','内联 常量表达式 自动 消费头部 = std::consume_header;'),
+    @('原样','内联 常量表达式 自动 生成头部 = std::generate_header;'),
+    @('原样','模板 <类型名 元素, unsigned long 最大码位 = 0x10ffff, 编码转换模式 模式 = 编码转换模式(0)> 使用 编码转换UTF8 = std::codecvt_utf8<元素, 最大码位, 模式>;'),
+    @('原样','模板 <类型名 元素, unsigned long 最大码位 = 0x10ffff, 编码转换模式 模式 = 编码转换模式(0)> 使用 编码转换UTF16 = std::codecvt_utf16<元素, 最大码位, 模式>;'),
+    @('原样','模板 <类型名 元素, unsigned long 最大码位 = 0x10ffff, 编码转换模式 模式 = 编码转换模式(0)> 使用 编码转换UTF8至UTF16 = std::codecvt_utf8_utf16<元素, 最大码位, 模式>;')
+  )
+  tests = @(
+    @('只引中文头','#包含 <编码转换>`n整数 主函数(){ 标准::编码转换模式 模式 = 标准::小端; 返回 模式 == 标准::小端 ? 0 : 1; }'),
+    @('与微软原头并存','#包含 <编码转换>`n#包含 <codecvt>`n静态断言(std::is_same<标准::编码转换模式, std::codecvt_mode>::value, "");`n整数 主函数(){ 返回 0; }')
+  )
+}
+# §17.19.29 <execution>（执行策略）：公开面只有策略类型与四个对象，并行算法本体在 <算法>/<数值算法> 里
+'execution' = @{ zh = '执行策略'; src = 'execution';
+  reason = '铁律③：策略类型身份参与语义（并行算法按它的类型重载）。';
+  a = @(
+    @('原样','模板 <类型名 策略类型> 使用 是执行策略 = std::is_execution_policy<策略类型>;'),
+    @('原样','使用 顺序策略 = std::execution::sequenced_policy;'),
+    @('原样','使用 并行策略 = std::execution::parallel_policy;'),
+    @('原样','使用 并行无序策略 = std::execution::parallel_unsequenced_policy;'),
+    @('原样','使用 无序执行策略 = std::execution::unsequenced_policy;'),
+    @('原样','内联 常量 自动& 顺序执行 = std::execution::seq;'),
+    @('原样','内联 常量 自动& 并行执行 = std::execution::par;'),
+    @('原样','内联 常量 自动& 并行无序执行 = std::execution::par_unseq;'),
+    @('原样','内联 常量 自动& 无序执行 = std::execution::unseq;')
+  )
+  tests = @(
+    @('只引中文头','#包含 <执行策略>`n整数 主函数(){ 返回 标准::是执行策略<标准::顺序策略>::value ? 0 : 1; }'),
+    @('与微软原头并存','#包含 <执行策略>`n#包含 <execution>`n整数 主函数(){ std::execution::sequenced_policy 甲 = 标准::顺序执行; (空型)甲; 返回 0; }')
+  )
+}
 # §17.19.28 <fstream>（文件流）：家族薄壳
 'fstream' = @{ zh = '文件流'; src = 'fstream';
   reason = '铁律③：basic_filebuf/basic_ifstream 等身份参与语义（与 std 流互操作）；正文是成员函数。';

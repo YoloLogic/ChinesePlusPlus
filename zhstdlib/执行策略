@@ -1,0 +1,22 @@
+// <执行策略> —— execution 的中文别名层
+//
+// 为什么是别名而不是抄一份（方案铁律 4）：
+//   铁律③：策略类型身份参与语义（并行算法按它的类型重载）。
+//   这类头一旦抄一份，就会和 std 里那份成为两套互不相认的东西。
+//
+// 英文原名照旧可用：这里只是【多一个名字】，原头一个字节没动。
+// 变体（英文里带 _v 的变量模板形式）暂未提供中文名，属"必须的妥协"，见方案 §六。
+#pragma once
+#include <execution>
+
+名域 标准 {
+    模板 <类型名 策略类型> 使用 是执行策略 = std::is_execution_policy<策略类型>;
+    使用 顺序策略 = std::execution::sequenced_policy;
+    使用 并行策略 = std::execution::parallel_policy;
+    使用 并行无序策略 = std::execution::parallel_unsequenced_policy;
+    使用 无序执行策略 = std::execution::unsequenced_policy;
+    内联 常量 自动& 顺序执行 = std::execution::seq;
+    内联 常量 自动& 并行执行 = std::execution::par;
+    内联 常量 自动& 并行无序执行 = std::execution::par_unseq;
+    内联 常量 自动& 无序执行 = std::execution::unseq;
+}

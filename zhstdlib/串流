@@ -1,0 +1,17 @@
+// <串流> —— strstream 的中文别名层
+//
+// 为什么是别名而不是抄一份（方案铁律 4）：
+//   铁律③ + C++17 起弃用：strstreambuf/istrstream 都是 std 的类，派生/改名会与 std 的继承链脱钩。
+//   这类头一旦抄一份，就会和 std 里那份成为两套互不相认的东西。
+//
+// 英文原名照旧可用：这里只是【多一个名字】，原头一个字节没动。
+// 变体（英文里带 _v 的变量模板形式）暂未提供中文名，属"必须的妥协"，见方案 §六。
+#pragma once
+#include <strstream>
+
+名域 标准 {
+    使用 串流缓冲 = std::strstreambuf;
+    使用 输入串流 = std::istrstream;
+    使用 输出串流 = std::ostrstream;
+    使用 输入输出串流 = std::strstream;
+}
