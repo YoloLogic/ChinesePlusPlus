@@ -342,7 +342,7 @@ public:
     }
 
     _NODISCARD difference_type operator-(const _双端队列常量迭代器& _Right) const noexcept {
-        _Compat(_Right);
+        _兼容(_Right);
         return static_cast<difference_type>(this->_我的偏移 - _Right._我的偏移);
     }
 
@@ -351,13 +351,13 @@ public:
     }
 
     _NODISCARD bool operator==(const _双端队列常量迭代器& _Right) const noexcept {
-        _Compat(_Right);
+        _兼容(_Right);
         return this->_我的偏移 == _Right._我的偏移;
     }
 
 #if _HAS_CXX20
     _NODISCARD strong_ordering operator<=>(const _双端队列常量迭代器& _Right) const noexcept {
-        _Compat(_Right);
+        _兼容(_Right);
         return this->_我的偏移 <=> _Right._我的偏移;
     }
 #else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
@@ -366,7 +366,7 @@ public:
     }
 
     _NODISCARD bool operator<(const _双端队列常量迭代器& _Right) const noexcept {
-        _Compat(_Right);
+        _兼容(_Right);
         return this->_我的偏移 < _Right._我的偏移;
     }
 
@@ -383,7 +383,7 @@ public:
     }
 #endif // ^^^ !_HAS_CXX20 ^^^
 
-    void _Compat(const _双端队列常量迭代器& _Right) const noexcept { // test for compatible iterator pair
+    void _兼容(const _双端队列常量迭代器& _Right) const noexcept { // test for compatible iterator pair
 #if _ITERATOR_DEBUG_LEVEL == 0
         (void) _Right;
 #else
@@ -417,7 +417,7 @@ public:
 
 #if _ITERATOR_DEBUG_LEVEL != 0
     friend void _校验范围(const _双端队列常量迭代器& _首个, const _双端队列常量迭代器& _最后) noexcept {
-        // note _Compat check inside operator<=
+        // note _兼容 check inside operator<=
         _STL_VERIFY(_首个 <= _最后, "双端队列实现 iterators transposed");
     }
 #endif // _ITERATOR_DEBUG_LEVEL != 0
@@ -661,7 +661,7 @@ public:
     }
 
     双端队列实现(_CRT_GUARDOVERFLOW size_type _Count, const _类型& _Val) : _Mypair(_先零后变参实参{}) {
-        _Construct_n(_Count, _Val);
+        _构造n个(_Count, _Val);
     }
 
 #if _HAS_CXX17
@@ -669,7 +669,7 @@ public:
 #endif // _HAS_CXX17
     双端队列实现(_CRT_GUARDOVERFLOW size_type _Count, const _类型& _Val, const _分配器& _Al)
         : _Mypair(_先一后变参实参{}, _Al) {
-        _Construct_n(_Count, _Val);
+        _构造n个(_Count, _Val);
     }
 
     template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
@@ -741,7 +741,7 @@ private:
         _Proxy._Release();
     }
 
-    void _Construct_n(size_type _Count, const _类型& _Val) { // construct from _Count * _Val
+    void _构造n个(size_type _Count, const _类型& _Val) { // construct from _Count * _Val
         _代理分配器类型 _代理分配器别名(_取分配器());
         _容器代理指针12<_代理分配器类型> _Proxy(_代理分配器别名, _取数据());
 
@@ -1309,7 +1309,7 @@ public:
     iterator 插入(const_iterator _Where, _CRT_GUARDOVERFLOW size_type _Count, const _类型& _Val) {
         // 插入 _Count * _Val 取值 _Where
         size_type _Off = static_cast<size_type>(_Where - 开始());
-        _Insert_n(_Where, _Count, _Val);
+        _插入n个(_Where, _Count, _Val);
         return 开始() + static_cast<difference_type>(_Off);
     }
 
@@ -1421,7 +1421,7 @@ private:
         return 开始() + static_cast<difference_type>(_Off);
     }
 
-    void _Insert_n(const_iterator _Where, size_type _Count, const _类型& _Val) { // 插入 _Count * _Val 取值 _Where
+    void _插入n个(const_iterator _Where, size_type _Count, const _类型& _Val) { // 插入 _Count * _Val 取值 _Where
         _非检查迭代器 _Mid;
         size_type _Num;
         size_type _Off     = static_cast<size_type>(_Where - 开始());
@@ -1593,7 +1593,7 @@ public:
     }
 
 private:
-    [[noreturn]] static void _Xlen() {
+    [[noreturn]] static void _长度参数() {
         _Xlength_error("双端队列实现<T> too long");
     }
 
@@ -1602,14 +1602,14 @@ private:
     }
 
     void _增长映射表(size_type _Count) { // grow map by 取值 least _Count pointers, _映射表尺寸() a power of 2
-        static_assert(_Minimum_map_size > 1, "The _Xlen() test should always be performed.");
+        static_assert(_Minimum_map_size > 1, "The _长度参数() test should always be performed.");
 
         _代理分配器 _映射分配器(_取分配器());
         size_type _Newsize = _映射表尺寸() > 0 ? _映射表尺寸() : 1;
         while (_Newsize - _映射表尺寸() < _Count || _Newsize < _Minimum_map_size) {
             // scale _Newsize to 2^N >= _映射表尺寸() + _Count
             if (max_size() / _Block_size - _Newsize < _Newsize) {
-                _Xlen(); // result too long
+                _长度参数(); // result too long
             }
 
             _Newsize *= 2;

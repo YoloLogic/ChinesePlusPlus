@@ -467,7 +467,9 @@ $H = @{
       'count' = '计数'; 'size' = '尺寸'
       'all' = '全为真'; 'any' = '有真'; 'none' = '全为假'
       'to_string' = '转字符串'; 'to_ulong' = '转无符号长'; 'to_ullong' = '转无符号长长'
-    }
+    ;
+      '_Ok' = '_成功';
+}
     data    = [ordered]@{}
     derive  = @( @('set','置位'), @('reset','复位'), @('flip','翻转'), @('test','测试'),
                  @('count','计数'), @('size','尺寸'), @('all','全为真'), @('any','有真'),
@@ -736,7 +738,9 @@ $H = @{
       #   是**编译器**把它列出来的。判据：同步改名的清单不能只靠一种 grep 模式，
       #   要以编译错误为准（编译器是完备的，正则不是）。
       '_Insert_node'          = '_插入节点'
-    }
+    ;
+      '_Insert_or_assign' = '_插入或赋值';
+}
     data    = [ordered]@{}
     derive  = @( @('at','取值'), @('insert_or_assign','插入或赋值'),
                  @('try_emplace','尝试就地构造'), @('emplace','就地构造') )
@@ -870,7 +874,9 @@ $H = @{
       # §17.27.54 链名接通：定义方 <xutility> 现在是我们的 `通用内部件`。
       #   原件 <optional> 第 8 行就直接 `#include <xutility>` -> 本条目补 zhIncludes 指过来。
       '_Construct_in_place' = '_就地构造'
-    }
+    ;
+      '_Do_hash' = '_求散列';
+}
     data    = [ordered]@{}
     derive  = @( @('has_value','有值'), @('value_or','取值或'),
                  @('reset','重置'), @('emplace','就地构造'),
@@ -1171,6 +1177,14 @@ $H = @{
       'assign_range' = '范围赋值'; 'insert_range' = '范围插入'
       # ⚠ swap 照旧不改名（§3.12）
     ;
+
+      '_Xlen' = '_长度参数';
+
+      '_Insert_n' = '_插入n个';
+
+      '_Construct_n' = '_构造n个';
+
+      '_Compat' = '_兼容';
 }
     zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
@@ -1385,7 +1399,9 @@ $H = @{
       '_Unchecked_begin'  = '_非检查开始'
       '_Unchecked_end'    = '_非检查结束'
       # ⚠ swap 照旧不改名（§3.12）
-    }
+    ;
+      '_Construct_n' = '_构造n个';
+}
     zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
     derive  = @( @('size','尺寸'), @('empty','为空'),
@@ -1644,7 +1660,21 @@ $H = @{
       'clear' = '清空'; 'get_allocator' = '取分配器'
       'append_range' = '追加范围'; 'assign_range' = '范围赋值'; 'insert_range' = '范围插入'
       # ⚠ swap 照旧不改名（§3.12）
-    }
+    ;
+      '_Tmp' = '_临时';
+
+      '_Xlen' = '_长度参数';
+
+      '_Mask' = '_掩码';
+
+      '_Insert_n' = '_插入n个';
+
+      '_Construct_n' = '_构造n个';
+
+      '_Hash_array_representation' = '_散列数组表示';
+
+      '_Compat' = '_兼容';
+}
     zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
     derive  = @( @('size','尺寸'), @('empty','为空'),
@@ -2289,7 +2319,9 @@ $H = @{
       #   get_allocator 是【继承自 _哈希】的名字，xhash 翻了 -> 派生层必须补回英文，
       #   否则用户写 标准::无序映射<T>::size() 会消失 = 回归，见 §16.41.2）
       'clear'                    = '清空'
-    }
+    ;
+      '_Insert_or_assign' = '_插入或赋值';
+}
     data    = [ordered]@{}
     derive  = @( @('at','取值'), @('insert_or_assign','插入或赋值'),
                  @('try_emplace','尝试就地构造'), @('emplace','就地构造'),
@@ -3435,7 +3467,9 @@ $H = @{
       # ⚠ `max_size` 【不翻】：它也是借来的 `allocator_traits` 的契约成员
       #   （实测报「'std::allocator_traits<...>' 中没有名为「最大尺寸」的成员」）；
       #   而且 <链表> 也没翻它 -> 两边一致。
-    }
+    ;
+      '_Hash_array_representation' = '_散列数组表示';
+}
     data    = [ordered]@{}
     derive  = @()
     stdHash = $false
@@ -3733,7 +3767,19 @@ $H = @{
       '_Getal' = '_取分配器'
       '_Unchecked_begin' = '_非检查开始'
       '_Unchecked_end' = '_非检查结束'
-    }
+    ;
+      '_Ok' = '_成功';
+
+      '_Equal' = '_相等';
+
+      '_Copy_s' = '_复制s';
+
+      '_Do_hash' = '_求散列';
+
+      '_Hash_array_representation' = '_散列数组表示';
+
+      '_Compat' = '_兼容';
+}
     data    = [ordered]@{}
     derive  = @()
     stdHash = $false
@@ -3863,7 +3909,17 @@ $H = @{
       '_Xran' = '_抛范围错'
       'starts_with' = '开头为'; 'ends_with' = '结尾为'; 'contains' = '包含'
       # ⚠ swap 照旧不改名（§3.12）
-    }
+    ;
+      '_Ok' = '_成功';
+
+      '_Equal' = '_相等';
+
+      '_Copy_s' = '_复制s';
+
+      '_Do_hash' = '_求散列';
+
+      '_Hash_array_representation' = '_散列数组表示';
+}
     zhIncludes = @{ 'xutility' = '通用内部件' }
     data    = [ordered]@{}
     derive  = @()
@@ -4096,6 +4152,16 @@ $H = @{
       '_Is_all_bits_zero'            = '_是否全位为零'
     ;
       '_DEBUG_ORDER_UNWRAPPED' = '_DEBUG_ORDER_解包';   # §16.24 宏名必须一起汉化（宏不受名域约束）
+;
+      '_Base' = '_基';
+
+      '_CDiff' = '_常量差类型';
+
+      '_Common' = '_公共';
+
+      '_Ref' = '_引用标记';
+
+      '_Type' = '_类型参数';
 }
     data    = [ordered]@{}
     derive  = @()
@@ -4588,7 +4654,11 @@ $H = @{
       # 内部件（C++23 那段 ranges::iota 也在表里，-std=c++20 下不生效，照登记）
       '_Iota_fn' = '_递增填充函数'; '_Iota_impl' = '_递增填充实现'
       'iota_result' = '递增填充结果'
-    }
+    ;
+      '_Common' = '_公共';
+
+      '_Unsigned' = '_无符号类型';
+}
     data    = [ordered]@{}
     # 纯自由函数头：没有类派生层，derive 显式为【空】（公开层在 extra 里手写双名转发）
     derive  = @()
@@ -4680,7 +4750,9 @@ $H = @{
                           'resize' = '调整尺寸'; 'begin' = '开始'; 'end' = '结束'
                           'start' = '起始'; 'stride' = '步长'
                           '_Tidy_deallocate' = '_清理释放'
-                          '_Assign' = '_赋值'; '_Grow' = '_增长' }
+                          '_Assign' = '_赋值'; '_Grow' = '_增长' ;
+      '_Mask' = '_掩码';
+}
     data    = [ordered]@{ '_Myptr' = '_我的指针'; '_Mysize' = '_我的尺寸' }
     derive  = @( @('size','尺寸'), @('sum','求和'), @('min','最小'), @('max','最大'),
                  @('shift','移位'), @('cshift','循环移位'), @('apply','应用'),
@@ -5025,7 +5097,9 @@ $H = @{
                           '_Floating_to_chars_general_precision' = '_浮点转字符通用精度'
                           '_Convert_decimal_string_to_floating_type' = '_十进制串转浮点类型'
                           '_Convert_hexadecimal_string_to_floating_type' = '_十六进制串转浮点类型'
-                          '_Ordinary_floating_from_chars' = '_常规浮点转数值' }
+                          '_Ordinary_floating_from_chars' = '_常规浮点转数值' ;
+      '_Unsigned' = '_无符号类型';
+}
     data    = [ordered]@{}
     derive  = @()
     extra   = ( @(
@@ -5218,6 +5292,10 @@ $H = @{
       '_Sqr_error_x86_x64_fma' = '_平方误差x86x64融合乘加';
       '_Sub' = '_减';
       '_Upgrade_to_double' = '_升级到双精度';
+
+      '_Tmp' = '_临时';
+
+      '_Type' = '_类型参数';
 }
     data    = [ordered]@{}
     derive  = @( @('real','实部'), @('imag','虚部') )
@@ -5398,7 +5476,11 @@ $H = @{
       '_ZH_ATOMIC_STORE_64_SEQ_CST' = '_原子存储64顺序一致'
       '__LOAD_ACQUIRE_ARM64' = '__载入获取ARM64'
       '__STORE_RELEASE' = '__存储释放'
-    }
+    ;
+      '_Base' = '_基';
+
+      '_Ref' = '_引用标记';
+}
     data    = [ordered]@{}
     derive  = @( @('load','载入'), @('store','存储'), @('exchange','置换'),
                  @('compare_exchange_weak','比较交换弱'), @('compare_exchange_strong','比较交换强'),
@@ -5535,6 +5617,10 @@ $H = @{
       '_Seek_to' = '_定位到';
       '_Verify_range' = '_校验范围';
       'failed' = '失败';
+
+      '_CDiff' = '_常量差类型';
+
+      '_Equal' = '_相等';
 }
     data    = [ordered]@{}
     extra   = ( @(

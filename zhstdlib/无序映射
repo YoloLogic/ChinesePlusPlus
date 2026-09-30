@@ -304,7 +304,7 @@ public:
 
 private:
     template <class _Keyty, class _Mappedty>
-    pair<iterator, bool> _Insert_or_assign(_Keyty&& _Keyval_arg, _Mappedty&& _Mapval) {
+    pair<iterator, bool> _插入或赋值(_Keyty&& _Keyval_arg, _Mappedty&& _Mapval) {
         const auto& _Keyval   = _Keyval_arg;
         const size_t _Hashval = this->_Traitsobj(_Keyval);
         auto _Target          = this->_查找最后(_Keyval, _Hashval);
@@ -328,7 +328,7 @@ private:
     }
 
     template <class _Keyty, class _Mappedty>
-    iterator _Insert_or_assign(const _结点指针 _Hint, _Keyty&& _Keyval_arg, _Mappedty&& _Mapval) {
+    iterator _插入或赋值(const _结点指针 _Hint, _Keyty&& _Keyval_arg, _Mappedty&& _Mapval) {
         const auto& _Keyval   = _Keyval_arg;
         const size_t _Hashval = this->_Traitsobj(_Keyval);
         auto _Target          = this->_按提示查找(_Hint, _Keyval, _Hashval);
@@ -353,22 +353,22 @@ private:
 public:
     template <class _Mappedty>
     pair<iterator, bool> 插入或赋值(const 键类型& _Keyval, _Mappedty&& _Mapval) {
-        return _Insert_or_assign(_Keyval, _STD forward<_Mappedty>(_Mapval));
+        return _插入或赋值(_Keyval, _STD forward<_Mappedty>(_Mapval));
     }
 
     template <class _Mappedty>
     pair<iterator, bool> 插入或赋值(键类型&& _Keyval, _Mappedty&& _Mapval) {
-        return _Insert_or_assign(_STD move(_Keyval), _STD forward<_Mappedty>(_Mapval));
+        return _插入或赋值(_STD move(_Keyval), _STD forward<_Mappedty>(_Mapval));
     }
 
     template <class _Mappedty>
     iterator 插入或赋值(const_iterator _Hint, const 键类型& _Keyval, _Mappedty&& _Mapval) {
-        return _Insert_or_assign(_Hint._Ptr, _Keyval, _STD forward<_Mappedty>(_Mapval));
+        return _插入或赋值(_Hint._Ptr, _Keyval, _STD forward<_Mappedty>(_Mapval));
     }
 
     template <class _Mappedty>
     iterator 插入或赋值(const_iterator _Hint, 键类型&& _Keyval, _Mappedty&& _Mapval) {
-        return _Insert_or_assign(_Hint._Ptr, _STD move(_Keyval), _STD forward<_Mappedty>(_Mapval));
+        return _插入或赋值(_Hint._Ptr, _STD move(_Keyval), _STD forward<_Mappedty>(_Mapval));
     }
 
     无序映射实现(initializer_list<value_type> _Ilist) : _我的基类(_键比较器(), 分配器类型()) {

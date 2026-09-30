@@ -648,13 +648,13 @@ _NODISCARD constexpr auto _Abs_u(const _Integral _Val) noexcept {
     static_assert(is_integral_v<_Integral>);
 
     if constexpr (is_signed_v<_Integral>) {
-        using _Unsigned = make_unsigned_t<_Integral>;
+        using _无符号类型 = make_unsigned_t<_Integral>;
         if (_Val < 0) {
-            // note static_cast to _Unsigned such that _Integral == short returns unsigned short rather than int
-            return static_cast<_Unsigned>(_Unsigned{0} - static_cast<_Unsigned>(_Val));
+            // note static_cast to _无符号类型 such that _Integral == short returns unsigned short rather than int
+            return static_cast<_无符号类型>(_无符号类型{0} - static_cast<_无符号类型>(_Val));
         }
 
-        return static_cast<_Unsigned>(_Val);
+        return static_cast<_无符号类型>(_Val);
     } else {
         return _Val;
     }
@@ -665,15 +665,15 @@ _NODISCARD constexpr common_type_t<_Mt, _Nt> 最大公约数(const _Mt _Mx, cons
     // calculate greatest common divisor
     static_assert(_Is_nonbool_integral<_Mt> && _Is_nonbool_integral<_Nt>, "GCD requires nonbool integral types");
 
-    using _Common          = common_type_t<_Mt, _Nt>;
-    using _Common_unsigned = make_unsigned_t<_Common>;
+    using _公共          = common_type_t<_Mt, _Nt>;
+    using _Common_unsigned = make_unsigned_t<_公共>;
 
-    if constexpr (is_signed_v<_Common>) {
+    if constexpr (is_signed_v<_公共>) {
 #ifndef _DEBUG
         if (_Is_constant_evaluated())
 #endif // ^^^ !defined(_DEBUG) ^^^
         {
-            constexpr auto _Min_common = _STD _Min_limit<_Common>();
+            constexpr auto _Min_common = _STD _Min_limit<_公共>();
             _STL_VERIFY(_Mx != _Min_common && _Nx != _Min_common,
                 "Preconditions: |m| and |n| are representable as a value of common_type_t<M, N>. "
                 "(N4981 [numeric.ops.最大公约数]/2, N4981 [numeric.ops.最小公倍数]/2)");
@@ -684,11 +684,11 @@ _NODISCARD constexpr common_type_t<_Mt, _Nt> 最大公约数(const _Mt _Mx, cons
         _Common_unsigned _Mx_magnitude = _Abs_u(_Mx);
         _Common_unsigned _Nx_magnitude = _Abs_u(_Nx);
         if (_Mx_magnitude == 0U) {
-            return static_cast<_Common>(_Nx_magnitude);
+            return static_cast<_公共>(_Nx_magnitude);
         }
 
         if (_Nx_magnitude == 0U) {
-            return static_cast<_Common>(_Mx_magnitude);
+            return static_cast<_公共>(_Mx_magnitude);
         }
 
         const auto _Mx_trailing_zeroes  = static_cast<unsigned long>(_Countr_zero_impl(_Mx_magnitude));
@@ -705,7 +705,7 @@ _NODISCARD constexpr common_type_t<_Mt, _Nt> 最大公约数(const _Mt _Mx, cons
 
             _Nx_magnitude -= _Mx_magnitude;
             if (_Nx_magnitude == 0U) {
-                return static_cast<_Common>(_Mx_magnitude << _Common_factors_of_2);
+                return static_cast<_公共>(_Mx_magnitude << _Common_factors_of_2);
             }
 
             _Nx_trailing_zeroes = static_cast<unsigned long>(_Countr_zero_impl(_Nx_magnitude));
@@ -717,8 +717,8 @@ _EXPORT_STD template <class _Mt, class _Nt>
 _NODISCARD constexpr common_type_t<_Mt, _Nt> 最小公倍数(const _Mt _Mx, const _Nt _Nx) noexcept /* strengthened */ {
     // calculate least common multiple
     static_assert(_Is_nonbool_integral<_Mt> && _Is_nonbool_integral<_Nt>, "LCM requires nonbool integral types");
-    using _Common                        = common_type_t<_Mt, _Nt>;
-    using _Common_unsigned               = make_unsigned_t<_Common>;
+    using _公共                        = common_type_t<_Mt, _Nt>;
+    using _Common_unsigned               = make_unsigned_t<_公共>;
     const _Common_unsigned _Mx_magnitude = _Abs_u(_Mx);
     const _Common_unsigned _Nx_magnitude = _Abs_u(_Nx);
     if (_Mx_magnitude == 0 || _Nx_magnitude == 0) {
@@ -727,18 +727,18 @@ _NODISCARD constexpr common_type_t<_Mt, _Nt> 最小公倍数(const _Mt _Mx, cons
 
 #ifndef _DEBUG
     if (!_Is_constant_evaluated()) {
-        return static_cast<_Common>((_Mx_magnitude / 最大公约数(_Mx_magnitude, _Nx_magnitude)) * _Nx_magnitude);
+        return static_cast<_公共>((_Mx_magnitude / 最大公约数(_Mx_magnitude, _Nx_magnitude)) * _Nx_magnitude);
     }
 #endif // ^^^ !defined(_DEBUG) ^^^
 
     _Common_unsigned _结果 = 0;
     _Common_unsigned _Tmp    = static_cast<_Common_unsigned>(_Mx_magnitude / 最大公约数(_Mx_magnitude, _Nx_magnitude));
-    const bool _Overflow     = _Mul_overflow(_Tmp, _Nx_magnitude, _结果) || !_In_range<_Common>(_结果);
+    const bool _Overflow     = _Mul_overflow(_Tmp, _Nx_magnitude, _结果) || !_In_range<_公共>(_结果);
 
     _STL_VERIFY(!_Overflow, "Preconditions: The least common multiple of |m| and |n| is representable as a value of "
                             "type common_type_t<M, N>. (N4981 [numeric.ops.最小公倍数]/2)");
 
-    return static_cast<_Common>(_结果);
+    return static_cast<_公共>(_结果);
 }
 #endif // _HAS_CXX17
 
@@ -798,13 +798,13 @@ _NODISCARD constexpr _类型 中点(const _类型 _Val1, const _类型 _Val2) no
 
         return _Val1 / 2 + _Val2 / 2;
     } else {
-        using _Unsigned    = make_unsigned_t<_类型>;
-        const auto _Val1_u = static_cast<_Unsigned>(_Val1);
-        const auto _Val2_u = static_cast<_Unsigned>(_Val2);
+        using _无符号类型    = make_unsigned_t<_类型>;
+        const auto _Val1_u = static_cast<_无符号类型>(_Val1);
+        const auto _Val2_u = static_cast<_无符号类型>(_Val2);
         if (_Val1 > _Val2) {
-            return static_cast<_类型>(_Val1 - static_cast<_类型>(static_cast<_Unsigned>(_Val1_u - _Val2_u) / 2));
+            return static_cast<_类型>(_Val1 - static_cast<_类型>(static_cast<_无符号类型>(_Val1_u - _Val2_u) / 2));
         } else {
-            return static_cast<_类型>(_Val1 + static_cast<_类型>(static_cast<_Unsigned>(_Val2_u - _Val1_u) / 2));
+            return static_cast<_类型>(_Val1 + static_cast<_类型>(static_cast<_无符号类型>(_Val2_u - _Val1_u) / 2));
         }
     }
 }

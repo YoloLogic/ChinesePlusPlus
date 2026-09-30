@@ -259,7 +259,7 @@ struct _存储用于 {
     }
 #endif // _CMPXCHG_MASK_OUT_PADDING_BITS
 
-    _NODISCARD _类型& _Ref() noexcept {
+    _NODISCARD _类型& _引用标记() noexcept {
         return reinterpret_cast<_类型&>(_Storage);
     }
 
@@ -445,7 +445,7 @@ void _Atomic_wait_direct(
             using _TVal = _Remove_cvref_t<_类型>;
             if constexpr (_Might_have_non_value_bits<_TVal>) {
                 _存储用于<_TVal> _Mask{_Form_mask};
-                const _Value_type _Mask_val = _原子重解释为<_Value_type>(_Mask._Ref());
+                const _Value_type _Mask_val = _原子重解释为<_Value_type>(_Mask._引用标记());
 
                 if (((_Expected_bytes ^ _Observed_bytes) & _Mask_val) == 0) {
                     _Expected_bytes = _Observed_bytes;
@@ -740,7 +740,7 @@ struct _原子存储<_类型, 1> { // lock-free using 1-byte intrinsics
 #if _CMPXCHG_MASK_OUT_PADDING_BITS
         if constexpr (_Might_have_non_value_bits<_TVal>) {
             _存储用于<_TVal> _Mask{_Form_mask};
-            const char _Mask_val = _原子重解释为<char>(_Mask._Ref());
+            const char _Mask_val = _原子重解释为<char>(_Mask._引用标记());
 
             for (;;) {
                 _原子选择内建(static_cast<unsigned int>(_Order), _Prev_bytes, _InterlockedCompareExchange8,
@@ -846,7 +846,7 @@ struct _原子存储<_类型, 2> { // lock-free using 2-byte intrinsics
 #if _CMPXCHG_MASK_OUT_PADDING_BITS
         if constexpr (_Might_have_non_value_bits<_类型>) {
             _存储用于<_TVal> _Mask{_Form_mask};
-            const short _Mask_val = _原子重解释为<short>(_Mask._Ref());
+            const short _Mask_val = _原子重解释为<short>(_Mask._引用标记());
 
             for (;;) {
                 _原子选择内建(static_cast<unsigned int>(_Order), _Prev_bytes, _InterlockedCompareExchange16,
@@ -1268,7 +1268,7 @@ struct _原子存储<_类型&, 16> { // lock-free using 16-byte intrinsics
 #if _CMPXCHG_MASK_OUT_PADDING_BITS
                 if constexpr (_Might_have_non_value_bits<_TVal>) {
                     _存储用于<_TVal> _Mask{_Form_mask};
-                    const _Int128 _Mask_val = reinterpret_cast<const _Int128&>(_Mask._Ref());
+                    const _Int128 _Mask_val = reinterpret_cast<const _Int128&>(_Mask._引用标记());
 
                     if (((_Expected_bytes._Low ^ _Observed_bytes._Low) & _Mask_val._Low) == 0
                         && ((_Expected_bytes._High ^ _Observed_bytes._High) & _Mask_val._High) == 0) {
@@ -1311,10 +1311,10 @@ struct _原子整数; // not defined
 
 template <class _类型>
 struct _原子整数<_类型, 1> : _原子存储<_类型> { // 原子实现 integral operations using 1-byte intrinsics
-    using _Base = _原子存储<_类型>;
-    using typename _Base::_TVal;
+    using _基 = _原子存储<_类型>;
+    using typename _基::_TVal;
 
-    using _Base::_Base;
+    using _基::_基;
 
     _TVal 取加(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
         char _结果;
@@ -1369,10 +1369,10 @@ struct _原子整数<_类型, 1> : _原子存储<_类型> { // 原子实现 inte
 
 template <class _类型>
 struct _原子整数<_类型, 2> : _原子存储<_类型> { // 原子实现 integral operations using 2-byte intrinsics
-    using _Base = _原子存储<_类型>;
-    using typename _Base::_TVal;
+    using _基 = _原子存储<_类型>;
+    using typename _基::_TVal;
 
-    using _Base::_Base;
+    using _基::_基;
 
     _TVal 取加(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
         short _结果;
@@ -1427,10 +1427,10 @@ struct _原子整数<_类型, 2> : _原子存储<_类型> { // 原子实现 inte
 
 template <class _类型>
 struct _原子整数<_类型, 4> : _原子存储<_类型> { // 原子实现 integral operations using 4-byte intrinsics
-    using _Base = _原子存储<_类型>;
-    using typename _Base::_TVal;
+    using _基 = _原子存储<_类型>;
+    using typename _基::_TVal;
 
-    using _Base::_Base;
+    using _基::_基;
 
     _TVal 取加(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
         long _结果;
@@ -1485,10 +1485,10 @@ struct _原子整数<_类型, 4> : _原子存储<_类型> { // 原子实现 inte
 
 template <class _类型>
 struct _原子整数<_类型, 8> : _原子存储<_类型> { // 原子实现 integral operations using 8-byte intrinsics
-    using _Base = _原子存储<_类型>;
-    using typename _Base::_TVal;
+    using _基 = _原子存储<_类型>;
+    using typename _基::_TVal;
 
-    using _Base::_Base;
+    using _基::_基;
 
 #ifdef _M_IX86
     _TVal 取加(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
@@ -1622,23 +1622,23 @@ struct _原子整数门面 : _原子整数<_类型> {
     _STL_INTERNAL_STATIC_ASSERT(!is_const_v<_类型>);
     _STL_INTERNAL_STATIC_ASSERT(!is_volatile_v<_类型>);
 
-    using _Base           = _原子整数<_类型>;
+    using _基           = _原子整数<_类型>;
     using difference_type = _类型;
 
-    using _Base::_Base;
+    using _基::_基;
 
     // _Deprecate_non_lock_free_volatile is unnecessary here.
 
     // note: const_cast-ing away volatile is safe because all our intrinsics add volatile back on.
     // We make the primary functions non-volatile for better debug codegen, as non-volatile atomics
     // are far more common than volatile ones.
-    using _Base::取加;
+    using _基::取加;
     _类型 取加(const _类型 _Operand) volatile noexcept {
-        return const_cast<_原子整数门面*>(this)->_Base::取加(_Operand);
+        return const_cast<_原子整数门面*>(this)->_基::取加(_Operand);
     }
 
     _类型 取加(const _类型 _Operand, const 内存序 _Order) volatile noexcept {
-        return const_cast<_原子整数门面*>(this)->_Base::取加(_Operand, _Order);
+        return const_cast<_原子整数门面*>(this)->_基::取加(_Operand, _Order);
     }
 
     _NODISCARD static _类型 _Negate(const _类型 _Value) noexcept { // returns two's complement negated value of _Value
@@ -1661,57 +1661,57 @@ struct _原子整数门面 : _原子整数<_类型> {
         return 取加(_Negate(_Operand), _Order);
     }
 
-    using _Base::取与;
+    using _基::取与;
     _类型 取与(const _类型 _Operand) volatile noexcept {
-        return const_cast<_原子整数门面*>(this)->_Base::取与(_Operand);
+        return const_cast<_原子整数门面*>(this)->_基::取与(_Operand);
     }
 
     _类型 取与(const _类型 _Operand, const 内存序 _Order) volatile noexcept {
-        return const_cast<_原子整数门面*>(this)->_Base::取与(_Operand, _Order);
+        return const_cast<_原子整数门面*>(this)->_基::取与(_Operand, _Order);
     }
 
-    using _Base::取或;
+    using _基::取或;
     _类型 取或(const _类型 _Operand) volatile noexcept {
-        return const_cast<_原子整数门面*>(this)->_Base::取或(_Operand);
+        return const_cast<_原子整数门面*>(this)->_基::取或(_Operand);
     }
 
     _类型 取或(const _类型 _Operand, const 内存序 _Order) volatile noexcept {
-        return const_cast<_原子整数门面*>(this)->_Base::取或(_Operand, _Order);
+        return const_cast<_原子整数门面*>(this)->_基::取或(_Operand, _Order);
     }
 
-    using _Base::取异或;
+    using _基::取异或;
     _类型 取异或(const _类型 _Operand) volatile noexcept {
-        return const_cast<_原子整数门面*>(this)->_Base::取异或(_Operand);
+        return const_cast<_原子整数门面*>(this)->_基::取异或(_Operand);
     }
 
     _类型 取异或(const _类型 _Operand, const 内存序 _Order) volatile noexcept {
-        return const_cast<_原子整数门面*>(this)->_Base::取异或(_Operand, _Order);
+        return const_cast<_原子整数门面*>(this)->_基::取异或(_Operand, _Order);
     }
 
-    using _Base::operator++;
+    using _基::operator++;
     _类型 operator++(int) volatile noexcept {
-        return const_cast<_原子整数门面*>(this)->_Base::operator++(0);
+        return const_cast<_原子整数门面*>(this)->_基::operator++(0);
     }
 
     _类型 operator++() volatile noexcept {
-        return const_cast<_原子整数门面*>(this)->_Base::operator++();
+        return const_cast<_原子整数门面*>(this)->_基::operator++();
     }
 
-    using _Base::operator--;
+    using _基::operator--;
     _类型 operator--(int) volatile noexcept {
-        return const_cast<_原子整数门面*>(this)->_Base::operator--(0);
+        return const_cast<_原子整数门面*>(this)->_基::operator--(0);
     }
 
     _类型 operator--() volatile noexcept {
-        return const_cast<_原子整数门面*>(this)->_Base::operator--();
+        return const_cast<_原子整数门面*>(this)->_基::operator--();
     }
 
     _类型 operator+=(const _类型 _Operand) noexcept {
-        return static_cast<_类型>(this->_Base::取加(_Operand) + _Operand);
+        return static_cast<_类型>(this->_基::取加(_Operand) + _Operand);
     }
 
     _类型 operator+=(const _类型 _Operand) volatile noexcept {
-        return static_cast<_类型>(const_cast<_原子整数门面*>(this)->_Base::取加(_Operand) + _Operand);
+        return static_cast<_类型>(const_cast<_原子整数门面*>(this)->_基::取加(_Operand) + _Operand);
     }
 
     _类型 operator-=(const _类型 _Operand) noexcept {
@@ -1723,49 +1723,49 @@ struct _原子整数门面 : _原子整数<_类型> {
     }
 
     _类型 operator&=(const _类型 _Operand) noexcept {
-        return static_cast<_类型>(this->_Base::取与(_Operand) & _Operand);
+        return static_cast<_类型>(this->_基::取与(_Operand) & _Operand);
     }
 
     _类型 operator&=(const _类型 _Operand) volatile noexcept {
-        return static_cast<_类型>(const_cast<_原子整数门面*>(this)->_Base::取与(_Operand) & _Operand);
+        return static_cast<_类型>(const_cast<_原子整数门面*>(this)->_基::取与(_Operand) & _Operand);
     }
 
     _类型 operator|=(const _类型 _Operand) noexcept {
-        return static_cast<_类型>(this->_Base::取或(_Operand) | _Operand);
+        return static_cast<_类型>(this->_基::取或(_Operand) | _Operand);
     }
 
     _类型 operator|=(const _类型 _Operand) volatile noexcept {
-        return static_cast<_类型>(const_cast<_原子整数门面*>(this)->_Base::取或(_Operand) | _Operand);
+        return static_cast<_类型>(const_cast<_原子整数门面*>(this)->_基::取或(_Operand) | _Operand);
     }
 
     _类型 operator^=(const _类型 _Operand) noexcept {
-        return static_cast<_类型>(this->_Base::取异或(_Operand) ^ _Operand);
+        return static_cast<_类型>(this->_基::取异或(_Operand) ^ _Operand);
     }
 
     _类型 operator^=(const _类型 _Operand) volatile noexcept {
-        return static_cast<_类型>(const_cast<_原子整数门面*>(this)->_Base::取异或(_Operand) ^ _Operand);
+        return static_cast<_类型>(const_cast<_原子整数门面*>(this)->_基::取异或(_Operand) ^ _Operand);
     }
 };
 
 template <class _类型>
 struct _原子整数门面<_类型&> : _原子整数<_类型&> {
     // provides operator overloads and other support for 原子实现 integral specializations
-    using _Base           = _原子整数<_类型&>;
+    using _基           = _原子整数<_类型&>;
     using difference_type = remove_cv_t<_类型>;
-    using typename _Base::_TVal;
+    using typename _基::_TVal;
 
-    using _Base::_Base;
+    using _基::_基;
 
     _NODISCARD static _TVal _Negate(const _TVal _Value) noexcept { // returns two's complement negated value of _Value
         return static_cast<_TVal>(0U - static_cast<make_unsigned_t<_TVal>>(_Value));
     }
 
     _TVal 取加(const _TVal _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
-        return const_cast<_原子整数门面*>(this)->_Base::取加(_Operand);
+        return const_cast<_原子整数门面*>(this)->_基::取加(_Operand);
     }
 
     _TVal 取加(const _TVal _Operand, const 内存序 _Order) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
-        return const_cast<_原子整数门面*>(this)->_Base::取加(_Operand, _Order);
+        return const_cast<_原子整数门面*>(this)->_基::取加(_Operand, _Order);
     }
 
     _TVal 取减(const _TVal _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
@@ -1777,19 +1777,19 @@ struct _原子整数门面<_类型&> : _原子整数<_类型&> {
     }
 
     _TVal operator++(int) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
-        return const_cast<_原子整数门面*>(this)->_Base::operator++(0);
+        return const_cast<_原子整数门面*>(this)->_基::operator++(0);
     }
 
     _TVal operator++() const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
-        return const_cast<_原子整数门面*>(this)->_Base::operator++();
+        return const_cast<_原子整数门面*>(this)->_基::operator++();
     }
 
     _TVal operator--(int) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
-        return const_cast<_原子整数门面*>(this)->_Base::operator--(0);
+        return const_cast<_原子整数门面*>(this)->_基::operator--(0);
     }
 
     _TVal operator--() const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
-        return const_cast<_原子整数门面*>(this)->_Base::operator--();
+        return const_cast<_原子整数门面*>(this)->_基::operator--();
     }
 
     _TVal operator+=(const _TVal _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
@@ -1801,27 +1801,27 @@ struct _原子整数门面<_类型&> : _原子整数<_类型&> {
     }
 
     _TVal 取与(const _TVal _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
-        return const_cast<_原子整数门面*>(this)->_Base::取与(_Operand);
+        return const_cast<_原子整数门面*>(this)->_基::取与(_Operand);
     }
 
     _TVal 取与(const _TVal _Operand, const 内存序 _Order) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
-        return const_cast<_原子整数门面*>(this)->_Base::取与(_Operand, _Order);
+        return const_cast<_原子整数门面*>(this)->_基::取与(_Operand, _Order);
     }
 
     _TVal 取或(const _TVal _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
-        return const_cast<_原子整数门面*>(this)->_Base::取或(_Operand);
+        return const_cast<_原子整数门面*>(this)->_基::取或(_Operand);
     }
 
     _TVal 取或(const _TVal _Operand, const 内存序 _Order) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
-        return const_cast<_原子整数门面*>(this)->_Base::取或(_Operand, _Order);
+        return const_cast<_原子整数门面*>(this)->_基::取或(_Operand, _Order);
     }
 
     _TVal 取异或(const _TVal _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
-        return const_cast<_原子整数门面*>(this)->_Base::取异或(_Operand);
+        return const_cast<_原子整数门面*>(this)->_基::取异或(_Operand);
     }
 
     _TVal 取异或(const _TVal _Operand, const 内存序 _Order) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
-        return const_cast<_原子整数门面*>(this)->_Base::取异或(_Operand, _Order);
+        return const_cast<_原子整数门面*>(this)->_基::取异或(_Operand, _Order);
     }
 
     _TVal operator&=(const _TVal _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
@@ -1844,10 +1844,10 @@ struct _原子浮点 : _原子存储<_类型> {
     _STL_INTERNAL_STATIC_ASSERT(!is_const_v<_类型>);
     _STL_INTERNAL_STATIC_ASSERT(!is_volatile_v<_类型>);
 
-    using _Base           = _原子存储<_类型>;
+    using _基           = _原子存储<_类型>;
     using difference_type = _类型;
 
-    using _Base::_Base;
+    using _基::_基;
 
     _类型 取加(const _类型 _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
         _类型 _Temp{this->载入(内存序松弛)};
@@ -1898,17 +1898,17 @@ struct _原子浮点 : _原子存储<_类型> {
 template <class _类型>
 struct _原子浮点<_类型&> : _原子存储<_类型&> {
     // provides 原子实现 floating-point operations
-    using _Base           = _原子存储<_类型&>;
+    using _基           = _原子存储<_类型&>;
     using difference_type = remove_cv_t<_类型>;
-    using typename _Base::_TVal;
+    using typename _基::_TVal;
 
-    using _Base::_Base;
+    using _基::_基;
 
     _TVal 取加(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) const noexcept
         requires (!is_const_v<_类型>)
     {
         _TVal _Temp{this->载入(内存序松弛)};
-        while (!const_cast<_原子浮点*>(this)->_Base::比较交换强(
+        while (!const_cast<_原子浮点*>(this)->_基::比较交换强(
             _Temp, _Temp + _Operand, _Order)) { // keep trying
         }
 
@@ -1919,7 +1919,7 @@ struct _原子浮点<_类型&> : _原子存储<_类型&> {
         requires (!is_const_v<_类型>)
     {
         _TVal _Temp{this->载入(内存序松弛)};
-        while (!const_cast<_原子浮点*>(this)->_Base::比较交换强(
+        while (!const_cast<_原子浮点*>(this)->_基::比较交换强(
             _Temp, _Temp - _Operand, _Order)) { // keep trying
         }
 
@@ -1942,10 +1942,10 @@ struct _原子浮点<_类型&> : _原子存储<_类型&> {
 
 template <class _类型>
 struct _原子指针 : _原子存储<_类型> {
-    using _Base           = _原子存储<_类型>;
+    using _基           = _原子存储<_类型>;
     using difference_type = ptrdiff_t;
 
-    using _Base::_Base;
+    using _基::_基;
 
     _类型 取加(const ptrdiff_t _Diff, const 内存序 _Order = 内存序顺序一致) noexcept {
         const ptrdiff_t _Shift_bytes =
@@ -2038,11 +2038,11 @@ struct _原子指针 : _原子存储<_类型> {
 
 template <class _类型>
 struct _原子指针<_类型&> : _原子存储<_类型&> {
-    using _Base           = _原子存储<_类型&>;
+    using _基           = _原子存储<_类型&>;
     using difference_type = ptrdiff_t;
-    using typename _Base::_TVal;
+    using typename _基::_TVal;
 
-    using _Base::_Base;
+    using _基::_基;
 
     _TVal 取加(const ptrdiff_t _Diff, const 内存序 _Order = 内存序顺序一致) const noexcept
         _REQUIRES_CLAUSE(!is_const_v<_类型>) {
@@ -2097,17 +2097,17 @@ struct _原子指针<_类型&> : _原子存储<_类型&> {
 
 template <class _类型>
 struct _原子非对象指针 : _原子存储<_类型> {
-    using _Base           = _原子存储<_类型>;
+    using _基           = _原子存储<_类型>;
     using difference_type = ptrdiff_t;
 
-    using _Base::_Base;
+    using _基::_基;
 };
 
 template <class _类型>
 struct _原子非对象指针<_类型&> : _原子存储<_类型&> {
-    using _Base = _原子存储<_类型&>;
+    using _基 = _原子存储<_类型&>;
 
-    using _Base::_Base;
+    using _基::_基;
 };
 
 #define ATOMIC_VAR_INIT(_Value) {_Value}
@@ -2132,7 +2132,7 @@ using _Choose_atomic_base_t = _Choose_atomic_base2_t<_TVal, _类型>;
 _EXPORT_STD template <class _类型>
 struct 原子实现 : _Choose_atomic_base_t<_类型> { // 原子实现 value
 private:
-    using _Base = _Choose_atomic_base_t<_类型>;
+    using _基 = _Choose_atomic_base_t<_类型>;
 
 public:
     static_assert(is_trivially_copyable_v<_类型>, "原子实现<T> requires T to be trivially copyable.");
@@ -2146,9 +2146,9 @@ public:
     using value_type = _类型;
 
     template <class _结果类型 = _类型, enable_if_t<is_default_constructible_v<_结果类型>, int> = 0>
-    constexpr 原子实现() noexcept(is_nothrow_default_constructible_v<_类型>) : _Base() {}
+    constexpr 原子实现() noexcept(is_nothrow_default_constructible_v<_类型>) : _基() {}
 
-    /* implicit */ constexpr 原子实现(const _类型 _Value) noexcept : _Base(_Value) {}
+    /* implicit */ constexpr 原子实现(const _类型 _Value) noexcept : _基(_Value) {}
 
     原子实现(const 原子实现&)                     = delete;
     原子实现& operator=(const 原子实现&)          = delete;
@@ -2182,48 +2182,48 @@ public:
     // non-volatile functions reapply volatile, as all our intrinsics accept only volatile T *.
     // We expect most 原子实现<T>s to be non-volatile, so making the real implementations
     // non-volatile should result in better debug codegen.
-    using _Base::存储;
+    using _基::存储;
     void 存储(const _类型 _Value) volatile noexcept {
         static_assert(_Deprecate_non_lock_free_volatile<_类型>, "Never fails");
-        const_cast<原子实现*>(this)->_Base::存储(_Value);
+        const_cast<原子实现*>(this)->_基::存储(_Value);
     }
 
     void 存储(const _类型 _Value, const 内存序 _Order) volatile noexcept {
         static_assert(_Deprecate_non_lock_free_volatile<_类型>, "Never fails");
-        const_cast<原子实现*>(this)->_Base::存储(_Value, _Order);
+        const_cast<原子实现*>(this)->_基::存储(_Value, _Order);
     }
 
-    using _Base::载入;
+    using _基::载入;
     _NODISCARD _类型 载入() const volatile noexcept {
         static_assert(_Deprecate_non_lock_free_volatile<_类型>, "Never fails");
-        return const_cast<const 原子实现*>(this)->_Base::载入();
+        return const_cast<const 原子实现*>(this)->_基::载入();
     }
 
     _NODISCARD _类型 载入(const 内存序 _Order) const volatile noexcept {
         static_assert(_Deprecate_non_lock_free_volatile<_类型>, "Never fails");
-        return const_cast<const 原子实现*>(this)->_Base::载入(_Order);
+        return const_cast<const 原子实现*>(this)->_基::载入(_Order);
     }
 
-    using _Base::置换;
+    using _基::置换;
     _类型 置换(const _类型 _Value) volatile noexcept {
         static_assert(_Deprecate_non_lock_free_volatile<_类型>, "Never fails");
-        return const_cast<原子实现*>(this)->_Base::置换(_Value);
+        return const_cast<原子实现*>(this)->_基::置换(_Value);
     }
 
     _类型 置换(const _类型 _Value, const 内存序 _Order) volatile noexcept {
         static_assert(_Deprecate_non_lock_free_volatile<_类型>, "Never fails");
-        return const_cast<原子实现*>(this)->_Base::置换(_Value, _Order);
+        return const_cast<原子实现*>(this)->_基::置换(_Value, _Order);
     }
 
-    using _Base::比较交换强;
+    using _基::比较交换强;
     bool 比较交换强(_类型& _Expected, const _类型 _Desired) volatile noexcept {
         static_assert(_Deprecate_non_lock_free_volatile<_类型>, "Never fails");
-        return const_cast<原子实现*>(this)->_Base::比较交换强(_Expected, _Desired);
+        return const_cast<原子实现*>(this)->_基::比较交换强(_Expected, _Desired);
     }
 
     bool 比较交换强(_类型& _Expected, const _类型 _Desired, const 内存序 _Order) volatile noexcept {
         static_assert(_Deprecate_non_lock_free_volatile<_类型>, "Never fails");
-        return const_cast<原子实现*>(this)->_Base::比较交换强(_Expected, _Desired, _Order);
+        return const_cast<原子实现*>(this)->_基::比较交换强(_Expected, _Desired, _Order);
     }
 
     bool 比较交换强(_类型& _Expected, const _类型 _Desired, const 内存序 _Success,
@@ -2268,19 +2268,19 @@ public:
     }
 
 #if _HAS_CXX20
-    using _Base::等待;
+    using _基::等待;
     void 等待(const _类型 _Expected, const 内存序 _Order = 内存序顺序一致) const volatile noexcept {
-        const_cast<const 原子实现*>(this)->_Base::等待(_Expected, _Order);
+        const_cast<const 原子实现*>(this)->_基::等待(_Expected, _Order);
     }
 
-    using _Base::通知一个;
+    using _基::通知一个;
     void 通知一个() volatile noexcept {
-        const_cast<原子实现*>(this)->_Base::通知一个();
+        const_cast<原子实现*>(this)->_基::通知一个();
     }
 
-    using _Base::通知全部;
+    using _基::通知全部;
     void 通知全部() volatile noexcept {
-        const_cast<原子实现*>(this)->_Base::通知全部();
+        const_cast<原子实现*>(this)->_基::通知全部();
     }
 #endif // _HAS_CXX20
 
@@ -2303,14 +2303,14 @@ template <class _类型>
 _EXPORT_STD template <class _类型>
 struct 原子引用实现 : _Choose_atomic_base_t<_类型, _类型&> { // 原子实现 reference
 private:
-    using _Base = _Choose_atomic_base_t<_类型, _类型&>;
+    using _基 = _Choose_atomic_base_t<_类型, _类型&>;
 
 public:
     static_assert(is_trivially_copyable_v<_类型>, "原子引用实现<T> requires T to be trivially copyable.");
 
     using value_type = remove_cv_t<_类型>;
 
-    explicit 原子引用实现(_类型& _Value) noexcept /* strengthened */ : _Base(_Value) {
+    explicit 原子引用实现(_类型& _Value) noexcept /* strengthened */ : _基(_Value) {
         if constexpr (is_always_lock_free) {
             _STL_ASSERT((reinterpret_cast<uintptr_t>(_STD addressof(_Value)) & (required_alignment - 1)) == 0,
                 "原子引用实现 underlying object is not aligned as required_alignment");
@@ -2338,13 +2338,13 @@ public:
     void 存储(const value_type _Value) const noexcept
         requires (!is_const_v<_类型>)
     {
-        const_cast<原子引用实现*>(this)->_Base::存储(_Value);
+        const_cast<原子引用实现*>(this)->_基::存储(_Value);
     }
 
     void 存储(const value_type _Value, const 内存序 _Order) const noexcept
         requires (!is_const_v<_类型>)
     {
-        const_cast<原子引用实现*>(this)->_Base::存储(_Value, _Order);
+        const_cast<原子引用实现*>(this)->_基::存储(_Value, _Order);
     }
 
     value_type operator=(const value_type _Value) const noexcept
@@ -2357,26 +2357,26 @@ public:
     value_type 置换(const value_type _Value) const noexcept
         requires (!is_const_v<_类型>)
     {
-        return const_cast<原子引用实现*>(this)->_Base::置换(_Value);
+        return const_cast<原子引用实现*>(this)->_基::置换(_Value);
     }
 
     value_type 置换(const value_type _Value, const 内存序 _Order) const noexcept
         requires (!is_const_v<_类型>)
     {
-        return const_cast<原子引用实现*>(this)->_Base::置换(_Value, _Order);
+        return const_cast<原子引用实现*>(this)->_基::置换(_Value, _Order);
     }
 
     bool 比较交换强(value_type& _Expected, const value_type _Desired) const noexcept
         requires (!is_const_v<_类型>)
     {
-        return const_cast<原子引用实现*>(this)->_Base::比较交换强(_Expected, _Desired);
+        return const_cast<原子引用实现*>(this)->_基::比较交换强(_Expected, _Desired);
     }
 
     bool 比较交换强(
         value_type& _Expected, const value_type _Desired, const 内存序 _Order) const noexcept
         requires (!is_const_v<_类型>)
     {
-        return const_cast<原子引用实现*>(this)->_Base::比较交换强(_Expected, _Desired, _Order);
+        return const_cast<原子引用实现*>(this)->_基::比较交换强(_Expected, _Desired, _Order);
     }
 
     bool 比较交换强(value_type& _Expected, const value_type _Desired, const 内存序 _Success,
@@ -2413,13 +2413,13 @@ public:
     void 通知一个() const noexcept
         requires (!is_const_v<_类型>)
     {
-        const_cast<原子引用实现*>(this)->_Base::通知一个();
+        const_cast<原子引用实现*>(this)->_基::通知一个();
     }
 
     void 通知全部() const noexcept
         requires (!is_const_v<_类型>)
     {
-        const_cast<原子引用实现*>(this)->_Base::通知全部();
+        const_cast<原子引用实现*>(this)->_基::通知全部();
     }
 };
 #endif // _HAS_CXX20

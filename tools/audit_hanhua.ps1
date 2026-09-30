@@ -26,7 +26,7 @@
 #  用法：powershell -File tools\audit_hanhua.ps1
 #        powershell -File tools\audit_hanhua.ps1 -Verbose_   # 逐头打印残留名单
 # ============================================================================
-param([switch] $Detail, [switch] $Check, [switch] $Quiet)
+param([switch] $Detail, [switch] $Check, [switch] $Quiet, [string[]] $Chain)
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
@@ -359,6 +359,29 @@ foreach ($e in $entries) {
     }
 }
 
+# ---------------------------------------------------------------------------
+#  §17.19.45 `-Chain <名>`：链名工作表 —— 一个英文名到底出现在哪些产物里。
+#  为什么加它（第 112 轮实测）：`_Release` 的定义在 <内存内部件>，而【用户】散在 12 个产物里；
+#    审计的三把尺只看得见"声明"与"名字紧跟 ( 的调用"，`_Release` 只在 4 个头里被它数到 ——
+#    照着审计表登记就会只改 4 处，其余 8 个产物编译不过（链表/映射/双端队列 实测报
+#    「没有名为 _Release 的成员」）。链名的用户集必须【直接 grep 产物】，不能只看审计表。
+#  用法：pwsh -File tools\audit_hanhua.ps1 -Chain _Release,_Seek_to
+# ---------------------------------------------------------------------------
+if ($Chain -and $Chain.Count) {
+    # ⚠ pwsh -File 把逗号列表当【一个字符串】传进来 —— 必须自己拆（老坑，§17.19.45）
+    $Chain = @($Chain | ForEach-Object { $_ -split ',' } | Where-Object { $_ })
+    foreach ($cn in $Chain) {
+        $hitP = @()
+        foreach ($pf in (Get-ChildItem (Join-Path $root 'zhstdlib') -File | Sort-Object Name)) {
+            $pt = [System.IO.File]::ReadAllText($pf.FullName)
+            $n = ([regex]::Matches($pt, ('(?<![\w])' + [regex]::Escape($cn) + '(?![\w])'))).Count
+            if ($n -gt 0) { $hitP += ("{0}({1})" -f $pf.Name, $n) }
+        }
+        Write-Host ("=== 链名工作表 {0}：出现在 {1} 个产物里 ===" -f $cn, $hitP.Count) -ForegroundColor Cyan
+        Write-Host ("  " + ($hitP -join ' '))
+    }
+    exit 0
+}
 $rows = @($rows | Sort-Object -Property @{ Expression = { $_.残留 } } -Descending)
 if (-not $Quiet) { $rows | Format-Table -Property 中文头, 源, 顶层类型, 残留 -AutoSize }
 

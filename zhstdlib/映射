@@ -259,7 +259,7 @@ public:
 
 private:
     template <class _Keyty, class _Mappedty>
-    pair<_结点指针, bool> _Insert_or_assign(_Keyty&& _Keyval, _Mappedty&& _Mapval) {
+    pair<_结点指针, bool> _插入或赋值(_Keyty&& _Keyval, _Mappedty&& _Mapval) {
         const auto _Loc = _我的基类::_查找下界(_Keyval);
         if (_我的基类::_下界重复项(_Loc._Bound, _Keyval)) {
             _Loc._Bound->_Myval.second = _STD forward<_Mappedty>(_Mapval);
@@ -299,7 +299,7 @@ private:
 public:
     template <class _Mappedty>
     pair<迭代器, bool> 插入或赋值(const 键类型& _Keyval, _Mappedty&& _Mapval) {
-        const auto _结果 = _Insert_or_assign(_Keyval, _STD forward<_Mappedty>(_Mapval));
+        const auto _结果 = _插入或赋值(_Keyval, _STD forward<_Mappedty>(_Mapval));
         return {迭代器(_结果.first, _我的基类::_取检查值()), _结果.second};
     }
 
@@ -311,7 +311,7 @@ public:
 
     template <class _Mappedty>
     pair<迭代器, bool> 插入或赋值(键类型&& _Keyval, _Mappedty&& _Mapval) {
-        const auto _结果 = _Insert_or_assign(_STD move(_Keyval), _STD forward<_Mappedty>(_Mapval));
+        const auto _结果 = _插入或赋值(_STD move(_Keyval), _STD forward<_Mappedty>(_Mapval));
         return {迭代器(_结果.first, _我的基类::_取检查值()), _结果.second};
     }
 

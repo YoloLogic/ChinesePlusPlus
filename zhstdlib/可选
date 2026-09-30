@@ -979,7 +979,7 @@ _NODISCARD constexpr 可选实现<_类型> make_optional(initializer_list<_元�
 template <class _类型>
 struct hash<可选实现<_类型>>
     : _Conditionally_enabled_hash<可选实现<_类型>, is_default_constructible_v<hash<remove_const_t<_类型>>>> {
-    static size_t _Do_hash(const 可选实现<_类型>& _Opt) noexcept(_Is_nothrow_hashable<remove_const_t<_类型>>::value) {
+    static size_t _求散列(const 可选实现<_类型>& _Opt) noexcept(_Is_nothrow_hashable<remove_const_t<_类型>>::value) {
         constexpr size_t _Unspecified_value = 0;
         if (_Opt) {
             return hash<remove_const_t<_类型>>{}(*_Opt);

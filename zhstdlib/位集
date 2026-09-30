@@ -633,9 +633,9 @@ basic_istream<_元素, _Tr>& operator>>(basic_istream<_元素, _Tr>& _Istr, 位�
     typename _输入流类型::iostate _State = _输入流类型::goodbit;
     size_t _Count                    = 0;
     _位缓冲<_元素, _Bits> _Buf;
-    const typename _输入流类型::sentry _Ok(_Istr);
+    const typename _输入流类型::sentry _成功(_Istr);
 
-    if (_Ok) { // valid stream, extract elements
+    if (_成功) { // valid stream, extract elements
         _TRY_IO_BEGIN
         _Buf._分配();
         typename _Tr::int_type _Meta = _Istr.rdbuf()->sgetc();

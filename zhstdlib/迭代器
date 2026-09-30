@@ -280,7 +280,7 @@ public:
         return _Tmp;
     }
 
-    _NODISCARD bool _Equal(const 输入流迭代器实现& _Right) const noexcept {
+    _NODISCARD bool _相等(const 输入流迭代器实现& _Right) const noexcept {
         return _Myistr == _Right._Myistr;
     }
 
@@ -305,7 +305,7 @@ private:
 _EXPORT_STD template <class _Ty, class _Elem, class _Traits, class _Diff>
 _NODISCARD bool operator==(const 输入流迭代器实现<_Ty, _Elem, _Traits, _Diff>& _Left,
     const 输入流迭代器实现<_Ty, _Elem, _Traits, _Diff>& _Right) noexcept /* strengthened */ {
-    return _Left._Equal(_Right);
+    return _Left._相等(_Right);
 }
 
 #if !_HAS_CXX20
@@ -1387,9 +1387,9 @@ public:
         // Iterator equality is a fair proxy for the vaguely-defined "refer to the same element".
         if constexpr (forward_iterator<_Iter> && forward_iterator<_Other>) {
             using _常量迭代器 = common_type_t<_Iter, _Other>;
-            using _CDiff = common_type_t<iter_difference_t<_Iter>, iter_difference_t<_Other>>;
+            using _常量差类型 = common_type_t<iter_difference_t<_Iter>, iter_difference_t<_Other>>;
 
-            const _CDiff _Diff = static_cast<_CDiff>(_Left._Length) - static_cast<_CDiff>(_Right.count());
+            const _常量差类型 _Diff = static_cast<_常量差类型>(_Left._Length) - static_cast<_常量差类型>(_Right.count());
             if (_Diff < 0) {
                 _STL_VERIFY(
                     static_cast<_常量迭代器>(_Left._Current) == _RANGES next(static_cast<_常量迭代器>(_Right.base()), -_Diff),

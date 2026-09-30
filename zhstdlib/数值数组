@@ -1857,7 +1857,7 @@ public:
         return _我的指针[_Idx];
     }
 
-    _NODISCARD bool _Mask(size_t _Idx) const noexcept {
+    _NODISCARD bool _掩码(size_t _Idx) const noexcept {
         return _Mybool[_Idx];
     }
 
@@ -2082,7 +2082,7 @@ template <class _类型>
 
     const size_t _Size = _我的尺寸; // eliminating indirection helps vectorization
     for (size_t _Idx = 0; _Idx < _Size; ++_Count) {
-        if (_Maskarr._Mask(_Count)) {
+        if (_Maskarr._掩码(_Count)) {
             _我的指针[_Idx++] = _Maskarr._Data(_Count);
         }
     }

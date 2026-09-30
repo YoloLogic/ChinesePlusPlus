@@ -86,9 +86,9 @@ public:
     }
 
     _CONSTEXPR20 _向量常量迭代器 operator++(int) noexcept {
-        _向量常量迭代器 _Tmp = *this;
+        _向量常量迭代器 _临时 = *this;
         ++*this;
-        return _Tmp;
+        return _临时;
     }
 
     _CONSTEXPR20 _向量常量迭代器& operator--() noexcept {
@@ -104,9 +104,9 @@ public:
     }
 
     _CONSTEXPR20 _向量常量迭代器 operator--(int) noexcept {
-        _向量常量迭代器 _Tmp = *this;
+        _向量常量迭代器 _临时 = *this;
         --*this;
-        return _Tmp;
+        return _临时;
     }
 
     _CONSTEXPR20 void _Verify_offset(const difference_type _Off) const noexcept {
@@ -133,9 +133,9 @@ public:
     }
 
     _NODISCARD _CONSTEXPR20 _向量常量迭代器 operator+(const difference_type _Off) const noexcept {
-        _向量常量迭代器 _Tmp = *this;
-        _Tmp += _Off;
-        return _Tmp;
+        _向量常量迭代器 _临时 = *this;
+        _临时 += _Off;
+        return _临时;
     }
 
     _NODISCARD friend _CONSTEXPR20 _向量常量迭代器 operator+(
@@ -149,13 +149,13 @@ public:
     }
 
     _NODISCARD _CONSTEXPR20 _向量常量迭代器 operator-(const difference_type _Off) const noexcept {
-        _向量常量迭代器 _Tmp = *this;
-        _Tmp -= _Off;
-        return _Tmp;
+        _向量常量迭代器 _临时 = *this;
+        _临时 -= _Off;
+        return _临时;
     }
 
     _NODISCARD _CONSTEXPR20 difference_type operator-(const _向量常量迭代器& _Right) const noexcept {
-        _Compat(_Right);
+        _兼容(_Right);
         return static_cast<difference_type>(_Ptr - _Right._Ptr);
     }
 
@@ -164,13 +164,13 @@ public:
     }
 
     _NODISCARD _CONSTEXPR20 bool operator==(const _向量常量迭代器& _Right) const noexcept {
-        _Compat(_Right);
+        _兼容(_Right);
         return _Ptr == _Right._Ptr;
     }
 
 #if _HAS_CXX20
     _NODISCARD constexpr strong_ordering operator<=>(const _向量常量迭代器& _Right) const noexcept {
-        _Compat(_Right);
+        _兼容(_Right);
         return _去花式可空(_Ptr) <=> _去花式可空(_Right._Ptr);
     }
 #else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
@@ -179,7 +179,7 @@ public:
     }
 
     _NODISCARD bool operator<(const _向量常量迭代器& _Right) const noexcept {
-        _Compat(_Right);
+        _兼容(_Right);
         return _Ptr < _Right._Ptr;
     }
 
@@ -196,7 +196,7 @@ public:
     }
 #endif // ^^^ !_HAS_CXX20 ^^^
 
-    _CONSTEXPR20 void _Compat(const _向量常量迭代器& _Right) const noexcept {
+    _CONSTEXPR20 void _兼容(const _向量常量迭代器& _Right) const noexcept {
         // test for compatible iterator pair
 #if _ITERATOR_DEBUG_LEVEL == 0
         (void) _Right;
@@ -291,9 +291,9 @@ public:
     }
 
     _CONSTEXPR20 _向量迭代器 operator++(int) noexcept {
-        _向量迭代器 _Tmp = *this;
+        _向量迭代器 _临时 = *this;
         _我的基类::operator++();
-        return _Tmp;
+        return _临时;
     }
 
     _CONSTEXPR20 _向量迭代器& operator--() noexcept {
@@ -302,9 +302,9 @@ public:
     }
 
     _CONSTEXPR20 _向量迭代器 operator--(int) noexcept {
-        _向量迭代器 _Tmp = *this;
+        _向量迭代器 _临时 = *this;
         _我的基类::operator--();
-        return _Tmp;
+        return _临时;
     }
 
     _CONSTEXPR20 _向量迭代器& operator+=(const difference_type _Off) noexcept {
@@ -313,9 +313,9 @@ public:
     }
 
     _NODISCARD _CONSTEXPR20 _向量迭代器 operator+(const difference_type _Off) const noexcept {
-        _向量迭代器 _Tmp = *this;
-        _Tmp += _Off;
-        return _Tmp;
+        _向量迭代器 _临时 = *this;
+        _临时 += _Off;
+        return _临时;
     }
 
     _NODISCARD friend _CONSTEXPR20 _向量迭代器 operator+(
@@ -332,9 +332,9 @@ public:
     using _我的基类::operator-;
 
     _NODISCARD _CONSTEXPR20 _向量迭代器 operator-(const difference_type _Off) const noexcept {
-        _向量迭代器 _Tmp = *this;
-        _Tmp -= _Off;
-        return _Tmp;
+        _向量迭代器 _临时 = *this;
+        _临时 -= _Off;
+        return _临时;
     }
 
     _NODISCARD _CONSTEXPR20 reference operator[](const difference_type _Off) const noexcept {
@@ -679,7 +679,7 @@ public:
 
     _CONSTEXPR20 explicit 向量实现(_CRT_GUARDOVERFLOW const size_type _Count, const _分配器& _Al = _分配器())
         : _Mypair(_先一后变参实参{}, _Al) {
-        _Construct_n(_Count);
+        _构造n个(_Count);
     }
 
 #if _HAS_CXX17
@@ -687,7 +687,7 @@ public:
 #endif // _HAS_CXX17
     _CONSTEXPR20 向量实现(_CRT_GUARDOVERFLOW const size_type _Count, const _类型& _Val, const _分配器& _Al = _分配器())
         : _Mypair(_先一后变参实参{}, _Al) {
-        _Construct_n(_Count, _Val);
+        _构造n个(_Count, _Val);
     }
 
     template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
@@ -699,12 +699,12 @@ public:
         if constexpr (_Is_cpp17_fwd_iter_v<_Iter>) {
             const auto _Length = static_cast<size_t>(_STD distance(_UFirst, _ULast));
             const auto _Count  = _STD _Convert_size<size_type>(_Length);
-            _Construct_n(_Count, _STD move(_UFirst), _STD move(_ULast));
+            _构造n个(_Count, _STD move(_UFirst), _STD move(_ULast));
 #if _HAS_CXX20
         } else if constexpr (forward_iterator<_Iter>) {
             const auto _Length = _转为无符号同型(_RANGES distance(_UFirst, _ULast));
             const auto _Count  = _STD _Convert_size<size_type>(_Length);
-            _Construct_n(_Count, _STD move(_UFirst), _STD move(_ULast));
+            _构造n个(_Count, _STD move(_UFirst), _STD move(_ULast));
 #endif // _HAS_CXX20
         } else {
             auto&& _Alproxy = _取代理分配器(_分配器类型, _取分配器());
@@ -720,7 +720,7 @@ public:
 
     _CONSTEXPR20 向量实现(initializer_list<_类型> _Ilist, const _分配器& _Al = _分配器())
         : _Mypair(_先一后变参实参{}, _Al) {
-        _Construct_n(_Convert_size<size_type>(_Ilist.size()), _Ilist.begin(), _Ilist.end());
+        _构造n个(_Convert_size<size_type>(_Ilist.size()), _Ilist.begin(), _Ilist.end());
     }
 
 #if _HAS_CXX23
@@ -730,7 +730,7 @@ public:
         if constexpr (_RANGES sized_range<_Rng> || _RANGES forward_range<_Rng>) {
             const auto _Length = _转为无符号同型(_RANGES distance(_Range));
             const auto _Count  = _Convert_size<size_type>(_Length);
-            _Construct_n(_Count, _解包首(_Range), _解包尾(_Range));
+            _构造n个(_Count, _解包首(_Range), _解包尾(_Range));
         } else {
             auto&& _Alproxy = _取代理分配器(_分配器类型, _取分配器());
             _容器代理指针<_分配器类型> _Proxy(_Alproxy, _Mypair._Myval2);
@@ -748,14 +748,14 @@ public:
         : _Mypair(_先一后变参实参{}, _分配器特征::select_on_container_copy_construction(_Right._取分配器())) {
         const auto& _Right_data = _Right._Mypair._Myval2;
         const auto _Count       = static_cast<size_type>(_Right_data._Mylast - _Right_data._Myfirst);
-        _Construct_n(_Count, _Right_data._Myfirst, _Right_data._Mylast);
+        _构造n个(_Count, _Right_data._Myfirst, _Right_data._Mylast);
     }
 
     _CONSTEXPR20 向量实现(const 向量实现& _Right, const _Identity_t<_分配器>& _Al)
         : _Mypair(_先一后变参实参{}, _Al) {
         const auto& _Right_data = _Right._Mypair._Myval2;
         const auto _Count       = static_cast<size_type>(_Right_data._Mylast - _Right_data._Myfirst);
-        _Construct_n(_Count, _Right_data._Myfirst, _Right_data._Mylast);
+        _构造n个(_Count, _Right_data._Myfirst, _Right_data._Mylast);
     }
 
     _CONSTEXPR20 向量实现(向量实现&& _Right) noexcept
@@ -1122,19 +1122,19 @@ public:
             _用未用容量尾部就地构造(_Val);
         } else { // provide basic guarantee
             const _分配器临时对象2<_分配器类型> _Tmp_storage(_Al, _Val); // handle aliasing
-            const auto& _Tmp              = _Tmp_storage._取值();
+            const auto& _临时              = _Tmp_storage._取值();
             const auto _Affected_elements = static_cast<size_type>(_Oldlast - _Whereptr);
             _孤儿化范围(_Whereptr, _Oldlast);
 
             _地址消毒向量延长守卫(static_cast<size_type>(_Oldlast - _My_data._Myfirst) + _Count);
             if (_Count > _Affected_elements) { // new stuff spills off 结束
-                _Mylast = _未初始化填充若干(_Oldlast, _Count - _Affected_elements, _Tmp, _Al);
+                _Mylast = _未初始化填充若干(_Oldlast, _Count - _Affected_elements, _临时, _Al);
                 _Mylast = _未初始化移动(_Whereptr, _Oldlast, _Mylast, _Al);
-                _STD fill(_Whereptr, _Oldlast, _Tmp);
+                _STD fill(_Whereptr, _Oldlast, _临时);
             } else { // new stuff can all be assigned
                 _Mylast = _未初始化移动(_Oldlast - _Count, _Oldlast, _Oldlast, _Al);
                 _向后移动非检查(_Whereptr, _Oldlast - _Count, _Oldlast);
-                _STD fill_n(_Whereptr, _Count, _Tmp);
+                _STD fill_n(_Whereptr, _Count, _临时);
             }
             _ASAN_VECTOR_RELEASE_GUARD;
         }
@@ -2101,7 +2101,7 @@ private:
     }
 
     template <class... _值参数类型>
-    _CONSTEXPR20 void _Construct_n(_CRT_GUARDOVERFLOW const size_type _Count, _值参数类型&&... _Val) {
+    _CONSTEXPR20 void _构造n个(_CRT_GUARDOVERFLOW const size_type _Count, _值参数类型&&... _Val) {
         // Dispatches between the three sized constructions.
         // 1-arg -> value-construction, e.g. 向量实现(5)
         // 2-arg -> fill, e.g. 向量实现(5, "meow")
@@ -2317,13 +2317,13 @@ struct _位基三路比较 {
         const int _Bit_index = _Countr_zero(_Differing_bits); // number of least significant bits that match
         _STL_INTERNAL_CHECK(_Bit_index < _VBITS); // because we return early for equality
 
-        const _位基 _Mask = _位基{1} << _Bit_index; // selects the least significant bit that differs
+        const _位基 _掩码 = _位基{1} << _Bit_index; // selects the least significant bit that differs
 
-        // Instead of comparing (_Left & _Mask) to (_Right & _Mask), we know that exactly one side will be zero.
+        // Instead of comparing (_Left & _掩码) to (_Right & _掩码), we know that exactly one side will be zero.
 #if _HAS_CXX20
-        return (_Left & _Mask) == 0 ? strong_ordering::less : strong_ordering::greater;
+        return (_Left & _掩码) == 0 ? strong_ordering::less : strong_ordering::greater;
 #else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
-        return (_Left & _Mask) == 0 ? -1 : 1;
+        return (_Left & _掩码) == 0 ? -1 : 1;
 #endif // ^^^ !_HAS_CXX20 ^^^
     }
 };
@@ -2473,9 +2473,9 @@ public:
 
     _CONSTEXPR20 _位引用& operator=(bool _Val) noexcept {
         if (_Val) {
-            *const_cast<_位基*>(_Getptr()) |= _Mask();
+            *const_cast<_位基*>(_Getptr()) |= _掩码();
         } else {
-            *const_cast<_位基*>(_Getptr()) &= ~_Mask();
+            *const_cast<_位基*>(_Getptr()) &= ~_掩码();
         }
 
         return *this;
@@ -2484,9 +2484,9 @@ public:
 #if _HAS_CXX23
     constexpr const _位引用& operator=(bool _Val) const noexcept {
         if (_Val) {
-            *const_cast<_位基*>(_Getptr()) |= _Mask();
+            *const_cast<_位基*>(_Getptr()) |= _掩码();
         } else {
-            *const_cast<_位基*>(_Getptr()) &= ~_Mask();
+            *const_cast<_位基*>(_Getptr()) &= ~_掩码();
         }
 
         return *this;
@@ -2494,11 +2494,11 @@ public:
 #endif // _HAS_CXX23
 
     _CONSTEXPR20 void flip() noexcept {
-        *const_cast<_位基*>(_Getptr()) ^= _Mask();
+        *const_cast<_位基*>(_Getptr()) ^= _掩码();
     }
 
     _CONSTEXPR20 operator bool() const noexcept {
-        return (*_Getptr() & _Mask()) != 0;
+        return (*_Getptr() & _掩码()) != 0;
     }
 
     _CONSTEXPR20 const _位基* _Getptr() const noexcept {
@@ -2519,7 +2519,7 @@ public:
     }
 
 protected:
-    _CONSTEXPR20 _位基 _Mask() const noexcept {
+    _CONSTEXPR20 _位基 _掩码() const noexcept {
         return static_cast<_位基>(1) << this->_Myoff;
     }
 };
@@ -2561,9 +2561,9 @@ public:
     }
 
     _CONSTEXPR20 _位向量常量迭代器 operator++(int) noexcept {
-        _位向量常量迭代器 _Tmp = *this;
+        _位向量常量迭代器 _临时 = *this;
         _递增();
-        return _Tmp;
+        return _临时;
     }
 
     _CONSTEXPR20 _位向量常量迭代器& operator--() noexcept {
@@ -2572,9 +2572,9 @@ public:
     }
 
     _CONSTEXPR20 _位向量常量迭代器 operator--(int) noexcept {
-        _位向量常量迭代器 _Tmp = *this;
+        _位向量常量迭代器 _临时 = *this;
         _递减();
-        return _Tmp;
+        return _临时;
     }
 
     _CONSTEXPR20 _位向量常量迭代器& operator+=(const difference_type _Off) noexcept {
@@ -2605,9 +2605,9 @@ public:
     }
 
     _NODISCARD _CONSTEXPR20 _位向量常量迭代器 operator+(const difference_type _Off) const noexcept {
-        _位向量常量迭代器 _Tmp = *this;
-        _Tmp += _Off;
-        return _Tmp;
+        _位向量常量迭代器 _临时 = *this;
+        _临时 += _Off;
+        return _临时;
     }
 
     _NODISCARD friend _CONSTEXPR20 _位向量常量迭代器 operator+(
@@ -2621,13 +2621,13 @@ public:
     }
 
     _NODISCARD _CONSTEXPR20 _位向量常量迭代器 operator-(const difference_type _Off) const noexcept {
-        _位向量常量迭代器 _Tmp = *this;
-        _Tmp -= _Off;
-        return _Tmp;
+        _位向量常量迭代器 _临时 = *this;
+        _临时 -= _Off;
+        return _临时;
     }
 
     _NODISCARD _CONSTEXPR20 difference_type operator-(const _位向量常量迭代器& _Right) const noexcept {
-        _Compat(_Right);
+        _兼容(_Right);
         return static_cast<difference_type>(_我的基类::_VBITS_DIFF * (this->_我的指针 - _Right._我的指针))
              + static_cast<difference_type>(this->_Myoff) - static_cast<difference_type>(_Right._Myoff);
     }
@@ -2637,13 +2637,13 @@ public:
     }
 
     _NODISCARD _CONSTEXPR20 bool operator==(const _位向量常量迭代器& _Right) const noexcept {
-        _Compat(_Right);
+        _兼容(_Right);
         return this->_我的指针 == _Right._我的指针 && this->_Myoff == _Right._Myoff;
     }
 
 #if _HAS_CXX20
     _NODISCARD constexpr strong_ordering operator<=>(const _位向量常量迭代器& _Right) const noexcept {
-        _Compat(_Right);
+        _兼容(_Right);
         if (const auto _CmpResult = this->_我的指针 <=> _Right._我的指针; _CmpResult != 0) {
             return _CmpResult;
         }
@@ -2655,7 +2655,7 @@ public:
     }
 
     _NODISCARD bool operator<(const _位向量常量迭代器& _Right) const noexcept {
-        _Compat(_Right);
+        _兼容(_Right);
         return this->_我的指针 < _Right._我的指针 || (this->_我的指针 == _Right._我的指针 && this->_Myoff < _Right._Myoff);
     }
 
@@ -2672,7 +2672,7 @@ public:
     }
 #endif // ^^^ !_HAS_CXX20 ^^^
 
-    _CONSTEXPR20 void _Compat(const _位向量常量迭代器& _Right) const noexcept {
+    _CONSTEXPR20 void _兼容(const _位向量常量迭代器& _Right) const noexcept {
         // test for compatible iterator pair
 #if _ITERATOR_DEBUG_LEVEL == 0
         (void) _Right;
@@ -2685,7 +2685,7 @@ public:
     using _阻止继承解包 = _位向量常量迭代器;
 
     friend _CONSTEXPR20 void _校验范围(const _位向量常量迭代器& _首个, const _位向量常量迭代器& _最后) noexcept {
-        // note _Compat check inside <=
+        // note _兼容 check inside <=
         _STL_VERIFY(_首个 <= _最后, "向量实现<bool> iterator range transposed");
     }
 #endif // _ITERATOR_DEBUG_LEVEL != 0
@@ -2756,9 +2756,9 @@ public:
     }
 
     _CONSTEXPR20 _位向量迭代器 operator++(int) noexcept {
-        _位向量迭代器 _Tmp = *this;
+        _位向量迭代器 _临时 = *this;
         _我的基类::operator++();
-        return _Tmp;
+        return _临时;
     }
 
     _CONSTEXPR20 _位向量迭代器& operator--() noexcept {
@@ -2767,9 +2767,9 @@ public:
     }
 
     _CONSTEXPR20 _位向量迭代器 operator--(int) noexcept {
-        _位向量迭代器 _Tmp = *this;
+        _位向量迭代器 _临时 = *this;
         _我的基类::operator--();
-        return _Tmp;
+        return _临时;
     }
 
     _CONSTEXPR20 _位向量迭代器& operator+=(const difference_type _Off) noexcept {
@@ -2778,9 +2778,9 @@ public:
     }
 
     _NODISCARD _CONSTEXPR20 _位向量迭代器 operator+(const difference_type _Off) const noexcept {
-        _位向量迭代器 _Tmp = *this;
-        _Tmp += _Off;
-        return _Tmp;
+        _位向量迭代器 _临时 = *this;
+        _临时 += _Off;
+        return _临时;
     }
 
     _NODISCARD friend _CONSTEXPR20 _位向量迭代器 operator+(const difference_type _Off, _位向量迭代器 _Right) noexcept {
@@ -2796,9 +2796,9 @@ public:
     using _我的基类::operator-;
 
     _NODISCARD _CONSTEXPR20 _位向量迭代器 operator-(const difference_type _Off) const noexcept {
-        _位向量迭代器 _Tmp = *this;
-        _Tmp -= _Off;
-        return _Tmp;
+        _位向量迭代器 _临时 = *this;
+        _临时 -= _Off;
+        return _临时;
     }
 
     _NODISCARD _CONSTEXPR20 reference operator[](const difference_type _Off) const noexcept {
@@ -3028,8 +3028,8 @@ public:
 
     template <class... _值参数类型>
     _CONSTEXPR20 _CONTAINER_EMPLACE_RETURN 尾部就地构造(_值参数类型&&... _Val) {
-        bool _Tmp(_STD forward<_值参数类型>(_Val)...);
-        尾插(_Tmp);
+        bool _临时(_STD forward<_值参数类型>(_Val)...);
+        尾插(_临时);
 
 #if _HAS_CXX17
         return 后();
@@ -3038,8 +3038,8 @@ public:
 
     template <class... _值参数类型>
     _CONSTEXPR20 iterator 就地构造(const_iterator _Where, _值参数类型&&... _Val) {
-        bool _Tmp(_STD forward<_值参数类型>(_Val)...);
-        return 插入(_Where, _Tmp);
+        bool _临时(_STD forward<_值参数类型>(_Val)...);
+        return 插入(_Where, _临时);
     }
 
     _CONSTEXPR20 向量实现(initializer_list<bool> _Ilist, const _分配器& _Al = allocator_type()) : _我的基类(0, false, _Al) {
@@ -3158,12 +3158,12 @@ public:
     }
 
     _CONSTEXPR20 iterator _造迭代器(const_iterator _Where) noexcept {
-        iterator _Tmp = 开始();
+        iterator _临时 = 开始();
         if (0 < this->_我的尺寸) {
-            _Tmp += _Where - 开始();
+            _临时 += _Where - 开始();
         }
 
-        return _Tmp;
+        return _临时;
     }
 
     _NODISCARD _CONSTEXPR20 reverse_iterator 反向开始() noexcept {
@@ -3184,7 +3184,7 @@ public:
 
     _CONSTEXPR20 void 调整尺寸(_CRT_GUARDOVERFLOW size_type _Newsize, bool _Val = false) {
         if (尺寸() < _Newsize) {
-            _Insert_n(结束(), _Newsize - 尺寸(), _Val);
+            _插入n个(结束(), _Newsize - 尺寸(), _Val);
         } else if (_Newsize < 尺寸()) {
             擦除(开始() + static_cast<difference_type>(_Newsize), 结束());
         }
@@ -3312,15 +3312,15 @@ public:
         _STL_INTERNAL_CHECK(this->_我的向量.为空());
         this->_我的向量.预留(this->_新建原生(_Count));
         _位基 _Accum = 0;
-        _位基 _Mask  = 1;
+        _位基 _掩码  = 1;
         for (size_type _Idx = 0; _Idx < _Count; ++_Idx) {
-            const bool _Tmp = *_首个;
+            const bool _临时 = *_首个;
             ++_首个;
-            _Accum |= _Tmp ? _Mask : _位基{0};
-            if ((_Mask <<= 1) == 0) {
+            _Accum |= _临时 ? _掩码 : _位基{0};
+            if ((_掩码 <<= 1) == 0) {
                 this->_尾部就地构造非检查(_Accum);
                 _Accum = 0;
-                _Mask  = 1;
+                _掩码  = 1;
             }
         }
 
@@ -3335,15 +3335,15 @@ public:
         _STL_INTERNAL_CHECK(this->_我的向量.为空());
         size_type _Count = 0;
         _位基 _Accum    = 0;
-        _位基 _Mask     = 1;
+        _位基 _掩码     = 1;
         for (; _首个 != _最后; ++_Count) {
-            const bool _Tmp = *_首个;
+            const bool _临时 = *_首个;
             ++_首个;
-            _Accum |= _Tmp ? _Mask : _位基{0};
-            if ((_Mask <<= 1) == 0) {
+            _Accum |= _临时 ? _掩码 : _位基{0};
+            if ((_掩码 <<= 1) == 0) {
                 this->_我的向量.尾插(_Accum);
                 _Accum = 0;
-                _Mask  = 1;
+                _掩码  = 1;
             }
         }
 
@@ -3370,15 +3370,15 @@ public:
 
     _CONSTEXPR20 void 赋值(_CRT_GUARDOVERFLOW size_type _Count, const bool& _Val) {
         清空();
-        _Insert_n(开始(), _Count, _Val);
+        _插入n个(开始(), _Count, _Val);
     }
 
     _CONSTEXPR20 iterator 插入(const_iterator _Where, const bool& _Val) {
-        return _Insert_n(_Where, size_type{1}, _Val);
+        return _插入n个(_Where, size_type{1}, _Val);
     }
 
     _CONSTEXPR20 iterator 插入(const_iterator _Where, _CRT_GUARDOVERFLOW size_type _Count, const bool& _Val) {
-        return _Insert_n(_Where, _Count, _Val);
+        return _插入n个(_Where, _Count, _Val);
     }
 
     template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
@@ -3512,7 +3512,7 @@ public:
 
     friend hash<向量实现<bool, _分配器>>;
 
-    _CONSTEXPR20 iterator _Insert_n(const_iterator _Where, size_type _Count, const bool& _Val) {
+    _CONSTEXPR20 iterator _插入n个(const_iterator _Where, size_type _Count, const bool& _Val) {
         size_type _Off     = _插入若干(_Where, _Count);
         const auto _结果 = 开始() + static_cast<difference_type>(_Off);
         _STD fill_n(_结果, _Count, _Val);
@@ -3529,7 +3529,7 @@ public:
 
         if (_Count != 0) {
             if (max_size() - 尺寸() < _Count) {
-                _Xlen(); // result too long
+                _长度参数(); // result too long
             }
 
 #if _ITERATOR_DEBUG_LEVEL == 2
@@ -3591,7 +3591,7 @@ public:
 
     _CONSTEXPR20 void _修剪(size_type _Size) {
         if (max_size() < _Size) {
-            _Xlen(); // result too long
+            _长度参数(); // result too long
         }
 
         const size_type _Words = this->_新建原生(_Size);
@@ -3606,7 +3606,7 @@ public:
         }
     }
 
-    [[noreturn]] static void _Xlen() {
+    [[noreturn]] static void _长度参数() {
         _Xlength_error("向量实现<bool> too long");
     }
 
@@ -3622,7 +3622,7 @@ struct hash<向量实现<bool, _分配器>> {
 
     _NODISCARD _STATIC_CALL_OPERATOR size_t operator()(
         const 向量实现<bool, _分配器>& _Keyval) _CONST_CALL_OPERATOR noexcept {
-        return _Hash_array_representation(_Keyval._我的向量.数据(), _Keyval._我的向量.尺寸());
+        return _散列数组表示(_Keyval._我的向量.数据(), _Keyval._我的向量.尺寸());
     }
 };
 

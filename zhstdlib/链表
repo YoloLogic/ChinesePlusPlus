@@ -825,7 +825,7 @@ private:
         _分配哨兵与代理();
     }
 
-    void _Construct_n(_CRT_GUARDOVERFLOW size_type _Count) {
+    void _构造n个(_CRT_GUARDOVERFLOW size_type _Count) {
         auto&& _Alproxy = _取代理分配器(_结点分配器, _取分配器());
         _容器代理指针<_分配器类型> _Proxy(_Alproxy, _Mypair._Myval2);
         _链表节点插入操作2<_结点分配器> _Appended(_取分配器());
@@ -837,16 +837,16 @@ private:
 public:
     explicit 链表实现(_CRT_GUARDOVERFLOW size_type _Count)
         : _Mypair(_先零后变参实参{}) { // construct 链表实现 from _Count * _类型()
-        _Construct_n(_Count);
+        _构造n个(_Count);
     }
 
     explicit 链表实现(_CRT_GUARDOVERFLOW size_type _Count, const _分配器& _Al)
         : _Mypair(_先一后变参实参{}, _Al) { // construct 链表实现 from _Count * _类型(), with allocator
-        _Construct_n(_Count);
+        _构造n个(_Count);
     }
 
 private:
-    void _Construct_n(_CRT_GUARDOVERFLOW size_type _Count, const _类型& _Val) {
+    void _构造n个(_CRT_GUARDOVERFLOW size_type _Count, const _类型& _Val) {
         auto&& _Alproxy = _取代理分配器(_结点分配器, _取分配器());
         _容器代理指针<_分配器类型> _Proxy(_Alproxy, _Mypair._Myval2);
         _链表节点插入操作2<_结点分配器> _Appended(_取分配器());
@@ -858,7 +858,7 @@ private:
 public:
     链表实现(_CRT_GUARDOVERFLOW size_type _Count, const _类型& _Val)
         : _Mypair(_先零后变参实参{}) { // construct 链表实现 from _Count * _Val
-        _Construct_n(_Count, _Val);
+        _构造n个(_Count, _Val);
     }
 
 #if _HAS_CXX17
@@ -866,7 +866,7 @@ public:
 #endif // _HAS_CXX17
     链表实现(_CRT_GUARDOVERFLOW size_type _Count, const _类型& _Val, const _分配器& _Al)
         : _Mypair(_先一后变参实参{}, _Al) { // construct 链表实现 from _Count * _Val, allocator
-        _Construct_n(_Count, _Val);
+        _构造n个(_Count, _Val);
     }
 
 private:

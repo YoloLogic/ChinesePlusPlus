@@ -43,15 +43,15 @@ _NODISCARD size_t hash_value(const _Kty& _Keyval) noexcept {
 
 template <class _元素, class _特征, class _分配器>
 _NODISCARD size_t hash_value(const _STD basic_string<_元素, _特征, _分配器>& _Str) noexcept {
-    return _Hash_array_representation(_Str.c_str(), _Str.尺寸());
+    return _散列数组表示(_Str.c_str(), _Str.尺寸());
 }
 
 _NODISCARD inline size_t hash_value(_In_z_ const char* _Str) noexcept {
-    return _Hash_array_representation(_Str, _CSTD strlen(_Str));
+    return _散列数组表示(_Str, _CSTD strlen(_Str));
 }
 
 _NODISCARD inline size_t hash_value(_In_z_ const wchar_t* _Str) noexcept {
-    return _Hash_array_representation(_Str, _CSTD wcslen(_Str));
+    return _散列数组表示(_Str, _CSTD wcslen(_Str));
 }
 
 template <class _Kty, class _Pr = _STD less<_Kty>>

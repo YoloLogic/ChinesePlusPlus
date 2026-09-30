@@ -43,9 +43,9 @@ _NODISCARD _CONSTEXPR23 to_chars_result _Integer_to_chars(
     _ADL校验范围(_首个, _最后);
     _STL_ASSERT(_Base >= 2 && _Base <= 36, "invalid base in 数值转字符()");
 
-    using _Unsigned = make_unsigned_t<_RawTy>;
+    using _无符号类型 = make_unsigned_t<_RawTy>;
 
-    _Unsigned _Value = static_cast<_Unsigned>(_Raw_value);
+    _无符号类型 _Value = static_cast<_无符号类型>(_Raw_value);
 
     if constexpr (is_signed_v<_RawTy>) {
         if (_Raw_value < 0) {
@@ -55,11 +55,11 @@ _NODISCARD _CONSTEXPR23 to_chars_result _Integer_to_chars(
 
             *_首个++ = '-';
 
-            _Value = static_cast<_Unsigned>(0 - _Value);
+            _Value = static_cast<_无符号类型>(0 - _Value);
         }
     }
 
-    constexpr size_t _Buff_size = sizeof(_Unsigned) * CHAR_BIT; // enough for base 2
+    constexpr size_t _Buff_size = sizeof(_无符号类型) * CHAR_BIT; // enough for base 2
     char _Buff[_Buff_size];
     char* const _Buff_end = _Buff + _Buff_size;
     char* _RNext          = _Buff_end;
@@ -68,14 +68,14 @@ _NODISCARD _CONSTEXPR23 to_chars_result _Integer_to_chars(
     case 10:
         { // Derived from _UIntegral_to_buff()
             // Performance note: Ryu's digit table should be faster here.
-            constexpr bool _Use_chunks = sizeof(_Unsigned) > sizeof(size_t);
+            constexpr bool _Use_chunks = sizeof(_无符号类型) > sizeof(size_t);
 
             if constexpr (_Use_chunks) { // For 64-bit numbers on 32-bit platforms, work in chunks to avoid 64-bit
                                          // divisions.
                 while (_Value > 0xFFFF'FFFFU) {
                     // Performance note: Ryu's division workaround would be faster here.
                     unsigned long _Chunk = static_cast<unsigned long>(_Value % 1'000'000'000);
-                    _Value               = static_cast<_Unsigned>(_Value / 1'000'000'000);
+                    _Value               = static_cast<_无符号类型>(_Value / 1'000'000'000);
 
                     for (int _Idx = 0; _Idx != 9; ++_Idx) {
                         *--_RNext = static_cast<char>('0' + _Chunk % 10);
@@ -84,7 +84,7 @@ _NODISCARD _CONSTEXPR23 to_chars_result _Integer_to_chars(
                 }
             }
 
-            using _Truncated = conditional_t<_Use_chunks, unsigned long, _Unsigned>;
+            using _Truncated = conditional_t<_Use_chunks, unsigned long, _无符号类型>;
 
             _Truncated _Trunc = static_cast<_Truncated>(_Value);
 
@@ -137,14 +137,14 @@ _NODISCARD _CONSTEXPR23 to_chars_result _Integer_to_chars(
     case 9:
         do {
             *--_RNext = static_cast<char>('0' + _Value % _Base);
-            _Value    = static_cast<_Unsigned>(_Value / _Base);
+            _Value    = static_cast<_无符号类型>(_Value / _Base);
         } while (_Value != 0);
         break;
 
     default:
         do {
             *--_RNext = _Charconv_digits[_Value % _Base];
-            _Value    = static_cast<_Unsigned>(_Value / _Base);
+            _Value    = static_cast<_无符号类型>(_Value / _Base);
         } while (_Value != 0);
         break;
     }
@@ -253,32 +253,32 @@ _NODISCARD _CONSTEXPR23 from_chars_result _Integer_from_chars(
         }
     }
 
-    using _Unsigned = make_unsigned_t<_RawTy>;
+    using _无符号类型 = make_unsigned_t<_RawTy>;
 
-    constexpr _Unsigned _Uint_max    = static_cast<_Unsigned>(-1);
-    constexpr _Unsigned _Int_max     = static_cast<_Unsigned>(_Uint_max >> 1);
+    constexpr _无符号类型 _Uint_max    = static_cast<_无符号类型>(-1);
+    constexpr _无符号类型 _Int_max     = static_cast<_无符号类型>(_Uint_max >> 1);
 #pragma warning(push)
 #pragma warning(disable : 26450) // TRANSITION, VSO-1828677
-    constexpr _Unsigned _Abs_int_min = static_cast<_Unsigned>(_Int_max + 1);
+    constexpr _无符号类型 _Abs_int_min = static_cast<_无符号类型>(_Int_max + 1);
 #pragma warning(pop)
 
-    _Unsigned _Risky_val;
-    _Unsigned _Max_digit;
+    _无符号类型 _Risky_val;
+    _无符号类型 _Max_digit;
 
     if constexpr (is_signed_v<_RawTy>) {
         if (_Minus_sign) {
-            _Risky_val = static_cast<_Unsigned>(_Abs_int_min / _Base);
-            _Max_digit = static_cast<_Unsigned>(_Abs_int_min % _Base);
+            _Risky_val = static_cast<_无符号类型>(_Abs_int_min / _Base);
+            _Max_digit = static_cast<_无符号类型>(_Abs_int_min % _Base);
         } else {
-            _Risky_val = static_cast<_Unsigned>(_Int_max / _Base);
-            _Max_digit = static_cast<_Unsigned>(_Int_max % _Base);
+            _Risky_val = static_cast<_无符号类型>(_Int_max / _Base);
+            _Max_digit = static_cast<_无符号类型>(_Int_max % _Base);
         }
     } else {
-        _Risky_val = static_cast<_Unsigned>(_Uint_max / _Base);
-        _Max_digit = static_cast<_Unsigned>(_Uint_max % _Base);
+        _Risky_val = static_cast<_无符号类型>(_Uint_max / _Base);
+        _Max_digit = static_cast<_无符号类型>(_Uint_max % _Base);
     }
 
-    _Unsigned _Value = 0;
+    _无符号类型 _Value = 0;
 
     bool _Overflowed = false;
 
@@ -291,7 +291,7 @@ _NODISCARD _CONSTEXPR23 from_chars_result _Integer_from_chars(
 
         if (_Value < _Risky_val // never overflows
             || (_Value == _Risky_val && _Digit <= _Max_digit)) { // overflows for certain digits
-            _Value = static_cast<_Unsigned>(_Value * _Base + _Digit);
+            _Value = static_cast<_无符号类型>(_Value * _Base + _Digit);
         } else { // _Value > _Risky_val always overflows
             _Overflowed = true; // keep going, _Next still needs to be updated, _Value is now irrelevant
         }
@@ -307,7 +307,7 @@ _NODISCARD _CONSTEXPR23 from_chars_result _Integer_from_chars(
 
     if constexpr (is_signed_v<_RawTy>) {
         if (_Minus_sign) {
-            _Value = static_cast<_Unsigned>(0 - _Value);
+            _Value = static_cast<_无符号类型>(0 - _Value);
         }
     }
 

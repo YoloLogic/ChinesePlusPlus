@@ -161,7 +161,7 @@ public:
     }
 
     _NODISCARD _CONSTEXPR20 difference_type operator-(const _字符串常量迭代器& _Right) const noexcept {
-        _Compat(_Right);
+        _兼容(_Right);
         return static_cast<difference_type>(_Ptr - _Right._Ptr);
     }
 
@@ -170,13 +170,13 @@ public:
     }
 
     _NODISCARD _CONSTEXPR20 bool operator==(const _字符串常量迭代器& _Right) const noexcept {
-        _Compat(_Right);
+        _兼容(_Right);
         return _Ptr == _Right._Ptr;
     }
 
 #if _HAS_CXX20
     _NODISCARD constexpr strong_ordering operator<=>(const _字符串常量迭代器& _Right) const noexcept {
-        _Compat(_Right);
+        _兼容(_Right);
         return _去花式可空(_Ptr) <=> _去花式可空(_Right._Ptr);
     }
 #else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
@@ -185,7 +185,7 @@ public:
     }
 
     _NODISCARD bool operator<(const _字符串常量迭代器& _Right) const noexcept {
-        _Compat(_Right);
+        _兼容(_Right);
         return _Ptr < _Right._Ptr;
     }
 
@@ -202,7 +202,7 @@ public:
     }
 #endif // !_HAS_CXX20
 
-    _CONSTEXPR20 void _Compat(const _字符串常量迭代器& _Right) const noexcept {
+    _CONSTEXPR20 void _兼容(const _字符串常量迭代器& _Right) const noexcept {
         // test for compatible iterator pair
 #if _ITERATOR_DEBUG_LEVEL >= 1
         _STL_VERIFY(this->_取容器() == _Right._取容器(),
@@ -2507,12 +2507,12 @@ public:
     }
 
     _CONSTEXPR20 _Pre_satisfies_(_Dest_size >= _Count) size_type
-        _Copy_s(_Out_writes_all_(_Dest_size) _元素* const _目标, const size_type _Dest_size, size_type _Count,
+        _复制s(_Out_writes_all_(_Dest_size) _元素* const _目标, const size_type _Dest_size, size_type _Count,
             const size_type _Off = 0) const {
         // copy [_Off, _Off + _Count) to [_目标, _目标 + _Dest_size)
         _Mypair._Myval2._检查偏移(_Off);
         _Count = _Mypair._Myval2._夹取后缀尺寸(_Off, _Count);
-        _特征::_Copy_s(_目标, _Dest_size, _Mypair._Myval2._我的指针() + _Off, _Count);
+        _特征::_复制s(_目标, _Dest_size, _Mypair._Myval2._我的指针() + _Off, _Count);
         return _Count;
     }
 
@@ -2846,13 +2846,13 @@ public:
     }
 #endif // _HAS_CXX23
 
-    _CONSTEXPR20 bool _Equal(const 基础字符串实现& _Right) const noexcept {
+    _CONSTEXPR20 bool _相等(const 基础字符串实现& _Right) const noexcept {
         // compare [0, 尺寸()) with _Right for equality
         return _Traits_equal<_特征>(_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸,
             _Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸);
     }
 
-    _CONSTEXPR20 bool _Equal(_In_z_ const _元素* const _Ptr) const noexcept {
+    _CONSTEXPR20 bool _相等(_In_z_ const _元素* const _Ptr) const noexcept {
         // compare [0, 尺寸()) with _Ptr for equality
         return _Traits_equal<_特征>(_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Ptr, _特征::length(_Ptr));
     }
@@ -3259,13 +3259,13 @@ _NODISCARD _CONSTEXPR20 基础字符串实现<_元素, _特征, _分配器> oper
 _EXPORT_STD template <class _元素, class _特征, class _分配器>
 _NODISCARD _CONSTEXPR20 bool operator==(
     const 基础字符串实现<_元素, _特征, _分配器>& _Left, const 基础字符串实现<_元素, _特征, _分配器>& _Right) noexcept {
-    return _Left._Equal(_Right);
+    return _Left._相等(_Right);
 }
 
 _EXPORT_STD template <class _元素, class _特征, class _分配器>
 _NODISCARD _CONSTEXPR20 bool operator==(
     const 基础字符串实现<_元素, _特征, _分配器>& _Left, _In_z_ const _元素* const _Right) noexcept /* strengthened */ {
-    return _Left._Equal(_Right);
+    return _Left._相等(_Right);
 }
 
 #if _HAS_CXX20
@@ -3284,7 +3284,7 @@ _NODISCARD constexpr _取比较类别类型<_特征> operator<=>(
 template <class _元素, class _特征, class _分配器>
 _NODISCARD bool operator==(_In_z_ const _元素* const _Left, const 基础字符串实现<_元素, _特征, _分配器>& _Right) noexcept
 /* strengthened */ {
-    return _Right._Equal(_Left);
+    return _Right._相等(_Left);
 }
 
 template <class _元素, class _特征, class _分配器>
@@ -3389,8 +3389,8 @@ _EXPORT_STD using u32string = 基础字符串实现<char32_t, char_traits<char32
 template <class _元素, class _分配器>
 struct hash<基础字符串实现<_元素, char_traits<_元素>, _分配器>>
     : _Conditionally_enabled_hash<基础字符串实现<_元素, char_traits<_元素>, _分配器>, _Is_EcharT<_元素>> {
-    _NODISCARD static size_t _Do_hash(const 基础字符串实现<_元素, char_traits<_元素>, _分配器>& _Keyval) noexcept {
-        return _Hash_array_representation(_Keyval.C字符串(), _Keyval.尺寸());
+    _NODISCARD static size_t _求散列(const 基础字符串实现<_元素, char_traits<_元素>, _分配器>& _Keyval) noexcept {
+        return _散列数组表示(_Keyval.C字符串(), _Keyval.尺寸());
     }
 };
 
@@ -3404,9 +3404,9 @@ basic_istream<_元素, _特征>& operator>>(
 
     typename _我的输入流::iostate _State = _我的输入流::goodbit;
     bool _Changed                  = false;
-    const typename _我的输入流::sentry _Ok(_Istr);
+    const typename _我的输入流::sentry _成功(_Istr);
 
-    if (_Ok) { // state okay, extract characters
+    if (_成功) { // state okay, extract characters
         const _字符类型& _Ctype_fac = _STD use_facet<_字符类型>(_Istr.getloc());
         _Str.擦除();
 

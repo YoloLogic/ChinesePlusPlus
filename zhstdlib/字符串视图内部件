@@ -127,7 +127,7 @@ struct _字符特征基类 { // properties of a string or stream element
         return _First1;
     }
 
-    _Pre_satisfies_(_Dest_size >= _Count) static _CONSTEXPR20 _元素* _Copy_s(_Out_writes_all_(_Dest_size)
+    _Pre_satisfies_(_Dest_size >= _Count) static _CONSTEXPR20 _元素* _复制s(_Out_writes_all_(_Dest_size)
                                                                                  _元素* const _First1,
         const size_t _Dest_size, _In_reads_(_Count) const _元素* const _First2, const size_t _Count) noexcept {
         // copy [_First2, _First2 + _Count) to [_First1, _First1 + _Dest_size)
@@ -277,7 +277,7 @@ public:
     using comparison_category = strong_ordering;
 #endif // _HAS_CXX20
 
-    using _Primary_char_traits::_Copy_s;
+    using _Primary_char_traits::_复制s;
     using _Primary_char_traits::copy;
     using _Primary_char_traits::move;
 
@@ -439,9 +439,9 @@ basic_ostream<_元素, _特征>& _插入字符串(
         _Pad = static_cast<_SizeT>(_Ostr.width()) - _Size;
     }
 
-    const typename _输出流类型::sentry _Ok(_Ostr);
+    const typename _输出流类型::sentry _成功(_Ostr);
 
-    if (!_Ok) {
+    if (!_成功) {
         _State |= _输出流类型::badbit;
     } else { // state okay, insert characters
         _TRY_IO_BEGIN
@@ -1420,12 +1420,12 @@ public:
     }
 
     _Pre_satisfies_(_Dest_size >= _Count) _CONSTEXPR20 size_type
-        _Copy_s(_Out_writes_all_(_Dest_size) _元素* const _目标, const size_type _Dest_size, size_type _Count,
+        _复制s(_Out_writes_all_(_Dest_size) _元素* const _目标, const size_type _Dest_size, size_type _Count,
             const size_type _Off = 0) const {
         // copy [_Off, _Off + _Count) to [_目标, _目标 + _Count)
         _检查偏移(_Off);
         _Count = _夹取后缀尺寸(_Off, _Count);
-        _特征::_Copy_s(_目标, _Dest_size, _Mydata + _Off, _Count);
+        _特征::_复制s(_目标, _Dest_size, _Mydata + _Off, _Count);
         return _Count;
     }
 
@@ -1436,7 +1436,7 @@ public:
         return 基础字符串视图(_Mydata + _Off, _Count);
     }
 
-    constexpr bool _Equal(const 基础字符串视图 _Right) const noexcept {
+    constexpr bool _相等(const 基础字符串视图 _Right) const noexcept {
         return _Traits_equal<_特征>(_Mydata, _我的尺寸, _Right._Mydata, _Right._我的尺寸);
     }
 
@@ -1706,7 +1706,7 @@ namespace ranges {
 _EXPORT_STD template <class _元素, class _特征>
 _NODISCARD constexpr bool operator==(const 基础字符串视图<_元素, _特征> _Lhs,
     const type_identity_t<基础字符串视图<_元素, _特征>> _Rhs) noexcept {
-    return _Lhs._Equal(_Rhs);
+    return _Lhs._相等(_Rhs);
 }
 
 template <class _特征>
@@ -1735,37 +1735,37 @@ _NODISCARD constexpr _取比较类别类型<_特征> operator<=>(const 基础字
 template <class _元素, class _特征>
 _NODISCARD constexpr bool operator==(
     const 基础字符串视图<_元素, _特征> _Lhs, const 基础字符串视图<_元素, _特征> _Rhs) noexcept {
-    return _Lhs._Equal(_Rhs);
+    return _Lhs._相等(_Rhs);
 }
 
 template <class _元素, class _特征, int = 1> // TRANSITION, VSO-409326
 _NODISCARD constexpr bool operator==(
     const _Identity_t<基础字符串视图<_元素, _特征>> _Lhs, const 基础字符串视图<_元素, _特征> _Rhs) noexcept {
-    return _Lhs._Equal(_Rhs);
+    return _Lhs._相等(_Rhs);
 }
 
 template <class _元素, class _特征, int = 2> // TRANSITION, VSO-409326
 _NODISCARD constexpr bool operator==(
     const 基础字符串视图<_元素, _特征> _Lhs, const _Identity_t<基础字符串视图<_元素, _特征>> _Rhs) noexcept {
-    return _Lhs._Equal(_Rhs);
+    return _Lhs._相等(_Rhs);
 }
 
 template <class _元素, class _特征>
 _NODISCARD constexpr bool operator!=(
     const 基础字符串视图<_元素, _特征> _Lhs, const 基础字符串视图<_元素, _特征> _Rhs) noexcept {
-    return !_Lhs._Equal(_Rhs);
+    return !_Lhs._相等(_Rhs);
 }
 
 template <class _元素, class _特征, int = 1> // TRANSITION, VSO-409326
 _NODISCARD constexpr bool operator!=(
     const _Identity_t<基础字符串视图<_元素, _特征>> _Lhs, const 基础字符串视图<_元素, _特征> _Rhs) noexcept {
-    return !_Lhs._Equal(_Rhs);
+    return !_Lhs._相等(_Rhs);
 }
 
 template <class _元素, class _特征, int = 2> // TRANSITION, VSO-409326
 _NODISCARD constexpr bool operator!=(
     const 基础字符串视图<_元素, _特征> _Lhs, const _Identity_t<基础字符串视图<_元素, _特征>> _Rhs) noexcept {
-    return !_Lhs._Equal(_Rhs);
+    return !_Lhs._相等(_Rhs);
 }
 
 template <class _元素, class _特征>
@@ -1851,8 +1851,8 @@ _EXPORT_STD using wstring_view   = 基础字符串视图<wchar_t>;
 
 template <class _元素>
 struct hash<基础字符串视图<_元素>> : _Conditionally_enabled_hash<基础字符串视图<_元素>, _Is_EcharT<_元素>> {
-    _NODISCARD static size_t _Do_hash(const 基础字符串视图<_元素> _Keyval) noexcept {
-        return _Hash_array_representation(_Keyval.数据(), _Keyval.尺寸());
+    _NODISCARD static size_t _求散列(const 基础字符串视图<_元素> _Keyval) noexcept {
+        return _散列数组表示(_Keyval.数据(), _Keyval.尺寸());
     }
 };
 

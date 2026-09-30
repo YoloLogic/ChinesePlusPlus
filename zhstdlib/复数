@@ -398,9 +398,9 @@ public:
     }
 
     static short _Exp(_类型* _Pleft, _类型 _Right, short _Exponent) { // compute exp(*_Pleft) * _Right * 2 ^ _Exponent
-        double _Tmp = static_cast<double>(*_Pleft);
-        short _Ans  = _CSTD _Exp(&_Tmp, static_cast<double>(_Right), _Exponent);
-        *_Pleft     = static_cast<_类型>(_Tmp);
+        double _临时 = static_cast<double>(*_Pleft);
+        short _Ans  = _CSTD _Exp(&_临时, static_cast<double>(_Right), _Exponent);
+        *_Pleft     = static_cast<_类型>(_临时);
         return _Ans;
     }
 
@@ -409,14 +409,14 @@ public:
     }
 
     static bool _是无穷(_类型 _Left) { // test for infinity
-        const auto _Tmp  = static_cast<double>(_Left);
-        const auto _Uint = _Bit_cast<uint64_t>(_Tmp);
+        const auto _临时  = static_cast<double>(_Left);
+        const auto _Uint = _Bit_cast<uint64_t>(_临时);
         return (_Uint & 0x7fffffffffffffffU) == 0x7ff0000000000000U;
     }
 
     static _CONSTEXPR20 bool _是非数值(_类型 _Left) {
-        const auto _Tmp  = static_cast<double>(_Left);
-        const auto _Uint = _Bit_cast<uint64_t>(_Tmp);
+        const auto _临时  = static_cast<double>(_Left);
+        const auto _Uint = _Bit_cast<uint64_t>(_临时);
         return (_Uint & 0x7fffffffffffffffU) > 0x7ff0000000000000U;
     }
 
@@ -984,9 +984,9 @@ protected:
         _类型 _Rightreal = static_cast<_类型>(_Right.实部());
         _类型 _Rightimag = static_cast<_类型>(_Right.虚部());
 
-        _类型 _Tmp        = this->_Val[_RE_汉] * _Rightreal - this->_Val[_IM_汉] * _Rightimag;
+        _类型 _临时        = this->_Val[_RE_汉] * _Rightreal - this->_Val[_IM_汉] * _Rightimag;
         this->_Val[_IM_汉] = this->_Val[_RE_汉] * _Rightimag + this->_Val[_IM_汉] * _Rightreal;
-        this->_Val[_RE_汉] = _Tmp;
+        this->_Val[_RE_汉] = _临时;
     }
 
     template <class _Other>
@@ -1008,9 +1008,9 @@ protected:
                 this->_Val[_RE_汉] = _我的复数特征::_非数值();
                 this->_Val[_IM_汉] = this->_Val[_RE_汉];
             } else { // compute representable result
-                _类型 _Tmp        = (this->_Val[_RE_汉] + this->_Val[_IM_汉] * _Wr) / _Wd;
+                _类型 _临时        = (this->_Val[_RE_汉] + this->_Val[_IM_汉] * _Wr) / _Wd;
                 this->_Val[_IM_汉] = (this->_Val[_IM_汉] - this->_Val[_RE_汉] * _Wr) / _Wd;
-                this->_Val[_RE_汉] = _Tmp;
+                this->_Val[_RE_汉] = _临时;
             }
         } else if (_Rightimag == 0) { // _Right.实部() == 0 && _Right.虚部() == 0
             this->_Val[_RE_汉] /= _Rightreal;
@@ -1023,9 +1023,9 @@ protected:
                 this->_Val[_RE_汉] = _我的复数特征::_非数值();
                 this->_Val[_IM_汉] = this->_Val[_RE_汉];
             } else { // compute representable result
-                _类型 _Tmp        = (this->_Val[_RE_汉] * _Wr + this->_Val[_IM_汉]) / _Wd;
+                _类型 _临时        = (this->_Val[_RE_汉] * _Wr + this->_Val[_IM_汉]) / _Wd;
                 this->_Val[_IM_汉] = (this->_Val[_IM_汉] * _Wr - this->_Val[_RE_汉]) / _Wd;
-                this->_Val[_RE_汉] = _Tmp;
+                this->_Val[_RE_汉] = _临时;
             }
         }
     }
@@ -1417,97 +1417,97 @@ public:
 _EXPORT_STD template <class _类型>
 _NODISCARD _CONSTEXPR20 复数实现<_类型> operator+(const 复数实现<_类型>& _Left, const 复数实现<_类型>& _Right)
     noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
-    复数实现<_类型> _Tmp(_Left);
-    _Tmp += _Right;
-    return _Tmp;
+    复数实现<_类型> _临时(_Left);
+    _临时 += _Right;
+    return _临时;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _CONSTEXPR20 复数实现<_类型> operator+(const 复数实现<_类型>& _Left, const _类型& _Right)
     noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
-    复数实现<_类型> _Tmp(_Left);
-    _Tmp += _Right;
-    return _Tmp;
+    复数实现<_类型> _临时(_Left);
+    _临时 += _Right;
+    return _临时;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _CONSTEXPR20 复数实现<_类型> operator+(const _类型& _Left, const 复数实现<_类型>& _Right)
     noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
-    复数实现<_类型> _Tmp(_Right);
-    _Tmp += _Left;
-    return _Tmp;
+    复数实现<_类型> _临时(_Right);
+    _临时 += _Left;
+    return _临时;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _CONSTEXPR20 复数实现<_类型> operator-(const 复数实现<_类型>& _Left, const 复数实现<_类型>& _Right)
     noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
-    复数实现<_类型> _Tmp(_Left);
-    _Tmp -= _Right;
-    return _Tmp;
+    复数实现<_类型> _临时(_Left);
+    _临时 -= _Right;
+    return _临时;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _CONSTEXPR20 复数实现<_类型> operator-(const 复数实现<_类型>& _Left, const _类型& _Right)
     noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
-    复数实现<_类型> _Tmp(_Left);
-    _Tmp -= _Right;
-    return _Tmp;
+    复数实现<_类型> _临时(_Left);
+    _临时 -= _Right;
+    return _临时;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _CONSTEXPR20 复数实现<_类型> operator-(const _类型& _Left, const 复数实现<_类型>& _Right)
     noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
-    复数实现<_类型> _Tmp(_Left);
-    _Tmp -= _Right;
-    return _Tmp;
+    复数实现<_类型> _临时(_Left);
+    _临时 -= _Right;
+    return _临时;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _CONSTEXPR20 复数实现<_类型> operator*(const 复数实现<_类型>& _Left, const 复数实现<_类型>& _Right)
     noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
-    复数实现<_类型> _Tmp(_Left);
-    _Tmp *= _Right;
-    return _Tmp;
+    复数实现<_类型> _临时(_Left);
+    _临时 *= _Right;
+    return _临时;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _CONSTEXPR20 复数实现<_类型> operator*(const 复数实现<_类型>& _Left, const _类型& _Right)
     noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
-    复数实现<_类型> _Tmp(_Left);
-    _Tmp *= _Right;
-    return _Tmp;
+    复数实现<_类型> _临时(_Left);
+    _临时 *= _Right;
+    return _临时;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _CONSTEXPR20 复数实现<_类型> operator*(const _类型& _Left, const 复数实现<_类型>& _Right)
     noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
-    复数实现<_类型> _Tmp(_Right);
-    _Tmp *= _Left;
-    return _Tmp;
+    复数实现<_类型> _临时(_Right);
+    _临时 *= _Left;
+    return _临时;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _CONSTEXPR20 复数实现<_类型> operator/(const 复数实现<_类型>& _Left, const 复数实现<_类型>& _Right)
     noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
-    复数实现<_类型> _Tmp(_Left);
-    _Tmp /= _Right;
-    return _Tmp;
+    复数实现<_类型> _临时(_Left);
+    _临时 /= _Right;
+    return _临时;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _CONSTEXPR20 复数实现<_类型> operator/(const 复数实现<_类型>& _Left, const _类型& _Right)
     noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
-    复数实现<_类型> _Tmp(_Left);
-    _Tmp /= _Right;
-    return _Tmp;
+    复数实现<_类型> _临时(_Left);
+    _临时 /= _Right;
+    return _临时;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _CONSTEXPR20 复数实现<_类型> operator/(const _类型& _Left, const 复数实现<_类型>& _Right)
     noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
-    复数实现<_类型> _Tmp(_Left);
-    _Tmp /= _Right;
-    return _Tmp;
+    复数实现<_类型> _临时(_Left);
+    _临时 /= _Right;
+    return _临时;
 }
 
 _EXPORT_STD template <class _类型>
@@ -1941,10 +1941,10 @@ _类型 _Fabs(const 复数实现<_类型>& _Left, int* _Pexp) noexcept(_Is_unqua
             }
         }
 
-        const _类型 _Tmp = _Av - _Bv;
-        if (_Tmp == _Av) {
+        const _类型 _临时 = _Av - _Bv;
+        if (_临时 == _Av) {
             return _Av; // _Bv unimportant
-        } else if (_Bv < _Tmp) { // use simple approximation
+        } else if (_Bv < _临时) { // use simple approximation
             const _类型 _Qv = _Av / _Bv;
             return _Av + _Bv / (_Qv + _复数特征<_类型>::sqrt(_Qv * _Qv + 1));
         } else { // use 1 1/2 precision to preserve bits
@@ -1952,7 +1952,7 @@ _类型 _Fabs(const 复数实现<_类型>& _Left, int* _Pexp) noexcept(_Is_unqua
             constexpr _类型 _Oneplusroot2high = static_cast<_类型>(10125945.0 / 4194304.0); // exact if prec >= 24 bits
             constexpr _类型 _Oneplusroot2low  = static_cast<_类型>(1.4341252375973918872420969807856967e-7L);
 
-            const _类型 _Qv = _Tmp / _Bv;
+            const _类型 _Qv = _临时 / _Bv;
             const _类型 _Rv = (_Qv + 2) * _Qv;
             const _类型 _Sv = _Rv / (_Root2 + _复数特征<_类型>::sqrt(_Rv + 2)) + _Oneplusroot2low + _Qv + _Oneplusroot2high;
             return _Av + _Bv / _Sv;
@@ -2226,24 +2226,24 @@ _NODISCARD 复数实现<_升级到双精度<_类型>> 投影(_类型 _Left) noex
 _EXPORT_STD template <class _Ty1, class _Ty2>
 _NODISCARD 复数实现<_Common_float_type_t<_Ty1, _Ty2>> pow(const 复数实现<_Ty1>& _Left, const 复数实现<_Ty2>& _Right)
     noexcept(_Is_unqual_fp<_Ty1> && _Is_unqual_fp<_Ty2>) /* strengthened */ {
-    using _Type = 复数实现<_Common_float_type_t<_Ty1, _Ty2>>;
-    return _STD pow(_Type(_Left), _Type(_Right));
+    using _类型参数 = 复数实现<_Common_float_type_t<_Ty1, _Ty2>>;
+    return _STD pow(_类型参数(_Left), _类型参数(_Right));
 }
 
 _EXPORT_STD template <class _Ty1, class _Ty2, enable_if_t<is_arithmetic_v<_Ty2>, int> = 0>
 _NODISCARD 复数实现<_Common_float_type_t<_Ty1, _Ty2>> pow(const 复数实现<_Ty1>& _Left, const _Ty2& _Right)
     noexcept(_Is_unqual_fp<_Ty1>) /* strengthened */ {
     using _提升后类型 = _Common_float_type_t<_Ty1, _Ty2>;
-    using _Type     = 复数实现<_提升后类型>;
-    return _STD pow(_Type(_Left), _Type(static_cast<_提升后类型>(_Right)));
+    using _类型参数     = 复数实现<_提升后类型>;
+    return _STD pow(_类型参数(_Left), _类型参数(static_cast<_提升后类型>(_Right)));
 }
 
 _EXPORT_STD template <class _Ty1, class _Ty2, enable_if_t<is_arithmetic_v<_Ty1>, int> = 0>
 _NODISCARD 复数实现<_Common_float_type_t<_Ty1, _Ty2>> pow(const _Ty1& _Left, const 复数实现<_Ty2>& _Right)
     noexcept(_Is_unqual_fp<_Ty2>) /* strengthened */ {
     using _提升后类型 = _Common_float_type_t<_Ty1, _Ty2>;
-    using _Type     = 复数实现<_提升后类型>;
-    return _STD pow(_Type(static_cast<_提升后类型>(_Left)), _Type(_Right));
+    using _类型参数     = 复数实现<_提升后类型>;
+    return _STD pow(_类型参数(static_cast<_提升后类型>(_Left)), _类型参数(_Right));
 }
 
 _EXPORT_STD template <class _类型, class _元素, class _Tr>

@@ -868,8 +868,8 @@ namespace ranges {
                 if constexpr (_Strat == _态::_Custom) {
                     return iter_move(static_cast<_类型&&>(_Val)); // intentional ADL
                 } else if constexpr (_Strat == _态::_Fallback) {
-                    using _Ref = decltype(*static_cast<_类型&&>(_Val));
-                    if constexpr (is_lvalue_reference_v<_Ref>) {
+                    using _引用标记 = decltype(*static_cast<_类型&&>(_Val));
+                    if constexpr (is_lvalue_reference_v<_引用标记>) {
                         return _STD move(*static_cast<_类型&&>(_Val));
                     } else {
                         return *static_cast<_类型&&>(_Val);
@@ -1077,19 +1077,19 @@ using indirect_result_t = invoke_result_t<_Fn, iter_reference_t<_Its>...>;
 
 template <class _It>
 struct _投影差类型实现 {
-    struct _Base {};
+    struct _基 {};
 };
 
 template <weakly_incrementable _It>
 struct _投影差类型实现<_It> {
-    struct _Base {
+    struct _基 {
         using difference_type = iter_difference_t<_It>;
     };
 };
 
 template <class _It, class _Proj>
 struct _投影实现 {
-    struct _Type : _投影差类型实现<_It>::_Base {
+    struct _类型参数 : _投影差类型实现<_It>::_基 {
         using _迭代器类型   = _It;
         using _投影 = _Proj;
 
@@ -1101,7 +1101,7 @@ struct _投影实现 {
 };
 
 _EXPORT_STD template <indirectly_readable _It, indirectly_regular_unary_invocable<_It> _Proj>
-using projected = _投影实现<_It, _Proj>::_Type;
+using projected = _投影实现<_It, _Proj>::_类型参数;
 
 template <class _类型>
 concept _Projected_specialization = same_as<_类型, projected<typename _类型::_迭代器类型, typename _类型::_投影>>;
@@ -1460,11 +1460,11 @@ _NODISCARD constexpr decltype(auto) _Get_unwrapped_n(_Iter&& _It, const _Diff _O
     } else if constexpr (_Unwrappable_for_offset_v<_Iter> && _Integer_like<_Diff>) {
         // ask an iterator to assert that the iterator moved _Off positions is valid, and unwrap
         using _有符号差类型     = _迭代器差类型<_Remove_cvref_t<_Iter>>;
-        using _CDiff     = common_type_t<_Diff, _有符号差类型>;
-        const auto _COff = static_cast<_CDiff>(_Off);
+        using _常量差类型     = common_type_t<_Diff, _有符号差类型>;
+        const auto _COff = static_cast<_常量差类型>(_Off);
 
-        _STL_ASSERT(_COff <= static_cast<_CDiff>(_Max_possible_v<_有符号差类型>)
-                        && (is_unsigned_v<_Diff> || static_cast<_CDiff>(_Min_possible_v<_有符号差类型>) <= _COff),
+        _STL_ASSERT(_COff <= static_cast<_常量差类型>(_Max_possible_v<_有符号差类型>)
+                        && (is_unsigned_v<_Diff> || static_cast<_常量差类型>(_Min_possible_v<_有符号差类型>) <= _COff),
             "integer overflow");
         (void) _COff;
 
@@ -2132,8 +2132,8 @@ _EXPORT_STD template <class _Container>
 _NODISCARD constexpr auto ssize(const _Container& _Cont) noexcept(noexcept(
     static_cast<common_type_t<ptrdiff_t, make_signed_t<decltype(_Cont.size())>>>(_Cont.size()))) /* strengthened */
     -> common_type_t<ptrdiff_t, make_signed_t<decltype(_Cont.size())>> {
-    using _Common = common_type_t<ptrdiff_t, make_signed_t<decltype(_Cont.size())>>;
-    return static_cast<_Common>(_Cont.size());
+    using _公共 = common_type_t<ptrdiff_t, make_signed_t<decltype(_Cont.size())>>;
+    return static_cast<_公共>(_Cont.size());
 }
 
 _EXPORT_STD template <class _类型, ptrdiff_t _Size>
