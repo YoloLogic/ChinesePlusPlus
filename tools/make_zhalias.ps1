@@ -34,6 +34,99 @@ $utf8 = New-Object System.Text.UTF8Encoding($false)
 #            @('函数','中文名','std::原名')      —— 通用一模板转发
 #            @('原样','<整行代码>')              —— 原样发出（成员要转发成自由函数时用）
 $H = [ordered]@{
+# §17.19.35 <random> / <regex>：引擎与分布、正则类型 —— 铁律③，只能别名
+'random' = @{ zh = '随机'; src = 'random';
+  reason = '铁律③：引擎/分布类型参与语义（按类型重载、模板实参推导、分布要求 ResultType 精确匹配）。';
+  a = @(
+    @('原样','使用 最小标准随机0 = std::minstd_rand0;'),
+    @('原样','使用 最小标准随机 = std::minstd_rand;'),
+    @('原样','使用 梅森旋转19937 = std::mt19937;'),
+    @('原样','使用 梅森旋转19937_64 = std::mt19937_64;'),
+    @('原样','使用 兰勒克斯24基 = std::ranlux24_base;'),
+    @('原样','使用 兰勒克斯48基 = std::ranlux48_base;'),
+    @('原样','使用 兰勒克斯24 = std::ranlux24;'),
+    @('原样','使用 兰勒克斯48 = std::ranlux48;'),
+    @('原样','使用 克努特乙 = std::knuth_b;'),
+    @('原样','使用 默认随机引擎 = std::default_random_engine;'),
+    @('原样','使用 随机设备 = std::random_device;'),
+    @('原样','使用 种子序列 = std::seed_seq;'),
+    @('原样','模板 <类型名 结果类型, 结果类型 甲, 结果类型 乙, 结果类型 丙> 使用 线性同余引擎 = std::linear_congruential_engine<结果类型, 甲, 乙, 丙>;'),
+    @('原样','模板 <类型名 结果类型, std::size_t 甲, std::size_t 乙, std::size_t 丙, std::size_t 丁, 结果类型 戊, std::size_t 己, 结果类型 庚, std::size_t 辛, 结果类型 壬, std::size_t 癸, 结果类型 子, std::size_t 丑, 结果类型 寅> 使用 梅森旋转引擎 = std::mersenne_twister_engine<结果类型, 甲, 乙, 丙, 丁, 戊, 己, 庚, 辛, 壬, 癸, 子, 丑, 寅>;'),
+    @('原样','模板 <类型名 结果类型, std::size_t 甲, std::size_t 乙, std::size_t 丙> 使用 带进位减法引擎 = std::subtract_with_carry_engine<结果类型, 甲, 乙, 丙>;'),
+    @('原样','模板 <类型名 引擎, std::size_t 甲, std::size_t 乙> 使用 丢弃块引擎 = std::discard_block_engine<引擎, 甲, 乙>;'),
+    @('原样','模板 <类型名 引擎, std::size_t 甲, 类型名 结果类型> 使用 独立位引擎 = std::independent_bits_engine<引擎, 甲, 结果类型>;'),
+    @('原样','模板 <类型名 引擎, std::size_t 甲> 使用 乱序引擎 = std::shuffle_order_engine<引擎, 甲>;'),
+    @('原样','模板 <类型名 整数类型 = 整数> 使用 均匀整数分布 = std::uniform_int_distribution<整数类型>;'),
+    @('原样','模板 <类型名 实数类型 = 双精度> 使用 均匀实数分布 = std::uniform_real_distribution<实数类型>;'),
+    @('原样','模板 <类型名 整数类型 = 整数> 使用 伯努利分布 = std::bernoulli_distribution;'),
+    @('原样','模板 <类型名 整数类型 = 整数> 使用 二项分布 = std::binomial_distribution<整数类型>;'),
+    @('原样','模板 <类型名 整数类型 = 整数> 使用 几何分布 = std::geometric_distribution<整数类型>;'),
+    @('原样','模板 <类型名 整数类型 = 整数> 使用 负二项分布 = std::negative_binomial_distribution<整数类型>;'),
+    @('原样','模板 <类型名 整数类型 = 整数> 使用 泊松分布 = std::poisson_distribution<整数类型>;'),
+    @('原样','模板 <类型名 实数类型 = 双精度> 使用 指数分布 = std::exponential_distribution<实数类型>;'),
+    @('原样','模板 <类型名 实数类型 = 双精度> 使用 伽马分布 = std::gamma_distribution<实数类型>;'),
+    @('原样','模板 <类型名 实数类型 = 双精度> 使用 韦布尔分布 = std::weibull_distribution<实数类型>;'),
+    @('原样','模板 <类型名 实数类型 = 双精度> 使用 极值分布 = std::extreme_value_distribution<实数类型>;'),
+    @('原样','模板 <类型名 实数类型 = 双精度> 使用 正态分布 = std::normal_distribution<实数类型>;'),
+    @('原样','模板 <类型名 实数类型 = 双精度> 使用 对数正态分布 = std::lognormal_distribution<实数类型>;'),
+    @('原样','模板 <类型名 实数类型 = 双精度> 使用 卡方分布 = std::chi_squared_distribution<实数类型>;'),
+    @('原样','模板 <类型名 实数类型 = 双精度> 使用 柯西分布 = std::cauchy_distribution<实数类型>;'),
+    @('原样','模板 <类型名 实数类型 = 双精度> 使用 费歇尔F分布 = std::fisher_f_distribution<实数类型>;'),
+    @('原样','模板 <类型名 实数类型 = 双精度> 使用 学生t分布 = std::student_t_distribution<实数类型>;'),
+    @('原样','模板 <类型名 整数类型 = 整数> 使用 离散分布 = std::discrete_distribution<整数类型>;'),
+    @('原样','模板 <类型名 实数类型 = 双精度> 使用 分段常数分布 = std::piecewise_constant_distribution<实数类型>;'),
+    @('原样','模板 <类型名 实数类型 = 双精度> 使用 分段线性分布 = std::piecewise_linear_distribution<实数类型>;'),
+    @('原样','模板 <类型名 实数类型, std::size_t 位数, 类型名 引擎> 声明类型(自动) 生成规范数(引擎& 甲) { 返回 std::generate_canonical<实数类型, 位数>(甲); }')
+  )
+  tests = @(
+    @('只引中文头','#包含 <随机>`n整数 主函数(){ 标准::梅森旋转19937 甲{12345}; 标准::均匀整数分布<整数> 乙{1, 6}; 整数 丙 = 乙(甲); 返回 (丙 >= 1 并且 丙 <= 6) ? 0 : 1; }'),
+    @('与微软原头并存','#包含 <随机>`n#包含 <random>`n整数 主函数(){ 标准::默认随机引擎 甲{1}; std::default_random_engine 乙{1}; 标准::正态分布<> 丙{0.0, 1.0}; std::normal_distribution<> 丁{0.0, 1.0}; (空型)丙; (空型)丁; 返回 甲() == 乙() ? 0 : 1; }')
+  )
+}
+'regex' = @{ zh = '正则表达式'; src = 'regex';
+  reason = '铁律③：正则与匹配结果类型参与语义（用户按类型重载、迭代器类型写死在签名里）。';
+  a = @(
+    @('原样','模板 <类型名 字符类型, 类型名 特征 = std::regex_traits<字符类型>> 使用 基本正则 = std::basic_regex<字符类型, 特征>;'),
+    @('原样','使用 正则 = std::regex;'),
+    @('原样','使用 宽正则 = std::wregex;'),
+    @('原样','模板 <类型名 字符类型> 使用 正则特征 = std::regex_traits<字符类型>;'),
+    @('原样','使用 正则异常 = std::regex_error;'),
+    @('原样','模板 <类型名 双向迭代器> 使用 子匹配 = std::sub_match<双向迭代器>;'),
+    @('原样','模板 <类型名 双向迭代器, 类型名 分配器 = std::allocator<std::sub_match<双向迭代器>>> 使用 匹配结果 = std::match_results<双向迭代器, 分配器>;'),
+    @('原样','使用 字符匹配结果 = std::cmatch;'),
+    @('原样','使用 宽字符匹配结果 = std::wcmatch;'),
+    @('原样','使用 串匹配结果 = std::smatch;'),
+    @('原样','使用 宽串匹配结果 = std::wsmatch;'),
+    @('原样','模板 <类型名 双向迭代器, 类型名 字符类型, 类型名 特征 = std::regex_traits<字符类型>> 使用 正则迭代器 = std::regex_iterator<双向迭代器, 字符类型, 特征>;'),
+    @('原样','使用 字符正则迭代器 = std::cregex_iterator;'),
+    @('原样','使用 串正则迭代器 = std::sregex_iterator;'),
+    @('原样','模板 <类型名 双向迭代器, 类型名 字符类型, 类型名 特征 = std::regex_traits<字符类型>> 使用 正则词元迭代器 = std::regex_token_iterator<双向迭代器, 字符类型, 特征>;'),
+    @('原样','使用 字符正则词元迭代器 = std::cregex_token_iterator;'),
+    @('原样','使用 串正则词元迭代器 = std::sregex_token_iterator;'),
+    @('原样','模板 <类型名 字符类型, 类型名 特征> 布尔 正则匹配(const std::basic_string<字符类型, 特征>& 甲, const std::basic_regex<字符类型, 特征>& 乙, std::regex_constants::match_flag_type 丙 = std::regex_constants::match_default) { 返回 std::regex_match(甲, 乙, 丙); }'),
+    @('原样','模板 <类型名 字符类型, 类型名 特征, 类型名 结果, 类型名 结果分配器> 布尔 正则匹配(const std::basic_string<字符类型, 特征>& 甲, std::match_results<结果, 结果分配器>& 乙, const std::basic_regex<字符类型, 特征>& 丙, std::regex_constants::match_flag_type 丁 = std::regex_constants::match_default) { 返回 std::regex_match(甲, 乙, 丙, 丁); }'),
+    @('原样','模板 <类型名 字符类型, 类型名 特征> 布尔 正则查找(const std::basic_string<字符类型, 特征>& 甲, const std::basic_regex<字符类型, 特征>& 乙, std::regex_constants::match_flag_type 丙 = std::regex_constants::match_default) { 返回 std::regex_search(甲, 乙, 丙); }'),
+    @('原样','模板 <类型名 字符类型, 类型名 特征, 类型名 结果, 类型名 结果分配器> 布尔 正则查找(const std::basic_string<字符类型, 特征>& 甲, std::match_results<结果, 结果分配器>& 乙, const std::basic_regex<字符类型, 特征>& 丙, std::regex_constants::match_flag_type 丁 = std::regex_constants::match_default) { 返回 std::regex_search(甲, 乙, 丙, 丁); }'),
+    @('原样','模板 <类型名 字符类型, 类型名 特征, 类型名 替换类型> 声明类型(自动) 正则替换(const std::basic_string<字符类型, 特征>& 甲, const std::basic_regex<字符类型, 特征>& 乙, 替换类型&& 丙, std::regex_constants::match_flag_type 丁 = std::regex_constants::match_default) { 返回 std::regex_replace(甲, 乙, static_cast<替换类型&&>(丙), 丁); }'),
+    @('常量','匹配默认','std::regex_constants::match_default','std::regex_constants::match_flag_type'),
+    @('常量','匹配连续','std::regex_constants::match_continuous','std::regex_constants::match_flag_type'),
+    @('常量','匹配任一处','std::regex_constants::match_any','std::regex_constants::match_flag_type'),
+    @('常量','格式默认','std::regex_constants::format_default','std::regex_constants::match_flag_type'),
+    @('常量','格式不拷贝','std::regex_constants::format_no_copy','std::regex_constants::match_flag_type'),
+    @('常量','只替换首次','std::regex_constants::format_first_only','std::regex_constants::match_flag_type'),
+    @('常量','忽略大小写','std::regex_constants::icase','std::regex_constants::syntax_option_type'),
+    @('常量','不捕获','std::regex_constants::nosubs','std::regex_constants::syntax_option_type'),
+    @('常量','优化正则','std::regex_constants::optimize','std::regex_constants::syntax_option_type'),
+    @('常量','基本语法','std::regex_constants::basic','std::regex_constants::syntax_option_type'),
+    @('常量','扩展语法','std::regex_constants::extended','std::regex_constants::syntax_option_type'),
+    @('常量','脚本语法','std::regex_constants::ECMAScript','std::regex_constants::syntax_option_type')
+  )
+  tests = @(
+    @('只引中文头','#包含 <正则表达式>`n#包含 <string>`n整数 主函数(){ std::string 甲 = "abc123"; 标准::正则 乙{"[0-9]+"}; 标准::串匹配结果 丙; 布尔 丁 = 标准::正则查找(甲, 丙, 乙); 返回 (丁 并且 丙.size() == 1) ? 0 : 1; }'),
+    @('与微软原头并存','#包含 <正则表达式>`n#包含 <regex>`n整数 主函数(){ 标准::正则 甲{"a"}; std::regex 乙 = 甲; 标准::串 丙{"a"}; 布尔 丁 = 标准::正则匹配(丙, 乙); 返回 丁 ? 0 : 1; }')
+  )
+}
+
 # §17.19.34 C++23 四个头：条件壳 #如果 _HAS_CXX23（中文名与英文名同生共死，不假装 C++20 下存在）
 'expected' = @{ zh = '预期'; src = 'expected';
   reason = '铁律③：expected/unexpected 身份参与语义（用户按类型重载 + 模板实参推导）。C++23 头，故整块进条件壳。';
