@@ -34,6 +34,53 @@ $utf8 = New-Object System.Text.UTF8Encoding($false)
 #            @('函数','中文名','std::原名')      —— 通用一模板转发
 #            @('原样','<整行代码>')              —— 原样发出（成员要转发成自由函数时用）
 $H = [ordered]@{
+# §17.19.32 <functional>（函数对象）：类型身份参与语义（调用运算符 + 继承 std 的基类），只能别名
+'functional' = @{ zh = '函数对象'; src = 'functional';
+  reason = '铁律③：function/reference_wrapper/各算术函数对象的身份参与语义（用户继承 + 重载解析按类型）。';
+  #  欠账（§17.19.32）：move_only_function 是 C++23、unary_function/binary_function 是 C++17 已删除；
+  #  别名轨道没有条件壳，本条目暂不收纳 —— 消除路径：等别名轨道支持 #if _HAS_CXX23 条件块后补回。
+  a = @(
+    @('原样','模板 <类型名 值类型 = 空型> 使用 加 = std::plus<值类型>;'),
+    @('原样','模板 <类型名 值类型 = 空型> 使用 减 = std::minus<值类型>;'),
+    @('原样','模板 <类型名 值类型 = 空型> 使用 乘 = std::multiplies<值类型>;'),
+    @('原样','模板 <类型名 值类型 = 空型> 使用 除 = std::divides<值类型>;'),
+    @('原样','模板 <类型名 值类型 = 空型> 使用 取余 = std::modulus<值类型>;'),
+    @('原样','模板 <类型名 值类型 = 空型> 使用 取负 = std::negate<值类型>;'),
+    @('原样','模板 <类型名 值类型 = 空型> 使用 等于 = std::equal_to<值类型>;'),
+    @('原样','模板 <类型名 值类型 = 空型> 使用 不相等 = std::not_equal_to<值类型>;'),
+    @('原样','模板 <类型名 值类型 = 空型> 使用 大于 = std::greater<值类型>;'),
+    @('原样','模板 <类型名 值类型 = 空型> 使用 小于 = std::less<值类型>;'),
+    @('原样','模板 <类型名 值类型 = 空型> 使用 大于等于 = std::greater_equal<值类型>;'),
+    @('原样','模板 <类型名 值类型 = 空型> 使用 小于等于 = std::less_equal<值类型>;'),
+    @('原样','模板 <类型名 值类型 = 空型> 使用 逻辑与 = std::logical_and<值类型>;'),
+    @('原样','模板 <类型名 值类型 = 空型> 使用 逻辑或 = std::logical_or<值类型>;'),
+    @('原样','模板 <类型名 值类型 = 空型> 使用 逻辑非 = std::logical_not<值类型>;'),
+    @('原样','模板 <类型名 值类型 = 空型> 使用 按位与 = std::bit_and<值类型>;'),
+    @('原样','模板 <类型名 值类型 = 空型> 使用 按位或 = std::bit_or<值类型>;'),
+    @('原样','模板 <类型名 值类型 = 空型> 使用 按位异或 = std::bit_xor<值类型>;'),
+    @('原样','模板 <类型名 值类型 = 空型> 使用 按位非 = std::bit_not<值类型>;'),
+    @('原样','模板 <类型名 签名> 使用 函数包装 = std::function<签名>;'),
+    @('原样','使用 函数调用异常 = std::bad_function_call;'),
+    @('原样','模板 <类型名 值类型> 使用 引用包装 = std::reference_wrapper<值类型>;'),
+    @('原样','模板 <类型名 值类型> 声明类型(自动) 引用化(值类型& 甲) 不抛出 { 返回 std::ref(甲); }'),
+    @('原样','模板 <类型名 值类型> 声明类型(自动) 常量引用化(const 值类型& 甲) 不抛出 { 返回 std::cref(甲); }'),
+    @('原样','模板 <类型名 函数, 类型名... 参数> 声明类型(自动) 绑定(函数&& 甲, 参数&&... 乙) { 返回 std::bind(static_cast<函数&&>(甲), static_cast<参数&&>(乙)...); }'),
+    @('原样','模板 <类型名 值类型> 使用 是绑定表达式 = std::is_bind_expression<值类型>;'),
+    @('原样','模板 <类型名 值类型> 使用 是占位符 = std::is_placeholder<值类型>;'),
+    @('原样','模板 <类型名 成员函数> 声明类型(自动) 成员函数包装(成员函数 甲) 不抛出 { 返回 std::mem_fn(甲); }'),
+    @('原样','模板 <类型名 函数> 声明类型(自动) 否定包装(函数&& 甲) { 返回 std::not_fn(static_cast<函数&&>(甲)); }'),
+    @('原样','模板 <类型名 函数, 类型名... 参数> 声明类型(自动) 调用(函数&& 甲, 参数&&... 乙) { 返回 std::invoke(static_cast<函数&&>(甲), static_cast<参数&&>(乙)...); }'),
+    @('原样','使用 恒等 = std::identity;'),
+    @('原样','模板 <类型名 值类型> 使用 散列器 = std::hash<值类型>;'),
+    @('原样','模板 <类型名 元素, 类型名 谓词> 使用 默认查找器 = std::default_searcher<元素, 谓词>;'),
+    @('原样','模板 <类型名 元素, 类型名 散列, 类型名 相等> 使用 博耶摩尔查找器 = std::boyer_moore_searcher<元素, 散列, 相等>;'),
+    @('原样','模板 <类型名 元素, 类型名 散列, 类型名 相等> 使用 博耶摩尔霍斯普尔查找器 = std::boyer_moore_horspool_searcher<元素, 散列, 相等>;')
+  )
+  tests = @(
+    @('只引中文头','#包含 <函数对象>`n整数 主函数(){ 标准::函数包装<整数(整数)> 甲 = [](整数 值) { 返回 值 + 1; }; 返回 甲(6) == 7 ? 0 : 1; }'),
+    @('与微软原头并存','#包含 <函数对象>`n#包含 <functional>`n整数 主函数(){ 标准::小于<> 甲; std::less<> 乙; 返回 甲(1, 2) == 乙(1, 2) ? 0 : 1; }')
+  )
+}
 # §17.19.31 <future>（未来）：类型身份参与语义（future 与 promise 共享状态）—— 只能别名
 'future' = @{ zh = '未来'; src = 'future';
   reason = '铁律③：future/shared_future/promise/packaged_task 的身份参与语义（共享状态 + 线程交接）。';
@@ -784,7 +831,16 @@ $H = [ordered]@{
 $kw = @{}
 $defFile = Join-Path $root 'LLVM-main\clang\include\clang\Basic\ChineseKeywords.def'
 if (Test-Path $defFile) {
-    foreach ($m in [regex]::Matches([System.IO.File]::ReadAllText($defFile), 'ZH_\w+\s*\(\s*[^,]+,\s*([^\s,]+)')) {
+    #  §17.19.32 缺口修正（第 107 轮实测）：`不等于` 是 ZH_OPERATOR_KEYWORD 的**第一**字段
+    #  （ZH_OPERATOR_KEYWORD(不等于, exclaimequal) // != ），旧正则只读第二字段 → 漏报，
+    #  于是 `使用 不等于 = std::not_equal_to<...>;` 一路走到编译才报
+    #  「不能把 using 声明模板化」——又是从报错看不出是命名问题的老坑。
+    #  判据：与 make_zhstdlib2.ps1 同一张表口径 —— 普通关键字读第二字段，运算符关键字读第一字段。
+    $defText = [System.IO.File]::ReadAllText($defFile)
+    foreach ($m in [regex]::Matches($defText, '(?m)^\s*ZH_(?:KEYWORD|CONTEXTUAL_KEYWORD|VIRT_SPECIFIER)\s*\(\s*[^,]+,\s*([^\s,]+)')) {
+        $kw[$m.Groups[1].Value] = $true
+    }
+    foreach ($m in [regex]::Matches($defText, '(?m)^\s*ZH_OPERATOR_KEYWORD\s*\(\s*([^\s,]+)\s*,')) {
         $kw[$m.Groups[1].Value] = $true
     }
 }
