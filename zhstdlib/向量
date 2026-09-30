@@ -708,13 +708,13 @@ public:
 #endif // _HAS_CXX20
         } else {
             auto&& _Alproxy = _取代理分配器(_分配器类型, _取分配器());
-            _容器代理指针<_分配器类型> _Proxy(_Alproxy, _Mypair._Myval2);
+            _容器代理指针<_分配器类型> _代理(_Alproxy, _Mypair._Myval2);
             _清理守卫<向量实现> _Guard{this};
 
             _追加非计数范围(_STD move(_UFirst), _STD move(_ULast));
 
             _Guard._Target = nullptr;
-            _Proxy._释放();
+            _代理._释放();
         }
     }
 
@@ -733,13 +733,13 @@ public:
             _构造n个(_Count, _解包首(_Range), _解包尾(_Range));
         } else {
             auto&& _Alproxy = _取代理分配器(_分配器类型, _取分配器());
-            _容器代理指针<_分配器类型> _Proxy(_Alproxy, _Mypair._Myval2);
+            _容器代理指针<_分配器类型> _代理(_Alproxy, _Mypair._Myval2);
             _清理守卫<向量实现> _Guard{this};
 
             _追加非计数范围(_解包首(_Range), _解包尾(_Range));
 
             _Guard._Target = nullptr;
-            _Proxy._释放();
+            _代理._释放();
         }
     }
 #endif // _HAS_CXX23
@@ -774,7 +774,7 @@ public:
         auto&& _Alproxy   = _取代理分配器(_分配器类型, _Al);
         auto& _My_data    = _Mypair._Myval2;
         auto& _Right_data = _Right._Mypair._Myval2;
-        _容器代理指针<_分配器类型> _Proxy(_Alproxy, _My_data);
+        _容器代理指针<_分配器类型> _代理(_Alproxy, _My_data);
 
         if constexpr (!_分配器特征::is_always_equal::value) {
             if (_Al != _Right._取分配器()) {
@@ -788,13 +788,13 @@ public:
                     _ASAN_VECTOR_CREATE;
                     _Guard._Target = nullptr;
                 }
-                _Proxy._释放();
+                _代理._释放();
                 return;
             }
         }
 
         _My_data._接管内容(_Right_data);
-        _Proxy._释放();
+        _代理._释放();
     }
 
     _CONSTEXPR20 向量实现& operator=(向量实现&& _Right)
@@ -2109,7 +2109,7 @@ private:
         auto& _Al       = _取分配器();
         auto&& _Alproxy = _取代理分配器(_分配器类型, _Al);
         auto& _My_data  = _Mypair._Myval2;
-        _容器代理指针<_分配器类型> _Proxy(_Alproxy, _My_data);
+        _容器代理指针<_分配器类型> _代理(_Alproxy, _My_data);
         if (_Count != 0) {
             _非零分配(_Count);
             _清理守卫<向量实现> _Guard{this};
@@ -2127,7 +2127,7 @@ private:
             _Guard._Target = nullptr;
         }
 
-        _Proxy._释放();
+        _代理._释放();
     }
 
     _CONSTEXPR20 void _移动赋值不等分配器(向量实现& _Right) {
@@ -2473,9 +2473,9 @@ public:
 
     _CONSTEXPR20 _位引用& operator=(bool _Val) noexcept {
         if (_Val) {
-            *const_cast<_位基*>(_Getptr()) |= _掩码();
+            *const_cast<_位基*>(_取指针()) |= _掩码();
         } else {
-            *const_cast<_位基*>(_Getptr()) &= ~_掩码();
+            *const_cast<_位基*>(_取指针()) &= ~_掩码();
         }
 
         return *this;
@@ -2484,9 +2484,9 @@ public:
 #if _HAS_CXX23
     constexpr const _位引用& operator=(bool _Val) const noexcept {
         if (_Val) {
-            *const_cast<_位基*>(_Getptr()) |= _掩码();
+            *const_cast<_位基*>(_取指针()) |= _掩码();
         } else {
-            *const_cast<_位基*>(_Getptr()) &= ~_掩码();
+            *const_cast<_位基*>(_取指针()) &= ~_掩码();
         }
 
         return *this;
@@ -2494,14 +2494,14 @@ public:
 #endif // _HAS_CXX23
 
     _CONSTEXPR20 void flip() noexcept {
-        *const_cast<_位基*>(_Getptr()) ^= _掩码();
+        *const_cast<_位基*>(_取指针()) ^= _掩码();
     }
 
     _CONSTEXPR20 operator bool() const noexcept {
-        return (*_Getptr() & _掩码()) != 0;
+        return (*_取指针() & _掩码()) != 0;
     }
 
-    _CONSTEXPR20 const _位基* _Getptr() const noexcept {
+    _CONSTEXPR20 const _位基* _取指针() const noexcept {
 #if _ITERATOR_DEBUG_LEVEL != 0
         const auto _Cont = static_cast<const _我的容器*>(this->_取容器());
         _STL_VERIFY(_Cont, "cannot dereference value-initialized 向量实现<bool> iterator");
@@ -2997,10 +2997,10 @@ public:
                 // intentionally slams into noexcept on OOM, TRANSITION, VSO-466800
                 _代理分配器类型 _Oldal(_Al);
                 _代理分配器类型 _Right_proxy_al(_Right_al);
-                _容器代理指针<_位向量基分配器> _Proxy(_Right_proxy_al, _离开代理未绑定{});
+                _容器代理指针<_位向量基分配器> _代理(_Right_proxy_al, _离开代理未绑定{});
                 this->_我的向量  = _STD move(_Right._我的向量);
                 this->_我的尺寸 = _STD exchange(_Right._我的尺寸, size_type{0});
-                _Proxy._绑定(_Oldal, this);
+                _代理._绑定(_Oldal, this);
                 this->_交换代理与迭代器(_Right);
                 return *this;
             }
@@ -3079,10 +3079,10 @@ public:
                 using _代理分配器类型 = _重绑定分配器类型<_位向量基分配器, _容器代理>;
                 _代理分配器类型 _Oldal(_Al);
                 _代理分配器类型 _Right_proxy_al(_Right_al);
-                _容器代理指针<_位向量基分配器> _Proxy(_Right_proxy_al, _离开代理未绑定{});
+                _容器代理指针<_位向量基分配器> _代理(_Right_proxy_al, _离开代理未绑定{});
                 this->_我的向量  = _Right._我的向量;
                 this->_我的尺寸 = _Right._我的尺寸;
-                _Proxy._绑定(_Oldal, this);
+                _代理._绑定(_Oldal, this);
                 return *this;
             }
         }
@@ -3781,7 +3781,7 @@ _NODISCARD _CONSTEXPR20 _Iter_diff_t<_VbIt> _Count_vbool(_VbIt _首个, const _V
         const auto _LastSourceMask = static_cast<_位基>(-1) >> (_VBITS - _最后._Myoff);
         const auto _SourceMask     = _FirstSourceMask & _LastSourceMask;
         const auto _SelectVal      = (_Val ? *_VbFirst : ~*_VbFirst) & _SourceMask;
-        return _Popcount(_SelectVal);
+        return _位计数(_SelectVal);
     }
 
     return _Select_popcount_impl<_位基>(

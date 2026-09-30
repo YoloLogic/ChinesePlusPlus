@@ -289,7 +289,11 @@ $H = @{
       '_Request_stop'   = '_请求停止'
       '_Stop_requested' = '_已请求停止'
       '_Stop_possible'  = '_可停止'
-    }
+    ;
+      '_Lock_and_load' = '_加锁并载入';
+
+      '_Locked_pointer' = '_已加锁指针';
+}
     zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
     # ⚠ swap 不放进来：它是类内定义的 friend 自由函数，只能靠 ADL 找到，
@@ -1686,6 +1690,12 @@ $H = @{
       '_Release' = '_释放';
 
       '_ASAN_VECTOR_RELEASE_GUARD' = '_ASAN_向量释放守卫';
+
+      '_Getptr' = '_取指针';
+
+      '_Popcount' = '_位计数';
+
+      '_Proxy' = '_代理';
 }
     zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
@@ -3190,6 +3200,10 @@ $H = @{
       'insert_range' = '范围插入';
 
       'equal_range' = '相等区间';
+
+      '_Proxy' = '_代理';
+
+      '_Getptr' = '_取指针';
 }
     zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
@@ -3537,6 +3551,8 @@ $H = @{
       'hash_compare' = '散列比较';
 
       'max_bucket_count' = '最大桶数';
+
+      '_Getptr' = '_取指针';
 }
     data    = [ordered]@{}
     derive  = @()
@@ -5229,7 +5245,25 @@ $H = @{
                           '_Traits' = '_特征'
                           '_Unfancy' = '_去花式'
                           'get_allocator' = '取分配器'
-                          '_Get_buffer_view' = '_取缓冲视图' }
+                          '_Get_buffer_view' = '_取缓冲视图' ;
+      '_Assign_rv_no_alias' = '_无别名移动赋值';
+
+      '_Mysize_type' = '_我的大小类型';
+
+      '_Mysb' = '_我的流缓冲';
+
+      '_Init_string_inplace' = '_就地初始化串';
+
+      '_Init' = '_初始化';
+
+      '_Getstate' = '_取状态';
+
+      '_Copy_into_self_and_tidy' = '_自拷贝并整理';
+
+      '_Buffer_view' = '_缓冲视图';
+
+      '_Mystr_view' = '_我的串视图';
+}
     data    = [ordered]@{}
     # ⚠ 本轮先只转 str（其余 view/rdbuf/get_allocator 的中文名要在【每个实现类】里逐个核实存在性，
     #   否则派生层转发器会指向不存在的成员 —— 这正是登记≠落地守卫要防的）。
@@ -5550,6 +5584,30 @@ $H = @{
       '_Base' = '_基';
 
       '_Ref' = '_引用标记';
+
+      '_Ptr' = '_指针';
+
+      '_Locked_pointer' = '_已加锁指针';
+
+      '_Lock_and_load' = '_加锁并载入';
+
+      '_Unsafe_load_relaxed' = '_不安全松散载入';
+
+      '_TVal' = '_值类型参数';
+
+      '_TStorage' = '_存储类型参数';
+
+      '_Spinlock' = '_自旋锁';
+
+      '_Negate' = '_取负';
+
+      '_Int128' = '_整数128';
+
+      '_Atomic_wait_direct' = '_原子等待直达';
+
+      '_Choose_atomic_base_t' = '_选原子基类型';
+
+      '_Choose_atomic_base2_t' = '_选原子基类型2';
 }
     data    = [ordered]@{}
     derive  = @( @('load','载入'), @('store','存储'), @('exchange','置换'),

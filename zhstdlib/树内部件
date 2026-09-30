@@ -917,11 +917,11 @@ public:
               _STD forward<_Any_alloc>(_Al)) {
         auto&& _Alproxy   = _取代理分配器(_结点分配器, _取分配器());
         const auto _Scary = _取检查值();
-        _容器代理指针<_分配器类型> _Proxy(_Alproxy, *_Scary);
+        _容器代理指针<_分配器类型> _代理(_Alproxy, *_Scary);
         _树头作用域指针<_结点分配器, _迭代器检查值> _哨兵(_取分配器(), *_Scary);
         _复制<_策略::_复制>(_Right);
         _哨兵._释放();
-        _Proxy._释放();
+        _代理._释放();
     }
 
     _树(_树&& _Right)
@@ -938,11 +938,11 @@ public:
             if (_取分配器() != _Right._取分配器()) {
                 auto&& _Alproxy   = _取代理分配器(_结点分配器, _取分配器());
                 const auto _Scary = _取检查值();
-                _容器代理指针<_分配器类型> _Proxy(_Alproxy, *_Scary);
+                _容器代理指针<_分配器类型> _代理(_Alproxy, *_Scary);
                 _树头作用域指针<_结点分配器, _迭代器检查值> _哨兵(_取分配器(), *_Scary);
                 _复制<_策略::_Move>(_Right);
                 _哨兵._释放();
-                _Proxy._释放();
+                _代理._释放();
                 return;
             }
         }
@@ -966,7 +966,7 @@ public:
                 _取比较器()            = _Right._取比较器(); // intentionally copy comparator, see LWG-2227
                 auto&& _Alproxy       = _取代理分配器(_结点分配器, _Al);
                 auto&& _Right_alproxy = _取代理分配器(_结点分配器, _Right_al);
-                _容器代理指针<_分配器类型> _Proxy(_Right_alproxy, _离开代理未绑定{});
+                _容器代理指针<_分配器类型> _代理(_Right_alproxy, _离开代理未绑定{});
                 const auto _Scary       = _取检查值();
                 const auto _Right_scary = _Right._取检查值();
                 const auto _Newhead     = _STD exchange(_Right_scary->_Myhead, _节点::_建头节点(_Right_al));
@@ -975,7 +975,7 @@ public:
                 _Pocma(_Al, _Right_al);
                 _Scary->_Myhead = _Newhead;
                 _Scary->_我的尺寸 = _Newsize;
-                _Proxy._绑定(_Alproxy, _Scary);
+                _代理._绑定(_Alproxy, _Scary);
                 _Scary->_交换代理与迭代器(*_Right_scary);
                 return *this;
             }
@@ -1117,13 +1117,13 @@ public:
                 _Scary->_孤儿化全部();
                 auto&& _Alproxy       = _取代理分配器(_结点分配器, _Al);
                 auto&& _Right_alproxy = _取代理分配器(_结点分配器, _Right_al);
-                _容器代理指针<_分配器类型> _Proxy(_Right_alproxy, _离开代理未绑定{});
+                _容器代理指针<_分配器类型> _代理(_Right_alproxy, _离开代理未绑定{});
                 auto _Right_al_non_const = _Right_al;
                 auto _Newhead            = _节点::_建头节点(_Right_al_non_const);
                 _节点::_释放节点0(_Al, _Scary->_Myhead);
                 _Pocca(_Al, _Right_al);
                 _Scary->_Myhead = _Newhead;
-                _Proxy._绑定(_Alproxy, _Scary);
+                _代理._绑定(_Alproxy, _Scary);
                 _取比较器() = _Right._取比较器();
                 _复制<_策略::_复制>(_Right);
                 return *this;
@@ -1788,7 +1788,7 @@ public:
 
         _检查节点分配器(_Handle);
         const auto _Scary        = _取检查值();
-        const auto _Attempt_node = _Handle._Getptr();
+        const auto _Attempt_node = _Handle._取指针();
         const auto& _Keyval      = _特征::_取键(_Attempt_node->_Myval);
         _树查找结果<_结点指针> _Loc;
         if constexpr (_Multi) {
@@ -1828,7 +1828,7 @@ public:
         }
 
         _检查节点分配器(_Handle);
-        const auto _Attempt_node = _Handle._Getptr();
+        const auto _Attempt_node = _Handle._取指针();
         const auto& _Keyval      = _特征::_取键(_Attempt_node->_Myval);
         const auto _Loc          = _按提示查找(_Hint._Ptr, _Keyval);
         if (_Loc._Duplicate) {
@@ -1954,9 +1954,9 @@ protected:
     void _分配哨兵与代理() {
         const auto _Scary = _取检查值();
         auto&& _Alproxy   = _取代理分配器(_结点分配器, _取分配器());
-        _容器代理指针<_结点分配器> _Proxy(_Alproxy, *_Scary);
+        _容器代理指针<_结点分配器> _代理(_Alproxy, *_Scary);
         _Scary->_Myhead = _节点::_建头节点(_取分配器());
-        _Proxy._释放();
+        _代理._释放();
     }
 
     template <class... _值参数类型>

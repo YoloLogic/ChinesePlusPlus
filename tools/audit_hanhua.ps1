@@ -161,6 +161,17 @@ $memBoundary = @('length', 'assign', 'copy', 'compare', 'find', 'max_size', 'swa
                  '_Adl_verify_range', '_Seek_wrapped', 'address', 'addressof', 'apply',
                  'construct_at', 'destroy_at', 'make_tuple', 'forward_as_tuple',
                  'pointer_to', 'elements_of', 'from_range_t',
+                 # ---- §17.19.50 尺子维护第二波（第 117 轮实测）：借来的 traits 成员名 / 流缓冲虚函数 /
+                 #      std 公开 API。它们在我们拷贝层里【只有引用、没有定义】（定义在 std 的
+                 #      iterator_traits / allocator_traits / char_traits / basic_streambuf / charconv 里），
+                 #      按词替换会误伤 —— 消除路径同 §16.61.9：把那些 traits 也抄成我们的内部件。
+                 'value_type', 'difference_type', 'pointer', 'reference', 'const_pointer', 'const_reference',
+                 'size_type', 'iterator_category', 'iterator_concept', 'element_type', 'char_type', 'int_type',
+                 'off_type', 'pos_type', 'state_type', 'traits_type', 'comparison_category', 'type',
+                 'const_reverse_iterator', 'reverse_iterator', 'allocator_type',
+                 'overflow', 'pbackfail', 'seekoff', 'seekpos', 'setg', 'setp', 'underflow', 'gbump', 'sync',
+                 'uflow', 'xsgetn', 'xsputn', 'showmanyc', 'imbue',
+                 'format', 'parse', 'flip', 'rotate', 'atomic_store_explicit',
                  # ---- §16.68 allocator 契约名（`allocator_traits<我们的分配器>` 会读它们，
                  #      第 ③ 类；消除路径 = 连 allocator_traits 也一起抄成我们自己的）----
                  'allocate', 'allocate_at_least', 'deallocate', 'construct', 'destroy',

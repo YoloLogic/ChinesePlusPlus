@@ -1422,7 +1422,7 @@ public:
         _STL_VERIFY(_List.取分配器() == _Handle._取分配器(), "node handle allocator incompatible for insert");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
-        const auto& _Keyval   = _特征::_取键(_Handle._Getptr()->_Myval);
+        const auto& _Keyval   = _特征::_取键(_Handle._取指针()->_Myval);
         const size_t _Hashval = _特征对象(_Keyval);
         auto _Target          = _按提示查找(_Hint._Ptr, _Keyval, _Hashval);
         if constexpr (!_特征::_Multi) {
@@ -1554,7 +1554,7 @@ public:
         _STL_VERIFY(_List.取分配器() == _Handle._取分配器(), "node handle allocator incompatible for insert");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
-        const auto& _Keyval   = _特征::_取键(_Handle._Getptr()->_Myval);
+        const auto& _Keyval   = _特征::_取键(_Handle._取指针()->_Myval);
         const size_t _Hashval = _特征对象(_Keyval);
         auto _Target          = _查找最后(_Keyval, _Hashval);
         if constexpr (!_特征::_Multi) {

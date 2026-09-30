@@ -37,25 +37,25 @@ _STL_DISABLE_CLANG_WARNINGS
 #if defined(_M_ARM64) || defined(_M_ARM64EC) || defined(_M_HYBRID_X86_ARM64)
 #define _STD_ATOMIC_USE_ARM64_LDAR_STLR 1
 #ifdef __clang__
-#define __载入获取ARM64(_Width, _Ptr) \
-    static_cast<__int##_Width>(__atomic_load_n(reinterpret_cast<const volatile unsigned __int##_Width*>(_Ptr), 2))
-#define __存储释放(_Width, _Ptr, _Desired) \
+#define __载入获取ARM64(_Width, _指针) \
+    static_cast<__int##_Width>(__atomic_load_n(reinterpret_cast<const volatile unsigned __int##_Width*>(_指针), 2))
+#define __存储释放(_Width, _指针, _Desired) \
     _Compiler_barrier();                        \
     __atomic_store_n(                           \
-        reinterpret_cast<volatile unsigned __int##_Width*>(_Ptr), static_cast<unsigned __int##_Width>(_Desired), 3)
+        reinterpret_cast<volatile unsigned __int##_Width*>(_指针), static_cast<unsigned __int##_Width>(_Desired), 3)
 #else // ^^^ Clang / MSVC vvv
-#define __载入获取ARM64(_Width, _Ptr) \
-    static_cast<__int##_Width>(__load_acquire##_Width(reinterpret_cast<const volatile unsigned __int##_Width*>(_Ptr)))
-#define __存储释放(_Width, _Ptr, _Desired) \
+#define __载入获取ARM64(_Width, _指针) \
+    static_cast<__int##_Width>(__load_acquire##_Width(reinterpret_cast<const volatile unsigned __int##_Width*>(_指针)))
+#define __存储释放(_Width, _指针, _Desired) \
     _Compiler_barrier();                        \
     __stlr##_Width(                             \
-        reinterpret_cast<volatile unsigned __int##_Width*>(_Ptr), static_cast<unsigned __int##_Width>(_Desired))
+        reinterpret_cast<volatile unsigned __int##_Width*>(_指针), static_cast<unsigned __int##_Width>(_Desired))
 #endif // ^^^ MSVC ^^^
 #else // ^^^ ARM64/ARM64EC/HYBRID_X86_ARM64 / Other architectures vvv
 #define _STD_ATOMIC_USE_ARM64_LDAR_STLR 0
-#define __存储释放(_Width, _Ptr, _Desired) \
+#define __存储释放(_Width, _指针, _Desired) \
     _Compiler_or_memory_barrier();              \
-    __iso_volatile_store##_Width((_Ptr), (_Desired))
+    __iso_volatile_store##_Width((_指针), (_Desired))
 #endif // ^^^ Other architectures ^^^
 
 #define ATOMIC_BOOL_LOCK_FREE 2
@@ -134,12 +134,12 @@ extern "C" inline void _检查内存序(const unsigned int _Order) noexcept {
 
 #if _STD_ATOMIC_USE_ARM64_LDAR_STLR == 1
 
-#define _原子载入ARM64(_结果, _Width, _Ptr, _Order_var) \
+#define _原子载入ARM64(_结果, _Width, _指针, _Order_var) \
     _检查载入内存序(_Order_var);                     \
     if (_Order_var == 内存序松弛) {                 \
-        _结果 = __iso_volatile_load##_Width(_Ptr);          \
+        _结果 = __iso_volatile_load##_Width(_指针);          \
     } else {                                                  \
-        _结果 = __载入获取ARM64(_Width, _Ptr);         \
+        _结果 = __载入获取ARM64(_Width, _指针);         \
         _Compiler_barrier();                                  \
     }
 
@@ -151,40 +151,40 @@ extern "C" inline void _检查内存序(const unsigned int _Order) noexcept {
         _Compiler_or_memory_barrier();                  \
     }
 
-#define _原子存储顺序一致ARM(_Width, _Ptr, _Desired) \
+#define _原子存储顺序一致ARM(_Width, _指针, _Desired) \
     _Memory_barrier();                                    \
-    __iso_volatile_store##_Width((_Ptr), (_Desired));     \
+    __iso_volatile_store##_Width((_指针), (_Desired));     \
     _Memory_barrier();
 
-#define _原子存储顺序一致ARM64(_Width, _Ptr, _Desired) \
-    __存储释放(_Width, _Ptr, _Desired);                \
+#define _原子存储顺序一致ARM64(_Width, _指针, _Desired) \
+    __存储释放(_Width, _指针, _Desired);                \
     _Memory_barrier();
 
-#define _原子存储顺序一致X86X64(_Width, _Ptr, _Desired) (void) _InterlockedExchange##_Width((_Ptr), (_Desired));
-#define _原子存储32顺序一致X86X64(_Ptr, _Desired) \
-    (void) _InterlockedExchange(reinterpret_cast<volatile long*>(_Ptr), static_cast<long>(_Desired));
+#define _原子存储顺序一致X86X64(_Width, _指针, _Desired) (void) _InterlockedExchange##_Width((_指针), (_Desired));
+#define _原子存储32顺序一致X86X64(_指针, _Desired) \
+    (void) _InterlockedExchange(reinterpret_cast<volatile long*>(_指针), static_cast<long>(_Desired));
 
-#define _原子存储64顺序一致IX86(_Ptr, _Desired) \
+#define _原子存储64顺序一致IX86(_指针, _Desired) \
     _Compiler_barrier();                              \
-    __iso_volatile_store64((_Ptr), (_Desired));       \
+    __iso_volatile_store64((_指针), (_Desired));       \
     _原子线程栅栏(_原子内存序顺序一致);
 
 #if defined(_M_ARM)
-#define _原子存储顺序一致(_Width, _Ptr, _Desired) _原子存储顺序一致ARM(_Width, (_Ptr), (_Desired))
-#define _原子存储32顺序一致(_Ptr, _Desired)      _原子存储顺序一致ARM(32, (_Ptr), (_Desired))
-#define _原子存储64顺序一致(_Ptr, _Desired)      _原子存储顺序一致ARM(64, (_Ptr), (_Desired))
+#define _原子存储顺序一致(_Width, _指针, _Desired) _原子存储顺序一致ARM(_Width, (_指针), (_Desired))
+#define _原子存储32顺序一致(_指针, _Desired)      _原子存储顺序一致ARM(32, (_指针), (_Desired))
+#define _原子存储64顺序一致(_指针, _Desired)      _原子存储顺序一致ARM(64, (_指针), (_Desired))
 #elif defined(_M_ARM64) || defined(_M_ARM64EC) \
     || defined(_M_HYBRID_X86_ARM64) // ^^^ ARM32 / ARM64/ARM64EC/HYBRID_X86_ARM64 vvv
-#define _原子存储顺序一致(_Width, _Ptr, _Desired) _原子存储顺序一致ARM64(_Width, (_Ptr), (_Desired))
-#define _原子存储32顺序一致(_Ptr, _Desired)      _原子存储顺序一致ARM64(32, (_Ptr), (_Desired))
-#define _原子存储64顺序一致(_Ptr, _Desired)      _原子存储顺序一致ARM64(64, (_Ptr), (_Desired))
+#define _原子存储顺序一致(_Width, _指针, _Desired) _原子存储顺序一致ARM64(_Width, (_指针), (_Desired))
+#define _原子存储32顺序一致(_指针, _Desired)      _原子存储顺序一致ARM64(32, (_指针), (_Desired))
+#define _原子存储64顺序一致(_指针, _Desired)      _原子存储顺序一致ARM64(64, (_指针), (_Desired))
 #elif defined(_M_IX86) || defined(_M_X64) // ^^^ ARM64/ARM64EC/HYBRID_X86_ARM64 / x86/x64 vvv
-#define _原子存储顺序一致(_Width, _Ptr, _Desired) _原子存储顺序一致X86X64(_Width, (_Ptr), (_Desired))
-#define _原子存储32顺序一致(_Ptr, _Desired)      _原子存储32顺序一致X86X64((_Ptr), (_Desired))
+#define _原子存储顺序一致(_Width, _指针, _Desired) _原子存储顺序一致X86X64(_Width, (_指针), (_Desired))
+#define _原子存储32顺序一致(_指针, _Desired)      _原子存储32顺序一致X86X64((_指针), (_Desired))
 #ifdef _M_IX86
-#define _原子存储64顺序一致(_Ptr, _Desired) _原子存储64顺序一致IX86((_Ptr), (_Desired))
+#define _原子存储64顺序一致(_指针, _Desired) _原子存储64顺序一致IX86((_指针), (_Desired))
 #else // ^^^ x86 / x64 vvv
-#define _原子存储64顺序一致(_Ptr, _Desired) _原子存储顺序一致X86X64(64, (_Ptr), (_Desired))
+#define _原子存储64顺序一致(_指针, _Desired) _原子存储顺序一致X86X64(64, (_指针), (_Desired))
 #endif // ^^^ x64 ^^^
 #else // ^^^ x86/x64 / Unsupported hardware vvv
 #error "Unsupported hardware"
@@ -255,7 +255,7 @@ struct _存储用于 {
 #if _CMPXCHG_MASK_OUT_PADDING_BITS
     explicit _存储用于(_形式掩码类型) noexcept {
         _CSTD memset(_Storage, 0xff, sizeof(_类型));
-        ::__builtin_zero_non_value_bits(_Ptr()); // TRANSITION, DevCom-10456452
+        ::__builtin_zero_non_value_bits(_指针()); // TRANSITION, DevCom-10456452
     }
 #endif // _CMPXCHG_MASK_OUT_PADDING_BITS
 
@@ -263,7 +263,7 @@ struct _存储用于 {
         return reinterpret_cast<_类型&>(_Storage);
     }
 
-    _NODISCARD _类型* _Ptr() noexcept {
+    _NODISCARD _类型* _指针() noexcept {
         return reinterpret_cast<_类型*>(&_Storage);
     }
 };
@@ -415,14 +415,14 @@ struct _原子填充<_类型&, false> {
 
 template <class _类型>
 struct _原子存储类型 {
-    using _TStorage = _原子填充<_类型>;
-    using _Spinlock = long;
+    using _存储类型参数 = _原子填充<_类型>;
+    using _自旋锁 = long;
 };
 
 template <class _类型>
 struct _原子存储类型<_类型&> {
-    using _TStorage = _类型&;
-    using _Spinlock = _Smtx_t*; // POINTER TO mutex
+    using _存储类型参数 = _类型&;
+    using _自旋锁 = _Smtx_t*; // POINTER TO mutex
 };
 
 #if 1 // TRANSITION, ABI
@@ -434,7 +434,7 @@ struct _原子存储;
 
 #if _HAS_CXX20
 template <class _类型, class _Value_type>
-void _Atomic_wait_direct(
+void _原子等待直达(
     const _原子存储<_类型>* const _This, _Value_type _Expected_bytes, const 内存序 _Order) noexcept {
     const auto _Storage_ptr =
         const_cast<const void*>(static_cast<const volatile void*>(_STD addressof(_This->_Storage)));
@@ -442,9 +442,9 @@ void _Atomic_wait_direct(
         const _Value_type _Observed_bytes = _原子重解释为<_Value_type>(_This->载入(_Order));
         if (_Expected_bytes != _Observed_bytes) {
 #if _CMPXCHG_MASK_OUT_PADDING_BITS
-            using _TVal = _Remove_cvref_t<_类型>;
-            if constexpr (_Might_have_non_value_bits<_TVal>) {
-                _存储用于<_TVal> _Mask{_Form_mask};
+            using _值类型参数 = _Remove_cvref_t<_类型>;
+            if constexpr (_Might_have_non_value_bits<_值类型参数>) {
+                _存储用于<_值类型参数> _Mask{_Form_mask};
                 const _Value_type _Mask_val = _原子重解释为<_Value_type>(_Mask._引用标记());
 
                 if (((_Expected_bytes ^ _Observed_bytes) & _Mask_val) == 0) {
@@ -463,15 +463,15 @@ void _Atomic_wait_direct(
 #endif // _HAS_CXX20
 
 #if 1 // TRANSITION, ABI, GH-1151
-inline void _Atomic_lock_acquire(long& _Spinlock) noexcept {
+inline void _Atomic_lock_acquire(long& _自旋锁) noexcept {
 #if (defined(_M_IX86) && !defined(_M_HYBRID_X86_ARM64)) || (defined(_M_X64) && !defined(_M_ARM64EC))
     // Algorithm from Intel(R) 64 and IA-32 Architectures Optimization Reference Manual, May 2020
     // Example 2-4. Contended Locks with Increasing Back-off Example - Improved Version, page 2-22
     // The code in mentioned manual is covered by the 0BSD license.
     int _Current_backoff       = 1;
     constexpr int _Max_backoff = 64;
-    while (_InterlockedExchange(&_Spinlock, 1) != 0) {
-        while (__iso_volatile_load32(&reinterpret_cast<int&>(_Spinlock)) != 0) {
+    while (_InterlockedExchange(&_自旋锁, 1) != 0) {
+        while (__iso_volatile_load32(&reinterpret_cast<int&>(_自旋锁)) != 0) {
             for (int _Count_down = _Current_backoff; _Count_down != 0; --_Count_down) {
                 _mm_pause();
             }
@@ -479,8 +479,8 @@ inline void _Atomic_lock_acquire(long& _Spinlock) noexcept {
         }
     }
 #elif defined(_M_ARM) || defined(_M_ARM64) || defined(_M_ARM64EC) || defined(_M_HYBRID_X86_ARM64)
-    while (_InterlockedExchange_acq(&_Spinlock, 1) != 0) {
-        while (__iso_volatile_load32(&reinterpret_cast<int&>(_Spinlock)) != 0) {
+    while (_InterlockedExchange_acq(&_自旋锁, 1) != 0) {
+        while (__iso_volatile_load32(&reinterpret_cast<int&>(_自旋锁)) != 0) {
             __yield();
         }
     }
@@ -489,44 +489,44 @@ inline void _Atomic_lock_acquire(long& _Spinlock) noexcept {
 #endif
 }
 
-inline void _Atomic_lock_release(long& _Spinlock) noexcept {
-    __存储释放(32, reinterpret_cast<int*>(&_Spinlock), 0);
+inline void _Atomic_lock_release(long& _自旋锁) noexcept {
+    __存储释放(32, reinterpret_cast<int*>(&_自旋锁), 0);
 }
 
-inline void _Atomic_lock_acquire(_Smtx_t* _Spinlock) noexcept {
-    _Smtx_lock_exclusive(_Spinlock);
+inline void _Atomic_lock_acquire(_Smtx_t* _自旋锁) noexcept {
+    _Smtx_lock_exclusive(_自旋锁);
 }
 
-inline void _Atomic_lock_release(_Smtx_t* _Spinlock) noexcept {
-    _Smtx_unlock_exclusive(_Spinlock);
+inline void _Atomic_lock_release(_Smtx_t* _自旋锁) noexcept {
+    _Smtx_unlock_exclusive(_自旋锁);
 }
 
 template <class _Spinlock_t>
 class _NODISCARD _原子锁守卫 {
 public:
-    explicit _原子锁守卫(_Spinlock_t& _Spinlock_) noexcept : _Spinlock(_Spinlock_) {
-        _Atomic_lock_acquire(_Spinlock);
+    explicit _原子锁守卫(_Spinlock_t& _Spinlock_) noexcept : _自旋锁(_Spinlock_) {
+        _Atomic_lock_acquire(_自旋锁);
     }
 
     ~_原子锁守卫() {
-        _Atomic_lock_release(_Spinlock);
+        _Atomic_lock_release(_自旋锁);
     }
 
     _原子锁守卫(const _原子锁守卫&)            = delete;
     _原子锁守卫& operator=(const _原子锁守卫&) = delete;
 
 private:
-    _Spinlock_t& _Spinlock;
+    _Spinlock_t& _自旋锁;
 };
 
 #if _HAS_CXX20
 template <class _Spinlock_t>
 bool __stdcall _原子等待比较非无锁(
     const void* _Storage, void* _Comparand, size_t _Size, void* _Spinlock_raw) noexcept {
-    _Spinlock_t& _Spinlock = *static_cast<_Spinlock_t*>(_Spinlock_raw);
-    _Atomic_lock_acquire(_Spinlock);
+    _Spinlock_t& _自旋锁 = *static_cast<_Spinlock_t*>(_Spinlock_raw);
+    _Atomic_lock_acquire(_自旋锁);
     const auto _Cmp_result = _CSTD memcmp(_Storage, _Comparand, _Size);
-    _Atomic_lock_release(_Spinlock);
+    _Atomic_lock_release(_自旋锁);
     return _Cmp_result == 0;
 }
 
@@ -550,8 +550,8 @@ struct _原子存储 {
     // Provides operations common to all specializations of std::原子实现, 载入, 存储, 置换, and CAS.
     // Locking version used when hardware has no 原子实现 operations for sizeof(_类型).
 
-    using _TVal  = _Remove_cvref_t<_类型>;
-    using _Guard = _原子锁守卫<typename _原子存储类型<_类型>::_Spinlock>;
+    using _值类型参数  = _Remove_cvref_t<_类型>;
+    using _Guard = _原子锁守卫<typename _原子存储类型<_类型>::_自旋锁>;
 
     _原子存储() = default;
 
@@ -559,31 +559,31 @@ struct _原子存储 {
         // non-atomically initialize this 原子实现
     }
 
-    void 存储(const _TVal _Value, const 内存序 _Order = 内存序顺序一致) noexcept {
+    void 存储(const _值类型参数 _Value, const 内存序 _Order = 内存序顺序一致) noexcept {
         // 存储 with sequential consistency
         _检查存储内存序(_Order);
-        _Guard _加锁{_Spinlock};
+        _Guard _加锁{_自旋锁};
         _Storage = _Value;
     }
 
-    _NODISCARD _TVal 载入(const 内存序 _Order = 内存序顺序一致) const noexcept {
+    _NODISCARD _值类型参数 载入(const 内存序 _Order = 内存序顺序一致) const noexcept {
         // 载入 with sequential consistency
         _检查载入内存序(_Order);
-        _Guard _加锁{_Spinlock};
-        _TVal _Local(_Storage);
+        _Guard _加锁{_自旋锁};
+        _值类型参数 _Local(_Storage);
         return _Local;
     }
 
-    _TVal 置换(const _TVal _Value, const 内存序 _Order = 内存序顺序一致) noexcept {
+    _值类型参数 置换(const _值类型参数 _Value, const 内存序 _Order = 内存序顺序一致) noexcept {
         // 置换 _Value with _Storage with sequential consistency
         _检查内存序(static_cast<unsigned int>(_Order));
-        _Guard _加锁{_Spinlock};
-        _TVal _结果(_Storage);
+        _Guard _加锁{_自旋锁};
+        _值类型参数 _结果(_Storage);
         _Storage = _Value;
         return _结果;
     }
 
-    bool 比较交换强(_TVal& _Expected, const _TVal _Desired,
+    bool 比较交换强(_值类型参数& _Expected, const _值类型参数 _Desired,
         const 内存序 _Order = 内存序顺序一致) noexcept { // CAS with sequential consistency, plain
         _检查内存序(static_cast<unsigned int>(_Order));
         const auto _Storage_ptr  = _STD addressof(_Storage);
@@ -592,49 +592,49 @@ struct _原子存储 {
 #if _CMPXCHG_MASK_OUT_PADDING_BITS
         ::__builtin_zero_non_value_bits(_Expected_ptr); // TRANSITION, DevCom-10456452
 #endif // _CMPXCHG_MASK_OUT_PADDING_BITS
-        _Guard _加锁{_Spinlock};
+        _Guard _加锁{_自旋锁};
 #if _CMPXCHG_MASK_OUT_PADDING_BITS
-        if constexpr (_Might_have_non_value_bits<_TVal>) {
-            _存储用于<_TVal> _Local;
-            const auto _Local_ptr = _Local._Ptr();
-            _CSTD memcpy(_Local_ptr, _Storage_ptr, sizeof(_TVal));
+        if constexpr (_Might_have_non_value_bits<_值类型参数>) {
+            _存储用于<_值类型参数> _Local;
+            const auto _Local_ptr = _Local._指针();
+            _CSTD memcpy(_Local_ptr, _Storage_ptr, sizeof(_值类型参数));
             ::__builtin_zero_non_value_bits(_Local_ptr); // TRANSITION, DevCom-10456452
-            _结果 = _CSTD memcmp(_Local_ptr, _Expected_ptr, sizeof(_TVal)) == 0;
+            _结果 = _CSTD memcmp(_Local_ptr, _Expected_ptr, sizeof(_值类型参数)) == 0;
         } else {
-            _结果 = _CSTD memcmp(_Storage_ptr, _Expected_ptr, sizeof(_TVal)) == 0;
+            _结果 = _CSTD memcmp(_Storage_ptr, _Expected_ptr, sizeof(_值类型参数)) == 0;
         }
 #else // ^^^ _CMPXCHG_MASK_OUT_PADDING_BITS / !_CMPXCHG_MASK_OUT_PADDING_BITS vvv
-        _结果 = _CSTD memcmp(_Storage_ptr, _Expected_ptr, sizeof(_TVal)) == 0;
+        _结果 = _CSTD memcmp(_Storage_ptr, _Expected_ptr, sizeof(_值类型参数)) == 0;
 #endif // ^^^ !_CMPXCHG_MASK_OUT_PADDING_BITS ^^^
         if (_结果) {
-            _CSTD memcpy(_Storage_ptr, _STD addressof(_Desired), sizeof(_TVal));
+            _CSTD memcpy(_Storage_ptr, _STD addressof(_Desired), sizeof(_值类型参数));
         } else {
-            _CSTD memcpy(_Expected_ptr, _Storage_ptr, sizeof(_TVal));
+            _CSTD memcpy(_Expected_ptr, _Storage_ptr, sizeof(_值类型参数));
         }
 
         return _结果;
     }
 
 #if _HAS_CXX20
-    void 等待(_TVal _Expected, 内存序 = 内存序顺序一致) const noexcept {
+    void 等待(_值类型参数 _Expected, 内存序 = 内存序顺序一致) const noexcept {
         const auto _Storage_ptr  = _STD addressof(_Storage);
         const auto _Expected_ptr = _STD addressof(_Expected);
         for (;;) {
             {
-                _Guard _加锁{_Spinlock};
-                if (_CSTD memcmp(_Storage_ptr, _Expected_ptr, sizeof(_TVal)) != 0) {
+                _Guard _加锁{_自旋锁};
+                if (_CSTD memcmp(_Storage_ptr, _Expected_ptr, sizeof(_值类型参数)) != 0) {
                     // contents differed, we might be done, check for padding
 #if _CMPXCHG_MASK_OUT_PADDING_BITS
-                    if constexpr (_Might_have_non_value_bits<_TVal>) {
-                        _存储用于<_TVal> _Local;
-                        const auto _Local_ptr = _Local._Ptr();
-                        _CSTD memcpy(_Local_ptr, _Storage_ptr, sizeof(_TVal));
+                    if constexpr (_Might_have_non_value_bits<_值类型参数>) {
+                        _存储用于<_值类型参数> _Local;
+                        const auto _Local_ptr = _Local._指针();
+                        _CSTD memcpy(_Local_ptr, _Storage_ptr, sizeof(_值类型参数));
                         ::__builtin_zero_non_value_bits(_Local_ptr); // TRANSITION, DevCom-10456452
                         ::__builtin_zero_non_value_bits(_Expected_ptr); // TRANSITION, DevCom-10456452
-                        if (_CSTD memcmp(_Local_ptr, _Expected_ptr, sizeof(_TVal)) == 0) {
+                        if (_CSTD memcmp(_Local_ptr, _Expected_ptr, sizeof(_值类型参数)) == 0) {
                             // _Storage differs from _Expected only by padding; copy the padding from _Storage into
                             // _Expected
-                            _CSTD memcpy(_Expected_ptr, _Storage_ptr, sizeof(_TVal));
+                            _CSTD memcpy(_Expected_ptr, _Storage_ptr, sizeof(_值类型参数));
                         } else {
                             // truly different, we're done
                             return;
@@ -647,8 +647,8 @@ struct _原子存储 {
                 }
             } // unlock
 
-            ::__std_atomic_wait_indirect(_Storage_ptr, _Expected_ptr, sizeof(_TVal), &_Spinlock,
-                &_原子等待比较非无锁<decltype(_Spinlock)>, __std_atomic_wait_no_timeout);
+            ::__std_atomic_wait_indirect(_Storage_ptr, _Expected_ptr, sizeof(_值类型参数), &_自旋锁,
+                &_原子等待比较非无锁<decltype(_自旋锁)>, __std_atomic_wait_no_timeout);
         }
     }
 
@@ -664,12 +664,12 @@ struct _原子存储 {
 #if 1 // TRANSITION, ABI
 protected:
     void _为引用初始化自旋锁() noexcept {
-        _Spinlock = ::__std_atomic_get_mutex(_STD addressof(_Storage));
+        _自旋锁 = ::__std_atomic_get_mutex(_STD addressof(_Storage));
     }
 
 private:
     // Spinlock integer for non-lock-free 原子实现. <xthreads.h> mutex pointer for non-lock-free 原子引用实现
-    mutable typename _原子存储类型<_类型>::_Spinlock _Spinlock{};
+    mutable typename _原子存储类型<_类型>::_自旋锁 _自旋锁{};
 
 public:
     _类型 _Storage{};
@@ -682,7 +682,7 @@ public:
 
 template <class _类型>
 struct _原子存储<_类型, 1> { // lock-free using 1-byte intrinsics
-    using _TVal = _Remove_cvref_t<_类型>;
+    using _值类型参数 = _Remove_cvref_t<_类型>;
 
     _原子存储() = default;
 
@@ -690,13 +690,13 @@ struct _原子存储<_类型, 1> { // lock-free using 1-byte intrinsics
         // non-atomically initialize this 原子实现
     }
 
-    void 存储(const _TVal _Value) noexcept { // 存储 with sequential consistency
+    void 存储(const _值类型参数 _Value) noexcept { // 存储 with sequential consistency
         const auto _Mem      = _原子取地址为<char>(_Storage);
         const char _As_bytes = _原子重解释为<char>(_Value);
         _原子存储顺序一致(8, _Mem, _As_bytes)
     }
 
-    void 存储(const _TVal _Value, const 内存序 _Order) noexcept { // 存储 with given memory order
+    void 存储(const _值类型参数 _Value, const 内存序 _Order) noexcept { // 存储 with given memory order
         const auto _Mem      = _原子取地址为<char>(_Storage);
         const char _As_bytes = _原子重解释为<char>(_Value);
 
@@ -711,7 +711,7 @@ struct _原子存储<_类型, 1> { // lock-free using 1-byte intrinsics
         }
     }
 
-    _NODISCARD _TVal 载入(
+    _NODISCARD _值类型参数 载入(
         const 内存序 _Order = 内存序顺序一致) const noexcept { // 载入 with given memory order
         const auto _Mem = _原子取地址为<char>(_Storage);
         char _As_bytes;
@@ -721,25 +721,25 @@ struct _原子存储<_类型, 1> { // lock-free using 1-byte intrinsics
         _As_bytes = __iso_volatile_load8(_Mem);
         _原子载入后栅栏按需(_Order)
 #endif // ^^^ _STD_ATOMIC_USE_ARM64_LDAR_STLR == 0 ^^^
-        return reinterpret_cast<_TVal&>(_As_bytes);
+        return reinterpret_cast<_值类型参数&>(_As_bytes);
     }
 
-    _TVal 置换(const _TVal _Value, const 内存序 _Order = 内存序顺序一致) noexcept {
+    _值类型参数 置换(const _值类型参数 _Value, const 内存序 _Order = 内存序顺序一致) noexcept {
         // 置换 with given memory order
         char _As_bytes;
         _原子选择内建(static_cast<unsigned int>(_Order), _As_bytes, _InterlockedExchange8,
             _原子取地址为<char>(_Storage), _原子重解释为<char>(_Value));
-        return reinterpret_cast<_TVal&>(_As_bytes);
+        return reinterpret_cast<_值类型参数&>(_As_bytes);
     }
 
-    bool 比较交换强(_TVal& _Expected, const _TVal _Desired,
+    bool 比较交换强(_值类型参数& _Expected, const _值类型参数 _Desired,
         const 内存序 _Order = 内存序顺序一致) noexcept { // CAS with given memory order
         char _Expected_bytes = _原子重解释为<char>(_Expected); // read before 原子实现 operation
         char _Prev_bytes;
 
 #if _CMPXCHG_MASK_OUT_PADDING_BITS
-        if constexpr (_Might_have_non_value_bits<_TVal>) {
-            _存储用于<_TVal> _Mask{_Form_mask};
+        if constexpr (_Might_have_non_value_bits<_值类型参数>) {
+            _存储用于<_值类型参数> _Mask{_Form_mask};
             const char _Mask_val = _原子重解释为<char>(_Mask._引用标记());
 
             for (;;) {
@@ -769,8 +769,8 @@ struct _原子存储<_类型, 1> { // lock-free using 1-byte intrinsics
     }
 
 #if _HAS_CXX20
-    void 等待(const _TVal _Expected, const 内存序 _Order = 内存序顺序一致) const noexcept {
-        _Atomic_wait_direct(this, _原子重解释为<char>(_Expected), _Order);
+    void 等待(const _值类型参数 _Expected, const 内存序 _Order = 内存序顺序一致) const noexcept {
+        _原子等待直达(this, _原子重解释为<char>(_Expected), _Order);
     }
 
     void 通知一个() noexcept {
@@ -784,12 +784,12 @@ struct _原子存储<_类型, 1> { // lock-free using 1-byte intrinsics
     }
 #endif // _HAS_CXX20
 
-    typename _原子存储类型<_类型>::_TStorage _Storage;
+    typename _原子存储类型<_类型>::_存储类型参数 _Storage;
 };
 
 template <class _类型>
 struct _原子存储<_类型, 2> { // lock-free using 2-byte intrinsics
-    using _TVal = _Remove_cvref_t<_类型>;
+    using _值类型参数 = _Remove_cvref_t<_类型>;
 
     _原子存储() = default;
 
@@ -797,13 +797,13 @@ struct _原子存储<_类型, 2> { // lock-free using 2-byte intrinsics
         // non-atomically initialize this 原子实现
     }
 
-    void 存储(const _TVal _Value) noexcept { // 存储 with sequential consistency
+    void 存储(const _值类型参数 _Value) noexcept { // 存储 with sequential consistency
         const auto _Mem       = _原子取地址为<short>(_Storage);
         const short _As_bytes = _原子重解释为<short>(_Value);
         _原子存储顺序一致(16, _Mem, _As_bytes)
     }
 
-    void 存储(const _TVal _Value, const 内存序 _Order) noexcept { // 存储 with given memory order
+    void 存储(const _值类型参数 _Value, const 内存序 _Order) noexcept { // 存储 with given memory order
         const auto _Mem       = _原子取地址为<short>(_Storage);
         const short _As_bytes = _原子重解释为<short>(_Value);
 
@@ -818,7 +818,7 @@ struct _原子存储<_类型, 2> { // lock-free using 2-byte intrinsics
         }
     }
 
-    _NODISCARD _TVal 载入(
+    _NODISCARD _值类型参数 载入(
         const 内存序 _Order = 内存序顺序一致) const noexcept { // 载入 with given memory order
         const auto _Mem = _原子取地址为<short>(_Storage);
         short _As_bytes;
@@ -828,24 +828,24 @@ struct _原子存储<_类型, 2> { // lock-free using 2-byte intrinsics
         _As_bytes = __iso_volatile_load16(_Mem);
         _原子载入后栅栏按需(_Order)
 #endif // ^^^ _STD_ATOMIC_USE_ARM64_LDAR_STLR == 0 ^^^
-        return reinterpret_cast<_TVal&>(_As_bytes);
+        return reinterpret_cast<_值类型参数&>(_As_bytes);
     }
 
-    _TVal 置换(const _TVal _Value, const 内存序 _Order = 内存序顺序一致) noexcept {
+    _值类型参数 置换(const _值类型参数 _Value, const 内存序 _Order = 内存序顺序一致) noexcept {
         // 置换 with given memory order
         short _As_bytes;
         _原子选择内建(static_cast<unsigned int>(_Order), _As_bytes, _InterlockedExchange16,
             _原子取地址为<short>(_Storage), _原子重解释为<short>(_Value));
-        return reinterpret_cast<_TVal&>(_As_bytes);
+        return reinterpret_cast<_值类型参数&>(_As_bytes);
     }
 
-    bool 比较交换强(_TVal& _Expected, const _TVal _Desired,
+    bool 比较交换强(_值类型参数& _Expected, const _值类型参数 _Desired,
         const 内存序 _Order = 内存序顺序一致) noexcept { // CAS with given memory order
         short _Expected_bytes = _原子重解释为<short>(_Expected); // read before 原子实现 operation
         short _Prev_bytes;
 #if _CMPXCHG_MASK_OUT_PADDING_BITS
         if constexpr (_Might_have_non_value_bits<_类型>) {
-            _存储用于<_TVal> _Mask{_Form_mask};
+            _存储用于<_值类型参数> _Mask{_Form_mask};
             const short _Mask_val = _原子重解释为<short>(_Mask._引用标记());
 
             for (;;) {
@@ -857,7 +857,7 @@ struct _原子存储<_类型, 2> { // lock-free using 2-byte intrinsics
                 }
 
                 if ((_Prev_bytes ^ _Expected_bytes) & _Mask_val) {
-                    _CSTD memcpy(_STD addressof(_Expected), &_Prev_bytes, sizeof(_TVal));
+                    _CSTD memcpy(_STD addressof(_Expected), &_Prev_bytes, sizeof(_值类型参数));
                     return false;
                 }
                 _Expected_bytes = (_Expected_bytes & _Mask_val) | (_Prev_bytes & ~_Mask_val);
@@ -875,8 +875,8 @@ struct _原子存储<_类型, 2> { // lock-free using 2-byte intrinsics
     }
 
 #if _HAS_CXX20
-    void 等待(const _TVal _Expected, const 内存序 _Order = 内存序顺序一致) const noexcept {
-        _Atomic_wait_direct(this, _原子重解释为<short>(_Expected), _Order);
+    void 等待(const _值类型参数 _Expected, const 内存序 _Order = 内存序顺序一致) const noexcept {
+        _原子等待直达(this, _原子重解释为<short>(_Expected), _Order);
     }
 
     void 通知一个() noexcept {
@@ -890,12 +890,12 @@ struct _原子存储<_类型, 2> { // lock-free using 2-byte intrinsics
     }
 #endif // _HAS_CXX20
 
-    typename _原子存储类型<_类型>::_TStorage _Storage;
+    typename _原子存储类型<_类型>::_存储类型参数 _Storage;
 };
 
 template <class _类型>
 struct _原子存储<_类型, 4> { // lock-free using 4-byte intrinsics
-    using _TVal = _Remove_cvref_t<_类型>;
+    using _值类型参数 = _Remove_cvref_t<_类型>;
 
     _原子存储() = default;
 
@@ -903,13 +903,13 @@ struct _原子存储<_类型, 4> { // lock-free using 4-byte intrinsics
         // non-atomically initialize this 原子实现
     }
 
-    void 存储(const _TVal _Value) noexcept { // 存储 with sequential consistency
+    void 存储(const _值类型参数 _Value) noexcept { // 存储 with sequential consistency
         const auto _Mem     = _原子取地址为<int>(_Storage);
         const int _As_bytes = _原子重解释为<int>(_Value);
         _原子存储32顺序一致(_Mem, _As_bytes)
     }
 
-    void 存储(const _TVal _Value, const 内存序 _Order) noexcept { // 存储 with given memory order
+    void 存储(const _值类型参数 _Value, const 内存序 _Order) noexcept { // 存储 with given memory order
         const auto _Mem     = _原子取地址为<int>(_Storage);
         const int _As_bytes = _原子重解释为<int>(_Value);
 
@@ -924,7 +924,7 @@ struct _原子存储<_类型, 4> { // lock-free using 4-byte intrinsics
         }
     }
 
-    _NODISCARD _TVal 载入(
+    _NODISCARD _值类型参数 载入(
         const 内存序 _Order = 内存序顺序一致) const noexcept { // 载入 with given memory order
         const auto _Mem = _原子取地址为<int>(_Storage);
         int _As_bytes;
@@ -934,24 +934,24 @@ struct _原子存储<_类型, 4> { // lock-free using 4-byte intrinsics
         _As_bytes = __iso_volatile_load32(_Mem);
         _原子载入后栅栏按需(_Order)
 #endif // ^^^ _STD_ATOMIC_USE_ARM64_LDAR_STLR == 0 ^^^
-        return reinterpret_cast<_TVal&>(_As_bytes);
+        return reinterpret_cast<_值类型参数&>(_As_bytes);
     }
 
-    _TVal 置换(const _TVal _Value, const 内存序 _Order = 内存序顺序一致) noexcept {
+    _值类型参数 置换(const _值类型参数 _Value, const 内存序 _Order = 内存序顺序一致) noexcept {
         // 置换 with given memory order
         long _As_bytes;
         _原子选择内建(static_cast<unsigned int>(_Order), _As_bytes, _InterlockedExchange,
             _原子取地址为<long>(_Storage), _原子重解释为<long>(_Value));
-        return reinterpret_cast<_TVal&>(_As_bytes);
+        return reinterpret_cast<_值类型参数&>(_As_bytes);
     }
 
-    bool 比较交换强(_TVal& _Expected, const _TVal _Desired,
+    bool 比较交换强(_值类型参数& _Expected, const _值类型参数 _Desired,
         const 内存序 _Order = 内存序顺序一致) noexcept { // CAS with given memory order
         long _Expected_bytes = _原子重解释为<long>(_Expected); // read before 原子实现 operation
         long _Prev_bytes;
 #if _CMPXCHG_MASK_OUT_PADDING_BITS
-        if constexpr (_Might_have_non_value_bits<_TVal>) {
-            _存储用于<_TVal> _Mask{_Form_mask};
+        if constexpr (_Might_have_non_value_bits<_值类型参数>) {
+            _存储用于<_值类型参数> _Mask{_Form_mask};
             const long _Mask_val = _原子重解释为<long>(_Mask);
 
             for (;;) {
@@ -963,7 +963,7 @@ struct _原子存储<_类型, 4> { // lock-free using 4-byte intrinsics
                 }
 
                 if ((_Prev_bytes ^ _Expected_bytes) & _Mask_val) {
-                    _CSTD memcpy(_STD addressof(_Expected), &_Prev_bytes, sizeof(_TVal));
+                    _CSTD memcpy(_STD addressof(_Expected), &_Prev_bytes, sizeof(_值类型参数));
                     return false;
                 }
                 _Expected_bytes = (_Expected_bytes & _Mask_val) | (_Prev_bytes & ~_Mask_val);
@@ -976,13 +976,13 @@ struct _原子存储<_类型, 4> { // lock-free using 4-byte intrinsics
             return true;
         }
 
-        _CSTD memcpy(_STD addressof(_Expected), &_Prev_bytes, sizeof(_TVal));
+        _CSTD memcpy(_STD addressof(_Expected), &_Prev_bytes, sizeof(_值类型参数));
         return false;
     }
 
 #if _HAS_CXX20
-    void 等待(const _TVal _Expected, const 内存序 _Order = 内存序顺序一致) const noexcept {
-        _Atomic_wait_direct(this, _原子重解释为<long>(_Expected), _Order);
+    void 等待(const _值类型参数 _Expected, const 内存序 _Order = 内存序顺序一致) const noexcept {
+        _原子等待直达(this, _原子重解释为<long>(_Expected), _Order);
     }
 
     void 通知一个() noexcept {
@@ -996,12 +996,12 @@ struct _原子存储<_类型, 4> { // lock-free using 4-byte intrinsics
     }
 #endif // _HAS_CXX20
 
-    typename _原子存储类型<_类型>::_TStorage _Storage;
+    typename _原子存储类型<_类型>::_存储类型参数 _Storage;
 };
 
 template <class _类型>
 struct _原子存储<_类型, 8> { // lock-free using 8-byte intrinsics
-    using _TVal = _Remove_cvref_t<_类型>;
+    using _值类型参数 = _Remove_cvref_t<_类型>;
 
     _原子存储() = default;
 
@@ -1009,13 +1009,13 @@ struct _原子存储<_类型, 8> { // lock-free using 8-byte intrinsics
         // non-atomically initialize this 原子实现
     }
 
-    void 存储(const _TVal _Value) noexcept { // 存储 with sequential consistency
+    void 存储(const _值类型参数 _Value) noexcept { // 存储 with sequential consistency
         const auto _Mem           = _原子取地址为<long long>(_Storage);
         const long long _As_bytes = _原子重解释为<long long>(_Value);
         _原子存储64顺序一致(_Mem, _As_bytes);
     }
 
-    void 存储(const _TVal _Value, const 内存序 _Order) noexcept { // 存储 with given memory order
+    void 存储(const _值类型参数 _Value, const 内存序 _Order) noexcept { // 存储 with given memory order
         const auto _Mem           = _原子取地址为<long long>(_Storage);
         const long long _As_bytes = _原子重解释为<long long>(_Value);
 
@@ -1030,7 +1030,7 @@ struct _原子存储<_类型, 8> { // lock-free using 8-byte intrinsics
         }
     }
 
-    _NODISCARD _TVal 载入(
+    _NODISCARD _值类型参数 载入(
         const 内存序 _Order = 内存序顺序一致) const noexcept { // 载入 with given memory order
         const auto _Mem = _原子取地址为<long long>(_Storage);
         long long _As_bytes;
@@ -1046,36 +1046,36 @@ struct _原子存储<_类型, 8> { // lock-free using 8-byte intrinsics
 
         _原子载入后栅栏按需(_Order)
 #endif // ^^^ _STD_ATOMIC_USE_ARM64_LDAR_STLR != 1 ^^^
-        return reinterpret_cast<_TVal&>(_As_bytes);
+        return reinterpret_cast<_值类型参数&>(_As_bytes);
     }
 
 #ifdef _M_IX86
-    _TVal 置换(const _TVal _Value, const 内存序 _Order = 内存序顺序一致) noexcept {
+    _值类型参数 置换(const _值类型参数 _Value, const 内存序 _Order = 内存序顺序一致) noexcept {
         // 置换 with (effectively) sequential consistency
-        _TVal _Temp{载入()};
+        _值类型参数 _Temp{载入()};
         while (!比较交换强(_Temp, _Value, _Order)) { // keep trying
         }
 
         return _Temp;
     }
 #else // ^^^ defined(_M_IX86) / !defined(_M_IX86) vvv
-    _TVal 置换(const _TVal _Value, const 内存序 _Order = 内存序顺序一致) noexcept {
+    _值类型参数 置换(const _值类型参数 _Value, const 内存序 _Order = 内存序顺序一致) noexcept {
         // 置换 with given memory order
         long long _As_bytes;
         _原子选择内建(static_cast<unsigned int>(_Order), _As_bytes, _InterlockedExchange64,
             _原子取地址为<long long>(_Storage), _原子重解释为<long long>(_Value));
-        return reinterpret_cast<_TVal&>(_As_bytes);
+        return reinterpret_cast<_值类型参数&>(_As_bytes);
     }
 #endif // ^^^ !defined(_M_IX86) ^^^
 
-    bool 比较交换强(_TVal& _Expected, const _TVal _Desired,
+    bool 比较交换强(_值类型参数& _Expected, const _值类型参数 _Desired,
         const 内存序 _Order = 内存序顺序一致) noexcept { // CAS with given memory order
         long long _Expected_bytes = _原子重解释为<long long>(_Expected); // read before 原子实现 operation
         long long _Prev_bytes;
 
 #if _CMPXCHG_MASK_OUT_PADDING_BITS
-        if constexpr (_Might_have_non_value_bits<_TVal>) {
-            _存储用于<_TVal> _Mask{_Form_mask};
+        if constexpr (_Might_have_non_value_bits<_值类型参数>) {
+            _存储用于<_值类型参数> _Mask{_Form_mask};
             const long long _Mask_val = _原子重解释为<long long>(_Mask);
 
             for (;;) {
@@ -1087,7 +1087,7 @@ struct _原子存储<_类型, 8> { // lock-free using 8-byte intrinsics
                 }
 
                 if ((_Prev_bytes ^ _Expected_bytes) & _Mask_val) {
-                    _CSTD memcpy(_STD addressof(_Expected), &_Prev_bytes, sizeof(_TVal));
+                    _CSTD memcpy(_STD addressof(_Expected), &_Prev_bytes, sizeof(_值类型参数));
                     return false;
                 }
                 _Expected_bytes = (_Expected_bytes & _Mask_val) | (_Prev_bytes & ~_Mask_val);
@@ -1101,13 +1101,13 @@ struct _原子存储<_类型, 8> { // lock-free using 8-byte intrinsics
             return true;
         }
 
-        _CSTD memcpy(_STD addressof(_Expected), &_Prev_bytes, sizeof(_TVal));
+        _CSTD memcpy(_STD addressof(_Expected), &_Prev_bytes, sizeof(_值类型参数));
         return false;
     }
 
 #if _HAS_CXX20
-    void 等待(const _TVal _Expected, const 内存序 _Order = 内存序顺序一致) const noexcept {
-        _Atomic_wait_direct(this, _原子重解释为<long long>(_Expected), _Order);
+    void 等待(const _值类型参数 _Expected, const 内存序 _Order = 内存序顺序一致) const noexcept {
+        _原子等待直达(this, _原子重解释为<long long>(_Expected), _Order);
     }
 
     void 通知一个() noexcept {
@@ -1121,14 +1121,14 @@ struct _原子存储<_类型, 8> { // lock-free using 8-byte intrinsics
     }
 #endif // _HAS_CXX20
 
-    typename _原子存储类型<_类型>::_TStorage _Storage;
+    typename _原子存储类型<_类型>::_存储类型参数 _Storage;
 };
 
 #ifdef _WIN64
 template <class _类型>
 struct _原子存储<_类型&, 16> { // lock-free using 16-byte intrinsics
     // TRANSITION, ABI: replace '_类型&' with '_类型' in this specialization
-    using _TVal = _Remove_cvref_t<_类型&>;
+    using _值类型参数 = _Remove_cvref_t<_类型&>;
 
     _原子存储() = default;
 
@@ -1136,26 +1136,26 @@ struct _原子存储<_类型&, 16> { // lock-free using 16-byte intrinsics
     /* implicit */ constexpr _原子存储(_类型& _Value) noexcept
         : _Storage{_Value} {} // non-atomically initialize this 原子实现
 
-    void 存储(const _TVal _Value) noexcept { // 存储 with sequential consistency
+    void 存储(const _值类型参数 _Value) noexcept { // 存储 with sequential consistency
         (void) 置换(_Value);
     }
 
-    void 存储(const _TVal _Value, const 内存序 _Order) noexcept { // 存储 with given memory order
+    void 存储(const _值类型参数 _Value, const 内存序 _Order) noexcept { // 存储 with given memory order
         _检查存储内存序(_Order);
         (void) 置换(_Value, _Order);
     }
 
-    _NODISCARD _TVal 载入() const noexcept { // 载入 with sequential consistency
+    _NODISCARD _值类型参数 载入() const noexcept { // 载入 with sequential consistency
         long long* const _Storage_ptr = const_cast<long long*>(_原子取地址为<const long long>(_Storage));
-        _Int128 _结果{}; // 原子实现 CAS 0 with 0
+        _整数128 _结果{}; // 原子实现 CAS 0 with 0
         (void) _InterlockedCompareExchange128(_Storage_ptr, 0, 0, &_结果._Low);
-        return reinterpret_cast<_TVal&>(_结果);
+        return reinterpret_cast<_值类型参数&>(_结果);
     }
 
-    _NODISCARD _TVal 载入(const 内存序 _Order) const noexcept { // 载入 with given memory order
+    _NODISCARD _值类型参数 载入(const 内存序 _Order) const noexcept { // 载入 with given memory order
 #if defined(_M_ARM64) || defined(_M_ARM64EC)
         long long* const _Storage_ptr = const_cast<long long*>(_原子取地址为<const long long>(_Storage));
-        _Int128 _结果{}; // 原子实现 CAS 0 with 0
+        _整数128 _结果{}; // 原子实现 CAS 0 with 0
         switch (_Order) {
         case 内存序松弛:
             (void) _INTRIN_RELAXED(_InterlockedCompareExchange128)(_Storage_ptr, 0, 0, &_结果._Low);
@@ -1174,44 +1174,44 @@ struct _原子存储<_类型&, 16> { // lock-free using 16-byte intrinsics
             break;
         }
 
-        return reinterpret_cast<_TVal&>(_结果);
+        return reinterpret_cast<_值类型参数&>(_结果);
 #else // ^^^ _M_ARM64, _M_ARM64EC / _M_X64 vvv
         _检查载入内存序(_Order);
         return 载入();
 #endif // ^^^ _M_X64 ^^^
     }
 
-    _TVal 置换(const _TVal _Value) noexcept { // 置换 with sequential consistency
-        _TVal _结果{_Value};
+    _值类型参数 置换(const _值类型参数 _Value) noexcept { // 置换 with sequential consistency
+        _值类型参数 _结果{_Value};
         while (!比较交换强(_结果, _Value)) { // keep trying
         }
 
         return _结果;
     }
 
-    _TVal 置换(const _TVal _Value, const 内存序 _Order) noexcept { // 置换 with given memory order
-        _TVal _结果{_Value};
+    _值类型参数 置换(const _值类型参数 _Value, const 内存序 _Order) noexcept { // 置换 with given memory order
+        _值类型参数 _结果{_Value};
         while (!比较交换强(_结果, _Value, _Order)) { // keep trying
         }
 
         return _结果;
     }
 
-    bool 比较交换强(_TVal& _Expected, const _TVal _Desired,
+    bool 比较交换强(_值类型参数& _Expected, const _值类型参数 _Desired,
         const 内存序 _Order = 内存序顺序一致) noexcept { // CAS with given memory order
-        _Int128 _Desired_bytes{};
-        _CSTD memcpy(&_Desired_bytes, _STD addressof(_Desired), sizeof(_TVal));
-        _Int128 _Expected_temp{};
-        _CSTD memcpy(&_Expected_temp, _STD addressof(_Expected), sizeof(_TVal));
+        _整数128 _Desired_bytes{};
+        _CSTD memcpy(&_Desired_bytes, _STD addressof(_Desired), sizeof(_值类型参数));
+        _整数128 _Expected_temp{};
+        _CSTD memcpy(&_Expected_temp, _STD addressof(_Expected), sizeof(_值类型参数));
         unsigned char _结果;
 #if _CMPXCHG_MASK_OUT_PADDING_BITS
-        if constexpr (_Might_have_non_value_bits<_TVal>) {
-            _Int128 _Expected_originally{};
-            _CSTD memcpy(&_Expected_originally, _STD addressof(_Expected), sizeof(_TVal));
+        if constexpr (_Might_have_non_value_bits<_值类型参数>) {
+            _整数128 _Expected_originally{};
+            _CSTD memcpy(&_Expected_originally, _STD addressof(_Expected), sizeof(_值类型参数));
 
-            _存储用于<_TVal> _Mask{_Form_mask};
-            _Int128 _Mask_val{};
-            _CSTD memcpy(&_Mask_val, _Mask._Ptr(), sizeof(_TVal));
+            _存储用于<_值类型参数> _Mask{_Form_mask};
+            _整数128 _Mask_val{};
+            _CSTD memcpy(&_Mask_val, _Mask._指针(), sizeof(_值类型参数));
             for (;;) {
 #if defined(_M_ARM64) || defined(_M_ARM64EC)
                 _原子选择内建(static_cast<unsigned int>(_Order), _结果, _InterlockedCompareExchange128,
@@ -1228,7 +1228,7 @@ struct _原子存储<_类型&, 16> { // lock-free using 16-byte intrinsics
 
                 if (((_Expected_temp._Low ^ _Expected_originally._Low) & _Mask_val._Low) != 0
                     || ((_Expected_temp._High ^ _Expected_originally._High) & _Mask_val._High) != 0) {
-                    _CSTD memcpy(_STD addressof(_Expected), &_Expected_temp, sizeof(_TVal));
+                    _CSTD memcpy(_STD addressof(_Expected), &_Expected_temp, sizeof(_值类型参数));
                     return false;
                 }
 
@@ -1249,26 +1249,26 @@ struct _原子存储<_类型&, 16> { // lock-free using 16-byte intrinsics
             _Desired_bytes._Low, &_Expected_temp._Low);
 #endif // ^^^ _M_X64 ^^^
         if (_结果 == 0) {
-            _CSTD memcpy(_STD addressof(_Expected), &_Expected_temp, sizeof(_TVal));
+            _CSTD memcpy(_STD addressof(_Expected), &_Expected_temp, sizeof(_值类型参数));
         }
 
         return _结果 != 0;
     }
 
 #if _HAS_CXX20
-    void 等待(_TVal _Expected, 内存序 _Order = 内存序顺序一致) const noexcept {
+    void 等待(_值类型参数 _Expected, 内存序 _Order = 内存序顺序一致) const noexcept {
         const auto _Storage_ptr  = const_cast<const void*>(static_cast<const volatile void*>(_STD addressof(_Storage)));
         const auto _Expected_ptr = _STD addressof(_Expected);
-        _Int128 _Expected_bytes  = reinterpret_cast<const _Int128&>(_Expected);
+        _整数128 _Expected_bytes  = reinterpret_cast<const _整数128&>(_Expected);
 
         for (;;) {
-            const _TVal _Observed   = 载入(_Order);
-            _Int128 _Observed_bytes = reinterpret_cast<const _Int128&>(_Observed);
+            const _值类型参数 _Observed   = 载入(_Order);
+            _整数128 _Observed_bytes = reinterpret_cast<const _整数128&>(_Observed);
             if (_Observed_bytes._Low != _Expected_bytes._Low || _Observed_bytes._High != _Expected_bytes._High) {
 #if _CMPXCHG_MASK_OUT_PADDING_BITS
-                if constexpr (_Might_have_non_value_bits<_TVal>) {
-                    _存储用于<_TVal> _Mask{_Form_mask};
-                    const _Int128 _Mask_val = reinterpret_cast<const _Int128&>(_Mask._引用标记());
+                if constexpr (_Might_have_non_value_bits<_值类型参数>) {
+                    _存储用于<_值类型参数> _Mask{_Form_mask};
+                    const _整数128 _Mask_val = reinterpret_cast<const _整数128&>(_Mask._引用标记());
 
                     if (((_Expected_bytes._Low ^ _Observed_bytes._Low) & _Mask_val._Low) == 0
                         && ((_Expected_bytes._High ^ _Observed_bytes._High) & _Mask_val._High) == 0) {
@@ -1281,7 +1281,7 @@ struct _原子存储<_类型&, 16> { // lock-free using 16-byte intrinsics
                 return;
             }
 
-            ::__std_atomic_wait_indirect(_Storage_ptr, _Expected_ptr, sizeof(_TVal), nullptr,
+            ::__std_atomic_wait_indirect(_Storage_ptr, _Expected_ptr, sizeof(_值类型参数), nullptr,
                 &_原子等待比较16字节, __std_atomic_wait_no_timeout);
         }
     }
@@ -1297,12 +1297,12 @@ struct _原子存储<_类型&, 16> { // lock-free using 16-byte intrinsics
     }
 #endif // _HAS_CXX20
 
-    struct _Int128 {
+    struct _整数128 {
         alignas(16) long long _Low;
         long long _High;
     };
 
-    typename _原子存储类型<_类型&>::_TStorage _Storage;
+    typename _原子存储类型<_类型&>::_存储类型参数 _Storage;
 };
 #endif // defined(_WIN64)
 
@@ -1312,286 +1312,286 @@ struct _原子整数; // not defined
 template <class _类型>
 struct _原子整数<_类型, 1> : _原子存储<_类型> { // 原子实现 integral operations using 1-byte intrinsics
     using _基 = _原子存储<_类型>;
-    using typename _基::_TVal;
+    using typename _基::_值类型参数;
 
     using _基::_基;
 
-    _TVal 取加(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
+    _值类型参数 取加(const _值类型参数 _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
         char _结果;
         _原子选择内建(static_cast<unsigned int>(_Order), _结果, _InterlockedExchangeAdd8,
             _原子取地址为<char>(this->_Storage), static_cast<char>(_Operand));
-        return static_cast<_TVal>(_结果);
+        return static_cast<_值类型参数>(_结果);
     }
 
-    _TVal 取与(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
+    _值类型参数 取与(const _值类型参数 _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
         char _结果;
         _原子选择内建(static_cast<unsigned int>(_Order), _结果, _InterlockedAnd8,
             _原子取地址为<char>(this->_Storage), static_cast<char>(_Operand));
-        return static_cast<_TVal>(_结果);
+        return static_cast<_值类型参数>(_结果);
     }
 
-    _TVal 取或(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
+    _值类型参数 取或(const _值类型参数 _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
         char _结果;
         _原子选择内建(static_cast<unsigned int>(_Order), _结果, _InterlockedOr8,
             _原子取地址为<char>(this->_Storage), static_cast<char>(_Operand));
-        return static_cast<_TVal>(_结果);
+        return static_cast<_值类型参数>(_结果);
     }
 
-    _TVal 取异或(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
+    _值类型参数 取异或(const _值类型参数 _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
         char _结果;
         _原子选择内建(static_cast<unsigned int>(_Order), _结果, _InterlockedXor8,
             _原子取地址为<char>(this->_Storage), static_cast<char>(_Operand));
-        return static_cast<_TVal>(_结果);
+        return static_cast<_值类型参数>(_结果);
     }
 
-    _TVal operator++(int) noexcept {
-        return static_cast<_TVal>(_InterlockedExchangeAdd8(_原子取地址为<char>(this->_Storage), 1));
+    _值类型参数 operator++(int) noexcept {
+        return static_cast<_值类型参数>(_InterlockedExchangeAdd8(_原子取地址为<char>(this->_Storage), 1));
     }
 
-    _TVal operator++() noexcept {
+    _值类型参数 operator++() noexcept {
         unsigned char _Before =
             static_cast<unsigned char>(_InterlockedExchangeAdd8(_原子取地址为<char>(this->_Storage), 1));
         ++_Before;
-        return static_cast<_TVal>(_Before);
+        return static_cast<_值类型参数>(_Before);
     }
 
-    _TVal operator--(int) noexcept {
-        return static_cast<_TVal>(_InterlockedExchangeAdd8(_原子取地址为<char>(this->_Storage), -1));
+    _值类型参数 operator--(int) noexcept {
+        return static_cast<_值类型参数>(_InterlockedExchangeAdd8(_原子取地址为<char>(this->_Storage), -1));
     }
 
-    _TVal operator--() noexcept {
+    _值类型参数 operator--() noexcept {
         unsigned char _Before =
             static_cast<unsigned char>(_InterlockedExchangeAdd8(_原子取地址为<char>(this->_Storage), -1));
         --_Before;
-        return static_cast<_TVal>(_Before);
+        return static_cast<_值类型参数>(_Before);
     }
 };
 
 template <class _类型>
 struct _原子整数<_类型, 2> : _原子存储<_类型> { // 原子实现 integral operations using 2-byte intrinsics
     using _基 = _原子存储<_类型>;
-    using typename _基::_TVal;
+    using typename _基::_值类型参数;
 
     using _基::_基;
 
-    _TVal 取加(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
+    _值类型参数 取加(const _值类型参数 _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
         short _结果;
         _原子选择内建(static_cast<unsigned int>(_Order), _结果, _InterlockedExchangeAdd16,
             _原子取地址为<short>(this->_Storage), static_cast<short>(_Operand));
-        return static_cast<_TVal>(_结果);
+        return static_cast<_值类型参数>(_结果);
     }
 
-    _TVal 取与(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
+    _值类型参数 取与(const _值类型参数 _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
         short _结果;
         _原子选择内建(static_cast<unsigned int>(_Order), _结果, _InterlockedAnd16,
             _原子取地址为<short>(this->_Storage), static_cast<short>(_Operand));
-        return static_cast<_TVal>(_结果);
+        return static_cast<_值类型参数>(_结果);
     }
 
-    _TVal 取或(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
+    _值类型参数 取或(const _值类型参数 _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
         short _结果;
         _原子选择内建(static_cast<unsigned int>(_Order), _结果, _InterlockedOr16,
             _原子取地址为<short>(this->_Storage), static_cast<short>(_Operand));
-        return static_cast<_TVal>(_结果);
+        return static_cast<_值类型参数>(_结果);
     }
 
-    _TVal 取异或(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
+    _值类型参数 取异或(const _值类型参数 _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
         short _结果;
         _原子选择内建(static_cast<unsigned int>(_Order), _结果, _InterlockedXor16,
             _原子取地址为<short>(this->_Storage), static_cast<short>(_Operand));
-        return static_cast<_TVal>(_结果);
+        return static_cast<_值类型参数>(_结果);
     }
 
-    _TVal operator++(int) noexcept {
+    _值类型参数 operator++(int) noexcept {
         unsigned short _After =
             static_cast<unsigned short>(_InterlockedIncrement16(_原子取地址为<short>(this->_Storage)));
         --_After;
-        return static_cast<_TVal>(_After);
+        return static_cast<_值类型参数>(_After);
     }
 
-    _TVal operator++() noexcept {
-        return static_cast<_TVal>(_InterlockedIncrement16(_原子取地址为<short>(this->_Storage)));
+    _值类型参数 operator++() noexcept {
+        return static_cast<_值类型参数>(_InterlockedIncrement16(_原子取地址为<short>(this->_Storage)));
     }
 
-    _TVal operator--(int) noexcept {
+    _值类型参数 operator--(int) noexcept {
         unsigned short _After =
             static_cast<unsigned short>(_InterlockedDecrement16(_原子取地址为<short>(this->_Storage)));
         ++_After;
-        return static_cast<_TVal>(_After);
+        return static_cast<_值类型参数>(_After);
     }
 
-    _TVal operator--() noexcept {
-        return static_cast<_TVal>(_InterlockedDecrement16(_原子取地址为<short>(this->_Storage)));
+    _值类型参数 operator--() noexcept {
+        return static_cast<_值类型参数>(_InterlockedDecrement16(_原子取地址为<short>(this->_Storage)));
     }
 };
 
 template <class _类型>
 struct _原子整数<_类型, 4> : _原子存储<_类型> { // 原子实现 integral operations using 4-byte intrinsics
     using _基 = _原子存储<_类型>;
-    using typename _基::_TVal;
+    using typename _基::_值类型参数;
 
     using _基::_基;
 
-    _TVal 取加(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
+    _值类型参数 取加(const _值类型参数 _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
         long _结果;
         _原子选择内建(static_cast<unsigned int>(_Order), _结果, _InterlockedExchangeAdd,
             _原子取地址为<long>(this->_Storage), static_cast<long>(_Operand));
-        return static_cast<_TVal>(_结果);
+        return static_cast<_值类型参数>(_结果);
     }
 
-    _TVal 取与(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
+    _值类型参数 取与(const _值类型参数 _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
         long _结果;
         _原子选择内建(static_cast<unsigned int>(_Order), _结果, _InterlockedAnd,
             _原子取地址为<long>(this->_Storage), static_cast<long>(_Operand));
-        return static_cast<_TVal>(_结果);
+        return static_cast<_值类型参数>(_结果);
     }
 
-    _TVal 取或(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
+    _值类型参数 取或(const _值类型参数 _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
         long _结果;
         _原子选择内建(static_cast<unsigned int>(_Order), _结果, _InterlockedOr,
             _原子取地址为<long>(this->_Storage), static_cast<long>(_Operand));
-        return static_cast<_TVal>(_结果);
+        return static_cast<_值类型参数>(_结果);
     }
 
-    _TVal 取异或(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
+    _值类型参数 取异或(const _值类型参数 _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
         long _结果;
         _原子选择内建(static_cast<unsigned int>(_Order), _结果, _InterlockedXor,
             _原子取地址为<long>(this->_Storage), static_cast<long>(_Operand));
-        return static_cast<_TVal>(_结果);
+        return static_cast<_值类型参数>(_结果);
     }
 
-    _TVal operator++(int) noexcept {
+    _值类型参数 operator++(int) noexcept {
         unsigned long _After =
             static_cast<unsigned long>(_InterlockedIncrement(_原子取地址为<long>(this->_Storage)));
         --_After;
-        return static_cast<_TVal>(_After);
+        return static_cast<_值类型参数>(_After);
     }
 
-    _TVal operator++() noexcept {
-        return static_cast<_TVal>(_InterlockedIncrement(_原子取地址为<long>(this->_Storage)));
+    _值类型参数 operator++() noexcept {
+        return static_cast<_值类型参数>(_InterlockedIncrement(_原子取地址为<long>(this->_Storage)));
     }
 
-    _TVal operator--(int) noexcept {
+    _值类型参数 operator--(int) noexcept {
         unsigned long _After =
             static_cast<unsigned long>(_InterlockedDecrement(_原子取地址为<long>(this->_Storage)));
         ++_After;
-        return static_cast<_TVal>(_After);
+        return static_cast<_值类型参数>(_After);
     }
 
-    _TVal operator--() noexcept {
-        return static_cast<_TVal>(_InterlockedDecrement(_原子取地址为<long>(this->_Storage)));
+    _值类型参数 operator--() noexcept {
+        return static_cast<_值类型参数>(_InterlockedDecrement(_原子取地址为<long>(this->_Storage)));
     }
 };
 
 template <class _类型>
 struct _原子整数<_类型, 8> : _原子存储<_类型> { // 原子实现 integral operations using 8-byte intrinsics
     using _基 = _原子存储<_类型>;
-    using typename _基::_TVal;
+    using typename _基::_值类型参数;
 
     using _基::_基;
 
 #ifdef _M_IX86
-    _TVal 取加(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
+    _值类型参数 取加(const _值类型参数 _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
         // effectively sequential consistency
-        _TVal _Temp{this->载入()};
+        _值类型参数 _Temp{this->载入()};
         while (!this->比较交换强(_Temp, _Temp + _Operand, _Order)) { // keep trying
         }
 
         return _Temp;
     }
 
-    _TVal 取与(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
+    _值类型参数 取与(const _值类型参数 _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
         // effectively sequential consistency
-        _TVal _Temp{this->载入()};
+        _值类型参数 _Temp{this->载入()};
         while (!this->比较交换强(_Temp, _Temp & _Operand, _Order)) { // keep trying
         }
 
         return _Temp;
     }
 
-    _TVal 取或(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
+    _值类型参数 取或(const _值类型参数 _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
         // effectively sequential consistency
-        _TVal _Temp{this->载入()};
+        _值类型参数 _Temp{this->载入()};
         while (!this->比较交换强(_Temp, _Temp | _Operand, _Order)) { // keep trying
         }
 
         return _Temp;
     }
 
-    _TVal 取异或(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
+    _值类型参数 取异或(const _值类型参数 _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
         // effectively sequential consistency
-        _TVal _Temp{this->载入()};
+        _值类型参数 _Temp{this->载入()};
         while (!this->比较交换强(_Temp, _Temp ^ _Operand, _Order)) { // keep trying
         }
 
         return _Temp;
     }
 
-    _TVal operator++(int) noexcept {
-        return 取加(static_cast<_TVal>(1));
+    _值类型参数 operator++(int) noexcept {
+        return 取加(static_cast<_值类型参数>(1));
     }
 
-    _TVal operator++() noexcept {
-        return 取加(static_cast<_TVal>(1)) + static_cast<_TVal>(1);
+    _值类型参数 operator++() noexcept {
+        return 取加(static_cast<_值类型参数>(1)) + static_cast<_值类型参数>(1);
     }
 
-    _TVal operator--(int) noexcept {
-        return 取加(static_cast<_TVal>(-1));
+    _值类型参数 operator--(int) noexcept {
+        return 取加(static_cast<_值类型参数>(-1));
     }
 
-    _TVal operator--() noexcept {
-        return 取加(static_cast<_TVal>(-1)) - static_cast<_TVal>(1);
+    _值类型参数 operator--() noexcept {
+        return 取加(static_cast<_值类型参数>(-1)) - static_cast<_值类型参数>(1);
     }
 
 #else // ^^^ defined(_M_IX86) / !defined(_M_IX86) vvv
-    _TVal 取加(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
+    _值类型参数 取加(const _值类型参数 _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
         long long _结果;
         _原子选择内建(static_cast<unsigned int>(_Order), _结果, _InterlockedExchangeAdd64,
             _原子取地址为<long long>(this->_Storage), static_cast<long long>(_Operand));
-        return static_cast<_TVal>(_结果);
+        return static_cast<_值类型参数>(_结果);
     }
 
-    _TVal 取与(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
+    _值类型参数 取与(const _值类型参数 _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
         long long _结果;
         _原子选择内建(static_cast<unsigned int>(_Order), _结果, _InterlockedAnd64,
             _原子取地址为<long long>(this->_Storage), static_cast<long long>(_Operand));
-        return static_cast<_TVal>(_结果);
+        return static_cast<_值类型参数>(_结果);
     }
 
-    _TVal 取或(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
+    _值类型参数 取或(const _值类型参数 _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
         long long _结果;
         _原子选择内建(static_cast<unsigned int>(_Order), _结果, _InterlockedOr64,
             _原子取地址为<long long>(this->_Storage), static_cast<long long>(_Operand));
-        return static_cast<_TVal>(_结果);
+        return static_cast<_值类型参数>(_结果);
     }
 
-    _TVal 取异或(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
+    _值类型参数 取异或(const _值类型参数 _Operand, const 内存序 _Order = 内存序顺序一致) noexcept {
         long long _结果;
         _原子选择内建(static_cast<unsigned int>(_Order), _结果, _InterlockedXor64,
             _原子取地址为<long long>(this->_Storage), static_cast<long long>(_Operand));
-        return static_cast<_TVal>(_结果);
+        return static_cast<_值类型参数>(_结果);
     }
 
-    _TVal operator++(int) noexcept {
+    _值类型参数 operator++(int) noexcept {
         unsigned long long _After = static_cast<unsigned long long>(
             _InterlockedIncrement64(_原子取地址为<long long>(this->_Storage)));
         --_After;
-        return static_cast<_TVal>(_After);
+        return static_cast<_值类型参数>(_After);
     }
 
-    _TVal operator++() noexcept {
-        return static_cast<_TVal>(_InterlockedIncrement64(_原子取地址为<long long>(this->_Storage)));
+    _值类型参数 operator++() noexcept {
+        return static_cast<_值类型参数>(_InterlockedIncrement64(_原子取地址为<long long>(this->_Storage)));
     }
 
-    _TVal operator--(int) noexcept {
+    _值类型参数 operator--(int) noexcept {
         unsigned long long _After = static_cast<unsigned long long>(
             _InterlockedDecrement64(_原子取地址为<long long>(this->_Storage)));
         ++_After;
-        return static_cast<_TVal>(_After);
+        return static_cast<_值类型参数>(_After);
     }
 
-    _TVal operator--() noexcept {
-        return static_cast<_TVal>(_InterlockedDecrement64(_原子取地址为<long long>(this->_Storage)));
+    _值类型参数 operator--() noexcept {
+        return static_cast<_值类型参数>(_InterlockedDecrement64(_原子取地址为<long long>(this->_Storage)));
     }
 #endif // ^^^ !defined(_M_IX86) ^^^
 };
@@ -1641,24 +1641,24 @@ struct _原子整数门面 : _原子整数<_类型> {
         return const_cast<_原子整数门面*>(this)->_基::取加(_Operand, _Order);
     }
 
-    _NODISCARD static _类型 _Negate(const _类型 _Value) noexcept { // returns two's complement negated value of _Value
+    _NODISCARD static _类型 _取负(const _类型 _Value) noexcept { // returns two's complement negated value of _Value
         return static_cast<_类型>(0U - static_cast<make_unsigned_t<_类型>>(_Value));
     }
 
     _类型 取减(const _类型 _Operand) noexcept {
-        return 取加(_Negate(_Operand));
+        return 取加(_取负(_Operand));
     }
 
     _类型 取减(const _类型 _Operand) volatile noexcept {
-        return 取加(_Negate(_Operand));
+        return 取加(_取负(_Operand));
     }
 
     _类型 取减(const _类型 _Operand, const 内存序 _Order) noexcept {
-        return 取加(_Negate(_Operand), _Order);
+        return 取加(_取负(_Operand), _Order);
     }
 
     _类型 取减(const _类型 _Operand, const 内存序 _Order) volatile noexcept {
-        return 取加(_Negate(_Operand), _Order);
+        return 取加(_取负(_Operand), _Order);
     }
 
     using _基::取与;
@@ -1752,88 +1752,88 @@ struct _原子整数门面<_类型&> : _原子整数<_类型&> {
     // provides operator overloads and other support for 原子实现 integral specializations
     using _基           = _原子整数<_类型&>;
     using difference_type = remove_cv_t<_类型>;
-    using typename _基::_TVal;
+    using typename _基::_值类型参数;
 
     using _基::_基;
 
-    _NODISCARD static _TVal _Negate(const _TVal _Value) noexcept { // returns two's complement negated value of _Value
-        return static_cast<_TVal>(0U - static_cast<make_unsigned_t<_TVal>>(_Value));
+    _NODISCARD static _值类型参数 _取负(const _值类型参数 _Value) noexcept { // returns two's complement negated value of _Value
+        return static_cast<_值类型参数>(0U - static_cast<make_unsigned_t<_值类型参数>>(_Value));
     }
 
-    _TVal 取加(const _TVal _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
+    _值类型参数 取加(const _值类型参数 _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
         return const_cast<_原子整数门面*>(this)->_基::取加(_Operand);
     }
 
-    _TVal 取加(const _TVal _Operand, const 内存序 _Order) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
+    _值类型参数 取加(const _值类型参数 _Operand, const 内存序 _Order) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
         return const_cast<_原子整数门面*>(this)->_基::取加(_Operand, _Order);
     }
 
-    _TVal 取减(const _TVal _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
-        return 取加(_Negate(_Operand));
+    _值类型参数 取减(const _值类型参数 _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
+        return 取加(_取负(_Operand));
     }
 
-    _TVal 取减(const _TVal _Operand, const 内存序 _Order) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
-        return 取加(_Negate(_Operand), _Order);
+    _值类型参数 取减(const _值类型参数 _Operand, const 内存序 _Order) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
+        return 取加(_取负(_Operand), _Order);
     }
 
-    _TVal operator++(int) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
+    _值类型参数 operator++(int) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
         return const_cast<_原子整数门面*>(this)->_基::operator++(0);
     }
 
-    _TVal operator++() const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
+    _值类型参数 operator++() const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
         return const_cast<_原子整数门面*>(this)->_基::operator++();
     }
 
-    _TVal operator--(int) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
+    _值类型参数 operator--(int) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
         return const_cast<_原子整数门面*>(this)->_基::operator--(0);
     }
 
-    _TVal operator--() const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
+    _值类型参数 operator--() const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
         return const_cast<_原子整数门面*>(this)->_基::operator--();
     }
 
-    _TVal operator+=(const _TVal _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
-        return static_cast<_TVal>(取加(_Operand) + _Operand);
+    _值类型参数 operator+=(const _值类型参数 _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
+        return static_cast<_值类型参数>(取加(_Operand) + _Operand);
     }
 
-    _TVal operator-=(const _TVal _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
-        return static_cast<_TVal>(取减(_Operand) - _Operand);
+    _值类型参数 operator-=(const _值类型参数 _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
+        return static_cast<_值类型参数>(取减(_Operand) - _Operand);
     }
 
-    _TVal 取与(const _TVal _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
+    _值类型参数 取与(const _值类型参数 _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
         return const_cast<_原子整数门面*>(this)->_基::取与(_Operand);
     }
 
-    _TVal 取与(const _TVal _Operand, const 内存序 _Order) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
+    _值类型参数 取与(const _值类型参数 _Operand, const 内存序 _Order) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
         return const_cast<_原子整数门面*>(this)->_基::取与(_Operand, _Order);
     }
 
-    _TVal 取或(const _TVal _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
+    _值类型参数 取或(const _值类型参数 _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
         return const_cast<_原子整数门面*>(this)->_基::取或(_Operand);
     }
 
-    _TVal 取或(const _TVal _Operand, const 内存序 _Order) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
+    _值类型参数 取或(const _值类型参数 _Operand, const 内存序 _Order) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
         return const_cast<_原子整数门面*>(this)->_基::取或(_Operand, _Order);
     }
 
-    _TVal 取异或(const _TVal _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
+    _值类型参数 取异或(const _值类型参数 _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
         return const_cast<_原子整数门面*>(this)->_基::取异或(_Operand);
     }
 
-    _TVal 取异或(const _TVal _Operand, const 内存序 _Order) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
+    _值类型参数 取异或(const _值类型参数 _Operand, const 内存序 _Order) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
         return const_cast<_原子整数门面*>(this)->_基::取异或(_Operand, _Order);
     }
 
-    _TVal operator&=(const _TVal _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
-        return static_cast<_TVal>(取与(_Operand) & _Operand);
+    _值类型参数 operator&=(const _值类型参数 _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
+        return static_cast<_值类型参数>(取与(_Operand) & _Operand);
     }
 
-    _TVal operator|=(const _TVal _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
-        return static_cast<_TVal>(取或(_Operand) | _Operand);
+    _值类型参数 operator|=(const _值类型参数 _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
+        return static_cast<_值类型参数>(取或(_Operand) | _Operand);
     }
 
-    _TVal operator^=(const _TVal _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
-        return static_cast<_TVal>(取异或(_Operand) ^ _Operand);
+    _值类型参数 operator^=(const _值类型参数 _Operand) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
+        return static_cast<_值类型参数>(取异或(_Operand) ^ _Operand);
     }
 };
 
@@ -1900,14 +1900,14 @@ struct _原子浮点<_类型&> : _原子存储<_类型&> {
     // provides 原子实现 floating-point operations
     using _基           = _原子存储<_类型&>;
     using difference_type = remove_cv_t<_类型>;
-    using typename _基::_TVal;
+    using typename _基::_值类型参数;
 
     using _基::_基;
 
-    _TVal 取加(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) const noexcept
+    _值类型参数 取加(const _值类型参数 _Operand, const 内存序 _Order = 内存序顺序一致) const noexcept
         requires (!is_const_v<_类型>)
     {
-        _TVal _Temp{this->载入(内存序松弛)};
+        _值类型参数 _Temp{this->载入(内存序松弛)};
         while (!const_cast<_原子浮点*>(this)->_基::比较交换强(
             _Temp, _Temp + _Operand, _Order)) { // keep trying
         }
@@ -1915,10 +1915,10 @@ struct _原子浮点<_类型&> : _原子存储<_类型&> {
         return _Temp;
     }
 
-    _TVal 取减(const _TVal _Operand, const 内存序 _Order = 内存序顺序一致) const noexcept
+    _值类型参数 取减(const _值类型参数 _Operand, const 内存序 _Order = 内存序顺序一致) const noexcept
         requires (!is_const_v<_类型>)
     {
-        _TVal _Temp{this->载入(内存序松弛)};
+        _值类型参数 _Temp{this->载入(内存序松弛)};
         while (!const_cast<_原子浮点*>(this)->_基::比较交换强(
             _Temp, _Temp - _Operand, _Order)) { // keep trying
         }
@@ -1926,13 +1926,13 @@ struct _原子浮点<_类型&> : _原子存储<_类型&> {
         return _Temp;
     }
 
-    _TVal operator+=(const _TVal _Operand) const noexcept
+    _值类型参数 operator+=(const _值类型参数 _Operand) const noexcept
         requires (!is_const_v<_类型>)
     {
         return 取加(_Operand) + _Operand;
     }
 
-    _TVal operator-=(const _TVal _Operand) const noexcept
+    _值类型参数 operator-=(const _值类型参数 _Operand) const noexcept
         requires (!is_const_v<_类型>)
     {
         return 取减(_Operand) - _Operand;
@@ -2040,11 +2040,11 @@ template <class _类型>
 struct _原子指针<_类型&> : _原子存储<_类型&> {
     using _基           = _原子存储<_类型&>;
     using difference_type = ptrdiff_t;
-    using typename _基::_TVal;
+    using typename _基::_值类型参数;
 
     using _基::_基;
 
-    _TVal 取加(const ptrdiff_t _Diff, const 内存序 _Order = 内存序顺序一致) const noexcept
+    _值类型参数 取加(const ptrdiff_t _Diff, const 内存序 _Order = 内存序顺序一致) const noexcept
         _REQUIRES_CLAUSE(!is_const_v<_类型>) {
         const ptrdiff_t _Shift_bytes =
             static_cast<ptrdiff_t>(static_cast<size_t>(_Diff) * sizeof(remove_pointer_t<_类型>));
@@ -2056,39 +2056,39 @@ struct _原子指针<_类型&> : _原子存储<_类型&> {
         _原子选择内建(static_cast<unsigned int>(_Order), _结果, _InterlockedExchangeAdd64,
             _原子取地址为<long long>(this->_Storage), _Shift_bytes);
 #endif // ^^^ 64 bits ^^^
-        return reinterpret_cast<_TVal>(_结果);
+        return reinterpret_cast<_值类型参数>(_结果);
     }
 
-    _TVal 取减(const ptrdiff_t _Diff) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
+    _值类型参数 取减(const ptrdiff_t _Diff) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
         return 取加(static_cast<ptrdiff_t>(0 - static_cast<size_t>(_Diff)));
     }
 
-    _TVal 取减(const ptrdiff_t _Diff, const 内存序 _Order) const noexcept
+    _值类型参数 取减(const ptrdiff_t _Diff, const 内存序 _Order) const noexcept
         _REQUIRES_CLAUSE(!is_const_v<_类型>) {
         return 取加(static_cast<ptrdiff_t>(0 - static_cast<size_t>(_Diff)), _Order);
     }
 
-    _TVal operator++(int) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
+    _值类型参数 operator++(int) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
         return 取加(1);
     }
 
-    _TVal operator++() const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
+    _值类型参数 operator++() const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
         return 取加(1) + 1;
     }
 
-    _TVal operator--(int) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
+    _值类型参数 operator--(int) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
         return 取加(-1);
     }
 
-    _TVal operator--() const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
+    _值类型参数 operator--() const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
         return 取加(-1) - 1;
     }
 
-    _TVal operator+=(const ptrdiff_t _Diff) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
+    _值类型参数 operator+=(const ptrdiff_t _Diff) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
         return 取加(_Diff) + _Diff;
     }
 
-    _TVal operator-=(const ptrdiff_t _Diff) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
+    _值类型参数 operator-=(const ptrdiff_t _Diff) const noexcept _REQUIRES_CLAUSE(!is_const_v<_类型>) {
         return 取加(static_cast<ptrdiff_t>(0 - static_cast<size_t>(_Diff))) - _Diff;
     }
 };
@@ -2112,27 +2112,27 @@ struct _原子非对象指针<_类型&> : _原子存储<_类型&> {
 
 #define ATOMIC_VAR_INIT(_Value) {_Value}
 
-template <class _TVal, class _类型 = _TVal>
-using _Choose_atomic_base2_t =
-    typename _Select<is_integral_v<_TVal> && !is_same_v<bool, remove_cv_t<_TVal>>>::template _Apply<
-        _原子整数门面<_类型>, typename _Select<is_pointer_v<_TVal>>::template _Apply<
-                                          typename _Select<is_object_v<remove_pointer_t<_TVal>>>::template _Apply<
+template <class _值类型参数, class _类型 = _值类型参数>
+using _选原子基类型2 =
+    typename _Select<is_integral_v<_值类型参数> && !is_same_v<bool, remove_cv_t<_值类型参数>>>::template _Apply<
+        _原子整数门面<_类型>, typename _Select<is_pointer_v<_值类型参数>>::template _Apply<
+                                          typename _Select<is_object_v<remove_pointer_t<_值类型参数>>>::template _Apply<
                                               _原子指针<_类型>, _原子非对象指针<_类型>>,
                                           _原子存储<_类型>>>;
 
 #if _HAS_CXX20
-template <class _TVal, class _类型 = _TVal>
-using _Choose_atomic_base_t =
-    _Select<is_floating_point_v<_TVal>>::template _Apply<_原子浮点<_类型>, _Choose_atomic_base2_t<_TVal, _类型>>;
+template <class _值类型参数, class _类型 = _值类型参数>
+using _选原子基类型 =
+    _Select<is_floating_point_v<_值类型参数>>::template _Apply<_原子浮点<_类型>, _选原子基类型2<_值类型参数, _类型>>;
 #else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
-template <class _TVal, class _类型 = _TVal>
-using _Choose_atomic_base_t = _Choose_atomic_base2_t<_TVal, _类型>;
+template <class _值类型参数, class _类型 = _值类型参数>
+using _选原子基类型 = _选原子基类型2<_值类型参数, _类型>;
 #endif // ^^^ !_HAS_CXX20 ^^^
 
 _EXPORT_STD template <class _类型>
-struct 原子实现 : _Choose_atomic_base_t<_类型> { // 原子实现 value
+struct 原子实现 : _选原子基类型<_类型> { // 原子实现 value
 private:
-    using _基 = _Choose_atomic_base_t<_类型>;
+    using _基 = _选原子基类型<_类型>;
 
 public:
     static_assert(is_trivially_copyable_v<_类型>, "原子实现<T> requires T to be trivially copyable.");
@@ -2301,9 +2301,9 @@ template <class _类型>
 
 #if _HAS_CXX20
 _EXPORT_STD template <class _类型>
-struct 原子引用实现 : _Choose_atomic_base_t<_类型, _类型&> { // 原子实现 reference
+struct 原子引用实现 : _选原子基类型<_类型, _类型&> { // 原子实现 reference
 private:
-    using _基 = _Choose_atomic_base_t<_类型, _类型&>;
+    using _基 = _选原子基类型<_类型, _类型&>;
 
 public:
     static_assert(is_trivially_copyable_v<_类型>, "原子引用实现<T> requires T to be trivially copyable.");
@@ -2951,22 +2951,22 @@ _EXPORT_STD inline void atomic_flag_notify_all(原子标志实现* const _Flag) 
 }
 
 template <class _类型>
-class _Locked_pointer {
+class _已加锁指针 {
 public:
-    static_assert(alignof(_类型) >= (1 << 2), "2 low order bits are needed by _Locked_pointer");
+    static_assert(alignof(_类型) >= (1 << 2), "2 low order bits are needed by _已加锁指针");
     static constexpr uintptr_t _Lock_mask                = 3;
     static constexpr uintptr_t _Not_locked               = 0;
     static constexpr uintptr_t _Locked_notify_not_needed = 1;
     static constexpr uintptr_t _Locked_notify_needed     = 2;
     static constexpr uintptr_t _Ptr_value_mask           = ~_Lock_mask;
 
-    constexpr _Locked_pointer() noexcept : _Storage{} {}
-    explicit _Locked_pointer(_类型* const _Ptr) noexcept : _Storage{reinterpret_cast<uintptr_t>(_Ptr)} {}
+    constexpr _已加锁指针() noexcept : _Storage{} {}
+    explicit _已加锁指针(_类型* const _指针) noexcept : _Storage{reinterpret_cast<uintptr_t>(_指针)} {}
 
-    _Locked_pointer(const _Locked_pointer&)            = delete;
-    _Locked_pointer& operator=(const _Locked_pointer&) = delete;
+    _已加锁指针(const _已加锁指针&)            = delete;
+    _已加锁指针& operator=(const _已加锁指针&) = delete;
 
-    _NODISCARD _类型* _Lock_and_load() noexcept {
+    _NODISCARD _类型* _加锁并载入() noexcept {
         uintptr_t _表示 = _Storage.载入(内存序松弛);
         for (;;) {
             switch (_表示 & _Lock_mask) {
@@ -3005,7 +3005,7 @@ public:
         }
     }
 
-    _NODISCARD _类型* _Unsafe_load_relaxed() const noexcept {
+    _NODISCARD _类型* _不安全松散载入() const noexcept {
         return reinterpret_cast<_类型*>(_Storage.载入(内存序松弛));
     }
 
