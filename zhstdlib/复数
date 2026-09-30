@@ -138,7 +138,7 @@ namespace _Float_multi_prec {
 
     // 2x precision + 2x precision -> 1x precision
     template <class _类型>
-    _NODISCARD constexpr _类型 _加一倍(const _Fmp_t<_类型, 2>& _Xval, const _Fmp_t<_类型, 2>& _Yval) noexcept {
+    _NODISCARD constexpr _类型 _Add_x1(const _Fmp_t<_类型, 2>& _Xval, const _Fmp_t<_类型, 2>& _Yval) noexcept {
         const _Fmp_t<_类型, 2> _Sum00 = _加双倍(_Xval._Val0, _Yval._Val0);
         return _Sum00._Val0 + (_Sum00._Val1 + (_Xval._Val1 + _Yval._Val1));
     }
@@ -246,7 +246,7 @@ namespace _Math_algorithms {
         const _FMP_汉 _Fmp_t<_类型, 2> _Xsqr    = _FMP_汉 _Sqr_x2(_Xval);
         const _FMP_汉 _Fmp_t<_类型, 2> _Ysqr    = _FMP_汉 _Sqr_x2(_Yval);
         const _FMP_汉 _Fmp_t<_类型, 2> _Xsqr_m1 = _FMP_汉 _Add_small_x2(_类型{-1.0}, _Xsqr);
-        return _加一倍(_Xsqr_m1, _Ysqr);
+        return _Add_x1(_Xsqr_m1, _Ysqr);
     }
 
     _NODISCARD inline float _模减一(const float _Xval, const float _Yval) noexcept {

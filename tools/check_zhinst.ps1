@@ -161,6 +161,7 @@ function New-WitnessDecl([string[]] $kinds, [int] $id) {
     if ($kinds -contains '丙') { $d += "        自动 丙$id = [](自动&&... 参){ 返回 1; };" }
     if ($kinds -contains '引') { $d += "        标准::默认随机引擎 引$id{};" }
     if ($kinds -contains '范') { $d += "        标准::向量<整数> 范$id{1,2,3,4};" }
+    if ($kinds -contains '复') { $d += "        标准::复数<整数> 复$id{1, 2};" }
     return ($d -join "`n")
 }
 function Get-Witness([string] $type, [string] $pname, [int] $id) {
@@ -169,6 +170,9 @@ function Get-Witness([string] $type, [string] $pname, [int] $id) {
     $k = ''
     if ($t -match '^输出迭代|^输出迭代器|^插入迭代') { $k = '出' }
     elseif ($t -match '迭代') { $k = '组' }
+    #  §17.26 复数的自由函数（`标准::常用对数` 等）形参是 `细节::复数实现<元素>&` ——
+    #  给 `整数` 会炸，得给一个**真的复数对象**（原生头同样写法能编：实测 复数<整数> 也行）。
+    elseif ($t -match '复数实现') { $k = '复' }
     elseif ($t -match '^(谓词|比较|一元操作|二元操作|生成器|函数|成员函数|操作|条件|判据)$') { $k = '丙' }
     elseif ($t -match '^(值类型|大小类型|距离类型|类型1|类型2|某类型|元素|别的|替换类型|整数类型|实数类型)$') { $k = '壹' }
     elseif ($t -match '^(std::size_t|std::ptrdiff_t|size_t|整数|长整型|无符号整数)$') { $k = '壹' }
@@ -182,6 +186,7 @@ function Get-Witness([string] $type, [string] $pname, [int] $id) {
         '丙' { "丙$id" }
         '引' { "引$id" }
         '范' { "范$id" }
+        '复' { "复$id" }
         default { return $null }
     }
     return @{ Expr = $expr; Kind = $k }
@@ -239,6 +244,7 @@ function Get-WitnessIncludes([string[]] $kinds) {
     $inc = @()
     if ($kinds -contains '引') { $inc += '随机' }
     if ($kinds -contains '范') { $inc += '向量' }
+    if ($kinds -contains '复') { $inc += '复数' }
     return $inc
 }
 #  §17.23 宿主限定的成员探针：`标准::映射<整数, 整数>::尺寸类型* 针 = 空指针;`
@@ -512,8 +518,11 @@ foreach ($p in $products) {
                 #    它们不是 `细节::` 下的类，而是公开宿主的成员；再加一条宿主限定候选（§17.23）。
                 if ($p.HostPub) { $line3 = ("    {0}::{1}* 针{2} = 空指针; (空型)针{2};" -f $p.HostPub, $n.Name, $id) }
             }
-            '模板类型' { $a = Get-TemplateArgs $n.Template; if ($a) { $line = ("    {0}<{1}>* 针{2} = 空指针; (空型)针{2};" -f ('标准::' + $n.Name), $a, $id) } }
-            '模板别名' { $a = Get-TemplateArgs $n.Template; if ($a) { $line = ("    {0}<{1}>* 针{2} = 空指针; (空型)针{2};" -f ('标准::' + $n.Name), $a, $id) } }
+            '模板类型' { $a = Get-TemplateArgs $n.Template; if ($a) { $line = ("    {0}<{1}>* 针{2} = 空指针; (空型)针{2};" -f ('标准::' + $n.Name), $a, $id) } elseif ($n.Template) { $line = ("    标准::{0}<>* 针{1} = 空指针; (空型)针{1};" -f $n.Name, $id) } }
+            #  §17.26 形参**全带默认值**的模板别名（`模板 <类型名 值类型 = 空型> 使用 按位与 = std::bit_and<值类型>;`）
+            #  以前 `Get-TemplateArgs` 返回 $null -> 一条探针都不出（36 个名字整片记「无探针」）。
+            #  正确写法是 `标准::按位与<>`（空实参表合法）—— 实测能编。
+            '模板别名' { $a = Get-TemplateArgs $n.Template; if ($a) { $line = ("    {0}<{1}>* 针{2} = 空指针; (空型)针{2};" -f ('标准::' + $n.Name), $a, $id) } elseif ($n.Template) { $line = ("    标准::{0}<>* 针{1} = 空指针; (空型)针{1};" -f $n.Name, $id) } }
             '常量' { $line = ("    (空型)标准::{0};" -f $n.Name) }
             '函数' { $line = ("    自动 针f{0} = &标准::{1}; (空型)针f{0};" -f $id, $n.Name) }
             #  §17.22 概念探针：概念求值对任何实参都良构（不满足只求值为 false），
