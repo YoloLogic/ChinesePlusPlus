@@ -364,7 +364,7 @@ struct _树节点 {
         _就地构造(_新节点._Ptr->_Right, _Myhead);
         _新节点._Ptr->_Color = _红;
         _新节点._Ptr->_Isnil = false;
-        return _新节点._Release();
+        return _新节点._释放();
     }
 
     template <class _分配器>
@@ -792,7 +792,7 @@ struct _树头作用域指针 { // temporary storage for allocated node pointers
         _我的容器->_Myhead = _结点分配器::value_type::_建头节点(_Al);
     }
 
-    void _Release() noexcept {
+    void _释放() noexcept {
         _我的容器 = nullptr;
     }
 
@@ -920,8 +920,8 @@ public:
         _容器代理指针<_分配器类型> _Proxy(_Alproxy, *_Scary);
         _树头作用域指针<_结点分配器, _迭代器检查值> _哨兵(_取分配器(), *_Scary);
         _复制<_策略::_复制>(_Right);
-        _哨兵._Release();
-        _Proxy._Release();
+        _哨兵._释放();
+        _Proxy._释放();
     }
 
     _树(_树&& _Right)
@@ -941,8 +941,8 @@ public:
                 _容器代理指针<_分配器类型> _Proxy(_Alproxy, *_Scary);
                 _树头作用域指针<_结点分配器, _迭代器检查值> _哨兵(_取分配器(), *_Scary);
                 _复制<_策略::_Move>(_Right);
-                _哨兵._Release();
-                _Proxy._Release();
+                _哨兵._释放();
+                _Proxy._释放();
                 return;
             }
         }
@@ -1021,7 +1021,7 @@ protected:
             }
 
             _检查增一();
-            _Inserted = _树临时节点<_结点分配器>(_取分配器(), _Scary->_Myhead, _STD forward<_Valtys>(_Vals)...)._Release();
+            _Inserted = _树临时节点<_结点分配器>(_取分配器(), _Scary->_Myhead, _STD forward<_Valtys>(_Vals)...)._释放();
             // nothrow hereafter
         } else {
             _树临时节点<_结点分配器> _新节点(_取分配器(), _Scary->_Myhead, _STD forward<_Valtys>(_Vals)...);
@@ -1037,7 +1037,7 @@ protected:
 
             _检查增一();
             // nothrow hereafter
-            _Inserted = _新节点._Release();
+            _Inserted = _新节点._释放();
         }
 
         return {_Scary->_插入节点(_Loc._Location, _Inserted), true};
@@ -1064,7 +1064,7 @@ protected:
             }
 
             _检查增一();
-            _Inserted = _树临时节点<_结点分配器>(_取分配器(), _Scary->_Myhead, _STD forward<_Valtys>(_Vals)...)._Release();
+            _Inserted = _树临时节点<_结点分配器>(_取分配器(), _Scary->_Myhead, _STD forward<_Valtys>(_Vals)...)._释放();
             // nothrow hereafter
         } else {
             _树临时节点<_结点分配器> _新节点(_取分配器(), _Scary->_Myhead, _STD forward<_Valtys>(_Vals)...);
@@ -1077,7 +1077,7 @@ protected:
 
             _检查增一();
             // nothrow hereafter
-            _Inserted = _新节点._Release();
+            _Inserted = _新节点._释放();
         }
 
         return _Scary->_插入节点(_Loc._Location, _Inserted);
@@ -1810,7 +1810,7 @@ public:
         _Attempt_node->_Right = _Scary->_Myhead;
         _Attempt_node->_Color = _红;
 
-        const auto _Inserted = _Scary->_插入节点(_Loc._Location, _Handle._Release());
+        const auto _Inserted = _Scary->_插入节点(_Loc._Location, _Handle._释放());
         if constexpr (_Multi) {
             return 迭代器(_Inserted, _Scary);
         } else {
@@ -1842,7 +1842,7 @@ public:
         _Attempt_node->_Right = _Scary->_Myhead;
         _Attempt_node->_Color = _红;
 
-        return 迭代器(_Scary->_插入节点(_Loc._Location, _Handle._Release()), _Scary);
+        return 迭代器(_Scary->_插入节点(_Loc._Location, _Handle._释放()), _Scary);
     }
 
     template <class>
@@ -1956,7 +1956,7 @@ protected:
         auto&& _Alproxy   = _取代理分配器(_结点分配器, _取分配器());
         _容器代理指针<_结点分配器> _Proxy(_Alproxy, *_Scary);
         _Scary->_Myhead = _节点::_建头节点(_取分配器());
-        _Proxy._Release();
+        _Proxy._释放();
     }
 
     template <class... _值参数类型>

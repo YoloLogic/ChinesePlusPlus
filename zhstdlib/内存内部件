@@ -1165,7 +1165,7 @@ struct _分配器构造指针 { // pointer used to help construct 1 _分配器::
 
     _CONSTEXPR20 explicit _分配器构造指针(_分配器& _Al_) : _Al(_Al_), _Ptr(nullptr) {}
 
-    _NODISCARD _CONSTEXPR20 pointer _Release() noexcept { // disengage *this and return contained pointer
+    _NODISCARD _CONSTEXPR20 pointer _释放() noexcept { // disengage *this and return contained pointer
         return _STD exchange(_Ptr, nullptr);
     }
 
@@ -1456,14 +1456,14 @@ struct _假代理指针实现 { // fake replacement for a container proxy smart 
     _CONSTEXPR20 _假代理指针实现(const _假分配器&, const _容器基类0&) noexcept {}
 
     _CONSTEXPR20 void _绑定(const _假分配器&, _容器基类0*) noexcept {}
-    _CONSTEXPR20 void _Release() noexcept {}
+    _CONSTEXPR20 void _释放() noexcept {}
 };
 
 struct _基本容器代理指针12 {
     // smart pointer components for a _容器代理 * that don't depend on the 分配器
     _容器代理* _Ptr = nullptr;
 
-    constexpr void _Release() noexcept { // disengage this _基本容器代理指针12
+    constexpr void _释放() noexcept { // disengage this _基本容器代理指针12
         _Ptr = nullptr;
     }
 
@@ -1660,7 +1660,7 @@ struct _NODISCARD _未初始化回退 {
         ++_最后;
     }
 
-    constexpr _NoThrowFwdIt _Release() { // suppress any exception handling backout and return _最后
+    constexpr _NoThrowFwdIt _释放() { // suppress any exception handling backout and return _最后
         _首个 = _最后;
         return _最后;
     }
@@ -1682,7 +1682,7 @@ _NoThrowFwdIt _未初始化移动非检查(_InIt _首个, const _InIt _最后, _
         _Backout._按解引用移动尾部就地构造(_首个);
     }
 
-    return _Backout._Release();
+    return _Backout._释放();
 }
 
 #if _HAS_CXX20
@@ -1824,7 +1824,7 @@ namespace ranges {
                 _Backout._尾部就地构造(_RANGES iter_move(_IFirst));
             }
 
-            return {_STD move(_IFirst), _Backout._Release()};
+            return {_STD move(_IFirst), _Backout._释放()};
         }
     }
 } // namespace ranges
@@ -1852,7 +1852,7 @@ public:
         ++_最后;
     }
 
-    constexpr pointer _Release() { // suppress any exception handling backout and return _最后
+    constexpr pointer _释放() { // suppress any exception handling backout and return _最后
         _首个 = _最后;
         return _最后;
     }
@@ -1909,7 +1909,7 @@ _CONSTEXPR20 _分配器指针类型<_分配器> _未初始化复制(
         _Backout._尾部就地构造(*_UFirst);
     }
 
-    return _Backout._Release();
+    return _Backout._释放();
 }
 
 template <class _InIt, class _分配器>
@@ -1945,7 +1945,7 @@ _CONSTEXPR20 _分配器指针类型<_分配器> _Uninitialized_copy_n(
         _Backout._尾部就地构造(*_UFirst);
     }
 
-    return _Backout._Release();
+    return _Backout._释放();
 }
 
 template <class _InIt, class _NoThrowFwdIt>
@@ -1965,7 +1965,7 @@ _NoThrowFwdIt _Uninitialized_copy_unchecked(_InIt _首个, const _InIt _最后, 
         _Backout._按解引用尾部就地构造(_首个);
     }
 
-    return _Backout._Release();
+    return _Backout._释放();
 }
 
 _EXPORT_STD template <class _InIt, class _NoThrowFwdIt>
@@ -2006,7 +2006,7 @@ _CONSTEXPR20 _分配器指针类型<_分配器> _未初始化移动(
         _Backout._尾部就地构造(_STD move(*_UFirst));
     }
 
-    return _Backout._Release();
+    return _Backout._释放();
 }
 
 template <class _分配器>
@@ -2039,7 +2039,7 @@ _CONSTEXPR20 _分配器指针类型<_分配器> _未初始化填充若干(
         _Backout._尾部就地构造(_Val);
     }
 
-    return _Backout._Release();
+    return _Backout._释放();
 }
 
 _EXPORT_STD template <class _NoThrowFwdIt, class _Tval>
@@ -2063,7 +2063,7 @@ void uninitialized_fill(const _NoThrowFwdIt _首个, const _NoThrowFwdIt _最后
             _Backout._尾部就地构造(_Val);
         }
 
-        _Backout._Release();
+        _Backout._释放();
     }
 }
 
@@ -2101,7 +2101,7 @@ _CONSTEXPR20 _分配器指针类型<_分配器> _Uninitialized_value_construct_n
         _Backout._尾部就地构造();
     }
 
-    return _Backout._Release();
+    return _Backout._释放();
 }
 
 template <class _NoThrowFwdIt, class _Diff>
@@ -2116,7 +2116,7 @@ _NoThrowFwdIt _Uninitialized_value_construct_n_unchecked1(_NoThrowFwdIt _UFirst,
             _Backout._尾部就地构造();
         }
 
-        return _Backout._Release();
+        return _Backout._释放();
     }
 }
 

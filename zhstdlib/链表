@@ -737,7 +737,7 @@ struct _链表节点插入操作2 {
         }
 
         _List_data._我的尺寸 = _Local_added;
-        _List_data._Myhead = _新节点._Release();
+        _List_data._Myhead = _新节点._释放();
     }
 
     ~_链表节点插入操作2() {
@@ -831,7 +831,7 @@ private:
         _链表节点插入操作2<_结点分配器> _Appended(_取分配器());
         _Appended._追加n(_Count);
         _Appended._接到头部(_Mypair._Myval2);
-        _Proxy._Release();
+        _Proxy._释放();
     }
 
 public:
@@ -852,7 +852,7 @@ private:
         _链表节点插入操作2<_结点分配器> _Appended(_取分配器());
         _Appended._追加n(_Count, _Val);
         _Appended._接到头部(_Mypair._Myval2);
-        _Proxy._Release();
+        _Proxy._释放();
     }
 
 public:
@@ -877,7 +877,7 @@ private:
         _链表节点插入操作2<_结点分配器> _Appended(_取分配器());
         _Appended._追加范围非检查(_STD move(_首个), _最后);
         _Appended._接到头部(_Mypair._Myval2);
-        _Proxy._Release();
+        _Proxy._释放();
     }
 
 public:
@@ -1854,7 +1854,7 @@ private:
         _就地构造(_Newhead->_Next, _Newhead);
         _就地构造(_Newhead->_Prev, _Newhead);
         _Mypair._Myval2._Myhead = _Newhead;
-        _Proxy._Release();
+        _Proxy._释放();
     }
 
     void _孤儿化全部() noexcept {

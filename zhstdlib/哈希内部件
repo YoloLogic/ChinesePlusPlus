@@ -225,7 +225,7 @@ struct _链表头构造指针 {
     _链表头构造指针(const _链表头构造指针&)            = delete;
     _链表头构造指针& operator=(const _链表头构造指针&) = delete;
 
-    _NODISCARD pointer _Release() noexcept {
+    _NODISCARD pointer _释放() noexcept {
         return _STD exchange(_Newhead, nullptr);
     }
 
@@ -462,7 +462,7 @@ private:
         pointer _Base;
         _最小桶数构造指针(_分配器迭代器& _Al_) : _Al(_Al_), _Base(_Al.allocate(_Min_buckets * 2)) {}
         _最小桶数构造指针(const _最小桶数构造指针&) = delete;
-        _NODISCARD pointer _Release(_非检查迭代器 _Newend) noexcept {
+        _NODISCARD pointer _释放(_非检查迭代器 _Newend) noexcept {
             _STD uninitialized_fill(_Base, _Base + _Min_buckets * 2, _Newend);
             return _STD exchange(_Base, nullptr);
         }
@@ -546,7 +546,7 @@ public:
                 // assign the 为空 链表实现 to _Right._List (except the allocators), and take _Right's _List data
                 auto& _List_data       = _List._Mypair._Myval2;
                 auto& _Right_list_data = _Right._List._Mypair._Myval2;
-                _List_data._Myhead     = _STD exchange(_Right_list_data._Myhead, _Newhead._Release());
+                _List_data._Myhead     = _STD exchange(_Right_list_data._Myhead, _Newhead._释放());
                 _List_data._我的尺寸     = _STD exchange(_Right_list_data._我的尺寸, size_type{0});
                 _List_proxy._Bind(_Alproxy, _STD addressof(_List_data));
                 _List_data._交换代理与迭代器(_Right_list_data);
@@ -555,7 +555,7 @@ public:
                 auto& _Vec_data       = _Vec._Mypair._Myval2;
                 auto& _Right_vec_data = _Right._Vec._Mypair._Myval2;
 
-                const auto _Newfirst = _Buckets._Release(_Right._非检查结束());
+                const auto _Newfirst = _Buckets._释放(_Right._非检查结束());
                 const auto _Newlast  = _Newfirst + _Min_buckets * 2;
 
                 _Vec_data._Myfirst = _STD exchange(_Right_vec_data._Myfirst, _Newfirst);
@@ -606,7 +606,7 @@ public:
             }
 
             const auto _Target = _查找最后(_Keyval, _Hashval);
-            return _List._造迭代器(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release()));
+            return _List._造迭代器(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._释放()));
         } else if constexpr (_就地键提取器::_Extractable) {
             const auto& _Keyval = _就地键提取器::_摘取(_Vals...);
             const auto _Hashval = _Traitsobj(_Keyval);
@@ -624,7 +624,7 @@ public:
             }
 
             return {
-                _List._造迭代器(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release())), true};
+                _List._造迭代器(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._释放())), true};
         } else {
             _链表节点就地构造操作2<_结点分配器> _新节点(_List._取分配器(), _STD forward<_Valtys>(_Vals)...);
             const auto& _Keyval = _特征::_取键(_新节点._Ptr->_Myval);
@@ -641,7 +641,7 @@ public:
             }
 
             return {
-                _List._造迭代器(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release())), true};
+                _List._造迭代器(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._释放())), true};
         }
     }
 
@@ -658,7 +658,7 @@ public:
             }
 
             const auto _Target = _按提示查找(_Hint._Ptr, _Keyval, _Hashval);
-            return _List._造迭代器(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release()));
+            return _List._造迭代器(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._释放()));
         } else if constexpr (_就地键提取器::_Extractable) {
             const auto& _Keyval = _就地键提取器::_摘取(_Vals...);
             const auto _Hashval = _Traitsobj(_Keyval);
@@ -675,7 +675,7 @@ public:
                 _Target = _按提示查找(_Hint._Ptr, _特征::_取键(_新节点._Ptr->_Myval), _Hashval);
             }
 
-            return _List._造迭代器(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release()));
+            return _List._造迭代器(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._释放()));
         } else {
             _链表节点就地构造操作2<_结点分配器> _新节点(_List._取分配器(), _STD forward<_Valtys>(_Vals)...);
             const auto& _Keyval = _特征::_取键(_新节点._Ptr->_Myval);
@@ -691,7 +691,7 @@ public:
                 _Target = _按提示查找(_Hint._Ptr, _特征::_取键(_新节点._Ptr->_Myval), _Hashval);
             }
 
-            return _List._造迭代器(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release()));
+            return _List._造迭代器(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._释放()));
         }
     }
 
@@ -714,7 +714,7 @@ protected:
             _Target = _查找最后(_特征::_取键(_新节点._Ptr->_Myval), _Hashval);
         }
 
-        return {_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release()), true};
+        return {_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._释放()), true};
     }
 
     template <class _Keyty, class... _Mappedty>
@@ -736,7 +736,7 @@ protected:
             _Target = _按提示查找(_Hint, _特征::_取键(_新节点._Ptr->_Myval), _Hashval);
         }
 
-        return _在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._Release());
+        return _在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._释放());
     }
 
 private:
@@ -1437,7 +1437,7 @@ public:
             _Target = _按提示查找(_Hint._Ptr, _Keyval, _Hashval);
         }
 
-        const auto _Released = _Handle._Release();
+        const auto _Released = _Handle._释放();
         _就地析构(_Released->_Next); // TRANSITION, ABI
         _就地析构(_Released->_Prev);
         return _List._造迭代器(_在之前插入新节点(_Hashval, _Target._Insert_before, _Released));
@@ -1569,7 +1569,7 @@ public:
             _Target = _查找最后(_Keyval, _Hashval);
         }
 
-        const auto _Released = _Handle._Release();
+        const auto _Released = _Handle._释放();
         _就地析构(_Released->_Next); // TRANSITION, ABI
         _就地析构(_Released->_Prev);
         const auto _新节点 = _在之前插入新节点(_Hashval, _Target._Insert_before, _Released);

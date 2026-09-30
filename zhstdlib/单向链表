@@ -454,7 +454,7 @@ struct _单向链表后插操作2 {
             _Tail = _新节点._Ptr;
         }
 
-        (void) _新节点._Release();
+        (void) _新节点._释放();
     }
 
     template <class _InIt, class _哨兵>
@@ -468,7 +468,7 @@ struct _单向链表后插操作2 {
         if (_Tail == pointer{}) {
             _新节点._分配(); // throws
             _结点分配器特征::construct(_Al, _STD addressof(_新节点._Ptr->_Myval), *_首个); // throws
-            const auto _Newhead = _新节点._Release();
+            const auto _Newhead = _新节点._释放();
             _Head               = _Newhead;
             _Tail               = _Newhead;
             ++_首个; // throws
@@ -477,7 +477,7 @@ struct _单向链表后插操作2 {
         while (_首个 != _最后) { // throws
             _新节点._分配(); // throws
             _结点分配器特征::construct(_Al, _STD addressof(_新节点._Ptr->_Myval), *_首个); // throws
-            const auto _Newtail = _新节点._Release();
+            const auto _Newtail = _新节点._释放();
             _就地构造(_Tail->_Next, _Newtail);
             _Tail = _Newtail;
             ++_首个; // throws
@@ -737,7 +737,7 @@ private:
         _结点分配器特征::construct(
             _新节点._Al, _STD addressof(_新节点._Ptr->_Myval), _STD forward<_值参数类型>(_Val)...); // throws
         _就地构造(_新节点._Ptr->_Next, _Pnode->_Next);
-        _Pnode->_Next = _新节点._Release();
+        _Pnode->_Next = _新节点._释放();
     }
 
 public:
@@ -746,7 +746,7 @@ public:
         auto&& _Alproxy = _取代理分配器(_结点分配器, _取分配器());
         _容器代理指针<_分配器类型> _Proxy(_Alproxy, _Mypair._Myval2);
         后插(首前(), _Ilist.begin(), _Ilist.end());
-        _Proxy._Release();
+        _Proxy._释放();
     }
 
     单向链表实现& operator=(initializer_list<_类型> _Ilist) {

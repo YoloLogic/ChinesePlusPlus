@@ -907,7 +907,7 @@ private:
 #endif // ^^^ !_INSERT_STRING_ANNOTATION ^^^
             }
 
-            _Proxy._Release();
+            _Proxy._释放();
             return;
         }
 
@@ -928,7 +928,7 @@ private:
         }
 
         _ASAN_STRING_CREATE(*this);
-        _Proxy._Release();
+        _Proxy._释放();
     }
 
     template <class _Iter, class _Sent, class _Size = nullptr_t>
@@ -1005,7 +1005,7 @@ private:
 
         _ASAN_STRING_CREATE(*this);
         _Guard._Target = nullptr;
-        _Proxy._Release();
+        _Proxy._释放();
     }
 
 public:
@@ -1076,7 +1076,7 @@ public:
         _特征::copy(_Ptr + static_cast<ptrdiff_t>(_Left_size), _Right_ptr, _Right_size);
         _特征::assign(_Ptr[_New_size], _元素());
         _ASAN_STRING_CREATE(*this);
-        _Proxy._Release();
+        _Proxy._释放();
     }
 
     _CONSTEXPR20 基础字符串实现(_字符串构造连接标号, 基础字符串实现& _Left, 基础字符串实现& _Right)
@@ -1145,7 +1145,7 @@ public:
         _特征::copy(_Ptr, _Left_data._我的指针(), _Left_size);
         _特征::copy(_Ptr + _Left_size, _Right_data._我的指针(), _Right_size + 1);
         _ASAN_STRING_CREATE(*this);
-        _Proxy._Release();
+        _Proxy._释放();
     }
 
 #if _HAS_CXX17

@@ -657,7 +657,7 @@ public:
         _清理守卫<双端队列实现> _Guard{this};
         调整尺寸(_Count);
         _Guard._Target = nullptr;
-        _Proxy._Release();
+        _Proxy._释放();
     }
 
     双端队列实现(_CRT_GUARDOVERFLOW size_type _Count, const _类型& _Val) : _Mypair(_先零后变参实参{}) {
@@ -738,7 +738,7 @@ private:
         }
 
         _Guard._Target = nullptr;
-        _Proxy._Release();
+        _Proxy._释放();
     }
 
     void _构造n个(size_type _Count, const _类型& _Val) { // construct from _Count * _Val
@@ -751,7 +751,7 @@ private:
         }
 
         _Guard._Target = nullptr;
-        _Proxy._Release();
+        _Proxy._释放();
     }
 
     void _接管内容(双端队列实现& _Right) noexcept {

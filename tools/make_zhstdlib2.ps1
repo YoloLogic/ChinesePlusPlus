@@ -740,6 +740,8 @@ $H = @{
       '_Insert_node'          = '_插入节点'
     ;
       '_Insert_or_assign' = '_插入或赋值';
+
+      '_Release' = '_释放';
 }
     data    = [ordered]@{}
     derive  = @( @('at','取值'), @('insert_or_assign','插入或赋值'),
@@ -1185,6 +1187,8 @@ $H = @{
       '_Construct_n' = '_构造n个';
 
       '_Compat' = '_兼容';
+
+      '_Release' = '_释放';
 }
     zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
@@ -1401,6 +1405,8 @@ $H = @{
       # ⚠ swap 照旧不改名（§3.12）
     ;
       '_Construct_n' = '_构造n个';
+
+      '_Release' = '_释放';
 }
     zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
@@ -1674,6 +1680,10 @@ $H = @{
       '_Hash_array_representation' = '_散列数组表示';
 
       '_Compat' = '_兼容';
+
+      '_Release' = '_释放';
+
+      '_ASAN_VECTOR_RELEASE_GUARD' = '_ASAN_向量释放守卫';
 }
     zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
@@ -1839,7 +1849,9 @@ $H = @{
       'assign_range' = '范围赋值'; 'prepend_range' = '前置范围'
       'insert_range_after' = '范围后插'
       # ⚠ swap 照旧不改名（§3.12）
-    }
+    ;
+      '_Release' = '_释放';
+}
     zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
     derive  = @( @('empty','为空'), @('max_size','最大尺寸'),
@@ -2321,6 +2333,8 @@ $H = @{
       'clear'                    = '清空'
     ;
       '_Insert_or_assign' = '_插入或赋值';
+
+      '_Release' = '_释放';
 }
     data    = [ordered]@{}
     derive  = @( @('at','取值'), @('insert_or_assign','插入或赋值'),
@@ -2902,7 +2916,9 @@ $H = @{
       #   判据：**"谁定义它"的正则也要覆盖 `__declspec(...)` / `static` 这类前缀**，
       #   否则会把我们自己的定义判成借用（这一条与 §16.65.1b"尺子要维护"同源）。
       '_Allocate_aligned' = '_按对齐分配'
-    }
+    ;
+      '_Release' = '_释放';
+}
     data    = [ordered]@{}
     derive  = @()
     stdHash = $false
@@ -3152,6 +3168,8 @@ $H = @{
       'get_allocator' = '取分配器';
       'key_comp' = '键比较函数';
       'value_comp' = '值比较函数';
+
+      '_Release' = '_释放';
 }
     zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
@@ -3469,6 +3487,8 @@ $H = @{
       #   而且 <链表> 也没翻它 -> 两边一致。
     ;
       '_Hash_array_representation' = '_散列数组表示';
+
+      '_Release' = '_释放';
 }
     data    = [ordered]@{}
     derive  = @()
@@ -3779,6 +3799,8 @@ $H = @{
       '_Hash_array_representation' = '_散列数组表示';
 
       '_Compat' = '_兼容';
+
+      '_Release' = '_释放';
 }
     data    = [ordered]@{}
     derive  = @()

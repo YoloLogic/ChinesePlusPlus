@@ -207,7 +207,7 @@ private:
         const auto _Inserted = _树临时节点<_结点分配器>(_我的基类::_取分配器(), _Scary->_Myhead, piecewise_construct,
             _STD forward_as_tuple(_STD forward<_Keyty>(_Keyval)),
             _STD forward_as_tuple(_STD forward<_Mappedty>(_Mapval)...))
-                                   ._Release();
+                                   ._释放();
 
         // nothrow hereafter
         return {_Scary->_插入节点(_Loc._Location, _Inserted), true};
@@ -226,7 +226,7 @@ private:
         const auto _Inserted = _树临时节点<_结点分配器>(_我的基类::_取分配器(), _Scary->_Myhead, piecewise_construct,
             _STD forward_as_tuple(_STD forward<_Keyty>(_Keyval)),
             _STD forward_as_tuple(_STD forward<_Mappedty>(_Mapval)...))
-                                   ._Release();
+                                   ._释放();
 
         // nothrow hereafter
         return _Scary->_插入节点(_Loc._Location, _Inserted);
@@ -271,7 +271,7 @@ private:
         const auto _Scary    = _我的基类::_取检查值();
         const auto _Inserted = _树临时节点<_结点分配器>(
             _我的基类::_取分配器(), _Scary->_Myhead, _STD forward<_Keyty>(_Keyval), _STD forward<_Mappedty>(_Mapval))
-                                   ._Release();
+                                   ._释放();
 
         // nothrow hereafter
         return {_Scary->_插入节点(_Loc._Location, _Inserted), true};
@@ -290,7 +290,7 @@ private:
         const auto _Scary    = _我的基类::_取检查值();
         const auto _Inserted = _树临时节点<_结点分配器>(
             _我的基类::_取分配器(), _Scary->_Myhead, _STD forward<_Keyty>(_Keyval), _STD forward<_Mappedty>(_Mapval))
-                                   ._Release();
+                                   ._释放();
 
         // nothrow hereafter
         return _Scary->_插入节点(_Loc._Location, _Inserted);

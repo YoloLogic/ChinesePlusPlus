@@ -567,7 +567,7 @@ private:
             _Apply_annotation(_My_data._Myfirst, _My_data._Myend, _My_data._Myfirst + _Target_size, _My_data._Mylast);
         }
 
-        _CONSTEXPR20 void _Release() noexcept {
+        _CONSTEXPR20 void _释放() noexcept {
             _我的向量 = nullptr;
         }
 
@@ -596,14 +596,14 @@ private:
 #define _ASAN_VECTOR_CREATE          _Create_annotation()
 #define _地址消毒向量创建守卫    _地址消毒创建守卫 _Annotator(*this)
 #define _地址消毒向量延长守卫(n) _地址消毒延长守卫 _Annotator(this, (n))
-#define _ASAN_VECTOR_RELEASE_GUARD   _Annotator._Release()
+#define _ASAN_向量释放守卫   _Annotator._释放()
 #else // ^^^ _INSERT_VECTOR_ANNOTATION / !_INSERT_VECTOR_ANNOTATION vvv
 #define _ASAN_VECTOR_MODIFY(n)
 #define _ASAN_VECTOR_REMOVE
 #define _ASAN_VECTOR_CREATE
 #define _地址消毒向量创建守卫
 #define _地址消毒向量延长守卫(n)
-#define _ASAN_VECTOR_RELEASE_GUARD
+#define _ASAN_向量释放守卫
 #endif // ^^^ !_INSERT_VECTOR_ANNOTATION ^^^
 
     using _迭代器检查值 = _向量值<conditional_t<_Is_simple_alloc_v<_分配器类型>, _简单类型集<_类型>,
@@ -714,7 +714,7 @@ public:
             _追加非计数范围(_STD move(_UFirst), _STD move(_ULast));
 
             _Guard._Target = nullptr;
-            _Proxy._Release();
+            _Proxy._释放();
         }
     }
 
@@ -739,7 +739,7 @@ public:
             _追加非计数范围(_解包首(_Range), _解包尾(_Range));
 
             _Guard._Target = nullptr;
-            _Proxy._Release();
+            _Proxy._释放();
         }
     }
 #endif // _HAS_CXX23
@@ -788,13 +788,13 @@ public:
                     _ASAN_VECTOR_CREATE;
                     _Guard._Target = nullptr;
                 }
-                _Proxy._Release();
+                _Proxy._释放();
                 return;
             }
         }
 
         _My_data._接管内容(_Right_data);
-        _Proxy._Release();
+        _Proxy._释放();
     }
 
     _CONSTEXPR20 向量实现& operator=(向量实现&& _Right)
@@ -863,7 +863,7 @@ private:
         } else {
             _地址消毒向量延长守卫(static_cast<size_type>(_Mylast - _My_data._Myfirst) + 1);
             _分配器特征::construct(_取分配器(), _去花式(_Mylast), _STD forward<_值参数类型>(_Val)...);
-            _ASAN_VECTOR_RELEASE_GUARD;
+            _ASAN_向量释放守卫;
         }
 
         _孤儿化范围(_Mylast, _Mylast);
@@ -1003,7 +1003,7 @@ private:
 
             _地址消毒向量延长守卫(static_cast<size_type>(_Oldlast - _Oldfirst) + _Count);
             _Mylast = _Uninitialized_copy_n(_STD move(_首个), _Count, _Oldlast, _Al);
-            _ASAN_VECTOR_RELEASE_GUARD;
+            _ASAN_向量释放守卫;
 
             _孤儿化范围(_Oldlast, _Oldlast);
         }
@@ -1046,7 +1046,7 @@ public:
                 _孤儿化范围(_Whereptr, _Oldlast);
                 _地址消毒向量延长守卫(static_cast<size_type>(_Oldlast - _My_data._Myfirst) + 1);
                 _分配器特征::construct(_Al, _去花式(_Oldlast), _STD move(_Oldlast[-1]));
-                _ASAN_VECTOR_RELEASE_GUARD;
+                _ASAN_向量释放守卫;
                 ++_My_data._Mylast;
                 _向后移动非检查(_Whereptr, _Oldlast - 1, _Oldlast);
                 *_Whereptr = _STD move(_Obj._取值());
@@ -1136,7 +1136,7 @@ public:
                 _向后移动非检查(_Whereptr, _Oldlast - _Count, _Oldlast);
                 _STD fill_n(_Whereptr, _Count, _临时);
             }
-            _ASAN_VECTOR_RELEASE_GUARD;
+            _ASAN_向量释放守卫;
         }
 
         return _造迭代器偏移(_Whereoff);
@@ -1258,7 +1258,7 @@ private:
             }
 
             _孤儿化范围(_Whereptr, _Oldlast);
-            _ASAN_VECTOR_RELEASE_GUARD;
+            _ASAN_向量释放守卫;
         }
     }
 
@@ -1379,7 +1379,7 @@ public:
             } else {
                 _地址消毒向量延长守卫(_Newsize);
                 _Mylast = _未初始化填充若干(_Mylast, _Newsize - _Oldsize, _Val, _Al);
-                _ASAN_VECTOR_RELEASE_GUARD;
+                _ASAN_向量释放守卫;
             }
         } else {
             const pointer _Newlast = _Myfirst + _Newsize;
@@ -1470,7 +1470,7 @@ private:
             } else {
                 _地址消毒向量延长守卫(_Newsize);
                 _Mylast = _Uninitialized_copy_n(_STD move(_首个), _Newsize - _Oldsize, _Mylast, _Al);
-                _ASAN_VECTOR_RELEASE_GUARD;
+                _ASAN_向量释放守卫;
             }
         } else {
             const pointer _Newlast = _Myfirst + _Newsize;
@@ -1619,7 +1619,7 @@ private:
                 _STL_INTERNAL_STATIC_ASSERT(is_same_v<_Ty2, _值初始化标记>);
                 _Mylast = _Uninitialized_value_construct_n(_Oldlast, _Newsize - _Oldsize, _Al);
             }
-            _ASAN_VECTOR_RELEASE_GUARD;
+            _ASAN_向量释放守卫;
             _孤儿化范围(_Oldlast, _Oldlast);
         }
 
@@ -2127,7 +2127,7 @@ private:
             _Guard._Target = nullptr;
         }
 
-        _Proxy._Release();
+        _Proxy._释放();
     }
 
     _CONSTEXPR20 void _移动赋值不等分配器(向量实现& _Right) {
@@ -2171,7 +2171,7 @@ private:
             } else {
                 _地址消毒向量延长守卫(_Newsize);
                 _Mylast = _未初始化移动(_Mid, _最后, _Mylast, _Al);
-                _ASAN_VECTOR_RELEASE_GUARD;
+                _ASAN_向量释放守卫;
             }
         } else {
             const pointer _Newlast = _Myfirst + _Newsize;
@@ -3979,7 +3979,7 @@ _CONSTEXPR20 _OutIt _Copy_vbool(_VbIt _首个, _VbIt _最后, _OutIt _目标) {
 #undef _ASAN_VECTOR_CREATE
 #undef _地址消毒向量创建守卫
 #undef _地址消毒向量延长守卫
-#undef _ASAN_VECTOR_RELEASE_GUARD
+#undef _ASAN_向量释放守卫
 #undef _INSERT_VECTOR_ANNOTATION
 } }
 
