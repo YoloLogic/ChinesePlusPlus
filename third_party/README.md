@@ -53,6 +53,11 @@ git -c http.sslBackend=openssl clone --depth 1 https://gitee.com/mirrors/pugixml
 
 ## 三、怎么跑
 
+> **其中 4 项已进总判据**：`tools\regen_zhstdlib.ps1` 的第 14 道守卫默认每次提交跑
+> `-Projects pugixml,cJSON,lz4,fmt -Variants static`（`fail=0` 才算过；嫌慢可 `-SkipThirdParty`）。
+> ⚠ 调用必须走 `-Command`：`pwsh -File` 会把逗号列表当成**一个字符串**传，脚本会去找名叫
+> `"pugixml,cJSON"` 的项目然后 `SKIP`（这个坑真的踩过）。
+
 ```powershell
 # 全部项目（默认只跑 static 形态）
 powershell -File E:\Chinese++\tools\verify_third_party.ps1
@@ -97,6 +102,12 @@ powershell -Command "& 'E:\Chinese++\tools\verify_third_party.ps1' -Projects tin
 ## 四、已发现的问题（**真实项目才暴露得出来的**）
 
 ### 问题 1：我们的发行包曾缺一整套二进制工具（**前三样已于 2026-09-23 补齐**）
+> **2026-09-30 再次回归，并再次修复**：round 84 重建编译器时用了
+> `LLVM_ENABLE_PROJECTS=clang;clang-tools-extra`（**没带 lld**），`build\Release\bin` 里
+> `lld-link.exe`/`llvm-ar.exe`/`llvm-rc.exe` 又没了 —— 实测 `cJSON`/`pugixml` 的 configure
+> 直接失败（`clang: error: 无法执行命令：program not executable`）。
+> 从 `dist\Chinese++-0.1-win64\bin` 把工具补回后立刻恢复：`pugixml` PASS、`cJSON`/`lz4`/`fmt` SAME、`fail=0`。
+> **教训已经变成守卫**：这 4 个项目进了总判据，工具链再缺就会被闸门当场拦下（方案 §17.19.48）。
 
 > ## ✅ 状态：已修复（2026-09-23 当天）
 >
@@ -252,7 +263,7 @@ schannel: AcquireCredentialsHandle failed: SEC_E_NO_CREDENTIALS (0x8009030e)
 |---|---|---|---|---|
 | tinyxml2 | C++ | `0/0/0` 1/1 passed | `0/0/0` 同上 | **PASS** |
 | pugixml | C++ | `0/0/0` 1/1 passed | `0/0/0` 同上 | **PASS** |
-| fmt | C++ | `0/0/8` 3/21 failed | `0/0/8` **完全相同的 3 个** | **SAME** |
+| fmt | C++ | `0/0/8` **2/21 failed**（`std-test`/`unicode-test`） | `0/0/8` **完全相同的 2 个** | **SAME** |
 | googletest | C++ | `0/1/1` `gtest-printers.h:915` | `0/1/1` **同一文件同一行列** | **SAME** |
 | cJSON | **C** | `0/1/1` 测试链接失败 | `0/1/1` **同一条** | **SAME** |
 | zlib | **C** | `0/0/8` **5** failed | `0/0/8` **同一批 5 个** | **SAME** ✅ |
@@ -273,7 +284,7 @@ cases=7  pass=2  same=5  fail=0        ← 零差异
 |---|---|---|---|---|
 | tinyxml2 | static | `0/0/0` | `0/0/0` | **PASS** |
 | pugixml | static | `0/0/0` | `0/0/0` | **PASS** |
-| fmt | static | `0/0/8` 3/21 | 完全相同的 3 个 | **SAME** |
+| fmt | static | `0/0/8` **2/21** | 完全相同的 2 个 | **SAME** |
 | googletest | static | `0/1/1` | 同一文件同一行列 | **SAME** |
 
 第二轮（新增纯 C 项目 + `shared`/`debug` 形态，**这一轮抓到了那个 FAIL**）：
@@ -319,7 +330,7 @@ cases=11  pass=5  same=5  fail=1
 
 | 项目 | 失败项 | 原因 |
 |---|---|---|
-| fmt | `chrono-test`、`std-test`(**SEGFAULT**)、`unicode-test` | 本机 locale / MSVC STL 环境差异；两边逐条相同，连 SEGFAULT 都一样 |
+  | fmt | `std-test`、`unicode-test`（2026-09-30 复跑：**2/21**；更早一次曾见 `chrono-test` 也失败） | 本机 locale / MSVC STL 环境差异；两边逐条相同 |
 | googletest | `gtest-printers.h:915` 用 `std::any` 但没 `#include <any>` | 上游 1.18 与新版 MSVC STL 的可移植性问题；clang 19 与 clang 24 同样报错 |
 | pugixml shared | `no such file or directory: 'pugixml.lib'` | CMake 共享库 + `-fuse-ld=link` 的导入库路径问题；**补上 `lld-link` 后应自然消失** |
 | cJSON | `LNK2019: 无法解析的外部符号 setUp / tearDown` | cJSON 自己的 `tests\parse_array.c` 等**根本没定义**这两个函数（已核对源码），上游测试配置问题 |
