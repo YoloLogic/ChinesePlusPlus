@@ -267,6 +267,7 @@ function Get-NestedNames([string] $text) {    $names = @{}
 }
 
 $entries = Get-Entries (Join-Path $root 'tools\make_zhstdlib2.ps1')
+$totBound = 0; $totBound2 = 0; $totBound3 = 0
 $rows = @()
 $rows2 = @()
 $rows3 = @()
@@ -303,14 +304,34 @@ foreach ($e in $entries) {
     # -----------------------------------------------------------------------
     $stdSpecials = @('hash', 'formatter', 'uses_allocator', 'tuple_size', 'tuple_element',
                      'pointer_traits', 'numeric_limits', 'iterator_traits', 'char_traits',
-                     'is_error_code_enum', 'is_error_condition_enum', 'default_delete', 'allocator_traits')
+                     'is_error_code_enum', 'is_error_condition_enum', 'default_delete', 'allocator_traits',
+                     # ---- §17.19.47 尺子维护（第 114 轮实测）：下面这些**永远改不掉**，必须从分母剔除 ----
+                     #  ① std 公开名 / CPO：铁律③④要求它们留 std 的（advance/equal/fill/get/iter_move…）
+                     'advance', 'base', 'basic_const_iterator', 'cbegin', 'cend', 'copy_n', 'dangling',
+                     'equal', 'fill', 'fill_n', 'get', 'iter_move', 'iter_swap', 'lower_bound', 'upper_bound',
+                     'const_iterator', 'iterator', 'reverse_iterator', 'common_iterator', 'counted_iterator',
+                     'move_iterator', 'insert_iterator', 'back_insert_iterator', 'front_insert_iterator',
+                     'istream_iterator', 'ostream_iterator', 'istreambuf_iterator', 'ostreambuf_iterator',
+                     'size', 'data', 'empty', 'begin', 'end', 'swap', 'move', 'forward', 'exchange', 'max', 'min',
+                     #  ② SAL 注解宏（`#define` 在 <sal.h>，本头没有定义）
+                     '_In_reads_', '_Pre_satisfies_')
+#  ③ 前缀类边界：编译器内建（`__builtin_*`）—— 不是库里的名字，改不了。
+$boundaryPrefix = @('__builtin_')
+#  判据统一入口：三把尺都用它（此前只有第三把尺用 $memBoundary，前两把尺里这些名字还在污染分母）。
+function Test-ZhBoundary([string] $n) {
+    if ($stdSpecials -contains $n) { return $true }
+    if ($memBoundary -contains $n) { return $true }
+    foreach ($p in $boundaryPrefix) { if ($n.StartsWith($p)) { return $true } }
+    return $false
+}
     $res = @()
     foreach ($n in $names.Keys) {
-        if ($stdSpecials -contains $n) { continue }
+        if (Test-ZhBoundary $n) { continue }
         if ([regex]::IsMatch($copy, "\b$([regex]::Escape($n))\b")) { $res += $n }
     }
     $res = @($res | Sort-Object)
-    $effTotal = $names.Count - @($names.Keys | Where-Object { $stdSpecials -contains $_ }).Count
+    $effTotal = $names.Count - @($names.Keys | Where-Object { Test-ZhBoundary $_ }).Count
+    $totBound += ($names.Count - $effTotal)
     $totAll += $effTotal
     $totDone += ($effTotal - $res.Count)
     $rows += [pscustomobject]@{
@@ -322,12 +343,13 @@ foreach ($e in $entries) {
     $res2 = @()
     foreach ($n in $names2.Keys) {
         # 同样的边界排除：std 模板特化的名字必须留英文（铁律 4）
-        if ($stdSpecials -contains $n) { continue }
+        if (Test-ZhBoundary $n) { continue }
         if ([regex]::IsMatch($copy, "\b$([regex]::Escape($n))\b")) { $res2 += $n }
     }
     $res2 = @($res2 | Sort-Object)
-    $effTotal2 = $names2.Count - @($names2.Keys | Where-Object { $stdSpecials -contains $_ }).Count
+    $effTotal2 = $names2.Count - @($names2.Keys | Where-Object { Test-ZhBoundary $_ }).Count
     if ($effTotal2 -gt 0) {
+        $totBound2 += ($names2.Count - $effTotal2)
         $totAll2 += $effTotal2
         $totDone2 += ($effTotal2 - $res2.Count)
         $rows2 += [pscustomobject]@{
@@ -342,15 +364,16 @@ foreach ($e in $entries) {
     $names3 = Get-MemberNames $src
     $res3 = @()
     foreach ($n in $names3.Keys) {
-        if ($stdSpecials -contains $n) { continue }
+        if (Test-ZhBoundary $n) { continue }
         # ⚠ 边界（与前两把尺同源）：这些成员名被**借来的** std 类型读（char_traits /
         #   basic_string_view / allocator_traits），按词替换会误伤，属第 ③ 类。
         if ($memBoundary -contains $n) { continue }
         if ([regex]::IsMatch($copy, "\b$([regex]::Escape($n))\b")) { $res3 += $n }
     }
     $res3 = @($res3 | Sort-Object)
-    $effTotal3 = @($names3.Keys | Where-Object { $stdSpecials -notcontains $_ -and $memBoundary -notcontains $_ }).Count
+    $effTotal3 = @($names3.Keys | Where-Object { -not (Test-ZhBoundary $_) }).Count
     if ($effTotal3 -gt 0) {
+        $totBound3 += ($names3.Count - $effTotal3)
         $totAll3 += $effTotal3
         $totDone3 += ($effTotal3 - $res3.Count)
         $rows3 += [pscustomobject]@{
@@ -429,7 +452,8 @@ if ($rows2.Count) {
         Write-Host "--- 成员名残留名单（= 欠账 + 已登记的边界）---"
         foreach ($r in $rows3) { if ($r.残留) { Write-Host ("  {0,-14} {1}" -f $r.中文头, $r.名单) } }
     }
-    $clean3 = @($rows3 | Where-Object { $_.残留 -eq 0 }).Count
+    Write-Host ("    已从分母剔除的真边界候选（§17.19.47：编译器内建 / 关键字类型名 / std 公开名 / SAL 宏）：顶层 {0} / 嵌套 {1} / 成员 {2}" -f $totBound, $totBound2, $totBound3) -ForegroundColor DarkGray
+$clean3 = @($rows3 | Where-Object { $_.残留 -eq 0 }).Count
     Write-Host ("=== 成员名汉化率: {0} / {1} = {2:N1}% ===" -f `
         $totDone3, $totAll3, (100 * $totDone3 / [Math]::Max($totAll3, 1))) -ForegroundColor Cyan
     Write-Host ("    完全无残留的头: {0} / {1}" -f $clean3, $rows3.Count) -ForegroundColor Cyan
