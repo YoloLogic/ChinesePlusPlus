@@ -18,7 +18,7 @@
 #  跨头的一对名字，<mutex> 没抄下来之前，friend 指不到东西（见方案 §3.6）。
 #  <mutex> 完成后（commit c25e03b），两者同处 `标准::细节`，friend 自动对上，故解封。
 # ============================================================================
-param([string[]] $Exclude = @())
+param([string[]] $Exclude = @(), [switch] $SkipThirdParty)
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
@@ -402,9 +402,33 @@ $bd = $LASTEXITCODE
 Write-Host "=== 汉化标尺守卫（§17.19.40）===" -ForegroundColor Cyan
 & pwsh -NoProfile -File (Join-Path $root 'tools\audit_hanhua.ps1') -Check -Quiet
 $hb = $LASTEXITCODE
-if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0 -and $bd -eq 0 -and $orph -eq 0 -and $fw -eq 0 -and $zd -eq 0 -and $cv -eq 0 -and $nm -eq 0 -and $hb -eq 0) {
-    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 边界台账 + 孤儿产物 + 公开层转发 + 中文类型名定义 + 标准头覆盖 + 中文名占用 + 汉化标尺 + 铁律①：全部通过" -ForegroundColor Green
+# ---------------------------------------------------------------------------
+#  §17.19.48 第三方开源项目守卫（铁律②的**直接**机器保证）—— 第 14 道。
+#  为什么加它（第 115 轮实测）：tools\verify_third_party.ps1 一直在（把 cJSON/pugixml/fmt/… 用
+#    【我们的编译器 vs 原生】各编一遍并跑测试），但它**没进闸门** —— 于是没人知道护栏已经断了：
+#    实测 cJSON/pugixml 的 configure 直接失败，报 `clang: error: 无法执行命令：program not executable`，
+#    真因是**发行目录缺链接器**（round 84 重建后 build\Release\bin 少了 lld-link.exe/llvm-ar.exe/llvm-rc.exe，
+#    而 dist\Chinese++-0.1-win64\bin 里是齐的）。补齐后 cJSON/lz4 = SAME、pugixml = PASS、fail=0。
+#  ⚠ 调用必须走 -Command：`pwsh -File` 会把逗号列表当成**一个字符串**传（老坑），
+#    脚本会去找名为 "cJSON,pugixml" 的项目然后 SKIP。
+#  可见化：脚本自己会打印每个项目的 PASS/SAME/FAIL 与 cases/pass/same/fail 汇总。
+#  嫌慢时可 `-SkipThirdParty`（默认必跑：用户的护栏是"随便拿一个开源项目也要照样编得过"）。
+# ---------------------------------------------------------------------------
+if (-not $SkipThirdParty) {
+    Write-Host "=== 第三方开源项目守卫（§17.19.48：我们的编译器 vs 原生）===" -ForegroundColor Cyan
+    & pwsh -NoProfile -Command "& '$root\tools\verify_third_party.ps1' -Projects pugixml,cJSON,lz4 -Variants static"
+    $tp = $LASTEXITCODE
+    if ($tp -ne 0) {
+        Write-Host "  ⚠ 若报 `program not executable`/configure 失败：先查发行工具链是否完整" -ForegroundColor Yellow
+        Write-Host "    （dist\Chinese++-0.1-win64\bin 里的 lld-link.exe / llvm-ar.exe / llvm-rc.exe 要补进 build\Release\bin）" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "=== 第三方开源项目守卫：已按 -SkipThirdParty 跳过（默认必跑）===" -ForegroundColor DarkYellow
+    $tp = 0
+}
+if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0 -and $bd -eq 0 -and $orph -eq 0 -and $fw -eq 0 -and $zd -eq 0 -and $cv -eq 0 -and $nm -eq 0 -and $hb -eq 0 -and $tp -eq 0) {
+    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 边界台账 + 孤儿产物 + 公开层转发 + 中文类型名定义 + 标准头覆盖 + 中文名占用 + 汉化标尺 + 第三方开源项目 + 铁律①：全部通过" -ForegroundColor Green
     exit 0
 }
-Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；边界台账守卫退出码 {5}；孤儿产物守卫退出码 {6}；铁律①守卫退出码 {4}；公开层转发守卫退出码 {7}；中文类型名定义守卫退出码 {8}；标准头覆盖退出码 {9}；中文名占用退出码 {10}；汉化标尺退出码 {11}" -f $fail, $v, $ex, $ud, $og, $bd, $orph, $fw, $zd, $cv, $nm, $hb) -ForegroundColor Red
+Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；边界台账守卫退出码 {5}；孤儿产物守卫退出码 {6}；铁律①守卫退出码 {4}；公开层转发守卫退出码 {7}；中文类型名定义守卫退出码 {8}；标准头覆盖退出码 {9}；中文名占用退出码 {10}；汉化标尺退出码 {11}；第三方开源项目退出码 {12}" -f $fail, $v, $ex, $ud, $og, $bd, $orph, $fw, $zd, $cv, $nm, $hb, $tp) -ForegroundColor Red
 exit 1
