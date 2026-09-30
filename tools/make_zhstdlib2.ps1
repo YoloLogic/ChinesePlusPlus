@@ -752,10 +752,12 @@ $H = @{
       # 'insert' = '插入';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
 
       # 'clear' = '清空';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
+;
+      'clear' = '清空';
 }
     data    = [ordered]@{}
     derive  = @( @('at','取值'), @('insert_or_assign','插入或赋值'),
-                 @('try_emplace','尝试就地构造'), @('emplace','就地构造') )
+                 @('try_emplace','尝试就地构造'), @('emplace','就地构造') , @('clear','清空'))
     deriveTypes = @( @('iterator','迭代器'), @('const_iterator','常量迭代器'),
                      @('mapped_type','映射类型'), @('const_reference','常量引用'),
                      @('key_type','键类型'), @('key_compare','键比较器'),
@@ -3262,6 +3264,8 @@ $H = @{
       # 'crbegin' = '常量反向开始';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
 
       '_Make' = '_造';
+
+      'clear' = '清空';
 }
     zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}

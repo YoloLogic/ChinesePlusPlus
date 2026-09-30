@@ -962,7 +962,7 @@ public:
         constexpr auto _Pocma_val = _Choose_pocma_v<_结点分配器>;
         if constexpr (_Pocma_val == _传播复制移动赋值取值::_Propagate_allocators) {
             if (_Al != _Right_al) {
-                clear();
+                清空();
                 _取比较器()            = _Right._取比较器(); // intentionally copy comparator, see LWG-2227
                 auto&& _Alproxy       = _取代理分配器(_结点分配器, _Al);
                 auto&& _Right_alproxy = _取代理分配器(_结点分配器, _Right_al);
@@ -981,14 +981,14 @@ public:
             }
         } else if constexpr (_Pocma_val == _传播复制移动赋值取值::_No_propagate_allocators) {
             if (_Al != _Right_al) {
-                clear();
+                清空();
                 _取比较器() = _Right._取比较器(); // intentionally copy comparator, see LWG-2227
                 _复制<_策略::_Move>(_Right);
                 return *this;
             }
         }
 
-        clear();
+        清空();
         _取比较器() = _Right._取比较器(); // intentionally copy comparator, see LWG-2227
         _Pocma(_Al, _Right_al);
         _交换值不含比较器(_Right);
@@ -1112,7 +1112,7 @@ public:
         auto& _Right_al = _Right._取分配器();
         if constexpr (_Choose_pocca_v<_结点分配器>) {
             if (_Al != _Right_al) {
-                clear();
+                清空();
                 const auto _Scary = _取检查值();
                 _Scary->_孤儿化全部();
                 auto&& _Alproxy       = _取代理分配器(_结点分配器, _Al);
@@ -1130,7 +1130,7 @@ public:
             }
         }
 
-        clear();
+        清空();
         _取比较器() = _Right._取比较器();
         _Pocca(_Al, _Right_al);
         _复制<_策略::_复制>(_Right);
@@ -1311,7 +1311,7 @@ private:
         const auto _Begin = _非检查开始();
         if (_首个 == _Begin && _最后._Ptr->_Isnil) {
             // erase all
-            clear();
+            清空();
             return _最后._Ptr;
         }
 
@@ -1368,7 +1368,7 @@ public:
     }
 #endif // _HAS_CXX23
 
-    void clear() noexcept {
+    void 清空() noexcept {
         const auto _Scary = _取检查值();
         _Scary->_孤立指针(nullptr);
         auto _Head = _Scary->_Myhead;

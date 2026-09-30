@@ -339,7 +339,7 @@ public:
     }
 
     映射实现& operator=(initializer_list<value_type> _Ilist) {
-        _我的基类::clear();
+        _我的基类::清空();
         insert(_Ilist);
         return *this;
     }
@@ -591,7 +591,7 @@ public:
     }
 
     多重映射实现& operator=(initializer_list<value_type> _Ilist) {
-        _我的基类::clear();
+        _我的基类::清空();
         insert(_Ilist);
         return *this;
     }
@@ -744,6 +744,8 @@ _STL_RESTORE_CLANG_WARNINGS
     模板 <类型名... 参数> 声明类型(自动) try_emplace(参数&&... 值) 常量 { 返回 基类::尝试就地构造(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) emplace(参数&&... 值) { 返回 基类::就地构造(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) emplace(参数&&... 值) 常量 { 返回 基类::就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) clear(参数&&... 值) { 返回 基类::清空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) clear(参数&&... 值) 常量 { 返回 基类::清空(static_cast<参数&&>(值)...); }
 
     // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
     // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
