@@ -109,7 +109,7 @@ public:
         return _临时;
     }
 
-    _CONSTEXPR20 void _Verify_offset(const difference_type _Off) const noexcept {
+    _CONSTEXPR20 void _校验偏移(const difference_type _Off) const noexcept {
 #if _ITERATOR_DEBUG_LEVEL == 0
         (void) _Off;
 #else // ^^^ _ITERATOR_DEBUG_LEVEL == 0 / _ITERATOR_DEBUG_LEVEL != 0 vvv
@@ -127,7 +127,7 @@ public:
     }
 
     _CONSTEXPR20 _向量常量迭代器& operator+=(const difference_type _Off) noexcept {
-        _Verify_offset(_Off);
+        _校验偏移(_Off);
         _Ptr += _Off;
         return *this;
     }
@@ -467,31 +467,31 @@ public:
 
 private:
 #ifdef _INSERT_VECTOR_ANNOTATION
-    _CONSTEXPR20 void _Create_annotation() const noexcept {
+    _CONSTEXPR20 void _创建标注() const noexcept {
         // Annotates the shadow memory of the valid range
         auto& _My_data = _Mypair._Myval2;
-        _Apply_annotation(_My_data._Myfirst, _My_data._Myend, _My_data._Myend, _My_data._Mylast);
+        _应用标注(_My_data._Myfirst, _My_data._Myend, _My_data._Myend, _My_data._Mylast);
     }
 
-    _CONSTEXPR20 void _Remove_annotation() const noexcept {
+    _CONSTEXPR20 void _移除标注() const noexcept {
         // Removes the shadow memory annotation of the range
         auto& _My_data = _Mypair._Myval2;
-        _Apply_annotation(_My_data._Myfirst, _My_data._Myend, _My_data._Mylast, _My_data._Myend);
+        _应用标注(_My_data._Myfirst, _My_data._Myend, _My_data._Mylast, _My_data._Myend);
     }
 
-    _CONSTEXPR20 void _Modify_annotation(const difference_type _Count) const noexcept {
+    _CONSTEXPR20 void _修改标注(const difference_type _Count) const noexcept {
         // Extends/shrinks the annotated range by _Count
         if (_Count == 0) { // nothing to do
-            // This also avoids calling _Apply_annotation() with null pointers
+            // This also avoids calling _应用标注() with null pointers
             // when the 向量实现 has zero 容量, see GH-2464.
             return;
         }
 
         auto& _My_data = _Mypair._Myval2;
-        _Apply_annotation(_My_data._Myfirst, _My_data._Myend, _My_data._Mylast, _My_data._Mylast + _Count);
+        _应用标注(_My_data._Myfirst, _My_data._Myend, _My_data._Mylast, _My_data._Mylast + _Count);
     }
 
-    static _CONSTEXPR20 void _Apply_annotation(
+    static _CONSTEXPR20 void _应用标注(
         pointer _First_, pointer _End_, pointer _Old_last_, pointer _New_last_) noexcept {
         _STL_INTERNAL_CHECK(_First_ != nullptr);
         _STL_INTERNAL_CHECK(_End_ != nullptr);
@@ -554,7 +554,7 @@ private:
             : _我的向量(_Myvec_), _Target_size(_Target_size_) {
             _STL_INTERNAL_CHECK(_我的向量 != nullptr);
             auto& _My_data = _我的向量->_Mypair._Myval2;
-            _Apply_annotation(_My_data._Myfirst, _My_data._Myend, _My_data._Mylast, _My_data._Myfirst + _Target_size);
+            _应用标注(_My_data._Myfirst, _My_data._Myend, _My_data._Mylast, _My_data._Myfirst + _Target_size);
         }
 
         _CONSTEXPR20 ~_地址消毒延长守卫() {
@@ -564,7 +564,7 @@ private:
 
             // Shrinks the shadow memory to the current 尺寸 of the 向量实现.
             auto& _My_data = _我的向量->_Mypair._Myval2;
-            _Apply_annotation(_My_data._Myfirst, _My_data._Myend, _My_data._Myfirst + _Target_size, _My_data._Mylast);
+            _应用标注(_My_data._Myfirst, _My_data._Myend, _My_data._Myfirst + _Target_size, _My_data._Mylast);
         }
 
         _CONSTEXPR20 void _释放() noexcept {
@@ -584,23 +584,23 @@ private:
         constexpr explicit _地址消毒创建守卫(const 向量实现& _Myvec_) noexcept : _我的向量(_Myvec_) {}
 
         _CONSTEXPR20 ~_地址消毒创建守卫() {
-            _我的向量._Create_annotation();
+            _我的向量._创建标注();
         }
 
     private:
         const 向量实现& _我的向量;
     };
 
-#define _ASAN_VECTOR_MODIFY(n)       _Modify_annotation((n))
-#define _ASAN_VECTOR_REMOVE          _Remove_annotation()
-#define _ASAN_VECTOR_CREATE          _Create_annotation()
+#define _ASAN_向量修改(n)       _修改标注((n))
+#define _ASAN_向量移除          _移除标注()
+#define _ASAN_向量创建          _创建标注()
 #define _地址消毒向量创建守卫    _地址消毒创建守卫 _Annotator(*this)
 #define _地址消毒向量延长守卫(n) _地址消毒延长守卫 _Annotator(this, (n))
 #define _ASAN_向量释放守卫   _Annotator._释放()
 #else // ^^^ _INSERT_VECTOR_ANNOTATION / !_INSERT_VECTOR_ANNOTATION vvv
-#define _ASAN_VECTOR_MODIFY(n)
-#define _ASAN_VECTOR_REMOVE
-#define _ASAN_VECTOR_CREATE
+#define _ASAN_向量修改(n)
+#define _ASAN_向量移除
+#define _ASAN_向量创建
 #define _地址消毒向量创建守卫
 #define _地址消毒向量延长守卫(n)
 #define _ASAN_向量释放守卫
@@ -785,7 +785,7 @@ public:
                     _My_data._Mylast =
                         _未初始化移动(_Right_data._Myfirst, _Right_data._Mylast, _My_data._Myfirst, _Al);
 
-                    _ASAN_VECTOR_CREATE;
+                    _ASAN_向量创建;
                     _Guard._Target = nullptr;
                 }
                 _代理._释放();
@@ -858,7 +858,7 @@ private:
         _STL_INTERNAL_CHECK(_Mylast != _My_data._Myend); // check that we have unused 容量
         if constexpr (conjunction_v<is_nothrow_constructible<_类型, _值参数类型...>,
                           _用默认构造<_分配器, _类型*, _值参数类型...>>) {
-            _ASAN_VECTOR_MODIFY(1);
+            _ASAN_向量修改(1);
             _就地构造(*_Mylast, _STD forward<_值参数类型>(_Val)...);
         } else {
             _地址消毒向量延长守卫(static_cast<size_type>(_Mylast - _My_data._Myfirst) + 1);
@@ -1361,7 +1361,7 @@ public:
             _清空并按几何预留(_Newsize);
             if constexpr (_Nothrow_construct) {
                 _Mylast = _未初始化填充若干(_Myfirst, _Newsize, _Val, _Al);
-                _ASAN_VECTOR_CREATE;
+                _ASAN_向量创建;
             } else {
                 _地址消毒向量创建守卫;
                 _Mylast = _未初始化填充若干(_Myfirst, _Newsize, _Val, _Al);
@@ -1374,7 +1374,7 @@ public:
         if (_Newsize > _Oldsize) {
             _STD fill(_Myfirst, _Mylast, _Val);
             if constexpr (_Nothrow_construct) {
-                _ASAN_VECTOR_MODIFY(static_cast<difference_type>(_Newsize - _Oldsize));
+                _ASAN_向量修改(static_cast<difference_type>(_Newsize - _Oldsize));
                 _Mylast = _未初始化填充若干(_Mylast, _Newsize - _Oldsize, _Val, _Al);
             } else {
                 _地址消毒向量延长守卫(_Newsize);
@@ -1385,7 +1385,7 @@ public:
             const pointer _Newlast = _Myfirst + _Newsize;
             _STD fill(_Myfirst, _Newlast, _Val);
             _析构范围(_Newlast, _Mylast, _Al);
-            _ASAN_VECTOR_MODIFY(static_cast<difference_type>(_Newsize - _Oldsize));
+            _ASAN_向量修改(static_cast<difference_type>(_Newsize - _Oldsize));
             _Mylast = _Newlast;
         }
     }
@@ -1412,7 +1412,7 @@ private:
 
         // Trim.
         _析构范围(_Next, _Mylast, _取分配器());
-        _ASAN_VECTOR_MODIFY(static_cast<difference_type>(_Next - _Mylast)); // negative when destroying elements
+        _ASAN_向量修改(static_cast<difference_type>(_Next - _Mylast)); // negative when destroying elements
         _Mylast = _Next;
 
         _追加非计数范围(_STD move(_首个), _STD move(_最后));
@@ -1436,7 +1436,7 @@ private:
             _清空并按几何预留(_Newsize);
             if constexpr (_Nothrow_construct) {
                 _Mylast = _Uninitialized_copy_n(_STD move(_首个), _Newsize, _Myfirst, _Al);
-                _ASAN_VECTOR_CREATE;
+                _ASAN_向量创建;
             } else {
                 _地址消毒向量创建守卫;
                 _Mylast = _Uninitialized_copy_n(_STD move(_首个), _Newsize, _Myfirst, _Al);
@@ -1465,7 +1465,7 @@ private:
             }
 
             if constexpr (_Nothrow_construct) {
-                _ASAN_VECTOR_MODIFY(static_cast<difference_type>(_Newsize - _Oldsize));
+                _ASAN_向量修改(static_cast<difference_type>(_Newsize - _Oldsize));
                 _Mylast = _Uninitialized_copy_n(_STD move(_首个), _Newsize - _Oldsize, _Mylast, _Al);
             } else {
                 _地址消毒向量延长守卫(_Newsize);
@@ -1476,7 +1476,7 @@ private:
             const pointer _Newlast = _Myfirst + _Newsize;
             _复制N个非检查4(_STD move(_首个), _Newsize, _Myfirst);
             _析构范围(_Newlast, _Mylast, _Al);
-            _ASAN_VECTOR_MODIFY(static_cast<difference_type>(_Newsize - _Oldsize));
+            _ASAN_向量修改(static_cast<difference_type>(_Newsize - _Oldsize));
             _Mylast = _Newlast;
         }
     }
@@ -1599,7 +1599,7 @@ private:
             const pointer _Newlast = _Myfirst + _Newsize;
             _孤儿化范围(_Newlast, _Mylast);
             _析构范围(_Newlast, _Mylast, _Al);
-            _ASAN_VECTOR_MODIFY(static_cast<difference_type>(_Newsize - _Oldsize));
+            _ASAN_向量修改(static_cast<difference_type>(_Newsize - _Oldsize));
             _Mylast = _Newlast;
             return;
         }
@@ -1710,7 +1710,7 @@ private:
 
         if (_Myfirst) { // destroy and deallocate old array
             _析构范围(_Myfirst, _Mylast, _Al);
-            _ASAN_VECTOR_REMOVE;
+            _ASAN_向量移除;
             _Al.deallocate(_Myfirst, static_cast<size_type>(_Myend - _Myfirst));
 
             _Myfirst = nullptr;
@@ -1757,7 +1757,7 @@ public:
 
         _孤儿化范围(_Mylast - 1, _Mylast);
         _分配器特征::destroy(_取分配器(), _去花式(_Mylast - 1));
-        _ASAN_VECTOR_MODIFY(-1);
+        _ASAN_向量修改(-1);
         --_Mylast;
     }
 
@@ -1776,7 +1776,7 @@ public:
         _孤儿化范围(_Whereptr, _Mylast);
         _移动非检查(_Whereptr + 1, _Mylast, _Whereptr);
         _分配器特征::destroy(_取分配器(), _去花式(_Mylast - 1));
-        _ASAN_VECTOR_MODIFY(-1);
+        _ASAN_向量修改(-1);
         --_Mylast;
         return iterator(_Whereptr, _STD addressof(_My_data));
     }
@@ -1799,7 +1799,7 @@ public:
 
             const pointer _Newlast = _移动非检查(_Lastptr, _Mylast, _Firstptr);
             _析构范围(_Newlast, _Mylast, _取分配器());
-            _ASAN_VECTOR_MODIFY(static_cast<difference_type>(_Newlast - _Mylast)); // negative when destroying elements
+            _ASAN_向量修改(static_cast<difference_type>(_Newlast - _Mylast)); // negative when destroying elements
             _Mylast = _Newlast;
         }
 
@@ -1820,7 +1820,7 @@ public:
 
         _My_data._孤儿化全部();
         _析构范围(_Myfirst, _Mylast, _取分配器());
-        _ASAN_VECTOR_MODIFY(static_cast<difference_type>(_Myfirst - _Mylast)); // negative when destroying elements
+        _ASAN_向量修改(static_cast<difference_type>(_Myfirst - _Mylast)); // negative when destroying elements
         _Mylast = _Myfirst;
     }
 
@@ -2070,14 +2070,14 @@ private:
 
         if (_Myfirst) { // destroy and deallocate old array
             _析构范围(_Myfirst, _Mylast, _Al);
-            _ASAN_VECTOR_REMOVE;
+            _ASAN_向量移除;
             _Al.deallocate(_Myfirst, static_cast<size_type>(_Myend - _Myfirst));
         }
 
         _Myfirst = _Newvec;
         _Mylast  = _Newvec + _Newsize;
         _Myend   = _Newvec + _Newcapacity;
-        _ASAN_VECTOR_CREATE;
+        _ASAN_向量创建;
     }
 
     _CONSTEXPR20 void _清理() noexcept { // free all storage
@@ -2091,7 +2091,7 @@ private:
 
         if (_Myfirst) { // destroy and deallocate old array
             _析构范围(_Myfirst, _Mylast, _Al);
-            _ASAN_VECTOR_REMOVE;
+            _ASAN_向量移除;
             _Al.deallocate(_Myfirst, static_cast<size_type>(_Myend - _Myfirst));
 
             _Myfirst = nullptr;
@@ -2123,7 +2123,7 @@ private:
             } else {
                 _STL_INTERNAL_STATIC_ASSERT(false); // unexpected number of arguments
             }
-            _ASAN_VECTOR_CREATE;
+            _ASAN_向量创建;
             _Guard._Target = nullptr;
         }
 
@@ -2151,7 +2151,7 @@ private:
             _清空并按几何预留(_Newsize);
             if constexpr (_Nothrow_construct) {
                 _Mylast = _未初始化移动(_首个, _最后, _Myfirst, _Al);
-                _ASAN_VECTOR_CREATE;
+                _ASAN_向量创建;
             } else {
                 _地址消毒向量创建守卫;
                 _Mylast = _未初始化移动(_首个, _最后, _Myfirst, _Al);
@@ -2166,7 +2166,7 @@ private:
             _移动非检查(_首个, _Mid, _Myfirst);
 
             if constexpr (_Nothrow_construct) {
-                _ASAN_VECTOR_MODIFY(static_cast<difference_type>(_Newsize - _Oldsize));
+                _ASAN_向量修改(static_cast<difference_type>(_Newsize - _Oldsize));
                 _Mylast = _未初始化移动(_Mid, _最后, _Mylast, _Al);
             } else {
                 _地址消毒向量延长守卫(_Newsize);
@@ -2177,7 +2177,7 @@ private:
             const pointer _Newlast = _Myfirst + _Newsize;
             _移动非检查(_首个, _最后, _Myfirst);
             _析构范围(_Newlast, _Mylast, _Al);
-            _ASAN_VECTOR_MODIFY(static_cast<difference_type>(_Newsize - _Oldsize));
+            _ASAN_向量修改(static_cast<difference_type>(_Newsize - _Oldsize));
             _Mylast = _Newlast;
         }
     }
@@ -3974,9 +3974,9 @@ _CONSTEXPR20 _OutIt _Copy_vbool(_VbIt _首个, _VbIt _最后, _OutIt _目标) {
     return _DestEnd;
 }
 
-#undef _ASAN_VECTOR_MODIFY
-#undef _ASAN_VECTOR_REMOVE
-#undef _ASAN_VECTOR_CREATE
+#undef _ASAN_向量修改
+#undef _ASAN_向量移除
+#undef _ASAN_向量创建
 #undef _地址消毒向量创建守卫
 #undef _地址消毒向量延长守卫
 #undef _ASAN_向量释放守卫

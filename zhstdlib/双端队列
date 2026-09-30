@@ -401,7 +401,7 @@ public:
         return {this->_我的偏移, this->_取容器()};
     }
 
-    void _Verify_offset(const difference_type _Off) const noexcept {
+    void _校验偏移(const difference_type _Off) const noexcept {
 #if _ITERATOR_DEBUG_LEVEL == 0
         (void) _Off;
 #else // ^^^ _ITERATOR_DEBUG_LEVEL == 0 / _ITERATOR_DEBUG_LEVEL != 0 vvv
@@ -653,11 +653,11 @@ public:
     explicit 双端队列实现(_CRT_GUARDOVERFLOW size_type _Count, const _分配器& _Al = _分配器())
         : _Mypair(_先一后变参实参{}, _Al) {
         _代理分配器类型 _代理分配器别名(_取分配器());
-        _容器代理指针12<_代理分配器类型> _Proxy(_代理分配器别名, _取数据());
+        _容器代理指针12<_代理分配器类型> _代理(_代理分配器别名, _取数据());
         _清理守卫<双端队列实现> _Guard{this};
         调整尺寸(_Count);
         _Guard._Target = nullptr;
-        _Proxy._释放();
+        _代理._释放();
     }
 
     双端队列实现(_CRT_GUARDOVERFLOW size_type _Count, const _类型& _Val) : _Mypair(_先零后变参实参{}) {
@@ -730,7 +730,7 @@ private:
     template <class _Iter, class _Sent>
     void _构造(_Iter _首个, const _Sent _最后) { // initialize from input range [_首个, _最后)
         _代理分配器类型 _代理分配器别名(_取分配器());
-        _容器代理指针12<_代理分配器类型> _Proxy(_代理分配器别名, _取数据());
+        _容器代理指针12<_代理分配器类型> _代理(_代理分配器别名, _取数据());
 
         _清理守卫<双端队列实现> _Guard{this};
         for (; _首个 != _最后; ++_首个) {
@@ -738,12 +738,12 @@ private:
         }
 
         _Guard._Target = nullptr;
-        _Proxy._释放();
+        _代理._释放();
     }
 
     void _构造n个(size_type _Count, const _类型& _Val) { // construct from _Count * _Val
         _代理分配器类型 _代理分配器别名(_取分配器());
-        _容器代理指针12<_代理分配器类型> _Proxy(_代理分配器别名, _取数据());
+        _容器代理指针12<_代理分配器类型> _代理(_代理分配器别名, _取数据());
 
         _清理守卫<双端队列实现> _Guard{this};
         for (; _Count > 0; --_Count) {
@@ -751,7 +751,7 @@ private:
         }
 
         _Guard._Target = nullptr;
-        _Proxy._释放();
+        _代理._释放();
     }
 
     void _接管内容(双端队列实现& _Right) noexcept {
@@ -810,10 +810,10 @@ public:
             if (_Al != _Right_al) {
                 _代理分配器类型 _代理分配器别名(_Al);
                 _代理分配器类型 _Right_alproxy(_Right_al);
-                _容器代理指针12<_代理分配器类型> _Proxy(_Right_alproxy, _离开代理未绑定{});
+                _容器代理指针12<_代理分配器类型> _代理(_Right_alproxy, _离开代理未绑定{});
                 _清理();
                 _Pocma(_Al, _Right_al);
-                _Proxy._绑定(_代理分配器别名, _STD addressof(_取数据()));
+                _代理._绑定(_代理分配器别名, _STD addressof(_取数据()));
                 _接管内容(_Right);
                 return *this;
             }

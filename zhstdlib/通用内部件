@@ -1447,7 +1447,7 @@ constexpr bool _Offset_verifiable_v = false;
 
 template <class _Iter>
 constexpr bool
-    _Offset_verifiable_v<_Iter, void_t<decltype(_STD declval<const _Iter&>()._Verify_offset(_迭代器差类型<_Iter>{}))>> =
+    _Offset_verifiable_v<_Iter, void_t<decltype(_STD declval<const _Iter&>()._校验偏移(_迭代器差类型<_Iter>{}))>> =
         true;
 
 template <class _Iter>
@@ -1468,7 +1468,7 @@ _NODISCARD constexpr decltype(auto) _Get_unwrapped_n(_Iter&& _It, const _Diff _O
             "integer overflow");
         (void) _COff;
 
-        _It._Verify_offset(static_cast<_有符号差类型>(_Off));
+        _It._校验偏移(static_cast<_有符号差类型>(_Off));
         return static_cast<_Iter&&>(_It)._解包();
     } else if constexpr (_Unwrappable_for_unverified_v<_Iter>) {
         // iterator doesn't support offset-based asserts, or offset unknown; defer to unverified unwrap
@@ -1875,9 +1875,9 @@ public:
     }
 
     template <class _BidIt2 = _BidIt, enable_if_t<_Offset_verifiable_v<_BidIt2>, int> = 0>
-    constexpr void _Verify_offset(const difference_type _Off) const noexcept {
+    constexpr void _校验偏移(const difference_type _Off) const noexcept {
         _STL_VERIFY(_Off != _Min_possible_v<difference_type>, "integer overflow");
-        current._Verify_offset(-_Off);
+        current._校验偏移(-_Off);
     }
 
     template <class _BidIt2 = _BidIt, enable_if_t<_Unwrappable_v<const _BidIt2&>, int> = 0>
@@ -2059,61 +2059,61 @@ _NODISCARD constexpr auto cend(const _Container& _Cont) noexcept(noexcept(_STD e
 }
 
 _EXPORT_STD template <class _Container>
-_NODISCARD _CONSTEXPR17 auto rbegin(_Container& _Cont) noexcept(noexcept(_Cont.rbegin())) /* strengthened */
-    -> decltype(_Cont.rbegin()) {
-    return _Cont.rbegin();
+_NODISCARD _CONSTEXPR17 auto 反向开始(_Container& _Cont) noexcept(noexcept(_Cont.反向开始())) /* strengthened */
+    -> decltype(_Cont.反向开始()) {
+    return _Cont.反向开始();
 }
 
 _EXPORT_STD template <class _Container>
-_NODISCARD _CONSTEXPR17 auto rbegin(const _Container& _Cont) noexcept(noexcept(_Cont.rbegin())) /* strengthened */
-    -> decltype(_Cont.rbegin()) {
-    return _Cont.rbegin();
+_NODISCARD _CONSTEXPR17 auto 反向开始(const _Container& _Cont) noexcept(noexcept(_Cont.反向开始())) /* strengthened */
+    -> decltype(_Cont.反向开始()) {
+    return _Cont.反向开始();
 }
 
 _EXPORT_STD template <class _Container>
-_NODISCARD _CONSTEXPR17 auto rend(_Container& _Cont) noexcept(noexcept(_Cont.rend())) /* strengthened */
-    -> decltype(_Cont.rend()) {
-    return _Cont.rend();
+_NODISCARD _CONSTEXPR17 auto 反向结束(_Container& _Cont) noexcept(noexcept(_Cont.反向结束())) /* strengthened */
+    -> decltype(_Cont.反向结束()) {
+    return _Cont.反向结束();
 }
 
 _EXPORT_STD template <class _Container>
-_NODISCARD _CONSTEXPR17 auto rend(const _Container& _Cont) noexcept(noexcept(_Cont.rend())) /* strengthened */
-    -> decltype(_Cont.rend()) {
-    return _Cont.rend();
+_NODISCARD _CONSTEXPR17 auto 反向结束(const _Container& _Cont) noexcept(noexcept(_Cont.反向结束())) /* strengthened */
+    -> decltype(_Cont.反向结束()) {
+    return _Cont.反向结束();
 }
 
 _EXPORT_STD template <class _类型, size_t _Size>
-_NODISCARD _CONSTEXPR17 reverse_iterator<_类型*> rbegin(_类型 (&_Array)[_Size]) noexcept /* strengthened */ {
+_NODISCARD _CONSTEXPR17 reverse_iterator<_类型*> 反向开始(_类型 (&_Array)[_Size]) noexcept /* strengthened */ {
     return reverse_iterator<_类型*>(_Array + _Size);
 }
 
 _EXPORT_STD template <class _类型, size_t _Size>
-_NODISCARD _CONSTEXPR17 reverse_iterator<_类型*> rend(_类型 (&_Array)[_Size]) noexcept /* strengthened */ {
+_NODISCARD _CONSTEXPR17 reverse_iterator<_类型*> 反向结束(_类型 (&_Array)[_Size]) noexcept /* strengthened */ {
     return reverse_iterator<_类型*>(_Array);
 }
 
 _EXPORT_STD template <class _元素>
-_NODISCARD _CONSTEXPR17 reverse_iterator<const _元素*> rbegin(initializer_list<_元素> _Ilist) noexcept
+_NODISCARD _CONSTEXPR17 reverse_iterator<const _元素*> 反向开始(initializer_list<_元素> _Ilist) noexcept
 /* strengthened */ {
     return reverse_iterator<const _元素*>(_Ilist.end());
 }
 
 _EXPORT_STD template <class _元素>
-_NODISCARD _CONSTEXPR17 reverse_iterator<const _元素*> rend(initializer_list<_元素> _Ilist) noexcept
+_NODISCARD _CONSTEXPR17 reverse_iterator<const _元素*> 反向结束(initializer_list<_元素> _Ilist) noexcept
 /* strengthened */ {
     return reverse_iterator<const _元素*>(_Ilist.begin());
 }
 
 _EXPORT_STD template <class _Container>
-_NODISCARD _CONSTEXPR17 auto crbegin(const _Container& _Cont) noexcept(noexcept(_STD rbegin(_Cont))) /* strengthened */
-    -> decltype(_STD rbegin(_Cont)) {
-    return _STD rbegin(_Cont);
+_NODISCARD _CONSTEXPR17 auto crbegin(const _Container& _Cont) noexcept(noexcept(反向开始(_Cont))) /* strengthened */
+    -> decltype(反向开始(_Cont)) {
+    return 反向开始(_Cont);
 }
 
 _EXPORT_STD template <class _Container>
-_NODISCARD _CONSTEXPR17 auto crend(const _Container& _Cont) noexcept(noexcept(_STD rend(_Cont))) /* strengthened */
-    -> decltype(_STD rend(_Cont)) {
-    return _STD rend(_Cont);
+_NODISCARD _CONSTEXPR17 auto crend(const _Container& _Cont) noexcept(noexcept(反向结束(_Cont))) /* strengthened */
+    -> decltype(反向结束(_Cont)) {
+    return 反向结束(_Cont);
 }
 
 _EXPORT_STD template <class _Container>
@@ -2583,7 +2583,7 @@ namespace ranges {
                 if constexpr (is_array_v<remove_reference_t<_类型>>) {
                     static_assert(_Has_complete_elements<_类型>,
                         "The range access customization point objects "
-                        "std::ranges::begin, std::ranges::end, std::ranges::rbegin, std::ranges::rend, "
+                        "std::ranges::begin, std::ranges::end, std::ranges::反向开始, std::ranges::反向结束, "
                         "and std::ranges::data do not accept arrays with incomplete element types.");
                     return {_态::_Array, true};
                 } else if constexpr (_Has_member<_类型>) {
@@ -2655,7 +2655,7 @@ namespace ranges {
                 if constexpr (is_array_v<_去引用>) {
                     static_assert(_Has_complete_elements<_去引用>,
                         "The range access customization point objects "
-                        "std::ranges::begin, std::ranges::end, std::ranges::rbegin, std::ranges::rend, "
+                        "std::ranges::begin, std::ranges::end, std::ranges::反向开始, std::ranges::反向结束, "
                         "and std::ranges::data do not accept arrays with incomplete element types.");
                     if constexpr (extent_v<_去引用> != 0) {
                         return {_态::_Array, true};
@@ -2986,19 +2986,19 @@ namespace ranges {
 
     namespace _Rbegin {
 #if defined(__clang__) || defined(__EDG__) // TRANSITION, VSO-1681199
-        void rbegin() = delete; // Block unqualified name lookup
+        void 反向开始() = delete; // Block unqualified name lookup
 #else // ^^^ no workaround / workaround vvv
-        void rbegin();
+        void 反向开始();
 #endif // ^^^ workaround ^^^
 
         template <class _类型>
         concept _Has_member = requires(_类型 __t) {
-            { _Fake_copy_init(__t.rbegin()) } -> input_or_output_iterator;
+            { _Fake_copy_init(__t.反向开始()) } -> input_or_output_iterator;
         };
 
         template <class _类型>
         concept _Has_ADL = _Has_class_or_enum_type<_类型> && requires(_类型 __t) {
-            { _Fake_copy_init(rbegin(__t)) } -> input_or_output_iterator; // intentional ADL
+            { _Fake_copy_init(反向开始(__t)) } -> input_or_output_iterator; // intentional ADL
         };
 
         template <class _类型>
@@ -3015,10 +3015,10 @@ namespace ranges {
             _NODISCARD static consteval _Choice_t<_态> _Choose() noexcept {
                 _STL_INTERNAL_STATIC_ASSERT(is_lvalue_reference_v<_类型>);
                 if constexpr (_Has_member<_类型>) {
-                    return {_态::_Member, noexcept(_Fake_copy_init(_STD declval<_类型>().rbegin()))};
+                    return {_态::_Member, noexcept(_Fake_copy_init(_STD declval<_类型>().反向开始()))};
                 } else if constexpr (_Has_ADL<_类型>) {
                     return {_态::_Non_member,
-                        noexcept(_Fake_copy_init(rbegin(_STD declval<_类型>())))}; // intentional ADL
+                        noexcept(_Fake_copy_init(反向开始(_STD declval<_类型>())))}; // intentional ADL
                 } else if constexpr (_Can_make_reverse<_类型>) {
                     return {_态::_Make_reverse, noexcept(_STD make_reverse_iterator(_RANGES end(_STD declval<_类型>())))};
                 } else {
@@ -3037,9 +3037,9 @@ namespace ranges {
                 constexpr _态 _Strat = _Choice<_类型&>._策略;
 
                 if constexpr (_Strat == _态::_Member) {
-                    return _Val.rbegin();
+                    return _Val.反向开始();
                 } else if constexpr (_Strat == _态::_Non_member) {
-                    return rbegin(_Val); // intentional ADL
+                    return 反向开始(_Val); // intentional ADL
                 } else if constexpr (_Strat == _态::_Make_reverse) {
                     return _STD make_reverse_iterator(_RANGES end(_Val));
                 } else {
@@ -3050,25 +3050,25 @@ namespace ranges {
     } // namespace _Rbegin
 
     inline namespace _Cpos {
-        _EXPORT_STD inline constexpr _Rbegin::_Cpo rbegin;
+        _EXPORT_STD inline constexpr _Rbegin::_Cpo 反向开始;
     }
 
     namespace _Rend {
 #if defined(__clang__) || defined(__EDG__) // TRANSITION, VSO-1681199
-        void rend() = delete; // Block unqualified name lookup
+        void 反向结束() = delete; // Block unqualified name lookup
 #else // ^^^ no workaround / workaround vvv
-        void rend();
+        void 反向结束();
 #endif // ^^^ workaround ^^^
 
         template <class _类型>
         concept _Has_member = requires(_类型 __t) {
-            { _Fake_copy_init(__t.rend()) } -> sentinel_for<decltype(_RANGES rbegin(__t))>;
+            { _Fake_copy_init(__t.反向结束()) } -> sentinel_for<decltype(_RANGES rbegin(__t))>;
         };
 
         template <class _类型>
         concept _Has_ADL = _Has_class_or_enum_type<_类型> && requires(_类型 __t) {
             // intentional ADL
-            { _Fake_copy_init(rend(__t)) } -> sentinel_for<decltype(_RANGES rbegin(__t))>;
+            { _Fake_copy_init(反向结束(__t)) } -> sentinel_for<decltype(_RANGES rbegin(__t))>;
         };
 
         template <class _类型>
@@ -3085,10 +3085,10 @@ namespace ranges {
             _NODISCARD static consteval _Choice_t<_态> _Choose() noexcept {
                 _STL_INTERNAL_STATIC_ASSERT(is_lvalue_reference_v<_类型>);
                 if constexpr (_Has_member<_类型>) {
-                    return {_态::_Member, noexcept(_Fake_copy_init(_STD declval<_类型>().rend()))};
+                    return {_态::_Member, noexcept(_Fake_copy_init(_STD declval<_类型>().反向结束()))};
                 } else if constexpr (_Has_ADL<_类型>) {
                     return {
-                        _态::_Non_member, noexcept(_Fake_copy_init(rend(_STD declval<_类型>())))}; // intentional ADL
+                        _态::_Non_member, noexcept(_Fake_copy_init(反向结束(_STD declval<_类型>())))}; // intentional ADL
                 } else if constexpr (_Can_make_reverse<_类型>) {
                     return {
                         _态::_Make_reverse, noexcept(_STD make_reverse_iterator(_RANGES begin(_STD declval<_类型>())))};
@@ -3108,9 +3108,9 @@ namespace ranges {
                 constexpr _态 _Strat = _Choice<_类型&>._策略;
 
                 if constexpr (_Strat == _态::_Member) {
-                    return _Val.rend();
+                    return _Val.反向结束();
                 } else if constexpr (_Strat == _态::_Non_member) {
-                    return rend(_Val); // intentional ADL
+                    return 反向结束(_Val); // intentional ADL
                 } else if constexpr (_Strat == _态::_Make_reverse) {
                     return _STD make_reverse_iterator(_RANGES begin(_Val));
                 } else {
@@ -3121,7 +3121,7 @@ namespace ranges {
     } // namespace _Rend
 
     inline namespace _Cpos {
-        _EXPORT_STD inline constexpr _Rend::_Cpo rend;
+        _EXPORT_STD inline constexpr _Rend::_Cpo 反向结束;
     }
 
     struct _常量反向开始函数对象 {
@@ -4435,8 +4435,8 @@ public:
     using _阻止继承解包 = move_iterator;
 
     template <class _Iter2 = iterator_type, enable_if_t<_Offset_verifiable_v<_Iter2>, int> = 0>
-    constexpr void _Verify_offset(const difference_type _Off) const noexcept {
-        _Current._Verify_offset(_Off);
+    constexpr void _校验偏移(const difference_type _Off) const noexcept {
+        _Current._校验偏移(_Off);
     }
 
     template <class _Iter2 = iterator_type, enable_if_t<_Unwrappable_v<const _Iter2&>, int> = 0>

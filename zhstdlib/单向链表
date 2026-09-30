@@ -744,9 +744,9 @@ public:
     单向链表实现(initializer_list<_类型> _Ilist, const _分配器& _Al = allocator_type())
         : _Mypair(_先一后变参实参{}, _Al) {
         auto&& _Alproxy = _取代理分配器(_结点分配器, _取分配器());
-        _容器代理指针<_分配器类型> _Proxy(_Alproxy, _Mypair._Myval2);
+        _容器代理指针<_分配器类型> _代理(_Alproxy, _Mypair._Myval2);
         后插(首前(), _Ilist.begin(), _Ilist.end());
-        _Proxy._释放();
+        _代理._释放();
     }
 
     单向链表实现& operator=(initializer_list<_类型> _Ilist) {

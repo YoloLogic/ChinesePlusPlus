@@ -1414,12 +1414,12 @@ public:
 #endif // _ITERATOR_DEBUG_LEVEL != 0
     }
 
-    constexpr void _Verify_offset(const iter_difference_t<_Iter> _Off) const {
+    constexpr void _校验偏移(const iter_difference_t<_Iter> _Off) const {
 #if _ITERATOR_DEBUG_LEVEL != 0
         _STL_VERIFY(_Off <= _Length, "Offset larger than 计数迭代器实现 length");
 #endif // _ITERATOR_DEBUG_LEVEL != 0
         if constexpr (_Offset_verifiable_v<_Iter>) {
-            _Current._Verify_offset(_Off);
+            _Current._校验偏移(_Off);
         }
     }
 
@@ -1659,7 +1659,7 @@ public:
         _STL_VERIFY(_First._Myindex <= _Last._Myindex, "transposed 检查数组迭代器 range");
     }
 
-    constexpr void _Verify_offset(const difference_type _Off) const noexcept {
+    constexpr void _校验偏移(const difference_type _Off) const noexcept {
         if (_Off < 0) {
             _STL_VERIFY(_Myindex >= size_t{0} - static_cast<size_t>(_Off),
                 "cannot seek 检查数组迭代器 iterator before begin");

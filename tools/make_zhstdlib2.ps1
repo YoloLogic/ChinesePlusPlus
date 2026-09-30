@@ -748,6 +748,10 @@ $H = @{
       '_Release' = '_释放';
 
       'comp' = '比较器';
+
+      # 'insert' = '插入';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
+
+      # 'clear' = '清空';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
 }
     data    = [ordered]@{}
     derive  = @( @('at','取值'), @('insert_or_assign','插入或赋值'),
@@ -1195,6 +1199,10 @@ $H = @{
       '_Compat' = '_兼容';
 
       '_Release' = '_释放';
+
+      '_Verify_offset' = '_校验偏移';
+
+      '_Proxy' = '_代理';
 }
     zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
@@ -1413,6 +1421,8 @@ $H = @{
       '_Construct_n' = '_构造n个';
 
       '_Release' = '_释放';
+
+      '_Proxy' = '_代理';
 }
     zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
@@ -1696,6 +1706,22 @@ $H = @{
       '_Popcount' = '_位计数';
 
       '_Proxy' = '_代理';
+
+      '_Verify_offset' = '_校验偏移';
+
+      '_Remove_annotation' = '_移除标注';
+
+      '_Modify_annotation' = '_修改标注';
+
+      '_Create_annotation' = '_创建标注';
+
+      '_Apply_annotation' = '_应用标注';
+
+      '_ASAN_VECTOR_CREATE' = '_ASAN_向量创建';
+
+      '_ASAN_VECTOR_MODIFY' = '_ASAN_向量修改';
+
+      '_ASAN_VECTOR_REMOVE' = '_ASAN_向量移除';
 }
     zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
@@ -1863,6 +1889,8 @@ $H = @{
       # ⚠ swap 照旧不改名（§3.12）
     ;
       '_Release' = '_释放';
+
+      '_Proxy' = '_代理';
 }
     zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
@@ -2361,6 +2389,8 @@ $H = @{
       '_Traitsobj' = '_特征对象';
 
       # '负载因子' = '负载因子';  # §17.19.49 本条目拷贝层 0 命中（登记≠落地守卫点名），撤下
+;
+      # 'insert' = '插入';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
 }
     data    = [ordered]@{}
     derive  = @( @('at','取值'), @('insert_or_assign','插入或赋值'),
@@ -2552,13 +2582,19 @@ $H = @{
       'size' = '尺寸'; 'size_bytes' = '字节尺寸'; 'empty' = '为空'
       'data' = '数据'; 'front' = '前'; 'back' = '后'
       'begin' = '开始'; 'end' = '结束'
-      'rbegin' = '反向开始'; 'rend' = '反向结束'
+      # 'rbegin' = '反向开始';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下 'rend' = '反向结束'
       'first' = '首段'; 'last' = '末段'; 'subspan' = '子跨度'
       # as_bytes / as_writable_bytes 是命名空间作用域的自由函数，
       # 抄来后落在 细节:: —— 用 using 声明引进 标准（§3.19.1）
       'as_bytes' = '转字节'; 'as_writable_bytes' = '转可写字节'
       # ⚠ swap 照旧不改名（§3.12）
-    }
+    ;
+      # 'crbegin' = '常量反向开始';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
+
+      # 'crend' = '常量反向结束';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
+
+      '_Verify_offset' = '_校验偏移';
+}
     zhIncludes = @{ 'xutility' = '通用内部件' }
     data    = [ordered]@{ 'dynamic_extent' = '动态范围' }
     derive  = @( @('size','尺寸'), @('size_bytes','字节尺寸'), @('empty','为空'),
@@ -3204,6 +3240,28 @@ $H = @{
       '_Proxy' = '_代理';
 
       '_Getptr' = '_取指针';
+
+      # 'merge' = '归并';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
+
+      # 'extract' = '提取';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
+
+      # 'crend' = '常量反向结束';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
+
+      # 'clear' = '清空';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
+
+      # 'insert' = '插入';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
+
+      # 'count' = '计数';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
+
+      # 'rbegin' = '反向开始';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
+
+      # 'rend' = '反向结束';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
+
+      # 'erase' = '擦除';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
+
+      # 'crbegin' = '常量反向开始';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
+
+      '_Make' = '_造';
 }
     zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
@@ -3553,6 +3611,18 @@ $H = @{
       'max_bucket_count' = '最大桶数';
 
       '_Getptr' = '_取指针';
+
+      # 'count' = '计数';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
+
+      # 'erase' = '擦除';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
+
+      # 'insert' = '插入';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
+
+      '_Make' = '_造';
+
+      # 'extract' = '提取';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
+
+      # 'merge' = '归并';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
 }
     data    = [ordered]@{}
     derive  = @()
@@ -3865,6 +3935,24 @@ $H = @{
       '_Compat' = '_兼容';
 
       '_Release' = '_释放';
+
+      '_Modify_annotation' = '_修改标注';
+
+      '_Apply_annotation' = '_应用标注';
+
+      '_Verify_offset' = '_校验偏移';
+
+      '_Proxy' = '_代理';
+
+      '_Create_annotation' = '_创建标注';
+
+      '_Remove_annotation' = '_移除标注';
+
+      '_ASAN_STRING_CREATE' = '_ASAN_串创建';
+
+      '_ASAN_STRING_MODIFY' = '_ASAN_串修改';
+
+      '_ASAN_STRING_REMOVE' = '_ASAN_串移除';
 }
     data    = [ordered]@{}
     derive  = @()
@@ -4005,6 +4093,12 @@ $H = @{
       '_Do_hash' = '_求散列';
 
       '_Hash_array_representation' = '_散列数组表示';
+
+      '_Traits_ptr_t' = '_特征指针类型';
+
+      '_Primary_char_traits' = '_主字符特征';
+
+      '_Verify_offset' = '_校验偏移';
 }
     zhIncludes = @{ 'xutility' = '通用内部件' }
     data    = [ordered]@{}
@@ -4248,6 +4342,12 @@ $H = @{
       '_Ref' = '_引用标记';
 
       '_Type' = '_类型参数';
+
+      'rbegin' = '反向开始';
+
+      '_Verify_offset' = '_校验偏移';
+
+      'rend' = '反向结束';
 }
     data    = [ordered]@{}
     derive  = @()
@@ -5608,6 +5708,10 @@ $H = @{
       '_Choose_atomic_base_t' = '_选原子基类型';
 
       '_Choose_atomic_base2_t' = '_选原子基类型2';
+
+      '_Guard' = '_守卫';
+
+      '_Local' = '_局部';
 }
     data    = [ordered]@{}
     derive  = @( @('load','载入'), @('store','存储'), @('exchange','置换'),
@@ -5749,6 +5853,10 @@ $H = @{
       '_CDiff' = '_常量差类型';
 
       '_Equal' = '_相等';
+
+      '_Verify_offset' = '_校验偏移';
+
+      # 'count' = '计数';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
 }
     data    = [ordered]@{}
     extra   = ( @(

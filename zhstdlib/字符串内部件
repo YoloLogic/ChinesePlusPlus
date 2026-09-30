@@ -103,7 +103,7 @@ public:
         return _Tmp;
     }
 
-    _CONSTEXPR20 void _Verify_offset(const difference_type _Off) const noexcept {
+    _CONSTEXPR20 void _校验偏移(const difference_type _Off) const noexcept {
 #if _ITERATOR_DEBUG_LEVEL >= 1
         if (_Off == 0) {
             return;
@@ -132,7 +132,7 @@ public:
 
     _CONSTEXPR20 _字符串常量迭代器& operator+=(const difference_type _Off) noexcept {
 #if _ITERATOR_DEBUG_LEVEL >= 1
-        _Verify_offset(_Off);
+        _校验偏移(_Off);
 #endif // _ITERATOR_DEBUG_LEVEL >= 1
         _Ptr += _Off;
         return *this;
@@ -621,28 +621,28 @@ private:
 #endif // _HAS_CXX17
 
 #ifdef _INSERT_STRING_ANNOTATION
-    _CONSTEXPR20 void _Create_annotation() const noexcept {
+    _CONSTEXPR20 void _创建标注() const noexcept {
         // Annotates the valid range with shadow memory
         auto& _My_data = _Mypair._Myval2;
-        _Apply_annotation(_My_data._我的指针(), _My_data._Myres, _My_data._Myres, _My_data._我的尺寸);
+        _应用标注(_My_data._我的指针(), _My_data._Myres, _My_data._Myres, _My_data._我的尺寸);
     }
 
-    _CONSTEXPR20 void _Remove_annotation() const noexcept {
+    _CONSTEXPR20 void _移除标注() const noexcept {
         // Removes annotation of the range with shadow memory
         auto& _My_data = _Mypair._Myval2;
-        _Apply_annotation(_My_data._我的指针(), _My_data._Myres, _My_data._我的尺寸, _My_data._Myres);
+        _应用标注(_My_data._我的指针(), _My_data._Myres, _My_data._我的尺寸, _My_data._Myres);
     }
 
-    _CONSTEXPR20 void _Modify_annotation(const size_type _Old_size, const size_type _New_size) const noexcept {
+    _CONSTEXPR20 void _修改标注(const size_type _Old_size, const size_type _New_size) const noexcept {
         if (_Old_size == _New_size) {
             return;
         }
 
         auto& _My_data = _Mypair._Myval2;
-        _Apply_annotation(_My_data._我的指针(), _My_data._Myres, _Old_size, _New_size);
+        _应用标注(_My_data._我的指针(), _My_data._Myres, _Old_size, _New_size);
     }
 
-    static _CONSTEXPR20 void _Apply_annotation(const value_type* const _首个, const size_type _Capacity,
+    static _CONSTEXPR20 void _应用标注(const value_type* const _首个, const size_type _Capacity,
         const size_type _Old_size, const size_type _New_size) noexcept {
         if constexpr (!_Disable_ASan_container_annotations_for_allocator<分配器类型>) {
 #if _HAS_CXX20
@@ -697,13 +697,13 @@ private:
         }
     }
 
-#define _ASAN_STRING_REMOVE(_Str)                       (_Str)._Remove_annotation()
-#define _ASAN_STRING_CREATE(_Str)                       (_Str)._Create_annotation()
-#define _ASAN_STRING_MODIFY(_Str, _Old_size, _New_size) (_Str)._Modify_annotation(_Old_size, _New_size)
+#define _ASAN_串移除(_Str)                       (_Str)._移除标注()
+#define _ASAN_串创建(_Str)                       (_Str)._创建标注()
+#define _ASAN_串修改(_Str, _Old_size, _New_size) (_Str)._修改标注(_Old_size, _New_size)
 #else // ^^^ _INSERT_STRING_ANNOTATION / !_INSERT_STRING_ANNOTATION vvv
-#define _ASAN_STRING_REMOVE(_Str)
-#define _ASAN_STRING_CREATE(_Str)
-#define _ASAN_STRING_MODIFY(_Str, _Old_size, _New_size)
+#define _ASAN_串移除(_Str)
+#define _ASAN_串创建(_Str)
+#define _ASAN_串修改(_Str, _Old_size, _New_size)
 #endif // ^^^ !_INSERT_STRING_ANNOTATION ^^^
 
 public:
@@ -887,7 +887,7 @@ private:
 
         auto& _Al       = _取分配器();
         auto&& _Alproxy = _取代理分配器(_分配器类型, _Al);
-        _容器代理指针<_分配器类型> _Proxy(_Alproxy, _My_data);
+        _容器代理指针<_分配器类型> _代理(_Alproxy, _My_data);
 
         if (_Count <= _Small_string_capacity) {
             _My_data._我的尺寸 = _Count;
@@ -907,7 +907,7 @@ private:
 #endif // ^^^ !_INSERT_STRING_ANNOTATION ^^^
             }
 
-            _Proxy._释放();
+            _代理._释放();
             return;
         }
 
@@ -927,8 +927,8 @@ private:
             _特征::copy(_去花式(_New_ptr), _Arg, _Count + 1);
         }
 
-        _ASAN_STRING_CREATE(*this);
-        _Proxy._释放();
+        _ASAN_串创建(*this);
+        _代理._释放();
     }
 
     template <class _Iter, class _Sent, class _Size = nullptr_t>
@@ -943,7 +943,7 @@ private:
         auto& _My_data  = _Mypair._Myval2;
         auto& _Al       = _取分配器();
         auto&& _Alproxy = _取代理分配器(_分配器类型, _Al);
-        _容器代理指针<_分配器类型> _Proxy(_Alproxy, _My_data);
+        _容器代理指针<_分配器类型> _代理(_Alproxy, _My_data);
 
         _My_data._我的尺寸 = 0;
         _My_data._Myres  = _Small_string_capacity;
@@ -1003,9 +1003,9 @@ private:
             _特征::assign(_Ptr[_My_data._我的尺寸], _元素());
         }
 
-        _ASAN_STRING_CREATE(*this);
+        _ASAN_串创建(*this);
         _Guard._Target = nullptr;
-        _Proxy._释放();
+        _代理._释放();
     }
 
 public:
@@ -1061,7 +1061,7 @@ public:
         auto& _My_data          = _Mypair._Myval2;
         _元素* _Ptr             = _My_data._Bx._Buf;
         auto&& _Alproxy         = _取代理分配器(_分配器类型, _取分配器());
-        _容器代理指针<_分配器类型> _Proxy(_Alproxy, _My_data); // throws
+        _容器代理指针<_分配器类型> _代理(_Alproxy, _My_data); // throws
 
         if (_New_capacity < _New_size) {
             _New_capacity           = _计算增长(_New_size, _Small_string_capacity, max_size());
@@ -1075,8 +1075,8 @@ public:
         _特征::copy(_Ptr, _Left_ptr, _Left_size);
         _特征::copy(_Ptr + static_cast<ptrdiff_t>(_Left_size), _Right_ptr, _Right_size);
         _特征::assign(_Ptr[_New_size], _元素());
-        _ASAN_STRING_CREATE(*this);
-        _Proxy._释放();
+        _ASAN_串创建(*this);
+        _代理._释放();
     }
 
     _CONSTEXPR20 基础字符串实现(_字符串构造连接标号, 基础字符串实现& _Left, 基础字符串实现& _Right)
@@ -1099,7 +1099,7 @@ public:
             _My_data._分配代理(_取代理分配器(_分配器类型, _取分配器())); // throws, hereafter nothrow in this block
             _接管内容(_Left);
             const auto _Ptr = _My_data._我的指针();
-            _ASAN_STRING_MODIFY(*this, _Left_size, _New_size);
+            _ASAN_串修改(*this, _Left_size, _New_size);
             _特征::copy(_Ptr + _Left_size, _Right_data._我的指针(), _Right_size + 1);
             _My_data._我的尺寸 = _New_size;
             return;
@@ -1120,7 +1120,7 @@ public:
             _My_data._分配代理(_取代理分配器(_分配器类型, _取分配器())); // throws, hereafter nothrow in this block
             _接管内容(_Right);
             const auto _Ptr = _去花式(_My_data._Bx._Ptr);
-            _ASAN_STRING_MODIFY(*this, _Right_size, _New_size);
+            _ASAN_串修改(*this, _Right_size, _New_size);
             _特征::move(_Ptr + _Left_size, _Ptr, _Right_size + 1);
             _特征::copy(_Ptr, _Left_data._我的指针(), _Left_size);
             _My_data._我的尺寸 = _New_size;
@@ -1135,7 +1135,7 @@ public:
 
         size_type _New_capacity = _计算增长(_New_size, _Small_string_capacity, _最大);
         auto&& _Alproxy         = _取代理分配器(_分配器类型, _取分配器());
-        _容器代理指针<_分配器类型> _Proxy(_Alproxy, _My_data); // throws
+        _容器代理指针<_分配器类型> _代理(_Alproxy, _My_data); // throws
         const pointer _Fancyptr = _按容量分配(_取分配器(), _New_capacity); // throws
         // nothrow hereafter
         _就地构造(_My_data._Bx._Ptr, _Fancyptr);
@@ -1144,8 +1144,8 @@ public:
         const auto _Ptr  = _去花式(_Fancyptr);
         _特征::copy(_Ptr, _Left_data._我的指针(), _Left_size);
         _特征::copy(_Ptr + _Left_size, _Right_data._我的指针(), _Right_size + 1);
-        _ASAN_STRING_CREATE(*this);
-        _Proxy._释放();
+        _ASAN_串创建(*this);
+        _代理._释放();
     }
 
 #if _HAS_CXX17
@@ -1177,11 +1177,11 @@ public:
 
         const bool _Is_large = _Actual_allocation_size >= _Least_allocation_size;
         if (_Is_large) {
-            _ASAN_STRING_REMOVE(*this);
+            _ASAN_串移除(*this);
             _就地构造(_My_data._Bx._Ptr, _Refancy<pointer>(_Right));
             _My_data._我的尺寸 = _Size;
             _My_data._Myres  = _Actual_allocation_size - 1;
-            _ASAN_STRING_CREATE(*this);
+            _ASAN_串创建(*this);
         } else {
             _特征::copy(_My_data._Bx._Buf, _Right, _Actual_allocation_size);
             _My_data._我的尺寸 = _Size;
@@ -1204,7 +1204,7 @@ public:
         auto& _My_data = _Mypair._Myval2;
         _结果._Size  = _My_data._我的尺寸;
         _My_data._孤儿化全部();
-        _ASAN_STRING_REMOVE(*this);
+        _ASAN_串移除(*this);
         if (_My_data._已启用大串模式()) {
             _结果._Ptr                    = _My_data._Bx._Ptr;
             _结果._Actual_allocation_size = _My_data._Myres + 1;
@@ -1419,7 +1419,7 @@ public:
                     _就地构造(_Mypair._Myval2._Bx._Ptr, _New_ptr);
                     _Mypair._Myval2._我的尺寸 = _Right_size;
                     _Mypair._Myval2._Myres  = _New_capacity;
-                    _ASAN_STRING_CREATE(*this);
+                    _ASAN_串创建(*this);
                 } else {
                     _清理释放();
                     _特征::copy(_Mypair._Myval2._Bx._Buf, _Right_ptr, _Right_size + 1);
@@ -1454,7 +1454,7 @@ public:
 #endif // _HAS_CXX23
 
     _CONSTEXPR20 基础字符串实现& operator=(const _元素 _Ch) { // assign {_Ch, _元素()}
-        _ASAN_STRING_MODIFY(*this, _Mypair._Myval2._我的尺寸, 1);
+        _ASAN_串修改(*this, _Mypair._Myval2._我的尺寸, 1);
         _Mypair._Myval2._我的尺寸 = 1;
         _元素* const _Ptr       = _Mypair._Myval2._我的指针();
         _特征::assign(_Ptr[0], _Ch);
@@ -1514,7 +1514,7 @@ public:
         // 追加 [_Ptr, _Ptr + _Count)
         const size_type _Old_size = _Mypair._Myval2._我的尺寸;
         if (_Count <= _Mypair._Myval2._Myres - _Old_size) {
-            _ASAN_STRING_MODIFY(*this, _Old_size, _Old_size + _Count);
+            _ASAN_串修改(*this, _Old_size, _Old_size + _Count);
             _Mypair._Myval2._我的尺寸 = _Old_size + _Count;
             _元素* const _Old_ptr   = _Mypair._Myval2._我的指针();
             _特征::move(_Old_ptr + _Old_size, _Ptr, _Count);
@@ -1541,7 +1541,7 @@ public:
         // 追加 _Count * _Ch
         const size_type _Old_size = _Mypair._Myval2._我的尺寸;
         if (_Count <= _Mypair._Myval2._Myres - _Old_size) {
-            _ASAN_STRING_MODIFY(*this, _Old_size, _Old_size + _Count);
+            _ASAN_串修改(*this, _Old_size, _Old_size + _Count);
             _Mypair._Myval2._我的尺寸 = _Old_size + _Count;
             _元素* const _Old_ptr   = _Mypair._Myval2._我的指针();
             _特征::assign(_Old_ptr + _Old_size, _Count, _Ch);
@@ -1619,12 +1619,12 @@ public:
         _In_reads_(_Count) const _元素* const _Ptr, _CRT_GUARDOVERFLOW const size_type _Count) {
         // assign [_Ptr, _Ptr + _Count)
         if (_Count <= _Mypair._Myval2._Myres) {
-            _ASAN_STRING_REMOVE(*this);
+            _ASAN_串移除(*this);
             _元素* const _Old_ptr   = _Mypair._Myval2._我的指针();
             _Mypair._Myval2._我的尺寸 = _Count;
             _特征::move(_Old_ptr, _Ptr, _Count);
             _特征::assign(_Old_ptr[_Count], _元素());
-            _ASAN_STRING_CREATE(*this);
+            _ASAN_串创建(*this);
             return *this;
         }
 
@@ -1644,7 +1644,7 @@ public:
     _CONSTEXPR20 基础字符串实现& assign(_CRT_GUARDOVERFLOW const size_type _Count, const _元素 _Ch) {
         // assign _Count * _Ch
         if (_Count <= _Mypair._Myval2._Myres) {
-            _ASAN_STRING_MODIFY(*this, _Mypair._Myval2._我的尺寸, _Count);
+            _ASAN_串修改(*this, _Mypair._Myval2._我的尺寸, _Count);
             _元素* const _Old_ptr   = _Mypair._Myval2._我的指针();
             _Mypair._Myval2._我的尺寸 = _Count;
             _特征::assign(_Old_ptr, _Count, _Ch);
@@ -1744,7 +1744,7 @@ public:
 #endif // ^^^ !_HAS_CXX20 ^^^
 
         if (_Check_overlap) {
-            _ASAN_STRING_MODIFY(*this, _Old_size, _Old_size + _Count);
+            _ASAN_串修改(*this, _Old_size, _Old_size + _Count);
             _Mypair._Myval2._我的尺寸 = _Old_size + _Count;
             _元素* const _Old_ptr   = _Mypair._Myval2._我的指针();
             _元素* const _Insert_at = _Old_ptr + _Off;
@@ -1789,7 +1789,7 @@ public:
         _Mypair._Myval2._检查偏移(_Off);
         const size_type _Old_size = _Mypair._Myval2._我的尺寸;
         if (_Count <= _Mypair._Myval2._Myres - _Old_size) {
-            _ASAN_STRING_MODIFY(*this, _Old_size, _Old_size + _Count);
+            _ASAN_串修改(*this, _Old_size, _Old_size + _Count);
             _Mypair._Myval2._我的尺寸 = _Old_size + _Count;
             _元素* const _Old_ptr   = _Mypair._Myval2._我的指针();
             _元素* const _Insert_at = _Old_ptr + _Off;
@@ -1883,7 +1883,7 @@ private:
         _元素* const _Erase_at    = _My_ptr + _Off;
         const size_type _New_size = _Old_size - _Count;
         _特征::move(_Erase_at, _Erase_at + _Count, _New_size - _Off + 1); // move suffix + null up
-        _ASAN_STRING_MODIFY(*this, _Old_size, _New_size);
+        _ASAN_串修改(*this, _Old_size, _New_size);
         _Mypair._Myval2._我的尺寸 = _New_size;
         return *this;
     }
@@ -1968,7 +1968,7 @@ public:
             _特征::move(_Insert_at + _Count, _Insert_at + _Nx, _Suffix_size);
 
             const auto _New_size = _Old_size - (_Nx - _Count);
-            _ASAN_STRING_MODIFY(*this, _Old_size, _New_size);
+            _ASAN_串修改(*this, _Old_size, _New_size);
             _Mypair._Myval2._我的尺寸 = _New_size;
             return *this;
         }
@@ -1982,7 +1982,7 @@ public:
 #endif // _HAS_CXX20
         {
             if (_Growth <= _Mypair._Myval2._Myres - _Old_size) { // growth fits
-                _ASAN_STRING_MODIFY(*this, _Old_size, _Old_size + _Growth);
+                _ASAN_串修改(*this, _Old_size, _Old_size + _Growth);
                 _Mypair._Myval2._我的尺寸 = _Old_size + _Growth;
                 _元素* const _Old_ptr   = _Mypair._Myval2._我的指针();
                 _元素* const _Insert_at = _Old_ptr + _Off;
@@ -2040,13 +2040,13 @@ public:
             // either we are shrinking, or the growth fits
             // may temporarily overflow; OK because size_type must be unsigned
             const auto _New_size = _Old_size + _Count - _Nx;
-            _ASAN_STRING_REMOVE(*this);
+            _ASAN_串移除(*this);
             _Mypair._Myval2._我的尺寸 = _New_size;
             _元素* const _Old_ptr   = _Mypair._Myval2._我的指针();
             _元素* const _Insert_at = _Old_ptr + _Off;
             _特征::move(_Insert_at + _Count, _Insert_at + _Nx, _Old_size - _Nx - _Off + 1);
             _特征::assign(_Insert_at, _Count, _Ch);
-            _ASAN_STRING_CREATE(*this);
+            _ASAN_串创建(*this);
             return *this;
         }
 
@@ -2246,14 +2246,14 @@ public:
             auto& _Al = _取分配器();
             const pointer _New_ptr =
                 _按容量分配<_Allocation_policy::_Exactly>(_Al, _Target_capacity); // throws
-            _ASAN_STRING_REMOVE(*this);
+            _ASAN_串移除(*this);
 
             _My_data._孤儿化全部();
             _特征::copy(_去花式(_New_ptr), _去花式(_My_data._Bx._Ptr), _My_data._我的尺寸 + 1);
             _按容量释放(_Al, _My_data._Bx._Ptr, _My_data._Myres);
             _My_data._Bx._Ptr = _New_ptr;
             _My_data._Myres   = _Target_capacity;
-            _ASAN_STRING_CREATE(*this);
+            _ASAN_串创建(*this);
         }
     }
 
@@ -2294,7 +2294,7 @@ public:
     _CONSTEXPR20 void 尾插(const _元素 _Ch) { // 插入 element 取值 结束
         const size_type _Old_size = _Mypair._Myval2._我的尺寸;
         if (_Old_size < _Mypair._Myval2._Myres) {
-            _ASAN_STRING_MODIFY(*this, _Old_size, _Old_size + 1);
+            _ASAN_串修改(*this, _Old_size, _Old_size + 1);
             _Mypair._Myval2._我的尺寸 = _Old_size + 1;
             _元素* const _Ptr       = _Mypair._Myval2._我的指针();
             _特征::assign(_Ptr[_Old_size], _Ch);
@@ -2409,7 +2409,7 @@ public:
                 [](_元素* const _New_ptr, const _元素* const _Old_ptr, const size_type _Old_size)
                     _STATIC_LAMBDA { _特征::copy(_New_ptr, _Old_ptr, _Old_size + 1); });
         } else {
-            _ASAN_STRING_MODIFY(*this, _Mypair._Myval2._我的尺寸, _New_size);
+            _ASAN_串修改(*this, _Mypair._Myval2._我的尺寸, _New_size);
             _Mypair._Myval2._我的尺寸 = _New_size;
         }
 
@@ -2447,10 +2447,10 @@ public:
             [](_元素* const _New_ptr, const _元素* const _Old_ptr, const size_type _Old_size)
                 _STATIC_LAMBDA { _特征::copy(_New_ptr, _Old_ptr, _Old_size + 1); });
 
-        // `_按增量重分配` calls `_ASAN_STRING_CREATE` assuming that the string
+        // `_按增量重分配` calls `_ASAN_串创建` assuming that the string
         // has 尺寸 (initialized memory) equal to its new 容量 (allocated memory).
         // This is not true for the `预留` method, so we modify the ASan annotation.
-        _ASAN_STRING_MODIFY(*this, _Mypair._Myval2._我的尺寸, _Old_size);
+        _ASAN_串修改(*this, _Mypair._Myval2._我的尺寸, _Old_size);
         _Mypair._Myval2._我的尺寸 = _Old_size;
     }
 
@@ -2475,10 +2475,10 @@ public:
                 [](_元素* const _New_ptr, const _元素* const _Old_ptr, const size_type _Old_size)
                     _STATIC_LAMBDA { _特征::copy(_New_ptr, _Old_ptr, _Old_size + 1); });
 
-            // `_按增量重分配` calls `_ASAN_STRING_CREATE` assuming that the string
+            // `_按增量重分配` calls `_ASAN_串创建` assuming that the string
             // has 尺寸 (initialized memory) equal to its new 容量 (allocated memory).
             // This is not true for the `预留` method, so we modify the ASan annotation.
-            _ASAN_STRING_MODIFY(*this, _Mypair._Myval2._我的尺寸, _Old_size);
+            _ASAN_串修改(*this, _Mypair._Myval2._我的尺寸, _Old_size);
             _Mypair._Myval2._我的尺寸 = _Old_size;
             return;
         }
@@ -3008,7 +3008,7 @@ private:
         const pointer _New_ptr        = _按容量分配(_Al, _New_capacity); // throws
 
         _Mypair._Myval2._孤儿化全部();
-        _ASAN_STRING_REMOVE(*this);
+        _ASAN_串移除(*this);
         _Mypair._Myval2._我的尺寸 = _New_size;
         _Mypair._Myval2._Myres  = _New_capacity;
         _Fn(_去花式(_New_ptr), _New_size, _Args...);
@@ -3019,7 +3019,7 @@ private:
             _就地构造(_Mypair._Myval2._Bx._Ptr, _New_ptr);
         }
 
-        _ASAN_STRING_CREATE(*this);
+        _ASAN_串创建(*this);
         return *this;
     }
 
@@ -3040,7 +3040,7 @@ private:
         const pointer _New_ptr        = _按容量分配(_Al, _New_capacity); // throws
 
         _My_data._孤儿化全部();
-        _ASAN_STRING_REMOVE(*this);
+        _ASAN_串移除(*this);
         _My_data._我的尺寸      = _New_size;
         _My_data._Myres       = _New_capacity;
         _元素* const _Raw_new = _去花式(_New_ptr);
@@ -3054,7 +3054,7 @@ private:
             _就地构造(_My_data._Bx._Ptr, _New_ptr);
         }
 
-        _ASAN_STRING_CREATE(*this);
+        _ASAN_串创建(*this);
         return *this;
     }
 
@@ -3065,7 +3065,7 @@ private:
         _STL_INTERNAL_CHECK(_My_data._我的尺寸 <= _Small_string_capacity);
 
         _My_data._孤儿化全部();
-        _ASAN_STRING_REMOVE(*this);
+        _ASAN_串移除(*this);
         const pointer _Ptr = _My_data._Bx._Ptr;
         _My_data._Bx._切换到缓冲();
         _特征::copy(_My_data._Bx._Buf, _去花式(_Ptr), _My_data._我的尺寸 + 1);
@@ -3075,7 +3075,7 @@ private:
     }
 
     _CONSTEXPR20 void _串尾(const size_type _New_size) noexcept { // set new length and null terminator
-        _ASAN_STRING_MODIFY(*this, _Mypair._Myval2._我的尺寸, _New_size);
+        _ASAN_串修改(*this, _Mypair._Myval2._我的尺寸, _New_size);
         _Mypair._Myval2._我的尺寸 = _New_size;
         _特征::assign(_Mypair._Myval2._我的指针()[_New_size], _元素());
     }
@@ -3084,7 +3084,7 @@ private:
         auto& _My_data = _Mypair._Myval2;
         _My_data._孤儿化全部();
         if (_My_data._已启用大串模式()) {
-            _ASAN_STRING_REMOVE(*this);
+            _ASAN_串移除(*this);
             auto& _Al = _取分配器();
             _按容量释放(_Al, _My_data._Bx._Ptr, _My_data._Myres);
             _My_data._Bx._切换到缓冲();
@@ -3506,9 +3506,9 @@ namespace pmr {
 #endif // _HAS_CXX17
 } }
 
-#undef _ASAN_STRING_REMOVE
-#undef _ASAN_STRING_CREATE
-#undef _ASAN_STRING_MODIFY
+#undef _ASAN_串移除
+#undef _ASAN_串创建
+#undef _ASAN_串修改
 #undef _INSERT_STRING_ANNOTATION
 
 #pragma pop_macro("new")

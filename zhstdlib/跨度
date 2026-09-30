@@ -84,7 +84,7 @@ struct _跨度迭代器 {
         return _Tmp;
     }
 
-    constexpr void _Verify_offset([[maybe_unused]] const difference_type _Off) const noexcept {
+    constexpr void _校验偏移([[maybe_unused]] const difference_type _Off) const noexcept {
 #if _ITERATOR_DEBUG_LEVEL >= 1
         if (_Off != 0) {
             _STL_VERIFY(_Mybegin, "cannot seek value-initialized 跨度实现 迭代器");
@@ -102,7 +102,7 @@ struct _跨度迭代器 {
 
     constexpr _跨度迭代器& operator+=(const difference_type _Off) noexcept {
 #if _ITERATOR_DEBUG_LEVEL >= 1
-        _Verify_offset(_Off);
+        _校验偏移(_Off);
 #endif // _ITERATOR_DEBUG_LEVEL >= 1
 
         _我的指针 += _Off;
@@ -123,7 +123,7 @@ struct _跨度迭代器 {
     constexpr _跨度迭代器& operator-=(const difference_type _Off) noexcept {
 #if _ITERATOR_DEBUG_LEVEL >= 1
         _STL_VERIFY(_Off != _Min_possible_v<difference_type>, "integer overflow");
-        _Verify_offset(-_Off);
+        _校验偏移(-_Off);
 #endif // _ITERATOR_DEBUG_LEVEL >= 1
 
         _我的指针 -= _Off;
@@ -519,21 +519,21 @@ public:
     }
 #endif // _HAS_CXX23
 
-    _NODISCARD constexpr reverse_iterator 反向开始() const noexcept {
+    _NODISCARD constexpr reverse_iterator rbegin() const noexcept {
         return reverse_iterator{结束()};
     }
 
-    _NODISCARD constexpr reverse_iterator 反向结束() const noexcept {
+    _NODISCARD constexpr reverse_iterator rend() const noexcept {
         return reverse_iterator{开始()};
     }
 
 #if _HAS_CXX23
     _NODISCARD constexpr 常量反向迭代器 crbegin() const noexcept {
-        return 反向开始();
+        return rbegin();
     }
 
     _NODISCARD constexpr 常量反向迭代器 crend() const noexcept {
-        return 反向结束();
+        return rend();
     }
 #endif // _HAS_CXX23
 

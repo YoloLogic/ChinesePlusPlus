@@ -827,11 +827,11 @@ private:
 
     void _构造n个(_CRT_GUARDOVERFLOW size_type _Count) {
         auto&& _Alproxy = _取代理分配器(_结点分配器, _取分配器());
-        _容器代理指针<_分配器类型> _Proxy(_Alproxy, _Mypair._Myval2);
+        _容器代理指针<_分配器类型> _代理(_Alproxy, _Mypair._Myval2);
         _链表节点插入操作2<_结点分配器> _Appended(_取分配器());
         _Appended._追加n(_Count);
         _Appended._接到头部(_Mypair._Myval2);
-        _Proxy._释放();
+        _代理._释放();
     }
 
 public:
@@ -848,11 +848,11 @@ public:
 private:
     void _构造n个(_CRT_GUARDOVERFLOW size_type _Count, const _类型& _Val) {
         auto&& _Alproxy = _取代理分配器(_结点分配器, _取分配器());
-        _容器代理指针<_分配器类型> _Proxy(_Alproxy, _Mypair._Myval2);
+        _容器代理指针<_分配器类型> _代理(_Alproxy, _Mypair._Myval2);
         _链表节点插入操作2<_结点分配器> _Appended(_取分配器());
         _Appended._追加n(_Count, _Val);
         _Appended._接到头部(_Mypair._Myval2);
-        _Proxy._释放();
+        _代理._释放();
     }
 
 public:
@@ -873,11 +873,11 @@ private:
     template <class _Iter, class _Sent>
     void _构造范围非检查(_Iter _首个, const _Sent _最后) {
         auto&& _Alproxy = _取代理分配器(_结点分配器, _取分配器());
-        _容器代理指针<_分配器类型> _Proxy(_Alproxy, _Mypair._Myval2);
+        _容器代理指针<_分配器类型> _代理(_Alproxy, _Mypair._Myval2);
         _链表节点插入操作2<_结点分配器> _Appended(_取分配器());
         _Appended._追加范围非检查(_STD move(_首个), _最后);
         _Appended._接到头部(_Mypair._Myval2);
-        _Proxy._释放();
+        _代理._释放();
     }
 
 public:
@@ -944,7 +944,7 @@ public:
             if (_Al != _Right_al) {
                 auto&& _Alproxy       = _取代理分配器(_结点分配器, _Al);
                 auto&& _Right_alproxy = _取代理分配器(_结点分配器, _Right_al);
-                _容器代理指针<_分配器类型> _Proxy(_Right_alproxy, _离开代理未绑定{});
+                _容器代理指针<_分配器类型> _代理(_Right_alproxy, _离开代理未绑定{});
                 auto& _My_data      = _Mypair._Myval2;
                 auto& _Right_data   = _Right._Mypair._Myval2;
                 const auto _Newhead = _STD exchange(_Right_data._Myhead, _节点::_建头节点(_Right_al));
@@ -953,7 +953,7 @@ public:
                 _Pocma(_Al, _Right_al);
                 _My_data._Myhead = _Newhead;
                 _My_data._我的尺寸 = _Newsize;
-                _Proxy._绑定(_Alproxy, _STD addressof(_My_data));
+                _代理._绑定(_Alproxy, _STD addressof(_My_data));
                 _My_data._交换代理与迭代器(_Right_data);
                 return *this;
             }
@@ -1073,14 +1073,14 @@ private:
         auto&& _Alproxy       = _取代理分配器(_结点分配器, _Al);
         auto& _Right_al       = _Right._取分配器();
         auto&& _Right_alproxy = _取代理分配器(_结点分配器, _Right_al);
-        _容器代理指针<_分配器类型> _Proxy(_Right_alproxy, _离开代理未绑定{});
+        _容器代理指针<_分配器类型> _代理(_Right_alproxy, _离开代理未绑定{});
         auto _Right_al_non_const = _Right_al;
         auto _Newhead            = _节点::_建头节点(_Right_al_non_const);
         _清理();
         _Pocca(_Al, _Right_al);
         _Mypair._Myval2._Myhead = _Newhead;
         _Mypair._Myval2._我的尺寸 = 0;
-        _Proxy._绑定(_Alproxy, _STD addressof(_Mypair._Myval2));
+        _代理._绑定(_Alproxy, _STD addressof(_Mypair._Myval2));
     }
 
 public:
@@ -1848,13 +1848,13 @@ private:
 
     void _分配哨兵与代理() {
         auto&& _Alproxy = _取代理分配器(_结点分配器, _取分配器());
-        _容器代理指针<_分配器类型> _Proxy(_Alproxy, _Mypair._Myval2);
+        _容器代理指针<_分配器类型> _代理(_Alproxy, _Mypair._Myval2);
         auto& _Al     = _取分配器();
         auto _Newhead = _Al.allocate(1);
         _就地构造(_Newhead->_Next, _Newhead);
         _就地构造(_Newhead->_Prev, _Newhead);
         _Mypair._Myval2._Myhead = _Newhead;
-        _Proxy._释放();
+        _代理._释放();
     }
 
     void _孤儿化全部() noexcept {

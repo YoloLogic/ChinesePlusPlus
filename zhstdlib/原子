@@ -191,8 +191,8 @@ extern "C" inline void _检查内存序(const unsigned int _Order) noexcept {
 #endif // ^^^ Unsupported hardware ^^^
 
 #pragma warning(push)
-#pragma warning(disable : 6001) // "Using uninitialized memory '_Guard'"
-#pragma warning(disable : 28113) // "Accessing a local variable _Guard via an Interlocked function: This is an unusual
+#pragma warning(disable : 6001) // "Using uninitialized memory '_守卫'"
+#pragma warning(disable : 28113) // "Accessing a local variable _守卫 via an Interlocked function: This is an unusual
                                  // usage which could be reconsidered."
 extern "C" inline void _原子线程栅栏(const unsigned int _Order) noexcept {
     if (_Order == _原子内存序松弛) {
@@ -202,12 +202,12 @@ extern "C" inline void _原子线程栅栏(const unsigned int _Order) noexcept {
 #if (defined(_M_IX86) && !defined(_M_HYBRID_X86_ARM64)) || (defined(_M_X64) && !defined(_M_ARM64EC))
     _Compiler_barrier();
     if (_Order == _原子内存序顺序一致) {
-        volatile long _Guard; // Not initialized to avoid an unnecessary operation; the value does not matter
+        volatile long _守卫; // Not initialized to avoid an unnecessary operation; the value does not matter
 
         // _mm_mfence could have been used, but it is slower on some CPUs.
         // The memory fence provided by interlocked operations has some exceptions, but this is fine:
         // std::线程栅栏 works with respect to other atomics only; it may not be a full fence for all ops.
-        (void) _InterlockedIncrement(&_Guard);
+        (void) _InterlockedIncrement(&_守卫);
         _Compiler_barrier();
     }
 #elif defined(_M_ARM) || defined(_M_ARM64) || defined(_M_ARM64EC) || defined(_M_HYBRID_X86_ARM64)
@@ -551,7 +551,7 @@ struct _原子存储 {
     // Locking version used when hardware has no 原子实现 operations for sizeof(_类型).
 
     using _值类型参数  = _Remove_cvref_t<_类型>;
-    using _Guard = _原子锁守卫<typename _原子存储类型<_类型>::_自旋锁>;
+    using _守卫 = _原子锁守卫<typename _原子存储类型<_类型>::_自旋锁>;
 
     _原子存储() = default;
 
@@ -562,22 +562,22 @@ struct _原子存储 {
     void 存储(const _值类型参数 _Value, const 内存序 _Order = 内存序顺序一致) noexcept {
         // 存储 with sequential consistency
         _检查存储内存序(_Order);
-        _Guard _加锁{_自旋锁};
+        _守卫 _加锁{_自旋锁};
         _Storage = _Value;
     }
 
     _NODISCARD _值类型参数 载入(const 内存序 _Order = 内存序顺序一致) const noexcept {
         // 载入 with sequential consistency
         _检查载入内存序(_Order);
-        _Guard _加锁{_自旋锁};
-        _值类型参数 _Local(_Storage);
-        return _Local;
+        _守卫 _加锁{_自旋锁};
+        _值类型参数 _局部(_Storage);
+        return _局部;
     }
 
     _值类型参数 置换(const _值类型参数 _Value, const 内存序 _Order = 内存序顺序一致) noexcept {
         // 置换 _Value with _Storage with sequential consistency
         _检查内存序(static_cast<unsigned int>(_Order));
-        _Guard _加锁{_自旋锁};
+        _守卫 _加锁{_自旋锁};
         _值类型参数 _结果(_Storage);
         _Storage = _Value;
         return _结果;
@@ -592,11 +592,11 @@ struct _原子存储 {
 #if _CMPXCHG_MASK_OUT_PADDING_BITS
         ::__builtin_zero_non_value_bits(_Expected_ptr); // TRANSITION, DevCom-10456452
 #endif // _CMPXCHG_MASK_OUT_PADDING_BITS
-        _Guard _加锁{_自旋锁};
+        _守卫 _加锁{_自旋锁};
 #if _CMPXCHG_MASK_OUT_PADDING_BITS
         if constexpr (_Might_have_non_value_bits<_值类型参数>) {
-            _存储用于<_值类型参数> _Local;
-            const auto _Local_ptr = _Local._指针();
+            _存储用于<_值类型参数> _局部;
+            const auto _Local_ptr = _局部._指针();
             _CSTD memcpy(_Local_ptr, _Storage_ptr, sizeof(_值类型参数));
             ::__builtin_zero_non_value_bits(_Local_ptr); // TRANSITION, DevCom-10456452
             _结果 = _CSTD memcmp(_Local_ptr, _Expected_ptr, sizeof(_值类型参数)) == 0;
@@ -621,13 +621,13 @@ struct _原子存储 {
         const auto _Expected_ptr = _STD addressof(_Expected);
         for (;;) {
             {
-                _Guard _加锁{_自旋锁};
+                _守卫 _加锁{_自旋锁};
                 if (_CSTD memcmp(_Storage_ptr, _Expected_ptr, sizeof(_值类型参数)) != 0) {
                     // contents differed, we might be done, check for padding
 #if _CMPXCHG_MASK_OUT_PADDING_BITS
                     if constexpr (_Might_have_non_value_bits<_值类型参数>) {
-                        _存储用于<_值类型参数> _Local;
-                        const auto _Local_ptr = _Local._指针();
+                        _存储用于<_值类型参数> _局部;
+                        const auto _Local_ptr = _局部._指针();
                         _CSTD memcpy(_Local_ptr, _Storage_ptr, sizeof(_值类型参数));
                         ::__builtin_zero_non_value_bits(_Local_ptr); // TRANSITION, DevCom-10456452
                         ::__builtin_zero_non_value_bits(_Expected_ptr); // TRANSITION, DevCom-10456452
