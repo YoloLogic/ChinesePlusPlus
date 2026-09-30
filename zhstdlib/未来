@@ -1,0 +1,27 @@
+// <未来> —— future 的中文别名层
+//
+// 为什么是别名而不是抄一份（方案铁律 4）：
+//   铁律③：future/shared_future/promise/packaged_task 的身份参与语义（共享状态 + 线程交接）。
+//   这类头一旦抄一份，就会和 std 里那份成为两套互不相认的东西。
+//
+// 英文原名照旧可用：这里只是【多一个名字】，原头一个字节没动。
+// 变体（英文里带 _v 的变量模板形式）暂未提供中文名，属"必须的妥协"，见方案 §六。
+#pragma once
+#include <future>
+
+名域 标准 {
+    模板 <类型名 结果类型> 使用 未来 = std::future<结果类型>;
+    模板 <类型名 结果类型> 使用 共享未来 = std::shared_future<结果类型>;
+    模板 <类型名 结果类型> 使用 承诺 = std::promise<结果类型>;
+    模板 <类型名 签名> 使用 打包任务 = std::packaged_task<签名>;
+    使用 未来状态 = std::future_status;
+    内联 常量表达式 自动 就绪 = std::future_status::ready;
+    内联 常量表达式 自动 未来超时 = std::future_status::timeout;
+    内联 常量表达式 自动 未来延迟 = std::future_status::deferred;
+    使用 启动方式 = std::launch;
+    内联 常量表达式 自动 异步启动 = std::launch::async;
+    内联 常量表达式 自动 延迟启动 = std::launch::deferred;
+    使用 未来错误码 = std::future_errc;
+    使用 未来异常 = std::future_error;
+    模板 <类型名 函数, 类型名... 参数> 声明类型(自动) 异步(函数&& 甲, 参数&&... 乙) { 返回 std::async(static_cast<函数&&>(甲), static_cast<参数&&>(乙)...); }
+}

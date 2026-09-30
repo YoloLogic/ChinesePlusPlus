@@ -1,0 +1,30 @@
+// <本地化> —— locale 的中文别名层
+//
+// 为什么是别名而不是抄一份（方案铁律 4）：
+//   铁律③：facet 的类型身份决定 locale 取用哪一个；抄一份改名会让 locale 找不到它。
+//   这类头一旦抄一份，就会和 std 里那份成为两套互不相认的东西。
+//
+// 英文原名照旧可用：这里只是【多一个名字】，原头一个字节没动。
+// 变体（英文里带 _v 的变量模板形式）暂未提供中文名，属"必须的妥协"，见方案 §六。
+#pragma once
+#include <locale>
+
+名域 标准 {
+    使用 本地化 = std::locale;
+    使用 字符分类 = std::ctype<字符>;
+    使用 具名字符分类 = std::ctype_byname<字符>;
+    使用 排序规则 = std::collate<字符>;
+    使用 具名排序规则 = std::collate_byname<字符>;
+    使用 数值标点 = std::numpunct<字符>;
+    使用 具名数值标点 = std::numpunct_byname<字符>;
+    使用 货币标点 = std::moneypunct<字符>;
+    使用 货币取值 = std::money_get<字符>;
+    使用 货币放值 = std::money_put<字符>;
+    使用 时间取值 = std::time_get<字符>;
+    使用 时间放值 = std::time_put<字符>;
+    使用 消息目录 = std::messages<字符>;
+    使用 编码转换面 = std::codecvt<字符, 字符, std::mbstate_t>;
+    使用 具名编码转换面 = std::codecvt_byname<字符, 字符, std::mbstate_t>;
+    模板 <类型名 面> 声明类型(自动) 取面(const 本地化& 甲) { 返回 std::use_facet<面>(甲); }
+    模板 <类型名 面> 布尔 有面(const 本地化& 甲) 不抛出 { 返回 std::has_facet<面>(甲); }
+}

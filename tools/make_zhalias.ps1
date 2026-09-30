@@ -34,6 +34,57 @@ $utf8 = New-Object System.Text.UTF8Encoding($false)
 #            @('函数','中文名','std::原名')      —— 通用一模板转发
 #            @('原样','<整行代码>')              —— 原样发出（成员要转发成自由函数时用）
 $H = [ordered]@{
+# §17.19.31 <future>（未来）：类型身份参与语义（future 与 promise 共享状态）—— 只能别名
+'future' = @{ zh = '未来'; src = 'future';
+  reason = '铁律③：future/shared_future/promise/packaged_task 的身份参与语义（共享状态 + 线程交接）。';
+  a = @(
+    @('原样','模板 <类型名 结果类型> 使用 未来 = std::future<结果类型>;'),
+    @('原样','模板 <类型名 结果类型> 使用 共享未来 = std::shared_future<结果类型>;'),
+    @('原样','模板 <类型名 结果类型> 使用 承诺 = std::promise<结果类型>;'),
+    @('原样','模板 <类型名 签名> 使用 打包任务 = std::packaged_task<签名>;'),
+    @('原样','使用 未来状态 = std::future_status;'),
+    @('原样','内联 常量表达式 自动 就绪 = std::future_status::ready;'),
+    @('原样','内联 常量表达式 自动 未来超时 = std::future_status::timeout;'),
+    @('原样','内联 常量表达式 自动 未来延迟 = std::future_status::deferred;'),
+    @('原样','使用 启动方式 = std::launch;'),
+    @('原样','内联 常量表达式 自动 异步启动 = std::launch::async;'),
+    @('原样','内联 常量表达式 自动 延迟启动 = std::launch::deferred;'),
+    @('原样','使用 未来错误码 = std::future_errc;'),
+    @('原样','使用 未来异常 = std::future_error;'),
+    @('原样','模板 <类型名 函数, 类型名... 参数> 声明类型(自动) 异步(函数&& 甲, 参数&&... 乙) { 返回 std::async(static_cast<函数&&>(甲), static_cast<参数&&>(乙)...); }')
+  )
+  tests = @(
+    @('只引中文头','#包含 <未来>`n整数 主函数(){ 标准::承诺<整数> 甲; 自动 乙 = 甲.取未来(); 甲.设置值(7); 返回 乙.取() == 7 ? 0 : 1; }'),
+    @('与微软原头并存','#包含 <未来>`n#包含 <future>`n静态断言(std::is_same<标准::未来<整数>, std::future<整数>>::value, "");`n整数 主函数(){ 返回 0; }')
+  )
+}
+# §17.19.31 <locale>（本地化）：facet 类型身份参与语义（用户继承 facet + locale 按类型取用）
+'locale' = @{ zh = '本地化'; src = 'locale';
+  reason = '铁律③：facet 的类型身份决定 locale 取用哪一个；抄一份改名会让 locale 找不到它。';
+  a = @(
+    @('原样','使用 本地化 = std::locale;'),
+    @('原样','使用 字符分类 = std::ctype<字符>;'),
+    @('原样','使用 具名字符分类 = std::ctype_byname<字符>;'),
+    @('原样','使用 排序规则 = std::collate<字符>;'),
+    @('原样','使用 具名排序规则 = std::collate_byname<字符>;'),
+    @('原样','使用 数值标点 = std::numpunct<字符>;'),
+    @('原样','使用 具名数值标点 = std::numpunct_byname<字符>;'),
+    @('原样','使用 货币标点 = std::moneypunct<字符>;'),
+    @('原样','使用 货币取值 = std::money_get<字符>;'),
+    @('原样','使用 货币放值 = std::money_put<字符>;'),
+    @('原样','使用 时间取值 = std::time_get<字符>;'),
+    @('原样','使用 时间放值 = std::time_put<字符>;'),
+    @('原样','使用 消息目录 = std::messages<字符>;'),
+    @('原样','使用 编码转换面 = std::codecvt<字符, 字符, std::mbstate_t>;'),
+    @('原样','使用 具名编码转换面 = std::codecvt_byname<字符, 字符, std::mbstate_t>;'),
+    @('原样','模板 <类型名 面> 声明类型(自动) 取面(const 本地化& 甲) { 返回 std::use_facet<面>(甲); }'),
+    @('原样','模板 <类型名 面> 布尔 有面(const 本地化& 甲) 不抛出 { 返回 std::has_facet<面>(甲); }')
+  )
+  tests = @(
+    @('只引中文头','#包含 <本地化>`n整数 主函数(){ 标准::本地化 甲; 返回 标准::有面<标准::数值标点>(甲) ? 0 : 1; }'),
+    @('与微软原头并存','#包含 <本地化>`n#包含 <locale>`n静态断言(std::is_same<标准::本地化, std::locale>::value, "");`n整数 主函数(){ 返回 0; }')
+  )
+}
 # §17.19.29 <strstream>（弃用的串流）—— 铁律③：类型身份参与语义，只能别名
 'strstream' = @{ zh = '串流'; src = 'strstream';
   reason = '铁律③ + C++17 起弃用：strstreambuf/istrstream 都是 std 的类，派生/改名会与 std 的继承链脱钩。';
@@ -723,6 +774,39 @@ $H = [ordered]@{
 
 # -ExportJson：把整张表以 JSON 输出后退出（供 tools\make_zh_usage.ps1 生成用法对照表）。
 #   用的是【同一张表】、不靠正则扫描 —— 扫描正则会漂移（见 make_zhstdlib2.ps1 同一开关的说明）。
+# ---------------------------------------------------------------------------
+#  §17.19.30 关键词守卫【别名轨道这一份】—— 第 105 轮实测的缺口：
+#  关键词检查住在 make_zhstdlib2.ps1 里，只扫它的表；本轨道的 `原样` 行是手写 C++，
+#  于是 `模板 <类型名 类型>`（`类型` 是 class 的汉写）一路走到编译才报「缺少 identifier」。
+#  判据：**手写块也要过同一套关键词检查**（与 §17.19.22 补的 extra/prologue 同一条）。
+#  关键词表从编译器那份唯一来源 ChineseKeywords.def 读（读不到就用内置危险集兜底）。
+# ---------------------------------------------------------------------------
+$kw = @{}
+$defFile = Join-Path $root 'LLVM-main\clang\include\clang\Basic\ChineseKeywords.def'
+if (Test-Path $defFile) {
+    foreach ($m in [regex]::Matches([System.IO.File]::ReadAllText($defFile), 'ZH_\w+\s*\(\s*[^,]+,\s*([^\s,]+)')) {
+        $kw[$m.Groups[1].Value] = $true
+    }
+}
+if ($kw.Count -eq 0) { foreach ($k in @('类型','类','结构','名域','模板','类型名','使用','自动','整数','字符','空型','常量')) { $kw[$k] = $true } }
+$kwBad = @()
+foreach ($k2 in $H.Keys) {
+    $lines = @()
+    if ($H[$k2].ContainsKey('a')) { foreach ($x in $H[$k2].a) { if ($x.Count -ge 2) { $lines += [string]$x[1] } } }
+    foreach ($ln in $lines) {
+        foreach ($k in $kw.Keys) {
+            if ($ln -match ('类型名\s*(?:\.\.\.)?\s*' + [regex]::Escape($k) + '(?![\w\u4e00-\u9fff])') -or
+                $ln -match ('使用\s+' + [regex]::Escape($k) + '\s*=')) {
+                $kwBad += ("  [{0}] 原样行里 '{1}' 在【名字位置】—— 它是关键词：{2}" -f $k2, $k, $ln.Trim())
+            }
+        }
+    }
+}
+if ($kwBad.Count) {
+    Write-Host "❌ 别名轨道的原样行里有中文名撞关键词：" -ForegroundColor Red
+    $kwBad | Sort-Object -Unique | ForEach-Object { Write-Host $_ -ForegroundColor Red }
+    throw "别名轨道关键词撞车，先改名再生成"
+}
 if ($ExportJson) { $H | ConvertTo-Json -Depth 8; exit 0 }
 
 $spec = $H[$Header]
