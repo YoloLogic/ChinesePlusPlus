@@ -15,6 +15,10 @@
 #    ② 条目用例覆盖：名字出现在该条目自带用例里（那里的用例现在是真编译 + 真运行的）。
 #    ③ 未覆盖：模板函数 / 概念 / 命名空间 / 预处理行等"无法自动生成实参"的名字，
 #       必须写明**原因分类** —— 账要诚实显示"还缺"，不许把做不到的混进"已覆盖"。
+#    ④ §17.21 模板函数「合成实参真调用」探针：**表里有名字 != 名字能被调用**。
+#       别名层的手写签名（`生成` = std::generate 却写成返回 `输出迭代`）以前藏在
+#       ③里没人看得见；现在模板函数也按形参合成见证**真调一次**，
+#       见下面 §17.21 一节（A 级调用 / B 级显式模板实参）。
 #
 #  名字来源：三张生成器表（不是手写清单）。新增名字自动进账。
 #    · 深度轨道 make_zhstdlib2.ps1 -ExportJson（产品公开名 + tparam + types/手写层）
@@ -68,6 +72,140 @@ function Get-TemplateArgs([string] $decl) {
 }
 
 # ---------------------------------------------------------------------------
+#  §17.21 模板函数「合成实参真调用」探针
+#
+#  事故（实测）：别名层 `生成` 的签名写成
+#    `模板 <类型名 迭代, 类型名 输出迭代, 类型名 生成器> 输出迭代 生成(迭代 首, 迭代 尾, 生成器 丙)`
+#  而 std::generate 返回 void —— `输出迭代` 只出现在返回类型里，永远推导不出来，
+#  用户一写 `标准::生成(首, 尾, 丙)` 就是「没有匹配的函数」。旧守卫对模板函数
+#  **一律不做探针**（记「模板函数-无探针」），于是"根本调不通"能长期藏在"未覆盖"里。
+#  护栏口径：**表里有名字 != 名字能被调用**；模板函数也要真的调一次。
+#
+#  两级（都真编译；调用写在**永不被调用的 lambda 里** —— 证明的是"能实例化调用"，
+#  不是运行时行为，于是不会把算法的 UB 引到探针进程里）：
+#    A 调用探针    `标准::名(见证…)`            普通推导调用
+#    B 显式实参探针 `标准::名<见证类型…>(见证…)`  A 失败才跑：把"只在返回类型里出现的
+#      形参"当显式模板实参传进去。**合法**的（`时长转换<目标时长>`）在 B 下通过；
+#      **签名有病**的（`生成`）在 B 下实例化函数体，报错**正落在这个名字自己的定义行**
+#      —— 只有这一种判真失败。B 的报错落在别处 = 见证表达不出，记「未覆盖」，
+#      不冤判库。
+# ---------------------------------------------------------------------------
+function Split-TopLevel([string] $s) {
+    $o = @(); $depth = 0; $cur = ''
+    foreach ($ch in $s.ToCharArray()) {
+        if ($ch -eq '<' -or $ch -eq '(' -or $ch -eq '[') { $depth++ }
+        elseif ($ch -eq '>' -or $ch -eq ')' -or $ch -eq ']') { $depth-- }
+        if ($ch -eq ',' -and $depth -eq 0) { $o += $cur; $cur = '' } else { $cur += $ch }
+    }
+    if ($cur.Trim()) { $o += $cur }
+    return $o
+}
+function Get-TemplateBody([string] $line) {
+    $i = $line.IndexOf('模板'); if ($i -lt 0) { return '' }
+    $j = $line.IndexOf('<', $i); if ($j -lt 0) { return '' }
+    $depth = 0
+    for ($k = $j; $k -lt $line.Length; $k++) {
+        $ch = $line[$k]
+        if ($ch -eq '<') { $depth++ }
+        elseif ($ch -eq '>') { $depth--; if ($depth -eq 0) { return $line.Substring($j + 1, $k - $j - 1) } }
+    }
+    return ''
+}
+function Get-FuncParams([string] $line) {
+    $m = [regex]::Match($line, '([\u4e00-\u9fff][\u4e00-\u9fff_0-9]*)\s*\(([^()]*)\)\s*(?:不抛出|noexcept)?\s*\{')
+    if (-not $m.Success) { return $null }
+    return @{ Name = $m.Groups[1].Value; Params = (Split-TopLevel $m.Groups[2].Value) }
+}
+#  见证种类：组=整数数组（迭代器）、出=输出缓冲、壹=左值、丙=变参 lambda、引=随机引擎、范=向量
+function New-WitnessDecl([string[]] $kinds, [int] $id) {
+    $d = @()
+    if ($kinds -contains '组') { $d += "        整数 组$id[8]{0,1,2,3,4,5,6,7};" }
+    if ($kinds -contains '出') { $d += "        整数 出$id[32]{};" }
+    if ($kinds -contains '壹') { $d += "        整数 壹$id = 1;" }
+    if ($kinds -contains '丙') { $d += "        自动 丙$id = [](自动&&... 参){ 返回 1; };" }
+    if ($kinds -contains '引') { $d += "        标准::默认随机引擎 引$id{};" }
+    if ($kinds -contains '范') { $d += "        标准::向量<整数> 范$id{1,2,3,4};" }
+    return ($d -join "`n")
+}
+function Get-Witness([string] $type, [string] $pname, [int] $id) {
+    #  返回 @{ Expr; Kind } ；$null = 这个形参见证不出来（整个名字不做探针）
+    $t = ($type.Trim() -replace '^const\s+', '') -replace '\s*[&*]+\s*$', ''
+    $k = ''
+    if ($t -match '^输出迭代|^输出迭代器|^插入迭代') { $k = '出' }
+    elseif ($t -match '迭代') { $k = '组' }
+    elseif ($t -match '^(谓词|比较|一元操作|二元操作|生成器|函数|成员函数|操作|条件|判据)$') { $k = '丙' }
+    elseif ($t -match '^(值类型|大小类型|距离类型|类型1|类型2|某类型|元素|别的|替换类型|整数类型|实数类型)$') { $k = '壹' }
+    elseif ($t -match '^(std::size_t|std::ptrdiff_t|size_t|整数|长整型|无符号整数)$') { $k = '壹' }
+    elseif ($t -match '^范围类型$') { $k = '范' }
+    elseif ($pname -match '^引擎$' -and $t -match '^引擎$') { $k = '引' }
+    else { return $null }
+    $expr = switch ($k) {
+        '组' { if ($pname -match '尾') { "组$id + 8" } elseif ($pname -match '中') { "组$id + 2" } else { "组$id" } }
+        '出' { if ($pname -match '尾') { "出$id + 32" } else { "出$id" } }
+        '壹' { "壹$id" }
+        '丙' { "丙$id" }
+        '引' { "引$id" }
+        '范' { "范$id" }
+        default { return $null }
+    }
+    return @{ Expr = $expr; Kind = $k }
+}
+function Get-WitnessIncludes([string[]] $kinds) {
+    $inc = @()
+    if ($kinds -contains '引') { $inc += '随机' }
+    if ($kinds -contains '范') { $inc += '向量' }
+    return $inc
+}
+function Get-TypeArgWitness([string] $body, [int] $id) {
+    #  模板形参 -> 显式模板实参；有一个见证不出来就返回 $null（B 级探针不做）
+    if (-not $body) { return $null }
+    $args = @()
+    foreach ($p in (Split-TopLevel $body)) {
+        $t = $p.Trim(); if (-not $t) { continue }
+        if ($t -match '=') { $t = ($t -split '=')[0].Trim() }
+        $nm = ($t -split '\s+')[-1].TrimEnd('.')
+        if ($t -match '^类型名') {
+            if ($nm -match '^(迭代|迭代1|迭代2|输出迭代|输出迭代器|随机迭代)$') { $args += '整数*' }
+            elseif ($nm -match '^(谓词|比较|一元操作|二元操作|生成器|函数|成员函数|操作|条件|判据)$') { $args += "decltype(丙$id)" }
+            elseif ($nm -match '^(值类型|大小类型|距离类型|类型1|类型2|元素|别的|替换类型|整数类型|实数类型)$') { $args += '整数' }
+            else { return $null }
+        } else { $args += '1' }
+    }
+    if (-not $args.Count) { return $null }
+    return ($args -join ', ')
+}
+function New-TplProbe($n, [int] $id, [string] $prodPath) {
+    #  返回 @{ Name; Kind; Line(A); LineB; DefLine } ；$null = 见证表达不出，不做探针
+    if (-not $n.Raw) { return $null }
+    $fp = Get-FuncParams $n.Raw
+    if (-not $fp) { return $null }
+    $wits = @(); $kinds = @()
+    foreach ($pd in $fp.Params) {
+        $t = $pd.Trim(); if (-not $t) { continue }
+        $pm = [regex]::Match($t, '^(.*?)[\s&*]+([\u4e00-\u9fff][\u4e00-\u9fff_0-9]*)$')
+        if (-not $pm.Success) { return $null }
+        $w = Get-Witness $pm.Groups[1].Value $pm.Groups[2].Value $id
+        if (-not $w) { return $null }
+        $wits += $w.Expr
+        if ($kinds -notcontains $w.Kind) { $kinds += $w.Kind }
+    }
+    if (-not $wits.Count) { return $null }
+    $decl = New-WitnessDecl $kinds $id
+    $lineA = "    自动 探$id = [](){`n$decl`n        标准::$($n.Name)($($wits -join ', '));`n    };`n    (空型)探$id;"
+    $lineB = $null
+    $ta = Get-TypeArgWitness (Get-TemplateBody $n.Raw) $id
+    if ($ta) { $lineB = "    自动 探B$id = [](){`n$decl`n        标准::$($n.Name)<$ta>($($wits -join ', '));`n    };`n    (空型)探B$id;" }
+    #  这个名字在产物里的定义行号：判真失败要求报错**正落在这行**
+    $defLine = 0
+    if (Test-Path $prodPath) {
+        $txt = [System.IO.File]::ReadAllText($prodPath)
+        $dl = [regex]::Match($txt, '(?m)^.*[\s(]' + [regex]::Escape($n.Name) + '\s*\(')
+        if ($dl.Success) { $defLine = @($txt.Substring(0, $dl.Index) -split "`n").Count }
+    }
+    return [pscustomobject]@{ Name = $n.Name; Kind = '模板函数探针'; Line = $lineA; LineB = $lineB; DefLine = $defLine; ExtraInc = (Get-WitnessIncludes $kinds) }
+}
+
+# ---------------------------------------------------------------------------
 #  从「原样」/手写层的 C++ 行里提名字、类别与模板头
 # ---------------------------------------------------------------------------
 function Get-NamesFromLine([string] $line) {
@@ -85,8 +223,19 @@ function Get-NamesFromLine([string] $line) {
     $m = [regex]::Match($t, '^使用\s+(' + $zhName + ')\s*=')
     if ($m.Success) { return @([pscustomobject]@{ Name = $m.Groups[1].Value; Kind = '类型'; Template = '' }) }
     if ($t -match '^模板\s*<') {
-        $m = [regex]::Match($t, '\s(' + $zhName + ')\s*\(')
-        if ($m.Success) { return @([pscustomobject]@{ Name = $m.Groups[1].Value; Kind = '模板函数'; Template = $tmpl }) }
+        #  ⚠ 名字必须是「参数表后紧跟函数体 `{`」的那个 —— 不能取行里第一个 `名(`：
+        #    `声明类型(自动) 变换(...) { ... }`（decltype(auto) 返回类型，§16.52）里第一个
+        #    `名(` 是关键字 `声明类型`，取它会**用假名顶掉真名** —— 真名就此不在账上。
+        #    实测（2026-09-30）：`时长转换`/`时间点转换`/`时钟转换`/`时长上取整`/`时长四舍五入`/
+        #    `生成规范数`/`变换`… 一整批真名被一个 `声明类型` 顶掉。**账上少一个名字，
+        #    比多一个假名更坏**：少的那几个永远没人去覆盖。
+        $m = [regex]::Match($t, '(' + $zhName + ')\s*\(([^()]*)\)\s*(?:不抛出|noexcept)?\s*\{')
+        if (-not $m.Success) {
+            $m2 = [regex]::Match($t, '\s(' + $zhName + ')\s*\(')   # 体在下一行：退回第一个，但关键字不算名字
+            if ($m2.Success -and $m2.Groups[1].Value -ne '声明类型') { $m = $m2 }
+        }
+        #  Raw = 原始签名行：§17.21 要从行里抠出「模板形参」和「函数形参」做调用探针
+        if ($m.Success) { return @([pscustomobject]@{ Name = $m.Groups[1].Value; Kind = '模板函数'; Template = $tmpl; Raw = $t }) }
         return $out
     }
     $m = [regex]::Match($t, '^内联\s+常量\s+[^=]+?\s(' + $zhName + ')\s*=')
@@ -194,11 +343,16 @@ New-Item -ItemType Directory -Force $work | Out-Null
 
 $rows = @(); $failAll = @()
 foreach ($p in $products) {
-    $items = @(); $probed = @(); $byTest = @(); $uncovered = @{}
+    $items = @(); $probed = @(); $byTest = @(); $uncovered = @{}; $tplItems = @()
     foreach ($n in @($p.Names | Sort-Object Name -Unique)) {
         $used = $false
         if ($p.Tests -and $p.Tests -match [regex]::Escape($n.Name)) { $byTest += $n.Name; $used = $true }
         $id = [Math]::Abs($n.Name.GetHashCode())
+        #  §17.21 模板函数走「合成实参真调用」探针（自成一批，见下面的 tpl 批）
+        if ($n.Kind -eq '模板函数' -and $n.Raw) {
+            $tp = New-TplProbe $n $id (Join-Path $out $p.Product)
+            if ($tp) { $tplItems += $tp; $probed += $n.Name; $used = $true; continue }
+        }
         $line = $null
         switch ($n.Kind) {
             '类型' { $line = ("    {0}* 针{1} = 空指针; (空型)针{1};" -f ('标准::' + $n.Name), $id) }
@@ -220,9 +374,12 @@ foreach ($p in $products) {
     $prodFile = Join-Path $out $p.Product
     $stdFlag = '-std=c++20'
     if ((Test-Path $prodFile) -and ([System.IO.File]::ReadAllText($prodFile) -match '_HAS_CXX23')) { $stdFlag = '-std=c++23' }
+    $extraInc = @()   #  §17.21：模板函数探针需要额外中文头（见证用了随机引擎 -> <随机>、范围 -> <向量>）
     function Invoke-Probe([string[]] $lines, [string] $tag) {
         $src = Join-Path $work ("p_$safe$tag.cpp"); $exe = Join-Path $work ("p_$safe$tag.exe")
-        $code = "#包含 <$($p.Product)>`n整数 主函数(){`n" + ($lines -join "`n") + "`n    返回 0;`n}`n"
+        $inc = "#包含 <$($p.Product)>`n"
+        foreach ($e in @($extraInc)) { if ($e) { $inc += "#包含 <$e>`n" } }
+        $code = $inc + "整数 主函数(){`n" + ($lines -join "`n") + "`n    返回 0;`n}`n"
         [System.IO.File]::WriteAllText($src, $code, $utf8)
         & cmd /c "`"$cxx`" $stdFlag -isystem`"$out`" `"$src`" -o `"$exe`" > `"$work\o_$safe$tag.txt`" 2>&1"
         $cc = $LASTEXITCODE
@@ -232,6 +389,27 @@ foreach ($p in $products) {
         $firstErr = ''
         if ($errLines.Count -gt 0) { $firstErr = ([string]$errLines[0]).Trim() }
         return [pscustomobject]@{ CC = $cc; RC = $rc; Err = $firstErr }
+    }
+    #  二分找出编不过的条目 —— 整批编不过时避免逐个编（条目多时省成倍时间）
+    function Find-BadItems([object[]] $list, [string] $tag) {
+        $bad = @(); $queue = New-Object System.Collections.ArrayList
+        [void]$queue.Add(@($list))
+        while ($queue.Count -gt 0) {
+            $g = @($queue[0]); $queue.RemoveAt(0)
+            if ($g.Count -eq 0) { continue }
+            if ($g.Count -eq 1) {
+                $r = Invoke-Probe @($g[0].Line) ('_' + $tag + [Math]::Abs($g[0].Name.GetHashCode()))
+                if ($r.CC -ne 0) { $bad += $g[0] }
+                continue
+            }
+            $r = Invoke-Probe @($g | ForEach-Object { $_.Line }) ('_' + $tag + 'G' + [Math]::Abs($g[0].Name.GetHashCode()))
+            if ($r.CC -ne 0) {
+                $h = [int][Math]::Floor($g.Count / 2)
+                [void]$queue.Add(@($g[0..($h - 1)]))
+                [void]$queue.Add(@($g[$h..($g.Count - 1)]))
+            }
+        }
+        return $bad
     }
     if ($items.Count) {
         $r0 = Invoke-Probe @($items | ForEach-Object { $_.Line }) ''
@@ -262,6 +440,39 @@ foreach ($p in $products) {
         if ($compiled -ne 0) { $failAll += ("  [{0}] 探针编不过：{1}" -f $p.Product, $r0.Err) }
         elseif ($ran -ne 0) { $failAll += ("  [{0}] 探针运行返回 {1}" -f $p.Product, $ran) }
     } else { $compiled = 0; $ran = 0 }
+    # -----------------------------------------------------------------------
+    #  §17.21 模板函数批：合成实参真调用（A 级）+ 显式模板实参（B 级）
+    #    · 调用写在**永不被调用的 lambda** 里 -> 证明的是"能实例化调用"，不把算法
+    #      的 UB 引进探针进程（探针 exe 仍要真跑，跑的是主批）
+    #    · 整批编过 = 这批名字都调用得通；整批编不过 -> 二分找出编不过的，逐个定性
+    #    · 判真失败的唯一条件：B 级报错**正落在这个名字自己的定义行** = 签名有病
+    # -----------------------------------------------------------------------
+    if ($tplItems.Count) {
+        $extraInc = @()
+        foreach ($ti in $tplItems) { foreach ($e in $ti.ExtraInc) { if ($extraInc -notcontains $e) { $extraInc += $e } } }
+        $rT = Invoke-Probe @($tplItems | ForEach-Object { $_.Line }) '_t'
+        if ($rT.CC -ne 0) {
+            foreach ($it in @(Find-BadItems $tplItems 't')) {
+                $id = [Math]::Abs($it.Name.GetHashCode())
+                $ri = Invoke-Probe @($it.Line) ('_t' + $id)
+                if ($ri.CC -eq 0) { continue }   # 单独编过：整批失败是别的名字拖累的
+                $why = "调用探针编不过：$($ri.Err)"
+                if ($it.LineB) {
+                    $bi = Invoke-Probe @($it.LineB) ('_b' + $id)
+                    if ($bi.CC -eq 0) { continue }   # 显式模板实参能调 -> 仍算"能调用"
+                    $em = [regex]::Match([string]$bi.Err, 'zhstdlib.*?:(\d+):')
+                    if ($it.DefLine -gt 0 -and $em.Success -and [int]$em.Groups[1].Value -eq $it.DefLine) {
+                        $failAll += ("  [{0}] 模板函数签名病（显式模板实参下报错正落在定义行 {1}）：{2} -> {3}" -f $p.Product, $it.DefLine, $it.Name, $bi.Err)
+                        continue
+                    }
+                    $why = "调用探针表达不出（显式实参也编不过）：$($bi.Err)"
+                }
+                $uncovered[$it.Name] = $why
+                $probed = @($probed | Where-Object { $_ -ne $it.Name })
+            }
+        }
+        $extraInc = @()
+    }
     $rows += [pscustomobject]@{
         轨道 = $p.Track; 产物 = $p.Product; 名字 = @($p.Names | Sort-Object Name -Unique).Count
         自动探针 = @($probed | Sort-Object -Unique).Count; 用例覆盖 = @($byTest | Sort-Object -Unique).Count
@@ -286,7 +497,9 @@ $lines = @(
     '> 本文件由 `tools\check_zhinst.ps1` 生成，`tools\regen_zhstdlib.ps1` 用 `-Check` 守。',
     '> 名字来自**三张生成器表**（深度 / 别名 / C），不是手写清单；新增名字自动进账。',
     '> 三列口径：**自动探针** = 类型声明指针（模板按表里的 `tparam`/模板头合成实参）+ 常量读取 +',
-    '> 非模板函数取地址（每个产物编成 exe 并真跑）；**用例覆盖** = 名字出现在该条目自带用例里',
+    '> 非模板函数取地址 + §17.21 **模板函数按形参合成见证真调一次**（A 级推导调用，',
+    '> A 编不过再试 B 级显式模板实参；调用写在永不被调用的 lambda 里，证明"能实例化调用"）',
+    '> （每个产物编成 exe 并真跑）；**用例覆盖** = 名字出现在该条目自带用例里',
     '> （那里的用例真编译 + 真运行，见 §17.19.58）；**未覆盖** = 模板函数/概念等无法自动生成实参的名字，',
     '> 末列写明原因 —— 账要诚实显示"还缺"。',
     '',
@@ -316,7 +529,12 @@ if ($Check) {
     exit 0
 }
 
-[System.IO.File]::WriteAllText($ledger, $text, $utf8)
+if ($Only.Count -and -not $Check) {
+    Write-Host '  （-Only 调试跑：不写台账，免得把全量台账覆盖成局部的）' -ForegroundColor Yellow
+} else {
+    [System.IO.File]::WriteAllText($ledger, $text, $utf8)
+    Write-Host "  台账已写入 docs\标准库汉化\实例化台账.md"
+}
 Write-Host ("=== 实例化守卫（§17.20）：名字 {0} 个：自动探针 {1} / 用例覆盖 {2} / 未覆盖 {3} ===" -f $totNames, $totProbe, $totTest, $totUncov) -ForegroundColor Cyan
 if ($failProducts.Count) {
     Write-Host ("❌ 探针失败 {0} 个产物：" -f $failProducts.Count) -ForegroundColor Red
@@ -324,5 +542,4 @@ if ($failProducts.Count) {
 } else {
     Write-Host ("  全部 {0} 个产物的探针都编过并跑过（返回 0）" -f $rows.Count) -ForegroundColor Green
 }
-Write-Host "  台账已写入 docs\标准库汉化\实例化台账.md"
 exit $(if ($failProducts.Count) { 1 } else { 0 })

@@ -1574,7 +1574,7 @@ private:
             _Appended_last = _未初始化填充若干(_Appended_first, _Newsize - _Oldsize, _Val, _Al);
         } else {
             _STL_INTERNAL_STATIC_ASSERT(is_same_v<_Ty2, _值初始化标记>);
-            _Appended_last = _Uninitialized_value_construct_n(_Appended_first, _Newsize - _Oldsize, _Al);
+            _Appended_last = _未初始化值构造若干(_Appended_first, _Newsize - _Oldsize, _Al);
         }
 
         if constexpr (is_nothrow_move_constructible_v<_类型> || !is_copy_constructible_v<_类型>) {
@@ -1617,7 +1617,7 @@ private:
                 _Mylast = _未初始化填充若干(_Oldlast, _Newsize - _Oldsize, _Val, _Al);
             } else {
                 _STL_INTERNAL_STATIC_ASSERT(is_same_v<_Ty2, _值初始化标记>);
-                _Mylast = _Uninitialized_value_construct_n(_Oldlast, _Newsize - _Oldsize, _Al);
+                _Mylast = _未初始化值构造若干(_Oldlast, _Newsize - _Oldsize, _Al);
             }
             _ASAN_向量释放守卫;
             _孤儿化范围(_Oldlast, _Oldlast);
@@ -2114,7 +2114,7 @@ private:
             _非零分配(_Count);
             _清理守卫<向量实现> _Guard{this};
             if constexpr (sizeof...(_Val) == 0) {
-                _My_data._Mylast = _Uninitialized_value_construct_n(_My_data._Myfirst, _Count, _Al);
+                _My_data._Mylast = _未初始化值构造若干(_My_data._Myfirst, _Count, _Al);
             } else if constexpr (sizeof...(_Val) == 1) {
                 _STL_INTERNAL_STATIC_ASSERT(is_same_v<_值参数类型..., const _类型&>);
                 _My_data._Mylast = _未初始化填充若干(_My_data._Myfirst, _Count, _Val..., _Al);

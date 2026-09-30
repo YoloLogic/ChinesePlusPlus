@@ -1724,6 +1724,8 @@ $H = @{
       '_ASAN_VECTOR_MODIFY' = '_ASAN_向量修改';
 
       '_ASAN_VECTOR_REMOVE' = '_ASAN_向量移除';
+
+      '_Uninitialized_value_construct_n' = '_未初始化值构造若干';
 }
     zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
@@ -2984,6 +2986,8 @@ $H = @{
       '_Allocate_aligned' = '_按对齐分配'
     ;
       '_Release' = '_释放';
+
+      '_Uninitialized_value_construct_n' = '_未初始化值构造若干';
 }
     data    = [ordered]@{}
     derive  = @()
