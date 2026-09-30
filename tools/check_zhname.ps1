@@ -23,11 +23,20 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
 $Name = '[\u4e00-\u9fff][\w\u4e00-\u9fff]*'   # 名字里至少要有一个汉字（且以汉字开头）
 
+# §17.19.37 圆括号内不算命名空间作用域：算某一位次处的圆括号深度（base 为行首之前的累计深度）。
+function Get-ParenDepthAt([string] $s, [int] $idx, [int] $base) {
+    $d = $base
+    for ($j = 0; $j -lt $idx -and $j -lt $s.Length; $j++) {
+        if ($s[$j] -eq '(') { $d++ } elseif ($s[$j] -eq ')') { $d-- }
+    }
+    return $d
+}
 function Get-ZhNames([string] $dir) {
     $out = @()
     foreach ($f in (Get-ChildItem $dir -File | Sort-Object Name)) {
         $stack = New-Object System.Collections.ArrayList   # 花括号种类栈
         $cond  = 0
+        $paren = 0                                          # 圆括号深度（跨行累计，§17.19.37）
         $lines = [System.IO.File]::ReadAllText($f.FullName) -split "`n"
         for ($i = 0; $i -lt $lines.Count; $i++) {
             $raw = $lines[$i]
@@ -39,15 +48,24 @@ function Get-ZhNames([string] $dir) {
 
             $inType = @($stack | Where-Object { $_.Kind -eq 'type' }).Count -gt 0
             $path   = (@($stack | Where-Object { $_.Kind -eq 'ns' } | ForEach-Object { $_.Name }) -join '::')
-            if (-not $inType) {
+            # §17.19.37 假报修正：只有【命名空间作用域 + 圆括号外 + 本行第一个 { 之前】才算命名空间级声明。
+            #   来由：`空型 复制(… copy_options 丙 = …::none) { … }` 里的默认实参 `丙 =` 被当成变量，
+            #   于是两个产物的形参 `丙` 撞成"跨产物同名"（假报）。假报与漏报一样坏，故收紧判据。
+            $parenBase = $paren
+            $paren += ([regex]::Matches($code, '\(')).Count - ([regex]::Matches($code, '\)')).Count
+            $atNs = ($stack.Count -eq 0 -or $stack[$stack.Count - 1].Kind -eq 'ns')
+            $braceFirst = $code.IndexOf('{')
+            if (-not $inType -and $atNs) {
                 $hit = $null; $kind = ''
                 # 别名：使用 X = … / 模板 <…> 使用 X = …
                 $m = [regex]::Match($code, "^\s*(?:模板\s*<[^>]*>\s*)?使用\s+($Name)\s*=(?!=)")
-                if ($m.Success) { $hit = $m.Groups[1].Value; $kind = '别名' }
+                if ($m.Success -and $parenBase -eq 0 -and ($braceFirst -lt 0 -or $m.Index -lt $braceFirst)) { $hit = $m.Groups[1].Value; $kind = '别名' }
                 # 变量/常量：内联 … X = … / 常量表达式 … X = …
                 if (-not $hit -and $code -notmatch '^\s*#') {
                     $m2 = [regex]::Match($code, "(?<![\w:])($Name)\s*=(?!=)")
-                    if ($m2.Success) { $hit = $m2.Groups[1].Value; $kind = '变量' }
+                    if ($m2.Success -and (Get-ParenDepthAt $code $m2.Index $parenBase) -eq 0 -and ($braceFirst -lt 0 -or $m2.Index -lt $braceFirst)) {
+                        $hit = $m2.Groups[1].Value; $kind = '变量'
+                    }
                 }
                 if ($hit) {
                     $out += [pscustomobject]@{ Product = $f.Name; Line = $i + 1; Path = $path; Name = $hit; Kind = $kind; Guarded = ($cond -gt 0) }
@@ -94,7 +112,7 @@ if ($SelfTest) {
     New-Item -ItemType Directory -Force $d | Out-Null
     $utf8 = New-Object System.Text.UTF8Encoding($false)
     $w = { param($n, $t) [System.IO.File]::WriteAllText("$d\$n", $t, $utf8) }
-    $pass = 0; $total = 3
+    $pass = 0; $total = 5
     # 1 两个产物各自声明同名变量 -> 必须报
     & $w '甲' "名域 标准 {`n  内联 自动& 标准输出 = std::cout;`n}`n"
     & $w '乙' "名域 标准 {`n  内联 文件* 常量& 标准输出 = stdin;`n}`n"
@@ -107,6 +125,16 @@ if ($SelfTest) {
     & $w '甲' "名域 标准 {`n  类 甲 { 公开:`n    内联 自动& 名字 = 甲;`n  };`n}`n"
     & $w '乙' "名域 标准 {`n  类 乙 { 公开:`n    内联 自动& 名字 = 乙;`n  };`n}`n"
     if ((Test-ZhNames (Get-ZhNames $d)).Conflicts.Count -eq 0) { $pass++ } else { Write-Host '  ❌ 自检3 误报"类内成员"' -ForegroundColor Red }
+    # 4 函数形参（含默认实参）同名不算 —— 圆括号内不是命名空间作用域（§17.19.37 假报修正的回归）
+    Remove-Item "$d\*" -Force
+    & $w '甲' "名域 标准 {`n  空型 甲一(整数 丙 = 1);`n}`n"
+    & $w '乙' "名域 标准 {`n  空型 乙一(整数 丙 = 2);`n}`n"
+    if ((Test-ZhNames (Get-ZhNames $d)).Conflicts.Count -eq 0) { $pass++ } else { Write-Host '  ❌ 自检4 误报"函数形参"' -ForegroundColor Red }
+    # 5 函数体内的局部变量同名不算（单行函数体也不行）
+    Remove-Item "$d\*" -Force
+    & $w '甲' "名域 标准 {`n  空型 甲一() { 整数 丙 = 1; }`n}`n"
+    & $w '乙' "名域 标准 {`n  空型 乙一() { 整数 丙 = 2; }`n}`n"
+    if ((Test-ZhNames (Get-ZhNames $d)).Conflicts.Count -eq 0) { $pass++ } else { Write-Host '  ❌ 自检5 误报"函数体内局部变量"' -ForegroundColor Red }
     Remove-Item -Recurse -Force $d -ErrorAction SilentlyContinue
     Write-Host ("自检：{0}/{1}" -f $pass, $total) -ForegroundColor $(if ($pass -eq $total) { 'Green' } else { 'Red' })
     exit $(if ($pass -eq $total) { 0 } else { 1 })

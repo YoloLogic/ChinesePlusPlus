@@ -34,6 +34,79 @@ $utf8 = New-Object System.Text.UTF8Encoding($false)
 #            @('函数','中文名','std::原名')      —— 通用一模板转发
 #            @('原样','<整行代码>')              —— 原样发出（成员要转发成自由函数时用）
 $H = [ordered]@{
+# §17.19.36 <filesystem> / <format>：路径与格式化器 —— 铁律③
+'filesystem' = @{ zh = '文件系统'; src = 'filesystem';
+  reason = '铁律③：路径/目录迭代器/文件时间点参与语义（按类型重载、与 chrono 互操作）。';
+  a = @(
+    @('原样','使用 路径 = std::filesystem::path;'),
+    @('原样','使用 文件系统异常 = std::filesystem::filesystem_error;'),
+    @('原样','使用 目录项 = std::filesystem::directory_entry;'),
+    @('原样','使用 目录迭代器 = std::filesystem::directory_iterator;'),
+    @('原样','使用 递归目录迭代器 = std::filesystem::recursive_directory_iterator;'),
+    @('原样','使用 文件状态 = std::filesystem::file_status;'),
+    @('原样','使用 空间信息 = std::filesystem::space_info;'),
+    @('原样','使用 文件类型 = std::filesystem::file_type;'),
+    @('原样','使用 权限集 = std::filesystem::perms;'),
+    @('原样','使用 复制选项 = std::filesystem::copy_options;'),
+    @('原样','使用 目录选项 = std::filesystem::directory_options;'),
+    @('原样','使用 权限选项 = std::filesystem::perm_options;'),
+    @('原样','使用 文件时间点 = std::filesystem::file_time_type;'),
+    @('原样','布尔 存在(const std::filesystem::path& 甲) { 返回 std::filesystem::exists(甲); }'),
+    @('原样','布尔 存在(const std::filesystem::file_status& 甲) 不抛出 { 返回 std::filesystem::exists(甲); }'),
+    @('原样','布尔 是目录(const std::filesystem::path& 甲) { 返回 std::filesystem::is_directory(甲); }'),
+    @('原样','布尔 是普通文件(const std::filesystem::path& 甲) { 返回 std::filesystem::is_regular_file(甲); }'),
+    @('原样','布尔 是符号链接(const std::filesystem::path& 甲) { 返回 std::filesystem::is_symlink(甲); }'),
+    @('原样','布尔 是空文件(const std::filesystem::path& 甲) { 返回 std::filesystem::is_empty(甲); }'),
+    @('原样','声明类型(自动) 文件大小(const std::filesystem::path& 甲) { 返回 std::filesystem::file_size(甲); }'),
+    @('原样','布尔 移除(const std::filesystem::path& 甲) { 返回 std::filesystem::remove(甲); }'),
+    @('原样','声明类型(自动) 移除全部(const std::filesystem::path& 甲) { 返回 std::filesystem::remove_all(甲); }'),
+    @('原样','布尔 创建目录(const std::filesystem::path& 甲) { 返回 std::filesystem::create_directory(甲); }'),
+    @('原样','布尔 创建目录树(const std::filesystem::path& 甲) { 返回 std::filesystem::create_directories(甲); }'),
+    @('原样','空型 复制(const std::filesystem::path& 甲, const std::filesystem::path& 乙, std::filesystem::copy_options 丙 = std::filesystem::copy_options::none) { std::filesystem::copy(甲, 乙, 丙); }'),
+    @('原样','布尔 复制文件(const std::filesystem::path& 甲, const std::filesystem::path& 乙, std::filesystem::copy_options 丙 = std::filesystem::copy_options::none) { 返回 std::filesystem::copy_file(甲, 乙, 丙); }'),
+    @('原样','空型 重命名(const std::filesystem::path& 甲, const std::filesystem::path& 乙) { std::filesystem::rename(甲, 乙); }'),
+    @('原样','声明类型(自动) 绝对路径(const std::filesystem::path& 甲) { 返回 std::filesystem::absolute(甲); }'),
+    @('原样','声明类型(自动) 规范路径(const std::filesystem::path& 甲) { 返回 std::filesystem::canonical(甲); }'),
+    @('原样','声明类型(自动) 弱规范路径(const std::filesystem::path& 甲) { 返回 std::filesystem::weakly_canonical(甲); }'),
+    @('原样','声明类型(自动) 相对路径(const std::filesystem::path& 甲) { 返回 std::filesystem::relative(甲); }'),
+    @('原样','声明类型(自动) 当前路径() { 返回 std::filesystem::current_path(); }'),
+    @('原样','空型 当前路径(const std::filesystem::path& 甲) { std::filesystem::current_path(甲); }'),
+    @('原样','声明类型(自动) 临时目录路径() { 返回 std::filesystem::temp_directory_path(); }'),
+    @('原样','布尔 等价路径(const std::filesystem::path& 甲, const std::filesystem::path& 乙) { 返回 std::filesystem::equivalent(甲, 乙); }'),
+    @('原样','声明类型(自动) 取文件状态(const std::filesystem::path& 甲) { 返回 std::filesystem::status(甲); }'),
+    @('原样','声明类型(自动) 取符号链接状态(const std::filesystem::path& 甲) { 返回 std::filesystem::symlink_status(甲); }'),
+    @('原样','空型 置权限(const std::filesystem::path& 甲, std::filesystem::perms 乙, std::filesystem::perm_options 丙 = std::filesystem::perm_options::replace) { std::filesystem::permissions(甲, 乙, 丙); }'),
+    @('原样','声明类型(自动) 最后写入时间(const std::filesystem::path& 甲) { 返回 std::filesystem::last_write_time(甲); }'),
+    @('原样','空型 最后写入时间(const std::filesystem::path& 甲, 标准::文件时间点 乙) { std::filesystem::last_write_time(甲, 乙); }'),
+    @('原样','声明类型(自动) 空间(const std::filesystem::path& 甲) { 返回 std::filesystem::space(甲); }'),
+    @('常量','覆盖已存在','std::filesystem::copy_options::overwrite_existing','std::filesystem::copy_options'),
+    @('常量','递归复制','std::filesystem::copy_options::recursive','std::filesystem::copy_options'),
+    @('常量','跳过权限拒绝','std::filesystem::directory_options::skip_permission_denied','std::filesystem::directory_options')
+  )
+  tests = @(
+    @('只引中文头','#包含 <文件系统>`n整数 主函数(){ 标准::路径 甲{"."}; 布尔 乙 = 标准::存在(甲); 标准::路径 丙 = 标准::当前路径(); 返回 (乙 并且 丙.string().size() > 0) ? 0 : 1; }'),
+    @('与微软原头并存','#包含 <文件系统>`n#包含 <filesystem>`n整数 主函数(){ 标准::路径 甲{"."}; std::filesystem::path 乙 = 甲; 标准::空间信息 丙 = 标准::空间(甲); std::filesystem::space_info 丁 = 丙; 返回 (丁.capacity > 0) ? 0 : 1; }')
+  )
+}
+'format' = @{ zh = '格式化文本'; src = 'format';
+  reason = '铁律③：formatter 是用户扩展点（用户特化 std::formatter<T>），身份必须与 std 同一。';
+  a = @(
+    @('原样','模板 <类型名 值类型, 类型名 字符类型 = 字符> 使用 格式化器 = std::formatter<值类型, 字符类型>;'),
+    @('原样','使用 格式化异常 = std::format_error;'),
+    @('原样','模板 <类型名 输出迭代器, 类型名 字符类型 = 字符> 使用 格式上下文 = std::basic_format_context<输出迭代器, 字符类型>;'),
+    @('原样','模板 <类型名 字符类型> 使用 格式解析上下文 = std::basic_format_parse_context<字符类型>;'),
+    @('原样','使用 格式参数 = std::format_args;'),
+    @('原样','模板 <类型名... 参数> 声明类型(自动) 格式(std::format_string<参数...> 甲, 参数&&... 乙) { 返回 std::format(甲, static_cast<参数&&>(乙)...); }'),
+    @('原样','模板 <类型名 输出迭代器, 类型名... 参数> 声明类型(自动) 格式化到(输出迭代器 甲, std::format_string<参数...> 乙, 参数&&... 丙) { 返回 std::format_to(甲, 乙, static_cast<参数&&>(丙)...); }'),
+    @('原样','模板 <类型名... 参数> 声明类型(自动) 格式化尺寸(std::format_string<参数...> 甲, 参数&&... 乙) { 返回 std::formatted_size(甲, static_cast<参数&&>(乙)...); }'),
+    @('原样','模板 <类型名 字符类型> 声明类型(自动) 格式化参数版(std::basic_string_view<字符类型> 甲, std::format_args 乙) { 返回 std::vformat(甲, 乙); }')
+  )
+  tests = @(
+    @('只引中文头','#包含 <格式化文本>`n整数 主函数(){ 自动 甲 = 标准::格式("中文 {} {}", 1, 2); 返回 甲.empty() ? 1 : 0; }'),
+    @('与微软原头并存','#包含 <格式化文本>`n#包含 <format>`n整数 主函数(){ 标准::格式化器<整数> 甲; std::formatter<整数> 乙; (空型)甲; (空型)乙; 返回 0; }')
+  )
+}
+
 # §17.19.35 <random> / <regex>：引擎与分布、正则类型 —— 铁律③，只能别名
 'random' = @{ zh = '随机'; src = 'random';
   reason = '铁律③：引擎/分布类型参与语义（按类型重载、模板实参推导、分布要求 ResultType 精确匹配）。';
@@ -1072,6 +1145,18 @@ if (Test-Path $defFile) {
     }
 }
 if ($kw.Count -eq 0) { foreach ($k in @('类型','类','结构','名域','模板','类型名','使用','自动','整数','字符','空型','常量')) { $kw[$k] = $true } }
+#  §17.19.36 第三个缺口：**函数名位置**（本轮实测 `布尔 删除(...)` —— 删除 是 delete 的关键字）。
+#  前两个缺口（§17.19.30 别名轨道整条守卫、§17.19.32 运算符关键字）管的都是"名字位置"；
+#  函数定义名既不是 `类型名 X` 也不是 `使用 X =`，于是 `删除` 一路走到编译才报「缺少（种类）非限定标识符」。
+#  判据：关键词出现在【函数名位置】（左侧不是中文/字母/数字/下划线，右侧直接跟 `(`）一律拦；
+#        白名单只放本方言里合法"后跟括号"的关键字用法（声明类型(自动)、返回 (x) 等）。
+#  自测（假报和漏报一样坏）：`布尔 删除(x)` 必须命中；`左对齐(x)`、`文件大小(x)` 必须不命中。
+$kwAllow = @{ '声明类型' = $true; '返回' = $true; '类型标识' = $true; '大小' = $true; '常量' = $true }
+$kwSelf = 0
+if ('布尔 删除(const char*) {}' -match ('(?<![\w\u4e00-\u9fff])删除\s*\(')) { $kwSelf++ }
+if ('声明类型(自动) 左对齐(参数&&... 值)' -notmatch ('(?<![\w\u4e00-\u9fff])对齐\s*\(')) { $kwSelf++ }
+if ('声明类型(自动) 文件大小(const char*)' -notmatch ('(?<![\w\u4e00-\u9fff])大小\s*\(')) { $kwSelf++ }
+if (-not $ExportJson) { Write-Host ("  [关键词守卫自测] 函数名位置 3 条：{0}/3" -f $kwSelf) }  # 不能污染 -ExportJson 的 stdout
 $kwBad = @()
 foreach ($k2 in $H.Keys) {
     $lines = @()
@@ -1079,7 +1164,7 @@ foreach ($k2 in $H.Keys) {
     foreach ($ln in $lines) {
         foreach ($k in $kw.Keys) {
             if ($ln -match ('类型名\s*(?:\.\.\.)?\s*' + [regex]::Escape($k) + '(?![\w\u4e00-\u9fff])') -or
-                $ln -match ('使用\s+' + [regex]::Escape($k) + '\s*=')) {
+                $ln -match ('使用\s+' + [regex]::Escape($k) + '\s*=') -or (($ln -match ('(?<![\w\u4e00-\u9fff])' + [regex]::Escape($k) + '\s*\(')) -and -not $kwAllow.ContainsKey($k))) {
                 $kwBad += ("  [{0}] 原样行里 '{1}' 在【名字位置】—— 它是关键词：{2}" -f $k2, $k, $ln.Trim())
             }
         }
