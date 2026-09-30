@@ -1055,7 +1055,12 @@ $H = @{
                           '_Prevent_inheriting_unwrap' = '_阻止继承解包'
                           '_Restore_old_size_guard' = '_恢复原尺寸守卫'
                           '_Is_bidi'              = '_是双向'
-                          '_Pop_direction'        = '_弹出方向' }
+                          '_Pop_direction'        = '_弹出方向' ;
+                          '_Almap' = '_映射分配器';
+                          '_Alproxy' = '_代理分配器别名';
+                          '_Myoff' = '_我的偏移';
+                          '_Proxy_allocator' = '_代理分配器类';
+}
     members = [ordered]@{
       '_Tidy' = '_清理';
       '_Tidy_guard' = '_清理守卫';
@@ -1165,7 +1170,8 @@ $H = @{
       'append_range' = '追加范围'; 'prepend_range' = '前置范围'
       'assign_range' = '范围赋值'; 'insert_range' = '范围插入'
       # ⚠ swap 照旧不改名（§3.12）
-    }
+    ;
+}
     zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
     derive  = @( @('size','尺寸'), @('empty','为空'),
@@ -3108,7 +3114,13 @@ $H = @{
       '_Unchecked_begin'  = '_非检查开始'
       '_Unchecked_end'    = '_非检查结束'
       '_Unchecked_end_iter' = '_非检查结束迭代器'
-    }
+    ;
+      'emplace' = '就地构造';
+      'emplace_hint' = '按提示就地构造';
+      'get_allocator' = '取分配器';
+      'key_comp' = '键比较函数';
+      'value_comp' = '值比较函数';
+}
     zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
     derive  = @()
@@ -4112,7 +4124,10 @@ $H = @{
                           # §16.27：自有内部件也要翻（长名，二义风险为零）
                           '_Scoped_outermost_t'       = '_作用域最外层类型'
                           '_Scoped_outermost_traits'  = '_作用域最外层特征'
-                          '_Secret_scoped_allocator_construct_tag' = '_作用域构造内部标号' }
+                          '_Secret_scoped_allocator_construct_tag' = '_作用域构造内部标号' ;
+                          'inner_allocator_type' = '内层分配器类型';
+                          'outer_allocator_type' = '外层分配器类型';
+}
     # ⚠ 不翻 allocator_traits / rebind / enable_if_t 等 std 的名字
     members = [ordered]@{ 'inner_allocator' = '内层分配器'
       '_Get_rebind_type' = '_取重绑定类型';
@@ -5476,11 +5491,51 @@ $H = @{
       'ostreambuf_iterator'      = '输出流缓冲迭代器实现'
       'common_iterator'          = '公共迭代器实现'
       'counted_iterator'         = '计数迭代器实现'
-    }
+    ;
+                          '_Arrow_proxy' = '_箭头代理';
+                          '_CIter' = '_常量迭代器';
+                          '_Common_iterator_category_base' = '_公共迭代器类别基';
+                          '_Common_iterator_pointer_type' = '_公共迭代器指针类型';
+                          '_Counted_iterator_category_base' = '_计数迭代器类别基';
+                          '_Counted_iterator_concept_base' = '_计数迭代器概念基';
+                          '_Counted_iterator_value_type_base' = '_计数迭代器值类型基';
+                          '_Istreambuf_proxy' = '_输入流缓冲代理';
+                          '_Pointee_type' = '_所指类型';
+                          '_Postfix_proxy' = '_后缀代理';
+                          '_Proxy_base' = '_代理基';
+                          '_Variantish' = '_类变体';
+                          '_Variantish_empty_tag' = '_类变体空标记';
+                          '_Variantish_state' = '_类变体状态';
+                          '_Wrapped_iter' = '_包装迭代器';
+                          '_Unwrapped' = '_解包';
+                          'checked_array_iterator' = '检查数组迭代器';
+                          'unchecked_array_iterator' = '未检查数组迭代器';
+                          'container_type' = '容器类型';
+                          'istream_type' = '输入流类型';
+                          'ostream_type' = '输出流类型';
+                          'streambuf_type' = '流缓冲类型';
+}
     members = [ordered]@{
       'back_inserter'  = '后插器'; 'front_inserter' = '前插器'; 'inserter' = '插入器'
       # iter_move / iter_swap 是【隐藏友元】（只靠 ADL 找到）-> 本批不登记（限定调用会自我递归）
-    }
+    ;
+      '_Clear' = '_清空';
+      '_Emplace_first' = '_就地构造首';
+      '_Emplace_second' = '_就地构造次';
+      '_Get_first' = '_取第一';
+      '_Get_last' = '_取末';
+      '_Get_second' = '_取次';
+      '_Get_val' = '_取本值';
+      '_Getval' = '_取原值';
+      '_Inc' = '_递增';
+      '_Peek' = '_窥视';
+      '_Prevent_inheriting_unwrap' = '_阻止继承解包';
+      '_Raw_clear' = '_裸清空';
+      '_Same_sequence' = '_同序列';
+      '_Seek_to' = '_定位到';
+      '_Verify_range' = '_校验范围';
+      'failed' = '失败';
+}
     data    = [ordered]@{}
     extra   = ( @(
       '名域 标准 {',

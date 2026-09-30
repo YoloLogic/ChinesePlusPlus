@@ -913,7 +913,7 @@ public:
 
     template <class _Any_alloc>
     _树(const _树& _Right, _Any_alloc&& _Al)
-        : _Mypair(_先一后变参实参{}, _Right.key_comp(), _先一后变参实参{},
+        : _Mypair(_先一后变参实参{}, _Right.键比较函数(), _先一后变参实参{},
               _STD forward<_Any_alloc>(_Al)) {
         auto&& _Alproxy   = _取代理分配器(_结点分配器, _取分配器());
         const auto _Scary = _取检查值();
@@ -925,14 +925,14 @@ public:
     }
 
     _树(_树&& _Right)
-        : _Mypair(_先一后变参实参{}, _Right.key_comp(), // intentionally copy comparator, see LWG-2227
+        : _Mypair(_先一后变参实参{}, _Right.键比较函数(), // intentionally copy comparator, see LWG-2227
               _先一后变参实参{}, _STD move(_Right._取分配器())) {
         _分配哨兵与代理();
         _交换值不含比较器(_Right);
     }
 
     _树(_树&& _Right, const 分配器类型& _Al)
-        : _Mypair(_先一后变参实参{}, _Right.key_comp(), // intentionally copy comparator, see LWG-2227
+        : _Mypair(_先一后变参实参{}, _Right.键比较函数(), // intentionally copy comparator, see LWG-2227
               _先一后变参实参{}, _Al) {
         if constexpr (!_结点分配器特征::is_always_equal::value) {
             if (_取分配器() != _Right._取分配器()) {
@@ -1045,7 +1045,7 @@ protected:
 
 public:
     template <class... _Valtys>
-    pair<迭代器, bool> emplace(_Valtys&&... _Vals) {
+    pair<迭代器, bool> 就地构造(_Valtys&&... _Vals) {
         const auto _结果 = _就地安置(_STD forward<_Valtys>(_Vals)...);
         return {迭代器(_结果.first, _取检查值()), _结果.second};
     }
@@ -1085,7 +1085,7 @@ protected:
 
 public:
     template <class... _Valtys>
-    迭代器 emplace_hint(常量迭代器 _Where, _Valtys&&... _Vals) { // insert value_type(_Val...) at _Where
+    迭代器 按提示就地构造(常量迭代器 _Where, _Valtys&&... _Vals) { // insert value_type(_Val...) at _Where
         const auto _Scary = _取检查值();
 #if _ITERATOR_DEBUG_LEVEL == 2
         _STL_VERIFY(_Where._取容器() == _Scary, "map/set insert 迭代器 outside range");
@@ -1219,16 +1219,16 @@ public:
         return _取检查值()->_我的尺寸 == 0;
     }
 
-    _NODISCARD 分配器类型 get_allocator() const noexcept {
+    _NODISCARD 分配器类型 取分配器() const noexcept {
         return static_cast<分配器类型>(_取分配器());
     }
 
-    _NODISCARD 键比较器 key_comp() const {
+    _NODISCARD 键比较器 键比较函数() const {
         return _取比较器();
     }
 
-    _NODISCARD 值比较 value_comp() const {
-        return 值比较(key_comp());
+    _NODISCARD 值比较 值比较函数() const {
+        return 值比较(键比较函数());
     }
 
     template <bool _Multi2 = _Multi, enable_if_t<!_Multi2, int> = 0>
@@ -1946,7 +1946,7 @@ protected:
     void _检查节点分配器(结点类型& _Handle) const {
         (void) _Handle;
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(get_allocator() == _Handle._取分配器(), "node handle allocator incompatible for insert");
+        _STL_VERIFY(取分配器() == _Handle._取分配器(), "node handle allocator incompatible for insert");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
     }
 #endif // _HAS_CXX17
