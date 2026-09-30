@@ -26,7 +26,7 @@
 #  用法：powershell -File tools\audit_hanhua.ps1
 #        powershell -File tools\audit_hanhua.ps1 -Verbose_   # 逐头打印残留名单
 # ============================================================================
-param([switch] $Detail)
+param([switch] $Detail, [switch] $Check, [switch] $Quiet)
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
@@ -360,7 +360,7 @@ foreach ($e in $entries) {
 }
 
 $rows = @($rows | Sort-Object -Property @{ Expression = { $_.残留 } } -Descending)
-$rows | Format-Table -Property 中文头, 源, 顶层类型, 残留 -AutoSize
+if (-not $Quiet) { $rows | Format-Table -Property 中文头, 源, 顶层类型, 残留 -AutoSize }
 
 if ($Detail) {
     Write-Host "--- 抄来那层的残留名单（= 欠账）---"
@@ -382,7 +382,7 @@ $rows2 = @($rows2 | Sort-Object -Property @{ Expression = { $_.残留 } } -Desce
 if ($rows2.Count) {
     Write-Host ""
     Write-Host "=== 嵌套名字（类体内 using/typedef/嵌套类）===" -ForegroundColor Cyan
-    $rows2 | Format-Table -Property 中文头, 源, 嵌套名, 残留 -AutoSize
+    if (-not $Quiet) { $rows2 | Format-Table -Property 中文头, 源, 嵌套名, 残留 -AutoSize }
     if ($Detail) {
         Write-Host "--- 嵌套名残留名单 ---"
         foreach ($r in $rows2) { if ($r.残留) { Write-Host ("  {0,-14} {1}" -f $r.中文头, $r.名单) } }
@@ -401,7 +401,7 @@ if ($rows2.Count) {
     $rows3 = @($rows3 | Sort-Object -Property @{ Expression = { $_.残留 } } -Descending)
     Write-Host ""
     Write-Host "=== 成员名字（抄来那层里「标识符紧跟 (」的行，含自由函数/局部函数的少量偏差）===" -ForegroundColor Cyan
-    $rows3 | Format-Table -Property 中文头, 源, 成员名, 残留 -AutoSize
+    if (-not $Quiet) { $rows3 | Format-Table -Property 中文头, 源, 成员名, 残留 -AutoSize }
     if ($Detail) {
         Write-Host "--- 成员名残留名单（= 欠账 + 已登记的边界）---"
         foreach ($r in $rows3) { if ($r.残留) { Write-Host ("  {0,-14} {1}" -f $r.中文头, $r.名单) } }
@@ -415,3 +415,63 @@ if ($rows2.Count) {
     Write-Host "      allocator_traits 这些**借来的** std 类型读的成员名（length/assign/copy/…）——"
     Write-Host "      消除路径 = 把它们也抄成我们自己的内部件，然后两边一起翻。"
 }
+
+# ---------------------------------------------------------------------------
+#  §17.19.40 标尺台账 + 守卫：把"还剩多少"变成机器守得住的数字。
+#  两条判据：
+#    ① 台账必须与本次实测一致（手写的台账一定会漂移 —— 同 §16.40 / §17.19.21）；
+#    ② 三条尺的【分子】不许倒退（率可以因分母变大而下降，分子下降才是真倒退）。
+#  为什么加它（第 108 轮）：<算法>/<范围> 等一批头落地后，"还剩多少"不能只靠方案里的一段话，
+#    必须每轮机器算一遍；用户反复问的那个数，得有一个不会说谎的答案。
+#  用法：不带开关 = 重写台账；-Check = 只校验（闸门用 -Check -Quiet）；-Detail = 打残留名单。
+# ---------------------------------------------------------------------------
+if ($null -eq $clean)  { $clean = 0 }
+if ($null -eq $clean2) { $clean2 = 0 }
+if ($null -eq $clean3) { $clean3 = 0 }
+if ($null -eq $rows2)  { $rows2 = @() }
+if ($null -eq $rows3)  { $rows3 = @() }
+$ledgerPath = Join-Path $root 'docs\标准库汉化\汉化标尺台账.md'
+$ledger = @(
+    '# 汉化标尺台账（§17.19.40）',
+    '',
+    '> 本文件由 `tools\audit_hanhua.ps1` 生成，`tools\regen_zhstdlib.ps1` 用 `-Check` 守。',
+    '> 三条尺只量【抄+派生轨道】（别名/转发轨道不产生"抄来那层"）。',
+    '> 口径：率 = 分子 / 分母。**分母随新头增加而变大 —— 率下降不等于倒退，只有分子下降才是倒退。**',
+    '',
+    '| 尺 | 分子（已汉化） | 分母（应有） | 率 | 无残留头 |',
+    '|---|---|---|---|---|',
+    ("| 顶层类型名 | {0} | {1} | {2:N1}% | {3} / {4} |" -f $totDone,  $totAll,  (100 * $totDone  / [Math]::Max($totAll, 1)),  $clean,  $rows.Count),
+    ("| 嵌套名 | {0} | {1} | {2:N1}% | {3} / {4} |" -f $totDone2, $totAll2, (100 * $totDone2 / [Math]::Max($totAll2, 1)), $clean2, $rows2.Count),
+    ("| 成员名 | {0} | {1} | {2:N1}% | {3} / {4} |" -f $totDone3, $totAll3, (100 * $totDone3 / [Math]::Max($totAll3, 1)), $clean3, $rows3.Count)
+)
+$ledgerText = ($ledger -join "`n") + "`n"
+$utf8 = New-Object System.Text.UTF8Encoding($false)
+$line = "汉化标尺：最新（顶层 {0}/{1}、嵌套 {2}/{3}、成员 {4}/{5}）" -f $totDone, $totAll, $totDone2, $totAll2, $totDone3, $totAll3
+if ($Check) {
+    if (-not (Test-Path $ledgerPath)) {
+        Write-Host '❌ 汉化标尺台账不存在：先跑 tools\audit_hanhua.ps1（不带 -Check）再一起提交。' -ForegroundColor Red
+        exit 1
+    }
+    $old = [System.IO.File]::ReadAllText($ledgerPath)
+    if ($old -ne $ledgerText) {
+        $oldNum = @{}
+        foreach ($m in [regex]::Matches($old, '(?m)^\| (顶层类型名|嵌套名|成员名) \| (\d+) \|')) { $oldNum[$m.Groups[1].Value] = [int]$m.Groups[2].Value }
+        $nowNum = @{ '顶层类型名' = $totDone; '嵌套名' = $totDone2; '成员名' = $totDone3 }
+        $back = @()
+        foreach ($k in @('顶层类型名', '嵌套名', '成员名')) {
+            if ($oldNum.ContainsKey($k) -and $nowNum[$k] -lt $oldNum[$k]) { $back += ("{0} 分子 {1} -> {2}" -f $k, $oldNum[$k], $nowNum[$k]) }
+        }
+        if ($back.Count) {
+            Write-Host ('❌ 汉化标尺【分子倒退】：' + ($back -join '；')) -ForegroundColor Red
+            Write-Host '   率下降可以（分母变大），分子下降不行 —— 这是真倒退，必须查清是哪个头被改回去了。' -ForegroundColor Red
+        } else {
+            Write-Host '❌ 汉化标尺台账【已过期】（产物变了但台账没重生成，或有人手改了台账）' -ForegroundColor Red
+            Write-Host '   修法：pwsh -File tools\audit_hanhua.ps1  然后一起提交。' -ForegroundColor Yellow
+        }
+        exit 1
+    }
+    Write-Host ($line + '（台账最新）') -ForegroundColor Green
+    exit 0
+}
+[System.IO.File]::WriteAllText($ledgerPath, $ledgerText, $utf8)
+Write-Host ($line + "`n台账已写入 docs\标准库汉化\汉化标尺台账.md") -ForegroundColor Green
