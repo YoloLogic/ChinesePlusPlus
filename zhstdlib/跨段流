@@ -1,0 +1,27 @@
+// <跨段流> —— spanstream 的中文别名层
+//
+// 为什么是别名而不是抄一份（方案铁律 4）：
+//   铁律③：跨段缓冲与三个跨段流类型参与语义（按类型重载 + 与 <跨段> 互操作）。C++23 头，整块进条件壳。
+//   这类头一旦抄一份，就会和 std 里那份成为两套互不相认的东西。
+//
+// 英文原名照旧可用：这里只是【多一个名字】，原头一个字节没动。
+// 变体（英文里带 _v 的变量模板形式）暂未提供中文名，属"必须的妥协"，见方案 §六。
+#pragma once
+#include <spanstream>
+
+名域 标准 {
+    #如果 _HAS_CXX23
+    模板 <类型名 字符类型, 类型名 特征 = std::char_traits<字符类型>> 使用 基本跨段缓冲 = std::basic_spanbuf<字符类型, 特征>;
+    使用 跨段缓冲 = std::spanbuf;
+    使用 宽跨段缓冲 = std::wspanbuf;
+    模板 <类型名 字符类型, 类型名 特征 = std::char_traits<字符类型>> 使用 基本跨段输入流 = std::basic_ispanstream<字符类型, 特征>;
+    使用 跨段输入流 = std::ispanstream;
+    使用 宽跨段输入流 = std::wispanstream;
+    模板 <类型名 字符类型, 类型名 特征 = std::char_traits<字符类型>> 使用 基本跨段输出流 = std::basic_ospanstream<字符类型, 特征>;
+    使用 跨段输出流 = std::ospanstream;
+    使用 宽跨段输出流 = std::wospanstream;
+    模板 <类型名 字符类型, 类型名 特征 = std::char_traits<字符类型>> 使用 基本跨段流 = std::basic_spanstream<字符类型, 特征>;
+    使用 跨段流 = std::spanstream;
+    使用 宽跨段流 = std::wspanstream;
+    #结束如果
+}
