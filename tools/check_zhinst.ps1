@@ -438,6 +438,16 @@ foreach ($p in $dtab.PSObject.Properties) {
 }
 
 # ③ C 轨道（表在源码里）
+#  §17.24 真实用例只在**导出**里（`t` 字段，见 make_zhc.ps1 的 $TESTS）—— 正文正则取不到，
+#  所以单独调一次 -ExportJson 建映射。（正文正则仍是名字的来源，不动它。）
+$ctestMap = @{}
+$cj = & pwsh -NoProfile -File (Join-Path $root 'tools\make_zhc.ps1') -ExportJson 2>$null | Out-String
+if ($cj.Trim()) {
+    $ctab = $cj | ConvertFrom-Json
+    foreach ($pp in $ctab.PSObject.Properties) {
+        if (($pp.Value.PSObject.Properties.Name -contains 't') -and $pp.Value.t) { $ctestMap[[string]$pp.Value.zh] = [string]$pp.Value.t }
+    }
+}
 $ctext = [System.IO.File]::ReadAllText((Join-Path $root 'tools\make_zhc.ps1'))
 foreach ($em in [regex]::Matches($ctext, "(?ms)^\s*'([a-z_][a-z0-9_.]*)'\s*=\s*@\{\s*zh\s*=\s*'([^']+)'\s*;?\s*a\s*=\s*@\((.*?)\)\s*\}")) {
     $names = @()
@@ -448,7 +458,12 @@ foreach ($em in [regex]::Matches($ctext, "(?ms)^\s*'([a-z_][a-z0-9_.]*)'\s*=\s*@
         elseif ($kind -eq '常量') { $names += [pscustomobject]@{ Name = $nm2; Kind = '常量'; Template = '' } }
         else { $names += [pscustomobject]@{ Name = $nm2; Kind = '模板函数'; Template = '' } }
     }
-    $products += [pscustomobject]@{ Track = 'C'; Product = $em.Groups[2].Value; TParam = ''; Names = @($names | Sort-Object Name -Unique); Tests = '' }
+    #  §17.24 C 轨道也有真实用例了（`make_zhc.ps1` 的 `$TESTS`，**编译 + 运行**）；
+    #  不接进来的话，这些用例在台账上等于不存在。
+    $czh = $em.Groups[2].Value
+    $ctests = ''
+    if ($ctestMap.ContainsKey($czh)) { $ctests = [string]$ctestMap[$czh] }
+    $products += [pscustomobject]@{ Track = 'C'; Product = $czh; TParam = ''; Names = @($names | Sort-Object Name -Unique); Tests = $ctests }
 }
 
 # ⚠ pwsh -File 把逗号列表当【一个字符串】传（老坑）—— 自己拆。
@@ -547,8 +562,7 @@ foreach ($p in $products) {
             }
         }
         if (-not $used) {
-            $uncovered[$n.Name] = $(if ($n.Kind -eq '手写层探针') { '手写层·' + $n.Inner + '：顶层' + $(if ($p.HostPub) { '与宿主限定（`' + $p.HostPub + '::' + $n.Name + '`）' } else { '' }) + '都试不过' }
-                elseif ($n.Kind -eq '概念') { '概念：模板实参合成不出来（形参有默认值依赖等）' }
+            $uncovered[$n.Name] = $(if ($n.Kind -eq '手写层探针') { '手写层·' + $n.Inner + '：顶层' + $(if ($p.HostPub) { '与宿主限定（`' + $p.HostPub + '::' + $n.Name + '`）' } else { '' }) + '都试不过' }                elseif ($n.Kind -eq '概念') { '概念：模板实参合成不出来（形参有默认值依赖等）' }
                 else { $n.Kind + '-无探针' })
         }
     }
@@ -626,7 +640,10 @@ foreach ($p in $products) {
             #  （变参转发器的一元/二元形态），只有"条条都编不过"才记未覆盖。
             foreach ($nm in $softNames.Keys) {
                 if (-not $okNames.ContainsKey($nm)) {
-                    $uncovered[$nm] = $softNames[$nm]
+                    #  §17.24 已被**真用例**覆盖的名字不再记未覆盖：用例真编译真运行（§17.19.58），
+                    #  它已经不是"边界"。以前这里无条件记 —— 于是同一个名字既在"用例覆盖"里
+                    #  又在"未覆盖"里（C 轨道补了 8 条用例后立刻暴露：48 覆盖 / 41 未覆盖）。
+                    if ($byTest -notcontains $nm) { $uncovered[$nm] = $softNames[$nm] }
                     $probed = @($probed | Where-Object { $_ -ne $nm })
                 }
             }
@@ -666,7 +683,8 @@ foreach ($p in $products) {
                     }
                     $why = $(if ($it.Soft) { '手写层·模板函数：调用探针编不过（' } else { '调用探针表达不出（显式实参也编不过）：' }) + "$(Get-ErrBrief $bi.Err)"
                 }
-                $uncovered[$it.Name] = $why
+                #  §17.24 同主批：已被真用例覆盖的名字不记未覆盖
+                if ($byTest -notcontains $it.Name) { $uncovered[$it.Name] = $why }
                 $probed = @($probed | Where-Object { $_ -ne $it.Name })
             }
         }

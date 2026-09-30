@@ -145,8 +145,137 @@ $SENTINEL = @{
     '绝对值' = '_ZH_ABS'   # std::abs (<cstdlib>) 与 std::fabs (<cmath>)
 }
 
+# ---------------------------------------------------------------------------
+#  §17.24 C 轨道的**真实用例**（真编译 + 真运行）
+#
+#  为什么要补：这条轨道以前每个产物的核对只是
+#      `#包含 <中文头>` + `整数 主函数(){ 返回 0; }`
+#  —— 与 §17.19.58 别名轨道那次"空测"是同一类问题：**只证明"产品能解析"，
+#  不证明"名字能用"**。26 个 C 产物因此一个名字都没被真正用过（守卫台账里
+#  它们整片躺在"变参转发器：一元/二元实参都编不过"里）。
+#
+#  这里的每段程序都**编译成 exe 并运行**，退出码必须是 0；编不过或跑挂=红。
+#  实参用真实类型（字符串/文件/缓冲区/比较器），不是整数字面量的哑实参 ——
+#  这正是"哑实参天然不匹配"那批名字的唯一正解：给条目补一条真用的用例。
+# ---------------------------------------------------------------------------
+$TESTS = [ordered]@{
+    'C字符串' = @'
+#包含 <C字符串>
+整数 主函数(){
+    字符 甲[16] = "abc"; 字符 乙[16] = {0};
+    如果 (标准::字符串长度(甲) != 3) { 返回 1; }
+    标准::复制字符串(乙, 甲);
+    标准::连接字符串(乙, "d");
+    如果 (标准::比较字符串(乙, "abcd") != 0) { 返回 2; }
+    如果 (标准::查找字符(乙, 'c') == 空指针) { 返回 3; }
+    如果 (标准::查找子串(乙, "bc") == 空指针) { 返回 4; }
+    标准::复制内存(乙, 甲, 4);
+    如果 (标准::比较内存(乙, 甲, 4) != 0) { 返回 5; }
+    标准::移动内存(乙, 甲, 4);
+    标准::填充内存(乙, 0, 4);
+    返回 0;
+}
+'@
+    'C标准输入输出' = @'
+#包含 <C标准输入输出>
+整数 主函数(){
+    常量 字符* 路径 = "build/_zhc_case.txt";
+    标准::文件* 甲 = 标准::打开文件(路径, "w");
+    如果 (甲 == 空指针) { 返回 1; }
+    标准::放字符串("abc", 甲);
+    标准::放字符('d', 甲);
+    标准::写文件("ef", 1, 2, 甲);
+    标准::冲刷文件(甲);
+    标准::关闭文件(甲);
+    甲 = 标准::打开文件(路径, "r");
+    如果 (甲 == 空指针) { 返回 2; }
+    字符 缓冲[16] = {0};
+    如果 (标准::取字符串(缓冲, 16, 甲) == 空指针) { 返回 3; }
+    标准::取字符(甲);
+    标准::定位文件(甲, 0, 0);
+    标准::读文件(缓冲, 1, 3, 甲);
+    标准::关闭文件(甲);
+    返回 0;
+}
+'@
+    'C标准库' = @'
+#包含 <C标准库>
+整数 比较整数(常量 空型* 甲, 常量 空型* 乙){
+    常量 整数* 左 = (常量 整数*)甲; 常量 整数* 右 = (常量 整数*)乙;
+    如果 (*左 < *右) { 返回 -1; }
+    如果 (*右 < *左) { 返回 1; }
+    返回 0;
+}
+整数 主函数(){
+    如果 (标准::转整数("42") != 42) { 返回 1; }
+    如果 (标准::转长整数("42") != 42) { 返回 2; }
+    (空型)标准::转双精度("4.2");
+    (空型)标准::随机数();
+    (空型)标准::取环境变量("PATH");
+    整数 组[4] = {3, 1, 2, 0}; 整数 键 = 2;
+    标准::快速排序(组, 4, sizeof(整数), 比较整数);
+    如果 (标准::二分查找(&键, 组, 4, sizeof(整数), 比较整数) == 空指针) { 返回 3; }
+    空型* 内存 = 标准::分配内存(8);
+    标准::释放内存(内存);
+    标准::释放内存(空指针);
+    如果 (标准::执行命令("exit /b 0") != 0) { 返回 4; }
+    返回 0;
+}
+'@
+    'C时间' = @'
+#包含 <C时间>
+整数 主函数(){
+    标准::时间类型 现 = 标准::取时间(空指针);
+    (空型)标准::取时钟();
+    标准::时间结构* 本 = 标准::本地时间(&现);
+    标准::时间结构* 世 = 标准::世界时(&现);
+    如果 (本 == 空指针 || 世 == 空指针) { 返回 1; }
+    字符 缓冲[64] = {0};
+    如果 (标准::格式化时间(缓冲, 64, "%Y", 本) == 0) { 返回 2; }
+    返回 0;
+}
+'@
+    'C宽字符' = @'
+#包含 <C宽字符>
+整数 主函数(){
+    宽字符 甲[16] = L"abc"; 宽字符 乙[16] = {0};
+    如果 (标准::宽字符串长度(甲) != 3) { 返回 1; }
+    标准::宽字符串复制(乙, 甲);
+    标准::宽字符串连接(乙, L"d");
+    如果 (标准::宽字符串比较(乙, L"abcd") != 0) { 返回 2; }
+    返回 0;
+}
+'@
+    'C本地化' = @'
+#包含 <C本地化>
+整数 主函数(){
+    标准::本地化结构* 甲 = 标准::取本地化数值();
+    如果 (甲 == 空指针) { 返回 1; }
+    返回 0;
+}
+'@
+    'C跳转' = @'
+#包含 <C跳转>
+整数 主函数(){
+    标准::跳转缓冲 缓冲;
+    如果 (setjmp(缓冲) == 0) { 标准::长跳转(缓冲, 1); }
+    返回 0;
+}
+'@
+    'C信号' = @'
+#包含 <C信号>
+整数 主函数(){
+    标准::信号处理(2, 空指针);   // SIGINT -> 默认处理
+    // 引发信号 不在此调用：MSVC 的 raise(0) 走无效参数处理器，会 fail-fast（实测 0xC0000409）
+    返回 0;
+}
+'@
+}
+foreach ($h in $T.Keys) { if ($TESTS.Contains($T[$h].zh)) { $T[$h]['t'] = $TESTS[$T[$h].zh] } }
+
 # -ExportJson：把整张表以 JSON 输出后退出（供 tools\make_zh_usage.ps1 生成用法对照表）。
 #   同一张表、不靠正则扫描 —— 扫描正则会漂移（见 make_zhstdlib2.ps1 同一开关的说明）。
+#   §17.24：条目里多了 `t`（真实用例原文）—— 实例化守卫靠它算"用例覆盖"。
 if ($ExportJson) { $T | ConvertTo-Json -Depth 8; exit 0 }
 
 foreach ($h in $T.Keys) {
@@ -244,5 +373,40 @@ foreach ($h in $T.Keys) {
     }
 }
 Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue
-Write-Host ("  通过 {0} / {1}" -f $ok, $n) -ForegroundColor Green
 $bad | ForEach-Object { Write-Host ("    {0,-16} {1}" -f $_.Zh, $_.Err) -ForegroundColor Yellow }
+
+# ---------------------------------------------------------------------------
+#  §17.24 真实用例：**编译 + 运行**（不再只是"能 include"）
+#    · 编不过或运行退出码 != 0 一律红 —— "跑 0 条的通过不是通过"
+#    · 摘要行刻意不写成 `N / M`，免得闸门把它的收尾行解析错（闸门认的是上一行）
+# ---------------------------------------------------------------------------
+Write-Host ""
+Write-Host "=== 真实用例（编译 + 运行）===" -ForegroundColor Cyan
+$caseTmp = Join-Path $root 'build\_zhc_case'
+if (Test-Path $caseTmp) { Remove-Item -Recurse -Force $caseTmp }
+New-Item -ItemType Directory -Force $caseTmp | Out-Null
+$caseOk = 0; $caseBad = @(); $caseNone = @()
+foreach ($h in $T.Keys) {
+    $zh = $T[$h].zh
+    if (-not $TESTS.Contains($zh)) { $caseNone += $zh; continue }
+    $csrc = Join-Path $caseTmp 'r.cpp'; $cexe = Join-Path $caseTmp 'r.exe'
+    [System.IO.File]::WriteAllText($csrc, $TESTS[$zh], $utf8)
+    & cmd /c "`"$cxx`" -std=c++20 -isystem`"$out`" `"$csrc`" -o `"$cexe`" > `"$caseTmp\o.txt`" 2>&1"
+    if ($LASTEXITCODE -ne 0) {
+        $first = Get-Content "$caseTmp\o.txt" -ErrorAction SilentlyContinue | Where-Object { $_ -match 'error:' } | Select-Object -First 1
+        $caseBad += [pscustomobject]@{ Zh = $zh; What = '编译'; Err = ([string]$first).Trim() }
+        continue
+    }
+    & $cexe | Out-Null
+    if ($LASTEXITCODE -ne 0) { $caseBad += [pscustomobject]@{ Zh = $zh; What = '运行'; Err = "退出码 $LASTEXITCODE" }; continue }
+    $caseOk++
+}
+Remove-Item -Recurse -Force $caseTmp -ErrorAction SilentlyContinue
+Write-Host ("  真实用例通过 {0} 个；失败 {1} 个；无用例 {2} 个（{3}）" -f $caseOk, $caseBad.Count, $caseNone.Count, ($caseNone -join ' ')) -ForegroundColor $(if ($caseBad.Count) { 'Red' } else { 'Green' })
+$caseBad | ForEach-Object { Write-Host ("    {0,-16} {1}：{2}" -f $_.Zh, $_.What, $_.Err) -ForegroundColor Red }
+if ($caseBad.Count) { Write-Host "❌ C 轨道真实用例有失败 —— 不许带红提交" -ForegroundColor Red; exit 1 }
+
+# ⚠ 闸门（regen_zhstdlib.ps1）对 `Once` 型生成器**只取最后一行**并解析 `N / M`。
+#   所以这一行必须**永远是最后一行** —— 任何新摘要都排在它前面。
+#   （第一次加真实用例时就是栽在这：摘要排在了后面，闸门把生成器判成 FAIL。）
+Write-Host ("  通过 {0} / {1}" -f $ok, $n) -ForegroundColor Green
