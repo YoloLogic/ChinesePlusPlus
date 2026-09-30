@@ -34,6 +34,76 @@ $utf8 = New-Object System.Text.UTF8Encoding($false)
 #            @('函数','中文名','std::原名')      —— 通用一模板转发
 #            @('原样','<整行代码>')              —— 原样发出（成员要转发成自由函数时用）
 $H = [ordered]@{
+# §17.19.33 <chrono>（时间）：时长/时间点/日历/时区的身份参与语义（模板参数被用户代码推导）—— 只能别名
+'chrono' = @{ zh = '时间'; src = 'chrono';
+  reason = '铁律③：时长/时间点/日历类的身份参与语义（用户按类型重载、模板实参推导、时钟概念约束）。';
+  a = @(
+    @('原样','模板 <类型名 表示, 类型名 周期 = std::ratio<1>> 使用 时长 = std::chrono::duration<表示, 周期>;'),
+    @('原样','模板 <类型名 时钟, 类型名 时长类型 = 类型名 时钟::duration> 使用 时间点 = std::chrono::time_point<时钟, 时长类型>;'),
+    @('原样','模板 <类型名 值类型> 使用 视为浮点 = std::chrono::treat_as_floating_point<值类型>;'),
+    @('原样','模板 <类型名 表示> 使用 时长取值 = std::chrono::duration_values<表示>;'),
+    @('原样','模板 <类型名 甲, 类型名 乙> 使用 时钟时间转换 = std::chrono::clock_time_conversion<甲, 乙>;'),
+    @('原样','模板 <类型名 值类型> 使用 是时钟 = std::chrono::is_clock<值类型>;'),
+    @('原样','使用 系统时钟 = std::chrono::system_clock;'),
+    @('原样','使用 稳定时钟 = std::chrono::steady_clock;'),
+    @('原样','使用 高精度时钟 = std::chrono::high_resolution_clock;'),
+    @('原样','使用 世界协调时钟 = std::chrono::utc_clock;'),
+    @('原样','使用 国际原子时钟 = std::chrono::tai_clock;'),
+    @('原样','使用 全球定位时钟 = std::chrono::gps_clock;'),
+    @('原样','使用 文件时钟 = std::chrono::file_clock;'),
+    @('原样','使用 本地时间类型 = std::chrono::local_t;'),
+    @('原样','模板 <类型名 目标时长, 类型名 表示, 类型名 周期> 声明类型(自动) 时长转换(const std::chrono::duration<表示, 周期>& 甲) { 返回 std::chrono::duration_cast<目标时长>(甲); }'),
+    @('原样','模板 <类型名 目标时间点, 类型名 时钟, 类型名 时长类型> 声明类型(自动) 时间点转换(const std::chrono::time_point<时钟, 时长类型>& 甲) { 返回 std::chrono::time_point_cast<目标时间点>(甲); }'),
+    @('原样','模板 <类型名 目标时钟, 类型名 源时钟, 类型名 时长类型> 声明类型(自动) 时钟转换(const std::chrono::time_point<源时钟, 时长类型>& 甲) { 返回 std::chrono::clock_cast<目标时钟>(甲); }'),
+    @('原样','模板 <类型名 目标时长, 类型名 表示, 类型名 周期> 声明类型(自动) 时长下取整(const std::chrono::duration<表示, 周期>& 甲) { 返回 std::chrono::floor<目标时长>(甲); }'),
+    @('原样','模板 <类型名 目标时长, 类型名 表示, 类型名 周期> 声明类型(自动) 时长上取整(const std::chrono::duration<表示, 周期>& 甲) { 返回 std::chrono::ceil<目标时长>(甲); }'),
+    @('原样','模板 <类型名 目标时长, 类型名 表示, 类型名 周期> 声明类型(自动) 时长四舍五入(const std::chrono::duration<表示, 周期>& 甲) { 返回 std::chrono::round<目标时长>(甲); }'),
+    @('原样','模板 <类型名 时长类型> 声明类型(自动) 时长绝对值(const 时长类型& 甲) { 返回 std::chrono::abs(甲); }'),
+    @('原样','使用 日 = std::chrono::day;'),
+    @('原样','使用 月 = std::chrono::month;'),
+    @('原样','使用 年 = std::chrono::year;'),
+    @('原样','使用 星期 = std::chrono::weekday;'),
+    @('原样','使用 最后标记 = std::chrono::last_spec;'),
+    @('常量','最后','std::chrono::last','std::chrono::last_spec'),
+    @('原样','使用 带序星期 = std::chrono::weekday_indexed;'),
+    @('原样','使用 末星期 = std::chrono::weekday_last;'),
+    @('原样','使用 月日 = std::chrono::month_day;'),
+    @('原样','使用 月末日 = std::chrono::month_day_last;'),
+    @('原样','使用 月星期 = std::chrono::month_weekday;'),
+    @('原样','使用 月末星期 = std::chrono::month_weekday_last;'),
+    @('原样','使用 年月 = std::chrono::year_month;'),
+    @('原样','使用 年月日 = std::chrono::year_month_day;'),
+    @('原样','使用 年月末日 = std::chrono::year_month_day_last;'),
+    @('原样','使用 年月星期 = std::chrono::year_month_weekday;'),
+    @('原样','使用 年月末星期 = std::chrono::year_month_weekday_last;'),
+    @('原样','使用 时分秒 = std::chrono::hh_mm_ss<std::chrono::seconds>;'),
+    @('原样','使用 时区 = std::chrono::time_zone;'),
+    @('原样','使用 时区链接 = std::chrono::time_zone_link;'),
+    @('原样','使用 带时区时间 = std::chrono::zoned_time<std::chrono::seconds>;'),
+    @('原样','使用 时区库 = std::chrono::tzdb;'),
+    @('原样','使用 时区库表 = std::chrono::tzdb_list;'),
+    @('原样','使用 闰秒 = std::chrono::leap_second;'),
+    @('原样','使用 闰秒信息 = std::chrono::leap_second_info;'),
+    @('原样','使用 系统时间信息 = std::chrono::sys_info;'),
+    @('原样','使用 本地时间信息 = std::chrono::local_info;'),
+    @('原样','使用 不存在本地时间 = std::chrono::nonexistent_local_time;'),
+    @('原样','使用 有歧义本地时间 = std::chrono::ambiguous_local_time;'),
+    @('原样','使用 择时 = std::chrono::choose;'),
+    @('常量','最早','std::chrono::choose::earliest','std::chrono::choose'),
+    @('常量','最晚','std::chrono::choose::latest','std::chrono::choose'),
+    @('原样','声明类型(自动) 当前时区() { 返回 std::chrono::current_zone(); }'),
+    @('原样','声明类型(自动) 查找时区(const char* 甲) { 返回 std::chrono::locate_zone(甲); }'),
+    @('原样','声明类型(自动) 取时区库() { 返回 std::chrono::get_tzdb(); }'),
+    @('原样','声明类型(自动) 取时区库表() { 返回 std::chrono::get_tzdb_list(); }'),
+    @('原样','模板 <类型名 时长类型> 声明类型(自动) 取闰秒信息(const std::chrono::utc_time<时长类型>& 甲) { 返回 std::chrono::get_leap_second_info(甲); }'),
+    @('原样','模板 <类型名 时长类型> 声明类型(自动) 造带时区时间(const std::chrono::time_zone* 甲, const std::chrono::sys_time<时长类型>& 乙) { 返回 std::chrono::zoned_time<时长类型>(甲, 乙); }')
+  )
+  tests = @(
+    @('只引中文头','#包含 <时间>`n整数 主函数(){ 标准::时长<整数, std::ratio<1>> 甲{3}; 标准::时长<长整型, std::milli> 乙 = 标准::时长转换<标准::时长<长整型, std::milli>>(甲); 自动 丙 = 标准::时间点<标准::系统时钟>{}; (空型)丙; 返回 乙.count() == 3000 ? 0 : 1; }'),
+    @('与微软原头并存','#包含 <时间>`n#包含 <chrono>`n整数 主函数(){ 标准::年月日 甲{标准::年{2026}, 标准::月{2}, 标准::日{14}}; std::chrono::year_month_day 乙 = 甲; 返回 乙.ok() ? 0 : 1; }')
+  )
+}
+
 # §17.19.32 <functional>（函数对象）：类型身份参与语义（调用运算符 + 继承 std 的基类），只能别名
 'functional' = @{ zh = '函数对象'; src = 'functional';
   reason = '铁律③：function/reference_wrapper/各算术函数对象的身份参与语义（用户继承 + 重载解析按类型）。';
