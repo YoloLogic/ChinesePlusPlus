@@ -27,11 +27,11 @@
     模板 <类型名 双向迭代器, 类型名 字符类型, 类型名 特征 = std::regex_traits<字符类型>> 使用 正则词元迭代器 = std::regex_token_iterator<双向迭代器, 字符类型, 特征>;
     使用 字符正则词元迭代器 = std::cregex_token_iterator;
     使用 串正则词元迭代器 = std::sregex_token_iterator;
-    模板 <类型名 字符类型, 类型名 特征> 布尔 正则匹配(const std::basic_string<字符类型, 特征>& 甲, const std::basic_regex<字符类型, 特征>& 乙, std::regex_constants::match_flag_type 丙 = std::regex_constants::match_default) { 返回 std::regex_match(甲, 乙, 丙); }
-    模板 <类型名 字符类型, 类型名 特征, 类型名 结果, 类型名 结果分配器> 布尔 正则匹配(const std::basic_string<字符类型, 特征>& 甲, std::match_results<结果, 结果分配器>& 乙, const std::basic_regex<字符类型, 特征>& 丙, std::regex_constants::match_flag_type 丁 = std::regex_constants::match_default) { 返回 std::regex_match(甲, 乙, 丙, 丁); }
-    模板 <类型名 字符类型, 类型名 特征> 布尔 正则查找(const std::basic_string<字符类型, 特征>& 甲, const std::basic_regex<字符类型, 特征>& 乙, std::regex_constants::match_flag_type 丙 = std::regex_constants::match_default) { 返回 std::regex_search(甲, 乙, 丙); }
-    模板 <类型名 字符类型, 类型名 特征, 类型名 结果, 类型名 结果分配器> 布尔 正则查找(const std::basic_string<字符类型, 特征>& 甲, std::match_results<结果, 结果分配器>& 乙, const std::basic_regex<字符类型, 特征>& 丙, std::regex_constants::match_flag_type 丁 = std::regex_constants::match_default) { 返回 std::regex_search(甲, 乙, 丙, 丁); }
-    模板 <类型名 字符类型, 类型名 特征, 类型名 替换类型> 声明类型(自动) 正则替换(const std::basic_string<字符类型, 特征>& 甲, const std::basic_regex<字符类型, 特征>& 乙, 替换类型&& 丙, std::regex_constants::match_flag_type 丁 = std::regex_constants::match_default) { 返回 std::regex_replace(甲, 乙, static_cast<替换类型&&>(丙), 丁); }
+    模板 <类型名 字符类型, 类型名 字符串特征, 类型名 正则特征> 布尔 正则匹配(const std::basic_string<字符类型, 字符串特征>& 甲, const std::basic_regex<字符类型, 正则特征>& 乙, std::regex_constants::match_flag_type 丙 = std::regex_constants::match_default) { 返回 std::regex_match(甲, 乙, 丙); }
+    模板 <类型名 字符类型, 类型名 字符串特征, 类型名 正则特征, 类型名 结果, 类型名 结果分配器> 布尔 正则匹配(const std::basic_string<字符类型, 字符串特征>& 甲, std::match_results<结果, 结果分配器>& 乙, const std::basic_regex<字符类型, 正则特征>& 丙, std::regex_constants::match_flag_type 丁 = std::regex_constants::match_default) { 返回 std::regex_match(甲, 乙, 丙, 丁); }
+    模板 <类型名 字符类型, 类型名 字符串特征, 类型名 正则特征> 布尔 正则查找(const std::basic_string<字符类型, 字符串特征>& 甲, const std::basic_regex<字符类型, 正则特征>& 乙, std::regex_constants::match_flag_type 丙 = std::regex_constants::match_default) { 返回 std::regex_search(甲, 乙, 丙); }
+    模板 <类型名 字符类型, 类型名 字符串特征, 类型名 正则特征, 类型名 结果, 类型名 结果分配器> 布尔 正则查找(const std::basic_string<字符类型, 字符串特征>& 甲, std::match_results<结果, 结果分配器>& 乙, const std::basic_regex<字符类型, 正则特征>& 丙, std::regex_constants::match_flag_type 丁 = std::regex_constants::match_default) { 返回 std::regex_search(甲, 乙, 丙, 丁); }
+    模板 <类型名 字符类型, 类型名 字符串特征, 类型名 正则特征, 类型名 替换类型> 声明类型(自动) 正则替换(const std::basic_string<字符类型, 字符串特征>& 甲, const std::basic_regex<字符类型, 正则特征>& 乙, 替换类型&& 丙, std::regex_constants::match_flag_type 丁 = std::regex_constants::match_default) { 返回 std::regex_replace(甲, 乙, static_cast<替换类型&&>(丙), 丁); }
     内联 常量 std::regex_constants::match_flag_type 匹配默认 = std::regex_constants::match_default;
     内联 常量 std::regex_constants::match_flag_type 匹配连续 = std::regex_constants::match_continuous;
     内联 常量 std::regex_constants::match_flag_type 匹配任一处 = std::regex_constants::match_any;

@@ -16,9 +16,9 @@
     使用 系统错误 = std::system_error;
     使用 错误码值 = std::errc;
     使用 输入输出错误码 = std::io_errc;
-    模板 <类型名... 参数> 声明类型(自动) 造错误码(参数&&... 值) { 返回 make_error_code(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 声明类型(自动) 造错误条件(参数&&... 值) { 返回 make_error_condition(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 声明类型(自动) 通用类别(参数&&... 值) { 返回 generic_category(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 声明类型(自动) 系统类别(参数&&... 值) { 返回 system_category(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 声明类型(自动) 输入输出类别(参数&&... 值) { 返回 iostream_category(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 造错误码(参数&&... 值) { 返回 std::make_error_code(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 造错误条件(参数&&... 值) { 返回 std::make_error_condition(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 通用类别(参数&&... 值) { 返回 std::generic_category(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 系统类别(参数&&... 值) { 返回 std::system_category(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 输入输出类别(参数&&... 值) { 返回 std::iostream_category(static_cast<参数&&>(值)...); }
 }

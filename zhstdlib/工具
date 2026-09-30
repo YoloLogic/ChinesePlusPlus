@@ -16,8 +16,8 @@
     模板 <类型名 甲, 类型名 乙> 内联 自动& 第二(std::pair<甲, 乙>& 对) noexcept { 返回 对.second; }
     模板 <类型名 甲, 类型名 乙> 内联 常量 自动& 第二(常量 std::pair<甲, 乙>& 对) noexcept { 返回 对.second; }
     模板 <类型名 甲, 类型名 乙> 内联 自动 造对(甲&& 一, 乙&& 二) { 返回 std::make_pair(static_cast<甲&&>(一), static_cast<乙&&>(二)); }
-    模板 <类型名 某类型> 内联 常量表达式 某类型&& 移动(某类型&& 值) noexcept { 返回 static_cast<某类型&&>(值); }
-    模板 <类型名 某类型> 内联 常量表达式 某类型&& 转发(std::remove_reference<某类型>::type&& 值) noexcept { 返回 static_cast<某类型&&>(值); }
+    模板 <类型名 某类型> 内联 常量表达式 std::remove_reference_t<某类型>&& 移动(某类型&& 值) noexcept { 返回 static_cast<std::remove_reference_t<某类型>&&>(值); }
+    模板 <类型名 某类型> 内联 常量表达式 某类型&& 转发(std::remove_reference_t<某类型>&& 值) noexcept { 返回 static_cast<某类型&&>(值); }
     模板 <类型名 某类型> 内联 空型 交换(某类型& 甲, 某类型& 乙) { std::swap(甲, 乙); }
     模板 <类型名 某类型, 类型名 别的> 内联 某类型 交换并返回(某类型& 对象, 别的&& 新值) { 返回 std::exchange(对象, static_cast<别的&&>(新值)); }
     模板 <类型名 某类型> 内联 常量表达式 常量 某类型& 视为常量(某类型& 值) noexcept { 返回 值; }

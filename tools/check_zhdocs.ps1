@@ -82,5 +82,47 @@ if ($bad.Count) {
     Write-Host '   修法：把过期数字改成台账里的当前值（台账由守卫自动生成，不许改台账）。' -ForegroundColor Yellow
     exit 1
 }
+
+# ---------------------------------------------------------------------------
+#  §17.19.60 文档代码块编译守卫：README / 使用说明 里的 ```cpp 块必须真能编过。
+#  为什么加它（2026-09-30 外部复核）：README 首页示例写着 `标准::输出 << 标准::换行;`
+#  —— 这两个名字在 116 个产物里**根本不存在**，而且没有 `#包含`；读者照抄就报错。
+#  `examples\汉语库示例.cpp` 在总判据里会被编，**README 里的示例不在**，所以可以长期是错的。
+#  判据：允许清单文档里的每个 ```cpp 块，用发行编译器 `-std=c++20 -isystem zhstdlib -fsyntax-only` 编一遍；
+#        想跳过就写 ```cpp 不编译（用于"故意展示错误"的片段）。
+# ---------------------------------------------------------------------------
+$cxx = Join-Path $root 'build\Release\bin\chinese++.exe'
+$outDir = Join-Path $root 'build\_zhdocs'
+if (Test-Path $outDir) { Remove-Item -Recurse -Force $outDir }
+New-Item -ItemType Directory -Force $outDir | Out-Null
+$blkBad = @(); $blkOK = 0; $blkSkip = 0
+foreach ($d in $docs) {
+    $p = Join-Path $root $d
+    if (-not (Test-Path $p)) { continue }
+    $txt = [System.IO.File]::ReadAllText($p)
+    $i = 0
+    foreach ($m in [regex]::Matches($txt, '(?s)```cpp([^\r\n]*)\r?\n(.*?)```')) {
+        $i++
+        if ($m.Groups[1].Value -match '不编译') { $blkSkip++; continue }
+        # 校准（§17.19.60）：只查 README（门面，一律查）与【含 主函数】的完整程序；
+        #   文档里大量"语法片段"（只有几行、或故意展示旧写法）不该被要求能编译 —— 假报会逼人加噪声标注。
+        if ($d -ne 'README.md' -and $m.Groups[2].Value -notmatch '主函数') { $blkSkip++; continue }
+        $f = Join-Path $outDir ("blk_{0}_{1}.cpp" -f ($d -replace '[\\/\.]', '_'), $i)
+        [System.IO.File]::WriteAllText($f, $m.Groups[2].Value, (New-Object System.Text.UTF8Encoding($false)))
+        & cmd /c "`"$cxx`" -std=c++20 -isystem`"$root\zhstdlib`" -I`"$root\examples`" -fsyntax-only `"$f`" > `"$outDir\o.txt`" 2>&1"
+        if ($LASTEXITCODE -eq 0) { $blkOK++ }
+        else {
+            $err = (Get-Content "$outDir\o.txt" -ErrorAction SilentlyContinue | Where-Object { $_ -match 'error:' } | Select-Object -First 1)
+            $blkBad += ("  [{0} 第 {1} 个 cpp 块] {2}" -f $d, $i, ([string]$err).Trim())
+        }
+    }
+}
+if ($blkBad.Count) {
+    Write-Host '❌ 文档里的代码块编不过（§17.19.60）—— 读者会照抄：' -ForegroundColor Red
+    $blkBad | ForEach-Object { Write-Host $_ -ForegroundColor Red }
+    Write-Host '   修法：把示例改成能编过的（或用 ```cpp 不编译 明确标注"这是错的示例"）。' -ForegroundColor Yellow
+    exit 1
+}
+if (-not $Quiet) { Write-Host ("  文档代码块编译守卫：通过（编过 {0} 块，跳过 {1} 块）" -f $blkOK, $blkSkip) -ForegroundColor Green }
 if (-not $Quiet) { Write-Host ("  手写文档数字守卫：通过（覆盖 {0}/{1}、顶层 {2}/{3}、嵌套 {4}/{5}、成员 {6}/{7}；检查 {8} 个文档）" -f $N.覆盖, $N.覆盖总, $N.顶层[0], $N.顶层[1], $N.嵌套[0], $N.嵌套[1], $N.成员[0], $N.成员[1], $docs.Count) -ForegroundColor Green }
 exit 0
