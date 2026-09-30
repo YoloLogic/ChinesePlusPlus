@@ -34,6 +34,69 @@ $utf8 = New-Object System.Text.UTF8Encoding($false)
 #            @('函数','中文名','std::原名')      —— 通用一模板转发
 #            @('原样','<整行代码>')              —— 原样发出（成员要转发成自由函数时用）
 $H = [ordered]@{
+# §17.19.28 <fstream>（文件流）：家族薄壳
+'fstream' = @{ zh = '文件流'; src = 'fstream';
+  reason = '铁律③：basic_filebuf/basic_ifstream 等身份参与语义（与 std 流互操作）；正文是成员函数。';
+  a = @(
+    @('原样','#ifndef _ZH_流类型名'),
+    @('原样','#define _ZH_流类型名'),
+    @('原样','模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>> 使用 基础输入流 = std::basic_istream<元素, 特征>;'),
+    @('原样','模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>> 使用 基础输出流 = std::basic_ostream<元素, 特征>;'),
+    @('原样','模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>> 使用 基础流缓冲 = std::basic_streambuf<元素, 特征>;'),
+    @('原样','使用 输入流 = std::istream;'),
+    @('原样','使用 输出流 = std::ostream;'),
+    @('原样','使用 流缓冲 = std::streambuf;'),
+    @('原样','#endif // _ZH_流类型名'),
+    @('原样','#ifndef _ZH_文件流名字'),
+    @('原样','#define _ZH_文件流名字'),
+    @('原样','模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>> 使用 基础文件缓冲 = std::basic_filebuf<元素, 特征>;'),
+    @('原样','模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>> 使用 基础输入文件流 = std::basic_ifstream<元素, 特征>;'),
+    @('原样','模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>> 使用 基础输出文件流 = std::basic_ofstream<元素, 特征>;'),
+    @('原样','模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>> 使用 基础输入输出文件流 = std::basic_fstream<元素, 特征>;'),
+    @('原样','使用 文件缓冲 = std::filebuf;'),
+    @('原样','使用 输入文件流 = std::ifstream;'),
+    @('原样','使用 输出文件流 = std::ofstream;'),
+    @('原样','使用 输入输出文件流 = std::fstream;'),
+    @('原样','使用 宽文件缓冲 = std::wfilebuf;'),
+    @('原样','使用 宽输入文件流 = std::wifstream;'),
+    @('原样','使用 宽输出文件流 = std::wofstream;'),
+    @('原样','使用 宽输入输出文件流 = std::wfstream;'),
+    @('原样','#endif // _ZH_文件流名字')
+  )
+  tests = @(
+    @('只引中文头','#包含 <文件流>`n整数 主函数(){ 标准::输入输出文件流 甲; 返回 甲.是打开() ? 1 : 0; }'),
+    @('与微软原头并存','#包含 <文件流>`n#包含 <fstream>`n静态断言(std::is_same<标准::输入文件流, std::ifstream>::value, "");`n整数 主函数(){ 返回 0; }')
+  )
+}
+# §17.19.28 <syncstream>（同步流）
+'syncstream' = @{ zh = '同步流'; src = 'syncstream';
+  reason = '铁律③：basic_syncbuf/basic_osyncstream 身份参与语义。';
+  a = @(
+    @('原样','#ifndef _ZH_流类型名'),
+    @('原样','#define _ZH_流类型名'),
+    @('原样','模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>> 使用 基础输入流 = std::basic_istream<元素, 特征>;'),
+    @('原样','模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>> 使用 基础输出流 = std::basic_ostream<元素, 特征>;'),
+    @('原样','模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>> 使用 基础流缓冲 = std::basic_streambuf<元素, 特征>;'),
+    @('原样','使用 输入流 = std::istream;'),
+    @('原样','使用 输出流 = std::ostream;'),
+    @('原样','使用 流缓冲 = std::streambuf;'),
+    @('原样','#endif // _ZH_流类型名'),
+    @('原样','#ifndef _ZH_同步流名字'),
+    @('原样','#define _ZH_同步流名字'),
+    @('原样','模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>, 类型名 分配器 = std::allocator<元素>> 使用 基础同步缓冲 = std::basic_syncbuf<元素, 特征, 分配器>;'),
+    @('原样','模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>, 类型名 分配器 = std::allocator<元素>> 使用 基础输出同步流 = std::basic_osyncstream<元素, 特征, 分配器>;'),
+    @('原样','使用 同步缓冲 = std::syncbuf;'),
+    @('原样','使用 输出同步流 = std::osyncstream;'),
+    @('原样','使用 宽同步缓冲 = std::wsyncbuf;'),
+    @('原样','使用 宽输出同步流 = std::wosyncstream;'),
+    @('原样','#endif // _ZH_同步流名字')
+  )
+  tests = @(
+    @('只引中文头','#包含 <同步流>`n整数 主函数(){ 标准::输出同步流 甲(标准::标准输出流); 甲 << ""同步""; 返回 0; }'),
+    @('与微软原头并存','#包含 <同步流>`n#包含 <syncstream>`n静态断言(std::is_same<标准::同步缓冲, std::syncbuf>::value, "");`n整数 主函数(){ 返回 0; }')
+  )
+}
+# §17.19.28 <spanstream>（跨度流）
 # §17.19.26 <istream>（输入流）：家族薄壳（共享类型块 + 本头独有名字）
 'istream' = @{ zh = '输入流'; src = 'istream';
   reason = '铁律③：basic_istream 身份参与语义；<istream> 的正文是成员函数（别名轨道拿不到中文成员名，见 §六第 18 条）。';
