@@ -4700,7 +4700,75 @@ $H = @{
     #     它的中文名在 extra 里直接别名到 std 那一个（铁律④）。
     pub     = '变体'
     types   = [ordered]@{ 'variant' = '变体实现'; 'monostate' = '单态'
-                          'variant_size' = '变体尺寸'; 'variant_alternative' = '变体替体' }
+                          'variant_size' = '变体尺寸'; 'variant_alternative' = '变体替体' ;
+                          '_As_variant' = '_作变体';
+                          '_Tagged' = '_带标记';
+                          '_Visit_strategy' = '_访问策略';
+                          '_Meta_apply' = '_元_应用';
+                          '_Meta_apply_' = '_元_应用_';
+                          '_Meta_as_integer_sequence' = '_元_作整数序列';
+                          '_Meta_as_integer_sequence_' = '_元_作整数序列_';
+                          '_Meta_as_list' = '_元_作列表';
+                          '_Meta_as_list_' = '_元_作列表_';
+                          '_Meta_at_' = '_元_取位_';
+                          '_Meta_at_c' = '_元_取位常量';
+                          '_Meta_at_impl' = '_元_取位实现';
+                          '_Meta_bind_back' = '_元_后绑定';
+                          '_Meta_cartesian_product' = '_元_笛卡尔积';
+                          '_Meta_cartesian_product_' = '_元_笛卡尔积_';
+                          '_Meta_concat' = '_元_拼接';
+                          '_Meta_concat_' = '_元_拼接_';
+                          '_Meta_front' = '_元_取首';
+                          '_Meta_front_' = '_元_取首_';
+                          '_Meta_invoke' = '_元_调用';
+                          '_Meta_join' = '_元_连接';
+                          '_Meta_list' = '_元_列表';
+                          '_Meta_pop_front' = '_元_弹首';
+                          '_Meta_pop_front_' = '_元_弹首_';
+                          '_Meta_push_front' = '_元_压首';
+                          '_Meta_push_front_' = '_元_压首_';
+                          '_Meta_quote' = '_元_引用';
+                          '_Meta_quote_helper_' = '_元_引用助手_';
+                          '_Meta_repeat_first_helper' = '_元_重复首助手';
+                          '_Meta_repeat_n_c' = '_元_重复n常量';
+                          '_Meta_repeat_n_c_' = '_元_重复n常量_';
+                          '_Meta_transform' = '_元_变换';
+                          '_Meta_transform_' = '_元_变换_';
+                          '_Variant_assign_visitor' = '_变体_赋值访问器';
+                          '_Variant_base' = '_变体_基';
+                          '_Variant_construct_visitor' = '_变体_构造访问器';
+                          '_Variant_destroy_layer' = '_变体_析构层';
+                          '_Variant_destroy_layer_' = '_变体_析构层_';
+                          '_Variant_dispatch_table' = '_变体_分派表';
+                          '_Variant_dispatcher' = '_变体_分派器';
+                          '_Variant_hash_visitor' = '_变体_散列访问器';
+                          '_Variant_index_t' = '_变体_索引类型';
+                          '_Variant_init_helper' = '_变体_初始化助手';
+                          '_Variant_init_index' = '_变体_初始化索引';
+                          '_Variant_init_overload_set' = '_变体_初始化重载集';
+                          '_Variant_init_overload_set_' = '_变体_初始化重载集_';
+                          '_Variant_init_single_overload' = '_变体_初始化单重载';
+                          '_Variant_init_type' = '_变体_初始化类型';
+                          '_Variant_item' = '_变体_项';
+                          '_Variant_raw_dispatch_table1' = '_变体_裸分派表1';
+                          '_Variant_raw_visit_t' = '_变体_裸访问类型';
+                          '_Variant_raw_visit1' = '_变体_裸访问1';
+                          '_Variant_relop_visitor2' = '_变体_关系访问器2';
+                          '_Variant_storage' = '_变体_存储';
+                          '_Variant_storage_' = '_变体_存储_';
+                          '_Variant_tagged_ref_t' = '_变体_带标记引用类型';
+                          '_Variant_type_resolver' = '_变体_类型解析器';
+                          '_Variant_visit_result_t' = '_变体_访问结果类型';
+                          '_BaseTy' = '_基类型';
+                          '_Dispatch_t' = '_分派类型';
+                          '_Index_t' = '_索引类型';
+                          '_Indexed_value_type' = '_带索引值类型';
+                          '_ListOfIndexLists' = '_索引列表之列表';
+                          '_ListOfIndexVectors' = '_索引向量之列表';
+                          '_Ret' = '_返回';
+                          '_TargetTy' = '_目标类型';
+                          '_Visitor' = '_访问器';
+}
     # §17.27.58 copyFixes：std::hash 的特化必须写在 名域 std 里，而我们的类型在 细节:: —— 单态 在那里
     #   不可见（实测：'使用了未声明的标识符 单态'），所以把特化里的名字【限定】成 细节::单态。
     copyFixes = @( @('hash<单态>', 'hash<细节::单态>') )
@@ -4725,7 +4793,22 @@ $H = @{
                           'holds_alternative' = '持有替体'
                           'variant_npos' = '变体无位置'
                           # 宏名也要汉化（§16.24）：宏不受名域约束，宏体改了名而宏名不改会劫持真头同名宏。
-                          '_STL_VISIT_STAMP' = '_访问戳' }
+                          '_STL_VISIT_STAMP' = '_访问戳' ;
+      '_Destroy' = '_析构';
+      '_Dispatch2' = '_分派2';
+      '_Do_hash' = '_求散列';
+      '_Emplace_from' = '_由之就地构造';
+      '_Emplace_valueless' = '_无值就地构造';
+      '_Eval' = '_求值';
+      '_Get' = '_取';
+      '_Reset' = '_重置';
+      '_Set_index' = '_置索引';
+      '_Storage' = '_存储';
+      '_Variant_raw_visit' = '_变体_裸访问';
+      '_Variant_visit_index1' = '_变体_访问索引1';
+      '_Visit' = '_访问';
+      '_Visit2' = '_访问2';
+}
     data    = [ordered]@{}
     # ⚠ emplace 在 std 里就要求【显式类型实参】（甲.emplace<整数>(7)），通用转发器是纯变参、接不住 -> 改手写。
     deriveExtra = ( @(
@@ -6153,7 +6236,8 @@ if ($rngN) { Write-Host ("  步4d _RANGES 去限定: {0} 处" -f $rngN) }
 }   # end if (-not $isShell) —— 抄原头流水线到此结束（薄壳跳过整段）
 # ---------------------------------------------------------------------------
 # 步 6：派生层（在中文的基础上派生，补回英文原名）
-$cls = ($spec.types.Values | Select-Object -First 1)   # 实现类名
+$cls = ($spec.types.Values | Select-Object -First 1)   # 实现类名（⚠ types 表的【第一个值】—— 新条目一律追加到表尾，插表头会静默改这里，§17.19.41）
+Write-Host ("  派生层基类 {0} / 原类型名 {1}" -f $cls, ($spec.types.Keys | Select-Object -First 1)) -ForegroundColor DarkGray
 $origType = ($spec.types.Keys | Select-Object -First 1) # 原本的类型名（供测试用）
 # 头名与对外类名不一定相同（例：<条件变量> 里只有 condition_variable_any）
 $pub = if ($spec.ContainsKey('pub')) { $spec.pub } else { $spec.zh }
