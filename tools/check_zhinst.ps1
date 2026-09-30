@@ -45,9 +45,29 @@ function Test-ZhName([string] $s) { return ($s -match ('^' + $zhName + '$')) }
 
 # ---------------------------------------------------------------------------
 #  模板实参合成：把 `模板 <类型名 元素, 类型名 分配器 = ...>` 变成 `整数`
-#    · 有默认值的形参不传；类型形参（含包）传 `整数`；非类型形参传 `1`
+#    · 有默认值的形参不传；类型形参**按角色**给见证；非类型形参传 `1`
 #    · 全默认 -> 返回 $null（调用方用裸名字）
 # ---------------------------------------------------------------------------
+#  §17.23 类型形参要**按角色**给见证：一律给 `整数` 会当场炸 ——
+#  实测 `标准::细节::映射实现<整数, 整数, 整数, 整数>` 报
+#  `std::pointer_traits<int> 中没有名为 rebind 的成员`（第四个形参是分配器）。
+function Get-RoleArg([string] $decl, [string[]] $all, [int] $idx) {
+    $nm = ($decl -split '\s+')[-1].TrimEnd('.')
+    if ($nm -match '分配器|分配|allocator|_Al') {
+        #  容器内部件的分配器形参受**静态断言**约束：必须是 `allocator<pair<const Key, Value>>`
+        #  （实测：给 `std::allocator<整数>` 会炸在 `_MISMATCHED_ALLOCATOR_MESSAGE`）。
+        #  判据：它前面有几个类型形参 —— ≥2 个（键/值）就是 pair 型分配器，1 个是元素型分配器。
+        $before = @($all[0..([Math]::Max(0, $idx - 1))] | Where-Object { $_ -match '^类型名' }).Count
+        if ($idx -ge 2 -and $before -ge 2) { return 'std::allocator<std::pair<常量 整数, 整数>>' }
+        return 'std::allocator<整数>'
+    }
+    if ($nm -match '比较|谓词|_Pr$|^_Pr') { return 'std::less<整数>' }
+    if ($nm -match '散列|哈希|_Hasher|_Hash') { return 'std::hash<整数>' }
+    if ($nm -match '键相等|_Keyeq') { return 'std::equal_to<整数>' }
+    if ($nm -match '相等|_Eq') { return 'std::equal_to<整数>' }
+    if ($nm -match '特征|traits|_Traits') { return 'std::char_traits<字符>' }
+    return '整数'
+}
 function Get-TemplateArgs([string] $decl) {
     if (-not $decl) { return $null }
     $m = [regex]::Match($decl, '模板\s*<(?<body>.*)>\s*$')
@@ -60,15 +80,31 @@ function Get-TemplateArgs([string] $decl) {
         if ($ch -eq ',' -and $depth -eq 0) { $parts += $cur; $cur = '' } else { $cur += $ch }
     }
     if ($cur.Trim()) { $parts += $cur }
+    $nd = @()   # 不带默认值的形参（顺序保留）—— 角色判定要看"它前面有几个类型形参"
+    foreach ($p in $parts) { $pp = $p.Trim(); if ($pp -and $pp -notmatch '=') { $nd += $pp } }
     $args = @()
-    foreach ($p in $parts) {
-        $pp = $p.Trim()
-        if ($pp -match '=') { continue }
-        if ($pp -match '^类型名') { $args += '整数' }
+    for ($i = 0; $i -lt $nd.Count; $i++) {
+        #  ⚠ 深拷贝里关键字混用：形参可能写成 `类型名 X`，也可能还是 `class X` / `typename X`
+        #  （实测 `模板 <class _Kty, class _类型, class _Pr, class _分配器>`）—— 两种都要认。
+        if ($nd[$i] -match '^(类型名|class|typename)\b') { $args += (Get-RoleArg $nd[$i] $nd $i) }
         else { $args += '1' }
     }
     if ($args.Count -eq 0) { return $null }
     return ($args -join ', ')
+}
+#  §17.23 内部件的模板头**不一定在本行**，而且深拷贝里的关键字可能还是英文
+#  （实测：`template <class _Kty, class _类型, class _Pr, class _分配器>` 的下一行才是
+#   `class 映射实现 : public _树<…>`）—— 所以从「class/类型 X」这一行**回头看**最近的 `模板 <…>`。
+function Get-ImplArgsFromText([string] $text, [string] $impl) {
+    if (-not $text) { return $null }
+    $cm = [regex]::Match($text, '(?m)^\s*(?:类型|类|结构|class|struct)\s+' + [regex]::Escape($impl) + '\b')
+    if (-not $cm.Success) { return $null }
+    $before = $text.Substring(0, $cm.Index)
+    #  ⚠ 前缀必须写 `.*`（贪婪）才会命中**最近**的那个模板头；否则正则从文件开头第一个
+    #    `template <` 一路吞到类声明前（实测把 `_映射特征` 的类体整段当成模板头）。
+    $hm = [regex]::Match($before, '(?s).*(?:模板|template)\s*<(.*?)>\s*$')
+    if (-not $hm.Success) { return $null }
+    return (Get-TemplateArgs ('模板 <' + $hm.Groups[1].Value + '>'))
 }
 
 # ---------------------------------------------------------------------------
@@ -161,7 +197,7 @@ function Get-ReasonClass([string] $r) {
     if ($r -match '^调用探针表达不出') { return '模板函数（显式实参也编不过）' }
     if ($r -match '^变参转发器') { return '变参转发器（一元/二元都编不过）' }
     if ($r -match '重载') { return '重载函数（需具体实参）' }
-    if ($r -match '模板合成实参不适用') { return '模板类型/别名（合成实参不适用）' }
+    if ($r -match '合成实参不适用') { return '模板类型/别名/内部件（合成实参不适用）' }
     if ($r -match '-无探针') { return '无探针（见证表表达不出）' }
     return '其它'
 }
@@ -169,11 +205,24 @@ function Get-ReasonClass([string] $r) {
 #  探针文件名里带 `[Math]::Abs($n.Name.GetHashCode())`，而 .NET 的字符串 hash **每个进程随机化** ——
 #  报错文本一旦原样进账，两遍就是两份不同的账。所以进账前只留**编译器的话**，去掉
 #  `盘符:\…\build\_zhinst\p_xxx_n123.cpp:12:9:` 这段"我们自己的路径 + 随机 hash"。
-function Get-ErrBrief([string] $e) {
-    if (-not $e) { return '' }
+#  确定性短 id（FNV-1a）：`.NET` 的 `String.GetHashCode` **每个进程随机化**，
+#  一旦它进了探针变量名/文件名，报错文本就会带上随机数 -> 台账不可复算（§17.22.1 实测）。
+function Get-StableId([string] $s) {
+    $h = [int64]2166136261
+    foreach ($c in $s.ToCharArray()) {
+        $h = $h -bxor [int64][int][char]$c
+        $h = ($h * 16777619) % 4294967296
+    }
+    return [int]($h % 2000000000)
+}
+function Get-ErrBrief([string] $e) {    if (-not $e) { return '' }
     $m = [regex]::Match($e, 'error:\s*(.*)$')
     $t = $(if ($m.Success) { $m.Groups[1].Value } else { $e })
     $t = $t -replace '[A-Za-z]:\\[^:]*\\build\\_zhinst\\[^:]*', '<探针>'
+    #  编译器会把我们的**探针变量名**原样写进消息（`针988430044_2`）—— 这是另一条随机来源。
+    #  变量名现在已是确定性计数器，这里再做一道保险：把任何长数字串归一化。
+    $t = $t -replace '(?<=\D)\d{6,}(?=\D|$)', '#'
+    $t = $t -replace '\b(针f?|探B?|壹|组|出|丙|引|范)\d+(?:_\d+)?', '$1#'
     return $t.Trim()
 }
 function Get-FixPath([string] $reason, [string] $kind) {
@@ -182,7 +231,7 @@ function Get-FixPath([string] $reason, [string] $kind) {
     if ($reason -match '^调用探针|^模板函数') { return '把该形参的见证加进 `Get-Witness`，或给条目补一条真调用用例' }
     if ($reason -match '^变参转发器') { return '补一条带**真实参类型**的调用用例（打印/格式化类要格式串，整数哑实参天然不匹配）' }
     if ($reason -match '重载') { return '补一条带具体实参的调用用例（取地址有歧义 -> 直接调用）' }
-    if ($reason -match '模板合成实参不适用') { return '给条目补一条真用一次的用例；这正是"条目用例"该干的事（见台账"用例覆盖"列）' }
+    if ($reason -match '合成实参不适用') { return '给条目补一条真用一次的用例；这正是"条目用例"该干的事（见台账"用例覆盖"列）' }
     if ($reason -match '-无探针') { return '扩见证表（`Get-Witness` / `Get-TemplateArgs`），或补一条真用例' }
     return '补一条真用例，或扩见证表（判责规则见 tools\check_zhinst.ps1 顶部）'
 }
@@ -191,6 +240,20 @@ function Get-WitnessIncludes([string[]] $kinds) {
     if ($kinds -contains '引') { $inc += '随机' }
     if ($kinds -contains '范') { $inc += '向量' }
     return $inc
+}
+#  §17.23 宿主限定的成员探针：`标准::映射<整数, 整数>::尺寸类型* 针 = 空指针;`
+#  深轨道的这些名字本来就活在类体里（`类型 映射 : 公开 细节::映射实现<键,映射值,比较,分配器>`），
+#  顶层 `标准::尺寸类型` 当然找不到 —— §17.22 之前这一整批只有一句"需宿主类型"，从没真试过宿主形态。
+#  ⚠ 形参别叫 `$host` —— `$Host` 是 PowerShell 的**只读自动变量**（host UI 对象），
+#    同名形参一调用就报「无法覆盖变量 host，因为它是只读变量或常量」（实测踩过）。
+function Get-NestedLine([string] $hostExpr, $n, [int] $id) {
+    switch ([string]$n.Inner) {
+        '类型' { return ("    {0}::{1}* 针{2} = 空指针; (空型)针{2};" -f $hostExpr, $n.Name, $id) }
+        '模板别名' { $a = Get-TemplateArgs $n.Template; if ($a) { return ("    {0}::{1}<{2}>* 针{3} = 空指针; (空型)针{3};" -f $hostExpr, $n.Name, $a, $id) } }
+        '常量' { return ("    (空型){0}::{1};" -f $hostExpr, $n.Name) }
+        '函数' { return ("    自动 针f{0} = &{1}::{2}; (空型)针f{0};" -f $id, $hostExpr, $n.Name) }
+    }
+    return $null
 }
 function Get-TypeArgWitness([string] $body, [int] $id) {
     #  模板形参 -> 显式模板实参；有一个见证不出来就返回 $null（B 级探针不做）
@@ -322,21 +385,39 @@ foreach ($p in $dtab.PSObject.Properties) {
     $names = @()
     #  产品名只有当它在产品正文里**确实被声明为类型**时才当类型探针 —— 否则会误报
     #  （`数值算法`/`版本`/`字符转换` 这类头是"只有函数/只有宏"的，`标准::数值算法` 不是类型）。
+    $declaresType = $false; $pubName = $zh      # 每轮显式复位（PowerShell 的 if 不建作用域，不复位会串到下一个产物）
+    $prodFile = Join-Path $out $zh
+    $ptxt = ''
+    if (Test-Path $prodFile) { $ptxt = [System.IO.File]::ReadAllText($prodFile) }
     if (Test-ZhName $zh) {
         $pubName = $zh
         if (($p.Value.PSObject.Properties.Name -contains 'pub') -and $p.Value.pub) { $pubName = [string]$p.Value.pub }
-        $prodFile = Join-Path $out $zh
-        $declaresType = $false
-        if (Test-Path $prodFile) {
-            $ptxt = [System.IO.File]::ReadAllText($prodFile)
+        if ($ptxt) {
             $declaresType = ($ptxt -match ('(?m)^\s*(?:类型|使用)\s+' + [regex]::Escape($pubName) + '\b'))
         }
         if ($declaresType) { $names += [pscustomobject]@{ Name = $pubName; Kind = $(if ($tp) { '模板类型' } else { '类型' }); Template = $tp } }
     }
+    #  §17.23 宿主表达式：嵌套成员探针必须写成 `标准::宿主<实参>::名`。
+    #    · 公开宿主 = `标准::<pub>`；有模板形参就带**合成实参**（`Get-TemplateArgs` 那套）
+    #    · 内部件宿主 = `标准::细节::<X>`（`types` 里的内部实现类）
+    $hostPub = ''
+    if ($declaresType) {
+        $ha = Get-TemplateArgs $tp
+        $hostPub = $(if ($ha) { "标准::$pubName<$ha>" } else { "标准::$pubName" })
+    }
+    $hostImps = @()
+    $implArgs = @{}   # 内部件名 -> 它自己的合成实参（从产物正文的 `模板 <…> 类型 X` 精确取）
     if (($p.Value.PSObject.Properties.Name -contains 'types') -and $p.Value.types) {
         foreach ($k in $p.Value.types.PSObject.Properties) {
             $v = [string]$k.Value
-            if ((Test-ZhName $v) -and -not $v.StartsWith('_')) { $names += [pscustomobject]@{ Name = $v; Kind = '内部实现类'; Template = '' } }
+            if ((Test-ZhName $v) -and -not $v.StartsWith('_')) {
+                $names += [pscustomobject]@{ Name = $v; Kind = '内部实现类'; Template = '' }
+                #  内部件多半是**类模板**：`标准::细节::映射实现` 不是类型，得带实参（§17.23）。
+                #  实参**从产物正文里精确取**（`模板 <…> 类型 映射实现 : …`），不靠猜个数：
+                $ia = Get-ImplArgsFromText $ptxt $v
+                $hostImps += $(if ($ia) { "标准::细节::$v<$ia>" } else { "标准::细节::$v" })
+                $implArgs[$v] = $ia
+            }
         }
     }
     #  手写层（extra/deriveExtra/prologue）里提的名字：既有**顶层自由函数**（复数/C数学 的
@@ -353,7 +434,7 @@ foreach ($p in $dtab.PSObject.Properties) {
     }
     $tests = ''
     if (($p.Value.PSObject.Properties.Name -contains 'tests') -and $p.Value.tests) { foreach ($tc in $p.Value.tests) { $tests += ([string]$tc[1]) + "`n" } }
-    $products += [pscustomobject]@{ Track = '深度'; Product = $zh; TParam = $tp; Names = @($names | Sort-Object Name -Unique); Tests = $tests }
+    $products += [pscustomobject]@{ Track = '深度'; Product = $zh; TParam = $tp; Names = @($names | Sort-Object Name -Unique); Tests = $tests; HostPub = $hostPub; HostImps = @($hostImps); ImplArgs = $implArgs }
 }
 
 # ③ C 轨道（表在源码里）
@@ -386,10 +467,12 @@ New-Item -ItemType Directory -Force $work | Out-Null
 $rows = @(); $failAll = @(); $uncoveredAll = @()
 foreach ($p in $products) {
     $items = @(); $probed = @(); $byTest = @(); $uncovered = @{}; $tplItems = @()
+    $nid = 0   # §17.22.1 探针变量名用**有序计数器**，不用 `GetHashCode`（每进程随机 -> 台账不可复算）
     foreach ($n in @($p.Names | Sort-Object Name -Unique)) {
         $used = $false
         if ($p.Tests -and $p.Tests -match [regex]::Escape($n.Name)) { $byTest += $n.Name; $used = $true }
-        $id = [Math]::Abs($n.Name.GetHashCode())
+        $nid++
+        $id = $nid
         #  §17.21 模板函数走「合成实参真调用」探针（自成一批，见下面的 tpl 批）
         #  §17.22 手写层里的模板函数也走同一条路（它是"名字自己是什么"的一类）
         if ($n.Raw -and ($n.Kind -eq '模板函数' -or $n.Kind -eq '手写层探针')) {
@@ -400,10 +483,20 @@ foreach ($p in $products) {
                 $tplItems += $tpn; $probed += $n.Name; $used = $true; continue
             }
         }
-        $line = $null
+        $line = $null; $line2 = $null; $line3 = $null
         switch ($n.Kind) {
             '类型' { $line = ("    {0}* 针{1} = 空指针; (空型)针{1};" -f ('标准::' + $n.Name), $id) }
-            '内部实现类' { $line = ("    标准::细节::{0}* 针{1} = 空指针; (空型)针{1};" -f $n.Name, $id) }
+            #  §17.23 内部件多半是**类模板**：`标准::细节::映射实现` 不是类型、`映射实现<整数,整数,整数,整数>` 才是。
+            #  两条候选都出（裸名 + 带实参），任意一条编过即算能实例化。
+            '内部实现类' {
+                $line = ("    标准::细节::{0}* 针{1} = 空指针; (空型)针{1};" -f $n.Name, $id)
+                $ia = ''
+                if ($p.ImplArgs -and $p.ImplArgs.ContainsKey($n.Name)) { $ia = [string]$p.ImplArgs[$n.Name] }
+                if ($ia) { $line2 = ("    标准::细节::{0}<{1}>* 针{2} = 空指针; (空型)针{2};" -f $n.Name, $ia, $id) }
+                #  ⚠ `types` 里**混着成员 typedef**（`尺寸类型`/`插入返回类型`/`常量迭代器`/`常量引用`）——
+                #    它们不是 `细节::` 下的类，而是公开宿主的成员；再加一条宿主限定候选（§17.23）。
+                if ($p.HostPub) { $line3 = ("    {0}::{1}* 针{2} = 空指针; (空型)针{2};" -f $p.HostPub, $n.Name, $id) }
+            }
             '模板类型' { $a = Get-TemplateArgs $n.Template; if ($a) { $line = ("    {0}<{1}>* 针{2} = 空指针; (空型)针{2};" -f ('标准::' + $n.Name), $a, $id) } }
             '模板别名' { $a = Get-TemplateArgs $n.Template; if ($a) { $line = ("    {0}<{1}>* 针{2} = 空指针; (空型)针{2};" -f ('标准::' + $n.Name), $a, $id) } }
             '常量' { $line = ("    (空型)标准::{0};" -f $n.Name) }
@@ -416,6 +509,9 @@ foreach ($p in $products) {
                 $line = ("    (空型)标准::{0}{1};" -f $n.Name, $arg)
             }
             #  §17.22 手写层名：先按它**自己是什么**在顶层试一次；试不过再软记账（嵌套成员要宿主）
+            #  §17.23 同时出一条**宿主限定**候选：`标准::映射<整数, 整数>::尺寸类型` ——
+            #    深轨道的这些名字本来就活在类体里（`类型 映射 : 公开 细节::映射实现<…>`），
+            #    顶层当然找不到；以前这一整批只有一句"需宿主"，从没真试过宿主形态。
             '手写层探针' {
                 switch ($n.Inner) {
                     '类型' { $line = ("    标准::{0}* 针{1} = 空指针; (空型)针{1};" -f $n.Name, $id) }
@@ -423,6 +519,7 @@ foreach ($p in $products) {
                     '常量' { $line = ("    (空型)标准::{0};" -f $n.Name) }
                     '函数' { $line = ("    自动 针f{0} = &标准::{1}; (空型)针f{0};" -f $id, $n.Name) }
                 }
+                if ($p.HostPub) { $line2 = (Get-NestedLine $p.HostPub $n $id) }
             }
             #  §17.22 别名 `函数` 形与 C 轨道的**变参转发器**：形状是固定的
             #  （`模板 <类型名... 参数> 声明类型(自动) 名(参数&&... 值) { 返回 std::英文(值...); }`），
@@ -438,14 +535,25 @@ foreach ($p in $products) {
                 $probed += $n.Name; $used = $true
             }
         }
-        if ($line) { $items += [pscustomobject]@{ Line = $line; Name = $n.Name; Kind = $n.Kind }; $probed += $n.Name; $used = $true }
-        elseif (-not $used) {
-            $uncovered[$n.Name] = $(if ($n.Kind -eq '手写层探针') { '手写层·' + $n.Inner + '：顶层试不过（嵌套成员/需宿主实参）' }
+        #  ⚠ 同一名字可能有多条候选（裸名 / 带实参 / 宿主限定），它们会**同处一个 TU** ——
+        #    变量名必须逐条区分，否则 `针<id>` 重定义（实测：6 个产物因此编不过）。
+        $ci = 0
+        foreach ($ln in @($line, $line2, $line3)) {
+            if ($ln) {
+                $ci++
+                $lnx = $(if ($ci -eq 1) { $ln } else { ([string]$ln).Replace([string]$id, "$id`_$ci") })
+                $items += [pscustomobject]@{ Line = $lnx; Name = $n.Name; Kind = $n.Kind }
+                $probed += $n.Name; $used = $true
+            }
+        }
+        if (-not $used) {
+            $uncovered[$n.Name] = $(if ($n.Kind -eq '手写层探针') { '手写层·' + $n.Inner + '：顶层' + $(if ($p.HostPub) { '与宿主限定（`' + $p.HostPub + '::' + $n.Name + '`）' } else { '' }) + '都试不过' }
                 elseif ($n.Kind -eq '概念') { '概念：模板实参合成不出来（形参有默认值依赖等）' }
                 else { $n.Kind + '-无探针' })
         }
     }
     $compiled = $null; $ran = $null
+    if ($env:ZHINST_DUMP) { foreach ($it in @($items) + @($tplItems)) { Write-Host ("  [DUMP {0} | {1}] {2}" -f $p.Product, $it.Name, (([string]$it.Line) -replace "`n", ' ')) } }
     $safe = ($p.Product -replace '[\\/:*?"<>|]', '_')
     #  §17.20 阶段(5)：**C++23 条件壳**的分支要用 C++23 编（产品里有 `#如果 _HAS_CXX23`
     #  就说明它的名字只在 C++23 下存在）—— 这正是"壳的分支只有人工探针"那条欠账的机器化。
@@ -476,11 +584,11 @@ foreach ($p in $products) {
             $g = @($queue[0]); $queue.RemoveAt(0)
             if ($g.Count -eq 0) { continue }
             if ($g.Count -eq 1) {
-                $r = Invoke-Probe @($g[0].Line) ('_' + $tag + [Math]::Abs($g[0].Name.GetHashCode()))
+                $r = Invoke-Probe @($g[0].Line) ('_' + $tag + (Get-StableId $g[0].Name))
                 if ($r.CC -ne 0) { $bad += $g[0] }
                 continue
             }
-            $r = Invoke-Probe @($g | ForEach-Object { $_.Line }) ('_' + $tag + 'G' + [Math]::Abs($g[0].Name.GetHashCode()))
+            $r = Invoke-Probe @($g | ForEach-Object { $_.Line }) ('_' + $tag + 'G' + (Get-StableId $g[0].Name))
             if ($r.CC -ne 0) {
                 $h = [int][Math]::Floor($g.Count / 2)
                 [void]$queue.Add(@($g[0..($h - 1)]))
@@ -501,10 +609,10 @@ foreach ($p in $products) {
             #    · 类型 / 常量（不需要实参）：编不过就是**库/表自己的问题** -> 真失败。
             $badLines = @(); $softNames = @{}; $okNames = @{}
             foreach ($it in $items) {
-                $ri = Invoke-Probe @($it.Line) ('_n' + [Math]::Abs($it.Name.GetHashCode()))
+                $ri = Invoke-Probe @($it.Line) ('_n' + (Get-StableId $it.Name))
                 if ($ri.CC -eq 0) { $okNames[$it.Name] = $true; continue }
                 $soft = $false; $why = ''
-                if ($it.Kind -in @('模板类型', '模板别名', '内部实现类')) { $soft = $true; $why = '探针不可表达（模板合成实参不适用）' }
+                if ($it.Kind -in @('模板类型', '模板别名', '内部实现类')) { $soft = $true; $why = '探针不可表达（合成实参不适用）：' + (Get-ErrBrief $ri.Err) }
                 elseif ($it.Kind -eq '函数' -and ($ri.Err -match 'overloaded|重载')) { $soft = $true; $why = '探针不可表达（重载函数：需具体实参）' }
                 #  §17.22：手写层名与概念都是"我们替它合成上下文"，编不过**不判库失败**
                 elseif ($it.Kind -eq '手写层探针') { $soft = $true; $why = '手写层·' + $it.Inner + '：顶层试不过（嵌套成员/需宿主实参）' }
@@ -542,7 +650,7 @@ foreach ($p in $products) {
         $rT = Invoke-Probe @($tplItems | ForEach-Object { $_.Line }) '_t'
         if ($rT.CC -ne 0) {
             foreach ($it in @(Find-BadItems $tplItems 't')) {
-                $id = [Math]::Abs($it.Name.GetHashCode())
+                $id = Get-StableId $it.Name
                 $ri = Invoke-Probe @($it.Line) ('_t' + $id)
                 if ($ri.CC -eq 0) { continue }   # 单独编过：整批失败是别的名字拖累的
                 $why = "调用探针编不过：$(Get-ErrBrief $ri.Err)"
@@ -637,6 +745,7 @@ $text = ($lines -join "`r`n") + "`r`n"
 if ($Check) {
     if (-not (Test-Path $ledger)) { Write-Host '❌ 实例化台账不存在：先跑 tools\check_zhinst.ps1（不带 -Check）' -ForegroundColor Red; exit 1 }
     if ([System.IO.File]::ReadAllText($ledger) -ne $text) {
+        if ($env:ZHINST_DIFF) { [System.IO.File]::WriteAllText((Join-Path $work 'ledger_new.md'), $text, $utf8) }
         Write-Host '❌ 实例化台账【已过期】（产物或名字变了，但台账没重生成）' -ForegroundColor Red
         Write-Host '   修法：pwsh -NoProfile -File tools\check_zhinst.ps1  然后一起提交。' -ForegroundColor Yellow
         exit 1
