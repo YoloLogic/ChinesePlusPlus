@@ -21,7 +21,8 @@ param([switch] $Check, [switch] $Quiet, [switch] $SelfTest)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
 $docs = @('README.md', 'docs\README.md', 'docs\使用说明.md', 'docs\汉字第一公民-路线图.md',
-          'third_party\README.md', 'docs\宣传\介绍-面向投资者与合作方.md', 'docs\宣传\介绍-面向非技术读者.md')
+          'third_party\README.md', 'docs\宣传\介绍-面向投资者与合作方.md', 'docs\宣传\介绍-面向非技术读者.md',
+          'packaging\常见问题.md', 'packaging\中文对照表.md')
 
 function Get-LedgerNumbers {
     $cov = [System.IO.File]::ReadAllText((Join-Path $root 'docs\标准库汉化\头文件覆盖台账.md'))
