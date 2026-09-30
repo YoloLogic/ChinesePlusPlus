@@ -412,11 +412,14 @@ $hb = $LASTEXITCODE
 #  ⚠ 调用必须走 -Command：`pwsh -File` 会把逗号列表当成**一个字符串**传（老坑），
 #    脚本会去找名为 "cJSON,pugixml" 的项目然后 SKIP。
 #  可见化：脚本自己会打印每个项目的 PASS/SAME/FAIL 与 cases/pass/same/fail 汇总。
+#  §17.19.51（第 117 轮）把 **fmt** 也加进来：它是模板最重的真实 C++ 项目，实测
+#    ours configure=0 build=0（完全编过）、21 个测试 19 过 2 失败，与原生**逐项相同**（SAME）——
+#    这是「随便拿一个开源项目也要照样编得过」目前最强的一条机器证据。
 #  嫌慢时可 `-SkipThirdParty`（默认必跑：用户的护栏是"随便拿一个开源项目也要照样编得过"）。
 # ---------------------------------------------------------------------------
 if (-not $SkipThirdParty) {
     Write-Host "=== 第三方开源项目守卫（§17.19.48：我们的编译器 vs 原生）===" -ForegroundColor Cyan
-    & pwsh -NoProfile -Command "& '$root\tools\verify_third_party.ps1' -Projects pugixml,cJSON,lz4 -Variants static"
+    & pwsh -NoProfile -Command "& '$root\tools\verify_third_party.ps1' -Projects pugixml,cJSON,lz4,fmt -Variants static"
     $tp = $LASTEXITCODE
     if ($tp -ne 0) {
         Write-Host "  ⚠ 若报 `program not executable`/configure 失败：先查发行工具链是否完整" -ForegroundColor Yellow
