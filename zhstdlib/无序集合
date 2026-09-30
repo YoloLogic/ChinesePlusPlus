@@ -311,11 +311,11 @@ public:
     }
 
     _NODISCARD 散列器 散列函数() const {
-        return this->_Traitsobj._Mypair._取第一();
+        return this->_特征对象._Mypair._取第一();
     }
 
     _NODISCARD 键相等器 取键相等器() const {
-        return this->_Traitsobj._Mypair._Myval2._取第一();
+        return this->_特征对象._Mypair._Myval2._取第一();
     }
 
     using _我的基类::_非检查开始;
@@ -654,11 +654,11 @@ public:
     }
 
     _NODISCARD 散列器 散列函数() const {
-        return this->_Traitsobj._Mypair._取第一();
+        return this->_特征对象._Mypair._取第一();
     }
 
     _NODISCARD 键相等器 取键相等器() const {
-        return this->_Traitsobj._Mypair._Myval2._取第一();
+        return this->_特征对象._Mypair._Myval2._取第一();
     }
 
     using _我的基类::_非检查开始;
@@ -836,8 +836,8 @@ _STL_RESTORE_CLANG_WARNINGS
     模板 <类型名... 参数> 声明类型(自动) 包含(参数&&... 值) 常量 { 返回 基类::contains(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 开始(参数&&... 值) { 返回 基类::开始(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 结束(参数&&... 值) { 返回 基类::结束(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 声明类型(自动) 桶数(参数&&... 值) 常量 { 返回 基类::bucket_count(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 声明类型(自动) 负载因子(参数&&... 值) 常量 { 返回 基类::load_factor(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 桶数(参数&&... 值) 常量 { 返回 基类::桶数(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 负载因子(参数&&... 值) 常量 { 返回 基类::负载因子(static_cast<参数&&>(值)...); }
 };
 }
 
@@ -886,8 +886,8 @@ _STL_RESTORE_CLANG_WARNINGS
     模板 <类型名... 参数> 声明类型(自动) get_allocator(参数&&... 值) 常量 { 返回 基类::取分配器(static_cast<参数&&>(值)...); }
 
     // 主类在 deriveExtra 里有 桶数/负载因子，这个类也得有（空测掩盖至今）
-    模板 <类型名... 参数> 声明类型(自动) 桶数(参数&&... 值) 常量 { 返回 基类::bucket_count(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 声明类型(自动) 负载因子(参数&&... 值) 常量 { 返回 基类::load_factor(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 桶数(参数&&... 值) 常量 { 返回 基类::桶数(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 负载因子(参数&&... 值) 常量 { 返回 基类::负载因子(static_cast<参数&&>(值)...); }
     // ⚠ §16.51 修：下面这几行的基类名以前写成英文 size/empty/clear/begin/end ——
     //   切到我们自己的 哈希内部件 之后，那些名字在基类里【已经是汉语】了。
     //   之所以一直没报错，是因为转发器是模板、没人实例化就不会查基类名字

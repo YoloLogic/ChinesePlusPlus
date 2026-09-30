@@ -53,15 +53,15 @@ public:
 
         _NODISCARD bool operator()(const value_type& _Left, const value_type& _Right) const {
             // test if _Left precedes _Right by comparing just keys
-            return comp(_Left.first, _Right.first);
+            return 比较器(_Left.first, _Right.first);
         }
 
     protected:
         friend _树<_映射特征>;
 
-        值比较(键比较器 _Pred) : comp(_Pred) {}
+        值比较(键比较器 _Pred) : 比较器(_Pred) {}
 
-        键比较器 comp; // the comparator predicate for keys
+        键比较器 比较器; // the comparator predicate for keys
     };
 
     template <class _Ty1, class _Ty2>

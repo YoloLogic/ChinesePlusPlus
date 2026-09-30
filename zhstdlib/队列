@@ -253,34 +253,34 @@ public:
     explicit 优先队列实现(const _Pr& _Pred)
         noexcept(is_nothrow_default_constructible_v<_Container>
                  && is_nothrow_copy_constructible_v<值比较>) // strengthened
-        : c(), comp(_Pred) {}
+        : c(), 比较器(_Pred) {}
 
-    优先队列实现(const _Pr& _Pred, const _Container& _Cont) : c(_Cont), comp(_Pred) {
+    优先队列实现(const _Pr& _Pred, const _Container& _Cont) : c(_Cont), 比较器(_Pred) {
         _造堆();
     }
 
-    优先队列实现(const _Pr& _Pred, _Container&& _Cont) : c(_STD move(_Cont)), comp(_Pred) {
+    优先队列实现(const _Pr& _Pred, _Container&& _Cont) : c(_STD move(_Cont)), 比较器(_Pred) {
         _造堆();
     }
 
     template <class _InIt, enable_if_t<_Is_iterator_v<_InIt>, int> = 0>
-    优先队列实现(_InIt _首个, _InIt _最后, const _Pr& _Pred, const _Container& _Cont) : c(_Cont), comp(_Pred) {
+    优先队列实现(_InIt _首个, _InIt _最后, const _Pr& _Pred, const _Container& _Cont) : c(_Cont), 比较器(_Pred) {
         c.insert(c.end(), _首个, _最后);
         _造堆();
     }
 
     template <class _InIt, enable_if_t<_Is_iterator_v<_InIt>, int> = 0>
-    优先队列实现(_InIt _首个, _InIt _最后) : c(_首个, _最后), comp() {
+    优先队列实现(_InIt _首个, _InIt _最后) : c(_首个, _最后), 比较器() {
         _造堆();
     }
 
     template <class _InIt, enable_if_t<_Is_iterator_v<_InIt>, int> = 0>
-    优先队列实现(_InIt _首个, _InIt _最后, const _Pr& _Pred) : c(_首个, _最后), comp(_Pred) {
+    优先队列实现(_InIt _首个, _InIt _最后, const _Pr& _Pred) : c(_首个, _最后), 比较器(_Pred) {
         _造堆();
     }
 
     template <class _InIt, enable_if_t<_Is_iterator_v<_InIt>, int> = 0>
-    优先队列实现(_InIt _首个, _InIt _最后, const _Pr& _Pred, _Container&& _Cont) : c(_STD move(_Cont)), comp(_Pred) {
+    优先队列实现(_InIt _首个, _InIt _最后, const _Pr& _Pred, _Container&& _Cont) : c(_STD move(_Cont)), 比较器(_Pred) {
         c.insert(c.end(), _首个, _最后);
         _造堆();
     }
@@ -288,7 +288,7 @@ public:
 #if _HAS_CXX23
     template <_Container_compatible_range<_类型> _Rng>
     优先队列实现(from_range_t, _Rng&& _Range, const _Pr& _Pred = _Pr())
-        : c(_RANGES to<_Container>(_STD forward<_Rng>(_Range))), comp(_Pred) {
+        : c(_RANGES to<_Container>(_STD forward<_Rng>(_Range))), 比较器(_Pred) {
         _造堆();
     }
 #endif // _HAS_CXX23
@@ -297,50 +297,50 @@ public:
     explicit 优先队列实现(const _分配器& _Al)
         noexcept(is_nothrow_constructible_v<_Container, const _分配器&>
                  && is_nothrow_default_constructible_v<值比较>) // strengthened
-        : c(_Al), comp() {}
+        : c(_Al), 比较器() {}
 
     template <class _分配器, enable_if_t<uses_allocator_v<_Container, _分配器>, int> = 0>
     优先队列实现(const _Pr& _Pred, const _分配器& _Al)
         noexcept(is_nothrow_constructible_v<_Container, const _分配器&>
                  && is_nothrow_copy_constructible_v<值比较>) // strengthened
-        : c(_Al), comp(_Pred) {}
+        : c(_Al), 比较器(_Pred) {}
 
     template <class _分配器, enable_if_t<uses_allocator_v<_Container, _分配器>, int> = 0>
-    优先队列实现(const _Pr& _Pred, const _Container& _Cont, const _分配器& _Al) : c(_Cont, _Al), comp(_Pred) {
+    优先队列实现(const _Pr& _Pred, const _Container& _Cont, const _分配器& _Al) : c(_Cont, _Al), 比较器(_Pred) {
         _造堆();
     }
 
     template <class _分配器, enable_if_t<uses_allocator_v<_Container, _分配器>, int> = 0>
-    优先队列实现(const _Pr& _Pred, _Container&& _Cont, const _分配器& _Al) : c(_STD move(_Cont), _Al), comp(_Pred) {
+    优先队列实现(const _Pr& _Pred, _Container&& _Cont, const _分配器& _Al) : c(_STD move(_Cont), _Al), 比较器(_Pred) {
         _造堆();
     }
 
     template <class _分配器, enable_if_t<uses_allocator_v<_Container, _分配器>, int> = 0>
-    优先队列实现(const 优先队列实现& _Right, const _分配器& _Al) : c(_Right.c, _Al), comp(_Right.comp) {}
+    优先队列实现(const 优先队列实现& _Right, const _分配器& _Al) : c(_Right.c, _Al), 比较器(_Right.比较器) {}
 
     template <class _分配器, enable_if_t<uses_allocator_v<_Container, _分配器>, int> = 0>
     优先队列实现(优先队列实现&& _Right, const _分配器& _Al)
         noexcept(is_nothrow_constructible_v<_Container, _Container, const _分配器&>
                  && is_nothrow_move_constructible_v<值比较>) // strengthened
-        : c(_STD move(_Right.c), _Al), comp(_STD move(_Right.comp)) {}
+        : c(_STD move(_Right.c), _Al), 比较器(_STD move(_Right.比较器)) {}
 
     template <class _InIt, class _分配器,
         enable_if_t<_Is_iterator_v<_InIt> && uses_allocator_v<_Container, _分配器>, int> = 0>
-    优先队列实现(_InIt _首个, _InIt _最后, const _分配器& _Al) : c(_首个, _最后, _Al), comp() {
+    优先队列实现(_InIt _首个, _InIt _最后, const _分配器& _Al) : c(_首个, _最后, _Al), 比较器() {
         _造堆();
     }
 
     template <class _InIt, class _分配器,
         enable_if_t<_Is_iterator_v<_InIt> && uses_allocator_v<_Container, _分配器>, int> = 0>
     优先队列实现(_InIt _首个, _InIt _最后, const _Pr& _Pred, const _分配器& _Al)
-        : c(_首个, _最后, _Al), comp(_Pred) {
+        : c(_首个, _最后, _Al), 比较器(_Pred) {
         _造堆();
     }
 
     template <class _InIt, class _分配器,
         enable_if_t<_Is_iterator_v<_InIt> && uses_allocator_v<_Container, _分配器>, int> = 0>
     优先队列实现(_InIt _首个, _InIt _最后, const _Pr& _Pred, const _Container& _Cont, const _分配器& _Al)
-        : c(_Cont, _Al), comp(_Pred) {
+        : c(_Cont, _Al), 比较器(_Pred) {
         c.insert(c.end(), _首个, _最后);
         _造堆();
     }
@@ -348,7 +348,7 @@ public:
     template <class _InIt, class _分配器,
         enable_if_t<_Is_iterator_v<_InIt> && uses_allocator_v<_Container, _分配器>, int> = 0>
     优先队列实现(_InIt _首个, _InIt _最后, const _Pr& _Pred, _Container&& _Cont, const _分配器& _Al)
-        : c(_STD move(_Cont), _Al), comp(_Pred) {
+        : c(_STD move(_Cont), _Al), 比较器(_Pred) {
         c.insert(c.end(), _首个, _最后);
         _造堆();
     }
@@ -357,14 +357,14 @@ public:
     template <_Container_compatible_range<_类型> _Rng, class _分配器>
         requires uses_allocator_v<_Container, _分配器>
     优先队列实现(from_range_t, _Rng&& _Range, const _Pr& _Pred, const _分配器& _Al)
-        : c(_RANGES to<_Container>(_STD forward<_Rng>(_Range), _Al)), comp(_Pred) {
+        : c(_RANGES to<_Container>(_STD forward<_Rng>(_Range), _Al)), 比较器(_Pred) {
         _造堆();
     }
 
     template <_Container_compatible_range<_类型> _Rng, class _分配器>
         requires uses_allocator_v<_Container, _分配器>
     优先队列实现(from_range_t, _Rng&& _Range, const _分配器& _Al)
-        : c(_RANGES to<_Container>(_STD forward<_Rng>(_Range), _Al)), comp() {
+        : c(_RANGES to<_Container>(_STD forward<_Rng>(_Range), _Al)), 比较器() {
         _造堆();
     }
 #endif // _HAS_CXX23
@@ -383,12 +383,12 @@ public:
 
     void 压入(const value_type& _Val) {
         c.push_back(_Val);
-        _STD push_heap(c.begin(), c.end(), _Pass_fn(comp));
+        _STD push_heap(c.begin(), c.end(), _Pass_fn(比较器));
     }
 
     void 压入(value_type&& _Val) {
         c.push_back(_STD move(_Val));
-        _STD push_heap(c.begin(), c.end(), _Pass_fn(comp));
+        _STD push_heap(c.begin(), c.end(), _Pass_fn(比较器));
     }
 
 #if _HAS_CXX23
@@ -410,7 +410,7 @@ public:
             auto _Heap_end    = _Begin + _Old_size;
             const auto _End   = _取解包(c.end());
             while (_Heap_end != _End) {
-                _STD push_heap(_Begin, ++_Heap_end, _Pass_fn(comp));
+                _STD push_heap(_Begin, ++_Heap_end, _Pass_fn(比较器));
             }
         }
     }
@@ -419,11 +419,11 @@ public:
     template <class... _值参数类型>
     void 就地构造(_值参数类型&&... _Val) {
         c.emplace_back(_STD forward<_值参数类型>(_Val)...);
-        _STD push_heap(c.begin(), c.end(), _Pass_fn(comp));
+        _STD push_heap(c.begin(), c.end(), _Pass_fn(比较器));
     }
 
     void 弹出() {
-        _STD pop_heap(c.begin(), c.end(), _Pass_fn(comp));
+        _STD pop_heap(c.begin(), c.end(), _Pass_fn(比较器));
         c.pop_back();
     }
 
@@ -431,17 +431,17 @@ public:
         noexcept(_Is_nothrow_swappable<_Container>::value && _Is_nothrow_swappable<_Pr>::value) {
         using _STD swap;
         swap(c, _Right.c); // intentional ADL
-        swap(comp, _Right.comp); // intentional ADL
+        swap(比较器, _Right.比较器); // intentional ADL
     }
 
 private:
     void _造堆() {
-        _STD make_heap(c.begin(), c.end(), _Pass_fn(comp));
+        _STD make_heap(c.begin(), c.end(), _Pass_fn(比较器));
     }
 
 protected:
     _Container c{};
-    _Pr comp{};
+    _Pr 比较器{};
 };
 
 #if _HAS_CXX17

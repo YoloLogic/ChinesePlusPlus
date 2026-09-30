@@ -55,14 +55,14 @@ _NODISCARD inline size_t hash_value(_In_z_ const wchar_t* _Str) noexcept {
 }
 
 template <class _Kty, class _Pr = _STD less<_Kty>>
-class hash_compare { // traits class for hash containers
+class 散列比较 { // traits class for hash containers
 public:
     enum { // parameters for hash table
-        bucket_size = 1 // 0 < bucket_size
+        桶大小 = 1 // 0 < 桶大小
     };
 
-    hash_compare() = default;
-    hash_compare(const _Pr& _Pred) noexcept(_STD is_nothrow_copy_constructible_v<_Pr>) : comp(_Pred) {}
+    散列比较() = default;
+    散列比较(const _Pr& _Pred) noexcept(_STD is_nothrow_copy_constructible_v<_Pr>) : 比较器(_Pred) {}
 
     _NODISCARD size_t operator()(const _Kty& _Keyval) const noexcept(noexcept(hash_value(_Keyval))) {
         long _Quot   = static_cast<long>(hash_value(_Keyval) & LONG_MAX); // TRANSITION, ADL?
@@ -77,18 +77,18 @@ public:
     }
 
     _NODISCARD bool operator()(const _Kty& _Keyval1, const _Kty& _Keyval2) const
-        noexcept(noexcept(comp(_Keyval1, _Keyval2))) {
+        noexcept(noexcept(比较器(_Keyval1, _Keyval2))) {
         // test if _Keyval1 ordered before _Keyval2
-        return comp(_Keyval1, _Keyval2);
+        return 比较器(_Keyval1, _Keyval2);
     }
 
-    _Pr comp{}; // the comparator object
+    _Pr 比较器{}; // the comparator object
 };
 _STDEXT_END
 
 名域 标准 { 名域 细节 {
 使用 名域 std;
-using stdext::hash_compare; // Non-Standard, for legacy source compatibility
+using stdext::散列比较; // Non-Standard, for legacy source compatibility
 } }
 
 #endif // _SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS
@@ -124,7 +124,7 @@ class _无序哈希比较
     : public _无序哈希选择透明性<_Kty, _Hasher, _Keyeq> { // traits class for unordered containers
 public:
     enum { // parameters for hash table
-        bucket_size = 1 // 0 < bucket_size
+        桶大小 = 1 // 0 < 桶大小
     };
 
     _无序哈希比较()
@@ -250,7 +250,7 @@ struct _哈希向量 {
     using size_type         = typename _分配器迭代器特征::size_type;
     using difference_type   = typename _分配器迭代器特征::difference_type;
     using pointer           = typename _分配器迭代器特征::pointer;
-    using _Aliter_scary_val = _Vector_val<conditional_t<_Is_simple_alloc_v<_分配器迭代器>, _简单类型集<value_type>,
+    using _迭代器危险值 = _Vector_val<conditional_t<_Is_simple_alloc_v<_分配器迭代器>, _简单类型集<value_type>,
         _Vec_iter_types<value_type, size_type, difference_type, pointer, typename _分配器迭代器特征::const_pointer>>>;
 
     _哈希向量() : _Mypair(_先零后变参实参{}) {
@@ -275,8 +275,8 @@ struct _哈希向量 {
             static_cast<size_type>(_STD _Max_limit<difference_type>()), _分配器迭代器特征::max_size(_Mypair._取第一()));
     }
 
-    _NODISCARD size_type capacity() const noexcept {
-        // This implementation never has capacity() differ from 尺寸(), but the previous implementation could.
+    _NODISCARD size_type 容量() const noexcept {
+        // This implementation never has 容量() differ from 尺寸(), but the previous implementation could.
         // We need to handle that situation gracefully since we may link to old code (See GH-2774).
         return static_cast<size_type>(_Mypair._Myval2._Myend - _Mypair._Myval2._Myfirst);
     }
@@ -289,7 +289,7 @@ struct _哈希向量 {
         if (_Oldsize < _Cells) {
             const auto _Newvec = _Alvec.allocate(_Cells); // throws
             // nothrow hereafter
-            const auto _Oldcapacity = capacity();
+            const auto _Oldcapacity = 容量();
             if (_Oldcapacity != 0) {
                 _析构范围(_Mypair._Myval2._Myfirst, _Mypair._Myval2._Mylast);
                 _Alvec.deallocate(_Mypair._Myval2._Myfirst, _Oldcapacity);
@@ -308,7 +308,7 @@ struct _哈希向量 {
     void _清理() noexcept {
         if (_Mypair._Myval2._Myfirst != nullptr) {
             _析构范围(_Mypair._Myval2._Myfirst, _Mypair._Myval2._Mylast);
-            _Mypair._取第一().deallocate(_Mypair._Myval2._Myfirst, capacity());
+            _Mypair._取第一().deallocate(_Mypair._Myval2._Myfirst, 容量());
             _Mypair._Myval2._Myfirst = nullptr;
             _Mypair._Myval2._Mylast  = nullptr;
             _Mypair._Myval2._Myend   = nullptr;
@@ -323,7 +323,7 @@ struct _哈希向量 {
 #endif // _ITERATOR_DEBUG_LEVEL != 0
     }
 
-    _压缩对<_分配器迭代器, _Aliter_scary_val> _Mypair;
+    _压缩对<_分配器迭代器, _迭代器危险值> _Mypair;
 };
 
 template <class _特征>
@@ -361,7 +361,7 @@ public:
 
     using _分配器迭代器 = _重绑定分配器类型<_结点分配器, _非检查迭代器>;
 
-    static constexpr size_type _Bucket_size = _键比较器::bucket_size;
+    static constexpr size_type _Bucket_size = _键比较器::桶大小;
     static constexpr size_type _Min_buckets = 8; // must be a positive power of 2
     static constexpr bool _Multi            = _特征::_Multi;
 
@@ -370,7 +370,7 @@ public:
 
 protected:
     _哈希(const _键比较器& _Parg, const 分配器类型& _Al)
-        : _Traitsobj(_Parg), _List(_Al), _Vec(_Al), _Mask(_Min_buckets - 1), _Maxidx(_Min_buckets) {
+        : _特征对象(_Parg), _List(_Al), _Vec(_Al), _Mask(_Min_buckets - 1), _Maxidx(_Min_buckets) {
         // construct 为空 hash table
         _最大桶尺寸() = _Bucket_size;
         _Vec._赋值扩容(_Min_buckets * 2, _List._非检查结束());
@@ -381,7 +381,7 @@ protected:
 
     template <class _Any_alloc>
     _哈希(const _哈希& _Right, const _Any_alloc& _Al)
-        : _Traitsobj(_Right._Traitsobj), _List(static_cast<分配器类型>(_Al)), _Vec(_Al), _Mask(_Right._Mask),
+        : _特征对象(_Right._特征对象), _List(static_cast<分配器类型>(_Al)), _Vec(_Al), _Mask(_Right._Mask),
           _Maxidx(_Right._Maxidx) {
         // construct hash table by copying _Right
         _Vec._赋值扩容(_Right._Vec.尺寸(), _List._非检查结束());
@@ -393,7 +393,7 @@ protected:
     }
 
     _哈希(_哈希&& _Right)
-        : _Traitsobj(_Right._Traitsobj), _List(_移动分配器标记{}, _Right._List._取分配器()),
+        : _特征对象(_Right._特征对象), _List(_移动分配器标记{}, _Right._List._取分配器()),
           _Vec(_STD move(_Right._Vec._Mypair._取第一())) {
         _Vec._赋值扩容(_Min_buckets * 2, _非检查结束());
         _List._交换值(_Right._List);
@@ -416,7 +416,7 @@ private:
     }
 
 public:
-    _哈希(_哈希&& _Right, const 分配器类型& _Al) : _Traitsobj(_Right._Traitsobj), _List(_Al), _Vec(_Al) {
+    _哈希(_哈希&& _Right, const 分配器类型& _Al) : _特征对象(_Right._特征对象), _List(_Al), _Vec(_Al) {
         // construct hash table by moving _Right, allocator
         if constexpr (_结点分配器特征::is_always_equal::value) {
             _移动构造相等分配器(_Right);
@@ -534,7 +534,7 @@ public:
 
                 // assign the hash/compare ops; we have no control over whether this throws, and if it does we want
                 // to do nothing
-                _Traitsobj = _Right._Traitsobj;
+                _特征对象 = _Right._特征对象;
 
                 // nothrow hereafter
 
@@ -573,7 +573,7 @@ public:
         } else if constexpr (_Pocma_val == _传播复制移动赋值取值::_No_propagate_allocators) {
             if (_Al != _Right_al) {
                 _清空守卫 _Guard{this};
-                _Traitsobj     = _Right._Traitsobj;
+                _特征对象     = _Right._特征对象;
                 using _适配器 = _重解释移动迭代器<typename _我的链表::_非检查迭代器, _可变值类型>;
                 _List.template _Assign_cast<_可变值类型&>(
                     _适配器{_Right._List._非检查开始()}, _适配器{_Right._List._非检查结束()});
@@ -585,7 +585,7 @@ public:
         }
 
         清空();
-        _Traitsobj = _Right._Traitsobj;
+        _特征对象 = _Right._特征对象;
         _传播移动赋值两者(_Right);
         _交换值(_Right);
 
@@ -600,7 +600,7 @@ public:
             _检查最大尺寸();
             _链表节点就地构造操作2<_结点分配器> _新节点(_List._取分配器(), _STD forward<_Valtys>(_Vals)...);
             const auto& _Keyval = _特征::_取键(_新节点._Ptr->_Myval);
-            const auto _Hashval = _Traitsobj(_Keyval);
+            const auto _Hashval = _特征对象(_Keyval);
             if (_检查需重哈希1()) {
                 _为1重哈希();
             }
@@ -609,7 +609,7 @@ public:
             return _List._造迭代器(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._释放()));
         } else if constexpr (_就地键提取器::_Extractable) {
             const auto& _Keyval = _就地键提取器::_摘取(_Vals...);
-            const auto _Hashval = _Traitsobj(_Keyval);
+            const auto _Hashval = _特征对象(_Keyval);
             auto _Target        = _查找最后(_Keyval, _Hashval);
             if (_Target._Duplicate) {
                 return {_List._造迭代器(_Target._Duplicate), false};
@@ -628,7 +628,7 @@ public:
         } else {
             _链表节点就地构造操作2<_结点分配器> _新节点(_List._取分配器(), _STD forward<_Valtys>(_Vals)...);
             const auto& _Keyval = _特征::_取键(_新节点._Ptr->_Myval);
-            const auto _Hashval = _Traitsobj(_Keyval);
+            const auto _Hashval = _特征对象(_Keyval);
             auto _Target        = _查找最后(_Keyval, _Hashval);
             if (_Target._Duplicate) {
                 return {_List._造迭代器(_Target._Duplicate), false};
@@ -652,7 +652,7 @@ public:
             _检查最大尺寸();
             _链表节点就地构造操作2<_结点分配器> _新节点(_List._取分配器(), _STD forward<_Valtys>(_Vals)...);
             const auto& _Keyval = _特征::_取键(_新节点._Ptr->_Myval);
-            const auto _Hashval = _Traitsobj(_Keyval);
+            const auto _Hashval = _特征对象(_Keyval);
             if (_检查需重哈希1()) {
                 _为1重哈希();
             }
@@ -661,7 +661,7 @@ public:
             return _List._造迭代器(_在之前插入新节点(_Hashval, _Target._Insert_before, _新节点._释放()));
         } else if constexpr (_就地键提取器::_Extractable) {
             const auto& _Keyval = _就地键提取器::_摘取(_Vals...);
-            const auto _Hashval = _Traitsobj(_Keyval);
+            const auto _Hashval = _特征对象(_Keyval);
             auto _Target        = _按提示查找(_Hint._Ptr, _Keyval, _Hashval);
             if (_Target._Duplicate) {
                 return _List._造迭代器(_Target._Duplicate);
@@ -679,7 +679,7 @@ public:
         } else {
             _链表节点就地构造操作2<_结点分配器> _新节点(_List._取分配器(), _STD forward<_Valtys>(_Vals)...);
             const auto& _Keyval = _特征::_取键(_新节点._Ptr->_Myval);
-            const auto _Hashval = _Traitsobj(_Keyval);
+            const auto _Hashval = _特征对象(_Keyval);
             auto _Target        = _按提示查找(_Hint._Ptr, _Keyval, _Hashval);
             if (_Target._Duplicate) {
                 return _List._造迭代器(_Target._Duplicate);
@@ -699,7 +699,7 @@ protected:
     template <class _Keyty, class... _Mappedty>
     pair<_结点指针, bool> _尝试就地构造(_Keyty&& _Keyval_arg, _Mappedty&&... _Mapval) {
         const auto& _Keyval = _Keyval_arg;
-        const auto _Hashval = _Traitsobj(_Keyval);
+        const auto _Hashval = _特征对象(_Keyval);
         auto _Target        = _查找最后(_Keyval, _Hashval);
         if (_Target._Duplicate) {
             return {_Target._Duplicate, false};
@@ -720,7 +720,7 @@ protected:
     template <class _Keyty, class... _Mappedty>
     _结点指针 _按提示尝试就地构造(const _结点指针 _Hint, _Keyty&& _Keyval_arg, _Mappedty&&... _Mapval) {
         const auto& _Keyval = _Keyval_arg;
-        const auto _Hashval = _Traitsobj(_Keyval);
+        const auto _Hashval = _特征对象(_Keyval);
         auto _Target        = _按提示查找(_Hint, _Keyval, _Hashval);
         if (_Target._Duplicate) {
             return _Target._Duplicate;
@@ -769,7 +769,7 @@ public:
                 _Vec_proxy._Bind(_Alproxy, _STD addressof(_Vec._Mypair._Myval2));
 
                 _清空守卫 _Guard{this};
-                _Traitsobj = _Right._Traitsobj;
+                _特征对象 = _Right._特征对象;
                 _List.template _Assign_cast<_可变值类型&>(
                     _Right._List._非检查开始(), _Right._List._非检查结束());
                 _用失效向量重插();
@@ -780,7 +780,7 @@ public:
         }
 
         _清空守卫 _Guard{this};
-        _Traitsobj = _Right._Traitsobj;
+        _特征对象 = _Right._特征对象;
         _传播复制赋值两者(_Right);
         _List.template _Assign_cast<_可变值类型&>(
             _Right._List._非检查开始(), _Right._List._非检查结束());
@@ -849,20 +849,20 @@ public:
     using 局部迭代器       = iterator;
     using 常量局部迭代器 = const_iterator;
 
-    _NODISCARD size_type bucket_count() const noexcept {
+    _NODISCARD size_type 桶数() const noexcept {
         return _Maxidx;
     }
 
-    _NODISCARD size_type max_bucket_count() const noexcept {
+    _NODISCARD size_type 最大桶数() const noexcept {
         return _Vec.max_size() >> 1;
     }
 
-    _NODISCARD size_type bucket(const 键类型& _Keyval) const
+    _NODISCARD size_type 桶(const 键类型& _Keyval) const
         noexcept(_Nothrow_hash<_特征, 键类型>) /* strengthened */ {
-        return _Traitsobj(_Keyval) & _Mask;
+        return _特征对象(_Keyval) & _Mask;
     }
 
-    _NODISCARD size_type bucket_size(size_type _Bucket) const noexcept /* strengthened */ {
+    _NODISCARD size_type 桶大小(size_type _Bucket) const noexcept /* strengthened */ {
         _非检查迭代器 _Bucket_lo = _Vec._Mypair._Myval2._Myfirst[_Bucket << 1];
         if (_Bucket_lo == _非检查结束()) {
             return 0;
@@ -910,21 +910,21 @@ public:
         return _List._Make_const_iter(_Bucket_hi);
     }
 
-    _NODISCARD float load_factor() const noexcept {
-        return static_cast<float>(尺寸()) / static_cast<float>(bucket_count());
+    _NODISCARD float 负载因子() const noexcept {
+        return static_cast<float>(尺寸()) / static_cast<float>(桶数());
     }
 
-    _NODISCARD float max_load_factor() const noexcept {
+    _NODISCARD float 最大负载因子() const noexcept {
         return _最大桶尺寸();
     }
 
-    void max_load_factor(float _Newmax) noexcept /* strengthened */ {
+    void 最大负载因子(float _Newmax) noexcept /* strengthened */ {
         _STL_ASSERT(!(_CSTD isnan)(_Newmax) && _Newmax > 0, "invalid hash load factor");
         _最大桶尺寸() = _Newmax;
     }
 
     void 重哈希(size_type _Buckets) { // rebuild table with at least _Buckets buckets
-        // don't violate a.bucket_count() >= a.尺寸() / a.max_load_factor() invariant:
+        // don't violate a.桶数() >= a.尺寸() / a.最大负载因子() invariant:
         _Buckets = (_STD max)(_最小负载因子桶数(_List.尺寸()), _Buckets);
         if (_Buckets <= _Maxidx) { // we already have enough buckets; nothing to do
             return;
@@ -933,7 +933,7 @@ public:
         _强制重哈希(_Buckets);
     }
 
-    void reserve(size_type _Maxcount) { // rebuild table with room for _Maxcount elements
+    void 预留(size_type _Maxcount) { // rebuild table with room for _Maxcount elements
         重哈希(_最小负载因子桶数(_Maxcount));
     }
 
@@ -970,7 +970,7 @@ public:
 
 #if _HAS_CXX23
     template <_Container_compatible_range<value_type> _Rng>
-    void insert_range(_Rng&& _Range) {
+    void 范围插入(_Rng&& _Range) {
         _插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 #endif // _HAS_CXX23
@@ -981,7 +981,7 @@ public:
 
 private:
     _结点指针 _非检查擦除(_结点指针 _Plist) noexcept(_Nothrow_hash<_特征, 键类型>) {
-        size_type _Bucket = bucket(_特征::_取键(_Plist->_Myval));
+        size_type _Bucket = 桶(_特征::_取键(_Plist->_Myval));
         _擦除桶(_Plist, _Bucket);
         return _List._非检查擦除(_Plist);
     }
@@ -1039,15 +1039,15 @@ private:
         const auto _Bucket_bounds = _Vec._Mypair._Myval2._Myfirst;
         _范围擦除器 _Eraser{_List, _首个};
         {
-            // process the first bucket, which is special because here _首个 might not be the beginning of the bucket
+            // process the first 桶, which is special because here _首个 might not be the beginning of the 桶
             const auto _Predecessor = _首个->_Prev;
-            const size_type _Bucket = bucket(_特征::_取键(_Eraser._Next->_Myval)); // throws
+            const size_type _Bucket = 桶(_特征::_取键(_Eraser._Next->_Myval)); // throws
             // nothrow hereafter this block
             _结点指针& _Bucket_lo   = _Bucket_bounds[_Bucket << 1]._Ptr;
             _结点指针& _Bucket_hi   = _Bucket_bounds[(_Bucket << 1) + 1]._Ptr;
             const bool _Update_lo  = _Bucket_lo == _Eraser._Next;
             const _结点指针 _Old_hi = _Bucket_hi;
-            for (;;) { // remove elements until we hit the 结束 of the bucket
+            for (;;) { // remove elements until we hit the 结束 of the 桶
                 const bool _At_bucket_back = _Eraser._Next == _Old_hi;
                 _Eraser._递增已擦除();
                 if (_At_bucket_back) {
@@ -1056,7 +1056,7 @@ private:
 
                 if (_Eraser._Next == _最后) {
                     if (_Update_lo) {
-                        // erased the bucket's prefix
+                        // erased the 桶's prefix
                         _Bucket_lo = _Eraser._Next;
                     }
 
@@ -1065,7 +1065,7 @@ private:
             }
 
             if (_Update_lo) {
-                // emptied the bucket
+                // emptied the 桶
                 _Bucket_lo = _End;
                 _Bucket_hi = _End;
             } else {
@@ -1075,12 +1075,12 @@ private:
 
         // hereafter we are always erasing buckets' prefixes
         while (_Eraser._Next != _最后) {
-            const size_type _Bucket = bucket(_特征::_取键(_Eraser._Next->_Myval)); // throws
+            const size_type _Bucket = 桶(_特征::_取键(_Eraser._Next->_Myval)); // throws
             // nothrow hereafter this block
             _结点指针& _Bucket_lo   = _Bucket_bounds[_Bucket << 1]._Ptr;
             _结点指针& _Bucket_hi   = _Bucket_bounds[(_Bucket << 1) + 1]._Ptr;
             const _结点指针 _Old_hi = _Bucket_hi;
-            for (;;) { // remove elements until we hit the 结束 of the bucket
+            for (;;) { // remove elements until we hit the 结束 of the 桶
                 const bool _At_bucket_back = _Eraser._Next == _Old_hi;
                 _Eraser._递增已擦除();
                 if (_At_bucket_back) {
@@ -1088,13 +1088,13 @@ private:
                 }
 
                 if (_Eraser._Next == _最后) {
-                    // erased the bucket's prefix
+                    // erased the 桶's prefix
                     _Bucket_lo = _Eraser._Next;
                     return _最后;
                 }
             }
 
-            // emptied the bucket
+            // emptied the 桶
             _Bucket_lo = _End;
             _Bucket_hi = _End;
         }
@@ -1110,7 +1110,7 @@ private:
 
     template <class _Keytype>
     size_type _擦除(const _Keytype& _Keyval) noexcept(_无异构擦除异常<_Keytype>()) /* strengthened */ {
-        const size_t _Hashval = _Traitsobj(_Keyval);
+        const size_t _Hashval = _特征对象(_Keyval);
         if constexpr (_Multi) {
             const auto _Where = _等值区间(_Keyval, _Hashval);
             _非检查擦除(_Where._首个._Ptr, _Where._最后._Ptr);
@@ -1156,9 +1156,9 @@ public:
 
     void 清空() noexcept {
         // TRANSITION, ABI:
-        // LWG-2550 requires implementations to make 清空() O(尺寸()), independent of bucket_count().
+        // LWG-2550 requires implementations to make 清空() O(尺寸()), independent of 桶数().
         // Unfortunately our current data structure / ABI does not allow achieving this in the general case because:
-        //   (1) Finding the bucket that goes with an element requires running the hash function
+        //   (1) Finding the 桶 that goes with an element requires running the hash function
         //   (2) The hash function operator() may throw exceptions, and
         //   (3) 清空() is a noexcept function.
         // We do comply with LWG-2550 if the hash function is noexcept, or if the container was 为空.
@@ -1169,9 +1169,9 @@ public:
 
         if constexpr (_Nothrow_hash<_特征, 键类型>) {
             // In testing, hash<size_t>{}(size_t{}) takes about 14 times as much time as assigning a pointer, or
-            // ~7-8 times as much as clearing a bucket. Therefore, if we would need to assign over more than 8 times
+            // ~7-8 times as much as clearing a 桶. Therefore, if we would need to assign over more than 8 times
             // as many buckets as elements, remove element-by-element.
-            if (bucket_count() / 8 > _Oldsize) {
+            if (桶数() / 8 > _Oldsize) {
                 const auto _Head = _List._Mypair._Myval2._Myhead;
                 _非检查擦除(_Head->_Next, _Head);
                 return;
@@ -1196,9 +1196,9 @@ private:
 
         const _结点指针 _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1]._Ptr;
         for (;;) {
-            if (!_Traitsobj(_特征::_取键(_Where->_Myval), _Keyval)) {
+            if (!_特征对象(_特征::_取键(_Where->_Myval), _Keyval)) {
                 if constexpr (!_特征::_Standard) {
-                    if (_Traitsobj(_Keyval, _特征::_取键(_Where->_Myval))) {
+                    if (_特征对象(_Keyval, _特征::_取键(_Where->_Myval))) {
                         return _End;
                     }
                 }
@@ -1231,41 +1231,41 @@ private:
 
 public:
     _NODISCARD iterator find(const 键类型& _Keyval) {
-        return _List._造迭代器(_查找(_Keyval, _Traitsobj(_Keyval)));
+        return _List._造迭代器(_查找(_Keyval, _特征对象(_Keyval)));
     }
 
 #if _HAS_CXX20
     template <class _KeyTy>
         requires _特征::_Has_transparent_overloads
     _NODISCARD iterator find(const _KeyTy& _Keyval) {
-        return _List._造迭代器(_查找(_Keyval, _Traitsobj(_Keyval)));
+        return _List._造迭代器(_查找(_Keyval, _特征对象(_Keyval)));
     }
 #endif // _HAS_CXX20
 
     _NODISCARD const_iterator find(const 键类型& _Keyval) const {
-        return _List._Make_const_iter(_查找(_Keyval, _Traitsobj(_Keyval)));
+        return _List._Make_const_iter(_查找(_Keyval, _特征对象(_Keyval)));
     }
 
 #if _HAS_CXX20
     template <class _KeyTy>
         requires _特征::_Has_transparent_overloads
     _NODISCARD const_iterator find(const _KeyTy& _Keyval) const {
-        return _List._Make_const_iter(_查找(_Keyval, _Traitsobj(_Keyval)));
+        return _List._Make_const_iter(_查找(_Keyval, _特征对象(_Keyval)));
     }
 
     _NODISCARD bool contains(const 键类型& _Keyval) const {
-        return static_cast<bool>(_查找最后(_Keyval, _Traitsobj(_Keyval))._Duplicate);
+        return static_cast<bool>(_查找最后(_Keyval, _特征对象(_Keyval))._Duplicate);
     }
 
     template <class _KeyTy>
         requires _特征::_Has_transparent_overloads
     _NODISCARD bool contains(const _KeyTy& _Keyval) const {
-        return static_cast<bool>(_查找最后(_Keyval, _Traitsobj(_Keyval))._Duplicate);
+        return static_cast<bool>(_查找最后(_Keyval, _特征对象(_Keyval))._Duplicate);
     }
 #endif // _HAS_CXX20
 
     _NODISCARD size_type count(const 键类型& _Keyval) const {
-        const size_t _Hashval = _Traitsobj(_Keyval);
+        const size_t _Hashval = _特征对象(_Keyval);
         if constexpr (_Multi) {
             return _等值区间(_Keyval, _Hashval)._Distance;
         } else {
@@ -1277,7 +1277,7 @@ public:
     template <class _KeyTy>
         requires _特征::_Has_transparent_overloads
     _NODISCARD size_type count(const _KeyTy& _Keyval) const {
-        const size_t _Hashval = _Traitsobj(_Keyval);
+        const size_t _Hashval = _特征对象(_Keyval);
         if constexpr (_Multi) {
             return _等值区间(_Keyval, _Hashval)._Distance;
         } else {
@@ -1304,14 +1304,14 @@ private:
         }
 
         const _非检查常量迭代器 _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1];
-        for (; _Traitsobj(_特征::_取键(*_Where), _Keyval); ++_Where) {
+        for (; _特征对象(_特征::_取键(*_Where), _Keyval); ++_Where) {
             if (_Where == _Bucket_hi) {
                 return {_End, _End, 0};
             }
         }
 
         if constexpr (!_特征::_Standard) {
-            if (_Traitsobj(_Keyval, _特征::_取键(*_Where))) {
+            if (_特征对象(_Keyval, _特征::_取键(*_Where))) {
                 return {_End, _End, 0};
             }
         }
@@ -1328,7 +1328,7 @@ private:
                     break;
                 }
 
-                if (_Traitsobj(_Keyval, _特征::_取键(*_Where))) {
+                if (_特征对象(_Keyval, _特征::_取键(*_Where))) {
                     break;
                 }
             }
@@ -1341,37 +1341,37 @@ private:
     }
 
 public:
-    _NODISCARD pair<iterator, iterator> equal_range(const 键类型& _Keyval) {
-        const auto _结果 = _等值区间(_Keyval, _Traitsobj(_Keyval));
+    _NODISCARD pair<iterator, iterator> 相等区间(const 键类型& _Keyval) {
+        const auto _结果 = _等值区间(_Keyval, _特征对象(_Keyval));
         return {_List._造迭代器(_结果._首个._Ptr), _List._造迭代器(_结果._最后._Ptr)};
     }
 
 #if _HAS_CXX20
     template <class _KeyTy>
         requires _特征::_Has_transparent_overloads
-    _NODISCARD pair<iterator, iterator> equal_range(const _KeyTy& _Keyval) {
-        const auto _结果 = _等值区间(_Keyval, _Traitsobj(_Keyval));
+    _NODISCARD pair<iterator, iterator> 相等区间(const _KeyTy& _Keyval) {
+        const auto _结果 = _等值区间(_Keyval, _特征对象(_Keyval));
         return {_List._造迭代器(_结果._首个._Ptr), _List._造迭代器(_结果._最后._Ptr)};
     }
 #endif // _HAS_CXX20
 
-    _NODISCARD pair<const_iterator, const_iterator> equal_range(const 键类型& _Keyval) const {
-        const auto _结果 = _等值区间(_Keyval, _Traitsobj(_Keyval));
+    _NODISCARD pair<const_iterator, const_iterator> 相等区间(const 键类型& _Keyval) const {
+        const auto _结果 = _等值区间(_Keyval, _特征对象(_Keyval));
         return {_List._Make_const_iter(_结果._首个._Ptr), _List._Make_const_iter(_结果._最后._Ptr)};
     }
 
 #if _HAS_CXX20
     template <class _KeyTy>
         requires _特征::_Has_transparent_overloads
-    _NODISCARD pair<const_iterator, const_iterator> equal_range(const _KeyTy& _Keyval) const {
-        const auto _结果 = _等值区间(_Keyval, _Traitsobj(_Keyval));
+    _NODISCARD pair<const_iterator, const_iterator> 相等区间(const _KeyTy& _Keyval) const {
+        const auto _结果 = _等值区间(_Keyval, _特征对象(_Keyval));
         return {_List._Make_const_iter(_结果._首个._Ptr), _List._Make_const_iter(_结果._最后._Ptr)};
     }
 #endif // _HAS_CXX20
 
-    void swap(_哈希& _Right) noexcept(noexcept(_Traitsobj.swap(_Right._Traitsobj))) /* strengthened */ {
+    void swap(_哈希& _Right) noexcept(noexcept(_特征对象.swap(_Right._特征对象))) /* strengthened */ {
         if (this != _STD addressof(_Right)) {
-            _Traitsobj.swap(_Right._Traitsobj);
+            _特征对象.swap(_Right._特征对象);
             _Pocs(_List._取分配器(), _Right._List._取分配器());
             _Pocs(_Vec._Mypair._取第一(), _Right._Vec._Mypair._取第一());
             _交换值(_Right);
@@ -1423,7 +1423,7 @@ public:
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
         const auto& _Keyval   = _特征::_取键(_Handle._Getptr()->_Myval);
-        const size_t _Hashval = _Traitsobj(_Keyval);
+        const size_t _Hashval = _特征对象(_Keyval);
         auto _Target          = _按提示查找(_Hint._Ptr, _Keyval, _Hashval);
         if constexpr (!_特征::_Multi) {
             if (_Target._Duplicate) {
@@ -1472,7 +1472,7 @@ public:
             const auto _Candidate = _首个._Ptr;
             ++_首个;
             const auto& _Keyval   = _特征::_取键(_Candidate->_Myval);
-            const size_t _Hashval = _Traitsobj(_Keyval);
+            const size_t _Hashval = _特征对象(_Keyval);
             auto _Target          = _查找最后(_Keyval, _Hashval);
             if constexpr (!_特征::_Multi) {
                 if (_Target._Duplicate) {
@@ -1514,14 +1514,14 @@ public:
 
 protected:
     _结点指针 _摘取(const _非检查常量迭代器 _Where) {
-        const size_type _Bucket = bucket(_特征::_取键(*_Where));
+        const size_type _Bucket = 桶(_特征::_取键(*_Where));
         _擦除桶(_Where._Ptr, _Bucket);
         return _List._Mypair._Myval2._Unlinknode(_Where._Ptr);
     }
 
     template <class _Kx>
     _结点指针 _摘取(const _Kx& _Keyval) {
-        const size_t _Hashval = _Traitsobj(_Keyval);
+        const size_t _Hashval = _特征对象(_Keyval);
         _结点指针 _Target;
         if constexpr (_特征::_Multi) {
             _Target = _查找首个(_Keyval, _Hashval);
@@ -1555,7 +1555,7 @@ public:
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
         const auto& _Keyval   = _特征::_取键(_Handle._Getptr()->_Myval);
-        const size_t _Hashval = _Traitsobj(_Keyval);
+        const size_t _Hashval = _特征对象(_Keyval);
         auto _Target          = _查找最后(_Keyval, _Hashval);
         if constexpr (!_特征::_Multi) {
             if (_Target._Duplicate) {
@@ -1595,9 +1595,9 @@ protected:
         const _结点指针 _Bucket_lo = _Vec._Mypair._Myval2._Myfirst[_Bucket << 1]._Ptr;
         for (;;) {
             // Search backwards to maintain sorted [_Bucket_lo, _Bucket_hi] when !_Standard
-            if (!_Traitsobj(_Keyval, _特征::_取键(_Where->_Myval))) {
+            if (!_特征对象(_Keyval, _特征::_取键(_Where->_Myval))) {
                 if constexpr (!_特征::_Standard) {
-                    if (_Traitsobj(_特征::_取键(_Where->_Myval), _Keyval)) {
+                    if (_特征对象(_特征::_取键(_Where->_Myval), _Keyval)) {
                         return {_Where->_Next, _结点指针{}};
                     }
                 }
@@ -1618,9 +1618,9 @@ protected:
         const _结点指针 _Hint, const _Keyty& _Keyval, const size_t _Hashval) const {
         // if _Hint points to an element equivalent to _Keyval, returns _Hint; otherwise,
         // returns _查找最后(_Keyval, _Hashval)
-        if (_Hint != _List._Mypair._Myval2._Myhead && !_Traitsobj(_特征::_取键(_Hint->_Myval), _Keyval)) {
+        if (_Hint != _List._Mypair._Myval2._Myhead && !_特征对象(_特征::_取键(_Hint->_Myval), _Keyval)) {
             if constexpr (!_特征::_Standard) {
-                if (_Traitsobj(_Keyval, _特征::_取键(_Hint->_Myval))) {
+                if (_特征对象(_Keyval, _特征::_取键(_Hint->_Myval))) {
                     return _查找最后(_Keyval, _Hashval);
                 }
             }
@@ -1646,14 +1646,14 @@ protected:
         _非检查迭代器& _Bucket_lo = _Bucket_array[_Bucket << 1];
         _非检查迭代器& _Bucket_hi = _Bucket_array[(_Bucket << 1) + 1];
         if (_Bucket_lo._Ptr == _Head) {
-            // bucket is 为空, set both
+            // 桶 is 为空, set both
             _Bucket_lo._Ptr = _新节点;
             _Bucket_hi._Ptr = _新节点;
         } else if (_Bucket_lo._Ptr == _Insert_before) {
-            // new node is the lowest element in the bucket
+            // new node is the lowest element in the 桶
             _Bucket_lo._Ptr = _新节点;
         } else if (_Bucket_hi._Ptr == _插入其后) {
-            // new node is the highest element in the bucket
+            // new node is the highest element in the 桶
             _Bucket_hi._Ptr = _新节点;
         }
 
@@ -1673,7 +1673,7 @@ protected:
     bool _检查需重哈希1() const noexcept {
         const size_type _Oldsize = _List._Mypair._Myval2._我的尺寸;
         const auto _Newsize      = _Oldsize + 1;
-        return max_load_factor() < static_cast<float>(_Newsize) / static_cast<float>(bucket_count());
+        return 最大负载因子() < static_cast<float>(_Newsize) / static_cast<float>(桶数());
     }
 
     void _为1重哈希() {
@@ -1683,11 +1683,11 @@ protected:
     }
 
     void _擦除桶(_结点指针 _Plist, size_type _Bucket) noexcept {
-        // remove the node _Plist from its bucket
+        // remove the node _Plist from its 桶
         _结点指针& _Bucket_lo = _Vec._Mypair._Myval2._Myfirst[_Bucket << 1]._Ptr;
         _结点指针& _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1]._Ptr;
         if (_Bucket_hi == _Plist) {
-            if (_Bucket_lo == _Plist) { // make bucket 为空
+            if (_Bucket_lo == _Plist) { // make 桶 为空
                 const auto _End = _List._Mypair._Myval2._Myhead;
 
                 _Bucket_lo = _End;
@@ -1702,11 +1702,11 @@ protected:
 
     _NODISCARD size_type _最小负载因子桶数(const size_type _For_size) const noexcept {
         // returns the minimum number of buckets necessary for the elements in _List
-        return static_cast<size_type>(_CSTD ceilf(static_cast<float>(_For_size) / max_load_factor()));
+        return static_cast<size_type>(_CSTD ceilf(static_cast<float>(_For_size) / 最大负载因子()));
     }
 
     _NODISCARD size_type _期望扩容桶数(const size_type _For_size) const noexcept {
-        const size_type _Old_buckets = bucket_count();
+        const size_type _Old_buckets = 桶数();
         const size_type _Req_buckets = (_STD max)(_Min_buckets, _最小负载因子桶数(_For_size));
         if (_Old_buckets >= _Req_buckets) {
             // we already have enough buckets so there's no need to change the count
@@ -1714,7 +1714,7 @@ protected:
         }
 
         if (_Old_buckets < 512 && _Old_buckets * 8 >= _Req_buckets) {
-            // if we are changing the bucket count and have less than 512 buckets, use 8x more buckets
+            // if we are changing the 桶 count and have less than 512 buckets, use 8x more buckets
             return _Old_buckets * 8;
         }
 
@@ -1727,16 +1727,16 @@ protected:
     }
 
     void _强制重哈希(size_type _Buckets) {
-        // Force 重哈希 of elements in _List, distrusting existing bucket assignments in _Vec.
+        // Force 重哈希 of elements in _List, distrusting existing 桶 assignments in _Vec.
         // Assumes _Buckets is greater than _Min_buckets, and that changing to that many buckets doesn't violate
-        // load_factor() <= max_load_factor().
+        // 负载因子() <= 最大负载因子().
 
-        // Don't violate power of 2, fits in half the bucket vector invariant:
+        // Don't violate power of 2, fits in half the 桶 vector invariant:
         // (we assume because vector must use single allocations; as a result, its max_size fits in a size_t)
         const unsigned long _Max_storage_buckets_log2 = _Floor_of_log_2(static_cast<size_t>(_Vec.max_size() >> 1));
         const auto _Max_storage_buckets               = static_cast<size_type>(1) << _Max_storage_buckets_log2;
         if (_Buckets > _Max_storage_buckets) {
-            _Xlength_error("invalid hash bucket count");
+            _Xlength_error("invalid hash 桶 count");
         }
 
         // The above test also means that we won't perform a forbidden full shift when restoring the power of
@@ -1759,25 +1759,25 @@ protected:
             ++_Next_inserted;
 
             auto& _Inserted_key     = _特征::_取键(*_Inserted);
-            const size_type _Bucket = bucket(_Inserted_key);
+            const size_type _Bucket = 桶(_Inserted_key);
 
-            // _Bucket_lo and _Bucket_hi are the *inclusive* range of elements in the bucket, or _非检查结束() if
-            // the bucket is 为空; if !_Standard then [_Bucket_lo, _Bucket_hi] is a sorted range.
+            // _Bucket_lo and _Bucket_hi are the *inclusive* range of elements in the 桶, or _非检查结束() if
+            // the 桶 is 为空; if !_Standard then [_Bucket_lo, _Bucket_hi] is a sorted range.
             _非检查迭代器& _Bucket_lo = _Vec._Mypair._Myval2._Myfirst[_Bucket << 1];
             _非检查迭代器& _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1];
 
             if (_Bucket_lo == _End) {
-                // The bucket was 为空, set it to the inserted element.
+                // The 桶 was 为空, set it to the inserted element.
                 _Bucket_lo = _Inserted;
                 _Bucket_hi = _Inserted;
                 continue;
             }
 
-            // Search the bucket for the insertion location and move element if necessary.
+            // Search the 桶 for the insertion location and move element if necessary.
             _非检查常量迭代器 _Insert_before = _Bucket_hi;
-            if (!_Traitsobj(_Inserted_key, _特征::_取键(*_Insert_before))) {
-                // The inserted element belongs at the 结束 of the bucket; splice it there and set _Bucket_hi to the
-                // new bucket inclusive 结束.
+            if (!_特征对象(_Inserted_key, _特征::_取键(*_Insert_before))) {
+                // The inserted element belongs at the 结束 of the 桶; splice it there and set _Bucket_hi to the
+                // new 桶 inclusive 结束.
                 ++_Insert_before;
                 if (_Insert_before != _Inserted) { // avoid splice on element already in position
                     _我的链表::_迭代器检查值::_Unchecked_splice(_Insert_before._Ptr, _Inserted._Ptr, _Next_inserted._Ptr);
@@ -1791,7 +1791,7 @@ protected:
             // go backwards to maintain sortedness when !_Standard.
             for (;;) {
                 if (_Bucket_lo == _Insert_before) {
-                    // There are no equivalent keys in the bucket, so insert it at the beginning.
+                    // There are no equivalent keys in the 桶, so insert it at the beginning.
                     // Element can't be already in position here because:
                     // * (for !_Standard) _Inserted_key < *_Insert_before or
                     // * (for _Standard) _Inserted_key != *_Insert_before
@@ -1800,11 +1800,11 @@ protected:
                     break;
                 }
 
-                if (!_Traitsobj(_Inserted_key, _特征::_取键(*--_Insert_before))) {
-                    // Found insertion point, move the element here, bucket bounds are already okay.
+                if (!_特征对象(_Inserted_key, _特征::_取键(*--_Insert_before))) {
+                    // Found insertion point, move the element here, 桶 bounds are already okay.
                     ++_Insert_before;
                     // Element can't be already in position here because all elements we're inserting are after all
-                    // the elements already in buckets, and *_Insert_before isn't the highest element in the bucket.
+                    // the elements already in buckets, and *_Insert_before isn't the highest element in the 桶.
                     _我的链表::_迭代器检查值::_Unchecked_splice(_Insert_before._Ptr, _Inserted._Ptr, _Next_inserted._Ptr);
                     break;
                 }
@@ -1819,11 +1819,11 @@ protected:
     }
 
     float& _最大桶尺寸() noexcept {
-        return _Traitsobj._取最大桶尺寸();
+        return _特征对象._取最大桶尺寸();
     }
 
     const float& _最大桶尺寸() const noexcept {
-        return _Traitsobj._取最大桶尺寸();
+        return _特征对象._取最大桶尺寸();
     }
 
     _结点分配器& _取分配器() noexcept {
@@ -1841,20 +1841,20 @@ protected:
 
     _NODISCARD _多重相等检查结果 _多重相等检查等值区间(
         const _哈希& _Right, _非检查常量迭代器 _First1) const {
-        // check that an equal_range of elements starting with *_First1 are a permutation of the corresponding
-        // equal_range of elements in _Right
+        // check that an 相等区间 of elements starting with *_First1 are a permutation of the corresponding
+        // 相等区间 of elements in _Right
         auto& _Keyval = _特征::_取键(*_First1);
         // find the start of the matching run in the other container
-        const size_t _Hashval   = _Right._Traitsobj(_Keyval);
+        const size_t _Hashval   = _Right._特征对象(_Keyval);
         const size_type _Bucket = _Hashval & _Right._Mask;
         auto _First2            = _Right._Vec._Mypair._Myval2._Myfirst[_Bucket << 1];
         if (_First2 == _Right._非检查结束()) {
-            // no matching bucket, therefore no matching run
+            // no matching 桶, therefore no matching run
             return {};
         }
 
         const auto _Bucket_hi = _Right._Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1];
-        for (; _Right._Traitsobj(_特征::_取键(*_First2), _Keyval); ++_First2) {
+        for (; _Right._特征对象(_特征::_取键(*_First2), _Keyval); ++_First2) {
             // find first matching element in _Right
             if (_First2 == _Bucket_hi) {
                 return {};
@@ -1866,11 +1866,11 @@ protected:
             _Left_stop_at = _非检查结束();
         } else {
             // check the first elements for equivalence when !_Standard
-            if (_Right._Traitsobj(_Keyval, _特征::_取键(*_First2))) {
+            if (_Right._特征对象(_Keyval, _特征::_取键(*_First2))) {
                 return {};
             }
 
-            const size_t _LHashval   = _Traitsobj(_Keyval);
+            const size_t _LHashval   = _特征对象(_Keyval);
             const size_type _LBucket = _LHashval & _Mask;
             const auto _LBucket_hi   = _Vec._Mypair._Myval2._Myfirst[(_LBucket << 1) + 1];
             _Left_stop_at            = _LBucket_hi;
@@ -1879,16 +1879,16 @@ protected:
 
         // trim matching prefixes
         while (*_First1 == *_First2) {
-            // the right equal_range ends at the 结束 of the bucket or on the first nonequal element
+            // the right 相等区间 ends at the 结束 of the 桶 or on the first nonequal element
             bool _Right_range_end = _First2 == _Bucket_hi;
             ++_First2;
             if (!_Right_range_end) {
-                _Right_range_end = _Right._Traitsobj(_Keyval, _特征::_取键(*_First2));
+                _Right_range_end = _Right._特征对象(_Keyval, _特征::_取键(*_First2));
             }
 
-            // the left equal_range ends at the 结束 of the container or on the first nonequal element
+            // the left 相等区间 ends at the 结束 of the container or on the first nonequal element
             ++_First1;
-            const bool _Left_range_end = _First1 == _Left_stop_at || _Traitsobj(_Keyval, _特征::_取键(*_First1));
+            const bool _Left_range_end = _First1 == _Left_stop_at || _特征对象(_Keyval, _特征::_取键(*_First1));
 
             if (_Left_range_end && _Right_range_end) {
                 // the equal_ranges were completely equal
@@ -1896,7 +1896,7 @@ protected:
             }
 
             if (_Left_range_end || _Right_range_end) {
-                // one equal_range is a prefix of the other; not equal
+                // one 相等区间 is a prefix of the other; not equal
                 return {};
             }
         }
@@ -1908,11 +1908,11 @@ protected:
             bool _Right_range_end = _Last2 == _Bucket_hi;
             ++_Last2;
             if (!_Right_range_end) {
-                _Right_range_end = _Right._Traitsobj(_Keyval, _特征::_取键(*_Last2));
+                _Right_range_end = _Right._特征对象(_Keyval, _特征::_取键(*_Last2));
             }
 
             ++_Last1;
-            const bool _Left_range_end = _Last1 == _Left_stop_at || _Traitsobj(_Keyval, _特征::_取键(*_Last1));
+            const bool _Left_range_end = _Last1 == _Left_stop_at || _特征对象(_Keyval, _特征::_取键(*_Last1));
 
             if (_Left_range_end && _Right_range_end) {
                 // equal_ranges had the same length, check for permutation
@@ -1953,9 +1953,9 @@ public:
         _STL_INTERNAL_CHECK(_Maxidx == (_Vecsize >> 1));
         _STL_INTERNAL_CHECK(_Maxidx - 1 == _Mask);
         _STL_INTERNAL_CHECK(_Maxidx >= _最小负载因子桶数(_List.尺寸()));
-        // asserts that bucket count is a power of 2:
+        // asserts that 桶 count is a power of 2:
         _STL_INTERNAL_CHECK((static_cast<size_type>(1) << _Floor_of_log_2(_Vecsize)) == _Vecsize);
-        _STL_INTERNAL_CHECK(load_factor() <= max_load_factor());
+        _STL_INTERNAL_CHECK(负载因子() <= 最大负载因子());
         // In the test that counts number of allocator copies, avoid an extra rebind that would incorrectly count as
         // a copy; otherwise, allow allocators that support only homogeneous compare.
 #ifdef _USE_HETEROGENEOUS_ALLOCATOR_COMPARE_IN_INTERNAL_CHECK
@@ -1970,7 +1970,7 @@ public:
             _非检查常量迭代器 _Where           = _Vec._Mypair._Myval2._Myfirst[_Bucket << 1];
             const _非检查常量迭代器 _Bucket_hi = _Vec._Mypair._Myval2._Myfirst[(_Bucket << 1) + 1];
             if (_Where != _End) {
-                // check that the bucket is sorted for legacy hash_meow:
+                // check that the 桶 is sorted for legacy hash_meow:
                 if constexpr (!_特征::_Standard) {
                     if (_Where != _Bucket_hi) {
                         auto _SFirst = _Where;
@@ -1978,9 +1978,9 @@ public:
                         for (;;) {
                             ++_SNext;
                             if constexpr (_特征::_Multi) {
-                                _STL_INTERNAL_CHECK(!_Traitsobj(_特征::_取键(*_SNext), _特征::_取键(*_SFirst)));
+                                _STL_INTERNAL_CHECK(!_特征对象(_特征::_取键(*_SNext), _特征::_取键(*_SFirst)));
                             } else {
-                                _STL_INTERNAL_CHECK(_Traitsobj(_特征::_取键(*_SFirst), _特征::_取键(*_SNext)));
+                                _STL_INTERNAL_CHECK(_特征对象(_特征::_取键(*_SFirst), _特征::_取键(*_SNext)));
                             }
 
                             if (_SNext == _Bucket_hi) {
@@ -1991,10 +1991,10 @@ public:
                         }
                     }
                 }
-                // check that all the elements in the bucket belong in the bucket:
+                // check that all the elements in the 桶 belong in the 桶:
                 for (;;) {
                     ++_Elements;
-                    _STL_INTERNAL_CHECK(bucket(_特征::_取键(*_Where)) == _Bucket);
+                    _STL_INTERNAL_CHECK(桶(_特征::_取键(*_Where)) == _Bucket);
                     if (_Where == _Bucket_hi) {
                         break;
                     }
@@ -2011,11 +2011,11 @@ public:
 protected:
 #endif // _ENABLE_STL_INTERNAL_CHECK
 
-    _特征 _Traitsobj; // traits to customize behavior
+    _特征 _特征对象; // traits to customize behavior
     _我的链表 _List; // 链表实现 of elements, must initialize before _Vec
     _哈希向量<_分配器迭代器> _Vec; // "vector" of 链表实现 iterators for buckets:
-                             // each bucket is 2 iterators denoting the closed range of elements in the bucket,
-                             // or both iterators set to _非检查结束() if the bucket is 为空.
+                             // each 桶 is 2 iterators denoting the closed range of elements in the 桶,
+                             // or both iterators set to _非检查结束() if the 桶 is 为空.
     size_type _Mask; // the key mask
     size_type _Maxidx; // current maximum key value, must be a power of 2
 };
@@ -2046,7 +2046,7 @@ _NODISCARD bool _哈希相等(const _哈希<_特征>& _Left, const _哈希<_特�
         for (const auto& _LVal : _Left) {
             // look for element with equivalent key
             const auto& _Keyval = _特征::_取键(_LVal);
-            const auto _Next2   = _Right._查找最后(_Keyval, _Right._Traitsobj(_Keyval))._Duplicate;
+            const auto _Next2   = _Right._查找最后(_Keyval, _Right._特征对象(_Keyval))._Duplicate;
             if (!(static_cast<bool>(_Next2) && _LVal == _Next2->_Myval)) {
                 return false;
             }

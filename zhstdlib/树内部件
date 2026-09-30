@@ -1287,7 +1287,7 @@ public:
 
 #if _HAS_CXX23
     template <_Container_compatible_range<value_type> _Rng>
-    void insert_range(_Rng&& _Range) {
+    void 范围插入(_Rng&& _Range) {
         _插入范围非检查(_解包首(_Range), _解包尾(_Range));
     }
 #endif // _HAS_CXX23
@@ -1474,27 +1474,27 @@ public:
         return 常量迭代器(_查找上界(_Keyval)._Bound, _取检查值());
     }
 
-    _NODISCARD pair<迭代器, 迭代器> equal_range(const 键类型& _Keyval) {
+    _NODISCARD pair<迭代器, 迭代器> 相等区间(const 键类型& _Keyval) {
         const auto _结果 = _等值区间(_Keyval);
         const auto _Scary  = _取检查值();
         return {迭代器(_结果.first, _Scary), 迭代器(_结果.second, _Scary)};
     }
 
-    _NODISCARD pair<常量迭代器, 常量迭代器> equal_range(const 键类型& _Keyval) const {
+    _NODISCARD pair<常量迭代器, 常量迭代器> 相等区间(const 键类型& _Keyval) const {
         const auto _结果 = _等值区间(_Keyval);
         const auto _Scary  = _取检查值();
         return {常量迭代器(_结果.first, _Scary), 常量迭代器(_结果.second, _Scary)};
     }
 
     template <class _Other, class _Mycomp = 键比较器, enable_if_t<_Is_transparent_v<_Mycomp>, int> = 0>
-    _NODISCARD pair<迭代器, 迭代器> equal_range(const _Other& _Keyval) {
+    _NODISCARD pair<迭代器, 迭代器> 相等区间(const _Other& _Keyval) {
         const auto _结果 = _等值区间(_Keyval);
         const auto _Scary  = _取检查值();
         return {迭代器(_结果.first, _Scary), 迭代器(_结果.second, _Scary)};
     }
 
     template <class _Other, class _Mycomp = 键比较器, enable_if_t<_Is_transparent_v<_Mycomp>, int> = 0>
-    _NODISCARD pair<常量迭代器, 常量迭代器> equal_range(const _Other& _Keyval) const {
+    _NODISCARD pair<常量迭代器, 常量迭代器> 相等区间(const _Other& _Keyval) const {
         const auto _结果 = _等值区间(_Keyval);
         const auto _Scary  = _取检查值();
         return {常量迭代器(_结果.first, _Scary), 常量迭代器(_结果.second, _Scary)};
