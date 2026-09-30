@@ -1940,7 +1940,9 @@ $H = @{
 
 
       '_Get_unwrapped' = '_取解包';
-      '_Adaptor_formatter_base' = '_适配器格式化基类'
+      # §17.20 链名不能单边改：_Adaptor_formatter_base 的**定义方**在真头 <format>（我们只有别名层的 <格式化文本>），
+      #   单边改名会让 C++23 段引用不存在的 _适配器格式化基类（实例化守卫实测 <队列>/<栈> 在 C++23 下编不过）。
+      # '_Adaptor_formatter_base' = '_适配器格式化基类';
       '_Alloc' = '_分配器'
       '_Comp' = '_比较器'
       '_First' = '_首个'
@@ -4415,7 +4417,9 @@ $H = @{
     zh      = '栈'
     realInclude = @('stack')   # §16.29「乙」
     types   = [ordered]@{ 'stack' = '栈实现'
-                          '_Adaptor_formatter_base' = '_适配器格式化基类'
+                          # §17.20 链名不能单边改：_Adaptor_formatter_base 的**定义方**在真头 <format>（我们只有别名层的 <格式化文本>），
+                          #   单边改名会让 C++23 段引用不存在的 _适配器格式化基类（实例化守卫实测 <队列>/<栈> 在 C++23 下编不过）。
+                          # '_Adaptor_formatter_base' = '_适配器格式化基类';
                           # §16.41 第 ① 类：拷贝层 `using container_type = _Container;`
                           'container_type' = '容器类型' }
     deriveTypes = @( @('container_type','容器类型') )

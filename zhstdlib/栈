@@ -218,7 +218,7 @@ struct uses_allocator<栈实现<_类型, _Container>, _分配器> : uses_allocat
 // constrained to character types supported by `format`.
 template <_Format_supported_charT _CharT, class _类型, formattable<_CharT> _Container>
 struct formatter<栈实现<_类型, _Container>, _CharT>
-    : _适配器格式化基类<栈实现<_类型, _Container>, _CharT, _RANGES ref_view> {};
+    : _Adaptor_formatter_base<栈实现<_类型, _Container>, _CharT, _RANGES ref_view> {};
 #endif // _HAS_CXX23
 } }
 
