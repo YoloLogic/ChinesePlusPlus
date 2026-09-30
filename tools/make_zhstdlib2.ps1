@@ -5131,13 +5131,36 @@ $H = @{
     )
   }
   'complex' = @{
+                              # §17.19.43 还有 3 条（_Float_abs_bits/_Tyreal/_Zv）与其余 10 条同理：本头【没有它们的定义】，
+    #   是借来的 std/C 名（守卫的『借用名告警』点出来的），不登记改名。
+    # §17.19.43 另外 10 条（_Cosh/_Exp/_FCosh/_FExp/_FSinh/_LCosh/_LDtest/_LExp/_LSinh/_Sinh）
+    #   在原文里是 _CSTD _X(...) —— _CSTD = ::，那是 CRT 的函数，不是我们拷贝层的：不登记改名。
+    # §10.2 两个主人 + 宏限定：#define _FMP _STD _Float_multi_prec:: —— 跟在 _FMP 后面的 _Fmp_t/_Sqr_x2/_Add_small_x2
+    #   是【std 结构的成员】，还有 _Math_algorithms::_Log_hypot 同样是 std 的：这四条不登记改名（真边界）。
+    # dropTypes 里的三个 C 复数类型（_C_double_complex 等）身份必须留给 std（铁律③），不登记改名
     zh      = '复数'
     realInclude = @('complex')
     # §17.19.15：C 复数结构在真头与副本各一份 -> 丢掉副本（⚠ 实名是 _C_ldouble_complex）。
     dropTypes = @('_C_double_complex', '_C_float_complex', '_C_ldouble_complex')
     # 本轮判定：**不切借用面**（本头不与我们的容器/串/极限做类型混用，也没有友元/私有访问问题）。
     pub     = '复数'
-    types   = [ordered]@{ 'complex' = '复数实现' }
+    types   = [ordered]@{ 'complex' = '复数实现' ;
+                          '_Complex_base' = '_复数基';
+                          '_Complex_value' = '_复数值';
+                          '_Ctraits' = '_复数特征';
+                          '_Myctraits' = '_我的复数特征';
+                          '_Dcomplex_value' = '_双精度复数值';
+                          '_Fcomplex_value' = '_单精度复数值';
+                          '_Lcomplex_value' = '_长双精度复数值';
+                          '_Flt_eps' = '_浮点最小增量';
+                          '_Flt_max' = '_浮点最大值';
+                          '_Flt_norm_min' = '_浮点规格化最小值';
+                          '_High_half' = '_高半部';
+                          '_Infv' = '_无穷值';
+                          '_Nanv' = '_非数值';
+                          '_Promoted' = '_提升后类型';
+                          '_Upgraded' = '_升级后类型';
+}
     members = [ordered]@{
       '_Ty' = '_类型';
       '_Traits' = '_特征';
@@ -5158,7 +5181,29 @@ $H = @{
                           '_FMP_USING_STD_FMA' = '_FMP_USING_STD_FMA_汉'
                           '_FMP_USING_X86_X64_INTRINSICS' = '_FMP_USING_X86_X64_INTRINSICS_汉'
                           '_RE' = '_RE_汉'
-                          '_IM' = '_IM_汉' }
+                          '_IM' = '_IM_汉' ;
+      '_Abs' = '_取模';
+      '_Add' = '_加';
+      '_Add_x1' = '_加一倍';
+      '_Add_x2' = '_加双倍';
+      '_Copysign' = '_复制符号';
+      '_Div' = '_除';
+      '_Hypot_leg_huge_helper' = '_直角边巨大助手';
+      '_Hypot_leg_tiny_helper' = '_直角边极小助手';
+      '_Isinf' = '_是无穷';
+      '_Isnan' = '_是非数值';
+      '_Logp1' = '_对数加一';
+      '_Mul' = '_乘';
+      '_Norm_minus_one' = '_模减一';
+      '_Polar_positive_nan_inf_zero_rho' = '_极坐标正非数值无穷零半径';
+      '_Pow' = '_幂';
+      '_Signbit' = '_符号位';
+      '_Sqr_error_fallback' = '_平方误差回退';
+      '_Sqr_error_std_fma' = '_平方误差标准融合乘加';
+      '_Sqr_error_x86_x64_fma' = '_平方误差x86x64融合乘加';
+      '_Sub' = '_减';
+      '_Upgrade_to_double' = '_升级到双精度';
+}
     data    = [ordered]@{}
     derive  = @( @('real','实部'), @('imag','虚部') )
     extra   = ( @(
@@ -6141,6 +6186,58 @@ foreach ($ns in $nested) {
 }
 
 # 步 3/4：类型名、成员名、数据成员名（按 \b 边界，逐条替换）
+# ---------------------------------------------------------------------------
+#  §17.19.43 限定引用守卫：被 _STD / _CSTD / _RANGES / 宏（= _STD 某结构::）限定引用的名字
+#  【不是我们拷贝层的】，不能登记改名。
+#  为什么加它（第 110 轮实测）：把 <复数> 的 _Exp/_Sinh/_Cosh… 登记改名后，编译逐个报
+#    「the global namespace 中没有名为 '_长双精度指数' 的成员」——原文写的是 `_CSTD _LExp(...)`
+#    （_CSTD 展开成 ::），那是 CRT 的函数。/  _Fmp_t/_Sqr_x2 则是 `#define _FMP _STD _Float_multi_prec::`
+#    后面的 std 成员。逐轮试错一次只能揪出一个名字，太贵 —— 这条守卫一次把全部点出来。
+#  判据：在【改名之前】的拷贝层正文里，凡出现 `_STD/_CSTD/_RANGES/_STDEXT/std::` 或
+#        `#define M _STD 某结构::` 里那个 M 紧跟该名字 —— 一律拦。
+# ---------------------------------------------------------------------------
+#  校准（第 110 轮，第二次）：第一版把 `_STD real(...)` 也拦了 —— **假报**。
+#  实测：生成器对 `_STD <我们登记的名>` 会**顺手去掉限定**（产品里是 `实部(_Left)`，
+#  不是 `_STD 实部(_Left)`），所以 real/imag/asinh/atanh 这些登记本来是对的。
+#  真正不能碰的只有两类：
+#    ① `_CSTD NAME`（_CSTD 展开成 ::）—— C 库的函数，永远不是我们拷贝层的；
+#    ② `#define M _STD 某结构::` 之后 `M NAME` —— std 结构的成员（如 _Float_multi_prec）。
+#  这两类【硬拦】；`_STD NAME` / `std::NAME` 只【告警】（人工判断，避免假报逼人绕守卫）。
+# ---------------------------------------------------------------------------
+$qualHard = @(); $qualSoft = @(); $undef = @()
+$macroQuals = @()
+foreach ($qm in [regex]::Matches($text, '(?m)^#define\s+(\w+)\s+_STD\s+\w+::')) { $macroQuals += $qm.Groups[1].Value }
+foreach ($qk in @('types', 'members', 'data')) {
+    if (-not $spec.ContainsKey($qk)) { continue }
+    foreach ($qn in @($spec[$qk].Keys)) {
+        $esc = [regex]::Escape($qn)
+        # 判据：拷贝层里【有没有它的定义】—— 有定义 = 我们的；只有引用 = 借来的（std/C 的）。
+        $defined =
+            ($text -match ('(?m)^\s*(?:template\s*<[^>]*>\s*)?(?:struct|class|enum(?:\s+class)?|union)\s+' + $esc + '\b')) -or
+            ($text -match ('(?m)^\s*using\s+' + $esc + '\s*=')) -or
+            ($text -match ('(?m)^\s*typedef\b[^;]*\b' + $esc + '\s*;')) -or
+            ($text -match ('(?m)^\s*#define\s+' + $esc + '\b')) -or
+            ($text -match ('(?m)^[^\r\n]*\b' + $esc + '\s*\([^;{]*\)[^;{]*\{'))
+        if (-not $defined) { $undef += ("[{0}] '{1}'" -f $qk, $qn); continue }
+        if ($text -match ('(?<![\w])_CSTD\s+' + $esc + '(?![\w])')) { $qualHard += ("[{0}] '{1}' 被 _CSTD 限定引用（C 库的函数）" -f $qk, $qn); continue }
+        foreach ($mq in $macroQuals) {
+            if ($text -match ('(?<![\w])' + [regex]::Escape($mq) + '\s+' + $esc + '(?![\w])')) { $qualHard += ("[{0}] '{1}' 被宏 {2} 限定引用" -f $qk, $qn, $mq); break }
+        }
+    }
+}
+if ($qualSoft.Count) { Write-Host ("  ⚠ 限定引用告警：" + (($qualSoft | Sort-Object -Unique) -join '、')) -ForegroundColor DarkYellow }
+#  §17.19.43 校准（第 110 轮第三次）：判据只能【告警】，不能硬拦。
+#  为什么：定义形态判据有无法根除的假报 —— 头文件守卫宏（`#ifndef _COMPLEX_` 已被步1改名）、
+#    模板形参名（`template <class _Elem>`）、局部别名、跨内部件的定义。
+#    硬拦会逼人给这些无关登记改名或绕开守卫；**假报和漏报一样坏**（§17.19.37）。
+#  价值仍在：真正的借用名（_CSTD / 宏限定 / 拷贝层无定义）会在生成日志里【当场点名】，
+#    不必等编译报「未声明的标识符」再一个个试（本轮 4 轮试错就是这么省下来的）。
+if ($undef.Count) {
+    Write-Host ("  ⚠ 借用名告警（§17.19.43，拷贝层里没有定义、可能是借来的 std/C 名）：" + (($undef | Sort-Object -Unique) -join '、')) -ForegroundColor DarkYellow
+}
+if ($qualHard.Count) {
+    Write-Host ("  ⚠ 限定引用告警（§17.19.43）：" + (($qualHard | Sort-Object -Unique) -join '、')) -ForegroundColor DarkYellow
+}
 $nT = 0; $nM = 0; $nD = 0
 # ---------------------------------------------------------------------------
 #  全库共享：【我们自己引入的】内部名一键替换（方案 §十三 第①类）

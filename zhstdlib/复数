@@ -100,7 +100,7 @@ namespace _Float_multi_prec {
     // violation of condition 3 or 5 could lead to relative error on the order of epsilon^2
     // violation of other conditions could lead to worse results
     template <class _类型>
-    _NODISCARD constexpr _Fmp_t<_类型, 2> _Add_x2(const _类型 _Xval, const _类型 _Yval) noexcept {
+    _NODISCARD constexpr _Fmp_t<_类型, 2> _加双倍(const _类型 _Xval, const _类型 _Yval) noexcept {
         const _类型 _Sum0 = _Xval + _Yval;
         const _类型 _Ymod = _Sum0 - _Xval;
         const _类型 _Xmod = _Sum0 - _Ymod;
@@ -138,15 +138,15 @@ namespace _Float_multi_prec {
 
     // 2x precision + 2x precision -> 1x precision
     template <class _类型>
-    _NODISCARD constexpr _类型 _Add_x1(const _Fmp_t<_类型, 2>& _Xval, const _Fmp_t<_类型, 2>& _Yval) noexcept {
-        const _Fmp_t<_类型, 2> _Sum00 = _Add_x2(_Xval._Val0, _Yval._Val0);
+    _NODISCARD constexpr _类型 _加一倍(const _Fmp_t<_类型, 2>& _Xval, const _Fmp_t<_类型, 2>& _Yval) noexcept {
+        const _Fmp_t<_类型, 2> _Sum00 = _加双倍(_Xval._Val0, _Yval._Val0);
         return _Sum00._Val0 + (_Sum00._Val1 + (_Xval._Val1 + _Yval._Val1));
     }
 
     // multiplication
 
     // round to 26 significant bits, ties toward zero
-    _NODISCARD constexpr double _High_half(const double _Val) noexcept {
+    _NODISCARD constexpr double _高半部(const double _Val) noexcept {
         const auto _Bits           = _Bit_cast<unsigned long long>(_Val);
         const auto _High_half_bits = (_Bits + 0x3ff'ffffULL) & 0xffff'ffff'f800'0000ULL;
         return _Bit_cast<double>(_High_half_bits);
@@ -157,14 +157,14 @@ namespace _Float_multi_prec {
     // 1) _Prod0 is _Xval^2 faithfully rounded
     // 2) no internal overflow or underflow occurs
     // violation of condition 1 could lead to relative error on the order of epsilon
-    _NODISCARD constexpr double _Sqr_error_fallback(const double _Xval, const double _Prod0) noexcept {
-        const double _Xhigh = _High_half(_Xval);
+    _NODISCARD constexpr double _平方误差回退(const double _Xval, const double _Prod0) noexcept {
+        const double _Xhigh = _高半部(_Xval);
         const double _Xlow  = _Xval - _Xhigh;
         return ((_Xhigh * _Xhigh - _Prod0) + 2.0 * _Xhigh * _Xlow) + _Xlow * _Xlow;
     }
 
 #ifdef _FMP_USING_X86_X64_INTRINSICS_汉
-    _NODISCARD inline double _Sqr_error_x86_x64_fma(const double _Xval, const double _Prod0) noexcept {
+    _NODISCARD inline double _平方误差x86x64融合乘加(const double _Xval, const double _Prod0) noexcept {
         const __m128d _Mx      = _mm_set_sd(_Xval);
         const __m128d _Mprod0  = _mm_set_sd(_Prod0);
         const __m128d _Mresult = _mm_fmsub_sd(_Mx, _Mx, _Mprod0);
@@ -175,7 +175,7 @@ namespace _Float_multi_prec {
 #endif // defined(_FMP_USING_X86_X64_INTRINSICS_汉)
 
 #ifdef _FMP_USING_STD_FMA_汉
-    _NODISCARD inline double _Sqr_error_std_fma(const double _Xval, const double _Prod0) noexcept {
+    _NODISCARD inline double _平方误差标准融合乘加(const double _Xval, const double _Prod0) noexcept {
         return _STD fma(_Xval, _Xval, -_Prod0);
     }
 #endif // defined(_FMP_USING_STD_FMA_汉)
@@ -188,20 +188,20 @@ namespace _Float_multi_prec {
 #if defined(_FMP_USING_X86_X64_INTRINSICS_汉)
 
 #ifdef __AVX2__
-        return {_Prod0, _Sqr_error_x86_x64_fma(_Xval, _Prod0)};
+        return {_Prod0, _平方误差x86x64融合乘加(_Xval, _Prod0)};
 #else // ^^^ defined(__AVX2__) / !defined(__AVX2__) vvv
         const bool _Definitely_have_fma = __isa_available >= _Stl_isa_available_avx2;
         if (_Definitely_have_fma) {
-            return {_Prod0, _Sqr_error_x86_x64_fma(_Xval, _Prod0)};
+            return {_Prod0, _平方误差x86x64融合乘加(_Xval, _Prod0)};
         } else {
-            return {_Prod0, _Sqr_error_fallback(_Xval, _Prod0)};
+            return {_Prod0, _平方误差回退(_Xval, _Prod0)};
         }
 #endif // ^^^ !defined(__AVX2__) ^^^
 
 #elif defined(_FMP_USING_STD_FMA_汉)
-        return {_Prod0, _Sqr_error_std_fma(_Xval, _Prod0)};
+        return {_Prod0, _平方误差标准融合乘加(_Xval, _Prod0)};
 #else // ^^^ defined(_FMP_USING_STD_FMA_汉) / not using intrinsics vvv
-        return {_Prod0, _Sqr_error_fallback(_Xval, _Prod0)};
+        return {_Prod0, _平方误差回退(_Xval, _Prod0)};
 #endif // ^^^ not using intrinsics ^^^
     }
 } // namespace _Float_multi_prec
@@ -218,38 +218,38 @@ namespace _Math_algorithms {
     // _Hypot_leg_huge = _类型{0.5} * _STD sqrt((_STD numeric_limits<_类型>::max)());
     // _Hypot_leg_tiny = _STD sqrt(_类型{2.0} * (_STD numeric_limits<_类型>::min)() / _STD numeric_limits<_类型>::epsilon());
     template <class _类型>
-    struct _Hypot_leg_huge_helper {
+    struct _直角边巨大助手 {
         static constexpr _类型 value{6.703903964971298e+153};
     };
     template <>
-    struct _Hypot_leg_huge_helper<float> {
+    struct _直角边巨大助手<float> {
         static constexpr float value{9.2233715e+18f};
     };
     template <class _类型>
-    constexpr _类型 _Hypot_leg_huge = _Hypot_leg_huge_helper<_类型>::value;
+    constexpr _类型 _Hypot_leg_huge = _直角边巨大助手<_类型>::value;
 
     template <class _类型>
-    struct _Hypot_leg_tiny_helper {
+    struct _直角边极小助手 {
         static constexpr _类型 value{1.4156865331029228e-146};
     };
     template <>
-    struct _Hypot_leg_tiny_helper<float> {
+    struct _直角边极小助手<float> {
         static constexpr float value{4.440892e-16f};
     };
     template <class _类型>
-    constexpr _类型 _Hypot_leg_tiny = _Hypot_leg_tiny_helper<_类型>::value;
+    constexpr _类型 _Hypot_leg_tiny = _直角边极小助手<_类型>::value;
 
     template <class _类型>
-    _NODISCARD _类型 _Norm_minus_one(const _类型 _Xval, const _类型 _Yval) noexcept {
+    _NODISCARD _类型 _模减一(const _类型 _Xval, const _类型 _Yval) noexcept {
         // requires |_Xval| >= |_Yval| and 0.5 <= |_Xval| < 2^12
         // returns _Xval * _Xval + _Yval * _Yval - 1
         const _FMP_汉 _Fmp_t<_类型, 2> _Xsqr    = _FMP_汉 _Sqr_x2(_Xval);
         const _FMP_汉 _Fmp_t<_类型, 2> _Ysqr    = _FMP_汉 _Sqr_x2(_Yval);
         const _FMP_汉 _Fmp_t<_类型, 2> _Xsqr_m1 = _FMP_汉 _Add_small_x2(_类型{-1.0}, _Xsqr);
-        return _Add_x1(_Xsqr_m1, _Ysqr);
+        return _加一倍(_Xsqr_m1, _Ysqr);
     }
 
-    _NODISCARD inline float _Norm_minus_one(const float _Xval, const float _Yval) noexcept {
+    _NODISCARD inline float _模减一(const float _Xval, const float _Yval) noexcept {
         const auto _Dx = static_cast<double>(_Xval);
         const auto _Dy = static_cast<double>(_Yval);
         return static_cast<float>((_Dx * _Dx - 1.0) + _Dy * _Dy);
@@ -257,7 +257,7 @@ namespace _Math_algorithms {
 
     // TRANSITION: CRT log1p can be inaccurate for tiny inputs under directed rounding modes
     template <class _类型>
-    _NODISCARD _类型 _Logp1(const _类型 _Xval) noexcept { // returns log(1 + _Xval)
+    _NODISCARD _类型 _对数加一(const _类型 _Xval) noexcept { // returns log(1 + _Xval)
         static_assert(is_floating_point_v<_类型>, "_类型 must be floating-point");
 
         if (_Is_nan(_Xval)) { // NaN
@@ -328,14 +328,14 @@ namespace _Math_algorithms {
             const _类型 _Bv_sqr = _Bv * _Bv;
 
             if (_Av == _类型{1.0}) { // correctly return +0 when _Av == 1 and _Bv * _Bv underflows
-                                   // _Norm_minus_one(_Av, _Bv) could return -0 under FE_DOWNWARD rounding mode
-                return _Logp1(_Bv_sqr) * _类型{0.5};
+                                   // _模减一(_Av, _Bv) could return -0 under FE_DOWNWARD rounding mode
+                return _对数加一(_Bv_sqr) * _类型{0.5};
             }
 
             const _类型 _Norm = _Av * _Av + _Bv_sqr;
 
             if (_Norm_small < _Norm && _Norm < _Norm_big) { // avoid catastrophic cancellation
-                return _Logp1(_Norm_minus_one(_Av, _Bv)) * _类型{0.5};
+                return _对数加一(_模减一(_Av, _Bv)) * _类型{0.5};
             } else {
                 return _STD log(_Norm) * _类型{0.5};
             }
@@ -357,9 +357,9 @@ namespace _Math_algorithms {
 
 #undef _FMP_汉
 
-using _Dcomplex_value = _CSTD _C_double_complex;
-using _Fcomplex_value = _CSTD _C_float_complex;
-using _Lcomplex_value = _CSTD _C_ldouble_complex;
+using _双精度复数值 = _CSTD _C_double_complex;
+using _单精度复数值 = _CSTD _C_float_complex;
+using _长双精度复数值 = _CSTD _C_ldouble_complex;
 
 _EXPORT_STD template <class _类型>
 class 复数实现;
@@ -371,30 +371,30 @@ template <>
 class 复数实现<long double>;
 
 template <class _类型>
-class _Ctraits {
+class _复数特征 {
 public:
-    static constexpr _类型 _Flt_eps() { // get epsilon
+    static constexpr _类型 _浮点最小增量() { // get epsilon
         return numeric_limits<_类型>::epsilon();
     }
 
-    static constexpr _类型 _Flt_max() {
+    static constexpr _类型 _浮点最大值() {
         return (numeric_limits<_类型>::max)();
     }
 
-    static constexpr _类型 _Flt_norm_min() {
+    static constexpr _类型 _浮点规格化最小值() {
         return (numeric_limits<_类型>::min)() > 0 ? (numeric_limits<_类型>::min)() : 0;
     }
 
-    static _类型 _Abs(_类型 _Left) {
-        return static_cast<_类型>(_Signbit(_Left) ? -_Left : _Left);
+    static _类型 _取模(_类型 _Left) {
+        return static_cast<_类型>(_符号位(_Left) ? -_Left : _Left);
     }
 
     static _类型 _Cosh(_类型 _Left, _类型 _Right) { // return 双曲余弦(_Left) * _Right
         return static_cast<_类型>(_CSTD _Cosh(static_cast<double>(_Left), static_cast<double>(_Right)));
     }
 
-    static _类型 _Copysign(_类型 _Magnitude, _类型 _Sign) {
-        return static_cast<_类型>(_Signbit(_Sign) ? -_Abs(_Magnitude) : _Abs(_Magnitude));
+    static _类型 _复制符号(_类型 _Magnitude, _类型 _Sign) {
+        return static_cast<_类型>(_符号位(_Sign) ? -_取模(_Magnitude) : _取模(_Magnitude));
     }
 
     static short _Exp(_类型* _Pleft, _类型 _Right, short _Exponent) { // compute exp(*_Pleft) * _Right * 2 ^ _Exponent
@@ -404,27 +404,27 @@ public:
         return _Ans;
     }
 
-    static constexpr _类型 _Infv() { // return infinity
+    static constexpr _类型 _无穷值() { // return infinity
         return numeric_limits<_类型>::infinity();
     }
 
-    static bool _Isinf(_类型 _Left) { // test for infinity
+    static bool _是无穷(_类型 _Left) { // test for infinity
         const auto _Tmp  = static_cast<double>(_Left);
         const auto _Uint = _Bit_cast<uint64_t>(_Tmp);
         return (_Uint & 0x7fffffffffffffffU) == 0x7ff0000000000000U;
     }
 
-    static _CONSTEXPR20 bool _Isnan(_类型 _Left) {
+    static _CONSTEXPR20 bool _是非数值(_类型 _Left) {
         const auto _Tmp  = static_cast<double>(_Left);
         const auto _Uint = _Bit_cast<uint64_t>(_Tmp);
         return (_Uint & 0x7fffffffffffffffU) > 0x7ff0000000000000U;
     }
 
-    static constexpr _类型 _Nanv() { // return NaN
+    static constexpr _类型 _非数值() { // return NaN
         return numeric_limits<_类型>::quiet_NaN();
     }
 
-    static bool _Signbit(_类型 _Left) {
+    static bool _符号位(_类型 _Left) {
         return (_STD signbit)(static_cast<double>(_Left));
     }
 
@@ -433,7 +433,7 @@ public:
     }
 
     static _类型 反双曲正弦(_类型 _Left) {
-        if (_Left == 0 || _Isnan(_Left) || _Isinf(_Left)) {
+        if (_Left == 0 || _是非数值(_Left) || _是无穷(_Left)) {
             return _Left;
         }
 
@@ -442,15 +442,15 @@ public:
         const _类型 _Old_left = _Left;
         _类型 _Ans;
 
-        _Left = _Abs(_Left);
+        _Left = _取模(_Left);
 
-        if (_Left < 2 / _Flt_eps()) {
+        if (_Left < 2 / _浮点最小增量()) {
             _Ans = log1p(_Left + _Left * _Left / (1 + sqrt(_Left * _Left + 1)));
         } else {
             _Ans = log(_Left) + _Ln2;
         }
 
-        return _Copysign(_Ans, _Old_left);
+        return _复制符号(_Ans, _Old_left);
     }
 
     static _类型 atan2(_类型 _Yval, _类型 _Xval) { // return 反正切(_Yval / _Xval)
@@ -475,7 +475,7 @@ public:
 
     static _类型 log1p(_类型 _Left) { // return log(1 + _Left)
         if (_Left < -1) {
-            return _Nanv();
+            return _非数值();
         } else if (_Left == 0) {
             return _Left;
         } else { // compute log(1 + _Left) with fixup for small _Left
@@ -506,23 +506,23 @@ public:
 };
 
 template <>
-class _Ctraits<long double> {
+class _复数特征<long double> {
 public:
     using _类型 = long double;
 
-    static constexpr _类型 _Flt_eps() noexcept { // get epsilon
+    static constexpr _类型 _浮点最小增量() noexcept { // get epsilon
         return numeric_limits<long double>::epsilon();
     }
 
-    static constexpr _类型 _Flt_max() noexcept {
+    static constexpr _类型 _浮点最大值() noexcept {
         return (numeric_limits<long double>::max)();
     }
 
-    static constexpr _类型 _Flt_norm_min() noexcept {
+    static constexpr _类型 _浮点规格化最小值() noexcept {
         return (numeric_limits<long double>::min)();
     }
 
-    static _类型 _Abs(_类型 _Left) noexcept {
+    static _类型 _取模(_类型 _Left) noexcept {
         // testing _Left < 0 would be incorrect when _Left is -0.0
         return _CSTD fabsl(_Left);
     }
@@ -531,7 +531,7 @@ public:
         return _CSTD _LCosh(_Left, _Right);
     }
 
-    static _类型 _Copysign(_类型 _Magnitude, _类型 _Sign) noexcept {
+    static _类型 _复制符号(_类型 _Magnitude, _类型 _Sign) noexcept {
         // testing _Sign < 0 would be incorrect when _Sign is -0.0
         return _CSTD copysignl(_Magnitude, _Sign);
     }
@@ -541,11 +541,11 @@ public:
         return _CSTD _LExp(_Pleft, _Right, _Exponent);
     }
 
-    static constexpr _类型 _Infv() noexcept { // return infinity
+    static constexpr _类型 _无穷值() noexcept { // return infinity
         return numeric_limits<long double>::infinity();
     }
 
-    static bool _Isinf(_类型 _Left) noexcept { // test for infinity
+    static bool _是无穷(_类型 _Left) noexcept { // test for infinity
 #if defined(__LDBL_DIG__) && __LDBL_DIG__ == 18
         return _CSTD _LDtest(&_Left) == _INFCODE;
 #else // ^^^ 80-bit long double (not supported by MSVC in general, see GH-1316) / 64-bit long double vvv
@@ -554,7 +554,7 @@ public:
 #endif // ^^^ 64-bit long double ^^^
     }
 
-    static _CONSTEXPR20 bool _Isnan(_类型 _Left) noexcept {
+    static _CONSTEXPR20 bool _是非数值(_类型 _Left) noexcept {
 #if defined(__LDBL_DIG__) && __LDBL_DIG__ == 18
         return _CSTD _LDtest(&_Left) == _NANCODE;
 #else // ^^^ 80-bit long double (not supported by MSVC in general, see GH-1316) / 64-bit long double vvv
@@ -563,11 +563,11 @@ public:
 #endif // ^^^ 64-bit long double ^^^
     }
 
-    static constexpr _类型 _Nanv() noexcept { // return NaN
+    static constexpr _类型 _非数值() noexcept { // return NaN
         return numeric_limits<long double>::quiet_NaN();
     }
 
-    static bool _Signbit(_类型 _Left) noexcept {
+    static bool _符号位(_类型 _Left) noexcept {
         // testing _Left < 0 would be incorrect when _Left is -0.0
         return (_STD signbit)(_Left);
     }
@@ -577,7 +577,7 @@ public:
     }
 
     static _类型 反双曲正弦(_类型 _Left) noexcept {
-        if (_Left == 0 || _Isnan(_Left) || _Isinf(_Left)) {
+        if (_Left == 0 || _是非数值(_Left) || _是无穷(_Left)) {
             return _Left;
         }
 
@@ -586,15 +586,15 @@ public:
         const _类型 _Old_left = _Left;
         _类型 _Ans;
 
-        _Left = _Abs(_Left);
+        _Left = _取模(_Left);
 
-        if (_Left < 2 / _Flt_eps()) {
+        if (_Left < 2 / _浮点最小增量()) {
             _Ans = log1p(_Left + _Left * _Left / (1 + sqrt(_Left * _Left + 1)));
         } else {
             _Ans = log(_Left) + _Ln2;
         }
 
-        return _Copysign(_Ans, _Old_left);
+        return _复制符号(_Ans, _Old_left);
     }
 
     static _类型 atan2(_类型 _Yval, _类型 _Xval) noexcept { // return 反正切(_Yval / _Xval)
@@ -619,7 +619,7 @@ public:
 
     static _类型 log1p(_类型 _Left) noexcept { // return log(1 + _Left)
         if (_Left < -1) {
-            return _Nanv();
+            return _非数值();
         } else if (_Left == 0) {
             return _Left;
         } else { // compute log(1 + _Left) with fixup for small _Left
@@ -650,23 +650,23 @@ public:
 };
 
 template <>
-class _Ctraits<double> {
+class _复数特征<double> {
 public:
     using _类型 = double;
 
-    static constexpr _类型 _Flt_eps() noexcept { // get epsilon
+    static constexpr _类型 _浮点最小增量() noexcept { // get epsilon
         return numeric_limits<double>::epsilon();
     }
 
-    static constexpr _类型 _Flt_max() noexcept {
+    static constexpr _类型 _浮点最大值() noexcept {
         return (numeric_limits<double>::max)();
     }
 
-    static constexpr _类型 _Flt_norm_min() noexcept {
+    static constexpr _类型 _浮点规格化最小值() noexcept {
         return (numeric_limits<double>::min)();
     }
 
-    static _类型 _Abs(_类型 _Left) noexcept {
+    static _类型 _取模(_类型 _Left) noexcept {
         // testing _Left < 0 would be incorrect when _Left is -0.0
         return _CSTD fabs(_Left);
     }
@@ -675,7 +675,7 @@ public:
         return _CSTD _Cosh(_Left, _Right);
     }
 
-    static _类型 _Copysign(_类型 _Magnitude, _类型 _Sign) noexcept {
+    static _类型 _复制符号(_类型 _Magnitude, _类型 _Sign) noexcept {
         // testing _Sign < 0 would be incorrect when _Sign is -0.0
         return _CSTD copysign(_Magnitude, _Sign);
     }
@@ -685,25 +685,25 @@ public:
         return _CSTD _Exp(_Pleft, _Right, _Exponent);
     }
 
-    static constexpr _类型 _Infv() noexcept { // return infinity
+    static constexpr _类型 _无穷值() noexcept { // return infinity
         return numeric_limits<double>::infinity();
     }
 
-    static bool _Isinf(_类型 _Left) noexcept { // test for infinity
+    static bool _是无穷(_类型 _Left) noexcept { // test for infinity
         const auto _Uint = _Bit_cast<uint64_t>(_Left);
         return (_Uint & 0x7fffffffffffffffU) == 0x7ff0000000000000U;
     }
 
-    static _CONSTEXPR20 bool _Isnan(_类型 _Left) noexcept {
+    static _CONSTEXPR20 bool _是非数值(_类型 _Left) noexcept {
         const auto _Uint = _Bit_cast<uint64_t>(_Left);
         return (_Uint & 0x7fffffffffffffffU) > 0x7ff0000000000000U;
     }
 
-    static constexpr _类型 _Nanv() noexcept { // return NaN
+    static constexpr _类型 _非数值() noexcept { // return NaN
         return numeric_limits<double>::quiet_NaN();
     }
 
-    static bool _Signbit(_类型 _Left) noexcept {
+    static bool _符号位(_类型 _Left) noexcept {
         // testing _Left < 0 would be incorrect when _Left is -0.0
         return (_STD signbit)(_Left);
     }
@@ -713,22 +713,22 @@ public:
     }
 
     static _类型 反双曲正弦(_类型 _Left) noexcept {
-        if (_Isnan(_Left) || _Isinf(_Left) || _Left == 0) {
+        if (_是非数值(_Left) || _是无穷(_Left) || _Left == 0) {
             return _Left;
         } else { // _Left finite nonzero
             const _类型 _Old_left = _Left;
             _类型 _Ans;
 
-            _Left = _Abs(_Left);
+            _Left = _取模(_Left);
 
-            if (_Left < 2 / _Flt_eps()) {
+            if (_Left < 2 / _浮点最小增量()) {
                 _Ans = log1p(_Left + _Left * _Left / (1 + sqrt(_Left * _Left + 1)));
             } else {
                 _Ans = log(_Left) // _Left big, compute log(_Left+_Left)
                      + static_cast<_类型>(0.69314718055994530941723212145817658L);
             }
 
-            return _Copysign(_Ans, _Old_left);
+            return _复制符号(_Ans, _Old_left);
         }
     }
 
@@ -753,12 +753,12 @@ public:
     }
 
     static _类型 log1p(_类型 _Left) noexcept { // return log(1 + _Left)
-        if (_Isnan(_Left) || _Left == 0 || (_Isinf(_Left) && 0 < _Left)) {
+        if (_是非数值(_Left) || _Left == 0 || (_是无穷(_Left) && 0 < _Left)) {
             return _Left;
         } else if (_Left < -1) {
-            return _Nanv();
+            return _非数值();
         } else if (_Left == -1) {
-            return -_Infv();
+            return -_无穷值();
         } else if (_Left == 0) {
             return _Left;
         } else { // compute log(1 + _Left) with fixup for small _Left
@@ -789,23 +789,23 @@ public:
 };
 
 template <>
-class _Ctraits<float> {
+class _复数特征<float> {
 public:
     using _类型 = float;
 
-    static constexpr _类型 _Flt_eps() noexcept { // get epsilon
+    static constexpr _类型 _浮点最小增量() noexcept { // get epsilon
         return numeric_limits<float>::epsilon();
     }
 
-    static constexpr _类型 _Flt_max() noexcept {
+    static constexpr _类型 _浮点最大值() noexcept {
         return (numeric_limits<float>::max)();
     }
 
-    static constexpr _类型 _Flt_norm_min() noexcept {
+    static constexpr _类型 _浮点规格化最小值() noexcept {
         return (numeric_limits<float>::min)();
     }
 
-    static _类型 _Abs(_类型 _Left) noexcept {
+    static _类型 _取模(_类型 _Left) noexcept {
         // testing _Left < 0 would be incorrect when _Left is -0.0
         return _CSTD fabsf(_Left);
     }
@@ -814,7 +814,7 @@ public:
         return _CSTD _FCosh(_Left, _Right);
     }
 
-    static _类型 _Copysign(_类型 _Magnitude, _类型 _Sign) noexcept {
+    static _类型 _复制符号(_类型 _Magnitude, _类型 _Sign) noexcept {
         // testing _Sign < 0 would be incorrect when _Sign is -0.0
         return _CSTD copysignf(_Magnitude, _Sign);
     }
@@ -824,25 +824,25 @@ public:
         return _CSTD _FExp(_Pleft, _Right, _Exponent);
     }
 
-    static constexpr _类型 _Infv() noexcept { // return infinity
+    static constexpr _类型 _无穷值() noexcept { // return infinity
         return numeric_limits<float>::infinity();
     }
 
-    static bool _Isinf(_类型 _Left) noexcept { // test for infinity
+    static bool _是无穷(_类型 _Left) noexcept { // test for infinity
         const auto _Uint = _Bit_cast<uint32_t>(_Left);
         return (_Uint & 0x7fffffffU) == 0x7f800000U;
     }
 
-    static _CONSTEXPR20 bool _Isnan(_类型 _Left) noexcept {
+    static _CONSTEXPR20 bool _是非数值(_类型 _Left) noexcept {
         const auto _Uint = _Bit_cast<uint32_t>(_Left);
         return (_Uint & 0x7fffffffU) > 0x7f800000U;
     }
 
-    static constexpr _类型 _Nanv() noexcept { // return NaN
+    static constexpr _类型 _非数值() noexcept { // return NaN
         return numeric_limits<float>::quiet_NaN();
     }
 
-    static bool _Signbit(_类型 _Left) noexcept {
+    static bool _符号位(_类型 _Left) noexcept {
         // testing _Left < 0 would be incorrect when _Left is -0.0
         return (_STD signbit)(_Left);
     }
@@ -852,7 +852,7 @@ public:
     }
 
     static _类型 反双曲正弦(_类型 _Left) noexcept {
-        if (_Left == 0 || _Isnan(_Left) || _Isinf(_Left)) {
+        if (_Left == 0 || _是非数值(_Left) || _是无穷(_Left)) {
             return _Left;
         }
 
@@ -861,15 +861,15 @@ public:
         const _类型 _Old_left = _Left;
         _类型 _Ans;
 
-        _Left = _Abs(_Left);
+        _Left = _取模(_Left);
 
-        if (_Left < 2 / _Flt_eps()) {
+        if (_Left < 2 / _浮点最小增量()) {
             _Ans = log1p(_Left + _Left * _Left / (1 + sqrt(_Left * _Left + 1)));
         } else {
             _Ans = log(_Left) + _Ln2;
         }
 
-        return _Copysign(_Ans, _Old_left);
+        return _复制符号(_Ans, _Old_left);
     }
 
     static _类型 atan2(_类型 _Yval, _类型 _Xval) noexcept { // return 反正切(_Yval / _Xval)
@@ -894,7 +894,7 @@ public:
 
     static _类型 log1p(_类型 _Left) noexcept { // return log(1 + _Left)
         if (_Left < -1) {
-            return _Nanv();
+            return _非数值();
         } else if (_Left == 0) {
             return _Left;
         } else { // compute log(1 + _Left) with fixup for small _Left
@@ -928,22 +928,22 @@ template <class _类型>
 constexpr bool _Is_unqual_fp = _Is_any_of_v<_类型, float, double, long double>;
 
 template <class _类型>
-struct _Complex_value {
+struct _复数值 {
     enum { _Re = 0, _Im = 1 };
     _类型 _Val[2];
 };
 
 template <class _类型, class _Valbase>
-class _Complex_base : public _Valbase {
+class _复数基 : public _Valbase {
 private:
-    static constexpr bool _Is_for_standard_complex = _Is_any_of_v<_Complex_base, _Complex_base<float, _Fcomplex_value>,
-        _Complex_base<double, _Dcomplex_value>, _Complex_base<long double, _Lcomplex_value>>;
+    static constexpr bool _Is_for_standard_complex = _Is_any_of_v<_复数基, _复数基<float, _单精度复数值>,
+        _复数基<double, _双精度复数值>, _复数基<long double, _长双精度复数值>>;
 
 public:
-    using _Myctraits = _Ctraits<_类型>;
+    using _我的复数特征 = _复数特征<_类型>;
     using value_type = _类型;
 
-    constexpr _Complex_base(const _类型& _Realval, const _类型& _Imagval) noexcept(_Is_for_standard_complex)
+    constexpr _复数基(const _类型& _Realval, const _类型& _Imagval) noexcept(_Is_for_standard_complex)
         : _Valbase{{_Realval, _Imagval}} {}
 
     _CONSTEXPR20 void 实部(const _类型& _Right) noexcept(_Is_for_standard_complex) /* strengthened */ {
@@ -968,19 +968,19 @@ public:
 
 protected:
     template <class _Other>
-    _CONSTEXPR20 void _Add(const 复数实现<_Other>& _Right) noexcept(_Is_for_standard_complex && _Is_unqual_fp<_Other>) {
+    _CONSTEXPR20 void _加(const 复数实现<_Other>& _Right) noexcept(_Is_for_standard_complex && _Is_unqual_fp<_Other>) {
         this->_Val[_RE_汉] = this->_Val[_RE_汉] + static_cast<_类型>(_Right.实部());
         this->_Val[_IM_汉] = this->_Val[_IM_汉] + static_cast<_类型>(_Right.虚部());
     }
 
     template <class _Other>
-    _CONSTEXPR20 void _Sub(const 复数实现<_Other>& _Right) noexcept(_Is_for_standard_complex && _Is_unqual_fp<_Other>) {
+    _CONSTEXPR20 void _减(const 复数实现<_Other>& _Right) noexcept(_Is_for_standard_complex && _Is_unqual_fp<_Other>) {
         this->_Val[_RE_汉] = this->_Val[_RE_汉] - static_cast<_类型>(_Right.实部());
         this->_Val[_IM_汉] = this->_Val[_IM_汉] - static_cast<_类型>(_Right.虚部());
     }
 
     template <class _Other>
-    _CONSTEXPR20 void _Mul(const 复数实现<_Other>& _Right) noexcept(_Is_for_standard_complex && _Is_unqual_fp<_Other>) {
+    _CONSTEXPR20 void _乘(const 复数实现<_Other>& _Right) noexcept(_Is_for_standard_complex && _Is_unqual_fp<_Other>) {
         _类型 _Rightreal = static_cast<_类型>(_Right.实部());
         _类型 _Rightimag = static_cast<_类型>(_Right.虚部());
 
@@ -990,22 +990,22 @@ protected:
     }
 
     template <class _Other>
-    _CONSTEXPR20 void _Div(const 复数实现<_Other>& _Right) noexcept(_Is_for_standard_complex && _Is_unqual_fp<_Other>) {
-        using _Myctraits = _Ctraits<_类型>;
+    _CONSTEXPR20 void _除(const 复数实现<_Other>& _Right) noexcept(_Is_for_standard_complex && _Is_unqual_fp<_Other>) {
+        using _我的复数特征 = _复数特征<_类型>;
 
         _类型 _Rightreal = static_cast<_类型>(_Right.实部());
         _类型 _Rightimag = static_cast<_类型>(_Right.虚部());
 
-        if (_Myctraits::_Isnan(_Rightreal) || _Myctraits::_Isnan(_Rightimag)) { // set NaN result
-            this->_Val[_RE_汉] = _Myctraits::_Nanv();
+        if (_我的复数特征::_是非数值(_Rightreal) || _我的复数特征::_是非数值(_Rightimag)) { // set NaN result
+            this->_Val[_RE_汉] = _我的复数特征::_非数值();
             this->_Val[_IM_汉] = this->_Val[_RE_汉];
         } else if ((_Rightimag < 0 ? -_Rightimag : +_Rightimag)
                    < (_Rightreal < 0 ? -_Rightreal : +_Rightreal)) { // |_Right.虚部()| < |_Right.实部()|
             _类型 _Wr = _Rightimag / _Rightreal;
             _类型 _Wd = _Rightreal + _Wr * _Rightimag;
 
-            if (_Myctraits::_Isnan(_Wd) || _Wd == 0) { // set NaN result
-                this->_Val[_RE_汉] = _Myctraits::_Nanv();
+            if (_我的复数特征::_是非数值(_Wd) || _Wd == 0) { // set NaN result
+                this->_Val[_RE_汉] = _我的复数特征::_非数值();
                 this->_Val[_IM_汉] = this->_Val[_RE_汉];
             } else { // compute representable result
                 _类型 _Tmp        = (this->_Val[_RE_汉] + this->_Val[_IM_汉] * _Wr) / _Wd;
@@ -1019,8 +1019,8 @@ protected:
             _类型 _Wr = _Rightreal / _Rightimag;
             _类型 _Wd = _Rightimag + _Wr * _Rightreal;
 
-            if (_Myctraits::_Isnan(_Wd) || _Wd == 0) { // set NaN result
-                this->_Val[_RE_汉] = _Myctraits::_Nanv();
+            if (_我的复数特征::_是非数值(_Wd) || _Wd == 0) { // set NaN result
+                this->_Val[_RE_汉] = _我的复数特征::_非数值();
                 this->_Val[_IM_汉] = this->_Val[_RE_汉];
             } else { // compute representable result
                 _类型 _Tmp        = (this->_Val[_RE_汉] * _Wr + this->_Val[_IM_汉]) / _Wd;
@@ -1032,7 +1032,7 @@ protected:
 };
 
 template <>
-class 复数实现<float> : public _Complex_base<float, _Fcomplex_value> {
+class 复数实现<float> : public _复数基<float, _单精度复数值> {
 public:
     using _类型 = float;
 
@@ -1040,7 +1040,7 @@ public:
     constexpr explicit 复数实现(const 复数实现<long double>&) noexcept; // strengthened, defined below
 
     constexpr 复数实现(const _类型& _Realval = 0, const _类型& _Imagval = 0) noexcept // strengthened
-        : _Complex_base<float, _Fcomplex_value>(_Realval, _Imagval) {}
+        : _复数基<float, _单精度复数值>(_Realval, _Imagval) {}
 
     _CONSTEXPR20 复数实现& operator=(const _类型& _Right) noexcept /* strengthened */ {
         _Val[_RE_汉] = _Right;
@@ -1071,22 +1071,22 @@ public:
     }
 
     _CONSTEXPR20 复数实现& operator+=(const 复数实现& _Right) noexcept /* strengthened */ {
-        this->_Add(_Right);
+        this->_加(_Right);
         return *this;
     }
 
     _CONSTEXPR20 复数实现& operator-=(const 复数实现& _Right) noexcept /* strengthened */ {
-        this->_Sub(_Right);
+        this->_减(_Right);
         return *this;
     }
 
     _CONSTEXPR20 复数实现& operator*=(const 复数实现& _Right) noexcept /* strengthened */ {
-        this->_Mul(_Right);
+        this->_乘(_Right);
         return *this;
     }
 
     _CONSTEXPR20 复数实现& operator/=(const 复数实现& _Right) noexcept /* strengthened */ {
-        this->_Div(_Right);
+        this->_除(_Right);
         return *this;
     }
 
@@ -1099,31 +1099,31 @@ public:
 
     template <class _Other>
     _CONSTEXPR20 复数实现& operator+=(const 复数实现<_Other>& _Right) noexcept(_Is_unqual_fp<_Other>) /* strengthened */ {
-        this->_Add(_Right);
+        this->_加(_Right);
         return *this;
     }
 
     template <class _Other>
     _CONSTEXPR20 复数实现& operator-=(const 复数实现<_Other>& _Right) noexcept(_Is_unqual_fp<_Other>) /* strengthened */ {
-        this->_Sub(_Right);
+        this->_减(_Right);
         return *this;
     }
 
     template <class _Other>
     _CONSTEXPR20 复数实现& operator*=(const 复数实现<_Other>& _Right) noexcept(_Is_unqual_fp<_Other>) /* strengthened */ {
-        this->_Mul(_Right);
+        this->_乘(_Right);
         return *this;
     }
 
     template <class _Other>
     _CONSTEXPR20 复数实现& operator/=(const 复数实现<_Other>& _Right) noexcept(_Is_unqual_fp<_Other>) /* strengthened */ {
-        this->_Div(_Right);
+        this->_除(_Right);
         return *this;
     }
 };
 
 template <>
-class 复数实现<double> : public _Complex_base<double, _Dcomplex_value> {
+class 复数实现<double> : public _复数基<double, _双精度复数值> {
 public:
     using _类型 = double;
 
@@ -1131,7 +1131,7 @@ public:
     constexpr explicit 复数实现(const 复数实现<long double>&) noexcept; // strengthened, defined below
 
     constexpr 复数实现(const _类型& _Realval = 0, const _类型& _Imagval = 0) noexcept // strengthened
-        : _Complex_base<double, _Dcomplex_value>(_Realval, _Imagval) {}
+        : _复数基<double, _双精度复数值>(_Realval, _Imagval) {}
 
     _CONSTEXPR20 复数实现& operator=(const _类型& _Right) noexcept /* strengthened */ {
         _Val[_RE_汉] = _Right;
@@ -1162,22 +1162,22 @@ public:
     }
 
     _CONSTEXPR20 复数实现& operator+=(const 复数实现& _Right) noexcept /* strengthened */ {
-        this->_Add(_Right);
+        this->_加(_Right);
         return *this;
     }
 
     _CONSTEXPR20 复数实现& operator-=(const 复数实现& _Right) noexcept /* strengthened */ {
-        this->_Sub(_Right);
+        this->_减(_Right);
         return *this;
     }
 
     _CONSTEXPR20 复数实现& operator*=(const 复数实现& _Right) noexcept /* strengthened */ {
-        this->_Mul(_Right);
+        this->_乘(_Right);
         return *this;
     }
 
     _CONSTEXPR20 复数实现& operator/=(const 复数实现& _Right) noexcept /* strengthened */ {
-        this->_Div(_Right);
+        this->_除(_Right);
         return *this;
     }
 
@@ -1190,31 +1190,31 @@ public:
 
     template <class _Other>
     _CONSTEXPR20 复数实现& operator+=(const 复数实现<_Other>& _Right) noexcept(_Is_unqual_fp<_Other>) /* strengthened */ {
-        this->_Add(_Right);
+        this->_加(_Right);
         return *this;
     }
 
     template <class _Other>
     _CONSTEXPR20 复数实现& operator-=(const 复数实现<_Other>& _Right) noexcept(_Is_unqual_fp<_Other>) /* strengthened */ {
-        this->_Sub(_Right);
+        this->_减(_Right);
         return *this;
     }
 
     template <class _Other>
     _CONSTEXPR20 复数实现& operator*=(const 复数实现<_Other>& _Right) noexcept(_Is_unqual_fp<_Other>) /* strengthened */ {
-        this->_Mul(_Right);
+        this->_乘(_Right);
         return *this;
     }
 
     template <class _Other>
     _CONSTEXPR20 复数实现& operator/=(const 复数实现<_Other>& _Right) noexcept(_Is_unqual_fp<_Other>) /* strengthened */ {
-        this->_Div(_Right);
+        this->_除(_Right);
         return *this;
     }
 };
 
 template <>
-class 复数实现<long double> : public _Complex_base<long double, _Lcomplex_value> {
+class 复数实现<long double> : public _复数基<long double, _长双精度复数值> {
 public:
     using _类型 = long double;
 
@@ -1222,7 +1222,7 @@ public:
     constexpr 复数实现(const 复数实现<double>&) noexcept; // strengthened, defined below
 
     constexpr 复数实现(const _类型& _Realval = 0, const _类型& _Imagval = 0) noexcept // strengthened
-        : _Complex_base<long double, _Lcomplex_value>(_Realval, _Imagval) {}
+        : _复数基<long double, _长双精度复数值>(_Realval, _Imagval) {}
 
     _CONSTEXPR20 复数实现& operator=(const _类型& _Right) noexcept /* strengthened */ {
         _Val[_RE_汉] = _Right;
@@ -1253,22 +1253,22 @@ public:
     }
 
     _CONSTEXPR20 复数实现& operator+=(const 复数实现& _Right) noexcept /* strengthened */ {
-        this->_Add(_Right);
+        this->_加(_Right);
         return *this;
     }
 
     _CONSTEXPR20 复数实现& operator-=(const 复数实现& _Right) noexcept /* strengthened */ {
-        this->_Sub(_Right);
+        this->_减(_Right);
         return *this;
     }
 
     _CONSTEXPR20 复数实现& operator*=(const 复数实现& _Right) noexcept /* strengthened */ {
-        this->_Mul(_Right);
+        this->_乘(_Right);
         return *this;
     }
 
     _CONSTEXPR20 复数实现& operator/=(const 复数实现& _Right) noexcept /* strengthened */ {
-        this->_Div(_Right);
+        this->_除(_Right);
         return *this;
     }
 
@@ -1281,51 +1281,51 @@ public:
 
     template <class _Other>
     _CONSTEXPR20 复数实现& operator+=(const 复数实现<_Other>& _Right) noexcept(_Is_unqual_fp<_Other>) /* strengthened */ {
-        this->_Add(_Right);
+        this->_加(_Right);
         return *this;
     }
 
     template <class _Other>
     _CONSTEXPR20 复数实现& operator-=(const 复数实现<_Other>& _Right) noexcept(_Is_unqual_fp<_Other>) /* strengthened */ {
-        this->_Sub(_Right);
+        this->_减(_Right);
         return *this;
     }
 
     template <class _Other>
     _CONSTEXPR20 复数实现& operator*=(const 复数实现<_Other>& _Right) noexcept(_Is_unqual_fp<_Other>) /* strengthened */ {
-        this->_Mul(_Right);
+        this->_乘(_Right);
         return *this;
     }
 
     template <class _Other>
     _CONSTEXPR20 复数实现& operator/=(const 复数实现<_Other>& _Right) noexcept(_Is_unqual_fp<_Other>) /* strengthened */ {
-        this->_Div(_Right);
+        this->_除(_Right);
         return *this;
     }
 };
 
 constexpr 复数实现<float>::复数实现(const 复数实现<double>& _Right) noexcept // strengthened
-    : _Complex_base<float, _Fcomplex_value>(static_cast<_类型>(_Right.实部()), static_cast<_类型>(_Right.虚部())) {}
+    : _复数基<float, _单精度复数值>(static_cast<_类型>(_Right.实部()), static_cast<_类型>(_Right.虚部())) {}
 
 constexpr 复数实现<float>::复数实现(const 复数实现<long double>& _Right) noexcept // strengthened
-    : _Complex_base<float, _Fcomplex_value>(static_cast<_类型>(_Right.实部()), static_cast<_类型>(_Right.虚部())) {}
+    : _复数基<float, _单精度复数值>(static_cast<_类型>(_Right.实部()), static_cast<_类型>(_Right.虚部())) {}
 
 constexpr 复数实现<double>::复数实现(const 复数实现<float>& _Right) noexcept // strengthened
-    : _Complex_base<double, _Dcomplex_value>(_Right.实部(), _Right.虚部()) {}
+    : _复数基<double, _双精度复数值>(_Right.实部(), _Right.虚部()) {}
 
 constexpr 复数实现<double>::复数实现(const 复数实现<long double>& _Right) noexcept // strengthened
-    : _Complex_base<double, _Dcomplex_value>(static_cast<_类型>(_Right.实部()), static_cast<_类型>(_Right.虚部())) {}
+    : _复数基<double, _双精度复数值>(static_cast<_类型>(_Right.实部()), static_cast<_类型>(_Right.虚部())) {}
 
 constexpr 复数实现<long double>::复数实现(const 复数实现<float>& _Right) noexcept // strengthened
-    : _Complex_base<long double, _Lcomplex_value>(_Right.实部(), _Right.虚部()) {}
+    : _复数基<long double, _长双精度复数值>(_Right.实部(), _Right.虚部()) {}
 
 constexpr 复数实现<long double>::复数实现(const 复数实现<double>& _Right) noexcept // strengthened
-    : _Complex_base<long double, _Lcomplex_value>(_Right.实部(), _Right.虚部()) {}
+    : _复数基<long double, _长双精度复数值>(_Right.实部(), _Right.虚部()) {}
 
 _EXPORT_STD template <class _类型>
-class 复数实现 : public _Complex_base<_类型, _Complex_value<_类型>> {
+class 复数实现 : public _复数基<_类型, _复数值<_类型>> {
 public:
-    using _我的基类 = _Complex_base<_类型, _Complex_value<_类型>>;
+    using _我的基类 = _复数基<_类型, _复数值<_类型>>;
 
     _DEPRECATE_NONFLOATING_COMPLEX
     constexpr 复数实现(const _类型& _Realval = _类型(), const _类型& _Imagval = _类型()) : _我的基类(_Realval, _Imagval) {}
@@ -1370,46 +1370,46 @@ public:
     }
 
     _CONSTEXPR20 复数实现& operator+=(const 复数实现& _Right) {
-        this->_Add(_Right);
+        this->_加(_Right);
         return *this;
     }
 
     _CONSTEXPR20 复数实现& operator-=(const 复数实现& _Right) {
-        this->_Sub(_Right);
+        this->_减(_Right);
         return *this;
     }
 
     _CONSTEXPR20 复数实现& operator*=(const 复数实现& _Right) {
-        this->_Mul(_Right);
+        this->_乘(_Right);
         return *this;
     }
 
     _CONSTEXPR20 复数实现& operator/=(const 复数实现& _Right) {
-        this->_Div(_Right);
+        this->_除(_Right);
         return *this;
     }
 
     template <class _Other>
     _CONSTEXPR20 复数实现& operator+=(const 复数实现<_Other>& _Right) {
-        this->_Add(_Right);
+        this->_加(_Right);
         return *this;
     }
 
     template <class _Other>
     _CONSTEXPR20 复数实现& operator-=(const 复数实现<_Other>& _Right) {
-        this->_Sub(_Right);
+        this->_减(_Right);
         return *this;
     }
 
     template <class _Other>
     _CONSTEXPR20 复数实现& operator*=(const 复数实现<_Other>& _Right) {
-        this->_Mul(_Right);
+        this->_乘(_Right);
         return *this;
     }
 
     template <class _Other>
     _CONSTEXPR20 复数实现& operator/=(const 复数实现<_Other>& _Right) {
-        this->_Div(_Right);
+        this->_除(_Right);
         return *this;
     }
 };
@@ -1575,12 +1575,12 @@ _NODISCARD 复数实现<_类型> sqrt(const 复数实现<_类型>& _Left) noexce
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _类型 模(const 复数实现<_类型>& _Left) noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
-    return _Ctraits<_类型>::hypot(_Left.实部(), _Left.虚部());
+    return _复数特征<_类型>::hypot(_Left.实部(), _Left.虚部());
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 复数实现<_类型> 反余弦(const 复数实现<_类型>& _Left) noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
-    const _类型 _Arcbig     = static_cast<_类型>(0.25) * _Ctraits<_类型>::sqrt(_Ctraits<_类型>::_Flt_max());
+    const _类型 _Arcbig     = static_cast<_类型>(0.25) * _复数特征<_类型>::sqrt(_复数特征<_类型>::_浮点最大值());
     constexpr _类型 _Pi_val = static_cast<_类型>(3.1415926535897932384626433832795029L);
 
     const _类型 _Re = 实部(_Left);
@@ -1588,11 +1588,11 @@ _NODISCARD 复数实现<_类型> 反余弦(const 复数实现<_类型>& _Left) n
     _类型 _Ux;
     _类型 _Vx;
 
-    if (_Ctraits<_类型>::_Isnan(_Re) || _Ctraits<_类型>::_Isnan(_Im)) { // at least one NaN
-        _Ux = _Ctraits<_类型>::_Nanv();
+    if (_复数特征<_类型>::_是非数值(_Re) || _复数特征<_类型>::_是非数值(_Im)) { // at least one NaN
+        _Ux = _复数特征<_类型>::_非数值();
         _Vx = _Ux;
-    } else if (_Ctraits<_类型>::_Isinf(_Re)) { // (+/-Inf, not NaN)
-        if (_Ctraits<_类型>::_Isinf(_Im)) {
+    } else if (_复数特征<_类型>::_是无穷(_Re)) { // (+/-Inf, not NaN)
+        if (_复数特征<_类型>::_是无穷(_Im)) {
             if (_Re < 0) {
                 _Ux = static_cast<_类型>(0.75) * _Pi_val; // (-Inf, +/-Inf)
             } else {
@@ -1603,8 +1603,8 @@ _NODISCARD 复数实现<_类型> 反余弦(const 复数实现<_类型>& _Left) n
         } else {
             _Ux = 0; // (+Inf, finite)
         }
-        _Vx = -_Ctraits<_类型>::_Copysign(_Ctraits<_类型>::_Infv(), _Im);
-    } else if (_Ctraits<_类型>::_Isinf(_Im)) { // (finite, finite)
+        _Vx = -_复数特征<_类型>::_复制符号(_复数特征<_类型>::_无穷值(), _Im);
+    } else if (_复数特征<_类型>::_是无穷(_Im)) { // (finite, finite)
         _Ux = static_cast<_类型>(0.50) * _Pi_val; // (finite, +/-Inf)
         _Vx = -_Im;
     } else { // (finite, finite)
@@ -1617,7 +1617,7 @@ _NODISCARD 复数实现<_类型> 反余弦(const 复数实现<_类型>& _Left) n
         _类型 _Alfa;
         _类型 _Beta;
 
-        _Ux = 2 * _Ctraits<_类型>::atan2(_Zr, _Wr);
+        _Ux = 2 * _复数特征<_类型>::atan2(_Zr, _Wr);
 
         if (_Arcbig < _Wr) { // 实部 parts large
             _Alfa = _Wr;
@@ -1633,12 +1633,12 @@ _NODISCARD 复数实现<_类型> 反余弦(const 复数实现<_类型>& _Left) n
             _Beta = _Wr * _Zi + _Wi * _Zr; // Im(w * z)
         }
 
-        _Vx = _Ctraits<_类型>::反双曲正弦(_Beta);
+        _Vx = _复数特征<_类型>::反双曲正弦(_Beta);
         if (_Alfa != 0) {
             if (0 <= _Vx) {
-                _Vx += _Ctraits<_类型>::log(_Alfa);
+                _Vx += _复数特征<_类型>::log(_Alfa);
             } else {
-                _Vx -= _Ctraits<_类型>::log(_Alfa); // 反双曲正弦(a*b) = 反双曲正弦(a)+log(b)
+                _Vx -= _复数特征<_类型>::log(_Alfa); // 反双曲正弦(a*b) = 反双曲正弦(a)+log(b)
             }
         }
     }
@@ -1647,7 +1647,7 @@ _NODISCARD 复数实现<_类型> 反余弦(const 复数实现<_类型>& _Left) n
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 复数实现<_类型> 反双曲余弦(const 复数实现<_类型>& _Left) noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
-    const _类型 _Arcbig     = static_cast<_类型>(0.25) * _Ctraits<_类型>::sqrt(_Ctraits<_类型>::_Flt_max());
+    const _类型 _Arcbig     = static_cast<_类型>(0.25) * _复数特征<_类型>::sqrt(_复数特征<_类型>::_浮点最大值());
     constexpr _类型 _Pi_val = static_cast<_类型>(3.1415926535897932384626433832795029L);
 
     const _类型 _Re = 实部(_Left);
@@ -1655,13 +1655,13 @@ _NODISCARD 复数实现<_类型> 反双曲余弦(const 复数实现<_类型>& _L
     _类型 _Ux;
     _类型 _Vx;
 
-    if (_Ctraits<_类型>::_Isnan(_Re) || _Ctraits<_类型>::_Isnan(_Im)) { // at least one NaN
-        _Ux = _Ctraits<_类型>::_Nanv();
+    if (_复数特征<_类型>::_是非数值(_Re) || _复数特征<_类型>::_是非数值(_Im)) { // at least one NaN
+        _Ux = _复数特征<_类型>::_非数值();
         _Vx = _Ux;
-    } else if (_Ctraits<_类型>::_Isinf(_Re)) { // (+/-Inf, not NaN)
-        _Ux = _Ctraits<_类型>::_Infv();
+    } else if (_复数特征<_类型>::_是无穷(_Re)) { // (+/-Inf, not NaN)
+        _Ux = _复数特征<_类型>::_无穷值();
 
-        if (_Ctraits<_类型>::_Isinf(_Im)) {
+        if (_复数特征<_类型>::_是无穷(_Im)) {
             if (_Re < 0) {
                 _Vx = static_cast<_类型>(0.75) * _Pi_val; // (-Inf, +/-Inf)
             } else {
@@ -1673,10 +1673,10 @@ _NODISCARD 复数实现<_类型> 反双曲余弦(const 复数实现<_类型>& _L
             _Vx = 0; // (+Inf, finite)
         }
 
-        _Vx = _Ctraits<_类型>::_Copysign(_Vx, _Im);
-    } else if (_Ctraits<_类型>::_Isinf(_Im)) { // (finite, +/-Inf)
-        _Ux = _Ctraits<_类型>::_Infv();
-        _Vx = _Ctraits<_类型>::_Copysign(static_cast<_类型>(0.50) * _Pi_val, _Im);
+        _Vx = _复数特征<_类型>::_复制符号(_Vx, _Im);
+    } else if (_复数特征<_类型>::_是无穷(_Im)) { // (finite, +/-Inf)
+        _Ux = _复数特征<_类型>::_无穷值();
+        _Vx = _复数特征<_类型>::_复制符号(static_cast<_类型>(0.50) * _Pi_val, _Im);
     } else { // (finite, finite)
         const 复数实现<_类型> _Wx = sqrt(复数实现<_类型>(_Re - 1, -_Im));
         const 复数实现<_类型> _Zx = sqrt(复数实现<_类型>(_Re + 1, _Im));
@@ -1701,23 +1701,23 @@ _NODISCARD 复数实现<_类型> 反双曲余弦(const 复数实现<_类型>& _L
             _Beta = _Wr * _Zr - _Wi * _Zi; // Re(w * z)
         }
 
-        _Ux = _Ctraits<_类型>::反双曲正弦(_Beta);
+        _Ux = _复数特征<_类型>::反双曲正弦(_Beta);
         if (_Alfa != 0) {
             if (0 <= _Ux) {
-                _Ux += _Ctraits<_类型>::log(_Alfa);
+                _Ux += _复数特征<_类型>::log(_Alfa);
             } else {
-                _Ux -= _Ctraits<_类型>::log(_Alfa); // 反双曲正弦(a*b) = 反双曲正弦(a)+log(b)
+                _Ux -= _复数特征<_类型>::log(_Alfa); // 反双曲正弦(a*b) = 反双曲正弦(a)+log(b)
             }
         }
 
-        _Vx = 2 * _Ctraits<_类型>::atan2(虚部(sqrt(复数实现<_类型>(_Re - 1, _Im))), _Zr);
+        _Vx = 2 * _复数特征<_类型>::atan2(虚部(sqrt(复数实现<_类型>(_Re - 1, _Im))), _Zr);
     }
     return 复数实现<_类型>(_Ux, _Vx);
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 复数实现<_类型> 反双曲正弦(const 复数实现<_类型>& _Left) noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
-    const _类型 _Arcbig     = static_cast<_类型>(0.25) * _Ctraits<_类型>::sqrt(_Ctraits<_类型>::_Flt_max());
+    const _类型 _Arcbig     = static_cast<_类型>(0.25) * _复数特征<_类型>::sqrt(_复数特征<_类型>::_浮点最大值());
     constexpr _类型 _Pi_val = static_cast<_类型>(3.1415926535897932384626433832795029L);
 
     const _类型 _Re = 实部(_Left);
@@ -1725,22 +1725,22 @@ _NODISCARD 复数实现<_类型> 反双曲正弦(const 复数实现<_类型>& _L
     _类型 _Ux;
     _类型 _Vx;
 
-    if (_Ctraits<_类型>::_Isnan(_Re) || _Ctraits<_类型>::_Isnan(_Im)) { // at least one NaN/Inf
-        _Ux = _Ctraits<_类型>::_Nanv();
+    if (_复数特征<_类型>::_是非数值(_Re) || _复数特征<_类型>::_是非数值(_Im)) { // at least one NaN/Inf
+        _Ux = _复数特征<_类型>::_非数值();
         _Vx = _Ux;
-    } else if (_Ctraits<_类型>::_Isinf(_Re)) { // (+/-Inf, not NaN)
-        _Ux = _Ctraits<_类型>::_Infv();
+    } else if (_复数特征<_类型>::_是无穷(_Re)) { // (+/-Inf, not NaN)
+        _Ux = _复数特征<_类型>::_无穷值();
 
-        if (_Ctraits<_类型>::_Isinf(_Im)) { // (+/-Inf, +/-Inf)
+        if (_复数特征<_类型>::_是无穷(_Im)) { // (+/-Inf, +/-Inf)
             _Ux = _Re;
-            _Vx = _Ctraits<_类型>::_Copysign(static_cast<_类型>(0.25) * _Pi_val, _Im);
+            _Vx = _复数特征<_类型>::_复制符号(static_cast<_类型>(0.25) * _Pi_val, _Im);
         } else { // (+/-Inf, finite)
             _Ux = _Re;
-            _Vx = _Ctraits<_类型>::_Copysign(_类型{0}, _Im);
+            _Vx = _复数特征<_类型>::_复制符号(_类型{0}, _Im);
         }
-    } else if (_Ctraits<_类型>::_Isinf(_Im)) { // (finite, +/-Inf)
-        _Ux = _Ctraits<_类型>::_Copysign(_Ctraits<_类型>::_Infv(), _Re);
-        _Vx = _Ctraits<_类型>::_Copysign(static_cast<_类型>(0.50) * _Pi_val, _Im);
+    } else if (_复数特征<_类型>::_是无穷(_Im)) { // (finite, +/-Inf)
+        _Ux = _复数特征<_类型>::_复制符号(_复数特征<_类型>::_无穷值(), _Re);
+        _Vx = _复数特征<_类型>::_复制符号(static_cast<_类型>(0.50) * _Pi_val, _Im);
     } else { // (finite, finite)
         const 复数实现<_类型> _Wx = sqrt(复数实现<_类型>(1 - _Im, _Re));
         const 复数实现<_类型> _Zx = sqrt(复数实现<_类型>(1 + _Im, -_Re));
@@ -1765,16 +1765,16 @@ _NODISCARD 复数实现<_类型> 反双曲正弦(const 复数实现<_类型>& _L
             _Beta = _Wi * _Zr - _Wr * _Zi; // Im(w * 共轭(z))
         }
 
-        _Ux = _Ctraits<_类型>::反双曲正弦(_Beta);
+        _Ux = _复数特征<_类型>::反双曲正弦(_Beta);
         if (_Alfa != 0) {
             if (0 <= _Ux) {
-                _Ux += _Ctraits<_类型>::log(_Alfa);
+                _Ux += _复数特征<_类型>::log(_Alfa);
             } else {
-                _Ux -= _Ctraits<_类型>::log(_Alfa); // 反双曲正弦(a*b) = 反双曲正弦(a)+log(b)
+                _Ux -= _复数特征<_类型>::log(_Alfa); // 反双曲正弦(a*b) = 反双曲正弦(a)+log(b)
             }
         }
 
-        _Vx = _Ctraits<_类型>::atan2(_Im, 实部(_Wx * _Zx));
+        _Vx = _复数特征<_类型>::atan2(_Im, 实部(_Wx * _Zx));
     }
 
     return 复数实现<_类型>(_Ux, _Vx);
@@ -1789,7 +1789,7 @@ _NODISCARD 复数实现<_类型> 反正弦(const 复数实现<_类型>& _Left) n
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 复数实现<_类型> 反双曲正切(const 复数实现<_类型>& _Left) noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
-    const _类型 _Arcbig    = static_cast<_类型>(0.25) * _Ctraits<_类型>::sqrt(_Ctraits<_类型>::_Flt_max());
+    const _类型 _Arcbig    = static_cast<_类型>(0.25) * _复数特征<_类型>::sqrt(_复数特征<_类型>::_浮点最大值());
     constexpr _类型 _Piby2 = static_cast<_类型>(1.5707963267948966192313216916397514L);
 
     _类型 _Re = 实部(_Left);
@@ -1797,44 +1797,44 @@ _NODISCARD 复数实现<_类型> 反双曲正切(const 复数实现<_类型>& _L
     _类型 _Ux;
     _类型 _Vx;
 
-    if (_Ctraits<_类型>::_Isnan(_Re) || _Ctraits<_类型>::_Isnan(_Im)) { // at least one NaN
-        _Ux = _Ctraits<_类型>::_Nanv();
+    if (_复数特征<_类型>::_是非数值(_Re) || _复数特征<_类型>::_是非数值(_Im)) { // at least one NaN
+        _Ux = _复数特征<_类型>::_非数值();
         _Vx = _Ux;
-    } else if (_Ctraits<_类型>::_Isinf(_Re)) { // (+/-Inf, not NaN)
-        _Ux = _Ctraits<_类型>::_Copysign(_类型{0}, _Re);
-        _Vx = _Ctraits<_类型>::_Copysign(_Piby2, _Im);
+    } else if (_复数特征<_类型>::_是无穷(_Re)) { // (+/-Inf, not NaN)
+        _Ux = _复数特征<_类型>::_复制符号(_类型{0}, _Re);
+        _Vx = _复数特征<_类型>::_复制符号(_Piby2, _Im);
     } else { // (finite, not _NaN)
-        const _类型 _Magim  = _Ctraits<_类型>::_Abs(_Im);
+        const _类型 _Magim  = _复数特征<_类型>::_取模(_Im);
         const _类型 _Old_re = _Re;
 
-        _Re = _Ctraits<_类型>::_Abs(_Re);
+        _Re = _复数特征<_类型>::_取模(_Re);
 
         if (_Arcbig < _Re) { // |re| is large
             _类型 _Fx = _Im / _Re;
 
             _Ux = 1 / _Re / (1 + _Fx * _Fx);
-            _Vx = _Ctraits<_类型>::_Copysign(_Piby2, _Im);
+            _Vx = _复数特征<_类型>::_复制符号(_Piby2, _Im);
         } else if (_Arcbig < _Magim) { // |im| is large
             _类型 _Fx = _Re / _Im;
 
             _Ux = _Fx / _Im / (1 + _Fx * _Fx);
-            _Vx = _Ctraits<_类型>::_Copysign(_Piby2, _Im);
+            _Vx = _复数特征<_类型>::_复制符号(_Piby2, _Im);
         } else if (_Re != 1) { // |re| is small
             _类型 _Refrom1 = 1 - _Re;
             _类型 _Imeps2  = _Magim * _Magim;
 
-            _Ux = static_cast<_类型>(0.25) * _Ctraits<_类型>::log1p(4 * _Re / (_Refrom1 * _Refrom1 + _Imeps2));
-            _Vx = static_cast<_类型>(0.50) * _Ctraits<_类型>::atan2(2 * _Im, _Refrom1 * (1 + _Re) - _Imeps2);
+            _Ux = static_cast<_类型>(0.25) * _复数特征<_类型>::log1p(4 * _Re / (_Refrom1 * _Refrom1 + _Imeps2));
+            _Vx = static_cast<_类型>(0.50) * _复数特征<_类型>::atan2(2 * _Im, _Refrom1 * (1 + _Re) - _Imeps2);
         } else if (_Im == 0) { // {+/-1, 0)
-            _Ux = _Ctraits<_类型>::_Infv();
+            _Ux = _复数特征<_类型>::_无穷值();
             _Vx = _Im;
         } else { // {+/-1, nonzero)
-            _Ux = _Ctraits<_类型>::log(
-                _Ctraits<_类型>::sqrt(_Ctraits<_类型>::sqrt(4 + _Im * _Im)) / _Ctraits<_类型>::sqrt(_Magim));
-            _Vx = _Ctraits<_类型>::_Copysign(static_cast<_类型>(0.50) * (_Piby2 + _Ctraits<_类型>::atan2(_Magim, 2)), _Im);
+            _Ux = _复数特征<_类型>::log(
+                _复数特征<_类型>::sqrt(_复数特征<_类型>::sqrt(4 + _Im * _Im)) / _复数特征<_类型>::sqrt(_Magim));
+            _Vx = _复数特征<_类型>::_复制符号(static_cast<_类型>(0.50) * (_Piby2 + _复数特征<_类型>::atan2(_Magim, 2)), _Im);
         }
 
-        _Ux = _Ctraits<_类型>::_Copysign(_Ux, _Old_re);
+        _Ux = _复数特征<_类型>::_复制符号(_Ux, _Old_re);
     }
     return 复数实现<_类型>(_Ux, _Vx);
 }
@@ -1848,24 +1848,24 @@ _NODISCARD 复数实现<_类型> 反正切(const 复数实现<_类型>& _Left) n
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 复数实现<_类型> 双曲余弦(const 复数实现<_类型>& _Left) noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
-    return 复数实现<_类型>(_Ctraits<_类型>::_Cosh(实部(_Left), _Ctraits<_类型>::cos(虚部(_Left))),
-        _Ctraits<_类型>::_Sinh(实部(_Left), _Ctraits<_类型>::sin(虚部(_Left))));
+    return 复数实现<_类型>(_复数特征<_类型>::_Cosh(实部(_Left), _复数特征<_类型>::cos(虚部(_Left))),
+        _复数特征<_类型>::_Sinh(实部(_Left), _复数特征<_类型>::sin(虚部(_Left))));
 }
 
 template <class _类型>
-_NODISCARD 复数实现<_类型> _Polar_positive_nan_inf_zero_rho(const _类型& _Rho, const _类型& _Theta)
+_NODISCARD 复数实现<_类型> _极坐标正非数值无穷零半径(const _类型& _Rho, const _类型& _Theta)
     noexcept(_Is_unqual_fp<_类型>) { // _Rho is +NaN/+Inf/+0
-    if (_Ctraits<_类型>::_Isnan(_Theta) || _Ctraits<_类型>::_Isinf(_Theta)) { // _Theta is NaN/Inf
-        if (_Ctraits<_类型>::_Isinf(_Rho)) {
-            return 复数实现<_类型>(_Rho, _Ctraits<_类型>::sin(_Theta)); // (Inf, NaN/Inf)
+    if (_复数特征<_类型>::_是非数值(_Theta) || _复数特征<_类型>::_是无穷(_Theta)) { // _Theta is NaN/Inf
+        if (_复数特征<_类型>::_是无穷(_Rho)) {
+            return 复数实现<_类型>(_Rho, _复数特征<_类型>::sin(_Theta)); // (Inf, NaN/Inf)
         } else {
-            return 复数实现<_类型>(_Rho, _Ctraits<_类型>::_Copysign(_Rho, _Theta)); // (NaN/0, NaN/Inf)
+            return 复数实现<_类型>(_Rho, _复数特征<_类型>::_复制符号(_Rho, _Theta)); // (NaN/0, NaN/Inf)
         }
     } else if (_Theta == _类型{0}) { // _Theta is zero
         return 复数实现<_类型>(_Rho, _Theta); // (NaN/Inf/0, 0)
     } else { // _Theta is finite non-zero
         // (NaN/Inf/0, finite non-zero)
-        return 复数实现<_类型>(_Rho * _Ctraits<_类型>::cos(_Theta), _Rho * _Ctraits<_类型>::sin(_Theta));
+        return 复数实现<_类型>(_Rho * _复数特征<_类型>::cos(_Theta), _Rho * _复数特征<_类型>::sin(_Theta));
     }
 }
 
@@ -1874,24 +1874,24 @@ _NODISCARD 复数实现<_类型> exp(const 复数实现<_类型>& _Left) noexcep
     const _类型 _Log_rho = 实部(_Left);
     const _类型 _Theta   = 虚部(_Left);
 
-    if (!_Ctraits<_类型>::_Isnan(_Log_rho) && !_Ctraits<_类型>::_Isinf(_Log_rho)) { // 实部 component is finite
+    if (!_复数特征<_类型>::_是非数值(_Log_rho) && !_复数特征<_类型>::_是无穷(_Log_rho)) { // 实部 component is finite
         _类型 _Real = _Log_rho;
         _类型 _Imag = _Log_rho;
-        _Ctraits<_类型>::_Exp(&_Real, _Ctraits<_类型>::cos(_Theta), 0);
-        _Ctraits<_类型>::_Exp(&_Imag, _Ctraits<_类型>::sin(_Theta), 0);
+        _复数特征<_类型>::_Exp(&_Real, _复数特征<_类型>::cos(_Theta), 0);
+        _复数特征<_类型>::_Exp(&_Imag, _复数特征<_类型>::sin(_Theta), 0);
         return 复数实现<_类型>(_Real, _Imag);
     }
 
     // 实部 component is NaN/Inf
     // return 极坐标(exp(re), im)
-    if (_Ctraits<_类型>::_Isinf(_Log_rho)) {
+    if (_复数特征<_类型>::_是无穷(_Log_rho)) {
         if (_Log_rho < _类型{0}) {
-            return _Polar_positive_nan_inf_zero_rho(_类型{0}, _Theta); // exp(-Inf) = +0
+            return _极坐标正非数值无穷零半径(_类型{0}, _Theta); // exp(-Inf) = +0
         } else {
-            return _Polar_positive_nan_inf_zero_rho(_Log_rho, _Theta); // exp(+Inf) = +Inf
+            return _极坐标正非数值无穷零半径(_Log_rho, _Theta); // exp(+Inf) = +Inf
         }
     } else {
-        return _Polar_positive_nan_inf_zero_rho(_Ctraits<_类型>::_Abs(_Log_rho), _Theta); // exp(NaN) = +NaN
+        return _极坐标正非数值无穷零半径(_复数特征<_类型>::_取模(_Log_rho), _Theta); // exp(NaN) = +NaN
     }
 }
 
@@ -1901,14 +1901,14 @@ _类型 _Fabs(const 复数实现<_类型>& _Left, int* _Pexp) noexcept(_Is_unqua
     // Returns a non-zero even integer in *_Pexp when _Left is finite and non-zero.
     // Returns 0 in *_Pexp when _Left is zero, infinity, or NaN.
     *_Pexp  = 0;
-    _类型 _Av = _Ctraits<_类型>::_Abs(实部(_Left));
-    _类型 _Bv = _Ctraits<_类型>::_Abs(虚部(_Left));
+    _类型 _Av = _复数特征<_类型>::_取模(实部(_Left));
+    _类型 _Bv = _复数特征<_类型>::_取模(虚部(_Left));
 
-    if (_Ctraits<_类型>::_Isinf(_Av) || _Ctraits<_类型>::_Isinf(_Bv)) {
-        return _Ctraits<_类型>::_Infv(); // at least one component is INF
-    } else if (_Ctraits<_类型>::_Isnan(_Av)) {
+    if (_复数特征<_类型>::_是无穷(_Av) || _复数特征<_类型>::_是无穷(_Bv)) {
+        return _复数特征<_类型>::_无穷值(); // at least one component is INF
+    } else if (_复数特征<_类型>::_是非数值(_Av)) {
         return _Av; // 实部 component is NaN
-    } else if (_Ctraits<_类型>::_Isnan(_Bv)) {
+    } else if (_复数特征<_类型>::_是非数值(_Bv)) {
         return _Bv; // imaginary component is NaN
     } else { // neither component is NaN or INF
         if (_Av < _Bv) { // ensure that |_Bv| <= |_Av|
@@ -1924,16 +1924,16 @@ _类型 _Fabs(const 复数实现<_类型>& _Left, int* _Pexp) noexcept(_Is_unqua
             _Av    = _Av * static_cast<_类型>(0.0625);
             _Bv    = _Bv * static_cast<_类型>(0.0625);
         } else {
-            constexpr _类型 _Flt_eps = _Ctraits<_类型>::_Flt_eps();
+            constexpr _类型 _浮点最小增量 = _复数特征<_类型>::_浮点最小增量();
             // TRANSITION, workaround for non-floating-point _类型
-            constexpr _类型 _Leg_tiny = _Flt_eps == 0 ? _类型{0} : 2 * _Ctraits<_类型>::_Flt_norm_min() / _Flt_eps;
+            constexpr _类型 _Leg_tiny = _浮点最小增量 == 0 ? _类型{0} : 2 * _复数特征<_类型>::_浮点规格化最小值() / _浮点最小增量;
 
             if (_Av < _Leg_tiny) {
                 constexpr int _Exponent = -2 * numeric_limits<_类型>::digits;
 
                 *_Pexp = _Exponent;
-                _Av    = _Ctraits<_类型>::ldexp(_Av, -_Exponent);
-                _Bv    = _Ctraits<_类型>::ldexp(_Bv, -_Exponent);
+                _Av    = _复数特征<_类型>::ldexp(_Av, -_Exponent);
+                _Bv    = _复数特征<_类型>::ldexp(_Bv, -_Exponent);
             } else {
                 *_Pexp = -2;
                 _Av    = _Av * 4;
@@ -1946,7 +1946,7 @@ _类型 _Fabs(const 复数实现<_类型>& _Left, int* _Pexp) noexcept(_Is_unqua
             return _Av; // _Bv unimportant
         } else if (_Bv < _Tmp) { // use simple approximation
             const _类型 _Qv = _Av / _Bv;
-            return _Av + _Bv / (_Qv + _Ctraits<_类型>::sqrt(_Qv * _Qv + 1));
+            return _Av + _Bv / (_Qv + _复数特征<_类型>::sqrt(_Qv * _Qv + 1));
         } else { // use 1 1/2 precision to preserve bits
             constexpr _类型 _Root2            = static_cast<_类型>(1.4142135623730950488016887242096981L);
             constexpr _类型 _Oneplusroot2high = static_cast<_类型>(10125945.0 / 4194304.0); // exact if prec >= 24 bits
@@ -1954,7 +1954,7 @@ _类型 _Fabs(const 复数实现<_类型>& _Left, int* _Pexp) noexcept(_Is_unqua
 
             const _类型 _Qv = _Tmp / _Bv;
             const _类型 _Rv = (_Qv + 2) * _Qv;
-            const _类型 _Sv = _Rv / (_Root2 + _Ctraits<_类型>::sqrt(_Rv + 2)) + _Oneplusroot2low + _Qv + _Oneplusroot2high;
+            const _类型 _Sv = _Rv / (_Root2 + _复数特征<_类型>::sqrt(_Rv + 2)) + _Oneplusroot2low + _Qv + _Oneplusroot2high;
             return _Av + _Bv / _Sv;
         }
     }
@@ -1973,14 +1973,14 @@ _NODISCARD inline float _Log_abs(const 复数实现<float>& _Left) noexcept {
 _EXPORT_STD template <class _类型>
 _NODISCARD 复数实现<_类型> log(const 复数实现<_类型>& _Left) noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
     const _类型 _Log_abs_v = _Log_abs(_Left); // get logarithm of magnitude
-    const _类型 _Theta     = _Ctraits<_类型>::atan2(虚部(_Left), 实部(_Left)); // get phase
+    const _类型 _Theta     = _复数特征<_类型>::atan2(虚部(_Left), 实部(_Left)); // get phase
     return 复数实现<_类型>(_Log_abs_v, _Theta);
 }
 
 template <class _类型>
-复数实现<_类型> _Pow(const _类型& _Left, const _类型& _Right) noexcept(_Is_unqual_fp<_类型>) {
+复数实现<_类型> _幂(const _类型& _Left, const _类型& _Right) noexcept(_Is_unqual_fp<_类型>) {
     if (0 <= _Left) {
-        return 复数实现<_类型>(_Ctraits<_类型>::pow(_Left, _Right), _Ctraits<_类型>::_Copysign(_类型{0}, _Right));
+        return 复数实现<_类型>(_复数特征<_类型>::pow(_Left, _Right), _复数特征<_类型>::_复制符号(_类型{0}, _Right));
     } else {
         return exp(_Right * log(复数实现<_类型>(_Left)));
     }
@@ -1990,10 +1990,10 @@ _EXPORT_STD template <class _类型>
 _NODISCARD 复数实现<_类型> pow(const 复数实现<_类型>& _Left, const _类型& _Right)
     noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
     if (虚部(_Left) == 0) {
-        if (_Ctraits<_类型>::_Signbit(虚部(_Left))) {
-            return 共轭(_Pow(实部(_Left), _Right));
+        if (_复数特征<_类型>::_符号位(虚部(_Left))) {
+            return 共轭(_幂(实部(_Left), _Right));
         } else {
-            return _Pow(实部(_Left), _Right);
+            return _幂(实部(_Left), _Right);
         }
     } else {
         return exp(_Right * log(_Left));
@@ -2004,9 +2004,9 @@ _EXPORT_STD template <class _类型>
 _NODISCARD 复数实现<_类型> pow(const _类型& _Left, const 复数实现<_类型>& _Right)
     noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
     if (虚部(_Right) == 0) {
-        return _Pow(_Left, 实部(_Right));
+        return _幂(_Left, 实部(_Right));
     } else if (0 < _Left) {
-        return exp(_Right * _Ctraits<_类型>::log(_Left));
+        return exp(_Right * _复数特征<_类型>::log(_Left));
     } else {
         return exp(_Right * log(复数实现<_类型>(_Left)));
     }
@@ -2018,7 +2018,7 @@ _NODISCARD 复数实现<_类型> pow(const 复数实现<_类型>& _Left, const �
     if (虚部(_Right) == 0) {
         return pow(_Left, 实部(_Right));
     } else if (虚部(_Left) == 0 && 0 < 实部(_Left)) {
-        return exp(_Right * _Ctraits<_类型>::log(实部(_Left)));
+        return exp(_Right * _复数特征<_类型>::log(实部(_Left)));
     } else {
         return exp(_Right * log(_Left));
     }
@@ -2026,8 +2026,8 @@ _NODISCARD 复数实现<_类型> pow(const 复数实现<_类型>& _Left, const �
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 复数实现<_类型> 双曲正弦(const 复数实现<_类型>& _Left) noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
-    return 复数实现<_类型>(_Ctraits<_类型>::_Sinh(实部(_Left), _Ctraits<_类型>::cos(虚部(_Left))),
-        _Ctraits<_类型>::_Cosh(实部(_Left), _Ctraits<_类型>::sin(虚部(_Left))));
+    return 复数实现<_类型>(_复数特征<_类型>::_Sinh(实部(_Left), _复数特征<_类型>::cos(虚部(_Left))),
+        _复数特征<_类型>::_Cosh(实部(_Left), _复数特征<_类型>::sin(虚部(_Left))));
 }
 
 _EXPORT_STD template <class _类型>
@@ -2039,49 +2039,49 @@ _NODISCARD 复数实现<_类型> sqrt(const 复数实现<_类型>& _Left) noexce
         // argument is zero, INF, or NaN
         if (_Rho == 0) {
             return 复数实现<_类型>(_类型{0}, 虚部(_Left));
-        } else if (_Ctraits<_类型>::_Isinf(_Rho)) {
+        } else if (_复数特征<_类型>::_是无穷(_Rho)) {
             const _类型 _Re = 实部(_Left);
             const _类型 _Im = 虚部(_Left);
 
-            if (_Ctraits<_类型>::_Isinf(_Im)) {
-                return 复数实现<_类型>(_Ctraits<_类型>::_Infv(), _Im); // (any, +/-Inf)
-            } else if (_Ctraits<_类型>::_Isnan(_Im)) {
+            if (_复数特征<_类型>::_是无穷(_Im)) {
+                return 复数实现<_类型>(_复数特征<_类型>::_无穷值(), _Im); // (any, +/-Inf)
+            } else if (_复数特征<_类型>::_是非数值(_Im)) {
                 if (_Re < 0) {
-                    return 复数实现<_类型>(_Ctraits<_类型>::_Abs(_Im), _Ctraits<_类型>::_Copysign(_Re, _Im)); // (-Inf, NaN)
+                    return 复数实现<_类型>(_复数特征<_类型>::_取模(_Im), _复数特征<_类型>::_复制符号(_Re, _Im)); // (-Inf, NaN)
                 } else {
                     return _Left; // (+Inf, NaN)
                 }
             } else {
                 if (_Re < 0) {
-                    return 复数实现<_类型>(_类型{0}, _Ctraits<_类型>::_Copysign(_Re, _Im)); // (-Inf, finite)
+                    return 复数实现<_类型>(_类型{0}, _复数特征<_类型>::_复制符号(_Re, _Im)); // (-Inf, finite)
                 } else {
-                    return 复数实现<_类型>(_Re, _Ctraits<_类型>::_Copysign(_类型{0}, _Im)); // (+Inf, finite)
+                    return 复数实现<_类型>(_Re, _复数特征<_类型>::_复制符号(_类型{0}, _Im)); // (+Inf, finite)
                 }
             }
         } else {
             return 复数实现<_类型>(_Rho, _Rho);
         }
     } else { // compute in safest quadrant
-        _类型 _Realmag = _Ctraits<_类型>::ldexp(_Ctraits<_类型>::_Abs(实部(_Left)), -_Leftexp);
-        _Rho         = _Ctraits<_类型>::ldexp(_Ctraits<_类型>::sqrt(2 * (_Realmag + _Rho)), _Leftexp / 2 - 1);
+        _类型 _Realmag = _复数特征<_类型>::ldexp(_复数特征<_类型>::_取模(实部(_Left)), -_Leftexp);
+        _Rho         = _复数特征<_类型>::ldexp(_复数特征<_类型>::sqrt(2 * (_Realmag + _Rho)), _Leftexp / 2 - 1);
 
         if (0 <= 实部(_Left)) {
             return 复数实现<_类型>(_Rho, 虚部(_Left) / (2 * _Rho));
         } else {
             return 复数实现<_类型>(
-                _Ctraits<_类型>::_Abs(虚部(_Left) / (2 * _Rho)), _Ctraits<_类型>::_Copysign(_Rho, 虚部(_Left)));
+                _复数特征<_类型>::_取模(虚部(_Left) / (2 * _Rho)), _复数特征<_类型>::_复制符号(_Rho, 虚部(_Left)));
         }
     }
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 复数实现<_类型> 双曲正切(const 复数实现<_类型>& _Left) noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
-    _类型 _Tv = _Ctraits<_类型>::tan(虚部(_Left));
-    _类型 _Sv = _Ctraits<_类型>::_Sinh(实部(_Left), _类型{1});
+    _类型 _Tv = _复数特征<_类型>::tan(虚部(_Left));
+    _类型 _Sv = _复数特征<_类型>::_Sinh(实部(_Left), _类型{1});
     _类型 _Bv = _Sv * (_类型{1} + _Tv * _Tv);
     _类型 _Dv = _类型{1} + _Bv * _Sv;
 
-    if (_Ctraits<_类型>::_Isinf(_Dv)) {
+    if (_复数特征<_类型>::_是无穷(_Dv)) {
         _类型 _Real;
 
         if (_Sv < _类型{0}) {
@@ -2093,13 +2093,13 @@ _NODISCARD 复数实现<_类型> 双曲正切(const 复数实现<_类型>& _Left
         return 复数实现<_类型>(_Real, _Tv * _类型{0});
     }
 
-    return 复数实现<_类型>((_Ctraits<_类型>::sqrt(_类型{1} + _Sv * _Sv)) * _Bv / _Dv, _Tv / _Dv);
+    return 复数实现<_类型>((_复数特征<_类型>::sqrt(_类型{1} + _Sv * _Sv)) * _Bv / _Dv, _Tv / _Dv);
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _类型 幅角(const 复数实现<_类型>& _Left) noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
     // return phase angle of 复数实现 as 实部
-    return _Ctraits<_类型>::atan2(虚部(_Left), 实部(_Left));
+    return _复数特征<_类型>::atan2(虚部(_Left), 实部(_Left));
 }
 
 _EXPORT_STD template <class _类型>
@@ -2111,9 +2111,9 @@ _NODISCARD _CONSTEXPR20 复数实现<_类型> 共轭(const 复数实现<_类型>
 _EXPORT_STD template <class _类型>
 _NODISCARD 复数实现<_类型> 投影(const 复数实现<_类型>& _Left) noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
     // return 复数实现 projection
-    if (_Ctraits<_类型>::_Isinf(实部(_Left)) || _Ctraits<_类型>::_Isinf(虚部(_Left))) {
-        const _类型 _Imag = _Ctraits<_类型>::_Copysign(_类型{0}, 虚部(_Left));
-        return 复数实现<_类型>(_Ctraits<_类型>::_Infv(), _Imag);
+    if (_复数特征<_类型>::_是无穷(实部(_Left)) || _复数特征<_类型>::_是无穷(虚部(_Left))) {
+        const _类型 _Imag = _复数特征<_类型>::_复制符号(_类型{0}, 虚部(_Left));
+        return 复数实现<_类型>(_复数特征<_类型>::_无穷值(), _Imag);
     }
 
     return _Left;
@@ -2121,8 +2121,8 @@ _NODISCARD 复数实现<_类型> 投影(const 复数实现<_类型>& _Left) noex
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 复数实现<_类型> cos(const 复数实现<_类型>& _Left) noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
-    return 复数实现<_类型>(_Ctraits<_类型>::_Cosh(虚部(_Left), _Ctraits<_类型>::cos(实部(_Left))),
-        -_Ctraits<_类型>::_Sinh(虚部(_Left), _Ctraits<_类型>::sin(实部(_Left))));
+    return 复数实现<_类型>(_复数特征<_类型>::_Cosh(虚部(_Left), _复数特征<_类型>::cos(实部(_Left))),
+        -_复数特征<_类型>::_Sinh(虚部(_Left), _复数特征<_类型>::sin(实部(_Left))));
 }
 
 _EXPORT_STD template <class _类型>
@@ -2139,15 +2139,15 @@ _NODISCARD _CONSTEXPR20 _类型 模方(const 复数实现<_类型>& _Left) noexc
 _EXPORT_STD template <class _类型>
 _NODISCARD 复数实现<_类型> 极坐标(const _类型& _Rho, const _类型& _Theta) noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
     // return _Rho * exp(i * _Theta) as 复数实现
-    if (!_Ctraits<_类型>::_Isnan(_Rho) && !_Ctraits<_类型>::_Isinf(_Rho) && _Rho != _类型{0}) { // _Rho is finite non-zero
-        return 复数实现<_类型>(_Rho * _Ctraits<_类型>::cos(_Theta), _Rho * _Ctraits<_类型>::sin(_Theta));
+    if (!_复数特征<_类型>::_是非数值(_Rho) && !_复数特征<_类型>::_是无穷(_Rho) && _Rho != _类型{0}) { // _Rho is finite non-zero
+        return 复数实现<_类型>(_Rho * _复数特征<_类型>::cos(_Theta), _Rho * _复数特征<_类型>::sin(_Theta));
     }
 
     // _Rho is NaN/Inf/0
-    if (_Ctraits<_类型>::_Signbit(_Rho)) {
-        return -_Polar_positive_nan_inf_zero_rho(-_Rho, _Theta);
+    if (_复数特征<_类型>::_符号位(_Rho)) {
+        return -_极坐标正非数值无穷零半径(-_Rho, _Theta);
     } else {
-        return _Polar_positive_nan_inf_zero_rho(_Rho, _Theta);
+        return _极坐标正非数值无穷零半径(_Rho, _Theta);
     }
 }
 
@@ -2159,8 +2159,8 @@ _NODISCARD 复数实现<_类型> 极坐标(const _类型& _Rho) noexcept(_Is_unq
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 复数实现<_类型> sin(const 复数实现<_类型>& _Left) noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
-    return 复数实现<_类型>(_Ctraits<_类型>::_Cosh(虚部(_Left), _Ctraits<_类型>::sin(实部(_Left))),
-        _Ctraits<_类型>::_Sinh(虚部(_Left), _Ctraits<_类型>::cos(实部(_Left))));
+    return 复数实现<_类型>(_复数特征<_类型>::_Cosh(虚部(_Left), _复数特征<_类型>::sin(实部(_Left))),
+        _复数特征<_类型>::_Sinh(虚部(_Left), _复数特征<_类型>::cos(实部(_Left))));
 }
 
 _EXPORT_STD template <class _类型>
@@ -2170,57 +2170,57 @@ _NODISCARD 复数实现<_类型> tan(const 复数实现<_类型>& _Left) noexcep
 }
 
 template <class _类型>
-using _Upgrade_to_double = conditional_t<is_integral_v<_类型>, double, _类型>;
+using _升级到双精度 = conditional_t<is_integral_v<_类型>, double, _类型>;
 
 _EXPORT_STD template <class _类型, enable_if_t<is_arithmetic_v<_类型>, int> = 0>
-_NODISCARD _Upgrade_to_double<_类型> 幅角(_类型 _Left) noexcept /* strengthened */ {
-    using _Upgraded = _Upgrade_to_double<_类型>;
-    const auto _Val = static_cast<_Upgraded>(_Left);
+_NODISCARD _升级到双精度<_类型> 幅角(_类型 _Left) noexcept /* strengthened */ {
+    using _升级后类型 = _升级到双精度<_类型>;
+    const auto _Val = static_cast<_升级后类型>(_Left);
 
-    return _Ctraits<_Upgraded>::atan2(0, _Val);
+    return _复数特征<_升级后类型>::atan2(0, _Val);
 }
 
 _EXPORT_STD template <class _类型, enable_if_t<is_arithmetic_v<_类型>, int> = 0>
-_NODISCARD _CONSTEXPR20 _Upgrade_to_double<_类型> 虚部(_类型) noexcept /* strengthened */ {
+_NODISCARD _CONSTEXPR20 _升级到双精度<_类型> 虚部(_类型) noexcept /* strengthened */ {
     return 0;
 }
 
 _EXPORT_STD template <class _类型, enable_if_t<is_arithmetic_v<_类型>, int> = 0>
-_NODISCARD _CONSTEXPR20 _Upgrade_to_double<_类型> 实部(_类型 _Left) noexcept /* strengthened */ {
-    using _Upgraded = _Upgrade_to_double<_类型>;
-    const auto _Val = static_cast<_Upgraded>(_Left);
+_NODISCARD _CONSTEXPR20 _升级到双精度<_类型> 实部(_类型 _Left) noexcept /* strengthened */ {
+    using _升级后类型 = _升级到双精度<_类型>;
+    const auto _Val = static_cast<_升级后类型>(_Left);
 
     return _Val;
 }
 
 _EXPORT_STD template <class _类型, enable_if_t<is_arithmetic_v<_类型>, int> = 0>
-_NODISCARD _CONSTEXPR20 _Upgrade_to_double<_类型> 模方(_类型 _Left) noexcept /* strengthened */ {
-    using _Upgraded = _Upgrade_to_double<_类型>;
-    const auto _Val = static_cast<_Upgraded>(_Left);
+_NODISCARD _CONSTEXPR20 _升级到双精度<_类型> 模方(_类型 _Left) noexcept /* strengthened */ {
+    using _升级后类型 = _升级到双精度<_类型>;
+    const auto _Val = static_cast<_升级后类型>(_Left);
 
     return _Val * _Val;
 }
 
 _EXPORT_STD template <class _类型, enable_if_t<is_arithmetic_v<_类型>, int> = 0>
-_NODISCARD _CONSTEXPR20 复数实现<_Upgrade_to_double<_类型>> 共轭(_类型 _Left) noexcept /* strengthened */ {
-    using _Upgraded = _Upgrade_to_double<_类型>;
-    const auto _Val = static_cast<_Upgraded>(_Left);
+_NODISCARD _CONSTEXPR20 复数实现<_升级到双精度<_类型>> 共轭(_类型 _Left) noexcept /* strengthened */ {
+    using _升级后类型 = _升级到双精度<_类型>;
+    const auto _Val = static_cast<_升级后类型>(_Left);
 
-    return 复数实现<_Upgraded>(_Val, -_Upgraded{0});
+    return 复数实现<_升级后类型>(_Val, -_升级后类型{0});
 }
 
 _EXPORT_STD template <class _类型, enable_if_t<is_arithmetic_v<_类型>, int> = 0>
-_NODISCARD 复数实现<_Upgrade_to_double<_类型>> 投影(_类型 _Left) noexcept /* strengthened */ {
-    using _Upgraded = _Upgrade_to_double<_类型>;
-    const auto _Val = static_cast<_Upgraded>(_Left);
+_NODISCARD 复数实现<_升级到双精度<_类型>> 投影(_类型 _Left) noexcept /* strengthened */ {
+    using _升级后类型 = _升级到双精度<_类型>;
+    const auto _Val = static_cast<_升级后类型>(_Left);
 
-    if (_Ctraits<_Upgraded>::_Isinf(_Val)) {
+    if (_复数特征<_升级后类型>::_是无穷(_Val)) {
         // C11 7.3.9.5/2: "z projects to z except that all 复数实现 infinities [...]
         // project to positive infinity on the 实部 axis."
-        return 复数实现<_Upgraded>(_Ctraits<_Upgraded>::_Infv(), 0);
+        return 复数实现<_升级后类型>(_复数特征<_升级后类型>::_无穷值(), 0);
     }
 
-    return 复数实现<_Upgraded>(_Val, 0);
+    return 复数实现<_升级后类型>(_Val, 0);
 }
 
 _EXPORT_STD template <class _Ty1, class _Ty2>
@@ -2233,17 +2233,17 @@ _NODISCARD 复数实现<_Common_float_type_t<_Ty1, _Ty2>> pow(const 复数实现
 _EXPORT_STD template <class _Ty1, class _Ty2, enable_if_t<is_arithmetic_v<_Ty2>, int> = 0>
 _NODISCARD 复数实现<_Common_float_type_t<_Ty1, _Ty2>> pow(const 复数实现<_Ty1>& _Left, const _Ty2& _Right)
     noexcept(_Is_unqual_fp<_Ty1>) /* strengthened */ {
-    using _Promoted = _Common_float_type_t<_Ty1, _Ty2>;
-    using _Type     = 复数实现<_Promoted>;
-    return _STD pow(_Type(_Left), _Type(static_cast<_Promoted>(_Right)));
+    using _提升后类型 = _Common_float_type_t<_Ty1, _Ty2>;
+    using _Type     = 复数实现<_提升后类型>;
+    return _STD pow(_Type(_Left), _Type(static_cast<_提升后类型>(_Right)));
 }
 
 _EXPORT_STD template <class _Ty1, class _Ty2, enable_if_t<is_arithmetic_v<_Ty1>, int> = 0>
 _NODISCARD 复数实现<_Common_float_type_t<_Ty1, _Ty2>> pow(const _Ty1& _Left, const 复数实现<_Ty2>& _Right)
     noexcept(_Is_unqual_fp<_Ty2>) /* strengthened */ {
-    using _Promoted = _Common_float_type_t<_Ty1, _Ty2>;
-    using _Type     = 复数实现<_Promoted>;
-    return _STD pow(_Type(static_cast<_Promoted>(_Left)), _Type(_Right));
+    using _提升后类型 = _Common_float_type_t<_Ty1, _Ty2>;
+    using _Type     = 复数实现<_提升后类型>;
+    return _STD pow(_Type(static_cast<_提升后类型>(_Left)), _Type(_Right));
 }
 
 _EXPORT_STD template <class _类型, class _元素, class _Tr>
