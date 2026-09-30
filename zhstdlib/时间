@@ -25,7 +25,7 @@
     使用 文件时钟 = std::chrono::file_clock;
     使用 本地时间类型 = std::chrono::local_t;
     模板 <类型名 目标时长, 类型名 表示, 类型名 周期> 声明类型(自动) 时长转换(const std::chrono::duration<表示, 周期>& 甲) { 返回 std::chrono::duration_cast<目标时长>(甲); }
-    模板 <类型名 目标时间点, 类型名 时钟, 类型名 时长类型> 声明类型(自动) 时间点转换(const std::chrono::time_point<时钟, 时长类型>& 甲) { 返回 std::chrono::time_point_cast<目标时间点>(甲); }
+    模板 <类型名 目标时长, 类型名 时钟, 类型名 时长类型> 声明类型(自动) 时间点转换(const std::chrono::time_point<时钟, 时长类型>& 甲) { 返回 std::chrono::time_point_cast<目标时长>(甲); }
     模板 <类型名 目标时钟, 类型名 源时钟, 类型名 时长类型> 声明类型(自动) 时钟转换(const std::chrono::time_point<源时钟, 时长类型>& 甲) { 返回 std::chrono::clock_cast<目标时钟>(甲); }
     模板 <类型名 目标时长, 类型名 表示, 类型名 周期> 声明类型(自动) 时长下取整(const std::chrono::duration<表示, 周期>& 甲) { 返回 std::chrono::floor<目标时长>(甲); }
     模板 <类型名 目标时长, 类型名 表示, 类型名 周期> 声明类型(自动) 时长上取整(const std::chrono::duration<表示, 周期>& 甲) { 返回 std::chrono::ceil<目标时长>(甲); }
