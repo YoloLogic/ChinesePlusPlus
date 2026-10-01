@@ -417,14 +417,26 @@ $hb = $LASTEXITCODE
 #    这是「随便拿一个开源项目也要照样编得过」目前最强的一条机器证据。
 #  嫌慢时可 `-SkipThirdParty`（默认必跑：用户的护栏是"随便拿一个开源项目也要照样编得过"）。
 # ---------------------------------------------------------------------------
+#  §17.30（第 11 轮）从 **4 项扩到 8 项**并加 **shared/debug 变体**：
+#    8 项 = pugixml,cJSON,lz4,fmt（老四）+ tinyxml2,googletest,libuv,zlib（新四）。
+#    新四实测：cases=4 pass=1 same=3 fail=0（tinyxml2 PASS；googletest/libuv/zlib 与原生**同样失败**
+#    = 环境/上游问题，不是我们）。变体单独跑一批（**只挑构建便宜的项目**：变体本身不改代码，
+#    只换链接形态/优化等级，重点是"我们的编译器在别的形态下也不比原生差"）——
+#    实测 4 个 case 只要 0.2 分钟（构建树复用）。
+#  嫌慢时可 `-SkipThirdParty`（默认必跑：用户的护栏是"随便拿一个开源项目也要照样编得过"）。
+# ---------------------------------------------------------------------------
 if (-not $SkipThirdParty) {
-    Write-Host "=== 第三方开源项目守卫（§17.19.48：我们的编译器 vs 原生）===" -ForegroundColor Cyan
-    & pwsh -NoProfile -Command "& '$root\tools\verify_third_party.ps1' -Projects pugixml,cJSON,lz4,fmt -Variants static"
+    Write-Host "=== 第三方开源项目守卫（§17.19.48：我们的编译器 vs 原生）—— 8 项 ===" -ForegroundColor Cyan
+    & pwsh -NoProfile -Command "& '$root\tools\verify_third_party.ps1' -Projects pugixml,cJSON,lz4,fmt,tinyxml2,googletest,libuv,zlib -Variants static"
     $tp = $LASTEXITCODE
-    if ($tp -ne 0) {
+    Write-Host "=== 第三方开源项目守卫（§17.30）—— shared / debug 变体 ===" -ForegroundColor Cyan
+    & pwsh -NoProfile -Command "& '$root\tools\verify_third_party.ps1' -Projects tinyxml2,pugixml,lz4 -Variants shared,debug"
+    $tp2 = $LASTEXITCODE
+    if ($tp -ne 0 -or $tp2 -ne 0) {
+        $tp = 1
         Write-Host "  ⚠ 若报 `program not executable`/configure 失败：先查发行工具链是否完整" -ForegroundColor Yellow
         Write-Host "    （dist\Chinese++-0.1-win64\bin 里的 lld-link.exe / llvm-ar.exe / llvm-rc.exe 要补进 build\Release\bin）" -ForegroundColor Yellow
-    }
+    } else { $tp = 0 }
 } else {
     Write-Host "=== 第三方开源项目守卫：已按 -SkipThirdParty 跳过（默认必跑）===" -ForegroundColor DarkYellow
     $tp = 0
