@@ -107,6 +107,10 @@ function Get-RoleArg([string] $decl, [string[]] $all, [int] $idx) {
     #  ⚠ 只拆**哨兵**：`尾`（尾迭代器）**必须和 `首` 同类型**（`距离(首,尾)` 一族要求 same_as），
     #  一起改就会换一批名字去死 —— "改一个见证 = 动一片名字"，必须收窄。
     if ($nm -match '^_Se$|^_Sentinel$|^哨兵') { return '常量 整数*' }
+    #  §17.40 **指针形参**要有指针见证：`检查数组迭代器<_Ptr>` 里有
+    #  `static_assert(is_pointer_v<_Ptr> && is_object_v<remove_pointer_t<_Ptr>>)` ——
+    #  默认给 `整数` 必然撞这个断言 ✗，给 `整数*` 才是一次真实例化 ✓。
+    if ($nm -match '^_Ptr$|^_Pointer$|^指针') { return '整数*' }
     if ($nm -match '^_It$|^_Iter$|^_Iterator$|^迭代|迭代$|^尾$|^首$') { return '整数*' }
     return '整数'
 }
@@ -151,7 +155,10 @@ function Get-TemplateArgs([string] $decl) {
 #   `class 映射实现 : public _树<…>`）—— 所以从「class/类型 X」这一行**回头看**最近的 `模板 <…>`。
 function Get-ImplArgsFromText([string] $text, [string] $impl) {
     if (-not $text) { return $null }
-    $cm = [regex]::Match($text, '(?m)^\s*(?:类型|类|结构|class|struct)\s+' + [regex]::Escape($impl) + '\b')
+    #  §17.40 类名前面可能夹**宏**：实测 `template <class _Ptr> class _DEPRECATE_STDEXT_ARR_ITERS 检查数组迭代器 {`
+    #  —— 老正则要求 `class` **紧跟**名字 ✗ -> 实参整段取不到 -> 只剩 `<>` -> 记成"太少个模板实参"，
+    #  而真因是"我没找到模板头"。放宽成"同一行里，类关键字之后出现过这个名字"。
+    $cm = [regex]::Match($text, '(?m)^\s*(?:类型|类|结构|class|struct)\s+[^\n]*?(?<![\w\u4e00-\u9fff])' + [regex]::Escape($impl) + '(?![\w\u4e00-\u9fff])')
     if (-not $cm.Success) { return $null }
     $before = $text.Substring(0, $cm.Index)
     #  ⚠ 前缀必须写 `.*`（贪婪）才会命中**最近**的那个模板头；否则正则从文件开头第一个
@@ -627,6 +634,17 @@ foreach ($p in $dtab.PSObject.Properties) {
     $implArgs = @{}   # 内部件名 -> 它自己的合成实参（从产物正文的 `模板 <…> 类型 X` 精确取）
     $memberHost = @{}  # §17.27 成员 typedef 名 -> 静态推断出的宿主 @{Class;Args}
     $memberHostCross = @{}  # §17.32 成员 typedef 名 -> 跨产物真实实例化形态的宿主表达
+    #  §17.40 产物里**实际出现过的名域**（`名域 细节stdext {` 这种）。用途：内部件名不一定住在
+    #  `标准::细节`，实测 `检查数组迭代器`/`未检查数组迭代器` 住在 `标准::细节stdext` —— 只会拼
+    #  `标准::细节::<名>` 的话，编译器给的正解（`细节stdext::检查数组迭代器`）也用不上 ✗。
+    #  ⚠ 只是"候选"：拼错的名域编不过是无害失败，而且**全程不出这个产物**，没有跨产物包含的污染风险。
+    $nss = @()
+    if ($ptxt) {
+        foreach ($mm in [regex]::Matches($ptxt, '(?m)^\s*名域\s+([\w\u4e00-\u9fff]+)\s*\{')) {
+            $nsn = $mm.Groups[1].Value
+            if ($nsn -ne '标准' -and $nss -notcontains $nsn) { $nss += $nsn }
+        }
+    }
     if (($p.Value.PSObject.Properties.Name -contains 'types') -and $p.Value.types) {
         foreach ($k in $p.Value.types.PSObject.Properties) {
             $v = [string]$k.Value
@@ -675,7 +693,7 @@ foreach ($p in $dtab.PSObject.Properties) {
     }
     $tests = ''
     if (($p.Value.PSObject.Properties.Name -contains 'tests') -and $p.Value.tests) { foreach ($tc in $p.Value.tests) { $tests += ([string]$tc[1]) + "`n" } }
-    $products += [pscustomobject]@{ Track = '深度'; Product = $zh; TParam = $tp; Names = @($names | Sort-Object Name -Unique); Tests = $tests; HostPub = $hostPub; HostImps = @($hostImps); ImplArgs = $implArgs; MemberHost = $memberHost; MemberHostCross = $memberHostCross }
+    $products += [pscustomobject]@{ Track = '深度'; Product = $zh; TParam = $tp; Names = @($names | Sort-Object Name -Unique); Tests = $tests; HostPub = $hostPub; HostImps = @($hostImps); ImplArgs = $implArgs; MemberHost = $memberHost; MemberHostCross = $memberHostCross; Namespaces = @($nss) }
 }
 
 # ③ C 轨道（表在源码里）
@@ -741,6 +759,12 @@ New-Item -ItemType Directory -Force $work | Out-Null
 # ---------------------------------------------------------------------------
 $shardMerged = $false
 if ($ManifestFile) { $products = @(Import-Clixml -Path $ManifestFile) }   # 子进程：吃父进程建好的清单
+#  §17.40 产物名 -> 它的**公开宿主表达式**（`标准::映射<整数, 整数>` 这种）。
+#  用途：内部件的成员 typedef 在**公开容器**里常同名存在（`映射<整数,整数>::常量引用` 实测存在 ✓），
+#  而 `细节::_树值<整数>::常量引用` 会因为 `整数` 不是 traits 类而必失败 ✗。
+#  ⚠ 必须在**分片过滤之前**建：跨产物宿主指向的那个产物可能不在本分片里。
+#  §17.40 这里曾建过"产物 -> 公开宿主表达式"的映射，用来给内部件成员出"公开容器宿主"候选。
+#  实验证明这条路会污染探针 TU（详见 内部实现类 分支里的实验记录），已**撤回**；映射一并删掉。
 if ($Shards -le 0) { $Shards = [Math]::Min(12, [Environment]::ProcessorCount) }
 if ($Shards -gt 1 -and -not $isChild) {
     $manifestPath = Join-Path $work 'products.xml'
@@ -840,6 +864,38 @@ foreach ($p in $products) {
                     $ha2 = [string]$mh.Args
                     #  §17.39 同前两处：全默认形参的宿主写成 `宿主<>`（以前是裸名，必失败）✗
                     $line4 = ("    标准::细节::{0}{1}::{2}* 针{3} = 空指针; (空型)针{3};" -f $mh.Class, $(if ($ha2) { "<$ha2>" } else { '<>' }), $n.Name, $id)
+                }
+                #  §17.40 **实验记录（已撤回，别再做）**：试过"同一个中文名在别的产物的公开宿主上"这条
+                #  候选（`标准::映射<整数,整数>::常量引用` 单独编**确实能解析** ✓），实测确实销掉 5 个名字，
+                #  但代价是**整批探针被打崩**：候选宿主所属产物要进探针包含集，而**跨产物 `#包含` 会污染
+                #  整个 TU** —— `队列` 的自动探针 9 → **0**，`队列实现/后/基类/交换/优先队列实现` 5 个名字
+                #  反过来被记成"未覆盖" ✗✗。这就是"跑 0 条的通过不是通过"要防的事，故**撤回**。
+                #  消除路径：这类"内部件的成员名"改用**条目真用例**（用例 TU 是独立完整程序，可以自由包含
+                #  多个产品），而不是往探针 TU 里塞别的产物。
+                #  §17.40 **名域限定候选**：这个产物里实际出现过的名域各来一条（上限 4 条）。
+                #  实测 `检查数组迭代器`/`未检查数组迭代器` 住在 `标准::细节stdext` —— 只会拼
+                #  `标准::细节::<名>` 时，连编译器给出的正解都用不上 ✗。名域错 = 无害失败，
+                #  而且它**全程在本产物内**，没有跨产物包含那种污染风险。
+                if (($p.PSObject.Properties.Name -contains 'Namespaces') -and @($p.Namespaces).Count) {
+                    $ni = 0
+                    $iaNs = ''
+                    if ($p.ImplArgs -and $p.ImplArgs.ContainsKey($n.Name)) { $iaNs = [string]$p.ImplArgs[$n.Name] }
+                    foreach ($nsq in @($p.Namespaces)) {
+                        $ni++
+                        if ($ni -gt 3) { break }
+                        #  ⚠ 名域**可能开在全局**（实测 `名域 细节stdext {` 不在 `标准::` 下 ——
+                        #  `标准::细节stdext::X` 报「不是类、名域或枚举」✗，而编译器给的正解
+                        #  `细节stdext::检查数组迭代器` 恰恰是**不带 `标准::` 前缀**的那个 ✓）。
+                        #  所以两种前缀都出，让编译器裁决。
+                        foreach ($pre in @('标准::', '')) {
+                            $items += [pscustomobject]@{ Line = ("    {0}{1}::{2}* 针{3}s{4} = 空指针; (空型)针{3}s{4};" -f $pre, $nsq, $n.Name, $id, $ni); Name = $n.Name; Kind = $n.Kind }
+                            #  §17.40 名域里的名字多半也是**类模板**：`检查数组迭代器<_Ptr>` 必须带实参，
+                            #  裸名不是类型 ✗（实参取不到就给 `<>`，见 §17.37/§17.39 同一条口径）。
+                            $items += [pscustomobject]@{ Line = ("    {0}{1}::{2}{3}* 针{4}s{5} = 空指针; (空型)针{4}s{5};" -f $pre, $nsq, $n.Name, $(if ($iaNs) { "<$iaNs>" } else { '<>' }), $id, $ni); Name = $n.Name; Kind = $n.Kind }
+                        }
+                        if ($probed -notcontains $n.Name) { $probed += $n.Name }
+                        $used = $true
+                    }
                 }
             }
             '模板类型' { $line = Get-AliasProbeLine $n $id; $line2 = $script:AliasSlot2; $line5 = $script:AliasSlot3 }
@@ -1000,7 +1056,15 @@ foreach ($p in $products) {
                 $sm = [regex]::Match([string]$ri.Err, '你是不是想写[^'']*''([^'']+)''')
                 if ($sm.Success) {
                     $sug = $sm.Groups[1].Value
-                    $lnS = ([string]$it.Line).Replace('标准::' + $it.Name, $sug)
+                    #  §17.40 探针行里的限定路径**不一定是 `标准::<名>`**：内部件探针写的是
+                    #  `标准::细节::<名>`，老写法 `Replace('标准::' + 名, 建议)` 根本替换不上 ✗
+                    #  —— 实测 `检查数组迭代器`：编译器自己给出正解 `细节stdext::检查数组迭代器`，
+                    #  却因为这段替换空转而被记成"未覆盖"，白丢。
+                    #  改成按"名字前面的整段限定符"替换（`[\w\u4e00-\u9fff:]*` 贪婪吃掉 `标准::细节::`）。
+                    #  用 Remove/Insert 而不是 `-replace`：建议路径里若含 `$` 不会被当替换变量 ✗。
+                    $pm2 = [regex]::Match([string]$it.Line, '[\w\u4e00-\u9fff:]*(?<![\w\u4e00-\u9fff])' + [regex]::Escape($it.Name))
+                    $lnS = [string]$it.Line
+                    if ($pm2.Success) { $lnS = $lnS.Remove($pm2.Index, $pm2.Length).Insert($pm2.Index, $sug) }
                     if ($lnS -ne [string]$it.Line) {
                         $riS = Invoke-Probe @($lnS) ('_s' + (Get-StableId $sug))
                         #  ⚠ §17.37：名字**换一条形态**编过了，但**原来那条编不过的候选不能留在合批里** ——
