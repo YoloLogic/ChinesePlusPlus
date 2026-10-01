@@ -199,7 +199,7 @@ function Get-FuncParams([string] $line) {
     return @{ Name = $m.Groups[1].Value; Params = (Split-TopLevel $m.Groups[2].Value) }
 }
 #  见证种类：组=整数数组（迭代器）、出=输出缓冲、壹=左值、丙=变参 lambda、引=随机引擎、范=向量
-function New-WitnessDecl([string[]] $kinds, [int] $id) {
+function New-WitnessDecl([string[]] $kinds, $id) {
     $d = @()
     if ($kinds -contains '组') { $d += "        整数 组$id[8]{0,1,2,3,4,5,6,7};" }
     if ($kinds -contains '出') { $d += "        整数 出$id[32]{};" }
@@ -213,7 +213,7 @@ function New-WitnessDecl([string[]] $kinds, [int] $id) {
 }
 #  §17.31 模板别名/模板类型的探针行：视图类模板出**多条范围形状**候选，
 #  其余只出一条。返回第一条；第 2/3 条塞进调用方给的引用槽。
-function Get-AliasProbeLine($n, [int] $id) {
+function Get-AliasProbeLine($n, $id) {
     $isView = ($n.Template -match '视图|_Vw')
     $tries = $(if ($isView) { @(0, 1, 2) } else { @(0) })
     $made = @()
@@ -272,7 +272,11 @@ function Get-SubstitutedArgs([string] $argsText) {
             $nm = [regex]::Match($t, '^([\w\u4e00-\u9fff]+)\s*<(.*)>\s*$')
             $cls2 = $nm.Groups[1].Value
             if ($cls2 -notmatch '^(std|标准)') { $cls2 = '标准::细节::' + $cls2 }
-            $out += ($cls2 + '<' + (Get-SubstitutedArgs $nm.Groups[2].Value) + '>')
+            $body2 = (Get-SubstitutedArgs $nm.Groups[2].Value)
+            #  §17.37 内层实参表为空（`_树<>`、`_树值<_树<>>` 这类）时**必须补 `<>`**，不能退化成裸类名：
+            #  能进这个分支就说明原文带尖括号，即它是个模板 id；`X<>` 是合法拼写而裸名不是类型。
+            #  实测畸形候选 `标准::细节::_树值<标准::细节::<>>` 就是空体被拼坏的结果。
+            if ($body2) { $out += ($cls2 + '<' + $body2 + '>') } else { $out += ($cls2 + '<>') }
         } elseif ($t -match '^(true|false|真值|假值|\d+)$') { $out += $t }
         elseif ($t -match '^[\w\u4e00-\u9fff]+\.\.\.$') { $out += '整数' }   # §17.36 包形参（_Inner...）
         elseif ($t -match '^[\w\u4e00-\u9fff]+$') { $out += (Get-RoleArg $roleAll[$i] $roleAll $i) }
@@ -280,7 +284,7 @@ function Get-SubstitutedArgs([string] $argsText) {
     }
     return ($out -join ', ')
 }
-function Get-Witness([string] $type, [string] $pname, [int] $id) {
+function Get-Witness([string] $type, [string] $pname, $id) {
     #  返回 @{ Expr; Kind } ；$null = 这个形参见证不出来（整个名字不做探针）
     $t = ($type.Trim() -replace '^const\s+', '') -replace '\s*[&*]+\s*$', ''
     $k = ''
@@ -404,7 +408,7 @@ function Get-WitnessIncludes([string[]] $kinds) {
 #  顶层 `标准::尺寸类型` 当然找不到 —— §17.22 之前这一整批只有一句"需宿主类型"，从没真试过宿主形态。
 #  ⚠ 形参别叫 `$host` —— `$Host` 是 PowerShell 的**只读自动变量**（host UI 对象），
 #    同名形参一调用就报「无法覆盖变量 host，因为它是只读变量或常量」（实测踩过）。
-function Get-NestedLine([string] $hostExpr, $n, [int] $id) {
+function Get-NestedLine([string] $hostExpr, $n, $id) {
     switch ([string]$n.Inner) {
         '类型' { return ("    {0}::{1}* 针{2} = 空指针; (空型)针{2};" -f $hostExpr, $n.Name, $id) }
         '模板别名' { $a = Get-TemplateArgs $n.Template; if ($a) { return ("    {0}::{1}<{2}>* 针{3} = 空指针; (空型)针{3};" -f $hostExpr, $n.Name, $a, $id) } }
@@ -413,7 +417,7 @@ function Get-NestedLine([string] $hostExpr, $n, [int] $id) {
     }
     return $null
 }
-function Get-TypeArgWitness([string] $body, [int] $id) {
+function Get-TypeArgWitness([string] $body, $id) {
     #  模板形参 -> 显式模板实参；有一个见证不出来就返回 $null（B 级探针不做）
     if (-not $body) { return $null }
     $args = @()
@@ -431,7 +435,7 @@ function Get-TypeArgWitness([string] $body, [int] $id) {
     if (-not $args.Count) { return $null }
     return ($args -join ', ')
 }
-function New-TplProbe($n, [int] $id, [string] $prodPath) {
+function New-TplProbe($n, $id, [string] $prodPath) {
     #  返回 @{ Name; Kind; Line(A); LineB; DefLine } ；$null = 见证表达不出，不做探针
     if (-not $n.Raw) { return $null }
     $fp = Get-FuncParams $n.Raw
@@ -692,7 +696,10 @@ foreach ($p in $products) {
         $used = $false
         if ($p.Tests -and $p.Tests -match [regex]::Escape($n.Name)) { $byTest += $n.Name; $used = $true }
         $nid++
-        $id = $nid
+        #  §17.37 **id 不能是纯数字**：多候选时我用「把 id 换成 id_序号」区分同名变量，
+        #  纯数字 id 会把行里的字面量一起改掉 —— 实测生成过 `整数 壹1_2 = 1_2;`（`= 1;` 被改成 `= 1_2;`）✗✗。
+        #  加字母前缀（`n1`）就没有这个歧义。
+        $id = "n$nid"
         #  §17.21 模板函数走「合成实参真调用」探针（自成一批，见下面的 tpl 批）
         #  §17.22 手写层里的模板函数也走同一条路（它是"名字自己是什么"的一类）
         if ($n.Raw -and ($n.Kind -eq '模板函数' -or $n.Kind -eq '手写层探针')) {
@@ -713,6 +720,13 @@ foreach ($p in $products) {
                 $ia = ''
                 if ($p.ImplArgs -and $p.ImplArgs.ContainsKey($n.Name)) { $ia = [string]$p.ImplArgs[$n.Name] }
                 if ($ia) { $line2 = ("    标准::细节::{0}<{1}>* 针{2} = 空指针; (空型)针{2};" -f $n.Name, $ia, $id) }
+                #  §17.37 **全默认形参**的内部件（实测 `屏障实现<_完成函数 = 默认>`、`计数信号量实现<_Rep = ptrdiff_t>`）：
+                #  Get-ImplArgsFromText 见到「有默认值」就把实参跳掉 -> $ia 为空 -> 只剩裸名候选，
+                #  而裸名不是类型，必失败 ✗（这两个名字因此在台账里长期挂"未覆盖"）。
+                #  正确写法是 `标准::细节::屏障实现<>`（实参表可以为空）——与 §17.26 模板别名那条同一个道理。
+                #  取不到实参的原因是"全默认"或"没解析出来"，两种情况下 `<>` 都是**唯一可能编过**的形态；
+                #  即使它其实不是模板，失败的只是一条候选，不会造成假绿。
+                else { $line2 = ("    标准::细节::{0}<>* 针{1} = 空指针; (空型)针{1};" -f $n.Name, $id) }
                 #  `types` 里混着成员 typedef（`尺寸类型`/`常量迭代器`）—— 它们不是 `细节::` 下的类，
                 #  而是公开宿主的成员；一条宿主限定候选（§17.23）。公开宿主不是唯一可能
                 #  （`范围` 的视图挂在 `标准::范围视图` 下），那部分由 §17.27 的"报错自带候选路径"补。
@@ -796,7 +810,10 @@ foreach ($p in $products) {
         foreach ($ln in @($line, $line2, $line3, $line4, $line5, $line6)) {
             if ($ln) {
                 $ci++
-                $lnx = $(if ($ci -eq 1) { $ln } else { ([string]$ln).Replace([string]$id, "$id`_$ci") })
+                #  §17.37 只替换**标识符里的 id**（`针n1` -> `针n1_2`），不碰数字里长得像 id 的片段。
+                #  id 现在带字母前缀，撞字面量已经不可能；这里再补一层数字边界，防止 `n1` 命中 `n12`。
+                $idE2 = [regex]::Escape([string]$id)
+                $lnx = $(if ($ci -eq 1) { $ln } else { ([string]$ln) -replace ("(?<![0-9])$idE2(?![0-9])", "$id`_$ci") })
                 #  §17.27 合成实参里可能用到**别的中文头**（视图要 `标准::向量<整数>`、引擎要
                 #  `标准::默认随机引擎`、复数见证要 `标准::复数`）—— 探针 TU 必须把它引进来，
                 #  否则实参类型本身没定义，报错会伪装成"这个名字不行"（实测白丢一批）。
@@ -804,6 +821,15 @@ foreach ($p in $products) {
                 if ($lnx -match '默认随机引擎' -and $needInc -notcontains '随机') { $needInc += '随机' }
                 if ($lnx -match '标准::复数' -and $needInc -notcontains '复数') { $needInc += '复数' }
                 $items += [pscustomobject]@{ Line = $lnx; Name = $n.Name; Kind = $n.Kind }
+                #  §17.37 **引用类型不能用指针探**：`常量引用` = `const 整数&`，写 `X* 针` 就是
+                #  「指向引用的指针」，编不过 —— 而名字其实**解析出来了**（实测报错原文：
+                #  `针# 被声明为指向类型为 标准::细节::集合实现<int>::常量引用 (aka const int &) 的引用的指针`）。
+                #  别名声明 `使用 针a = X;` 对**任何**类型都合法（引用/数组/函数/void），
+                #  而且同样证明"这个名字是个类型" —— 多一条候选，任意一条编过即算覆盖。
+                $am = [regex]::Match($lnx, '^\s*(.+?)\*\s*针([A-Za-z0-9_]+)\s*=\s*空指针;\s*\(空型\)针\2;\s*$')
+                if ($am.Success) {
+                    $items += [pscustomobject]@{ Line = ("    使用 针a{0} = {1};" -f $am.Groups[2].Value, $am.Groups[1].Value.Trim()); Name = $n.Name; Kind = $n.Kind }
+                }
                 $probed += $n.Name; $used = $true
             }
         }
@@ -884,7 +910,11 @@ foreach ($p in $products) {
                     $lnS = ([string]$it.Line).Replace('标准::' + $it.Name, $sug)
                     if ($lnS -ne [string]$it.Line) {
                         $riS = Invoke-Probe @($lnS) ('_s' + (Get-StableId $sug))
-                        if ($riS.CC -eq 0) { $okNames[$it.Name] = $true; continue }
+                        #  ⚠ §17.37：名字**换一条形态**编过了，但**原来那条编不过的候选不能留在合批里** ——
+                        #  否则合批必炸，还会被报成「真失败」（实测 `惰性切分`：建议路径通了，
+                        #  原始 `标准::惰性切分(...)` 仍留在批里 -> 整个产物判失败）。
+                        #  进 $badLines = 从合批剔除；**不进 $softNames** = 不算未覆盖。
+                        if ($riS.CC -eq 0) { $okNames[$it.Name] = $true; $badLines += $it.Line; continue }
                         #  §17.31 候选路径多半是 **CPO**（`标准::范围视图::切分`）——它们要**范围**当实参，
                         #  整数哑实参天然不匹配。把哑实参换成真容器（向量）再试；
                         #  二元 CPO 的**第二实参**可能是函数（变换/过滤/切分）也可能是整数（取前/丢弃前），
@@ -906,7 +936,27 @@ foreach ($p in $products) {
                             $extraInc = $savedInc
                             if ($riR.CC -eq 0) { $okNames[$it.Name] = $true; break }
                         }
-                        if ($okNames.ContainsKey($it.Name)) { continue }
+                        if ($okNames.ContainsKey($it.Name)) { $badLines += $it.Line; continue }
+                        #  §17.37 范围 CPO 的真实形状还有 **(迭代器/范围, 个数)** 这种**两实参**形态
+                        #  （`取前(组, 壹)` / `丢弃前(组, 壹)` / `计数(组, 壹)`），而合成见证可能只造出
+                        #  一个整数，于是"见证形状不对"被记成"未覆盖"。只对**编译器亲自给出的**
+                        #  `标准::范围视图::*` 路径补这两条形状（成本受控：仅这类名字、仅前几条失败后）。
+                        if ($sug -like '标准::范围视图::*') {
+                            $cpoShapes = @(
+                                ("    自动 探k{0} = [](){{ 整数 组{0}[8]{{}}; 整数 壹{0} = 1; {1}(组{0}, 壹{0}); }}; (空型)探k{0};" -f $id, $sug),
+                                ("    自动 探m{0} = [](){{ 标准::向量<整数> 范{0}{{}}; 整数 壹{0} = 1; {1}(范{0}, 壹{0}); }}; (空型)探m{0};" -f $id, $sug)
+                            )
+                            $si = 0
+                            foreach ($cs in $cpoShapes) {
+                                $si++
+                                $savedInc2 = @($extraInc)
+                                if ($cs -match '标准::向量' -and $savedInc2 -notcontains '向量') { $extraInc = $savedInc2 + @('向量') }
+                                $riC = Invoke-Probe @($cs) ('_c' + (Get-StableId ($sug + 'sh' + $si)))
+                                $extraInc = $savedInc2
+                                if ($riC.CC -eq 0) { $okNames[$it.Name] = $true; break }
+                            }
+                            if ($okNames.ContainsKey($it.Name)) { $badLines += $it.Line; continue }
+                        }
                     }
                 }
                 $soft = $false; $why = ''
