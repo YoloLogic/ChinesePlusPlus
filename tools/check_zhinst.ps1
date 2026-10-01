@@ -127,8 +127,10 @@ function Get-TemplateArgs([string] $decl) {
     for ($i = 0; $i -lt $nd.Count; $i++) {
         #  ⚠ 深拷贝里关键字混用：形参可能写成 `类型名 X`，也可能还是 `class X` / `typename X`
         #  （实测 `模板 <class _Kty, class _类型, class _Pr, class _分配器>`）—— 两种都要认。
-        if ($nd[$i] -match '^(类型名|class|typename)\b') { $args += (Get-RoleArg $nd[$i] $nd $i) }
-        else { $args += '1' }
+        #  §17.36 形参分类改**默认当类型**：受约束形参（input_or_output_iterator _Iter）、
+        #  概念名+形参名的写法都不是 类型名 开头；只有明确的非类型关键字才给 1。
+        if ($nd[$i] -match '^(std::size_t|size_t|std::ptrdiff_t|ptrdiff_t|整数|无符号 整数|布尔|bool|int|长整型|自动)\b') { $args += '1' }
+        else { $args += (Get-RoleArg $nd[$i] $nd $i) }
     }
     if ($args.Count -eq 0) { return $null }
     return ($args -join ', ')
@@ -143,7 +145,10 @@ function Get-ImplArgsFromText([string] $text, [string] $impl) {
     $before = $text.Substring(0, $cm.Index)
     #  ⚠ 前缀必须写 `.*`（贪婪）才会命中**最近**的那个模板头；否则正则从文件开头第一个
     #    `template <` 一路吞到类声明前（实测把 `_映射特征` 的类体整段当成模板头）。
-    $hm = [regex]::Match($before, '(?s).*(?:模板|template)\s*<(.*?)>\s*$')
+    #  ⚠ 模板头与类声明之间常夹**注释行**（实测 公共迭代器实现 就是这样）—— 不能要求"紧邻"。
+    #  取最后 4 行里**最后一个** 模板 <...>（贪婪前缀 = 最近的）。
+    $tail4 = (($before -split "`n" | Select-Object -Last 4) -join "`n")
+    $hm = [regex]::Match($tail4, '(?s).*(?:模板|template)\s*<(.*?)>\s*$')
     if (-not $hm.Success) { return $null }
     return (Get-TemplateArgs ('模板 <' + $hm.Groups[1].Value + '>'))
 }
@@ -269,6 +274,7 @@ function Get-SubstitutedArgs([string] $argsText) {
             if ($cls2 -notmatch '^(std|标准)') { $cls2 = '标准::细节::' + $cls2 }
             $out += ($cls2 + '<' + (Get-SubstitutedArgs $nm.Groups[2].Value) + '>')
         } elseif ($t -match '^(true|false|真值|假值|\d+)$') { $out += $t }
+        elseif ($t -match '^[\w\u4e00-\u9fff]+\.\.\.$') { $out += '整数' }   # §17.36 包形参（_Inner...）
         elseif ($t -match '^[\w\u4e00-\u9fff]+$') { $out += (Get-RoleArg $roleAll[$i] $roleAll $i) }
         else { $out += $t }
     }
@@ -482,7 +488,8 @@ function Get-NamesFromLine([string] $line) {
         #    实测（2026-09-30）：`时长转换`/`时间点转换`/`时钟转换`/`时长上取整`/`时长四舍五入`/
         #    `生成规范数`/`变换`… 一整批真名被一个 `声明类型` 顶掉。**账上少一个名字，
         #    比多一个假名更坏**：少的那几个永远没人去覆盖。
-        $m = [regex]::Match($t, '(' + $zhName + ')\s*\(([^()]*)\)\s*(?:不抛出|noexcept)?\s*\{')
+    if ($t -match '\)\s*:\s*') { return $out }   # §17.36 ctor 初始化列表里的 名( 不是函数名（基类(值) {}）
+    $m = [regex]::Match($t, '(' + $zhName + ')\s*\(([^()]*)\)\s*(?:不抛出|noexcept)?\s*\{')
         if (-not $m.Success) {
             $m2 = [regex]::Match($t, '\s(' + $zhName + ')\s*\(')   # 体在下一行：退回第一个，但关键字不算名字
             if ($m2.Success -and $m2.Groups[1].Value -ne '声明类型') { $m = $m2 }
@@ -696,7 +703,7 @@ foreach ($p in $products) {
                 $tplItems += $tpn; $probed += $n.Name; $used = $true; continue
             }
         }
-        $line = $null; $line2 = $null; $line3 = $null; $line4 = $null; $line5 = $null
+        $line = $null; $line2 = $null; $line3 = $null; $line4 = $null; $line5 = $null; $line6 = $null
         switch ($n.Kind) {
             '类型' { $line = ("    {0}* 针{1} = 空指针; (空型)针{1};" -f ('标准::' + $n.Name), $id) }
             #  §17.23 内部件多半是**类模板**：`标准::细节::映射实现` 不是类型、`映射实现<整数,整数,整数,整数>` 才是。
@@ -755,6 +762,9 @@ foreach ($p in $products) {
                 }
                 if ($p.HostPub) {
                     $line2 = (Get-NestedLine $p.HostPub $n $id)
+                    #  §17.36 再补一条**类型形态**：基类 这种是派生类里的嵌套 typedef（不是函数、也不是
+                    #  标准的 @('类型') 登记），只有 宿主::基类* 针 这种写法才证得了它存在（实测能编）。
+                    $line6 = ("    {0}::{1}* 针{2}t = 空指针; (空型)针{2}t;" -f $p.HostPub, $n.Name, $id)
                     #  §17.35 **成员调用探针**：`擦除`/`查找`/`清空`/`交换`/`后` 这些是**派生层的成员函数**
                     #  （形如 `返回 基类::erase(...)`），顶层不存在 —— 只有拿一个**真实例**去调才算"真用一次"。
                     #  实参形状试三种：0 元 / 1 元（整数）/ 1 元（同类实例，给 `交换`）。任意一条编过即算。
@@ -783,7 +793,7 @@ foreach ($p in $products) {
         #  ⚠ 同一名字可能有多条候选（裸名 / 带实参 / 宿主限定），它们会**同处一个 TU** ——
         #    变量名必须逐条区分，否则 `针<id>` 重定义（实测：6 个产物因此编不过）。
         $ci = 0
-        foreach ($ln in @($line, $line2, $line3, $line4, $line5)) {
+        foreach ($ln in @($line, $line2, $line3, $line4, $line5, $line6)) {
             if ($ln) {
                 $ci++
                 $lnx = $(if ($ci -eq 1) { $ln } else { ([string]$ln).Replace([string]$id, "$id`_$ci") })
