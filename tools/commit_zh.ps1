@@ -23,8 +23,50 @@ $root = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
 $log  = Join-Path $root 'build\commit_zh.log'
 
 Write-Host '=== 提交前跑全量 regen（结果把关）===' -ForegroundColor Cyan
+
+# ---------------------------------------------------------------------------
+#  §17.34 长任务看门狗：regen 全量常跑 25–45 分钟 —— **超过 25 分钟必须有「卡没卡」的证据**。
+#  为什么（2026-10-01 实测误判）：我只看了 `third_party\`（那里早跑完了）就说"卡了"，
+#  其实闸门正在实例化守卫里编探针（写的是 `build\_zhinst`）。教训：**「某处没动静」≠「卡住」**，
+#  判定必须看**多个活动源 + 进程树 + 采样 delta**，这正是 tools\check_stuck.ps1 干的事。
+#  ⚠ 监测器**绝不影响判定**：起不来 / 报错都只打一行提示，不改 $tail、不参与"全部通过"。
+#    要关掉：设环境变量 ZH_NO_WATCHDOG=1。
+# ---------------------------------------------------------------------------
+$wdLog = Join-Path $root 'build\_review_own\watchdog.log'
+$wdJob = $null
+if ($env:ZH_NO_WATCHDOG -ne '1') {
+    try {
+        $wdJob = Start-Job -ScriptBlock {
+            param($script, $out)
+            while ($true) {
+                Start-Sleep -Seconds 300
+                $v = & pwsh -NoProfile -File $script -RootPattern 'regen_zhstdlib' -SampleSeconds 10 2>&1 | Out-String
+                $verdict = if ($LASTEXITCODE -eq 1) { '疑似卡住' } elseif ($LASTEXITCODE -eq 2) { '任务已结束' } else { '活跃' }
+                Add-Content -Path $out -Value ("[{0}] 看门狗：{1}" -f (Get-Date).ToString('HH:mm:ss'), $verdict)
+                if ($LASTEXITCODE -eq 1) { Add-Content -Path $out -Value $v }
+            }
+        } -ArgumentList (Join-Path $root 'tools\check_stuck.ps1'), $wdLog
+        Write-Host ("  （§17.34 看门狗已随行：每 5 分钟判一次「卡没卡」，结论写 {0}）" -f 'build\_review_own\watchdog.log') -ForegroundColor DarkGray
+    } catch {
+        Write-Host ('  ⚠ 看门狗没起来（不影响判定）：' + $_.Exception.Message) -ForegroundColor Yellow
+        $wdJob = $null
+    }
+}
+
 & pwsh -NoProfile -File (Join-Path $root 'tools\regen_zhstdlib.ps1') 2>&1 |
     Tee-Object -FilePath $log | Select-Object -Last 3
+
+if ($wdJob) {
+    try {
+        Stop-Job $wdJob -ErrorAction SilentlyContinue
+        Remove-Job $wdJob -Force -ErrorAction SilentlyContinue
+        if (Test-Path $wdLog) {
+            $verdicts = @(Get-Content $wdLog -ErrorAction SilentlyContinue | Where-Object { $_ -match '看门狗' })
+            if ($verdicts.Count) { Write-Host ('  §17.34 看门狗全程结论：' + (($verdicts | Select-Object -Last 4) -join ' | ')) -ForegroundColor DarkGray }
+            else { Write-Host '  §17.34 看门狗：本次 regen 不到 5 分钟就结束了（无需判定）' -ForegroundColor DarkGray }
+        }
+    } catch { }
+}
 
 $tail = [string](Get-Content $log -Tail 1)
 if ($tail -notmatch '全部通过') {

@@ -18,5 +18,5 @@
     模板 <类型名... 参数> 声明类型(自动) 格式(std::format_string<参数...> 甲, 参数&&... 乙) { 返回 std::format(甲, static_cast<参数&&>(乙)...); }
     模板 <类型名 输出迭代器, 类型名... 参数> 声明类型(自动) 格式化到(输出迭代器 甲, std::format_string<参数...> 乙, 参数&&... 丙) { 返回 std::format_to(甲, 乙, static_cast<参数&&>(丙)...); }
     模板 <类型名... 参数> 声明类型(自动) 格式化尺寸(std::format_string<参数...> 甲, 参数&&... 乙) { 返回 std::formatted_size(甲, static_cast<参数&&>(乙)...); }
-    模板 <类型名 字符类型> 声明类型(自动) 格式化参数版(std::basic_string_view<字符类型> 甲, std::format_args 乙) { 返回 std::vformat(甲, 乙); }
+    内联 声明类型(自动) 格式化参数版(std::string_view 甲, std::format_args 乙) { 返回 std::vformat(甲, 乙); }
 }

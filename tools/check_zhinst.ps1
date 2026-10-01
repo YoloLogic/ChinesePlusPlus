@@ -93,6 +93,9 @@ function Get-RoleArg([string] $decl, [string[]] $all, [int] $idx) {
     if ($nm -match '^比|^_R1$|^_R2$|^_R$|ratio') { return 'std::ratio<1, 1>' }
     if ($nm -match '^_CharT$|^_Elem$|^_元素$|字符类型') { return '字符' }
     if ($nm -match '^_Out$|^_OutIt$|输出迭代') { return '整数*' }
+    #  §17.33 成员函数（std::mem_fn 那一族的形参）要**真成员函数指针**当见证：
+    #  给 整数 会撞「没有与 'mem_fn' 匹配的函数」，而这**不是**签名病（注册是对的）。
+    if ($nm -match '^成员函数$|^_Pmf$') { return 'decltype(&std::string::size)' }
     if ($nm -match '^_It$|^_Se$|^_Iter$|^_Iterator$|^迭代|迭代$|哨兵') { return '整数*' }
     return '整数'
 }
@@ -284,6 +287,7 @@ function Get-Witness([string] $type, [string] $pname, [int] $id) {
     elseif ($t -match '^(值类型|大小类型|距离类型|类型1|类型2|元素|别的|替换类型|整数类型|实数类型)$') { $k = '壹' }
     #  §17.28 `某类型` 给**无符号**左值（`位` 一族对 `整数` 没有匹配重载）
     elseif ($t -match '^(某类型|通用类型)$') { $k = '无' }
+    elseif ($t -match '^成员函数$|^_Pmf$') { $k = '成' }
     elseif ($t -match '^(std::size_t|std::ptrdiff_t|size_t|整数|长整型|无符号整数)$') { $k = '壹' }
     elseif ($t -match '^范围类型$') { $k = '范' }
     elseif ($pname -match '^引擎$' -and $t -match '^引擎$') { $k = '引' }
@@ -293,6 +297,7 @@ function Get-Witness([string] $type, [string] $pname, [int] $id) {
         '出' { if ($pname -match '尾') { "出$id + 32" } else { "出$id" } }
         '壹' { "壹$id" }
         '无' { "无$id" }
+        '成' { '&std::string::size' }
         '丙' { "丙$id" }
         '引' { "引$id" }
         '范' { "范$id" }
@@ -385,6 +390,7 @@ function Get-WitnessIncludes([string[]] $kinds) {
     if ($kinds -contains '引') { $inc += '随机' }
     if ($kinds -contains '范') { $inc += '向量' }
     if ($kinds -contains '复') { $inc += '复数' }
+    if ($kinds -contains '成') { $inc += '字符串' }
     return $inc
 }
 #  §17.23 宿主限定的成员探针：`标准::映射<整数, 整数>::尺寸类型* 针 = 空指针;`
@@ -487,7 +493,15 @@ function Get-NamesFromLine([string] $line) {
     }
     $m = [regex]::Match($t, '^内联\s+常量\s+[^=]+?\s(' + $zhName + ')\s*=')
     if ($m.Success) { return @([pscustomobject]@{ Name = $m.Groups[1].Value; Kind = '常量'; Template = '' }) }
-    $m = [regex]::Match($t, '^(?:内联\s+|常量表达式\s+|静态\s+)*[\w:<>,\s&*]+\s(' + $zhName + ')\s*\(')
+    #  ⚠ 同 §17.21.1 的教训，这一支也要守：**参数表后必须紧跟函数体 `{`** ——
+    #  否则 `内联 声明类型(自动) 格式化参数版(std::string_view 甲, …)` 会把返回类型里的关键字
+    #  `声明类型` 当成函数名，探针 `&标准::声明类型` 报「缺少非限定标识符」并被判**真失败**
+    #  （实测：格式化文本 —— 与 §17.21.1 那次是同一个病，只是换了 `函数` 这一支）。
+    $m = [regex]::Match($t, '(' + $zhName + ')\s*\(([^()]*)\)\s*(?:不抛出|noexcept)?\s*\{')
+    if (-not $m.Success) {
+        $m2 = [regex]::Match($t, '^(?:内联\s+|常量表达式\s+|静态\s+)*[\w:<>,\s&*]+\s(' + $zhName + ')\s*\(')
+        if ($m2.Success -and $m2.Groups[1].Value -ne '声明类型') { $m = $m2 }
+    }
     if ($m.Success) { return @([pscustomobject]@{ Name = $m.Groups[1].Value; Kind = '函数'; Template = '' }) }
     return $out
 }
