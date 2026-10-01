@@ -29,8 +29,13 @@
 #    pwsh -File tools\check_zhinst.ps1              # 跑全量 + 重写台账
 #    pwsh -NoProfile -File tools\check_zhinst.ps1 -Check        # 只校验台账（闸门用）
 #    pwsh -NoProfile -File tools\check_zhinst.ps1 -Only 向量,时间   # 只跑某几个产物（调试）
+#    pwsh -NoProfile -File tools\check_zhinst.ps1 -Shards 1     # 关并行（调试/对照，~20 分钟）
+#  并行等价性口径（§17.38）：分片**连续**切、按序合并 -> 台账与串行**逐字节一致**；
+#  `-PartialOut`/`-ManifestFile`/`-Shard` 是父进程给子进程用的，正常别手敲。
 # ============================================================================
-param([switch] $Check, [switch] $Quiet, [string[]] $Only = @())
+param([switch] $Check, [switch] $Quiet, [string[]] $Only = @(),
+      #  §17.38 分片并行（父进程建清单 + 合并；子进程各跑连续的一片）
+      [int] $Shards = 0, [int] $Shard = 0, [string] $PartialOut = '', [string] $ManifestFile = '')
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
@@ -526,6 +531,12 @@ function Get-NamesFromCode([string] $code) {
 # ---------------------------------------------------------------------------
 #  三张表 -> (产品, tparam, 名字, 用例文本)
 # ---------------------------------------------------------------------------
+#  §17.38：**子进程跳过整段表解析**。三张表各要起一个 `-ExportJson` 子进程，实测每片启动
+#  约 1.5 分钟；10 片就是 15 分钟的纯重复成本（比它要并行省下的还多）✗。
+#  子进程的清单由父进程用 `Export-Clixml` 落盘，这里直接跳过，账不会因此变松：
+#  清单内容仍然是**父进程刚解析出来的同一份**（§15.3：跑 0 条不算通过，所以父进程那句
+#  `$rows` 全部来自分片的断言还在）。
+if (-not $ManifestFile) {
 $products = @()
 
 # ① 别名轨道
@@ -681,14 +692,74 @@ if ($Only.Count) {
     $products = @($products | Where-Object { $Only -contains $_.Product })
 }
 if ($products.Count -eq 0) { throw "实例化守卫：选中的产物数为 0（-Only 写法不对？§15.3：跑 0 条的通过不是通过）" }
+}   #  §17.38 表解析块到此结束（子进程 `-ManifestFile` 时整段跳过）
 
 # ---------------------------------------------------------------------------
 #  生成探针并编译运行
 # ---------------------------------------------------------------------------
-if (Test-Path $work) { Remove-Item -Recurse -Force $work }
+#  ⚠ §17.38：**子进程绝不能清 work 目录** —— 那会把兄弟分片的探针和日志一起删掉。
+$isChild = [bool]$PartialOut
+if (-not $isChild) {
+    if (Test-Path $work) { Remove-Item -Recurse -Force $work }
+}
 New-Item -ItemType Directory -Force $work | Out-Null
 
-$rows = @(); $failAll = @(); $uncoveredAll = @()
+# ---------------------------------------------------------------------------
+#  §17.38 分片并行：为什么要有它
+#    实测（§17.37 那一轮）：1164 个名字、116 个产物，**串行**要 20 分钟；
+#    而闸门里要跑**两遍**（第一遍写台账，第二遍 -Check 证明可复算）→ 光守卫就 40 分钟。
+#    这违背"护栏要能天天跑"的前提。处置：把产物切成 N 片，各起一个进程并行跑，
+#    再按 0..N-1 顺序合并 —— 判据一条不动，只是把"串行等"换成"并行等"。
+#
+#    三条不变量（缺一条就不许并行）：
+#      ① **分片必须连续**（第 i 片 = 第 [i*per, (i+1)*per) 个产物）：这样父进程按序合并出来的
+#         行序与串行**逐字节一致**，台账仍可自证（跑完 `git diff` 台账必须为空）。
+#      ② **子进程不写台账、不打总结**：只把自己那一片的账交给父进程（`-PartialOut`）。
+#      ③ **跑 0 条不算通过**：父进程自己不再跑产物，所以 `$rows`/`$failAll` 全部来自分片；
+#         任何一片没产出就直接 `throw`（不是"少一片也绿"）。
+# ---------------------------------------------------------------------------
+$shardMerged = $false
+if ($ManifestFile) { $products = @(Import-Clixml -Path $ManifestFile) }   # 子进程：吃父进程建好的清单
+if ($Shards -le 0) { $Shards = [Math]::Min(12, [Environment]::ProcessorCount) }
+if ($Shards -gt 1 -and -not $isChild) {
+    $manifestPath = Join-Path $work 'products.xml'
+    @($products) | Export-Clixml -Path $manifestPath -Depth 8
+    $self = (Get-Process -Id $PID).Path
+    $procs = @(); $partFiles = @()
+    $sw = [System.Diagnostics.Stopwatch]::StartNew()
+    for ($si = 0; $si -lt $Shards; $si++) {
+        $pf = Join-Path $work ("partial_{0}.xml" -f $si)
+        $lg = Join-Path $work ("shard_{0}.log" -f $si)
+        Remove-Item -Force $pf, $lg, ($lg + '.err') -ErrorAction SilentlyContinue
+        $partFiles += $pf
+        $procs += Start-Process -FilePath $self -NoNewWindow -PassThru `
+            -RedirectStandardOutput $lg -RedirectStandardError ($lg + '.err') `
+            -ArgumentList @('-NoProfile', '-File', $PSCommandPath, '-Quiet',
+                            '-ManifestFile', $manifestPath, '-Shard', $si, '-Shards', $Shards, '-PartialOut', $pf)
+    }
+    $procs | ForEach-Object { $_.WaitForExit() }
+    $rows = @(); $uncoveredAll = @(); $failAll = @()
+    foreach ($pf in $partFiles) {
+        if (-not (Test-Path $pf)) { throw ("实例化守卫：分片没产出（见 build\_zhinst\shard_*.log）：{0}" -f $pf) }
+        $pp = Import-Clixml -Path $pf
+        $rows += @($pp.Rows); $uncoveredAll += @($pp.Uncovered); $failAll += @($pp.Fail)
+    }
+    $sw.Stop()
+    if (-not $Quiet) { Write-Host ("  §17.38 分片并行：{0} 片，{1:N1} 分钟（串行约 20 分钟）" -f $Shards, $sw.Elapsed.TotalMinutes) }
+    $shardMerged = $true   # 让下面那行初始化不要再把合并好的账清掉
+    $products = @()   # 父进程自己不再跑（账全部来自分片）
+} elseif ($Shards -gt 1) {
+    $n = $products.Count
+    $per = [Math]::Ceiling($n / [double]$Shards)
+    $from = [int]($Shard * $per)
+    $to = [Math]::Min($n, [int](($Shard + 1) * $per)) - 1
+    $products = @(if ($from -lt $n -and $from -le $to) { $products[$from..$to] } else { @() })
+    if (-not $Quiet) { Write-Host ("  分片 {0}/{1}：{2} 个产物" -f $Shard, $Shards, $products.Count) }
+}
+
+#  ⚠ §17.38 踩过的坑：这行初始化**必须在分片合并之后**才不会再执行 ——
+#  第一版把合并写在它前面，于是合并好的账当场被清成 0 条（报「一个名字都没提出来」）✗。
+if (-not $shardMerged) { $rows = @(); $failAll = @(); $uncoveredAll = @() }
 foreach ($p in $products) {
     $items = @(); $probed = @(); $byTest = @(); $uncovered = @{}; $tplItems = @(); $needInc = @()
     $nid = 0   # §17.22.1 探针变量名用**有序计数器**，不用 `GetHashCode`（每进程随机 -> 台账不可复算）
@@ -1040,6 +1111,13 @@ foreach ($p in $products) {
         未覆盖 = $uncovered.Count; 编译 = $compiled; 运行 = $ran
         未覆盖名单 = (($uncovered.Keys | Sort-Object) -join ' ')
     }
+}
+
+#  §17.38 子进程：把这一片的账原样交给父进程 —— **不写台账、不打印总结**。
+if ($isChild) {
+    [pscustomobject]@{ Rows = @($rows); Uncovered = @($uncoveredAll); Fail = @($failAll) } |
+        Export-Clixml -Path $PartialOut -Depth 8
+    exit 0
 }
 
 $totNames = ($rows | Measure-Object -Property 名字 -Sum).Sum
