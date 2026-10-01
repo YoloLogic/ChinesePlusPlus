@@ -657,4 +657,16 @@ _STL_RESTORE_CLANG_WARNINGS
 
 }  // 名域 标准
 
+// §17.41 **特征特化不会跟着派生走**（同 <字符串视图> 那条）：原生把
+//   `enable_view` / `enable_borrowed_range` 特化在【抄来那层】的 `跨度实现` 上，
+//   而公开类型是【派生层】的 `标准::跨度` ✗ —— 实测 `std::ranges::view<标准::跨度<整数>>`
+//   与 `borrowed_range` 都是假（原生 `std::span<int>` 两者皆真）。在 `std::ranges` 里
+//   对公开类型再特化一次。
+名域 std::ranges {
+  模板 <类型名 元素, size_t 范围>
+  常量 布尔 enable_view<标准::跨度<元素, 范围>> = 真值;
+  模板 <类型名 元素, size_t 范围>
+  常量 布尔 enable_borrowed_range<标准::跨度<元素, 范围>> = 真值;
+}  // 名域 std::ranges
+
 #endif // _SPAN_
