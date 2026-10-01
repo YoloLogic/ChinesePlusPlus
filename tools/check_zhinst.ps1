@@ -68,8 +68,14 @@ function Get-RoleArg([string] $decl, [string[]] $all, [int] $idx) {
     if ($nm -match '特征|traits|_Traits') { return 'std::char_traits<字符>' }
     #  §17.27 视图/范围类模板的形参要**真范围**（给 `整数` 会报「约束未满足」，实测 19 处）；
     #  `_Ki` 是 subrange_kind 枚举值、`比` 是 `ratio<>`（给 `1` 会撞静态断言）。
-    if ($nm -match '^_Vw$|^_Rng$|^_Range$|视图|可借范围|范围类型|可作视图') { return '标准::向量<整数>' }
+    #  §17.28 但**视图类模板**要的是"真视图"：`transform_view<向量<整数>, F>` 撞「约束未满足」
+    #  （容器不是 view），给 `标准::引用视图<标准::向量<整数>>`（ref_view）才对。
+    if ($nm -match '^_Vw$|视图类型|可作视图') { return '标准::引用视图<标准::向量<整数>>' }
+    if ($nm -match '^_Rng$|^_Range$|范围类型|可借范围') { return '标准::向量<整数>' }
     if ($nm -match '^_Pat$|^_Pattern$|^模式$') { return '标准::向量<整数>' }
+    #  §17.28 `某类型`（`位` 那一族的 `模板 <类型名 某类型> … 名(某类型 值)`）要给**无符号**见证：
+    #  `std::countr_zero(整数)` / `std::rotr(整数, 整数)` 对**有符号**类型没有匹配重载（实测 7 个全卡这）。
+    if ($nm -match '^某类型$|^通用类型$') { return '无符号 整数' }
     if ($nm -match '^_Ki$|^_Kind$|^种类$') { return 'std::ranges::subrange_kind::sized' }
     if ($nm -match '^比|^_R1$|^_R2$|^_R$|ratio') { return 'std::ratio<1, 1>' }
     if ($nm -match '^_CharT$|^_Elem$|^_元素$|字符类型') { return '字符' }
@@ -167,6 +173,7 @@ function New-WitnessDecl([string[]] $kinds, [int] $id) {
     if ($kinds -contains '组') { $d += "        整数 组$id[8]{0,1,2,3,4,5,6,7};" }
     if ($kinds -contains '出') { $d += "        整数 出$id[32]{};" }
     if ($kinds -contains '壹') { $d += "        整数 壹$id = 1;" }
+    if ($kinds -contains '无') { $d += "        无符号 整数 无$id = 1;" }
     if ($kinds -contains '丙') { $d += "        自动 丙$id = [](自动&&... 参){ 返回 1; };" }
     if ($kinds -contains '引') { $d += "        标准::默认随机引擎 引$id{};" }
     if ($kinds -contains '范') { $d += "        标准::向量<整数> 范$id{1,2,3,4};" }
@@ -183,7 +190,9 @@ function Get-Witness([string] $type, [string] $pname, [int] $id) {
     #  给 `整数` 会炸，得给一个**真的复数对象**（原生头同样写法能编：实测 复数<整数> 也行）。
     elseif ($t -match '复数实现') { $k = '复' }
     elseif ($t -match '^(谓词|比较|一元操作|二元操作|生成器|函数|成员函数|操作|条件|判据)$') { $k = '丙' }
-    elseif ($t -match '^(值类型|大小类型|距离类型|类型1|类型2|某类型|元素|别的|替换类型|整数类型|实数类型)$') { $k = '壹' }
+    elseif ($t -match '^(值类型|大小类型|距离类型|类型1|类型2|元素|别的|替换类型|整数类型|实数类型)$') { $k = '壹' }
+    #  §17.28 `某类型` 给**无符号**左值（`位` 一族对 `整数` 没有匹配重载）
+    elseif ($t -match '^(某类型|通用类型)$') { $k = '无' }
     elseif ($t -match '^(std::size_t|std::ptrdiff_t|size_t|整数|长整型|无符号整数)$') { $k = '壹' }
     elseif ($t -match '^范围类型$') { $k = '范' }
     elseif ($pname -match '^引擎$' -and $t -match '^引擎$') { $k = '引' }
@@ -192,6 +201,7 @@ function Get-Witness([string] $type, [string] $pname, [int] $id) {
         '组' { if ($pname -match '尾') { "组$id + 8" } elseif ($pname -match '中') { "组$id + 2" } else { "组$id" } }
         '出' { if ($pname -match '尾') { "出$id + 32" } else { "出$id" } }
         '壹' { "壹$id" }
+        '无' { "无$id" }
         '丙' { "丙$id" }
         '引' { "引$id" }
         '范' { "范$id" }
