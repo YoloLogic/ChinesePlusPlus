@@ -22,10 +22,22 @@
 -- Looking for pthread_create in pthread - not found
 -- Found Threads: TRUE
 -- Configuring done (3.7s)
--- Generating done (0.2s)
+-- Generating done (0.1s)
 -- Build files have been written to: E:/Chinese++/third_party/build/googletest-ours
 -- build --
-[1/159] Building CXX object googlemock/CMakeFiles/gmock_main_no_rtti.dir/src/gmock_main.cc.obj
+[1/159] Building CXX object googletest/CMakeFiles/gtest_main_no_rtti.dir/src/gtest_main.cc.obj
+FAILED: [code=1] googletest/CMakeFiles/gtest_main_no_rtti.dir/src/gtest_main.cc.obj 
+E:\Chinese++\build\Release\bin\chinese++.exe  -IE:/Chinese++/third_party/src/googletest/googletest/include -IE:/Chinese++/third_party/src/googletest/googletest -O3 -DNDEBUG -std=c++17 -D_DLL -D_MT -Xclang --dependent-lib=msvcrt -Wall -Wshadow -Wconversion -Wundef -DGTEST_HAS_PTHREAD=0 -fexceptions -fno-rtti -MD -MT googletest/CMakeFiles/gtest_main_no_rtti.dir/src/gtest_main.cc.obj -MF googletest\CMakeFiles\gtest_main_no_rtti.dir\src\gtest_main.cc.obj.d -o googletest/CMakeFiles/gtest_main_no_rtti.dir/src/gtest_main.cc.obj -c E:/Chinese++/third_party/src/googletest/googletest/src/gtest_main.cc
+包含自 E:/Chinese++/third_party/src/googletest/googletest/src/gtest_main.cc:32:
+包含自 E:/Chinese++/third_party/src/googletest/googletest/include\gtest/gtest.h:65:
+包含自 E:/Chinese++/third_party/src/googletest/googletest/include\gtest/gtest-death-test.h:43:
+包含自 E:/Chinese++/third_party/src/googletest/googletest/include\gtest/internal/gtest-death-test-internal.h:48:
+包含自 E:/Chinese++/third_party/src/googletest/googletest/include\gtest/gtest-matchers.h:51:
+E:/Chinese++/third_party/src/googletest/googletest/include\gtest/gtest-printers.h:915:43: error: （类型名） namespace 'std' 中没有名为（成员名） 'any' 的成员
+  915 | class [[nodiscard]] UniversalPrinter<std::any> {
+      |                                           ^~~
+生成了 1 个错误。
+[2/159] Building CXX object googlemock/CMakeFiles/gmock_main_no_rtti.dir/src/gmock_main.cc.obj
 FAILED: [code=1] googlemock/CMakeFiles/gmock_main_no_rtti.dir/src/gmock_main.cc.obj 
 E:\Chinese++\build\Release\bin\chinese++.exe  -isystem E:/Chinese++/third_party/src/googletest/googlemock/include -isystem E:/Chinese++/third_party/src/googletest/googlemock -isystem E:/Chinese++/third_party/src/googletest/googletest/include -isystem E:/Chinese++/third_party/src/googletest/googletest -O3 -DNDEBUG -std=c++17 -D_DLL -D_MT -Xclang --dependent-lib=msvcrt -Wall -Wshadow -Wconversion -Wundef -DGTEST_HAS_PTHREAD=0 -fexceptions -fno-rtti -MD -MT googlemock/CMakeFiles/gmock_main_no_rtti.dir/src/gmock_main.cc.obj -MF googlemock\CMakeFiles\gmock_main_no_rtti.dir\src\gmock_main.cc.obj.d -o googlemock/CMakeFiles/gmock_main_no_rtti.dir/src/gmock_main.cc.obj -c E:/Chinese++/third_party/src/googletest/googlemock/src/gmock_main.cc
 包含自 E:/Chinese++/third_party/src/googletest/googlemock/src/gmock_main.cc:32:
@@ -40,27 +52,15 @@ E:/Chinese++/third_party/src/googletest/googletest/include\gtest/gtest-printers.
   915 | class [[nodiscard]] UniversalPrinter<std::any> {
       |                                           ^~~
 生成了 1 个错误。
-[2/159] Building CXX object googlemock/CMakeFiles/gmock_main.dir/src/gmock_main.cc.obj
-[3/159] Building CXX object googletest/CMakeFiles/gtest_main_no_rtti.dir/src/gtest_main.cc.obj
-FAILED: [code=1] googletest/CMakeFiles/gtest_main_no_rtti.dir/src/gtest_main.cc.obj 
-E:\Chinese++\build\Release\bin\chinese++.exe  -IE:/Chinese++/third_party/src/googletest/googletest/include -IE:/Chinese++/third_party/src/googletest/googletest -O3 -DNDEBUG -std=c++17 -D_DLL -D_MT -Xclang --dependent-lib=msvcrt -Wall -Wshadow -Wconversion -Wundef -DGTEST_HAS_PTHREAD=0 -fexceptions -fno-rtti -MD -MT googletest/CMakeFiles/gtest_main_no_rtti.dir/src/gtest_main.cc.obj -MF googletest\CMakeFiles\gtest_main_no_rtti.dir\src\gtest_main.cc.obj.d -o googletest/CMakeFiles/gtest_main_no_rtti.dir/src/gtest_main.cc.obj -c E:/Chinese++/third_party/src/googletest/googletest/src/gtest_main.cc
-包含自 E:/Chinese++/third_party/src/googletest/googletest/src/gtest_main.cc:32:
-包含自 E:/Chinese++/third_party/src/googletest/googletest/include\gtest/gtest.h:65:
-包含自 E:/Chinese++/third_party/src/googletest/googletest/include\gtest/gtest-death-test.h:43:
-包含自 E:/Chinese++/third_party/src/googletest/googletest/include\gtest/internal/gtest-death-test-internal.h:48:
-包含自 E:/Chinese++/third_party/src/googletest/googletest/include\gtest/gtest-matchers.h:51:
-E:/Chinese++/third_party/src/googletest/googletest/include\gtest/gtest-printers.h:915:43: error: （类型名） namespace 'std' 中没有名为（成员名） 'any' 的成员
-  915 | class [[nodiscard]] UniversalPrinter<std::any> {
-      |                                           ^~~
-生成了 1 个错误。
-[4/159] Building CXX object googletest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.obj
-[5/159] Building CXX object googletest/CMakeFiles/gtest_main_no_exception.dir/src/gtest_main.cc.obj
-[6/159] Building CXX object googlemock/CMakeFiles/gmock_main_no_exception.dir/src/gmock_main.cc.obj
+[3/159] Building CXX object googlemock/CMakeFiles/gmock_main_no_exception.dir/src/gmock_main.cc.obj
+[4/159] Building CXX object googletest/CMakeFiles/gtest_main_no_exception.dir/src/gtest_main.cc.obj
+[5/159] Building CXX object googletest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.obj
+[6/159] Building CXX object googlemock/CMakeFiles/gmock_main.dir/src/gmock_main.cc.obj
 [7/159] Building CXX object googlemock/CMakeFiles/gmock-port_test.dir/test/gmock-port_test.cc.obj
 [8/159] Building CXX object googletest/CMakeFiles/gtest_dll.dir/src/gtest_main.cc.obj
 [9/159] Building CXX object googlemock/CMakeFiles/gmock_ex_test.dir/test/gmock_ex_test.cc.obj
-[10/159] Building CXX object googlemock/CMakeFiles/gmock_test.dir/test/gmock_test.cc.obj
-[11/159] Building CXX object googlemock/CMakeFiles/shared_gmock_main.dir/src/gmock_main.cc.obj
+[10/159] Building CXX object googlemock/CMakeFiles/shared_gmock_main.dir/src/gmock_main.cc.obj
+[11/159] Building CXX object googlemock/CMakeFiles/gmock_test.dir/test/gmock_test.cc.obj
 [12/159] Building CXX object googletest/CMakeFiles/gtest_main_no_rtti.dir/src/gtest-all.cc.obj
 FAILED: [code=1] googletest/CMakeFiles/gtest_main_no_rtti.dir/src/gtest-all.cc.obj 
 E:\Chinese++\build\Release\bin\chinese++.exe  -IE:/Chinese++/third_party/src/googletest/googletest/include -IE:/Chinese++/third_party/src/googletest/googletest -O3 -DNDEBUG -std=c++17 -D_DLL -D_MT -Xclang --dependent-lib=msvcrt -Wall -Wshadow -Wconversion -Wundef -DGTEST_HAS_PTHREAD=0 -fexceptions -fno-rtti -MD -MT googletest/CMakeFiles/gtest_main_no_rtti.dir/src/gtest-all.cc.obj -MF googletest\CMakeFiles\gtest_main_no_rtti.dir\src\gtest-all.cc.obj.d -o googletest/CMakeFiles/gtest_main_no_rtti.dir/src/gtest-all.cc.obj -c E:/Chinese++/third_party/src/googletest/googletest/src/gtest-all.cc
@@ -95,11 +95,11 @@ E:/Chinese++/third_party/src/googletest/googletest/include\gtest/gtest-printers.
 [18/159] Building CXX object googlemock/CMakeFiles/gmock-internal-utils_test.dir/test/gmock-internal-utils_test.cc.obj
 [19/159] Building CXX object googlemock/CMakeFiles/gmock_link_test.dir/test/gmock_link2_test.cc.obj
 [20/159] Building CXX object googlemock/CMakeFiles/gmock_link_test.dir/test/gmock_link_test.cc.obj
-[21/159] Building CXX object googletest/CMakeFiles/gtest_no_exception.dir/src/gtest-all.cc.obj
-[22/159] Building CXX object googletest/CMakeFiles/gtest_main_no_exception.dir/src/gtest-all.cc.obj
+[21/159] Building CXX object googletest/CMakeFiles/gtest_main_no_exception.dir/src/gtest-all.cc.obj
+[22/159] Building CXX object googletest/CMakeFiles/gtest_no_exception.dir/src/gtest-all.cc.obj
 [23/159] Building CXX object googletest/CMakeFiles/gtest.dir/src/gtest-all.cc.obj
-[24/159] Building CXX object googlemock/CMakeFiles/shared_gmock_main.dir/__/googletest/src/gtest-all.cc.obj
-[25/159] Building CXX object googletest/CMakeFiles/gtest_dll.dir/src/gtest-all.cc.obj
+[24/159] Building CXX object googletest/CMakeFiles/gtest_dll.dir/src/gtest-all.cc.obj
+[25/159] Building CXX object googlemock/CMakeFiles/shared_gmock_main.dir/__/googletest/src/gtest-all.cc.obj
 [26/159] Building CXX object googlemock/CMakeFiles/gmock-spec-builders_test.dir/test/gmock-spec-builders_test.cc.obj
 [27/159] Building CXX object googlemock/CMakeFiles/gmock-more-actions_no_exception_test.dir/test/gmock-more-actions_test.cc.obj
 [28/159] Building CXX object googlemock/CMakeFiles/gmock-more-actions_test.dir/test/gmock-more-actions_test.cc.obj

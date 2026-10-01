@@ -221,6 +221,56 @@ function Get-AliasProbeLine($n, [int] $id) {
     if ($made.Count -ge 1) { return $made[0] }
     return $null
 }
+#  §17.32 **跨产物复用真实实例化**：内部件的宿主常常是"要一个 traits 类当实参"的模板
+#  （`class _哈希` 的模板头只有 `template <class _特征>`），角色见证给不出 traits
+#  —— 但**容器**那边写着真实形态：`class 无序映射实现 : public _哈希<_无序映射特征<_Kty, _类型,
+#  _无序哈希比较<_Kty,_Hasher,_Keyeq>, _分配器, false>>`。
+#  所以：把全库扫一遍，给每个类名记下**第一次被真实实例化时的实参文本**，再把其中的叶子标识符
+#  按角色替换（`_Hasher`→`std::hash<整数>` 等），得到可用的宿主实参 —— 零猜测、零额外编译。
+$script:InstMap = @{}
+#  §17.32 深度感知地取 `类名<...>` 的实参文本（正则抓不了任意嵌套：
+#  `_哈希<_无序映射特征<…<_无序哈希比较<…>>>`）—— 用配对计数扫。
+function Get-FirstInstantiation([string] $text, [string] $cls) {
+    $m = [regex]::Match($text, [regex]::Escape($cls) + '\s*<')
+    if (-not $m.Success) { return '' }
+    $j = $m.Index + $m.Length - 1
+    $depth = 0
+    for ($k = $j; $k -lt $text.Length; $k++) {
+        $ch = $text[$k]
+        if ($ch -eq '<') { $depth++ }
+        elseif ($ch -eq '>') { $depth--; if ($depth -eq 0) { return $text.Substring($j + 1, $k - $j - 1) } }
+    }
+    return ''
+}
+#  把实例化实参文本里的**叶子标识符**按角色替换（嵌套结构递归）
+#  ⚠ 两条实测踩过的坑（§17.32）：
+#    ① 角色判定要传 `类型名 X` 形态的数组 —— 直接传裸标识符会让"分配器前面有几个类型形参"数成 0，
+#       于是 `_分配器` 退化成 `std::allocator<整数>`，撞容器的 `_MISMATCHED_ALLOCATOR_MESSAGE` 静态断言；
+#    ② 结果里的类名要**限定** `标准::细节::`（探针 TU 在全局作用域，裸 `_无序映射特征` 看不见）。
+function Get-SubstitutedArgs([string] $argsText) {
+    $parts = Split-TopLevel $argsText
+    $roleAll = @()
+    foreach ($pp2 in $parts) {
+        $t2 = $pp2.Trim()
+        if (-not $t2) { continue }
+        if ($t2 -match '^(true|false|真值|假值|\d+)$') { $roleAll += ('整数 ' + $t2) } else { $roleAll += ('类型名 ' + $t2) }
+    }
+    $out = @(); $i = -1
+    foreach ($p in $parts) {
+        $t = $p.Trim()
+        if (-not $t) { continue }
+        $i++
+        if ($t -match '^[\w\u4e00-\u9fff]+\s*<') {
+            $nm = [regex]::Match($t, '^([\w\u4e00-\u9fff]+)\s*<(.*)>\s*$')
+            $cls2 = $nm.Groups[1].Value
+            if ($cls2 -notmatch '^(std|标准)') { $cls2 = '标准::细节::' + $cls2 }
+            $out += ($cls2 + '<' + (Get-SubstitutedArgs $nm.Groups[2].Value) + '>')
+        } elseif ($t -match '^(true|false|真值|假值|\d+)$') { $out += $t }
+        elseif ($t -match '^[\w\u4e00-\u9fff]+$') { $out += (Get-RoleArg $roleAll[$i] $roleAll $i) }
+        else { $out += $t }
+    }
+    return ($out -join ', ')
+}
 function Get-Witness([string] $type, [string] $pname, [int] $id) {
     #  返回 @{ Expr; Kind } ；$null = 这个形参见证不出来（整个名字不做探针）
     $t = ($type.Trim() -replace '^const\s+', '') -replace '\s*[&*]+\s*$', ''
@@ -474,6 +524,27 @@ foreach ($p in $atab.PSObject.Properties) {
 # ② 深度轨道
 $djson = & pwsh -NoProfile -File (Join-Path $root 'tools\make_zhstdlib2.ps1') -ExportJson 2>$null | Out-String
 $dtab = $djson | ConvertFrom-Json
+#  §17.32 预扫：给每个内部件类名收集**所有**真实实例化（带所属产物）。
+#  为什么是「所有」：`_哈希` 在库里是**两个不同的类**（xhash 的哈希表 / xstring 的字符串哈希），
+#  「第一个命中」会抓错；而 traits 类往往声明在**容器**里（`无序映射:31 class _无序映射特征`），
+#  探针 TU 必须把那个产物也引进来才看得见。所以：多候选 + 各自带所属产物。
+$script:FileCache = @()
+Get-ChildItem $out -File -ErrorAction SilentlyContinue | ForEach-Object { $script:FileCache += ,@($_.Name, [System.IO.File]::ReadAllText($_.FullName)) }
+foreach ($pp in $dtab.PSObject.Properties) {
+    if (-not (($pp.Value.PSObject.Properties.Name -contains 'types') -and $pp.Value.types)) { continue }
+    foreach ($kk in $pp.Value.types.PSObject.Properties) {
+        $vn = [string]$kk.Value
+        if (-not $script:InstMap.ContainsKey($vn)) { $script:InstMap[$vn] = @() }
+        foreach ($fc in $script:FileCache) {
+            $body = Get-FirstInstantiation $fc[1] $vn
+            if (-not $body) { continue }
+            if (@($script:InstMap[$vn] | ForEach-Object { $_.Text }) -notcontains $body) {
+                $script:InstMap[$vn] += @{ Text = $body; Product = $fc[0] }
+            }
+            if ($script:InstMap[$vn].Count -ge 4) { break }
+        }
+    }
+}
 foreach ($p in $dtab.PSObject.Properties) {
     $zh = $p.Value.zh
     $tp = ''
@@ -504,6 +575,7 @@ foreach ($p in $dtab.PSObject.Properties) {
     $hostImps = @()
     $implArgs = @{}   # 内部件名 -> 它自己的合成实参（从产物正文的 `模板 <…> 类型 X` 精确取）
     $memberHost = @{}  # §17.27 成员 typedef 名 -> 静态推断出的宿主 @{Class;Args}
+    $memberHostCross = @{}  # §17.32 成员 typedef 名 -> 跨产物真实实例化形态的宿主表达
     if (($p.Value.PSObject.Properties.Name -contains 'types') -and $p.Value.types) {
         foreach ($k in $p.Value.types.PSObject.Properties) {
             $v = [string]$k.Value
@@ -516,7 +588,19 @@ foreach ($p in $dtab.PSObject.Properties) {
                 $implArgs[$v] = $ia
                 #  §17.27 这个成员 typedef 的**真实宿主**（静态推断，零编译）
                 $eh = Get-EnclosingHost $ptxt $v
-                if ($eh) { $memberHost[$v] = $eh }
+                if ($eh) {
+                    $memberHost[$v] = $eh
+                    #  §17.32 该宿主的**跨产物真实实参**：多候选（`_哈希` 在库里是两个不同的类，
+                    #  「第一个命中」会抓错），每条带上它被找到的那个产物（探针 TU 要引它才看得见 traits 类）
+                    if ($script:InstMap.ContainsKey($eh.Class)) {
+                        $cands = @()
+                        foreach ($ic in @($script:InstMap[$eh.Class])) {
+                            $sub = Get-SubstitutedArgs ([string]$ic.Text)
+                            if ($sub) { $cands += @{ Expr = ("标准::细节::" + $eh.Class + "<" + $sub + ">"); Product = [string]$ic.Product } }
+                        }
+                        if ($cands.Count) { $memberHostCross[$v] = $cands }
+                    }
+                }
             }
         }
     }
@@ -534,7 +618,7 @@ foreach ($p in $dtab.PSObject.Properties) {
     }
     $tests = ''
     if (($p.Value.PSObject.Properties.Name -contains 'tests') -and $p.Value.tests) { foreach ($tc in $p.Value.tests) { $tests += ([string]$tc[1]) + "`n" } }
-    $products += [pscustomobject]@{ Track = '深度'; Product = $zh; TParam = $tp; Names = @($names | Sort-Object Name -Unique); Tests = $tests; HostPub = $hostPub; HostImps = @($hostImps); ImplArgs = $implArgs; MemberHost = $memberHost }
+    $products += [pscustomobject]@{ Track = '深度'; Product = $zh; TParam = $tp; Names = @($names | Sort-Object Name -Unique); Tests = $tests; HostPub = $hostPub; HostImps = @($hostImps); ImplArgs = $implArgs; MemberHost = $memberHost; MemberHostCross = $memberHostCross }
 }
 
 # ③ C 轨道（表在源码里）
@@ -612,7 +696,18 @@ foreach ($p in $products) {
                 #  而是公开宿主的成员；一条宿主限定候选（§17.23）。公开宿主不是唯一可能
                 #  （`范围` 的视图挂在 `标准::范围视图` 下），那部分由 §17.27 的"报错自带候选路径"补。
                 if ($p.HostPub) { $line3 = ("    {0}::{1}* 针{2} = 空指针; (空型)针{2};" -f $p.HostPub, $n.Name, $id) }
-                #  §17.27 静态推断出的宿主：成员 typedef 的真实归属（标准::细节::X<实参>::名）
+                #  §17.32 跨产物真实实例化形态的宿主：**多候选**，每条把它所属产物加进探针包含集
+                if ($p.MemberHostCross -and $p.MemberHostCross.ContainsKey($n.Name)) {
+                    $ci9 = 0
+                    foreach ($hx in @($p.MemberHostCross[$n.Name])) {
+                        $ci9++
+                        $items += [pscustomobject]@{ Line = ("    {0}::{1}* 针{2}x{3} = 空指针; (空型)针{2}x{3};" -f $hx.Expr, $n.Name, $id, $ci9); Name = $n.Name; Kind = $n.Kind }
+                        if ($probed -notcontains $n.Name) { $probed += $n.Name }
+                        $used = $true
+                        if ($hx.Product -and $needInc -notcontains $hx.Product) { $needInc += $hx.Product }
+                        if (([string]$hx.Expr -match '标准::向量') -and $needInc -notcontains '向量') { $needInc += '向量' }
+                    }
+                }
                 if ($p.MemberHost -and $p.MemberHost.ContainsKey($n.Name)) {
                     $mh = $p.MemberHost[$n.Name]
                     $ha2 = [string]$mh.Args
