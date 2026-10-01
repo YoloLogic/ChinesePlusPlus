@@ -101,7 +101,13 @@ function Get-RoleArg([string] $decl, [string[]] $all, [int] $idx) {
     #  §17.33 成员函数（std::mem_fn 那一族的形参）要**真成员函数指针**当见证：
     #  给 整数 会撞「没有与 'mem_fn' 匹配的函数」，而这**不是**签名病（注册是对的）。
     if ($nm -match '^成员函数$|^_Pmf$') { return 'decltype(&std::string::size)' }
-    if ($nm -match '^_It$|^_Se$|^_Iter$|^_Iterator$|^迭代|迭代$|哨兵') { return '整数*' }
+    #  §17.39 **哨兵必须与迭代器不是同一类型**：`公共迭代器实现<_Iter, _Se>` 的约束里有
+    #  `!same_as<_Iter, _Se>`，两个都给 `整数*` 必失败（§17.36 记的"约束未满足"就是这个）✗。
+    #  哨兵给 `常量 整数*`：它仍满足 `sentinel_for<整数*>`，但与 `整数*` 不是同一类型 ✓。
+    #  ⚠ 只拆**哨兵**：`尾`（尾迭代器）**必须和 `首` 同类型**（`距离(首,尾)` 一族要求 same_as），
+    #  一起改就会换一批名字去死 —— "改一个见证 = 动一片名字"，必须收窄。
+    if ($nm -match '^_Se$|^_Sentinel$|^哨兵') { return '常量 整数*' }
+    if ($nm -match '^_It$|^_Iter$|^_Iterator$|^迭代|迭代$|^尾$|^首$') { return '整数*' }
     return '整数'
 }
 function Get-TemplateArgs([string] $decl) {
@@ -152,10 +158,19 @@ function Get-ImplArgsFromText([string] $text, [string] $impl) {
     #    `template <` 一路吞到类声明前（实测把 `_映射特征` 的类体整段当成模板头）。
     #  ⚠ 模板头与类声明之间常夹**注释行**（实测 公共迭代器实现 就是这样）—— 不能要求"紧邻"。
     #  取最后 4 行里**最后一个** 模板 <...>（贪婪前缀 = 最近的）。
-    $tail4 = (($before -split "`n" | Select-Object -Last 4) -join "`n")
-    $hm = [regex]::Match($tail4, '(?s).*(?:模板|template)\s*<(.*?)>\s*$')
-    if (-not $hm.Success) { return $null }
-    return (Get-TemplateArgs ('模板 <' + $hm.Groups[1].Value + '>'))
+    #  §17.39 模板头与类声明之间还夹着 **requires 子句**（实测 `公共迭代器实现`）：
+    #      _EXPORT_STD template <input_or_output_iterator _Iter, sentinel_for<_Iter> _Se>
+    #          requires (!same_as<_Iter, _Se> && copyable<_Iter>)
+    #      class 公共迭代器实现 {
+    #  老写法要求"模板头就是这几行的最后一行"（`>\s*$` 收尾），被 requires 行一挡就取不到实参 ✗
+    #  -> 改成**从尾部往上逐行扫**，第一条「…模板 <…>」且以 `>` 收尾的行就是它。
+    #  `(.*)>` 贪婪取到**行内最后一个** `>`，所以形参带默认值 `= std::vector<整数>` 也照样对。
+    $cand = @($before -split "`n" | Select-Object -Last 16)
+    for ($li = $cand.Count - 1; $li -ge 0; $li--) {
+        $lm = [regex]::Match([string]$cand[$li], '(?:模板|template)\s*<(.*)>\s*$')
+        if ($lm.Success) { return (Get-TemplateArgs ('模板 <' + $lm.Groups[1].Value + '>')) }
+    }
+    return $null
 }
 
 # ---------------------------------------------------------------------------
@@ -620,7 +635,10 @@ foreach ($p in $dtab.PSObject.Properties) {
                 #  内部件多半是**类模板**：`标准::细节::映射实现` 不是类型，得带实参（§17.23）。
                 #  实参**从产物正文里精确取**（`模板 <…> 类型 映射实现 : …`），不靠猜个数：
                 $ia = Get-ImplArgsFromText $ptxt $v
-                $hostImps += $(if ($ia) { "标准::细节::$v<$ia>" } else { "标准::细节::$v" })
+                #  §17.39 实参取不到分两种：**形参全有默认值**（`屏障实现<_完成函数 = 默认>`）
+                #  -> 正解是 `标准::细节::$v<>`；或是真没解析出来 -> 那也是一条无害候选。
+                #  以前退化成**裸名**（不是类型，必失败）✗。
+                $hostImps += $(if ($ia) { "标准::细节::$v<$ia>" } else { "标准::细节::$v<>" })
                 $implArgs[$v] = $ia
                 #  §17.27 这个成员 typedef 的**真实宿主**（静态推断，零编译）
                 $eh = Get-EnclosingHost $ptxt $v
@@ -632,7 +650,10 @@ foreach ($p in $dtab.PSObject.Properties) {
                         $cands = @()
                         foreach ($ic in @($script:InstMap[$eh.Class])) {
                             $sub = Get-SubstitutedArgs ([string]$ic.Text)
+                            #  §17.39 同上一处：`$sub` 为空说明这里抓到的宿主是**全默认形参**模板
+                            #  -> `宿主<>` 才是合法拼写（以前直接跳过，等于这条候选不存在）✗。
                             if ($sub) { $cands += @{ Expr = ("标准::细节::" + $eh.Class + "<" + $sub + ">"); Product = [string]$ic.Product } }
+                            else { $cands += @{ Expr = ("标准::细节::" + $eh.Class + "<>"); Product = [string]$ic.Product } }
                         }
                         if ($cands.Count) { $memberHostCross[$v] = $cands }
                     }
@@ -817,7 +838,8 @@ foreach ($p in $products) {
                 if ($p.MemberHost -and $p.MemberHost.ContainsKey($n.Name)) {
                     $mh = $p.MemberHost[$n.Name]
                     $ha2 = [string]$mh.Args
-                    $line4 = ("    标准::细节::{0}{1}::{2}* 针{3} = 空指针; (空型)针{3};" -f $mh.Class, $(if ($ha2) { "<$ha2>" } else { '' }), $n.Name, $id)
+                    #  §17.39 同前两处：全默认形参的宿主写成 `宿主<>`（以前是裸名，必失败）✗
+                    $line4 = ("    标准::细节::{0}{1}::{2}* 针{3} = 空指针; (空型)针{3};" -f $mh.Class, $(if ($ha2) { "<$ha2>" } else { '<>' }), $n.Name, $id)
                 }
             }
             '模板类型' { $line = Get-AliasProbeLine $n $id; $line2 = $script:AliasSlot2; $line5 = $script:AliasSlot3 }
