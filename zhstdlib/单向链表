@@ -678,7 +678,7 @@ public:
                 _Mypair._Myval2._孤儿化全部();
                 清空();
                 _Mypair._Myval2._重载代理(_取代理分配器(_分配器类型, _Al), _取代理分配器(_分配器类型, _Right_al));
-                _Pocma(_Al, _Right_al);
+                _传播移动赋值(_Al, _Right_al);
                 _取走头部(_Right);
                 return *this;
             }
@@ -690,7 +690,7 @@ public:
         }
 
         清空();
-        _Pocma(_Al, _Right_al);
+        _传播移动赋值(_Al, _Right_al);
         _取走头部(_Right);
         return *this;
     }
@@ -787,7 +787,7 @@ public:
             }
         }
 
-        _Pocca(_Al, _Right_al);
+        _传播复制赋值(_Al, _Right_al);
         _赋值非检查(_Right._非检查开始(), _Right._非检查结束());
 
         return *this;

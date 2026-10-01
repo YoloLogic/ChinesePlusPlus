@@ -1247,7 +1247,7 @@ public:
         }
 
         _清理释放();
-        _Pocma(_Al, _Right_al);
+        _传播移动赋值(_Al, _Right_al);
         _接管内容(_Right);
         return *this;
     }
@@ -1427,13 +1427,13 @@ public:
                     _Mypair._Myval2._Myres  = _Small_string_capacity;
                 }
 
-                _Pocca(_Al, _Right_al);
+                _传播复制赋值(_Al, _Right_al);
                 _New_proxy._绑定(_Alproxy, _STD addressof(_Mypair._Myval2));
                 return *this;
             }
         }
 
-        _Pocca(_Al, _Right_al);
+        _传播复制赋值(_Al, _Right_al);
         assign(_Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸);
         return *this;
     }

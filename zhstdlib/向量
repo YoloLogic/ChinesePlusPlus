@@ -823,7 +823,7 @@ public:
         }
 #endif // _ITERATOR_DEBUG_LEVEL != 0
 
-        _Pocma(_Al, _Right_al);
+        _传播移动赋值(_Al, _Right_al);
         _Mypair._Myval2._接管内容(_Right._Mypair._Myval2);
         return *this;
     }
@@ -1536,7 +1536,7 @@ public:
             }
         }
 
-        _Pocca(_Al, _Right_al);
+        _传播复制赋值(_Al, _Right_al);
         auto& _Right_data = _Right._Mypair._Myval2;
         _赋值计数范围(_Right_data._Myfirst, static_cast<size_type>(_Right_data._Mylast - _Right_data._Myfirst));
 

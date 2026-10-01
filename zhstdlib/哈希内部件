@@ -474,8 +474,8 @@ private:
     };
 
     void _传播移动赋值两者(_哈希& _Right) {
-        _Pocma(_List._取分配器(), _Right._List._取分配器());
-        _Pocma(_Vec._Mypair._取第一(), _Right._Vec._Mypair._取第一());
+        _传播移动赋值(_List._取分配器(), _Right._List._取分配器());
+        _传播移动赋值(_Vec._Mypair._取第一(), _Right._Vec._Mypair._取第一());
     }
 
     struct _NODISCARD _清空守卫 {
@@ -741,8 +741,8 @@ protected:
 
 private:
     void _传播复制赋值两者(const _哈希& _Right) {
-        _Pocca(_List._取分配器(), _Right._List._取分配器());
-        _Pocca(_Vec._Mypair._取第一(), _Right._Vec._Mypair._取第一());
+        _传播复制赋值(_List._取分配器(), _Right._List._取分配器());
+        _传播复制赋值(_Vec._Mypair._取第一(), _Right._Vec._Mypair._取第一());
     }
 
 public:

@@ -762,7 +762,7 @@ struct 分配器特征 : conditional_t<_是默认分配器<_分配器>::value, _
                               _常规分配器特征<_分配器>> {};
 
 // _Choose_pocca_v returns whether an attempt to propagate allocators is necessary in copy assignment operations.
-// Note that even when false_type, callers should call _Pocca as we want to assign allocators even when equal.
+// Note that even when false_type, callers should call _传播复制赋值 as we want to assign allocators even when equal.
 template <class _分配器>
 constexpr bool _Choose_pocca_v = 分配器特征<_分配器>::propagate_on_container_copy_assignment::value
                               && !分配器特征<_分配器>::is_always_equal::value;
@@ -1078,14 +1078,14 @@ template <class _分配器>
 using _分配器尺寸类型 = typename 分配器特征<_分配器>::size_type;
 
 template <class _分配器>
-_CONSTEXPR20 void _Pocca(_分配器& _Left, const _分配器& _Right) noexcept {
+_CONSTEXPR20 void _传播复制赋值(_分配器& _Left, const _分配器& _Right) noexcept {
     if constexpr (分配器特征<_分配器>::propagate_on_container_copy_assignment::value) {
         _Left = _Right;
     }
 }
 
 template <class _分配器>
-_CONSTEXPR20 void _Pocma(_分配器& _Left, _分配器& _Right) noexcept { // (maybe) propagate on container move assignment
+_CONSTEXPR20 void _传播移动赋值(_分配器& _Left, _分配器& _Right) noexcept { // (maybe) propagate on container move assignment
     if constexpr (分配器特征<_分配器>::propagate_on_container_move_assignment::value) {
         _Left = _STD move(_Right);
     }

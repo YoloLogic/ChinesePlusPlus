@@ -950,7 +950,7 @@ public:
                 const auto _Newhead = _STD exchange(_Right_data._Myhead, _节点::_建头节点(_Right_al));
                 const auto _Newsize = _STD exchange(_Right_data._我的尺寸, size_type{0});
                 _清理();
-                _Pocma(_Al, _Right_al);
+                _传播移动赋值(_Al, _Right_al);
                 _My_data._Myhead = _Newhead;
                 _My_data._我的尺寸 = _Newsize;
                 _代理._绑定(_Alproxy, _STD addressof(_My_data));
@@ -966,7 +966,7 @@ public:
         }
 
         清空();
-        _Pocma(_Al, _Right_al);
+        _传播移动赋值(_Al, _Right_al);
         _交换值(_Right);
 
         return *this;
@@ -1077,7 +1077,7 @@ private:
         auto _Right_al_non_const = _Right_al;
         auto _Newhead            = _节点::_建头节点(_Right_al_non_const);
         _清理();
-        _Pocca(_Al, _Right_al);
+        _传播复制赋值(_Al, _Right_al);
         _Mypair._Myval2._Myhead = _Newhead;
         _Mypair._Myval2._我的尺寸 = 0;
         _代理._绑定(_Alproxy, _STD addressof(_Mypair._Myval2));
@@ -1096,7 +1096,7 @@ public:
                 _Reload_sentinel_and_proxy(_Right);
             }
         } else {
-            _Pocca(_Al, _Right_al);
+            _传播复制赋值(_Al, _Right_al);
         }
 
         赋值(_Right._非检查开始(), _Right._非检查结束());

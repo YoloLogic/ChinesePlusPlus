@@ -792,7 +792,7 @@ public:
             }
         }
 
-        _Pocca(_Al, _Right_al);
+        _传播复制赋值(_Al, _Right_al);
         赋值(_Right._非检查开始(), _Right._非检查结束());
 
         return *this;
@@ -812,7 +812,7 @@ public:
                 _代理分配器类型 _Right_alproxy(_Right_al);
                 _容器代理指针12<_代理分配器类型> _代理(_Right_alproxy, _离开代理未绑定{});
                 _清理();
-                _Pocma(_Al, _Right_al);
+                _传播移动赋值(_Al, _Right_al);
                 _代理._绑定(_代理分配器别名, _STD addressof(_取数据()));
                 _接管内容(_Right);
                 return *this;
@@ -826,7 +826,7 @@ public:
         }
 
         _清理();
-        _Pocma(_Al, _Right_al);
+        _传播移动赋值(_Al, _Right_al);
         _接管内容(_Right);
 
         return *this;

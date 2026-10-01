@@ -972,7 +972,7 @@ public:
                 const auto _Newhead     = _STD exchange(_Right_scary->_Myhead, _节点::_建头节点(_Right_al));
                 const auto _Newsize     = _STD exchange(_Right_scary->_我的尺寸, size_type{0});
                 _Scary->_擦除头(_Al);
-                _Pocma(_Al, _Right_al);
+                _传播移动赋值(_Al, _Right_al);
                 _Scary->_Myhead = _Newhead;
                 _Scary->_我的尺寸 = _Newsize;
                 _代理._绑定(_Alproxy, _Scary);
@@ -990,7 +990,7 @@ public:
 
         清空();
         _取比较器() = _Right._取比较器(); // intentionally copy comparator, see LWG-2227
-        _Pocma(_Al, _Right_al);
+        _传播移动赋值(_Al, _Right_al);
         _交换值不含比较器(_Right);
 
         return *this;
@@ -1121,7 +1121,7 @@ public:
                 auto _Right_al_non_const = _Right_al;
                 auto _Newhead            = _节点::_建头节点(_Right_al_non_const);
                 _节点::_释放节点0(_Al, _Scary->_Myhead);
-                _Pocca(_Al, _Right_al);
+                _传播复制赋值(_Al, _Right_al);
                 _Scary->_Myhead = _Newhead;
                 _代理._绑定(_Alproxy, _Scary);
                 _取比较器() = _Right._取比较器();
@@ -1132,7 +1132,7 @@ public:
 
         清空();
         _取比较器() = _Right._取比较器();
-        _Pocca(_Al, _Right_al);
+        _传播复制赋值(_Al, _Right_al);
         _复制<_策略::_复制>(_Right);
 
         return *this;
