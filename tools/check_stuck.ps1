@@ -22,7 +22,14 @@
 # ============================================================================
 param(
     [string] $RootPattern = '',
-    [string[]] $Watch = @('build\_zhinst', 'third_party\build', 'third_party\logs', 'build\_zha', 'build\_zhc_case', 'build\Release'),
+    #  §17.42 补两个**闸门会用、但以前不在监控里**的目录：
+    #    · `zhstdlib`  —— 闸门第一段（重生成 116 个产物）只写这里；漏掉它就等于"这段时间没有证据"，
+    #      2026-10-02 实测就是这样：闸门正在写 `zhstdlib\通用内部件`，而看门狗"采样窗口内无写入"，
+    #      只因为还没到 25 分钟门槛才没误判成"疑似卡住" ✗。
+    #    · `build\_zfull` —— 全量验证（编译 t.cpp）的落点。
+    #  判据仍是老规矩：**没有证据 ≠ 卡住**，但证据面要盖住闸门的每一段。
+    [string[]] $Watch = @('build\_zhinst', 'third_party\build', 'third_party\logs', 'build\_zha', 'build\_zhc_case', 'build\Release',
+                          'zhstdlib', 'build\_zfull'),
     [int] $SampleSeconds = 20,
     [int] $StuckAfterMinutes = 25,
     [string] $LogFile = '',

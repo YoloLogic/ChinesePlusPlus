@@ -90,4 +90,15 @@
   常量 布尔 enable_borrowed_range<标准::基础字符串视图<元素, 特征>> = 真值;
 }  // 名域 std::ranges
 
+// §17.42 同 <字符串>：`std::hash<basic_string_view<...>>` 的特化也停在抄来那层 ✗，
+//   公开派生类型要自己再特化一次，否则 `标准::无序集合<标准::字符串视图>` 装不下。
+名域 std {
+  模板 <类型名 元素, 类型名 特征>
+  结构 hash<标准::基础字符串视图<元素, 特征>> {
+    size_t 运算符()(标准::基础字符串视图<元素, 特征> 值) 常量 不抛出 {
+      return std::hash<std::basic_string_view<元素, 特征>>{}(std::basic_string_view<元素, 特征>(值.数据(), 值.尺寸()));
+    }
+  };
+}  // 名域 std
+
 #endif // _ZH_STRING_VIEW_

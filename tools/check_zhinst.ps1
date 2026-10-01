@@ -523,7 +523,11 @@ function Get-NamesFromLine([string] $line) {
     $m = [regex]::Match($t, '(' + $zhName + ')\s*\(([^()]*)\)\s*(?:不抛出|noexcept)?\s*\{')
         if (-not $m.Success) {
             $m2 = [regex]::Match($t, '\s(' + $zhName + ')\s*\(')   # 体在下一行：退回第一个，但关键字不算名字
-            if ($m2.Success -and $m2.Groups[1].Value -ne '声明类型') { $m = $m2 }
+            #  §17.42 关键字集：`运算符`（operator）也是**关键字不是名字** —— 我给 <字符串>/
+            #  <字符串视图> 补 `std::hash` 特化时写了 `size_t 运算符()(...)`，提取器立刻
+            #  多出两条假名字（`字符串|运算符`、`字符串视图|运算符`）并把它们记成"未覆盖" ✗。
+            #  与 §17.36 的 `声明类型`（decltype）同一个病，一并排除。
+            if ($m2.Success -and @('声明类型', '运算符', '自动', '返回') -notcontains $m2.Groups[1].Value) { $m = $m2 }
         }
         #  Raw = 原始签名行：§17.21 要从行里抠出「模板形参」和「函数形参」做调用探针
         if ($m.Success) { return @([pscustomobject]@{ Name = $m.Groups[1].Value; Kind = '模板函数'; Template = $tmpl; Raw = $t }) }
@@ -538,7 +542,8 @@ function Get-NamesFromLine([string] $line) {
     $m = [regex]::Match($t, '(' + $zhName + ')\s*\(([^()]*)\)\s*(?:不抛出|noexcept)?\s*\{')
     if (-not $m.Success) {
         $m2 = [regex]::Match($t, '^(?:内联\s+|常量表达式\s+|静态\s+)*[\w:<>,\s&*]+\s(' + $zhName + ')\s*\(')
-        if ($m2.Success -and $m2.Groups[1].Value -ne '声明类型') { $m = $m2 }
+        #  §17.42 同上一支：关键字不算名字（`运算符` = operator）
+        if ($m2.Success -and @('声明类型', '运算符', '自动', '返回') -notcontains $m2.Groups[1].Value) { $m = $m2 }
     }
     if ($m.Success) { return @([pscustomobject]@{ Name = $m.Groups[1].Value; Kind = '函数'; Template = '' }) }
     return $out
