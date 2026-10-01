@@ -51,6 +51,15 @@ function Test-ZhName([string] $s) { return ($s -match ('^' + $zhName + '$')) }
 #  §17.23 类型形参要**按角色**给见证：一律给 `整数` 会当场炸 ——
 #  实测 `标准::细节::映射实现<整数, 整数, 整数, 整数>` 报
 #  `std::pointer_traits<int> 中没有名为 rebind 的成员`（第四个形参是分配器）。
+#  §17.31 视图类模板的"范围见证"要**多种形状**：容器只满足一部分视图的约束 ——
+#  `elements_view`（键视图/值视图）要"元素是 pair 的范围"、`join_view`（连接视图）要"元素是范围的范围"。
+#  所以同一个别名会出 3 条候选（任意一条编过即算这个名字能实例化）。
+$script:ViewWitness = '标准::引用视图<标准::向量<整数>>'
+$script:ViewWitnessVariants = @(
+    '标准::引用视图<标准::向量<整数>>',
+    '标准::引用视图<标准::向量<标准::向量<整数>>>',
+    '标准::引用视图<标准::向量<std::pair<整数, 整数>>>'
+)
 function Get-RoleArg([string] $decl, [string[]] $all, [int] $idx) {
     $nm = ($decl -split '\s+')[-1].TrimEnd('.')
     if ($nm -match '分配器|分配|allocator|_Al') {
@@ -61,7 +70,11 @@ function Get-RoleArg([string] $decl, [string[]] $all, [int] $idx) {
         if ($idx -ge 2 -and $before -ge 2) { return 'std::allocator<std::pair<常量 整数, 整数>>' }
         return 'std::allocator<整数>'
     }
-    if ($nm -match '比较|谓词|_Pr$|^_Pr') { return 'std::less<整数>' }
+    if ($nm -match '比较|谓词|_Pr$|^_Pr') { return '通用见证' }
+    #  §17.31 `函数`/`_Fn` 也要**可调用**见证，而且视图类模板要的是**一元**可调用 ——
+    #  给 `std::less<整数>` 会撞「约束未满足」（`invocable<less<int>&, int&>` 为假，它是二元的）。
+    #  `通用见证` 同时有一元/二元两个重载，两种位置都能满足。
+    if ($nm -match '函数|_Fn$|^_Fn|操作$|_Op$') { return '通用见证' }
     if ($nm -match '散列|哈希|_Hasher|_Hash') { return 'std::hash<整数>' }
     if ($nm -match '键相等|_Keyeq') { return 'std::equal_to<整数>' }
     if ($nm -match '相等|_Eq') { return 'std::equal_to<整数>' }
@@ -70,7 +83,7 @@ function Get-RoleArg([string] $decl, [string[]] $all, [int] $idx) {
     #  `_Ki` 是 subrange_kind 枚举值、`比` 是 `ratio<>`（给 `1` 会撞静态断言）。
     #  §17.28 但**视图类模板**要的是"真视图"：`transform_view<向量<整数>, F>` 撞「约束未满足」
     #  （容器不是 view），给 `标准::引用视图<标准::向量<整数>>`（ref_view）才对。
-    if ($nm -match '^_Vw$|视图类型|可作视图') { return '标准::引用视图<标准::向量<整数>>' }
+    if ($nm -match '^_Vw$|视图类型|可作视图') { return $script:ViewWitness }
     if ($nm -match '^_Rng$|^_Range$|范围类型|可借范围') { return '标准::向量<整数>' }
     if ($nm -match '^_Pat$|^_Pattern$|^模式$') { return '标准::向量<整数>' }
     #  §17.28 `某类型`（`位` 那一族的 `模板 <类型名 某类型> … 名(某类型 值)`）要给**无符号**见证：
@@ -80,7 +93,7 @@ function Get-RoleArg([string] $decl, [string[]] $all, [int] $idx) {
     if ($nm -match '^比|^_R1$|^_R2$|^_R$|ratio') { return 'std::ratio<1, 1>' }
     if ($nm -match '^_CharT$|^_Elem$|^_元素$|字符类型') { return '字符' }
     if ($nm -match '^_Out$|^_OutIt$|输出迭代') { return '整数*' }
-    if ($nm -match '^_It$|^_Se$|^_Iter$|^_Iterator$') { return '整数*' }
+    if ($nm -match '^_It$|^_Se$|^_Iter$|^_Iterator$|^迭代|迭代$|哨兵') { return '整数*' }
     return '整数'
 }
 function Get-TemplateArgs([string] $decl) {
@@ -96,7 +109,17 @@ function Get-TemplateArgs([string] $decl) {
     }
     if ($cur.Trim()) { $parts += $cur }
     $nd = @()   # 不带默认值的形参（顺序保留）—— 角色判定要看"它前面有几个类型形参"
-    foreach ($p in $parts) { $pp = $p.Trim(); if ($pp -and $pp -notmatch '=') { $nd += $pp } }
+    #  §17.31 例外：`subrange` 的 `_Ki`（subrange_kind）**即使有默认值也要显式给 `sized`** ——
+    #  默认值是 `unsized`，配上 `整数*` 这种随机访问迭代器会撞约束（实测 `子范围` 就卡这）。
+    foreach ($p in $parts) {
+        $pp = $p.Trim()
+        if (-not $pp) { continue }
+        if ($pp -match '=') {
+            if ($pp -match '^类型名\s+(_Ki|_Kind)\b') { $nd += ($pp -split '=')[0].Trim() }
+            continue
+        }
+        $nd += $pp
+    }
     $args = @()
     for ($i = 0; $i -lt $nd.Count; $i++) {
         #  ⚠ 深拷贝里关键字混用：形参可能写成 `类型名 X`，也可能还是 `class X` / `typename X`
@@ -180,12 +203,30 @@ function New-WitnessDecl([string[]] $kinds, [int] $id) {
     if ($kinds -contains '复') { $d += "        标准::复数<整数> 复$id{1, 2};" }
     return ($d -join "`n")
 }
+#  §17.31 模板别名/模板类型的探针行：视图类模板出**多条范围形状**候选，
+#  其余只出一条。返回第一条；第 2/3 条塞进调用方给的引用槽。
+function Get-AliasProbeLine($n, [int] $id) {
+    $isView = ($n.Template -match '视图|_Vw')
+    $tries = $(if ($isView) { @(0, 1, 2) } else { @(0) })
+    $made = @()
+    foreach ($vi in $tries) {
+        $script:ViewWitness = $script:ViewWitnessVariants[$vi]
+        $a = Get-TemplateArgs $n.Template
+        if ($a) { $made += ("    {0}<{1}>* 针{2}_{3} = 空指针; (空型)针{2}_{3};" -f ('标准::' + $n.Name), $a, $id, $vi) }
+        elseif ($n.Template -and $vi -eq 0) { $made += ("    标准::{0}<>* 针{1} = 空指针; (空型)针{1};" -f $n.Name, $id) }
+    }
+    $script:ViewWitness = $script:ViewWitnessVariants[0]
+    $script:AliasSlot2 = $(if ($made.Count -ge 2) { $made[1] } else { $null })
+    $script:AliasSlot3 = $(if ($made.Count -ge 3) { $made[2] } else { $null })
+    if ($made.Count -ge 1) { return $made[0] }
+    return $null
+}
 function Get-Witness([string] $type, [string] $pname, [int] $id) {
     #  返回 @{ Expr; Kind } ；$null = 这个形参见证不出来（整个名字不做探针）
     $t = ($type.Trim() -replace '^const\s+', '') -replace '\s*[&*]+\s*$', ''
     $k = ''
     if ($t -match '^输出迭代|^输出迭代器|^插入迭代') { $k = '出' }
-    elseif ($t -match '迭代') { $k = '组' }
+    elseif ($t -match '迭代|哨兵|_Se$') { $k = '组' }
     #  §17.26 复数的自由函数（`标准::常用对数` 等）形参是 `细节::复数实现<元素>&` ——
     #  给 `整数` 会炸，得给一个**真的复数对象**（原生头同样写法能编：实测 复数<整数> 也行）。
     elseif ($t -match '复数实现') { $k = '复' }
@@ -557,7 +598,7 @@ foreach ($p in $products) {
                 $tplItems += $tpn; $probed += $n.Name; $used = $true; continue
             }
         }
-        $line = $null; $line2 = $null; $line3 = $null; $line4 = $null
+        $line = $null; $line2 = $null; $line3 = $null; $line4 = $null; $line5 = $null
         switch ($n.Kind) {
             '类型' { $line = ("    {0}* 针{1} = 空指针; (空型)针{1};" -f ('标准::' + $n.Name), $id) }
             #  §17.23 内部件多半是**类模板**：`标准::细节::映射实现` 不是类型、`映射实现<整数,整数,整数,整数>` 才是。
@@ -578,11 +619,11 @@ foreach ($p in $products) {
                     $line4 = ("    标准::细节::{0}{1}::{2}* 针{3} = 空指针; (空型)针{3};" -f $mh.Class, $(if ($ha2) { "<$ha2>" } else { '' }), $n.Name, $id)
                 }
             }
-            '模板类型' { $a = Get-TemplateArgs $n.Template; if ($a) { $line = ("    {0}<{1}>* 针{2} = 空指针; (空型)针{2};" -f ('标准::' + $n.Name), $a, $id) } elseif ($n.Template) { $line = ("    标准::{0}<>* 针{1} = 空指针; (空型)针{1};" -f $n.Name, $id) } }
+            '模板类型' { $line = Get-AliasProbeLine $n $id; $line2 = $script:AliasSlot2; $line5 = $script:AliasSlot3 }
             #  §17.26 形参**全带默认值**的模板别名（`模板 <类型名 值类型 = 空型> 使用 按位与 = std::bit_and<值类型>;`）
             #  以前 `Get-TemplateArgs` 返回 $null -> 一条探针都不出（36 个名字整片记「无探针」）。
             #  正确写法是 `标准::按位与<>`（空实参表合法）—— 实测能编。
-            '模板别名' { $a = Get-TemplateArgs $n.Template; if ($a) { $line = ("    {0}<{1}>* 针{2} = 空指针; (空型)针{2};" -f ('标准::' + $n.Name), $a, $id) } elseif ($n.Template) { $line = ("    标准::{0}<>* 针{1} = 空指针; (空型)针{1};" -f $n.Name, $id) } }
+            '模板别名' { $line = Get-AliasProbeLine $n $id; $line2 = $script:AliasSlot2; $line5 = $script:AliasSlot3 }
             '常量' { $line = ("    (空型)标准::{0};" -f $n.Name) }
             '函数' { $line = ("    自动 针f{0} = &标准::{1}; (空型)针f{0};" -f $id, $n.Name) }
             #  §17.22 概念探针：概念求值对任何实参都良构（不满足只求值为 false），
@@ -622,7 +663,7 @@ foreach ($p in $products) {
         #  ⚠ 同一名字可能有多条候选（裸名 / 带实参 / 宿主限定），它们会**同处一个 TU** ——
         #    变量名必须逐条区分，否则 `针<id>` 重定义（实测：6 个产物因此编不过）。
         $ci = 0
-        foreach ($ln in @($line, $line2, $line3, $line4)) {
+        foreach ($ln in @($line, $line2, $line3, $line4, $line5)) {
             if ($ln) {
                 $ci++
                 $lnx = $(if ($ci -eq 1) { $ln } else { ([string]$ln).Replace([string]$id, "$id`_$ci") })
@@ -654,6 +695,9 @@ foreach ($p in $products) {
         $src = Join-Path $work ("p_$safe$tag.cpp"); $exe = Join-Path $work ("p_$safe$tag.exe")
         $inc = "#包含 <$($p.Product)>`n"
         foreach ($e in @($extraInc)) { if ($e) { $inc += "#包含 <$e>`n" } }
+        #  §17.31 **见证结构**：视图类模板要"真可调用"的类型实参（一元谓词/函数、二元比较都可能），
+        #  而 lambda 类型没法写进类型位置。这个结构两个重载都带上，两边都能满足。
+        $inc += "结构 通用见证 { 布尔 运算符()(整数 值) 常量 { 返回 真值; } 布尔 运算符()(整数 左, 整数 右) 常量 { 返回 左 < 右; } };`n"
         $code = $inc + "整数 主函数(){`n" + ($lines -join "`n") + "`n    返回 0;`n}`n"
         [System.IO.File]::WriteAllText($src, $code, $utf8)
         & cmd /c "`"$cxx`" $stdFlag -isystem`"$out`" `"$src`" -o `"$exe`" > `"$work\o_$safe$tag.txt`" 2>&1"
@@ -711,6 +755,28 @@ foreach ($p in $products) {
                     if ($lnS -ne [string]$it.Line) {
                         $riS = Invoke-Probe @($lnS) ('_s' + (Get-StableId $sug))
                         if ($riS.CC -eq 0) { $okNames[$it.Name] = $true; continue }
+                        #  §17.31 候选路径多半是 **CPO**（`标准::范围视图::切分`）——它们要**范围**当实参，
+                        #  整数哑实参天然不匹配。把哑实参换成真容器（向量）再试；
+                        #  二元 CPO 的**第二实参**可能是函数（变换/过滤/切分）也可能是整数（取前/丢弃前），
+                        #  两种形状都试（1 次编译/形状）。
+                        $idE = [regex]::Escape([string]$id)
+                        $variants = @()
+                        if ($lnS -match ('壹' + $idE + ',\s*壹' + $idE)) {
+                            $variants += ($lnS -replace ('壹' + $idE + ',\s*壹' + $idE), ('范' + [string]$id + ', 通用见证()'))
+                            $variants += ($lnS -replace ('壹' + $idE + ',\s*壹' + $idE), ('范' + [string]$id + ', 壹' + [string]$id))
+                        } elseif ($lnS -match ('壹' + $idE)) {
+                            $variants += ($lnS -replace ('壹' + $idE), ('范' + [string]$id))
+                        }
+                        foreach ($lv in $variants) {
+                            $lnR = ([string]$lv).Replace('[](){ ', ("[](){ 标准::向量<整数> 范$id{}; "))
+                            if ($lnR -eq $lnS) { continue }
+                            $savedInc = @($extraInc)
+                            if ($savedInc -notcontains '向量') { $extraInc = $savedInc + @('向量') }
+                            $riR = Invoke-Probe @($lnR) ('_r' + (Get-StableId ($sug + $lnR.Length)))
+                            $extraInc = $savedInc
+                            if ($riR.CC -eq 0) { $okNames[$it.Name] = $true; break }
+                        }
+                        if ($okNames.ContainsKey($it.Name)) { continue }
                     }
                 }
                 $soft = $false; $why = ''
