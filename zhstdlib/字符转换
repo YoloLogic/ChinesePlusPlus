@@ -38,7 +38,7 @@ inline constexpr char _Charconv_digits[] = {'0', '1', '2', '3', '4', '5', '6', '
 _STL_INTERNAL_STATIC_ASSERT(_STD size(_Charconv_digits) == 36);
 
 template <class _RawTy>
-_NODISCARD _CONSTEXPR23 to_chars_result _Integer_to_chars(
+_NODISCARD _CONSTEXPR23 to_chars_result _整数转字符(
     char* _首个, char* const _最后, const _RawTy _Raw_value, const int _Base) noexcept {
     _ADL校验范围(_首个, _最后);
     _STL_ASSERT(_Base >= 2 && _Base <= 36, "invalid base in 数值转字符()");
@@ -84,9 +84,9 @@ _NODISCARD _CONSTEXPR23 to_chars_result _Integer_to_chars(
                 }
             }
 
-            using _Truncated = conditional_t<_Use_chunks, unsigned long, _无符号类型>;
+            using _截断类型 = conditional_t<_Use_chunks, unsigned long, _无符号类型>;
 
-            _Truncated _Trunc = static_cast<_Truncated>(_Value);
+            _截断类型 _Trunc = static_cast<_截断类型>(_Value);
 
             do {
                 *--_RNext = static_cast<char>('0' + _Trunc % 10);
@@ -162,47 +162,47 @@ _NODISCARD _CONSTEXPR23 to_chars_result _Integer_to_chars(
 
 _EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(
     char* const _首个, char* const _最后, const char _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_to_chars(_首个, _最后, _Value, _Base);
+    return _整数转字符(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(
     char* const _首个, char* const _最后, const signed char _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_to_chars(_首个, _最后, _Value, _Base);
+    return _整数转字符(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(char* const _首个, char* const _最后, const unsigned char _Value,
     const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_to_chars(_首个, _最后, _Value, _Base);
+    return _整数转字符(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(
     char* const _首个, char* const _最后, const short _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_to_chars(_首个, _最后, _Value, _Base);
+    return _整数转字符(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(char* const _首个, char* const _最后, const unsigned short _Value,
     const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_to_chars(_首个, _最后, _Value, _Base);
+    return _整数转字符(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(
     char* const _首个, char* const _最后, const int _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_to_chars(_首个, _最后, _Value, _Base);
+    return _整数转字符(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(char* const _首个, char* const _最后, const unsigned int _Value,
     const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_to_chars(_首个, _最后, _Value, _Base);
+    return _整数转字符(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(
     char* const _首个, char* const _最后, const long _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_to_chars(_首个, _最后, _Value, _Base);
+    return _整数转字符(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(char* const _首个, char* const _最后, const unsigned long _Value,
     const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_to_chars(_首个, _最后, _Value, _Base);
+    return _整数转字符(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(
     char* const _首个, char* const _最后, const long long _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_to_chars(_首个, _最后, _Value, _Base);
+    return _整数转字符(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 to_chars_result 数值转字符(char* const _首个, char* const _最后,
     const unsigned long long _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_to_chars(_首个, _最后, _Value, _Base);
+    return _整数转字符(_首个, _最后, _Value, _Base);
 }
 
 _EXPORT_STD to_chars_result 数值转字符(char* _首个, char* _最后, bool _Value, int _Base = 10) = delete;
@@ -237,7 +237,7 @@ _NODISCARD _CONSTEXPR23 unsigned char _Digit_from_char(const char _Ch) noexcept 
 }
 
 template <class _RawTy>
-_NODISCARD _CONSTEXPR23 from_chars_result _Integer_from_chars(
+_NODISCARD _CONSTEXPR23 from_chars_result _由字符转整数(
     const char* const _首个, const char* const _最后, _RawTy& _Raw_value, const int _Base) noexcept {
     _ADL校验范围(_首个, _最后);
     _STL_ASSERT(_Base >= 2 && _Base <= 36, "invalid base in 字符转数值()");
@@ -318,47 +318,47 @@ _NODISCARD _CONSTEXPR23 from_chars_result _Integer_from_chars(
 
 _EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(
     const char* const _首个, const char* const _最后, char& _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_from_chars(_首个, _最后, _Value, _Base);
+    return _由字符转整数(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(const char* const _首个, const char* const _最后,
     signed char& _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_from_chars(_首个, _最后, _Value, _Base);
+    return _由字符转整数(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(const char* const _首个, const char* const _最后,
     unsigned char& _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_from_chars(_首个, _最后, _Value, _Base);
+    return _由字符转整数(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(const char* const _首个, const char* const _最后, short& _Value,
     const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_from_chars(_首个, _最后, _Value, _Base);
+    return _由字符转整数(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(const char* const _首个, const char* const _最后,
     unsigned short& _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_from_chars(_首个, _最后, _Value, _Base);
+    return _由字符转整数(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(
     const char* const _首个, const char* const _最后, int& _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_from_chars(_首个, _最后, _Value, _Base);
+    return _由字符转整数(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(const char* const _首个, const char* const _最后,
     unsigned int& _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_from_chars(_首个, _最后, _Value, _Base);
+    return _由字符转整数(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(
     const char* const _首个, const char* const _最后, long& _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_from_chars(_首个, _最后, _Value, _Base);
+    return _由字符转整数(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(const char* const _首个, const char* const _最后,
     unsigned long& _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_from_chars(_首个, _最后, _Value, _Base);
+    return _由字符转整数(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(const char* const _首个, const char* const _最后,
     long long& _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_from_chars(_首个, _最后, _Value, _Base);
+    return _由字符转整数(_首个, _最后, _Value, _Base);
 }
 _EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(const char* const _首个, const char* const _最后,
     unsigned long long& _Value, const int _Base = 10) noexcept /* strengthened */ {
-    return _Integer_from_chars(_首个, _最后, _Value, _Base);
+    return _由字符转整数(_首个, _最后, _Value, _Base);
 }
 
 // vvvvvvvvvv DERIVED FROM corecrt_internal_big_integer.h vvvvvvvvvv
@@ -371,12 +371,12 @@ _EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(const char* const _�
 // additional log2(10^768) bits of precision. Finally, we require 54 bits of space for pre-division numerator shifting,
 // because double explicitly stores 52 bits, implicitly stores 1 bit, and we need 1 more bit for rounding.
 
-// PERFORMANCE NOTE: We intentionally do not initialize the _Mydata array when a _Big_integer_flt object is constructed.
+// PERFORMANCE NOTE: We intentionally do not initialize the _Mydata array when a _大整数浮点 object is constructed.
 // Profiling showed that zero-initialization caused a substantial performance hit. Initialization of the _Mydata
-// array is not necessary: all operations on the _Big_integer_flt type are carefully written to only access elements at
+// array is not necessary: all operations on the _大整数浮点 type are carefully written to only access elements at
 // indices [0, _Myused), and all operations correctly update _Myused as the utilized size increases.
 
-// _Big_integer_flt _Xval{}; is direct-list-initialization (N4950 [dcl.init.list]/1).
+// _大整数浮点 _Xval{}; is direct-list-initialization (N4950 [dcl.init.list]/1).
 // N4950 [dcl.init.list]/3.5:
 // "Otherwise, if the initializer list has no elements and T is a class type with a default constructor,
 // the object is value-initialized."
@@ -401,24 +401,24 @@ _EXPORT_STD _CONSTEXPR23 from_chars_result 字符转数值(const char* const _�
 // - If T is an array type, each element is default-initialized.
 // - Otherwise, no initialization is performed."
 // Therefore, _Mydata's elements are not initialized.
-struct _Big_integer_flt {
+struct _大整数浮点 {
 #pragma warning(push)
-#pragma warning(disable : 26495) // Variable 'std::_Big_integer_flt::_Mydata' is uninitialized.
+#pragma warning(disable : 26495) // Variable 'std::_大整数浮点::_Mydata' is uninitialized.
                                  // Always initialize a member variable (type.6).
-    _Big_integer_flt() noexcept : _Myused(0) {}
+    _大整数浮点() noexcept : _Myused(0) {}
 #pragma warning(pop)
 
-    _Big_integer_flt(const _Big_integer_flt& _Other) noexcept : _Myused(_Other._Myused) {
+    _大整数浮点(const _大整数浮点& _Other) noexcept : _Myused(_Other._Myused) {
         _CSTD memcpy(_Mydata, _Other._Mydata, _Other._Myused * sizeof(uint32_t));
     }
 
-    _Big_integer_flt& operator=(const _Big_integer_flt& _Other) noexcept {
+    _大整数浮点& operator=(const _大整数浮点& _Other) noexcept {
         _Myused = _Other._Myused;
         _CSTD memmove(_Mydata, _Other._Mydata, _Other._Myused * sizeof(uint32_t));
         return *this;
     }
 
-    _NODISCARD bool operator<(const _Big_integer_flt& _Rhs) const noexcept {
+    _NODISCARD bool operator<(const _大整数浮点& _Rhs) const noexcept {
         if (_Myused != _Rhs._Myused) {
             return _Myused < _Rhs._Myused;
         }
@@ -444,14 +444,14 @@ struct _Big_integer_flt {
     uint32_t _Mydata[_Element_count]; // The number, stored in little-endian form
 };
 
-_NODISCARD inline _Big_integer_flt _Make_big_integer_flt_one() noexcept {
-    _Big_integer_flt _Xval{};
+_NODISCARD inline _大整数浮点 _Make_big_integer_flt_one() noexcept {
+    _大整数浮点 _Xval{};
     _Xval._Mydata[0] = 1;
     _Xval._Myused    = 1;
     return _Xval;
 }
 
-_NODISCARD inline uint32_t _Bit_scan_reverse(const _Big_integer_flt& _Xval) noexcept {
+_NODISCARD inline uint32_t _Bit_scan_reverse(const _大整数浮点& _Xval) noexcept {
     if (_Xval._Myused == 0) {
         return 0;
     }
@@ -460,25 +460,25 @@ _NODISCARD inline uint32_t _Bit_scan_reverse(const _Big_integer_flt& _Xval) noex
 
     unsigned long _Index; // Intentionally uninitialized for better codegen
 
-    _STL_INTERNAL_CHECK(_Xval._Mydata[_Bx] != 0); // _Big_integer_flt should always be trimmed
+    _STL_INTERNAL_CHECK(_Xval._Mydata[_Bx] != 0); // _大整数浮点 should always be trimmed
 
     // CodeQL [SM02313] _Index is always initialized: we've guaranteed that _Xval._Mydata[_Bx] is non-zero.
     _BitScanReverse(&_Index, _Xval._Mydata[_Bx]);
 
-    return _Index + 1 + _Bx * _Big_integer_flt::_Element_bits;
+    return _Index + 1 + _Bx * _大整数浮点::_Element_bits;
 }
 
 // Shifts the high-precision integer _Xval by _Nx bits to the left. Returns true if the left shift was successful;
 // false if it overflowed. When overflow occurs, the high-precision integer is reset to zero.
-_NODISCARD inline bool _Shift_left(_Big_integer_flt& _Xval, const uint32_t _Nx) noexcept {
+_NODISCARD inline bool _Shift_left(_大整数浮点& _Xval, const uint32_t _Nx) noexcept {
     if (_Xval._Myused == 0) {
         return true;
     }
 
-    const uint32_t _Unit_shift = _Nx / _Big_integer_flt::_Element_bits;
-    const uint32_t _Bit_shift  = _Nx % _Big_integer_flt::_Element_bits;
+    const uint32_t _Unit_shift = _Nx / _大整数浮点::_Element_bits;
+    const uint32_t _Bit_shift  = _Nx % _大整数浮点::_Element_bits;
 
-    if (_Xval._Myused + _Unit_shift > _Big_integer_flt::_Element_count) {
+    if (_Xval._Myused + _Unit_shift > _大整数浮点::_Element_count) {
         // Unit shift will overflow.
         _Xval._Myused = 0;
         return false;
@@ -489,18 +489,18 @@ _NODISCARD inline bool _Shift_left(_Big_integer_flt& _Xval, const uint32_t _Nx) 
         _Xval._Myused += _Unit_shift;
     } else {
         const bool _Bit_shifts_into_next_unit =
-            _Bit_shift > (_Big_integer_flt::_Element_bits - _Bit_scan_reverse(_Xval._Mydata[_Xval._Myused - 1]));
+            _Bit_shift > (_大整数浮点::_Element_bits - _Bit_scan_reverse(_Xval._Mydata[_Xval._Myused - 1]));
 
         const uint32_t _New_used = _Xval._Myused + _Unit_shift + static_cast<uint32_t>(_Bit_shifts_into_next_unit);
 
-        if (_New_used > _Big_integer_flt::_Element_count) {
+        if (_New_used > _大整数浮点::_Element_count) {
             // Bit shift will overflow.
             _Xval._Myused = 0;
             return false;
         }
 
         const uint32_t _Msb_bits = _Bit_shift;
-        const uint32_t _Lsb_bits = _Big_integer_flt::_Element_bits - _Msb_bits;
+        const uint32_t _Lsb_bits = _大整数浮点::_Element_bits - _Msb_bits;
 
         const uint32_t _Lsb_mask = (1UL << _Lsb_bits) - 1UL;
         const uint32_t _Msb_mask = ~_Lsb_mask;
@@ -536,7 +536,7 @@ _NODISCARD inline bool _Shift_left(_Big_integer_flt& _Xval, const uint32_t _Nx) 
 
 // Adds a 32-bit _Value to the high-precision integer _Xval. Returns true if the addition was successful;
 // false if it overflowed. When overflow occurs, the high-precision integer is reset to zero.
-_NODISCARD inline bool _Add(_Big_integer_flt& _Xval, const uint32_t _Value) noexcept {
+_NODISCARD inline bool _Add(_大整数浮点& _Xval, const uint32_t _Value) noexcept {
     if (_Value == 0) {
         return true;
     }
@@ -549,7 +549,7 @@ _NODISCARD inline bool _Add(_Big_integer_flt& _Xval, const uint32_t _Value) noex
     }
 
     if (_Carry != 0) {
-        if (_Xval._Myused < _Big_integer_flt::_Element_count) {
+        if (_Xval._Myused < _大整数浮点::_Element_count) {
             _Xval._Mydata[_Xval._Myused] = _Carry;
             ++_Xval._Myused;
         } else {
@@ -588,7 +588,7 @@ _NODISCARD inline uint32_t _Multiply_core(
 
 // Multiplies the high-precision _Multiplicand by a 32-bit _Multiplier. Returns true if the multiplication
 // was successful; false if it overflowed. When overflow occurs, the _Multiplicand is reset to zero.
-_NODISCARD inline bool _Multiply(_Big_integer_flt& _Multiplicand, const uint32_t _Multiplier) noexcept {
+_NODISCARD inline bool _相乘(_大整数浮点& _Multiplicand, const uint32_t _Multiplier) noexcept {
     if (_Multiplier == 0) {
         _Multiplicand._Myused = 0;
         return true;
@@ -604,7 +604,7 @@ _NODISCARD inline bool _Multiply(_Big_integer_flt& _Multiplicand, const uint32_t
 
     const uint32_t _Carry = _Multiply_core(_Multiplicand._Mydata, _Multiplicand._Myused, _Multiplier);
     if (_Carry != 0) {
-        if (_Multiplicand._Myused < _Big_integer_flt::_Element_count) {
+        if (_Multiplicand._Myused < _大整数浮点::_Element_count) {
             _Multiplicand._Mydata[_Multiplicand._Myused] = _Carry;
             ++_Multiplicand._Myused;
         } else {
@@ -620,7 +620,7 @@ _NODISCARD inline bool _Multiply(_Big_integer_flt& _Multiplicand, const uint32_t
 // System.Numerics.BigIntegerBuilder.Mul in the .NET Framework sources. It 乘法 the _Multiplicand
 // by the _Multiplier and returns true if the multiplication was successful; false if it overflowed.
 // When overflow occurs, the _Multiplicand is reset to zero.
-_NODISCARD inline bool _Multiply(_Big_integer_flt& _Multiplicand, const _Big_integer_flt& _Multiplier) noexcept {
+_NODISCARD inline bool _相乘(_大整数浮点& _Multiplicand, const _大整数浮点& _Multiplier) noexcept {
     if (_Multiplicand._Myused == 0) {
         return true;
     }
@@ -631,13 +631,13 @@ _NODISCARD inline bool _Multiply(_Big_integer_flt& _Multiplicand, const _Big_int
     }
 
     if (_Multiplier._Myused == 1) {
-        return _Multiply(_Multiplicand, _Multiplier._Mydata[0]); // when overflow occurs, resets to zero
+        return _相乘(_Multiplicand, _Multiplier._Mydata[0]); // when overflow occurs, resets to zero
     }
 
     if (_Multiplicand._Myused == 1) {
         const uint32_t _Small_multiplier = _Multiplicand._Mydata[0];
         _Multiplicand                    = _Multiplier;
-        return _Multiply(_Multiplicand, _Small_multiplier); // when overflow occurs, resets to zero
+        return _相乘(_Multiplicand, _Small_multiplier); // when overflow occurs, resets to zero
     }
 
     // We prefer more iterations on the inner loop and fewer on the outer:
@@ -648,7 +648,7 @@ _NODISCARD inline bool _Multiply(_Big_integer_flt& _Multiplicand, const _Big_int
     const uint32_t _Cu1 = _Multiplier_is_shorter ? _Multiplier._Myused : _Multiplicand._Myused;
     const uint32_t _Cu2 = _Multiplier_is_shorter ? _Multiplicand._Myused : _Multiplier._Myused;
 
-    _Big_integer_flt _结果{};
+    _大整数浮点 _结果{};
     for (uint32_t _Iu1 = 0; _Iu1 != _Cu1; ++_Iu1) {
         const uint32_t _U_cur = _Rgu1[_Iu1];
         if (_U_cur == 0) {
@@ -662,7 +662,7 @@ _NODISCARD inline bool _Multiply(_Big_integer_flt& _Multiplicand, const _Big_int
 
         uint32_t _U_carry = 0;
         uint32_t _Iu_res  = _Iu1;
-        for (uint32_t _Iu2 = 0; _Iu2 != _Cu2 && _Iu_res != _Big_integer_flt::_Element_count; ++_Iu2, ++_Iu_res) {
+        for (uint32_t _Iu2 = 0; _Iu2 != _Cu2 && _Iu_res != _大整数浮点::_Element_count; ++_Iu2, ++_Iu_res) {
             if (_Iu_res == _结果._Myused) {
                 _结果._Mydata[_Iu_res] = 0;
                 _结果._Myused          = _Iu_res + 1;
@@ -671,7 +671,7 @@ _NODISCARD inline bool _Multiply(_Big_integer_flt& _Multiplicand, const _Big_int
             _U_carry = _Add_multiply_carry(_结果._Mydata[_Iu_res], _U_cur, _Rgu2[_Iu2], _U_carry);
         }
 
-        while (_U_carry != 0 && _Iu_res != _Big_integer_flt::_Element_count) {
+        while (_U_carry != 0 && _Iu_res != _大整数浮点::_Element_count) {
             if (_Iu_res == _结果._Myused) {
                 _结果._Mydata[_Iu_res] = 0;
                 _结果._Myused          = _Iu_res + 1;
@@ -680,7 +680,7 @@ _NODISCARD inline bool _Multiply(_Big_integer_flt& _Multiplicand, const _Big_int
             _U_carry = _Add_carry(_结果._Mydata[_Iu_res++], 0, _U_carry);
         }
 
-        if (_Iu_res == _Big_integer_flt::_Element_count) {
+        if (_Iu_res == _大整数浮点::_Element_count) {
             _Multiplicand._Myused = 0;
             return false;
         }
@@ -695,9 +695,9 @@ extern const uint32_t _Large_power_data[578];
 
 // Multiplies the high-precision integer _Xval by 10^_Power. Returns true if the multiplication was successful;
 // false if it overflowed. When overflow occurs, the high-precision integer is reset to zero.
-_NODISCARD inline bool _Multiply_by_power_of_ten(_Big_integer_flt& _Xval, const uint32_t _Power) noexcept {
+_NODISCARD inline bool _Multiply_by_power_of_ten(_大整数浮点& _Xval, const uint32_t _Power) noexcept {
     // To improve performance, we use a table of precomputed powers of ten, from 10^10 through 10^380, in increments
-    // of ten. In its unpacked form, as an array of _Big_integer_flt objects, this table consists mostly of zero
+    // of ten. In its unpacked form, as an array of _大整数浮点 objects, this table consists mostly of zero
     // elements. Thus, we store the table in a packed form, trimming leading and trailing zero elements. We provide an
     // index that is used to unpack powers from the table, using the function that appears after this function in this
     // file.
@@ -705,13 +705,13 @@ _NODISCARD inline bool _Multiply_by_power_of_ten(_Big_integer_flt& _Xval, const 
     // The minimum value representable with double-precision is 5E-324.
     // With the _Large_power_data table we can thus compute most multiplications with a single multiply.
 
-    struct _Unpack_index {
+    struct _解包下标 {
         uint16_t _Offset; // The offset of this power's initial element in the array
         uint8_t _Zeroes; // The number of omitted leading zero elements
         uint8_t _Size; // The number of elements present for this power
     };
 
-    static constexpr _Unpack_index _Large_power_indices[] = {{0, 0, 2}, {2, 0, 3}, {5, 0, 4}, {9, 1, 4}, {13, 1, 5},
+    static constexpr _解包下标 _Large_power_indices[] = {{0, 0, 2}, {2, 0, 3}, {5, 0, 4}, {9, 1, 4}, {13, 1, 5},
         {18, 1, 6}, {24, 2, 6}, {30, 2, 7}, {37, 2, 8}, {45, 3, 8}, {53, 3, 9}, {62, 3, 10}, {72, 4, 10}, {82, 4, 11},
         {93, 4, 12}, {105, 5, 12}, {117, 5, 13}, {130, 5, 14}, {144, 5, 15}, {159, 6, 15}, {174, 6, 16}, {190, 6, 17},
         {207, 7, 17}, {224, 7, 18}, {242, 7, 19}, {261, 8, 19}, {280, 8, 21}, {301, 8, 22}, {323, 9, 22}, {345, 9, 23},
@@ -722,8 +722,8 @@ _NODISCARD inline bool _Multiply_by_power_of_ten(_Big_integer_flt& _Xval, const 
         const uint32_t _Current_power =
             (_STD min)(_Large_power, static_cast<uint32_t>(_STD size(_Large_power_indices)));
 
-        const _Unpack_index& _Index = _Large_power_indices[_Current_power - 1];
-        _Big_integer_flt _Multiplier{};
+        const _解包下标& _Index = _Large_power_indices[_Current_power - 1];
+        _大整数浮点 _Multiplier{};
         _Multiplier._Myused = static_cast<uint32_t>(_Index._Size + _Index._Zeroes);
 
         const uint32_t* const _Source = _Large_power_data + _Index._Offset;
@@ -731,7 +731,7 @@ _NODISCARD inline bool _Multiply_by_power_of_ten(_Big_integer_flt& _Xval, const 
         _CSTD memset(_Multiplier._Mydata, 0, _Index._Zeroes * sizeof(uint32_t));
         _CSTD memcpy(_Multiplier._Mydata + _Index._Zeroes, _Source, _Index._Size * sizeof(uint32_t));
 
-        if (!_Multiply(_Xval, _Multiplier)) { // when overflow occurs, resets to zero
+        if (!_相乘(_Xval, _Multiplier)) { // when overflow occurs, resets to zero
             return false;
         }
 
@@ -747,7 +747,7 @@ _NODISCARD inline bool _Multiply_by_power_of_ten(_Big_integer_flt& _Xval, const 
         return true;
     }
 
-    return _Multiply(_Xval, _Small_powers_of_ten[_Small_power - 1]); // when overflow occurs, resets to zero
+    return _相乘(_Xval, _Small_powers_of_ten[_Small_power - 1]); // when overflow occurs, resets to zero
 }
 
 // Computes the number of zeroes higher than the most significant set bit in _Ux
@@ -760,7 +760,7 @@ _NODISCARD inline uint32_t _Count_sequential_high_zeroes(const uint32_t _Ux) noe
 // System.Numerics.BigIntegerBuilder.ModDivCore in the .NET Framework sources.
 // It computes both quotient and remainder: the remainder is stored in the _Numerator argument,
 // and the least significant 64 bits of the quotient are returned from the function.
-_NODISCARD inline uint64_t _Divide(_Big_integer_flt& _Numerator, const _Big_integer_flt& _Denominator) noexcept {
+_NODISCARD inline uint64_t _Divide(_大整数浮点& _Numerator, const _大整数浮点& _Denominator) noexcept {
     // If the _Numerator is zero, then both the quotient and remainder are zero:
     if (_Numerator._Myused == 0) {
         return 0;
@@ -967,8 +967,8 @@ _NODISCARD inline uint64_t _Divide(_Big_integer_flt& _Numerator, const _Big_inte
 // This value is exactly between 0x1.ffffffffffffep-1022 and 0x1.fffffffffffffp-1022. For round-to-nearest,
 // ties-to-even behavior, we also need to consider whether there are any nonzero trailing decimal digits.
 
-// NOTE: The mantissa buffer count here must be kept in sync with the precision of the _Big_integer_flt type.
-struct _Floating_point_string {
+// NOTE: The mantissa buffer count here must be kept in sync with the precision of the _大整数浮点 type.
+struct _浮点串 {
     bool _Myis_negative;
     int32_t _Myexponent;
     uint32_t _Mymantissa_count;
@@ -978,11 +978,11 @@ struct _Floating_point_string {
 // Stores a positive or negative zero into the _结果 object
 template <class _FloatingType>
 void _Assemble_floating_point_zero(const bool _Is_negative, _FloatingType& _结果) noexcept {
-    using _Floating_traits = _Floating_type_traits<_FloatingType>;
-    using _Uint_type       = typename _Floating_traits::_Uint_type;
+    using _浮点特征 = _Floating_type_traits<_FloatingType>;
+    using _Uint_type       = typename _浮点特征::_Uint_type;
 
     _Uint_type _Sign_component = _Is_negative;
-    _Sign_component <<= _Floating_traits::_Sign_shift;
+    _Sign_component <<= _浮点特征::_Sign_shift;
 
     _结果 = _Bit_cast<_FloatingType>(_Sign_component);
 }
@@ -990,13 +990,13 @@ void _Assemble_floating_point_zero(const bool _Is_negative, _FloatingType& _结�
 // Stores a positive or negative infinity into the _结果 object
 template <class _FloatingType>
 void _Assemble_floating_point_infinity(const bool _Is_negative, _FloatingType& _结果) noexcept {
-    using _Floating_traits = _Floating_type_traits<_FloatingType>;
-    using _Uint_type       = typename _Floating_traits::_Uint_type;
+    using _浮点特征 = _Floating_type_traits<_FloatingType>;
+    using _Uint_type       = typename _浮点特征::_Uint_type;
 
     _Uint_type _Sign_component = _Is_negative;
-    _Sign_component <<= _Floating_traits::_Sign_shift;
+    _Sign_component <<= _浮点特征::_Sign_shift;
 
-    constexpr _Uint_type _Exponent_component = _Floating_traits::_Shifted_exponent_mask;
+    constexpr _Uint_type _Exponent_component = _浮点特征::_Shifted_exponent_mask;
 
     _结果 = _Bit_cast<_FloatingType>(_Sign_component | _Exponent_component);
 }
@@ -1122,14 +1122,14 @@ void _Assemble_floating_point_value_no_shift(const bool _Is_negative, const int3
     // | [3]  | 1.ffffffp+127 |   +127   |    253     | 0x7e800000 | 0x1000000 | 0x7f800000  |     inf         |
     // | [4]  | 0.fffffep-126 |   -126   |      0     | 0x00000000 |  0x7fffff | 0x007fffff  | 0x0.fffffep-126 |
     // | [5]  | 0.ffffffp-126 |   -126   |      0     | 0x00000000 |  0x800000 | 0x00800000  | 0x1.000000p-126 |
-    using _Floating_traits = _Floating_type_traits<_FloatingType>;
-    using _Uint_type       = typename _Floating_traits::_Uint_type;
+    using _浮点特征 = _Floating_type_traits<_FloatingType>;
+    using _Uint_type       = typename _浮点特征::_Uint_type;
 
     _Uint_type _Sign_component = _Is_negative;
-    _Sign_component <<= _Floating_traits::_Sign_shift;
+    _Sign_component <<= _浮点特征::_Sign_shift;
 
-    _Uint_type _Exponent_component = static_cast<uint32_t>(_Exponent + (_Floating_traits::_Exponent_bias - 1));
-    _Exponent_component <<= _Floating_traits::_Exponent_shift;
+    _Uint_type _Exponent_component = static_cast<uint32_t>(_Exponent + (_浮点特征::_Exponent_bias - 1));
+    _Exponent_component <<= _浮点特征::_Exponent_shift;
 
     _结果 = _Bit_cast<_FloatingType>(_Sign_component | (_Exponent_component + _Mantissa));
 }
@@ -1148,7 +1148,7 @@ void _Assemble_floating_point_value_no_shift(const bool _Is_negative, const int3
 // more bit of precision than is required, to ensure that the mantissa is correctly rounded.
 // (The caller should not round the mantissa before calling this function.)
 template <class _FloatingType>
-_NODISCARD errc _Assemble_floating_point_value(const uint64_t _Initial_mantissa, const int32_t _Initial_exponent,
+_NODISCARD errc _组装浮点值(const uint64_t _Initial_mantissa, const int32_t _Initial_exponent,
     const bool _Is_negative, const bool _Has_zero_tail, _FloatingType& _结果) noexcept {
     using _特征 = _Floating_type_traits<_FloatingType>;
 
@@ -1238,7 +1238,7 @@ _NODISCARD errc _Assemble_floating_point_value(const uint64_t _Initial_mantissa,
 // is not representable, +/-infinity is stored and overflow is reported (since this function deals with only integers,
 // underflow is impossible).
 template <class _FloatingType>
-_NODISCARD errc _Assemble_floating_point_value_from_big_integer_flt(const _Big_integer_flt& _Integer_value,
+_NODISCARD errc _Assemble_floating_point_value_from_big_integer_flt(const _大整数浮点& _Integer_value,
     const uint32_t _Integer_bits_of_precision, const bool _Is_negative, const bool _Has_nonzero_fractional_part,
     _FloatingType& _结果) noexcept {
     using _特征 = _Floating_type_traits<_FloatingType>;
@@ -1246,7 +1246,7 @@ _NODISCARD errc _Assemble_floating_point_value_from_big_integer_flt(const _Big_i
     constexpr int32_t _Base_exponent = _特征::_Mantissa_bits - 1;
 
     // Very fast case: If we have 64 bits of precision or fewer,
-    // we can just take the two low order elements from the _Big_integer_flt:
+    // we can just take the two low order elements from the _大整数浮点:
     if (_Integer_bits_of_precision <= 64) {
         constexpr int32_t _Exponent = _Base_exponent;
 
@@ -1254,7 +1254,7 @@ _NODISCARD errc _Assemble_floating_point_value_from_big_integer_flt(const _Big_i
         const uint32_t _Mantissa_high = _Integer_value._Myused > 1 ? _Integer_value._Mydata[1] : 0;
         const uint64_t _Mantissa      = _Mantissa_low + (static_cast<uint64_t>(_Mantissa_high) << 32);
 
-        return _Assemble_floating_point_value(
+        return _组装浮点值(
             _Mantissa, _Exponent, _Is_negative, !_Has_nonzero_fractional_part, _结果);
     }
 
@@ -1276,10 +1276,10 @@ _NODISCARD errc _Assemble_floating_point_value_from_big_integer_flt(const _Big_i
             _Has_zero_tail = _Integer_value._Mydata[_Ix] == 0;
         }
 
-        return _Assemble_floating_point_value(_Mantissa, _Exponent, _Is_negative, _Has_zero_tail, _结果);
+        return _组装浮点值(_Mantissa, _Exponent, _Is_negative, _Has_zero_tail, _结果);
     }
 
-    // Not quite so fast case: The top 64 bits span three elements in the _Big_integer_flt. Assemble the three pieces:
+    // Not quite so fast case: The top 64 bits span three elements in the _大整数浮点. Assemble the three pieces:
     const uint32_t _Top_element_mask  = (1u << _Top_element_bits) - 1;
     const uint32_t _Top_element_shift = 64 - _Top_element_bits; // Left
 
@@ -1304,20 +1304,20 @@ _NODISCARD errc _Assemble_floating_point_value_from_big_integer_flt(const _Big_i
         _Has_zero_tail = _Integer_value._Mydata[_Ix] == 0;
     }
 
-    return _Assemble_floating_point_value(_Mantissa, _Exponent, _Is_negative, _Has_zero_tail, _结果);
+    return _组装浮点值(_Mantissa, _Exponent, _Is_negative, _Has_zero_tail, _结果);
 }
 
 // Accumulates the decimal digits in [_First_digit, _Last_digit) into the _结果 high-precision integer.
 // This function assumes that no overflow will occur.
 inline void _Accumulate_decimal_digits_into_big_integer_flt(
-    const uint8_t* const _First_digit, const uint8_t* const _Last_digit, _Big_integer_flt& _结果) noexcept {
+    const uint8_t* const _First_digit, const uint8_t* const _Last_digit, _大整数浮点& _结果) noexcept {
     // We accumulate nine digit chunks, transforming the base ten string into base one billion on the fly,
     // allowing us to reduce the number of high-precision multiplication and addition operations by 8/9.
     uint32_t _Accumulator       = 0;
     uint32_t _Accumulator_count = 0;
     for (const uint8_t* _It = _First_digit; _It != _Last_digit; ++_It) {
         if (_Accumulator_count == 9) {
-            [[maybe_unused]] const bool _Success1 = _Multiply(_结果, 1'000'000'000); // assumes no overflow
+            [[maybe_unused]] const bool _Success1 = _相乘(_结果, 1'000'000'000); // assumes no overflow
             _STL_INTERNAL_CHECK(_Success1);
             [[maybe_unused]] const bool _Success2 = _Add(_结果, _Accumulator); // assumes no overflow
             _STL_INTERNAL_CHECK(_Success2);
@@ -1341,11 +1341,11 @@ inline void _Accumulate_decimal_digits_into_big_integer_flt(
 }
 
 // The core floating-point string parser for decimal strings. After a subject string is parsed and converted
-// into a _Floating_point_string object, if the subject string was determined to be a decimal string,
+// into a _浮点串 object, if the subject string was determined to be a decimal string,
 // the object is passed to this function. This function converts the decimal real value to floating-point.
 template <class _FloatingType>
 _NODISCARD errc _十进制串转浮点类型(
-    const _Floating_point_string& _Data, _FloatingType& _结果, bool _Has_zero_tail) noexcept {
+    const _浮点串& _Data, _FloatingType& _结果, bool _Has_zero_tail) noexcept {
     using _特征 = _Floating_type_traits<_FloatingType>;
 
     // To generate an N bit mantissa we require N + 1 bits of precision. The extra bit is used to correctly round
@@ -1368,8 +1368,8 @@ _NODISCARD errc _十进制串转浮点类型(
     const uint8_t* const _Fractional_last     = _Data._Mymantissa + _Data._Mymantissa_count;
     const uint32_t _Fractional_digits_present = static_cast<uint32_t>(_Fractional_last - _Fractional_first);
 
-    // First, we accumulate the integer part of the mantissa into a _Big_integer_flt:
-    _Big_integer_flt _Integer_value{};
+    // First, we accumulate the integer part of the mantissa into a _大整数浮点:
+    _大整数浮点 _Integer_value{};
     _Accumulate_decimal_digits_into_big_integer_flt(_Integer_first, _Integer_last, _Integer_value);
 
     if (_Integer_digits_missing > 0) {
@@ -1397,14 +1397,14 @@ _NODISCARD errc _十进制串转浮点类型(
     // the fractional part into an actual fraction N/M, where the numerator N is computed from the digits of the
     // fractional part, and the denominator M is computed as the power of 10 such that N/M is equal to the value
     // of the fractional part of the mantissa.
-    _Big_integer_flt _Fractional_numerator{};
+    _大整数浮点 _Fractional_numerator{};
     _Accumulate_decimal_digits_into_big_integer_flt(_Fractional_first, _Fractional_last, _Fractional_numerator);
 
     const uint32_t _Fractional_denominator_exponent =
         _Data._Myexponent < 0 ? _Fractional_digits_present + static_cast<uint32_t>(-_Data._Myexponent)
                               : _Fractional_digits_present;
 
-    _Big_integer_flt _Fractional_denominator = _Make_big_integer_flt_one();
+    _大整数浮点 _Fractional_denominator = _Make_big_integer_flt_one();
     if (!_Multiply_by_power_of_ten(_Fractional_denominator, _Fractional_denominator_exponent)) {
         // If there were any digits in the integer part, it is impossible to underflow (because the exponent
         // cannot possibly be small enough), so if we underflow here it is a true underflow and we return zero.
@@ -1491,13 +1491,13 @@ _NODISCARD errc _十进制串转浮点类型(
                                       ? static_cast<int32_t>(_Integer_bits_of_precision - 2)
                                       : -static_cast<int32_t>(_Fractional_exponent) - 1;
 
-    return _Assemble_floating_point_value(
+    return _组装浮点值(
         _Complete_mantissa, _Final_exponent, _Data._Myis_negative, _Has_zero_tail, _结果);
 }
 
 template <class _FloatingType>
 _NODISCARD errc _十六进制串转浮点类型(
-    const _Floating_point_string& _Data, _FloatingType& _结果, bool _Has_zero_tail) noexcept {
+    const _浮点串& _Data, _FloatingType& _结果, bool _Has_zero_tail) noexcept {
     using _特征 = _Floating_type_traits<_FloatingType>;
 
     uint64_t _Mantissa = 0;
@@ -1516,7 +1516,7 @@ _NODISCARD errc _十六进制串转浮点类型(
         _Has_zero_tail = *_Mantissa_it++ == 0;
     }
 
-    return _Assemble_floating_point_value(_Mantissa, _Exponent, _Data._Myis_negative, _Has_zero_tail, _结果);
+    return _组装浮点值(_Mantissa, _Exponent, _Data._Myis_negative, _Has_zero_tail, _结果);
 }
 
 // ^^^^^^^^^^ DERIVED FROM corecrt_internal_strtox.h ^^^^^^^^^^
@@ -1578,7 +1578,7 @@ _NODISCARD from_chars_result _常规浮点转数值(const char* const _首个, c
 
     // PERFORMANCE NOTE: _Fp_string is intentionally left uninitialized. Zero-initialization is quite expensive
     // and is unnecessary. The benefit of not zero-initializing is greatest for short inputs.
-    _Floating_point_string _Fp_string;
+    _浮点串 _Fp_string;
 
     // Record the optional 减法 sign:
     _Fp_string._Myis_negative = _Minus_sign;
@@ -1821,7 +1821,7 @@ _NODISCARD inline bool _Starts_with_case_insensitive(
 }
 
 template <class _Floating>
-_NODISCARD from_chars_result _Infinity_from_chars(const char* const _首个, const char* const _最后, _Floating& _Value,
+_NODISCARD from_chars_result _由字符转无穷(const char* const _首个, const char* const _最后, _Floating& _Value,
     const bool _Minus_sign, const char* _Next) noexcept {
     // pre: _Next points at 'i' (case-insensitively)
     if (!_Starts_with_case_insensitive(_Next + 1, _最后, "nf")) { // definitely invalid
@@ -1841,7 +1841,7 @@ _NODISCARD from_chars_result _Infinity_from_chars(const char* const _首个, con
 }
 
 template <class _Floating>
-_NODISCARD from_chars_result _Nan_from_chars(const char* const _首个, const char* const _最后, _Floating& _Value,
+_NODISCARD from_chars_result _由字符转非数(const char* const _首个, const char* const _最后, _Floating& _Value,
     bool _Minus_sign, const char* _Next) noexcept {
     // pre: _Next points at 'n' (case-insensitively)
     if (!_Starts_with_case_insensitive(_Next + 1, _最后, "an")) { // definitely invalid
@@ -1944,9 +1944,9 @@ _NODISCARD from_chars_result _浮点转数值(
     if (_Folded_start <= 'f') { // possibly an ordinary number
         return _常规浮点转数值(_首个, _最后, _Value, _Fmt, _Minus_sign, _Next);
     } else if (_Folded_start == 'i') { // possibly inf
-        return _Infinity_from_chars(_首个, _最后, _Value, _Minus_sign, _Next);
+        return _由字符转无穷(_首个, _最后, _Value, _Minus_sign, _Next);
     } else if (_Folded_start == 'n') { // possibly nan
-        return _Nan_from_chars(_首个, _最后, _Value, _Minus_sign, _Next);
+        return _由字符转非数(_首个, _最后, _Value, _Minus_sign, _Next);
     } else { // definitely invalid
         return {_首个, errc::invalid_argument};
     }
@@ -2375,17 +2375,17 @@ _NODISCARD inline to_chars_result _浮点转字符通用精度(
     // /8: "Finally, [...] any trailing zeros are removed from the fractional portion of the result
     // and the decimal-point character is removed if there is no fractional portion remaining."
 
-    using _Tables = _General_precision_tables_2<_Floating>;
+    using _精度表 = _General_precision_tables_2<_Floating>;
 
     const _Uint_type* _Table_begin;
     const _Uint_type* _Table_end;
 
-    if (_Precision <= _Tables::_Max_special_P) {
-        _Table_begin = _Tables::_Special_X_table + (_Precision - 1) * (_Precision + 10) / 2;
+    if (_Precision <= _精度表::_Max_special_P) {
+        _Table_begin = _精度表::_Special_X_table + (_Precision - 1) * (_Precision + 10) / 2;
         _Table_end   = _Table_begin + _Precision + 5;
     } else {
-        _Table_begin = _Tables::_Ordinary_X_table;
-        _Table_end   = _Table_begin + (_STD min)(_Precision, _Tables::_Max_P) + 5;
+        _Table_begin = _精度表::_Ordinary_X_table;
+        _Table_end   = _Table_begin + (_STD min)(_Precision, _精度表::_Max_P) + 5;
     }
 
     // Profiling indicates that linear search is faster than binary search for small tables.
@@ -2479,14 +2479,14 @@ _NODISCARD inline to_chars_result _浮点转字符通用精度(
     return {_首个, errc{}};
 }
 
-enum class _Floating_to_chars_overload { _Plain, _Format_only, _Format_precision };
+enum class _浮点转字符重载 { _Plain, _Format_only, _Format_precision };
 
-template <_Floating_to_chars_overload _Overload, class _Floating>
+template <_浮点转字符重载 _Overload, class _Floating>
 _NODISCARD to_chars_result _浮点转字符(
     char* _首个, char* const _最后, _Floating _Value, const chars_format _Fmt, const int _Precision) noexcept {
     _ADL校验范围(_首个, _最后);
 
-    if constexpr (_Overload == _Floating_to_chars_overload::_Plain) {
+    if constexpr (_Overload == _浮点转字符重载::_Plain) {
         _STL_INTERNAL_CHECK(_Fmt == chars_format{}); // plain overload must pass chars_format{} internally
     } else {
         _STL_ASSERT(_Fmt == chars_format::general || _Fmt == chars_format::scientific || _Fmt == chars_format::fixed
@@ -2544,15 +2544,15 @@ _NODISCARD to_chars_result _浮点转字符(
         return {_首个 + _Len, errc{}};
     }
 
-    if constexpr (_Overload == _Floating_to_chars_overload::_Plain) {
+    if constexpr (_Overload == _浮点转字符重载::_Plain) {
         return _Floating_to_chars_ryu(_首个, _最后, _Value, chars_format{});
-    } else if constexpr (_Overload == _Floating_to_chars_overload::_Format_only) {
+    } else if constexpr (_Overload == _浮点转字符重载::_Format_only) {
         if (_Fmt == chars_format::hex) {
             return _浮点转字符十六进制最短(_首个, _最后, _Value);
         }
 
         return _Floating_to_chars_ryu(_首个, _最后, _Value, _Fmt);
-    } else if constexpr (_Overload == _Floating_to_chars_overload::_Format_precision) {
+    } else if constexpr (_Overload == _浮点转字符重载::_Format_precision) {
         switch (_Fmt) {
         case chars_format::scientific:
             return _Floating_to_chars_scientific_precision(_首个, _最后, _Value, _Precision);
@@ -2569,41 +2569,41 @@ _NODISCARD to_chars_result _浮点转字符(
 
 _EXPORT_STD inline to_chars_result 数值转字符(char* const _首个, char* const _最后, const float _Value) noexcept
 /* strengthened */ {
-    return _浮点转字符<_Floating_to_chars_overload::_Plain>(_首个, _最后, _Value, chars_format{}, 0);
+    return _浮点转字符<_浮点转字符重载::_Plain>(_首个, _最后, _Value, chars_format{}, 0);
 }
 _EXPORT_STD inline to_chars_result 数值转字符(char* const _首个, char* const _最后, const double _Value) noexcept
 /* strengthened */ {
-    return _浮点转字符<_Floating_to_chars_overload::_Plain>(_首个, _最后, _Value, chars_format{}, 0);
+    return _浮点转字符<_浮点转字符重载::_Plain>(_首个, _最后, _Value, chars_format{}, 0);
 }
 _EXPORT_STD inline to_chars_result 数值转字符(char* const _首个, char* const _最后, const long double _Value) noexcept
 /* strengthened */ {
-    return _浮点转字符<_Floating_to_chars_overload::_Plain>(
+    return _浮点转字符<_浮点转字符重载::_Plain>(
         _首个, _最后, static_cast<double>(_Value), chars_format{}, 0);
 }
 _EXPORT_STD inline to_chars_result 数值转字符(
     char* const _首个, char* const _最后, const float _Value, const chars_format _Fmt) noexcept /* strengthened */ {
-    return _浮点转字符<_Floating_to_chars_overload::_Format_only>(_首个, _最后, _Value, _Fmt, 0);
+    return _浮点转字符<_浮点转字符重载::_Format_only>(_首个, _最后, _Value, _Fmt, 0);
 }
 _EXPORT_STD inline to_chars_result 数值转字符(
     char* const _首个, char* const _最后, const double _Value, const chars_format _Fmt) noexcept /* strengthened */ {
-    return _浮点转字符<_Floating_to_chars_overload::_Format_only>(_首个, _最后, _Value, _Fmt, 0);
+    return _浮点转字符<_浮点转字符重载::_Format_only>(_首个, _最后, _Value, _Fmt, 0);
 }
 _EXPORT_STD inline to_chars_result 数值转字符(char* const _首个, char* const _最后, const long double _Value,
     const chars_format _Fmt) noexcept /* strengthened */ {
-    return _浮点转字符<_Floating_to_chars_overload::_Format_only>(
+    return _浮点转字符<_浮点转字符重载::_Format_only>(
         _首个, _最后, static_cast<double>(_Value), _Fmt, 0);
 }
 _EXPORT_STD inline to_chars_result 数值转字符(char* const _首个, char* const _最后, const float _Value,
     const chars_format _Fmt, const int _Precision) noexcept /* strengthened */ {
-    return _浮点转字符<_Floating_to_chars_overload::_Format_precision>(_首个, _最后, _Value, _Fmt, _Precision);
+    return _浮点转字符<_浮点转字符重载::_Format_precision>(_首个, _最后, _Value, _Fmt, _Precision);
 }
 _EXPORT_STD inline to_chars_result 数值转字符(char* const _首个, char* const _最后, const double _Value,
     const chars_format _Fmt, const int _Precision) noexcept /* strengthened */ {
-    return _浮点转字符<_Floating_to_chars_overload::_Format_precision>(_首个, _最后, _Value, _Fmt, _Precision);
+    return _浮点转字符<_浮点转字符重载::_Format_precision>(_首个, _最后, _Value, _Fmt, _Precision);
 }
 _EXPORT_STD inline to_chars_result 数值转字符(char* const _首个, char* const _最后, const long double _Value,
     const chars_format _Fmt, const int _Precision) noexcept /* strengthened */ {
-    return _浮点转字符<_Floating_to_chars_overload::_Format_precision>(
+    return _浮点转字符<_浮点转字符重载::_Format_precision>(
         _首个, _最后, static_cast<double>(_Value), _Fmt, _Precision);
 }
 

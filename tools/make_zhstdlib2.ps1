@@ -5546,6 +5546,52 @@ $H = @{
        'minus' = '减法';
 
        'multiplies' = '乘法';
+
+       # §17.52 本头（charconv）自己的内部件 —— 逐名核过：
+       #   · 定义在本头（`_Big_integer_flt`:401 `_Floating_point_string`:968 `_Floating_traits`:978
+       #     `_Uint_type`(✗借用接收者，未登记) `_Tables`:2375 `_Floating_to_chars_overload`:2479
+       #     `_Truncated`:84 `_Unpack_index`:705，函数 `_Multiply`:588 等）；
+       #   · scan_multiowner.ps1 实测这 16 个**全是单属主** ⇒ 只在本条目改名即可；
+       #   · 与汉语关键词表（ChineseKeywords.def 100 条）逐条对过，无撞车。
+       #   ⚠ 不登记的三个（写在这里免得下次又想翻）：
+       #     `_Uint_type` —— 本头里是 `_Floating_traits::_Uint_type`，接收者是**借来的**类型特征 ✗；
+       #     `find_if`    —— 本头是 `_STD find_if(...)`，借来的 `<algorithm>` ✗；
+       #     `_BitScanReverse` —— 编译器内建（`<intrin.h>`）✗。
+       #   `Ryu` 是算法作者名（专有名词），按项目惯例保留原样写在中文名里。
+       '_Big_integer_flt' = '_大整数浮点';
+
+       '_Floating_point_string' = '_浮点串';
+
+       '_Floating_to_chars_overload' = '_浮点转字符重载';
+
+       '_Floating_traits' = '_浮点特征';
+
+       '_Tables' = '_精度表';
+
+       '_Truncated' = '_截断类型';
+
+       '_Unpack_index' = '_解包下标';
+
+       '_Multiply' = '_相乘';
+
+       '_Assemble_floating_point_value' = '_组装浮点值';
+
+       # ⚠ §17.52 实测【撤回】三个名字：`_Floating_to_chars_fixed_precision` / `_Floating_to_chars_ryu` /
+       #   `_Floating_to_chars_scientific_precision` —— 它们**不是本头定义的**：
+       #   真头 charconv 顶部就有 `using std::_Floating_to_chars_ryu;` 这类【进口声明】，
+       #   我们的产品 L35 照样是 `使用 std::_Floating_to_chars_ryu;`；一改名就变成
+       #   `使用 std::_浮点转字符Ryu;` ⇒ 编不过 ⇒ §17.19.17.1 自动把该名字整份撤回（实测 3 名各 3 处）。
+       #   **新判据：拷贝里出现 `使用 std::X;`（任意 `using std::X;`）⇒ X 是借来的，不许登记。**
+       #   同类未登记者：`_Bit_scan_reverse`（编译器内建）、`find_if`（`_STD find_if`）、
+       #   `_Uint_type`（`_Floating_traits::_Uint_type`，借来接收者）。
+
+       '_Infinity_from_chars' = '_由字符转无穷';
+
+       '_Integer_from_chars' = '_由字符转整数';
+
+       '_Integer_to_chars' = '_整数转字符';
+
+       '_Nan_from_chars' = '_由字符转非数';
       '_Unsigned' = '_无符号类型';
 }
     data    = [ordered]@{}
