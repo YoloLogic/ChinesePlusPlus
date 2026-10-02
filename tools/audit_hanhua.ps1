@@ -285,6 +285,42 @@ $rows3 = @()
 $totAll = 0; $totDone = 0
 $totAll2 = 0; $totDone2 = 0
 $totAll3 = 0; $totDone3 = 0
+# ---------------------------------------------------------------------------
+#  §17.56 边界【机器来源】（A/B/C）—— 判据不许手写清单
+#
+#  为什么：这三类名字**确实改不了**（外部约束），但标尺原先不认识它们 ⇒ 被算成欠账 ✗。
+#    A `dropTypes`      <- 生成器自带 `-ExportJson`（它在该开关下、写任何文件【之前】就 exit 0）
+#    B C++ 语言基本类型 <- clang `Basic\TokenKinds.def` 的 `*KEYWORD(...)`
+#    C 编译器内建       <- 前缀 `__std_` / `__builtin_` / `_Interlocked`
+#  ⚠ 本段**不改**三条尺的分子分母（口径写死"分子只能升"，一个数都不动）——
+#     它只多算一栏"已登记边界"，并给出可机器核对的恒等式：
+#         **未汉化（残留） = 真欠账 + 已登记边界**      完成判据① = **真欠账 == 0**
+# ---------------------------------------------------------------------------
+$script:BdDropTypes = @{}
+$script:BdKeywords  = @{}
+$tkDef = Join-Path $root 'LLVM-main\clang\include\clang\Basic\TokenKinds.def'
+if (Test-Path $tkDef) {
+    foreach ($m in [regex]::Matches([System.IO.File]::ReadAllText($tkDef), '(?m)^\s*(?:CXX\d*_)?KEYWORD\s*\(\s*([A-Za-z_]\w*)')) {
+        $script:BdKeywords[$m.Groups[1].Value] = $true
+    }
+}
+$tblJson = ''
+try { $tblJson = & pwsh -NoProfile -File (Join-Path $root 'tools\make_zhstdlib2.ps1') -ExportJson 2>$null | Out-String } catch { }
+if ($tblJson) {
+    try {
+        $tbl = $tblJson | ConvertFrom-Json
+        foreach ($k in $tbl.PSObject.Properties.Name) {
+            $v = $tbl.$k
+            if ($v.PSObject.Properties.Name -contains 'dropTypes' -and $v.dropTypes) { $script:BdDropTypes[$k] = @($v.dropTypes) }
+        }
+    } catch { }
+}
+function Get-BoundaryClass([string] $n, [string] $entryKey) {
+    if ($script:BdDropTypes.ContainsKey($entryKey) -and ($script:BdDropTypes[$entryKey] -contains $n)) { return 'A-CRT契约名' }
+    if ($script:BdKeywords.ContainsKey($n)) { return 'B-C++语言类型' }
+    foreach ($p in @('__std_', '__builtin_', '_Interlocked')) { if ($n.StartsWith($p)) { return 'C-编译器内建' } }
+    return ''
+}
 foreach ($e in $entries) {
     if (-not $e.Zh) { continue }
     $prod = Join-Path $root "zhstdlib\$($e.Zh)"
@@ -475,6 +511,37 @@ $clean3 = @($rows3 | Where-Object { $_.残留 -eq 0 }).Count
 }
 
 # ---------------------------------------------------------------------------
+#  §17.56 已登记边界（机器来源 A/B/C）：把"未汉化"拆成【真欠账 + 已登记边界】
+#  完成判据①（目标原文）：「三条尺分子 = 分母，**或所有未汉化项都在边界台账里有理由与消除路径**」
+#  ⇒ 本段给出可机器核对的形式：**未汉化 = 真欠账 + 已登记边界**，判据①成立即 **真欠账 == 0**。
+#  ⚠ 三条尺的分子/分母**一个数都不动**（口径"分子只能升"，一个数都不许降）。
+# ---------------------------------------------------------------------------
+$bdRows = @()
+foreach ($set in @(@{ N = '顶层类型名'; R = $rows }, @{ N = '嵌套名'; R = $rows2 }, @{ N = '成员名'; R = $rows3 })) {
+    foreach ($r in $set.R) {
+        if (-not $r.残留) { continue }
+        foreach ($n in @($r.名单 -split '\s+' | Where-Object { $_ })) {
+            $cls = Get-BoundaryClass $n $r.源
+            if ($cls) { $bdRows += [pscustomobject]@{ 尺 = $set.N; 产物 = $r.中文头; 名字 = $n; 类 = $cls } }
+        }
+    }
+}
+$bdRows = @($bdRows | Sort-Object 尺, 类, 名字)
+function Get-ResidSum($rs) { return [int](@($rs | Measure-Object -Property 残留 -Sum).Sum) }
+$resid1 = Get-ResidSum $rows;  $resid2 = Get-ResidSum $rows2;  $resid3 = Get-ResidSum $rows3
+$bd1 = @($bdRows | Where-Object { $_.尺 -eq '顶层类型名' }).Count
+$bd2 = @($bdRows | Where-Object { $_.尺 -eq '嵌套名' }).Count
+$bd3 = @($bdRows | Where-Object { $_.尺 -eq '成员名' }).Count
+$bdGroups = @($bdRows | Group-Object 类 | Sort-Object Name)
+Write-Host ""
+Write-Host "=== 已登记边界（机器来源 §17.56；三条尺的分子分母未动）===" -ForegroundColor Cyan
+Write-Host ("  顶层: 未汉化 {0} = 真欠账 {1} + 已登记边界 {2}" -f $resid1, ($resid1 - $bd1), $bd1)
+Write-Host ("  嵌套: 未汉化 {0} = 真欠账 {1} + 已登记边界 {2}" -f $resid2, ($resid2 - $bd2), $bd2)
+Write-Host ("  成员: 未汉化 {0} = 真欠账 {1} + 已登记边界 {2}" -f $resid3, ($resid3 - $bd3), $bd3)
+foreach ($g in $bdGroups) { Write-Host ("    {0}: {1} 个" -f $g.Name, $g.Count) }
+Write-Host "  边界逐条理由与消除路径见 汉化标尺台账.md 的「已登记边界」一节。"
+
+# ---------------------------------------------------------------------------
 #  §17.19.40 标尺台账 + 守卫：把"还剩多少"变成机器守得住的数字。
 #  两条判据：
 #    ① 台账必须与本次实测一致（手写的台账一定会漂移 —— 同 §16.40 / §17.19.21）；
@@ -500,7 +567,37 @@ $ledger = @(
     '|---|---|---|---|---|',
     ("| 顶层类型名 | {0} | {1} | {2:N1}% | {3} / {4} |" -f $totDone,  $totAll,  (100 * $totDone  / [Math]::Max($totAll, 1)),  $clean,  $rows.Count),
     ("| 嵌套名 | {0} | {1} | {2:N1}% | {3} / {4} |" -f $totDone2, $totAll2, (100 * $totDone2 / [Math]::Max($totAll2, 1)), $clean2, $rows2.Count),
-    ("| 成员名 | {0} | {1} | {2:N1}% | {3} / {4} |" -f $totDone3, $totAll3, (100 * $totDone3 / [Math]::Max($totAll3, 1)), $clean3, $rows3.Count)
+    ("| 成员名 | {0} | {1} | {2:N1}% | {3} / {4} |" -f $totDone3, $totAll3, (100 * $totDone3 / [Math]::Max($totAll3, 1)), $clean3, $rows3.Count),
+    '',
+    '## 已登记边界（机器来源，§17.56）',
+    '',
+    '> 这些名字**确实改不了**（外部约束）。它们在三条尺的分子/分母里**照旧计入** ——',
+    '> 口径「分子只能升」不许动（一个数都不降 ✗）。本栏只是把它们**显式登记**，',
+    '> 好让完成判据① 可机器核对：**未汉化 = 真欠账 + 已登记边界**，判据①成立 ⇔ **真欠账 == 0**。',
+    '',
+    '| 尺 | 未汉化 | 真欠账 | 已登记边界 |',
+    '|---|---|---|---|',
+    ("| 顶层类型名 | {0} | {1} | {2} |" -f $resid1, ($resid1 - $bd1), $bd1),
+    ("| 嵌套名 | {0} | {1} | {2} |" -f $resid2, ($resid2 - $bd2), $bd2),
+    ("| 成员名 | {0} | {1} | {2} |" -f $resid3, ($resid3 - $bd3), $bd3),
+    '',
+    '| 类 | 判据来源（机器可读，不是手写清单） | 个数 | 名单 |',
+    '|---|---|---|---|',
+    (($bdGroups | ForEach-Object {
+        $src = switch ($_.Name) {
+            'A-CRT契约名'   { '生成器 `dropTypes`（`-ExportJson`）' }
+            'B-C++语言类型' { 'clang `TokenKinds.def` 的 `*KEYWORD`' }
+            default          { '前缀 `__std_`/`__builtin_`/`_Interlocked`' }
+        }
+        "| {0} | {1} | {2} | {3} |" -f $_.Name, $src, $_.Count, ((@($_.Group | Select-Object -ExpandProperty 名字 | Sort-Object -Unique)) -join ' ')
+    }) -join "`n"),
+    '',
+    '**理由与消除路径**（每一条都要写清，判据① 要求）：',
+    '- `A-CRT契约名`：生成器 `dropTypes` 明列的 CRT 契约名（msvcp 的 `operator<<`/`>>` 按这些**类型**匹配，改了链不上）⇒ **无消除路径**。',
+    '- `B-C++语言类型`：C++ **语言关键字**（clang `TokenKinds.def`）⇒ **无消除路径**。',
+    '- `C-编译器内建`：`__std_*` 等编译器内建例程 ⇒ **无消除路径**。',
+    '⇒ 这三类的"消除"只能是**改口径**（§17.19.47「尺子要维护」）：从分子分母**同时**剔除',
+    '   会令分子下降 —— 与「分子只能升」冲突 ⇒ **留给大检查统一决定**（见 `build\_review_own\口径修订提案.md`）。'
 )
 $ledgerText = ($ledger -join "`n") + "`n"
 $utf8 = New-Object System.Text.UTF8Encoding($false)
