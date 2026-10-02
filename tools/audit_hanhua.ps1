@@ -359,7 +359,9 @@ $script:BdRefuted = @{
     #   `other` 同族（`allocator_traits<…>::other`）。`_Cpo` / `_Uint_type` 见 §17.46 / §17.52 的接收者证据。
     'is_always_equal'                        = 'D-借来接收者'
     'void_pointer'                           = 'D-借来接收者'
-    'other'                                  = 'D-借来接收者'
+    # ⚠ `other` 【撤下】(§17.63)：查产物发现它**在代码里**就有 ——
+    #   `_类型::template rebind<_Other>::other`、`using other = 作用域分配器适配器实现<…>;`
+    #   ⇒ 它有"我们自己的定义"，登记成边界会**掩盖真欠账** ✗（这正是本会话最防范的失败模式）。
     'rebind'                                 = 'D-借来接收者'
     '_Cpo'                                   = 'D-借来接收者'
     '_Uint_type'                             = 'D-借来接收者'
@@ -377,6 +379,56 @@ function Get-BoundaryClass([string] $n, [string] $entryKey) {
     foreach ($p in @('__std_', '__builtin_', '_Interlocked', '_BitScan')) { if ($n.StartsWith($p)) { return 'C-编译器内建' } }
     return ''
 }
+# ---------------------------------------------------------------------------
+#  §17.63 判残留前**掩码注释**（等长替换成空格）—— 注释不是标识符，不该算欠账。
+#  为什么（实测）：`other` 的 394 处几乎全是许可证注释（"OTHER LIABILITY"）✗，
+#    而口径里"分子只能升"是允许的 ⇒ 这是唯一能**主动抬高分子**的口径修正 ✓。
+#  ⚠ 三条硬要求（否则会**掩盖真欠账** ✗）：
+#    1) **掩码而非删除**（等长空格）⇒ 偏移/长度全不变；
+#    2) 必须处理字符串/字符字面量与 **raw string `R"(...)"`**（`"http://x"` 里的 `//` 不是注释 ✗）；
+#    3) 改完必须**逐个核对翻转的名字确实是"注释-only"** ✗（见 §17.63 的验证步骤）。
+# ---------------------------------------------------------------------------
+function Get-NoComment([string] $t) {
+    $sb = New-Object System.Text.StringBuilder ($t.Length)
+    $i = 0; $n = $t.Length; $st = 0    # 0=code 1=line 2=block 3=str 4=chr
+    while ($i -lt $n) {
+        $c = $t[$i]
+        $c2 = if ($i + 1 -lt $n) { $t[$i + 1] } else { [char]0 }
+        if ($st -eq 0) {
+            if ($c -eq '/' -and $c2 -eq '/') { $st = 1; [void]$sb.Append('  '); $i += 2; continue }
+            if ($c -eq '/' -and $c2 -eq '*') { $st = 2; [void]$sb.Append('  '); $i += 2; continue }
+            if (($c -eq 'R' -or $c -eq 'L' -or $c -eq 'u' -or $c -eq 'U') -and $c2 -eq '"') {
+                $j = $i + 2; $delim = ''
+                while ($j -lt $n -and $t[$j] -ne '(') { $delim += $t[$j]; $j++ }
+                if ($j -lt $n) {
+                    $close = ')' + $delim + '"'
+                    $k = $t.IndexOf($close, $j)
+                    if ($k -ge 0) { [void]$sb.Append($t.Substring($i, $k + $close.Length - $i)); $i = $k + $close.Length; continue }
+                }
+            }
+            if ($c -eq '"') { $st = 3 } elseif ($c -eq "'") { $st = 4 }
+            [void]$sb.Append($c); $i++
+        }
+        elseif ($st -eq 1) { if ($c -eq "`n") { $st = 0; [void]$sb.Append($c) } else { [void]$sb.Append(' ') }; $i++ }
+        elseif ($st -eq 2) {
+            if ($c -eq '*' -and $c2 -eq '/') { $st = 0; [void]$sb.Append('  '); $i += 2 }
+            else { [void]$sb.Append($(if ($c -eq "`n") { $c } else { ' ' })); $i++ }
+        }
+        elseif ($st -eq 3) {
+            [void]$sb.Append($c)
+            if ($c -eq '\') { if ($i + 1 -lt $n) { [void]$sb.Append($t[$i + 1]); $i++ } }
+            elseif ($c -eq '"') { $st = 0 }
+            $i++
+        }
+        else {
+            [void]$sb.Append($c)
+            if ($c -eq '\') { if ($i + 1 -lt $n) { [void]$sb.Append($t[$i + 1]); $i++ } }
+            elseif ($c -eq "'") { $st = 0 }
+            $i++
+        }
+    }
+    return $sb.ToString()
+}
 foreach ($e in $entries) {
     if (-not $e.Zh) { continue }
     $prod = Join-Path $root "zhstdlib\$($e.Zh)"
@@ -393,6 +445,8 @@ foreach ($e in $entries) {
     #   条目的 realInclude 会往抄来那层插 `#include <optional>`，
     #   于是 `\boptional\b` 命中 —— 那不是"名字没翻"，是包含语句（实测的假残留）。
     $copy = [regex]::Replace($copy, '(?m)^[ \t]*#\s*include[^\r\n]*', '')
+    # §17.63 判残留用【掩码掉注释】的那一份（注释不是标识符）；其余用途仍用原 $copy。
+    $copyNC = Get-NoComment $copy
 
     $names = Get-DeclaredNames $src
     # -----------------------------------------------------------------------
@@ -430,7 +484,7 @@ function Test-ZhBoundary([string] $n) {
     $res = @()
     foreach ($n in $names.Keys) {
         if (Test-ZhBoundary $n) { continue }
-        if ([regex]::IsMatch($copy, "\b$([regex]::Escape($n))\b")) { $res += $n }
+        if ([regex]::IsMatch($copyNC, "\b$([regex]::Escape($n))\b")) { $res += $n }
     }
     $res = @($res | Sort-Object)
     $effTotal = $names.Count - @($names.Keys | Where-Object { Test-ZhBoundary $_ }).Count
@@ -447,7 +501,7 @@ function Test-ZhBoundary([string] $n) {
     foreach ($n in $names2.Keys) {
         # 同样的边界排除：std 模板特化的名字必须留英文（铁律 4）
         if (Test-ZhBoundary $n) { continue }
-        if ([regex]::IsMatch($copy, "\b$([regex]::Escape($n))\b")) { $res2 += $n }
+        if ([regex]::IsMatch($copyNC, "\b$([regex]::Escape($n))\b")) { $res2 += $n }
     }
     $res2 = @($res2 | Sort-Object)
     $effTotal2 = $names2.Count - @($names2.Keys | Where-Object { Test-ZhBoundary $_ }).Count
@@ -471,7 +525,7 @@ function Test-ZhBoundary([string] $n) {
         # ⚠ 边界（与前两把尺同源）：这些成员名被**借来的** std 类型读（char_traits /
         #   basic_string_view / allocator_traits），按词替换会误伤，属第 ③ 类。
         if ($memBoundary -contains $n) { continue }
-        if ([regex]::IsMatch($copy, "\b$([regex]::Escape($n))\b")) { $res3 += $n }
+        if ([regex]::IsMatch($copyNC, "\b$([regex]::Escape($n))\b")) { $res3 += $n }
     }
     $res3 = @($res3 | Sort-Object)
     $effTotal3 = @($names3.Keys | Where-Object { -not (Test-ZhBoundary $_) }).Count
