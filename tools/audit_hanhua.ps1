@@ -353,6 +353,20 @@ $script:BdRefuted = @{
     #   而不是重新试一遍（"先查既有决定"是本会话用两次失败换来的纪律）。
     'id'                                     = 'H-项目已定边界'   # 方案 §3.13：`id` 太短，全局 \bid\b 替换不安全
     'native_handle_type'                     = 'H-项目已定边界'   # 生成器 L90：MSVC 已官方删除（GH-3820）
+    # §17.62 D 类补登：与 §17.59【编译证伪】的 `const_void_pointer` **同一接收者** ——
+    #   别的头里写作 `_Alty_traits::is_always_equal` / `allocator_traits<_Alloc>::void_pointer`
+    #   （接收者解析到**借来的真 std trait** ✗）；`rebind` 则是 `_Ty::template rebind<_Other>`（借用成员 ✗）；
+    #   `other` 同族（`allocator_traits<…>::other`）。`_Cpo` / `_Uint_type` 见 §17.46 / §17.52 的接收者证据。
+    'is_always_equal'                        = 'D-借来接收者'
+    'void_pointer'                           = 'D-借来接收者'
+    'other'                                  = 'D-借来接收者'
+    'rebind'                                 = 'D-借来接收者'
+    '_Cpo'                                   = 'D-借来接收者'
+    '_Uint_type'                             = 'D-借来接收者'
+    # `is_transparent`：借来的容器按名探测透明比较器（H：已查明）。
+    'is_transparent'                         = 'H-项目已定边界'
+    # `_Fmp_t`：`_FMP` 展开成 `::std::_Float_multi_prec::` ⇒ 指向**别的真头的名域**（I 类）。
+    '_Fmp_t'                                 = 'I-指向别的真头名域'
 }
 function Get-BoundaryClass([string] $n, [string] $entryKey) {
     if ($script:BdRefuted.ContainsKey($n)) { return $script:BdRefuted[$n] }
@@ -645,6 +659,7 @@ $ledger = @(
     '- `H-项目已定边界`：**项目早已拍过的不改名决定**（理由与出处在生成器/方案里逐条注明）：',
     '  `id`（方案 §3.13：太短，全局 `\bid\b` 替换不安全）；`native_handle_type`（生成器 L90：MSVC 已官方删除 GH-3820）。',
     '  ⇒ 消除路径：随上游删除而自然消失，或等"能重命名短名"的机制（目前没有）。',
+    '- `I-指向别的真头名域`：宏展开成**别的真头**的名域（如 `_FMP` → `::std::_Float_multi_prec::`）⇒ 消除路径 = 把那个真头也抄成我们的内部件。',
     '⇒ A/B/C 三类都是外部约束，**无消除路径**；D/E/F/G 有"抄更多外部层"的消除路径（与 `_Cpo` 要抄 `<compare>` 同族）。',
     '⇒ 把它们从分子分母**同时**剔除会令分子下降 —— 与「分子只能升」冲突 ⇒ **留给大检查统一决定**（见 `build\_review_own\口径修订提案.md`）。'
 )
