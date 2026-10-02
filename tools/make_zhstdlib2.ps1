@@ -4315,7 +4315,15 @@ $H = @{
     #   『对 X 的调用有歧义』（§17.27.52 实测：链表:1794 `_Pass_fn`）。
     #   判据：**凡本头在名域作用域有定义、且其它产品无限定调用的自由函数，一律改名**
     #   （下表即按此判据从原件正则扫出，见 §17.27.52；成员名不受影响：成员查找只看类作用域）。
-    copyFixes = @( @('extern "C++" [[noreturn]] _CRTIMP2_PURE void __CLRCALL_PURE_OR_CDECL _Xlength_error(_In_z_ const char*);', ''), @('extern "C++" [[noreturn]] _CRTIMP2_PURE void __CLRCALL_PURE_OR_CDECL _Xout_of_range(_In_z_ const char*);', '') )
+    copyFixes = @( @('extern "C++" [[noreturn]] _CRTIMP2_PURE void __CLRCALL_PURE_OR_CDECL _Xlength_error(_In_z_ const char*);', ''), @('extern "C++" [[noreturn]] _CRTIMP2_PURE void __CLRCALL_PURE_OR_CDECL _Xout_of_range(_In_z_ const char*);', ''),
+      # §17.46 宏限定调用点：`_RANGES` 展开为 `::std::ranges::`（yvals_core.h:1930），
+      #   所以 `_RANGES _Rewrap_subrange<` 是"限定到【借来的】真名域"的调用。
+      #   只改名字 -> `::std::ranges::_重包子范围` -> 真名域里没有这个中文名 -> 编不过 ->
+      #   §17.19.17.1 的【文件级一致撤回】把整个名字扫回英文，残留就此永久化。
+      #   判据：函数本身是【我们这份拷贝里的】（定义就在本产品 L6658），
+      #   所以正解是**连宏前缀一起定点改写**，让调用落回我们自己的中文声明。
+      #   实测：只改名字 exit=1（`没有名为（成员名）'_重包子范围'`），改整前缀 exit=0。
+      @('_RANGES _Rewrap_subrange<', '_重包子范围<') )
     members = [ordered]@{
       '_Strategy' = '_策略';
       '_Result' = '_结果';
