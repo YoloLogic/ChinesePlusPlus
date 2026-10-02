@@ -1541,111 +1541,111 @@ public:
         return _Traits_find<_特征>(_Mydata, _我的尺寸, _Off, _Ptr, _特征::length(_Ptr));
     }
 
-    _NODISCARD constexpr size_type rfind(const 基础字符串视图 _Right, const size_type _Off = npos) const noexcept {
+    _NODISCARD constexpr size_type 反向查找(const 基础字符串视图 _Right, const size_type _Off = npos) const noexcept {
         // look for _Right beginning before _Off
         return _Traits_rfind<_特征>(_Mydata, _我的尺寸, _Off, _Right._Mydata, _Right._我的尺寸);
     }
 
-    _NODISCARD constexpr size_type rfind(const _元素 _Ch, const size_type _Off = npos) const noexcept {
+    _NODISCARD constexpr size_type 反向查找(const _元素 _Ch, const size_type _Off = npos) const noexcept {
         // look for _Ch before _Off
         return _Traits_rfind_ch<_特征>(_Mydata, _我的尺寸, _Off, _Ch);
     }
 
-    _NODISCARD constexpr size_type rfind(_In_reads_(_Count) const _元素* const _Ptr, const size_type _Off,
+    _NODISCARD constexpr size_type 反向查找(_In_reads_(_Count) const _元素* const _Ptr, const size_type _Off,
         const size_type _Count) const noexcept /* strengthened */ {
         // look for [_Ptr, _Ptr + _Count) beginning before _Off
         return _Traits_rfind<_特征>(_Mydata, _我的尺寸, _Off, _Ptr, _Count);
     }
 
-    _NODISCARD constexpr size_type rfind(_In_z_ const _元素* const _Ptr, const size_type _Off = npos) const noexcept
+    _NODISCARD constexpr size_type 反向查找(_In_z_ const _元素* const _Ptr, const size_type _Off = npos) const noexcept
     /* strengthened */ {
         // look for [_Ptr, <null>) beginning before _Off
         return _Traits_rfind<_特征>(_Mydata, _我的尺寸, _Off, _Ptr, _特征::length(_Ptr));
     }
 
-    _NODISCARD constexpr size_type find_first_of(const 基础字符串视图 _Right,
+    _NODISCARD constexpr size_type 查找首次属于(const 基础字符串视图 _Right,
         const size_type _Off = 0) const noexcept { // look for one of _Right 取值 or after _Off
         return _Traits_find_first_of<_特征>(_Mydata, _我的尺寸, _Off, _Right._Mydata, _Right._我的尺寸);
     }
 
-    _NODISCARD constexpr size_type find_first_of(const _元素 _Ch, const size_type _Off = 0) const noexcept {
+    _NODISCARD constexpr size_type 查找首次属于(const _元素 _Ch, const size_type _Off = 0) const noexcept {
         // look for _Ch 取值 or after _Off
         return _Traits_find_ch<_特征>(_Mydata, _我的尺寸, _Off, _Ch);
     }
 
-    _NODISCARD constexpr size_type find_first_of(_In_reads_(_Count) const _元素* const _Ptr, const size_type _Off,
+    _NODISCARD constexpr size_type 查找首次属于(_In_reads_(_Count) const _元素* const _Ptr, const size_type _Off,
         const size_type _Count) const noexcept /* strengthened */ {
         // look for one of [_Ptr, _Ptr + _Count) 取值 or after _Off
         return _Traits_find_first_of<_特征>(_Mydata, _我的尺寸, _Off, _Ptr, _Count);
     }
 
-    _NODISCARD constexpr size_type find_first_of(
+    _NODISCARD constexpr size_type 查找首次属于(
         _In_z_ const _元素* const _Ptr, const size_type _Off = 0) const noexcept /* strengthened */ {
         // look for one of [_Ptr, <null>) 取值 or after _Off
         return _Traits_find_first_of<_特征>(_Mydata, _我的尺寸, _Off, _Ptr, _特征::length(_Ptr));
     }
 
-    _NODISCARD constexpr size_type find_last_of(const 基础字符串视图 _Right,
+    _NODISCARD constexpr size_type 查找末次属于(const 基础字符串视图 _Right,
         const size_type _Off = npos) const noexcept { // look for one of _Right before _Off
         return _Traits_find_last_of<_特征>(_Mydata, _我的尺寸, _Off, _Right._Mydata, _Right._我的尺寸);
     }
 
-    _NODISCARD constexpr size_type find_last_of(const _元素 _Ch, const size_type _Off = npos) const noexcept {
+    _NODISCARD constexpr size_type 查找末次属于(const _元素 _Ch, const size_type _Off = npos) const noexcept {
         // look for _Ch before _Off
         return _Traits_rfind_ch<_特征>(_Mydata, _我的尺寸, _Off, _Ch);
     }
 
-    _NODISCARD constexpr size_type find_last_of(_In_reads_(_Count) const _元素* const _Ptr, const size_type _Off,
+    _NODISCARD constexpr size_type 查找末次属于(_In_reads_(_Count) const _元素* const _Ptr, const size_type _Off,
         const size_type _Count) const noexcept /* strengthened */ {
         // look for one of [_Ptr, _Ptr + _Count) before _Off
         return _Traits_find_last_of<_特征>(_Mydata, _我的尺寸, _Off, _Ptr, _Count);
     }
 
-    _NODISCARD constexpr size_type find_last_of(
+    _NODISCARD constexpr size_type 查找末次属于(
         _In_z_ const _元素* const _Ptr, const size_type _Off = npos) const noexcept /* strengthened */ {
         // look for one of [_Ptr, <null>) before _Off
         return _Traits_find_last_of<_特征>(_Mydata, _我的尺寸, _Off, _Ptr, _特征::length(_Ptr));
     }
 
-    _NODISCARD constexpr size_type find_first_not_of(const 基础字符串视图 _Right,
+    _NODISCARD constexpr size_type 查找首次不属于(const 基础字符串视图 _Right,
         const size_type _Off = 0) const noexcept { // look for none of _Right 取值 or after _Off
         return _Traits_find_first_not_of<_特征>(_Mydata, _我的尺寸, _Off, _Right._Mydata, _Right._我的尺寸);
     }
 
-    _NODISCARD constexpr size_type find_first_not_of(const _元素 _Ch, const size_type _Off = 0) const noexcept {
+    _NODISCARD constexpr size_type 查找首次不属于(const _元素 _Ch, const size_type _Off = 0) const noexcept {
         // look for any value other than _Ch 取值 or after _Off
         return _Traits_find_not_ch<_特征>(_Mydata, _我的尺寸, _Off, _Ch);
     }
 
-    _NODISCARD constexpr size_type find_first_not_of(_In_reads_(_Count) const _元素* const _Ptr, const size_type _Off,
+    _NODISCARD constexpr size_type 查找首次不属于(_In_reads_(_Count) const _元素* const _Ptr, const size_type _Off,
         const size_type _Count) const noexcept /* strengthened */ {
         // look for none of [_Ptr, _Ptr + _Count) 取值 or after _Off
         return _Traits_find_first_not_of<_特征>(_Mydata, _我的尺寸, _Off, _Ptr, _Count);
     }
 
-    _NODISCARD constexpr size_type find_first_not_of(
+    _NODISCARD constexpr size_type 查找首次不属于(
         _In_z_ const _元素* const _Ptr, const size_type _Off = 0) const noexcept /* strengthened */ {
         // look for none of [_Ptr, <null>) 取值 or after _Off
         return _Traits_find_first_not_of<_特征>(_Mydata, _我的尺寸, _Off, _Ptr, _特征::length(_Ptr));
     }
 
-    _NODISCARD constexpr size_type find_last_not_of(const 基础字符串视图 _Right,
+    _NODISCARD constexpr size_type 查找末次不属于(const 基础字符串视图 _Right,
         const size_type _Off = npos) const noexcept { // look for none of _Right before _Off
         return _Traits_find_last_not_of<_特征>(_Mydata, _我的尺寸, _Off, _Right._Mydata, _Right._我的尺寸);
     }
 
-    _NODISCARD constexpr size_type find_last_not_of(const _元素 _Ch, const size_type _Off = npos) const noexcept {
+    _NODISCARD constexpr size_type 查找末次不属于(const _元素 _Ch, const size_type _Off = npos) const noexcept {
         // look for any value other than _Ch before _Off
         return _Traits_rfind_not_ch<_特征>(_Mydata, _我的尺寸, _Off, _Ch);
     }
 
-    _NODISCARD constexpr size_type find_last_not_of(_In_reads_(_Count) const _元素* const _Ptr, const size_type _Off,
+    _NODISCARD constexpr size_type 查找末次不属于(_In_reads_(_Count) const _元素* const _Ptr, const size_type _Off,
         const size_type _Count) const noexcept /* strengthened */ {
         // look for none of [_Ptr, _Ptr + _Count) before _Off
         return _Traits_find_last_not_of<_特征>(_Mydata, _我的尺寸, _Off, _Ptr, _Count);
     }
 
-    _NODISCARD constexpr size_type find_last_not_of(
+    _NODISCARD constexpr size_type 查找末次不属于(
         _In_z_ const _元素* const _Ptr, const size_type _Off = npos) const noexcept /* strengthened */ {
         // look for none of [_Ptr, <null>) before _Off
         return _Traits_find_last_not_of<_特征>(_Mydata, _我的尺寸, _Off, _Ptr, _特征::length(_Ptr));

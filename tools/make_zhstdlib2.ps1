@@ -4236,6 +4236,22 @@ $H = @{
       '_Primary_char_traits' = '_主字符特征';
 
       '_Verify_offset' = '_校验偏移';
+
+      # §17.58 本头（__msvc_string_view.hpp）`basic_string_view` 的 5 个查找成员 —— **纯同步**：
+      #   `xstring`（字符串内部件）早就登记了同一组译名（`rfind`→反向查找、`find_first_of`→查找首次属于 …），
+      #   这里照抄**同一译名**即可（跨头一致性守卫强制）。
+      #   判据（先用真头量）：`find_last_of`/`find_first_not_of`/`find_last_not_of`/`rfind` 在
+      #   **别的所有我们抄的产物源里出现 0 次** ⇒ 单属主 ✓；`find_first_of` 在 `xutility` 只有一处
+      #   **注释**（`xmemory` 根本没有）⇒ 安全 ✓。同头另有 `_Hash_array_representation` 等见上表。
+      'rfind' = '反向查找';
+
+      'find_first_of' = '查找首次属于';
+
+      'find_last_of' = '查找末次属于';
+
+      'find_first_not_of' = '查找首次不属于';
+
+      'find_last_not_of' = '查找末次不属于';
 }
     zhIncludes = @{ 'xutility' = '通用内部件' }
     data    = [ordered]@{}
