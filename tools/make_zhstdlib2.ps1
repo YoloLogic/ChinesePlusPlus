@@ -4443,6 +4443,33 @@ $H = @{
       #     【std 模板的特化】，铁律③：改了就不再是 std 的特化（同 §17.19.47 的 hash/formatter）。
       #   `move_sentinel` —— 本头只有 `class move_sentinel;` 前向声明，定义在借来的头里。
       #   `greater` / `less` —— `strong_ordering::greater` / `ranges::less` 接收者借来（§17.46 第五节）。
+
+      # §17.49 嵌套尺：本头定义的 ranges 结果/别名类型（都用 `^\s*(class|struct|using)\s+名字` 精确核过：
+      #   borrowed_subrange_t:4182 copy_result:4971 in_in_result:5627 mismatch_result:5643
+      #   range_common_reference_t:2891 range_difference_t:2879 range_reference_t:2885
+      #   range_rvalue_reference_t:2888 range_size_t:3403 range_value_t:2882）。
+      #   ⚠ **登记前必须先跑 build\_review_own\scan_multiowner.ps1**（§17.48 二·3 的教训）：
+      #     这个名字在【别的产物】里有没有【非限定】出现？有 ⇒ 改名会把那个引用悄悄重定向到借来的 std 原件。
+      #     本批 10 个实测【单属主】✓；另有 4 个是【多属主】，本轮不动（清单与要同步的条目见 §17.49 四）。
+      'borrowed_subrange_t' = '借用子范围类型';
+
+      'copy_result' = '复制结果';
+
+      'in_in_result' = '双入结果';
+
+      'mismatch_result' = '不匹配结果';
+
+      'range_common_reference_t' = '范围公共引用类型';
+
+      'range_difference_t' = '范围差类型';
+
+      'range_reference_t' = '范围引用类型';
+
+      'range_rvalue_reference_t' = '范围右值引用类型';
+
+      'range_size_t' = '范围尺寸类型';
+
+      'range_value_t' = '范围值类型';
 }
     data    = [ordered]@{}
     derive  = @()

@@ -2891,19 +2891,19 @@ namespace ranges {
     concept borrowed_range = range<_Rng> && _Should_range_access<_Rng>;
 
     _EXPORT_STD template <range _Rng>
-    using range_difference_t = iter_difference_t<迭代器类型<_Rng>>;
+    using 范围差类型 = iter_difference_t<迭代器类型<_Rng>>;
 
     _EXPORT_STD template <range _Rng>
-    using range_value_t = iter_value_t<迭代器类型<_Rng>>;
+    using 范围值类型 = iter_value_t<迭代器类型<_Rng>>;
 
     _EXPORT_STD template <range _Rng>
-    using range_reference_t = iter_reference_t<迭代器类型<_Rng>>;
+    using 范围引用类型 = iter_reference_t<迭代器类型<_Rng>>;
 
     _EXPORT_STD template <range _Rng>
-    using range_rvalue_reference_t = 迭代器右值引用类型<迭代器类型<_Rng>>;
+    using 范围右值引用类型 = 迭代器右值引用类型<迭代器类型<_Rng>>;
 
     _EXPORT_STD template <range _Rng>
-    using range_common_reference_t = 迭代器公共引用类型<迭代器类型<_Rng>>;
+    using 范围公共引用类型 = 迭代器公共引用类型<迭代器类型<_Rng>>;
 
 #if _HAS_CXX23
     _EXPORT_STD template <class _Rng>
@@ -3415,7 +3415,7 @@ namespace ranges {
     concept sized_range = range<_Rng> && requires(_Rng& __r) { _RANGES size(__r); };
 
     _EXPORT_STD template <sized_range _Rng>
-    using range_size_t = decltype(_RANGES size(_STD declval<_Rng&>()));
+    using 范围尺寸类型 = decltype(_RANGES size(_STD declval<_Rng&>()));
 
     _EXPORT_STD struct view_base {};
 
@@ -3448,7 +3448,7 @@ namespace ranges {
 
     _EXPORT_STD template <class _Rng>
     concept contiguous_range = range<_Rng> && contiguous_iterator<迭代器类型<_Rng>> && requires(_Rng& __r) {
-        { _RANGES data(__r) } -> same_as<add_pointer_t<range_reference_t<_Rng>>>;
+        { _RANGES data(__r) } -> same_as<add_pointer_t<范围引用类型<_Rng>>>;
     };
 
     class _前进函数对象 {
@@ -3563,10 +3563,10 @@ namespace ranges {
         }
 
         template <range _Rng>
-        _NODISCARD _STATIC_CALL_OPERATOR constexpr range_difference_t<_Rng> operator()(
+        _NODISCARD _STATIC_CALL_OPERATOR constexpr 范围差类型<_Rng> operator()(
             _Rng&& _Range) _CONST_CALL_OPERATOR noexcept(_Nothrow_size<_Rng>) /* strengthened */ {
             if constexpr (sized_range<_Rng>) {
-                return static_cast<range_difference_t<_Rng>>(_RANGES size(_Range));
+                return static_cast<范围差类型<_Rng>>(_RANGES size(_Range));
             } else {
                 return _距离未检查(_解包首(_Range), _解包尾(_Range));
             }
@@ -3888,12 +3888,12 @@ namespace ranges {
         }
 
         template <random_access_range _Rng = _Derived>
-        _NODISCARD constexpr decltype(auto) operator[](const range_difference_t<_Rng> _Idx) {
+        _NODISCARD constexpr decltype(auto) operator[](const 范围差类型<_Rng> _Idx) {
             auto& _Self = _Cast();
 
 #if _MSVC_STL_HARDENING_RANGES_VIEW_INTERFACE || _ITERATOR_DEBUG_LEVEL != 0
             if constexpr (sized_range<_Derived>) {
-                using _无符号差类型 = _造同类无符号类型<range_difference_t<_Rng>>;
+                using _无符号差类型 = _造同类无符号类型<范围差类型<_Rng>>;
                 _STL_VERIFY(static_cast<_无符号差类型>(_Idx) < static_cast<_无符号差类型>(_RANGES size(_Self)),
                     "ranges::视图接口 subscript out of range");
             }
@@ -3903,12 +3903,12 @@ namespace ranges {
         }
 
         template <random_access_range _Rng = const _Derived>
-        _NODISCARD constexpr decltype(auto) operator[](const range_difference_t<_Rng> _Idx) const {
+        _NODISCARD constexpr decltype(auto) operator[](const 范围差类型<_Rng> _Idx) const {
             auto& _Self = _Cast();
 
 #if _MSVC_STL_HARDENING_RANGES_VIEW_INTERFACE || _ITERATOR_DEBUG_LEVEL != 0
             if constexpr (sized_range<_Derived>) {
-                using _无符号差类型 = _造同类无符号类型<range_difference_t<_Rng>>;
+                using _无符号差类型 = _造同类无符号类型<范围差类型<_Rng>>;
                 _STL_VERIFY(static_cast<_无符号差类型>(_Idx) < static_cast<_无符号差类型>(_RANGES size(_Self)),
                     "ranges::视图接口 subscript out of range");
             }
@@ -4159,7 +4159,7 @@ namespace ranges {
                                                                                       : subrange_kind::unsized>;
 
     template <borrowed_range _Rng>
-    子范围(_Rng&&, _造同类无符号类型<range_difference_t<_Rng>>)
+    子范围(_Rng&&, _造同类无符号类型<范围差类型<_Rng>>)
         -> 子范围<迭代器类型<_Rng>, 哨兵类型<_Rng>, subrange_kind::sized>;
 
     template <class _It, class _Se, subrange_kind _Ki>
@@ -4195,7 +4195,7 @@ namespace ranges {
     using borrowed_iterator_t = conditional_t<borrowed_range<_Rng>, 迭代器类型<_Rng>, dangling>;
 
     _EXPORT_STD template <range _Rng>
-    using borrowed_subrange_t = conditional_t<borrowed_range<_Rng>, 子范围<迭代器类型<_Rng>>, dangling>;
+    using 借用子范围类型 = conditional_t<borrowed_range<_Rng>, 子范围<迭代器类型<_Rng>>, dangling>;
 } // namespace ranges
 #endif // _HAS_CXX20
 
@@ -4986,11 +4986,11 @@ namespace ranges {
 #endif // _HAS_CXX23
 
     _EXPORT_STD template <class _In, class _Out>
-    using copy_result = in_out_result<_In, _Out>;
+    using 复制结果 = in_out_result<_In, _Out>;
 
     template <input_iterator _It, sentinel_for<_It> _Se, weakly_incrementable _Out>
         requires indirectly_copyable<_It, _Out>
-    _NODISCARD constexpr copy_result<_It, _Out> _复制非检查(_It _首个, _Se _最后, _Out _Output) {
+    _NODISCARD constexpr 复制结果<_It, _Out> _复制非检查(_It _首个, _Se _最后, _Out _Output) {
         if constexpr (_哨兵复制类别<_It, _Se, _Out>::_Bitcopy_assignable) {
             if (!_STD is_constant_evaluated()) {
                 if constexpr (is_same_v<_It, _Se>) {
@@ -5015,7 +5015,7 @@ namespace ranges {
     struct _复制函数指针 {
         template <input_iterator _It, sentinel_for<_It> _Se, weakly_incrementable _Out>
             requires indirectly_copyable<_It, _Out>
-        _STATIC_CALL_OPERATOR constexpr copy_result<_It, _Out> operator()(
+        _STATIC_CALL_OPERATOR constexpr 复制结果<_It, _Out> operator()(
             _It _首个, _Se _最后, _Out _Output) _CONST_CALL_OPERATOR {
             _ADL校验范围(_首个, _最后);
             auto _UFirst      = _RANGES _Unwrap_iter<_Se>(_STD move(_首个));
@@ -5030,7 +5030,7 @@ namespace ranges {
 
         template <input_range _Rng, weakly_incrementable _Out>
             requires indirectly_copyable<迭代器类型<_Rng>, _Out>
-        _STATIC_CALL_OPERATOR constexpr copy_result<borrowed_iterator_t<_Rng>, _Out> operator()(
+        _STATIC_CALL_OPERATOR constexpr 复制结果<borrowed_iterator_t<_Rng>, _Out> operator()(
             _Rng&& _Range, _Out _Output) _CONST_CALL_OPERATOR {
             const auto _Count = _IDL距离(_Range);
             auto _首个       = _RANGES begin(_Range);
@@ -5644,27 +5644,27 @@ namespace ranges {
     }
 
     _EXPORT_STD template <class _In1, class _In2>
-    struct in_in_result {
+    struct 双入结果 {
         /* [[no_unique_address]] */ _In1 in1;
         /* [[no_unique_address]] */ _In2 in2;
 
         template <_Convertible_from<const _In1&> _IIn1, _Convertible_from<const _In2&> _IIn2>
-        constexpr operator in_in_result<_IIn1, _IIn2>() const& {
+        constexpr operator 双入结果<_IIn1, _IIn2>() const& {
             return {in1, in2};
         }
 
         template <_Convertible_from<_In1> _IIn1, _Convertible_from<_In2> _IIn2>
-        constexpr operator in_in_result<_IIn1, _IIn2>() && {
+        constexpr operator 双入结果<_IIn1, _IIn2>() && {
             return {_STD move(in1), _STD move(in2)};
         }
     };
 
     _EXPORT_STD template <class _In1, class _In2>
-    using mismatch_result = in_in_result<_In1, _In2>;
+    using 不匹配结果 = 双入结果<_In1, _In2>;
 
     template <input_iterator _It1, input_iterator _It2, class _Pr, class _Pj1, class _Pj2>
         requires indirectly_comparable<_It1, _It2, _Pr, _Pj1, _Pj2>
-    _NODISCARD constexpr mismatch_result<_It1, _It2> _不匹配计数(
+    _NODISCARD constexpr 不匹配结果<_It1, _It2> _不匹配计数(
         _It1 _First1, _It2 _First2, iter_difference_t<_It1> _Count, _Pr _谓词, _Pj1 _Proj1, _Pj2 _Proj2) {
         _STL_INTERNAL_CHECK(_Count >= 0);
 #if _USE_STD_VECTOR_ALGORITHMS
@@ -5693,7 +5693,7 @@ namespace ranges {
     template <input_iterator _It1, sentinel_for<_It1> _Se1, input_iterator _It2, sentinel_for<_It2> _Se2, class _Pr,
         class _Pj1, class _Pj2>
         requires indirectly_comparable<_It1, _It2, _Pr, _Pj1, _Pj2>
-    _NODISCARD constexpr mismatch_result<_It1, _It2> _不匹配4(
+    _NODISCARD constexpr 不匹配结果<_It1, _It2> _不匹配4(
         _It1 _First1, _Se1 _Last1, _It2 _First2, _Se2 _Last2, _Pr _谓词, _Pj1 _Proj1, _Pj2 _Proj2) {
         for (; _First1 != _Last1 && _First2 != _Last2; ++_First1, (void) ++_First2) {
             if (!_STD invoke(_谓词, _STD invoke(_Proj1, *_First1), _STD invoke(_Proj2, *_First2))) {
@@ -5709,7 +5709,7 @@ namespace ranges {
         template <input_iterator _It1, sentinel_for<_It1> _Se1, input_iterator _It2, sentinel_for<_It2> _Se2,
             class _Pr = ranges::_相等比较, class _Pj1 = identity, class _Pj2 = identity>
             requires indirectly_comparable<_It1, _It2, _Pr, _Pj1, _Pj2>
-        _NODISCARD _STATIC_CALL_OPERATOR constexpr mismatch_result<_It1, _It2> operator()(_It1 _First1, _Se1 _Last1,
+        _NODISCARD _STATIC_CALL_OPERATOR constexpr 不匹配结果<_It1, _It2> operator()(_It1 _First1, _Se1 _Last1,
             _It2 _First2, _Se2 _Last2, _Pr _谓词 = {}, _Pj1 _Proj1 = {}, _Pj2 _Proj2 = {}) _CONST_CALL_OPERATOR {
             _ADL校验范围(_First1, _Last1);
             _ADL校验范围(_First2, _Last2);
@@ -5742,14 +5742,14 @@ namespace ranges {
             class _Pj2 = identity>
             requires indirectly_comparable<迭代器类型<_Rng1>, 迭代器类型<_Rng2>, _Pr, _Pj1, _Pj2>
         _NODISCARD
-            _STATIC_CALL_OPERATOR constexpr mismatch_result<borrowed_iterator_t<_Rng1>, borrowed_iterator_t<_Rng2>>
+            _STATIC_CALL_OPERATOR constexpr 不匹配结果<borrowed_iterator_t<_Rng1>, borrowed_iterator_t<_Rng2>>
             operator()(_Rng1&& _Range1, _Rng2&& _Range2, _Pr _谓词 = {}, _Pj1 _Proj1 = {},
                 _Pj2 _Proj2 = {}) _CONST_CALL_OPERATOR {
             if constexpr (sized_range<_Rng1> && sized_range<_Rng2>) {
-                range_difference_t<_Rng1> _Count1       = _RANGES distance(_Range1);
-                const range_difference_t<_Rng2> _Count2 = _RANGES distance(_Range2);
+                范围差类型<_Rng1> _Count1       = _RANGES distance(_Range1);
+                const 范围差类型<_Rng2> _Count2 = _RANGES distance(_Range2);
                 if (_Count1 > _Count2) {
-                    _Count1 = static_cast<range_difference_t<_Rng1>>(_Count2);
+                    _Count1 = static_cast<范围差类型<_Rng1>>(_Count2);
                 }
 
                 auto _First1 = _RANGES begin(_Range1);
@@ -6867,18 +6867,18 @@ namespace ranges {
         template <forward_range _Rng1, forward_range _Rng2, class _Pr = ranges::_相等比较, class _Pj1 = identity,
             class _Pj2 = identity>
             requires indirectly_comparable<迭代器类型<_Rng1>, 迭代器类型<_Rng2>, _Pr, _Pj1, _Pj2>
-        _NODISCARD _STATIC_CALL_OPERATOR constexpr borrowed_subrange_t<_Rng1> operator()(
+        _NODISCARD _STATIC_CALL_OPERATOR constexpr 借用子范围类型<_Rng1> operator()(
             _Rng1&& _Range1, _Rng2&& _Range2, _Pr _谓词 = {}, _Pj1 _Proj1 = {}, _Pj2 _Proj2 = {}) _CONST_CALL_OPERATOR {
             if constexpr (sized_range<_Rng1> && sized_range<_Rng2>) {
                 const auto _Count1 = _RANGES distance(_Range1);
                 const auto _Count2 = _RANGES distance(_Range2);
                 auto _UResult      = _有长度查找(_解包首(_Range1), _解包尾(_Range1), _Count1, _解包首(_Range2),
                          _解包尾(_Range2), _Count2, _传递函数(_谓词), _传递函数(_Proj1), _传递函数(_Proj2));
-                return _重包子范围<borrowed_subrange_t<_Rng1>>(_Range1, _STD move(_UResult));
+                return _重包子范围<借用子范围类型<_Rng1>>(_Range1, _STD move(_UResult));
             } else {
                 auto _UResult = _无长度查找(_解包首(_Range1), _解包尾(_Range1), _解包首(_Range2), _解包尾(_Range2),
                     _传递函数(_谓词), _传递函数(_Proj1), _传递函数(_Proj2));
-                return _重包子范围<borrowed_subrange_t<_Rng1>>(_Range1, _STD move(_UResult));
+                return _重包子范围<借用子范围类型<_Rng1>>(_Range1, _STD move(_UResult));
             }
         }
 
@@ -7199,8 +7199,8 @@ namespace ranges {
 
         template <input_range _Rng, class _Pj = identity,
             indirect_strict_weak_order<投影类型<迭代器类型<_Rng>, _Pj>> _Pr = ranges::less>
-            requires indirectly_copyable_storable<迭代器类型<_Rng>, range_value_t<_Rng>*>
-        _NODISCARD _STATIC_CALL_OPERATOR constexpr range_value_t<_Rng> operator()(
+            requires indirectly_copyable_storable<迭代器类型<_Rng>, 范围值类型<_Rng>*>
+        _NODISCARD _STATIC_CALL_OPERATOR constexpr 范围值类型<_Rng> operator()(
             _Rng&& _Range, _Pr _谓词 = {}, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             auto _UFirst = _解包首(_Range);
             auto _ULast  = _解包尾(_Range);
@@ -7212,15 +7212,15 @@ namespace ranges {
                 if (!_STD is_constant_evaluated()) {
                     const auto _First_ptr = _STD to_address(_UFirst);
                     const auto _Last_ptr  = _First_ptr + (_ULast - _UFirst);
-                    return static_cast<range_value_t<_Rng>>(_Max_vectorized(_First_ptr, _Last_ptr));
+                    return static_cast<范围值类型<_Rng>>(_Max_vectorized(_First_ptr, _Last_ptr));
                 }
             }
 #endif // _USE_STD_VECTOR_ALGORITHMS
             if constexpr (forward_range<_Rng> && _Prefer_iterator_copies<decltype(_UFirst)>) {
-                return static_cast<range_value_t<_Rng>>(*_最大元素非检查(
+                return static_cast<范围值类型<_Rng>>(*_最大元素非检查(
                     _STD move(_UFirst), _STD move(_ULast), _传递函数(_谓词), _传递函数(_Proj)));
             } else {
-                range_value_t<_Rng> _Found(*_UFirst);
+                范围值类型<_Rng> _Found(*_UFirst);
                 while (++_UFirst != _ULast) {
                     if (_STD invoke(_谓词, _STD invoke(_Proj, _Found), _STD invoke(_Proj, *_UFirst))) {
                         _Found = *_UFirst;
@@ -7419,8 +7419,8 @@ namespace ranges {
 
         template <input_range _Rng, class _Pj = identity,
             indirect_strict_weak_order<投影类型<迭代器类型<_Rng>, _Pj>> _Pr = ranges::less>
-            requires indirectly_copyable_storable<迭代器类型<_Rng>, range_value_t<_Rng>*>
-        _NODISCARD _STATIC_CALL_OPERATOR constexpr range_value_t<_Rng> operator()(
+            requires indirectly_copyable_storable<迭代器类型<_Rng>, 范围值类型<_Rng>*>
+        _NODISCARD _STATIC_CALL_OPERATOR constexpr 范围值类型<_Rng> operator()(
             _Rng&& _Range, _Pr _谓词 = {}, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             auto _UFirst = _解包首(_Range);
             auto _ULast  = _解包尾(_Range);
@@ -7432,15 +7432,15 @@ namespace ranges {
                 if (!_STD is_constant_evaluated()) {
                     const auto _First_ptr = _STD to_address(_UFirst);
                     const auto _Last_ptr  = _First_ptr + (_ULast - _UFirst);
-                    return static_cast<range_value_t<_Rng>>(_Min_vectorized(_First_ptr, _Last_ptr));
+                    return static_cast<范围值类型<_Rng>>(_Min_vectorized(_First_ptr, _Last_ptr));
                 }
             }
 #endif // _USE_STD_VECTOR_ALGORITHMS
             if constexpr (forward_range<_Rng> && _Prefer_iterator_copies<decltype(_UFirst)>) {
-                return static_cast<range_value_t<_Rng>>(*_最小元素非检查(
+                return static_cast<范围值类型<_Rng>>(*_最小元素非检查(
                     _STD move(_UFirst), _STD move(_ULast), _传递函数(_谓词), _传递函数(_Proj)));
             } else {
-                range_value_t<_Rng> _Found(*_UFirst);
+                范围值类型<_Rng> _Found(*_UFirst);
                 while (++_UFirst != _ULast) {
                     if (_STD invoke(_谓词, _STD invoke(_Proj, *_UFirst), _STD invoke(_Proj, _Found))) {
                         _Found = *_UFirst;
