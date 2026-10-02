@@ -1849,12 +1849,12 @@ public:
     friend class _树;
 
     template <class _Other_traits>
-    void merge(_树<_Other_traits>& _That) {
+    void 归并(_树<_Other_traits>& _That) {
         static_assert(is_same_v<_结点指针, typename _树<_Other_traits>::_结点指针>,
-            "merge() requires an argument with a compatible node type.");
+            "归并() requires an argument with a compatible node type.");
 
         static_assert(is_same_v<分配器类型, typename _树<_Other_traits>::分配器类型>,
-            "merge() requires an argument with the same allocator type.");
+            "归并() requires an argument with the same allocator type.");
 
         if constexpr (is_same_v<_树, _树<_Other_traits>>) {
             if (this == _STD addressof(_That)) {
@@ -1864,7 +1864,7 @@ public:
 
 #if _ITERATOR_DEBUG_LEVEL == 2
         if constexpr (!_结点分配器特征::is_always_equal::value) {
-            _STL_VERIFY(_取分配器() == _That._取分配器(), "allocator incompatible for merge");
+            _STL_VERIFY(_取分配器() == _That._取分配器(), "allocator incompatible for 归并");
         }
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
@@ -1901,14 +1901,14 @@ public:
     }
 
     template <class _Other_traits>
-    void merge(_树<_Other_traits>&& _That) {
+    void 归并(_树<_Other_traits>&& _That) {
         static_assert(is_same_v<_结点指针, typename _树<_Other_traits>::_结点指针>,
-            "merge() requires an argument with a compatible node type.");
+            "归并() requires an argument with a compatible node type.");
 
         static_assert(is_same_v<分配器类型, typename _树<_Other_traits>::分配器类型>,
-            "merge() requires an argument with the same allocator type.");
+            "归并() requires an argument with the same allocator type.");
 
-        merge(_That);
+        归并(_That);
     }
 
 protected:

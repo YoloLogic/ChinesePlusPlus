@@ -1447,12 +1447,12 @@ public:
     friend class _哈希;
 
     template <class _Other_traits>
-    void merge(_哈希<_Other_traits>& _That) { // transfer all nodes from _That into *this
+    void 归并(_哈希<_Other_traits>& _That) { // transfer all nodes from _That into *this
         static_assert(is_same_v<_结点指针, typename _哈希<_Other_traits>::_结点指针>,
-            "merge() requires an argument with a compatible node type.");
+            "归并() requires an argument with a compatible node type.");
 
         static_assert(is_same_v<分配器类型, typename _哈希<_Other_traits>::分配器类型>,
-            "merge() requires an argument with the same allocator type.");
+            "归并() requires an argument with the same allocator type.");
 
         if constexpr (is_same_v<_哈希, _哈希<_Other_traits>>) {
             if (this == _STD addressof(_That)) {
@@ -1462,7 +1462,7 @@ public:
 
 #if _ITERATOR_DEBUG_LEVEL == 2
         if constexpr (!_结点分配器特征::is_always_equal::value) {
-            _STL_VERIFY(_List._取分配器() == _That._List._取分配器(), "allocator incompatible for merge");
+            _STL_VERIFY(_List._取分配器() == _That._List._取分配器(), "allocator incompatible for 归并");
         }
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
@@ -1502,14 +1502,14 @@ public:
     }
 
     template <class _Other_traits>
-    void merge(_哈希<_Other_traits>&& _That) { // transfer all nodes from _That into *this
+    void 归并(_哈希<_Other_traits>&& _That) { // transfer all nodes from _That into *this
         static_assert(is_same_v<_结点指针, typename _哈希<_Other_traits>::_结点指针>,
-            "merge() requires an argument with a compatible node type.");
+            "归并() requires an argument with a compatible node type.");
 
         static_assert(is_same_v<分配器类型, typename _哈希<_Other_traits>::分配器类型>,
-            "merge() requires an argument with the same allocator type.");
+            "归并() requires an argument with the same allocator type.");
 
-        merge(_That);
+        归并(_That);
     }
 
 protected:
