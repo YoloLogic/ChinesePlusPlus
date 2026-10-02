@@ -782,7 +782,24 @@ if ($products.Count -eq 0) { throw "实例化守卫：选中的产物数为 0（
 #  ⚠ §17.38：**子进程绝不能清 work 目录** —— 那会把兄弟分片的探针和日志一起删掉。
 $isChild = [bool]$PartialOut
 if (-not $isChild) {
-    if (Test-Path $work) { Remove-Item -Recurse -Force $work }
+    #  §17.44 清理要**带重试 + 说清原因**（用户 2026-10-02 实测的健壮性问题）：
+    #    他跑重型守卫时工具调用超时了，但**超时只杀了工具调用、没杀子进程** —— 那个 check_zhinst -Check
+    #    继续在后台跑了十几分钟，留下 4 个 chinese++ 子进程和 1900 多个临时文件；于是下一次
+    #    `Remove-Item -Recurse -Force` 撞上文件占用，脚本在"准备阶段"以退出码 1 死掉，
+    #    **错误信息看起来像"守卫/台账失败"，实际只是环境脏了** ✗ —— 这种误导必须消掉。
+    if (Test-Path $work) {
+        Remove-Item -Recurse -Force $work -ErrorAction SilentlyContinue
+        for ($try = 1; $try -le 3 -and (Test-Path $work); $try++) {
+            Start-Sleep -Milliseconds 1500
+            Remove-Item -Recurse -Force $work -ErrorAction SilentlyContinue
+        }
+        if (Test-Path $work) {
+            $busy = @(Get-Process -Name 'chinese++', 'clang', 'clang-cl' -ErrorAction SilentlyContinue)
+            throw ("实例化守卫：清不掉工作目录 {0} —— 上一次运行很可能还在跑（残留编译器进程 {1} 个）。" +
+                   "请先结束它（Get-Process chinese++,clang,clang-cl | Stop-Process）再重跑。" +
+                   "★ 这不是台账或产物的问题，也不是守卫失败 —— 是环境脏了。") -f $work, $busy.Count
+        }
+    }
 }
 New-Item -ItemType Directory -Force $work | Out-Null
 
