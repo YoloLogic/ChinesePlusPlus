@@ -390,6 +390,13 @@ $H = @{
       # §17.51 同步登记（§17.50 修法）：本条目拷贝里有 `plus` 的**非限定**用法（1 处），
       #   定义方在 `通用内部件` ⇒ 同一译名同步登记。
       'plus' = '加法'
+
+      # §17.54 本头（thread）自己的私有成员函数（L428 `_Try_cancel_and_join`）
+      #   与局部变量（L58 `const unique_ptr<_Tuple> _FnVals(...)`）—— 局部/私有改名不影响布局 ✓。
+      #   ⚠ 同批的 `_Start`（L73 成员函数）是**多属主**（`条件变量` 2 处非限定用法）⇒ 本轮不动。
+      '_Try_cancel_and_join' = '_尝试取消并汇合'
+
+      '_FnVals' = '_函数值'
     }
     # ⚠ 同样不放 swap（§3.12：类内 friend + `_STD swap` 调用形态，不能改名）
     data    = [ordered]@{}
@@ -1435,6 +1442,22 @@ $H = @{
       '_Release' = '_释放';
 
       '_Proxy' = '_代理';
+
+      # §17.53 本头（list）自己的内部件 —— 逐名核过，**只登记 1 个**：
+      #   · `_Appended`：单属主（非限定 / 成员访问 / 限定访问 三种形态全零）⇒ 安全；
+      #   · ⚠ 其余 5 个（`_Adopt_unique` `_Make_const_iter` `_Reload_sentinel_and_proxy`
+      #     `_Unchecked_splice` `_Unlinknode`）**是成员/限定访问的多属主**，本轮全部【撤下】：
+      #     `哈希内部件`（我们 xhash 的拷贝）里写着
+      #         _我的链表::_迭代器检查值::_Unchecked_splice(_Insert_before._Ptr, …)
+      #     只改 list 这边 ⇒ 那 3 处 + 另 5 处全部断掉 ⇒
+      #         error: '标准::细节::_链表值<…>' 中没有名为（成员名）'_Unchecked_splice' 的成员
+      #     ⇒ `哈希内部件` / `字符串` / `字符串视图` / `unordered_map` / `unordered_set` 五个条目用例齐红
+      #     （闸门：重新生成失败 5 个、真实用例退出码 1）。
+      #   ⇒ **判据升级**：`scan_multiowner.ps1` 现在查三种形态 ——
+      #     ① 非限定 `名字` ② 成员访问 `.名字` / `->名字` ③ 限定访问 `接收者::名字`（接收者非 std）。
+      #     本批的教训是"只查第 ① 种"会漏掉 ②③ ⇒ 差点把一个条目级的小批变成 5 个条目齐红 ✗。
+      #   ⚠ `_Assign_cast` 仍是多属主（非限定 3 处），一并留下。
+      '_Appended' = '_已追加';
 }
     zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
@@ -3902,6 +3925,12 @@ $H = @{
       'rfind' = '反向查找'
       'find_first_of' = '查找首次属于'; 'find_last_of' = '查找末次属于'
       'find_first_not_of' = '查找首次不属于'; 'find_last_not_of' = '查找末次不属于'
+
+      # §17.54 本头（xstring）自己的两个 **private 枚举**（L820 `enum class _Allocation_policy`、
+      #   L868 `enum class _Construct_strategy : uint8_t`）—— 用升级后的三形态判据扫过：单属主 ✓。
+      '_Allocation_policy' = '_分配策略';
+
+      '_Construct_strategy' = '_构造策略';
       # ⚠ `starts_with` / `ends_with` / `contains` 【不翻】—— 实测（§16.61.9）：
       #   它们的实现是**造一个 `basic_string_view` 再调用它的同名成员**：
       #       return basic_string_view<...>{...}.starts_with(_Right);
@@ -5088,6 +5117,9 @@ $H = @{
       'minus' = '减法';
 
       'multiplies' = '乘法';
+
+      # §17.54 本头（numeric）自己的函数内别名（L666 `using _Common_unsigned = make_unsigned_t<_Common>;`）：
+      '_Common_unsigned' = '_公共无符号类型';
 }
     data    = [ordered]@{}
     # 纯自由函数头：没有类派生层，derive 显式为【空】（公开层在 extra 里手写双名转发）
@@ -5183,6 +5215,9 @@ $H = @{
                           '_Tidy_deallocate' = '_清理释放'
                           '_Assign' = '_赋值'; '_Grow' = '_增长' ;
       '_Mask' = '_掩码';
+
+      # §17.54 本头（valarray）自己的命名空间作用域别名（L54 `using _Boolarray = valarray<bool>;`）：
+      '_Boolarray' = '_布尔数组';
 }
     data    = [ordered]@{ '_Myptr' = '_我的指针'; '_Mysize' = '_我的尺寸' }
     derive  = @( @('size','尺寸'), @('sum','求和'), @('min','最小'), @('max','最大'),
@@ -5463,6 +5498,9 @@ $H = @{
       'greater_equal' = '大于等于';
 
       'not_equal_to' = '不等比较';
+
+      # §17.54 本头（variant）自己的别名（L305 `using variant_alternative_t = typename variant_alternative<_Idx, _Ty>::type;`）：
+      'variant_alternative_t' = '变体备选类型';
 }
     data    = [ordered]@{}
     # ⚠ emplace 在 std 里就要求【显式类型实参】（甲.emplace<整数>(7)），通用转发器是纯变参、接不住 -> 改手写。

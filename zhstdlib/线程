@@ -57,8 +57,8 @@ private:
     template <class _元组, size_t... _下标集>
     static unsigned int __stdcall _调用(void* _RawVals) noexcept /* terminates */ {
         // adapt invoke of user's callable object to _beginthreadex's 线程实现 procedure
-        const unique_ptr<_元组> _FnVals(static_cast<_元组*>(_RawVals));
-        _元组& _Tup = *_FnVals.get(); // avoid ADL, handle incomplete types
+        const unique_ptr<_元组> _函数值(static_cast<_元组*>(_RawVals));
+        _元组& _Tup = *_函数值.get(); // avoid ADL, handle incomplete types
         _STD invoke(_STD move(_STD get<_下标集>(_Tup))...);
         _Cnd_do_broadcast_at_thread_exit(); // TRANSITION, ABI
         return 0;
@@ -363,7 +363,7 @@ public:
     }
 
     ~可停线程实现() {
-        _Try_cancel_and_join();
+        _尝试取消并汇合();
     }
 
     可停线程实现(const 可停线程实现&)            = delete;
@@ -375,7 +375,7 @@ public:
             return *this;
         }
 
-        _Try_cancel_and_join();
+        _尝试取消并汇合();
         _Impl    = _STD move(_Other._Impl);
         _Ssource = _STD move(_Other._Ssource);
         return *this;
@@ -427,7 +427,7 @@ public:
     }
 
 private:
-    void _Try_cancel_and_join() noexcept {
+    void _尝试取消并汇合() noexcept {
         if (_Impl.可汇合()) {
             _Ssource.请求停止();
             _Impl.汇合();

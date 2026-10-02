@@ -53,7 +53,7 @@ _类型* _Allocate_for_op_delete(size_t _Count) {
     }
 }
 
-using _Boolarray = 数值数组实现<bool>;
+using _布尔数组 = 数值数组实现<bool>;
 using _尺寸数组  = 数值数组实现<size_t>;
 
 _EXPORT_STD template <class _类型>
@@ -210,7 +210,7 @@ public:
         return _Ans;
     }
 
-    _NODISCARD _Boolarray operator!() const {
+    _NODISCARD _布尔数组 operator!() const {
         const size_t _Size = _我的尺寸; // eliminating indirection helps vectorization
         数值数组实现<bool> _Ans(_Size);
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
@@ -437,9 +437,9 @@ public:
 
     _NODISCARD 通用切片数组<_类型> operator[](const 通用切片& _Gslicearr); // defined below
 
-    _NODISCARD 数值数组实现 operator[](const _Boolarray& _Boolarr) const; // defined below
+    _NODISCARD 数值数组实现 operator[](const _布尔数组& _Boolarr) const; // defined below
 
-    _NODISCARD 掩码数组<_类型> operator[](const _Boolarray& _Boolarr); // defined below
+    _NODISCARD 掩码数组<_类型> operator[](const _布尔数组& _Boolarr); // defined below
 
     _NODISCARD 数值数组实现 operator[](const _尺寸数组& _Indarr) const; // defined below
 
@@ -835,7 +835,7 @@ _NODISCARD 数值数组实现<_类型> operator>>(const typename 数值数组实
 }
 
 _EXPORT_STD template <class _类型>
-_NODISCARD _Boolarray operator&&(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
+_NODISCARD _布尔数组 operator&&(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
     数值数组实现<bool> _Ans(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
@@ -845,7 +845,7 @@ _NODISCARD _Boolarray operator&&(const 数值数组实现<_类型>& _Left, const
 }
 
 _EXPORT_STD template <class _类型>
-_NODISCARD _Boolarray operator&&(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
+_NODISCARD _布尔数组 operator&&(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
     数值数组实现<bool> _Ans(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
@@ -855,7 +855,7 @@ _NODISCARD _Boolarray operator&&(const typename 数值数组实现<_类型>::val
 }
 
 _EXPORT_STD template <class _类型>
-_NODISCARD _Boolarray operator||(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
+_NODISCARD _布尔数组 operator||(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
     数值数组实现<bool> _Ans(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
@@ -865,7 +865,7 @@ _NODISCARD _Boolarray operator||(const 数值数组实现<_类型>& _Left, const
 }
 
 _EXPORT_STD template <class _类型>
-_NODISCARD _Boolarray operator||(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
+_NODISCARD _布尔数组 operator||(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
     数值数组实现<bool> _Ans(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
@@ -1005,7 +1005,7 @@ _NODISCARD 数值数组实现<_类型> operator>>(const 数值数组实现<_类�
 }
 
 _EXPORT_STD template <class _类型>
-_NODISCARD _Boolarray operator&&(const 数值数组实现<_类型>& _Left, const 数值数组实现<_类型>& _Right) {
+_NODISCARD _布尔数组 operator&&(const 数值数组实现<_类型>& _Left, const 数值数组实现<_类型>& _Right) {
 #if _ITERATOR_DEBUG_LEVEL != 0
     _STL_VERIFY(_Left.尺寸() == _Right.尺寸(), "valarrays of different lengths");
 #endif
@@ -1018,7 +1018,7 @@ _NODISCARD _Boolarray operator&&(const 数值数组实现<_类型>& _Left, const
 }
 
 _EXPORT_STD template <class _类型>
-_NODISCARD _Boolarray operator||(const 数值数组实现<_类型>& _Left, const 数值数组实现<_类型>& _Right) {
+_NODISCARD _布尔数组 operator||(const 数值数组实现<_类型>& _Left, const 数值数组实现<_类型>& _Right) {
 #if _ITERATOR_DEBUG_LEVEL != 0
     _STL_VERIFY(_Left.尺寸() == _Right.尺寸(), "valarrays of different lengths");
 #endif
@@ -1031,7 +1031,7 @@ _NODISCARD _Boolarray operator||(const 数值数组实现<_类型>& _Left, const
 }
 
 _EXPORT_STD template <class _类型>
-_NODISCARD _Boolarray operator==(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
+_NODISCARD _布尔数组 operator==(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
     数值数组实现<bool> _Ans(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
@@ -1041,7 +1041,7 @@ _NODISCARD _Boolarray operator==(const 数值数组实现<_类型>& _Left, const
 }
 
 _EXPORT_STD template <class _类型>
-_NODISCARD _Boolarray operator==(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
+_NODISCARD _布尔数组 operator==(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
     数值数组实现<bool> _Ans(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
@@ -1051,7 +1051,7 @@ _NODISCARD _Boolarray operator==(const typename 数值数组实现<_类型>::val
 }
 
 _EXPORT_STD template <class _类型>
-_NODISCARD _Boolarray operator==(const 数值数组实现<_类型>& _Left, const 数值数组实现<_类型>& _Right) {
+_NODISCARD _布尔数组 operator==(const 数值数组实现<_类型>& _Left, const 数值数组实现<_类型>& _Right) {
 #if _ITERATOR_DEBUG_LEVEL != 0
     _STL_VERIFY(_Left.尺寸() == _Right.尺寸(), "valarrays of different lengths");
 #endif
@@ -1064,7 +1064,7 @@ _NODISCARD _Boolarray operator==(const 数值数组实现<_类型>& _Left, const
 }
 
 _EXPORT_STD template <class _类型>
-_NODISCARD _Boolarray operator!=(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
+_NODISCARD _布尔数组 operator!=(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
     数值数组实现<bool> _Ans(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
@@ -1074,7 +1074,7 @@ _NODISCARD _Boolarray operator!=(const 数值数组实现<_类型>& _Left, const
 }
 
 _EXPORT_STD template <class _类型>
-_NODISCARD _Boolarray operator!=(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
+_NODISCARD _布尔数组 operator!=(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
     数值数组实现<bool> _Ans(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
@@ -1084,7 +1084,7 @@ _NODISCARD _Boolarray operator!=(const typename 数值数组实现<_类型>::val
 }
 
 _EXPORT_STD template <class _类型>
-_NODISCARD _Boolarray operator!=(const 数值数组实现<_类型>& _Left, const 数值数组实现<_类型>& _Right) {
+_NODISCARD _布尔数组 operator!=(const 数值数组实现<_类型>& _Left, const 数值数组实现<_类型>& _Right) {
 #if _ITERATOR_DEBUG_LEVEL != 0
     _STL_VERIFY(_Left.尺寸() == _Right.尺寸(), "valarrays of different lengths");
 #endif
@@ -1097,7 +1097,7 @@ _NODISCARD _Boolarray operator!=(const 数值数组实现<_类型>& _Left, const
 }
 
 _EXPORT_STD template <class _类型>
-_NODISCARD _Boolarray operator<(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
+_NODISCARD _布尔数组 operator<(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
     数值数组实现<bool> _Ans(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
@@ -1107,7 +1107,7 @@ _NODISCARD _Boolarray operator<(const 数值数组实现<_类型>& _Left, const 
 }
 
 _EXPORT_STD template <class _类型>
-_NODISCARD _Boolarray operator<(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
+_NODISCARD _布尔数组 operator<(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
     数值数组实现<bool> _Ans(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
@@ -1117,7 +1117,7 @@ _NODISCARD _Boolarray operator<(const typename 数值数组实现<_类型>::valu
 }
 
 _EXPORT_STD template <class _类型>
-_NODISCARD _Boolarray operator<(const 数值数组实现<_类型>& _Left, const 数值数组实现<_类型>& _Right) {
+_NODISCARD _布尔数组 operator<(const 数值数组实现<_类型>& _Left, const 数值数组实现<_类型>& _Right) {
 #if _ITERATOR_DEBUG_LEVEL != 0
     _STL_VERIFY(_Left.尺寸() == _Right.尺寸(), "valarrays of different lengths");
 #endif
@@ -1130,7 +1130,7 @@ _NODISCARD _Boolarray operator<(const 数值数组实现<_类型>& _Left, const 
 }
 
 _EXPORT_STD template <class _类型>
-_NODISCARD _Boolarray operator>(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
+_NODISCARD _布尔数组 operator>(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
     数值数组实现<bool> _Ans(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
@@ -1140,7 +1140,7 @@ _NODISCARD _Boolarray operator>(const 数值数组实现<_类型>& _Left, const 
 }
 
 _EXPORT_STD template <class _类型>
-_NODISCARD _Boolarray operator>(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
+_NODISCARD _布尔数组 operator>(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
     数值数组实现<bool> _Ans(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
@@ -1150,7 +1150,7 @@ _NODISCARD _Boolarray operator>(const typename 数值数组实现<_类型>::valu
 }
 
 _EXPORT_STD template <class _类型>
-_NODISCARD _Boolarray operator>(const 数值数组实现<_类型>& _Left, const 数值数组实现<_类型>& _Right) {
+_NODISCARD _布尔数组 operator>(const 数值数组实现<_类型>& _Left, const 数值数组实现<_类型>& _Right) {
 #if _ITERATOR_DEBUG_LEVEL != 0
     _STL_VERIFY(_Left.尺寸() == _Right.尺寸(), "valarrays of different lengths");
 #endif
@@ -1163,7 +1163,7 @@ _NODISCARD _Boolarray operator>(const 数值数组实现<_类型>& _Left, const 
 }
 
 _EXPORT_STD template <class _类型>
-_NODISCARD _Boolarray operator<=(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
+_NODISCARD _布尔数组 operator<=(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
     数值数组实现<bool> _Ans(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
@@ -1173,7 +1173,7 @@ _NODISCARD _Boolarray operator<=(const 数值数组实现<_类型>& _Left, const
 }
 
 _EXPORT_STD template <class _类型>
-_NODISCARD _Boolarray operator<=(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
+_NODISCARD _布尔数组 operator<=(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
     数值数组实现<bool> _Ans(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
@@ -1183,7 +1183,7 @@ _NODISCARD _Boolarray operator<=(const typename 数值数组实现<_类型>::val
 }
 
 _EXPORT_STD template <class _类型>
-_NODISCARD _Boolarray operator<=(const 数值数组实现<_类型>& _Left, const 数值数组实现<_类型>& _Right) {
+_NODISCARD _布尔数组 operator<=(const 数值数组实现<_类型>& _Left, const 数值数组实现<_类型>& _Right) {
 #if _ITERATOR_DEBUG_LEVEL != 0
     _STL_VERIFY(_Left.尺寸() == _Right.尺寸(), "valarrays of different lengths");
 #endif
@@ -1196,7 +1196,7 @@ _NODISCARD _Boolarray operator<=(const 数值数组实现<_类型>& _Left, const
 }
 
 _EXPORT_STD template <class _类型>
-_NODISCARD _Boolarray operator>=(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
+_NODISCARD _布尔数组 operator>=(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
     数值数组实现<bool> _Ans(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
@@ -1206,7 +1206,7 @@ _NODISCARD _Boolarray operator>=(const 数值数组实现<_类型>& _Left, const
 }
 
 _EXPORT_STD template <class _类型>
-_NODISCARD _Boolarray operator>=(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
+_NODISCARD _布尔数组 operator>=(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
     数值数组实现<bool> _Ans(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
@@ -1216,7 +1216,7 @@ _NODISCARD _Boolarray operator>=(const typename 数值数组实现<_类型>::val
 }
 
 _EXPORT_STD template <class _类型>
-_NODISCARD _Boolarray operator>=(const 数值数组实现<_类型>& _Left, const 数值数组实现<_类型>& _Right) {
+_NODISCARD _布尔数组 operator>=(const 数值数组实现<_类型>& _Left, const 数值数组实现<_类型>& _Right) {
 #if _ITERATOR_DEBUG_LEVEL != 0
     _STL_VERIFY(_Left.尺寸() == _Right.尺寸(), "valarrays of different lengths");
 #endif
@@ -1907,9 +1907,9 @@ public:
 private:
     friend 数值数组实现<_类型>;
 
-    掩码数组(const _Boolarray& _Maskarr, _类型* _Pdata) : _Mybool(_Maskarr), _我的指针(_Pdata) {}
+    掩码数组(const _布尔数组& _Maskarr, _类型* _Pdata) : _Mybool(_Maskarr), _我的指针(_Pdata) {}
 
-    _Boolarray _Mybool; // array of mask bits
+    _布尔数组 _Mybool; // array of mask bits
     _类型* _我的指针; // pointer to 数值数组实现 contents
 };
 
@@ -2091,12 +2091,12 @@ template <class _类型>
 }
 
 template <class _类型>
-_NODISCARD 数值数组实现<_类型> 数值数组实现<_类型>::operator[](const _Boolarray& _Boolarr) const {
+_NODISCARD 数值数组实现<_类型> 数值数组实现<_类型>::operator[](const _布尔数组& _Boolarr) const {
     return 数值数组实现<_类型>(掩码数组<_类型>(_Boolarr, _我的指针));
 }
 
 template <class _类型>
-_NODISCARD 掩码数组<_类型> 数值数组实现<_类型>::operator[](const _Boolarray& _Boolarr) {
+_NODISCARD 掩码数组<_类型> 数值数组实现<_类型>::operator[](const _布尔数组& _Boolarr) {
     return 掩码数组<_类型>(_Boolarr, _我的指针);
 }
 

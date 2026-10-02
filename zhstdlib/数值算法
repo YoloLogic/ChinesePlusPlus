@@ -666,7 +666,7 @@ _NODISCARD constexpr common_type_t<_Mt, _Nt> 最大公约数(const _Mt _Mx, cons
     static_assert(_Is_nonbool_integral<_Mt> && _Is_nonbool_integral<_Nt>, "GCD requires nonbool integral types");
 
     using _公共          = common_type_t<_Mt, _Nt>;
-    using _Common_unsigned = make_unsigned_t<_公共>;
+    using _公共无符号类型 = make_unsigned_t<_公共>;
 
     if constexpr (is_signed_v<_公共>) {
 #ifndef _DEBUG
@@ -680,9 +680,9 @@ _NODISCARD constexpr common_type_t<_Mt, _Nt> 最大公约数(const _Mt _Mx, cons
         }
     }
 
-    return _Select_countr_zero_impl<_Common_unsigned>([=](auto _Countr_zero_impl) {
-        _Common_unsigned _Mx_magnitude = _Abs_u(_Mx);
-        _Common_unsigned _Nx_magnitude = _Abs_u(_Nx);
+    return _Select_countr_zero_impl<_公共无符号类型>([=](auto _Countr_zero_impl) {
+        _公共无符号类型 _Mx_magnitude = _Abs_u(_Mx);
+        _公共无符号类型 _Nx_magnitude = _Abs_u(_Nx);
         if (_Mx_magnitude == 0U) {
             return static_cast<_公共>(_Nx_magnitude);
         }
@@ -698,7 +698,7 @@ _NODISCARD constexpr common_type_t<_Mt, _Nt> 最大公约数(const _Mt _Mx, cons
         for (;;) {
             _Nx_magnitude >>= _Nx_trailing_zeroes;
             if (_Mx_magnitude > _Nx_magnitude) {
-                _Common_unsigned _Temp = _Mx_magnitude;
+                _公共无符号类型 _Temp = _Mx_magnitude;
                 _Mx_magnitude          = _Nx_magnitude;
                 _Nx_magnitude          = _Temp;
             }
@@ -718,9 +718,9 @@ _NODISCARD constexpr common_type_t<_Mt, _Nt> 最小公倍数(const _Mt _Mx, cons
     // calculate least common multiple
     static_assert(_Is_nonbool_integral<_Mt> && _Is_nonbool_integral<_Nt>, "LCM requires nonbool integral types");
     using _公共                        = common_type_t<_Mt, _Nt>;
-    using _Common_unsigned               = make_unsigned_t<_公共>;
-    const _Common_unsigned _Mx_magnitude = _Abs_u(_Mx);
-    const _Common_unsigned _Nx_magnitude = _Abs_u(_Nx);
+    using _公共无符号类型               = make_unsigned_t<_公共>;
+    const _公共无符号类型 _Mx_magnitude = _Abs_u(_Mx);
+    const _公共无符号类型 _Nx_magnitude = _Abs_u(_Nx);
     if (_Mx_magnitude == 0 || _Nx_magnitude == 0) {
         return 0;
     }
@@ -731,8 +731,8 @@ _NODISCARD constexpr common_type_t<_Mt, _Nt> 最小公倍数(const _Mt _Mx, cons
     }
 #endif // ^^^ !defined(_DEBUG) ^^^
 
-    _Common_unsigned _结果 = 0;
-    _Common_unsigned _Tmp    = static_cast<_Common_unsigned>(_Mx_magnitude / 最大公约数(_Mx_magnitude, _Nx_magnitude));
+    _公共无符号类型 _结果 = 0;
+    _公共无符号类型 _Tmp    = static_cast<_公共无符号类型>(_Mx_magnitude / 最大公约数(_Mx_magnitude, _Nx_magnitude));
     const bool _Overflow     = _Mul_overflow(_Tmp, _Nx_magnitude, _结果) || !_In_range<_公共>(_结果);
 
     _STL_VERIFY(!_Overflow, "Preconditions: The least common multiple of |m| and |n| is representable as a value of "

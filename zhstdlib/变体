@@ -304,18 +304,18 @@ struct 变体尺寸<变体实现<_Types...>> : integral_constant<size_t, sizeof.
 _EXPORT_STD template <size_t _Idx, class _类型>
 struct 变体替体; // undefined
 _EXPORT_STD template <size_t _Idx, class _类型>
-using variant_alternative_t = typename 变体替体<_Idx, _类型>::type;
+using 变体备选类型 = typename 变体替体<_Idx, _类型>::type;
 template <size_t _Idx, class _类型>
 struct 变体替体<_Idx, const _类型> {
-    using type = add_const_t<variant_alternative_t<_Idx, _类型>>;
+    using type = add_const_t<变体备选类型<_Idx, _类型>>;
 };
 template <size_t _Idx, class _类型>
 struct _CXX20_DEPRECATE_VOLATILE 变体替体<_Idx, volatile _类型> {
-    using type = add_volatile_t<variant_alternative_t<_Idx, _类型>>;
+    using type = add_volatile_t<变体备选类型<_Idx, _类型>>;
 };
 template <size_t _Idx, class _类型>
 struct _CXX20_DEPRECATE_VOLATILE 变体替体<_Idx, const volatile _类型> {
-    using type = add_cv_t<variant_alternative_t<_Idx, _类型>>;
+    using type = add_cv_t<变体备选类型<_Idx, _类型>>;
 };
 template <size_t _Idx, class... _Types>
 struct 变体替体<_Idx, 变体实现<_Types...>> {

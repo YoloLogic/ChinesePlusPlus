@@ -718,18 +718,18 @@ public:
 
     _CONSTEXPR20 基础字符串实现(const 基础字符串实现& _Right)
         : _Mypair(_先一后变参实参{}, _分配器特征::select_on_container_copy_construction(_Right._取分配器())) {
-        _构造<_Construct_strategy::_From_string>(_Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸);
+        _构造<_构造策略::_From_string>(_Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸);
     }
 
     _CONSTEXPR20 基础字符串实现(const 基础字符串实现& _Right, const _分配器& _Al)
         : _Mypair(_先一后变参实参{}, _Al) {
-        _构造<_Construct_strategy::_From_string>(_Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸);
+        _构造<_构造策略::_From_string>(_Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸);
     }
 
     _CONSTEXPR20 基础字符串实现(const 基础字符串实现& _Right, const size_type _Roff, const _分配器& _Al = _分配器())
         : _Mypair(_先一后变参实参{}, _Al) { // construct from _Right [_Roff, <结束>)
         _Right._Mypair._Myval2._检查偏移(_Roff);
-        _构造<_Construct_strategy::_From_ptr>(
+        _构造<_构造策略::_From_ptr>(
             _Right._Mypair._Myval2._我的指针() + _Roff, _Right._Mypair._Myval2._夹取后缀尺寸(_Roff, npos));
     }
 
@@ -737,7 +737,7 @@ public:
         const 基础字符串实现& _Right, const size_type _Roff, const size_type _Count, const _分配器& _Al = _分配器())
         : _Mypair(_先一后变参实参{}, _Al) { // construct from _Right [_Roff, _Roff + _Count)
         _Right._Mypair._Myval2._检查偏移(_Roff);
-        _构造<_Construct_strategy::_From_ptr>(
+        _构造<_构造策略::_From_ptr>(
             _Right._Mypair._Myval2._我的指针() + _Roff, _Right._Mypair._Myval2._夹取后缀尺寸(_Roff, _Count));
     }
 
@@ -756,7 +756,7 @@ public:
 
     _CONSTEXPR20 基础字符串实现(_In_reads_(_Count) const _元素* const _Ptr, _CRT_GUARDOVERFLOW const size_type _Count)
         : _Mypair(_先零后变参实参{}) {
-        _构造<_Construct_strategy::_From_ptr>(_Ptr, _Count);
+        _构造<_构造策略::_From_ptr>(_Ptr, _Count);
     }
 
 #if _HAS_CXX17
@@ -765,11 +765,11 @@ public:
     _CONSTEXPR20 基础字符串实现(
         _In_reads_(_Count) const _元素* const _Ptr, _CRT_GUARDOVERFLOW const size_type _Count, const _分配器& _Al)
         : _Mypair(_先一后变参实参{}, _Al) {
-        _构造<_Construct_strategy::_From_ptr>(_Ptr, _Count);
+        _构造<_构造策略::_From_ptr>(_Ptr, _Count);
     }
 
     _CONSTEXPR20 基础字符串实现(_In_z_ const _元素* const _Ptr) : _Mypair(_先零后变参实参{}) {
-        _构造<_Construct_strategy::_From_ptr>(_Ptr, _Convert_size<size_type>(_特征::length(_Ptr)));
+        _构造<_构造策略::_From_ptr>(_Ptr, _Convert_size<size_type>(_特征::length(_Ptr)));
     }
 
 #if _HAS_CXX17
@@ -777,7 +777,7 @@ public:
 #endif // _HAS_CXX17
     _CONSTEXPR20 基础字符串实现(_In_z_ const _元素* const _Ptr, const _分配器& _Al)
         : _Mypair(_先一后变参实参{}, _Al) {
-        _构造<_Construct_strategy::_From_ptr>(_Ptr, _Convert_size<size_type>(_特征::length(_Ptr)));
+        _构造<_构造策略::_From_ptr>(_Ptr, _Convert_size<size_type>(_特征::length(_Ptr)));
     }
 
 #if _HAS_CXX23
@@ -786,7 +786,7 @@ public:
 
     _CONSTEXPR20 基础字符串实现(_CRT_GUARDOVERFLOW const size_type _Count, const _元素 _Ch)
         : _Mypair(_先零后变参实参{}) { // construct from _Count * _Ch
-        _构造<_Construct_strategy::_From_char>(_Ch, _Count);
+        _构造<_构造策略::_From_char>(_Ch, _Count);
     }
 
 #if _HAS_CXX17
@@ -794,7 +794,7 @@ public:
 #endif // _HAS_CXX17
     _CONSTEXPR20 基础字符串实现(_CRT_GUARDOVERFLOW const size_type _Count, const _元素 _Ch, const _分配器& _Al)
         : _Mypair(_先一后变参实参{}, _Al) { // construct from _Count * _Ch with allocator
-        _构造<_Construct_strategy::_From_char>(_Ch, _Count);
+        _构造<_构造策略::_From_char>(_Ch, _Count);
     }
 
     template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
@@ -807,7 +807,7 @@ public:
             _构造为空串();
         } else {
             if constexpr (_是元素字符指针<decltype(_UFirst)>::value) {
-                _构造<_Construct_strategy::_From_ptr>(
+                _构造<_构造策略::_From_ptr>(
                     _UFirst, _STD _Convert_size<size_type>(static_cast<size_t>(_ULast - _UFirst)));
             } else if constexpr (_Is_cpp17_fwd_iter_v<decltype(_UFirst)>) {
                 const auto _Length = static_cast<size_t>(_STD distance(_UFirst, _ULast));
@@ -820,18 +820,18 @@ public:
     }
 
 private:
-    enum class _Allocation_policy { _At_least, _Exactly };
+    enum class _分配策略 { _At_least, _Exactly };
 
-    template <_Allocation_policy _Policy = _Allocation_policy::_At_least>
+    template <_分配策略 _Policy = _分配策略::_At_least>
     _NODISCARD static _CONSTEXPR20 pointer _按容量分配(_分配器类型& _Al, size_type& _Capacity) {
         _STL_INTERNAL_CHECK(_Capacity > _Small_string_capacity);
         ++_Capacity; // Take null terminator into consideration
 
         pointer _Fancy_ptr = nullptr;
-        if constexpr (_Policy == _Allocation_policy::_At_least) {
+        if constexpr (_Policy == _分配策略::_At_least) {
             _Fancy_ptr = _分配至少助手(_Al, _Capacity);
         } else {
-            _STL_INTERNAL_STATIC_ASSERT(_Policy == _Allocation_policy::_Exactly);
+            _STL_INTERNAL_STATIC_ASSERT(_Policy == _分配策略::_Exactly);
             _Fancy_ptr = _Al.allocate(_Capacity);
         }
 
@@ -868,14 +868,14 @@ private:
         _特征::assign(_My_data._Bx._Buf[0], _元素());
     }
 
-    enum class _Construct_strategy : uint8_t { _From_char, _From_ptr, _From_string };
+    enum class _构造策略 : uint8_t { _From_char, _From_ptr, _From_string };
 
-    template <_Construct_strategy _Strat, class _Char_or_ptr>
+    template <_构造策略 _Strat, class _Char_or_ptr>
     _CONSTEXPR20 void _构造(const _Char_or_ptr _Arg, _CRT_GUARDOVERFLOW const size_type _Count) {
         auto& _My_data = _Mypair._Myval2;
         _STL_INTERNAL_CHECK(!_My_data._已启用大串模式());
 
-        if constexpr (_Strat == _Construct_strategy::_From_char) {
+        if constexpr (_Strat == _构造策略::_From_char) {
             _STL_INTERNAL_STATIC_ASSERT(is_same_v<_Char_or_ptr, _元素>);
         } else {
             _STL_INTERNAL_STATIC_ASSERT(_是元素字符指针<_Char_or_ptr>::value);
@@ -893,13 +893,13 @@ private:
             _My_data._我的尺寸 = _Count;
             _My_data._Myres  = _Small_string_capacity;
 
-            if constexpr (_Strat == _Construct_strategy::_From_char) {
+            if constexpr (_Strat == _构造策略::_From_char) {
                 _特征::assign(_My_data._Bx._Buf, _Count, _Arg);
                 _特征::assign(_My_data._Bx._Buf[_Count], _元素());
-            } else if constexpr (_Strat == _Construct_strategy::_From_ptr) {
+            } else if constexpr (_Strat == _构造策略::_From_ptr) {
                 _特征::copy(_My_data._Bx._Buf, _Arg, _Count);
                 _特征::assign(_My_data._Bx._Buf[_Count], _元素());
-            } else { // _Strat == _Construct_strategy::_From_string
+            } else { // _Strat == _构造策略::_From_string
 #ifdef _INSERT_STRING_ANNOTATION
                 _特征::copy(_My_data._Bx._Buf, _Arg, _Count + 1);
 #else // ^^^ _INSERT_STRING_ANNOTATION / !_INSERT_STRING_ANNOTATION vvv
@@ -917,13 +917,13 @@ private:
 
         _My_data._我的尺寸 = _Count;
         _My_data._Myres  = _New_capacity;
-        if constexpr (_Strat == _Construct_strategy::_From_char) {
+        if constexpr (_Strat == _构造策略::_From_char) {
             _特征::assign(_去花式(_New_ptr), _Count, _Arg);
             _特征::assign(_去花式(_New_ptr)[_Count], _元素());
-        } else if constexpr (_Strat == _Construct_strategy::_From_ptr) {
+        } else if constexpr (_Strat == _构造策略::_From_ptr) {
             _特征::copy(_去花式(_New_ptr), _Arg, _Count);
             _特征::assign(_去花式(_New_ptr)[_Count], _元素());
-        } else { // _Strat == _Construct_strategy::_From_string
+        } else { // _Strat == _构造策略::_From_string
             _特征::copy(_去花式(_New_ptr), _Arg, _Count + 1);
         }
 
@@ -1017,7 +1017,7 @@ public:
             const auto _Length = _转为无符号同型(_RANGES distance(_Range));
             const auto _Count  = _Convert_size<size_type>(_Length);
             if constexpr (_Contiguous_range_of<_Rng, _元素>) {
-                _构造<_Construct_strategy::_From_ptr>(_RANGES data(_Range), _Count);
+                _构造<_构造策略::_From_ptr>(_RANGES data(_Range), _Count);
             } else {
                 _由迭代器构造(_解包首(_Range), _解包尾(_Range), _Count);
             }
@@ -1038,7 +1038,7 @@ public:
         : _Mypair(_先一后变参实参{}, _Al) {
         if constexpr (!_分配器特征::is_always_equal::value) {
             if (_取分配器() != _Right._取分配器()) {
-                _构造<_Construct_strategy::_From_string>(
+                _构造<_构造策略::_From_string>(
                     _Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸);
                 return;
             }
@@ -1153,7 +1153,7 @@ public:
     _CONSTEXPR20 explicit 基础字符串实现(const _StringViewIsh& _Right, const _分配器& _Al = _分配器())
         : _Mypair(_先一后变参实参{}, _Al) {
         const 基础字符串视图<_元素, _特征> _As_view = _Right;
-        _构造<_Construct_strategy::_From_ptr>(_As_view.数据(), _Convert_size<size_type>(_As_view.尺寸()));
+        _构造<_构造策略::_From_ptr>(_As_view.数据(), _Convert_size<size_type>(_As_view.尺寸()));
     }
 
     template <class _类型, enable_if_t<is_convertible_v<const _类型&, 基础字符串视图<_元素, _特征>>, int> = 0>
@@ -1162,7 +1162,7 @@ public:
         : _Mypair(_先一后变参实参{}, _Al) { // construct from _Right [_Roff, _Roff + _Count) using _Al
         const 基础字符串视图<_元素, _特征> _As_view = _Right;
         const auto _As_sub_view                          = _As_view.子串(_Roff, _Count);
-        _构造<_Construct_strategy::_From_ptr>(_As_sub_view.数据(), _Convert_size<size_type>(_As_sub_view.尺寸()));
+        _构造<_构造策略::_From_ptr>(_As_sub_view.数据(), _Convert_size<size_type>(_As_sub_view.尺寸()));
     }
 #endif // _HAS_CXX17
 
@@ -1334,7 +1334,7 @@ private:
             _Right._串尾(_Result_size);
             _接管内容(_Right);
         } else {
-            _构造<_Construct_strategy::_From_ptr>(_Right_ptr + _Roff, _Result_size);
+            _构造<_构造策略::_From_ptr>(_Right_ptr + _Roff, _Result_size);
         }
     }
 #endif // _HAS_CXX23
@@ -1342,7 +1342,7 @@ private:
 public:
     _CONSTEXPR20 基础字符串实现(initializer_list<_元素> _Ilist, const _分配器& _Al = 分配器类型())
         : _Mypair(_先一后变参实参{}, _Al) {
-        _构造<_Construct_strategy::_From_ptr>(_Ilist.begin(), _Convert_size<size_type>(_Ilist.size()));
+        _构造<_构造策略::_From_ptr>(_Ilist.begin(), _Convert_size<size_type>(_Ilist.size()));
     }
 
     _CONSTEXPR20 基础字符串实现& operator=(initializer_list<_元素> _Ilist) {
@@ -2245,7 +2245,7 @@ public:
         if (_Target_capacity < _My_data._Myres) { // worth shrinking, do it
             auto& _Al = _取分配器();
             const pointer _New_ptr =
-                _按容量分配<_Allocation_policy::_Exactly>(_Al, _Target_capacity); // throws
+                _按容量分配<_分配策略::_Exactly>(_Al, _Target_capacity); // throws
             _ASAN_串移除(*this);
 
             _My_data._孤儿化全部();
