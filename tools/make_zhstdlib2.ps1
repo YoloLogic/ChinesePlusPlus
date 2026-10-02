@@ -4409,6 +4409,40 @@ $H = @{
       'prev' = '_上一个';
 
       'equal_to' = '_相等比较';
+
+      # §17.48 嵌套尺：本头【自己定义】的 ranges 基础件（都用 `^\s*(class|struct|using)\s+名字` 精确核过）：
+      #   xutility:3717 `class view_interface` / :3969 `class subrange : public _Subrange_base<…>`
+      #   / :2612 `using iterator_t = …` / :2698 `using sentinel_t = …`
+      #   限定形态核查：四个都是 0 处 `_RANGES` / `_STD`；`view_interface` 有 6 处 `ranges::` 限定，
+      #   而 `ranges` 是【相对名域】（指向我们自己的 `标准::细节::ranges`）⇒ 安全。
+      'subrange' = '子范围';
+
+      'view_interface' = '视图接口';
+
+      'iterator_t' = '迭代器类型';
+
+      'sentinel_t' = '哨兵类型';
+
+      # §17.48 第二批：**单属主**（本头独有）的别名/概念 —— 可以只在本条目改名。
+      #   ranges 的别名/概念（命名空间作用域 `using`，xutility:1064 / :1092 / :1534 / :2173 / :2198 / :883 / :909）：
+      'projected' = '投影类型';
+
+      'indirect_result_t' = '间接结果类型';
+
+      'is_execution_policy' = '是执行策略';
+
+      'iter_const_reference_t' = '迭代器常量引用类型';
+
+      'const_sentinel' = '常量哨兵类型';
+
+      'iter_rvalue_reference_t' = '迭代器右值引用类型';
+
+      'iter_common_reference_t' = '迭代器公共引用类型';
+      # ⚠ 同名同类但**不许登记**的两个（已精确核过，属边界，理由见 §17.48）：
+      #   `common_type` —— 本头里是 `struct common_type<basic_const_iterator<…>, …>` 三处
+      #     【std 模板的特化】，铁律③：改了就不再是 std 的特化（同 §17.19.47 的 hash/formatter）。
+      #   `move_sentinel` —— 本头只有 `class move_sentinel;` 前向声明，定义在借来的头里。
+      #   `greater` / `less` —— `strong_ordering::greater` / `ranges::less` 接收者借来（§17.46 第五节）。
 }
     data    = [ordered]@{}
     derive  = @()

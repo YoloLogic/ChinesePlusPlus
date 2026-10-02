@@ -115,7 +115,7 @@ tests\12-diagnostics\check.ps1                         →  78 个渲染用例�
     `-Variants static` → `cases=8 pass=2 same=6 fail=0`，2026-09-30；**另加变体批**
     `tinyxml2,pugixml,lz4 -Variants shared,debug` → `cases=6 pass=2 same=4 fail=0`，§17.30）
 汉语标准库（2026-09-30 收官）                              →  标准头覆盖 103/103；产物 116 个
-  汉化标尺（分母已剔除"真边界"）：顶层 389/422=92.2%、嵌套 363/419=86.6%、成员 1035/1196=86.5%
+  汉化标尺（分母已剔除"真边界"）：顶层 396/422=93.8%、嵌套 367/419=87.6%、成员 1036/1196=86.6%
   总判据 tools\regen_zhstdlib.ps1：16 道守卫全绿；铁律①（微软原头 361 个文件 SHA256 未变）
     用【原样发行包工具链】跑，不借任何外部工具：
     tinyxml2 0/0/0 PASS      pugixml  0/0/0 PASS
