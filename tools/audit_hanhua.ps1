@@ -315,7 +315,25 @@ if ($tblJson) {
         }
     } catch { }
 }
+# ---------------------------------------------------------------------------
+#  §17.59 两条**实测证伪**的边界类（编译器直接拒绝，实证见生成器里的同款注释）：
+#    · E-显式特化：`incrementable_traits` —— 本头里是 `struct incrementable_traits<…>`，
+#      主模板不在本头 ⇒ 铁律③，改了就不再是 std 模板的特化
+#      （编译实证：`error: 显式特化，针对未声明的模板（名字）结构 '可递增特征'`）。
+#    · D-借来接收者：`allocator_traits` 的 4 个成员 —— 别处是经【借来的真 `std::allocator_traits<…>`】
+#      访问的（源码写的是**非限定**，所以纯正则判不出来，只能靠实证）
+#      （编译实证：`error: 'std::allocator_traits<std::allocator<int>>' 中没有名为（名字）'常量空指针' 的类型`）。
+#  ⚠ 登记在**本栏**（不动三条尺的分子分母 ✓），与既有 `$stdSpecials`/`$memBoundary` 同一性质。
+# ---------------------------------------------------------------------------
+$script:BdRefuted = @{
+    'incrementable_traits'                   = 'E-显式特化'
+    'const_void_pointer'                     = 'D-借来接收者'
+    'propagate_on_container_copy_assignment' = 'D-借来接收者'
+    'propagate_on_container_move_assignment' = 'D-借来接收者'
+    'propagate_on_container_swap'            = 'D-借来接收者'
+}
 function Get-BoundaryClass([string] $n, [string] $entryKey) {
+    if ($script:BdRefuted.ContainsKey($n)) { return $script:BdRefuted[$n] }
     if ($script:BdDropTypes.ContainsKey($entryKey) -and ($script:BdDropTypes[$entryKey] -contains $n)) { return 'A-CRT契约名' }
     if ($script:BdKeywords.ContainsKey($n)) { return 'B-C++语言类型' }
     foreach ($p in @('__std_', '__builtin_', '_Interlocked')) { if ($n.StartsWith($p)) { return 'C-编译器内建' } }

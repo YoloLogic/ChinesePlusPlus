@@ -3078,6 +3078,13 @@ $H = @{
       'rebind_traits' = '重绑定特征';
 
       'uninitialized_move_result' = '未初始化移动结果';
+
+      # §17.59 实测【撤回】`allocator_traits` 的 4 个成员（`const_void_pointer` /
+      #   `propagate_on_container_copy_assignment` / `_move_assignment` / `_swap`）：
+      #   虽然它们**声明在本头**，但别的产物是经**借来的真 `std::allocator_traits<…>`** 访问的 ✗
+      #   （编译实证：`error: 'std::allocator_traits<std::allocator<int>>' 中没有名为（名字）
+      #    '常量空指针' 的类型`）⇒ 按 §17.46「接收者定」它们**是边界** ✗。
+      #   ⇒ 新判据⑦：同步规模测量之后，还要查**接收者是不是借来的模板** —— 只按源码出现次数判会漏。
 }
     data    = [ordered]@{}
     derive  = @()
@@ -6293,6 +6300,11 @@ $H = @{
       #   （§17.48 实测的坑）⇒ 这里用**同一译名**同步登记。
       #   译名取「底层迭代器类型」而不是「迭代器类型」——后者已被 `iterator_t` 占用（同头）。
       'iterator_type' = '底层迭代器类型';
+
+      # §17.59 实测【撤回】：`incrementable_traits` 在本头里出现在**显式特化**里
+      #   （`struct incrementable_traits<…>`）⇒ 铁律③：改了就不再是 std 模板的特化 ✗
+      #   （编译实证：`error: 显式特化，针对未声明的模板（名字）结构 '可递增特征'`）。
+      #   ⇒ 新判据⑧：名字出现在【显式特化】里 ⇒ 边界，不许登记。
 }
     data    = [ordered]@{}
     extra   = ( @(
