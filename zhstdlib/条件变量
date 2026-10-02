@@ -128,8 +128,8 @@ public:
 
         // 等待 for signal with timeout
         const shared_ptr<互斥量实现> _Ptr = _我的指针; // for immunity to *this destruction
-        const auto _Start            = _CHRONO steady_clock::now();
-        const auto _Target           = _Start + _Rel_time;
+        const auto _启动            = _CHRONO steady_clock::now();
+        const auto _Target           = _启动 + _Rel_time;
 
         独占锁实现<互斥量实现> _Guard{*_Ptr};
         _解锁卫兵<_加锁> _Unlock_outer{_Lck};

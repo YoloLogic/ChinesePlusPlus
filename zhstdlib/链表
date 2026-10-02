@@ -402,7 +402,7 @@ public:
 #endif // _ITERATOR_DEBUG_LEVEL == 2
     }
 
-    _结点指针 _Unlinknode(_结点指针 _Pnode) noexcept { // unlink node at _Where from the 链表实现
+    _结点指针 _脱链节点(_结点指针 _Pnode) noexcept { // unlink node at _Where from the 链表实现
         _孤儿化指针2(_Pnode);
         _Pnode->_Prev->_Next = _Pnode->_Next;
         _Pnode->_Next->_Prev = _Pnode->_Prev;
@@ -411,7 +411,7 @@ public:
     }
 
 #if _ITERATOR_DEBUG_LEVEL == 2
-    void _Adopt_unique(_链表值& _Other, _结点指针 _Pnode) noexcept {
+    void _收养唯一(_链表值& _Other, _结点指针 _Pnode) noexcept {
         // adopt iterators pointing to the spliced node
         _Lockit _加锁(_LOCK_DEBUG);
         _迭代器基类12** _Pnext = &_Other._Myproxy->_Myfirstiter;
@@ -477,7 +477,7 @@ public:
     }
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
-    static _结点指针 _Unchecked_splice(const _结点指针 _Before, const _结点指针 _首个, const _结点指针 _最后) noexcept {
+    static _结点指针 _非检查接合(const _结点指针 _Before, const _结点指针 _首个, const _结点指针 _最后) noexcept {
         // 接合 [_首个, _最后) before _Before; returns _最后
         _STL_INTERNAL_CHECK(_Before != _首个 && _Before != _最后 && _首个 != _最后);
         // 3 reads and 6 writes
@@ -498,7 +498,7 @@ public:
         return _最后;
     }
 
-    static _结点指针 _Unchecked_splice(const _结点指针 _Before, const _结点指针 _首个) noexcept {
+    static _结点指针 _非检查接合(const _结点指针 _Before, const _结点指针 _首个) noexcept {
         // 接合 [_首个, _首个->_Next) before _Before; returns _首个->_Next
         _STL_INTERNAL_CHECK(_Before != _首个 && _首个->_Next != _Before);
         // still 3 reads and 6 writes, but 1 less read if the caller was going to get _首个->_Next
@@ -548,7 +548,7 @@ public:
             } while (_Mid != _最后 && _DEBUG_LT_PRED(_Pred, _Mid->_Myval, _首个->_Myval));
 
             // [_Run_start, _Mid) goes before _首个->_Myval
-            _Unchecked_splice(_首个, _Run_start, _Mid);
+            _非检查接合(_首个, _Run_start, _Mid);
             if (_Mid == _最后) {
                 return _Newfirst;
             }
@@ -1068,7 +1068,7 @@ public:
     }
 
 private:
-    void _Reload_sentinel_and_proxy(const 链表实现& _Right) { // reload sentinel / proxy from unequal POCCA _Right
+    void _重载哨兵与代理(const 链表实现& _Right) { // reload sentinel / proxy from unequal POCCA _Right
         auto& _Al             = _取分配器();
         auto&& _Alproxy       = _取代理分配器(_结点分配器, _Al);
         auto& _Right_al       = _Right._取分配器();
@@ -1093,7 +1093,7 @@ public:
         auto& _Right_al = _Right._取分配器();
         if constexpr (_Choose_pocca_v<_结点分配器>) {
             if (_Al != _Right_al) {
-                _Reload_sentinel_and_proxy(_Right);
+                _重载哨兵与代理(_Right);
             }
         } else {
             _传播复制赋值(_Al, _Right_al);
@@ -1139,7 +1139,7 @@ public:
         return iterator(_Where, _STD addressof(_Mypair._Myval2));
     }
 
-    const_iterator _Make_const_iter(_结点指针 _Where) const noexcept {
+    const_iterator _造常量迭代器(_结点指针 _Where) const noexcept {
         return const_iterator(_Where, _STD addressof(_Mypair._Myval2));
     }
 
@@ -1295,7 +1295,7 @@ public:
 
 private:
     template <class _Target_ref, class _UIter>
-    void _Assign_cast(_UIter _UFirst, const _UIter _ULast) {
+    void _赋值转换(_UIter _UFirst, const _UIter _ULast) {
         // 赋值 [_UFirst, _ULast), casting existing nodes to _Target_ref
         const auto _Myend = _Mypair._Myval2._Myhead;
         auto _Old         = _Myend->_Next;
@@ -1431,7 +1431,7 @@ public:
         _STL_VERIFY(_Where._取容器() == _STD addressof(_Mypair._Myval2), "链表实现 擦除 iterator outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
         const auto _结果 = _Where._Ptr->_Next;
-        _节点::_释放节点(_取分配器(), _Mypair._Myval2._Unlinknode(_Where._Ptr));
+        _节点::_释放节点(_取分配器(), _Mypair._Myval2._脱链节点(_Where._Ptr));
         return _造迭代器(_结果);
     }
 
@@ -1831,7 +1831,7 @@ private:
 #if _ITERATOR_DEBUG_LEVEL == 2
             // transfer ownership
             if (_Count == 1) {
-                _My_data._Adopt_unique(_Right_data, _首个);
+                _My_data._收养唯一(_Right_data, _首个);
             } else if (_Count == _Right_data._我的尺寸) {
                 _My_data._收养全部(_Right_data);
             } else {
@@ -1843,7 +1843,7 @@ private:
             _Right_data._我的尺寸 -= _Count;
         }
 
-        return _迭代器检查值::_Unchecked_splice(_Where, _首个, _最后);
+        return _迭代器检查值::_非检查接合(_Where, _首个, _最后);
     }
 
     void _分配哨兵与代理() {

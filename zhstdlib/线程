@@ -72,7 +72,7 @@ private:
 #pragma warning(push) // pointer or reference to potentially throwing function passed to 'extern "C"' function under
 #pragma warning(disable : 5039) // -EHc. Undefined behavior may occur if this function throws an exception. (/Wall)
     template <class _Fn, class... _Args>
-    void _Start(_Fn&& _Fx, _Args&&... _Ax) {
+    void _启动(_Fn&& _Fx, _Args&&... _Ax) {
         using _元组                 = tuple<decay_t<_Fn>, decay_t<_Args>...>;
         auto _Decay_copied           = _STD make_unique<_元组>(_STD forward<_Fn>(_Fx), _STD forward<_Args>(_Ax)...);
         constexpr auto _Invoker_proc = _取调用<_元组>(make_index_sequence<1 + sizeof...(_Args)>{});
@@ -92,7 +92,7 @@ private:
 public:
     template <class _Fn, class... _Args, enable_if_t<!is_same_v<_Remove_cvref_t<_Fn>, 线程实现>, int> = 0>
     _NODISCARD_CTOR_THREAD explicit 线程实现(_Fn&& _Fx, _Args&&... _Ax) {
-        _Start(_STD forward<_Fn>(_Fx), _STD forward<_Args>(_Ax)...);
+        _启动(_STD forward<_Fn>(_Fx), _STD forward<_Args>(_Ax)...);
     }
 
     ~线程实现() noexcept {
@@ -356,9 +356,9 @@ public:
         requires (!is_same_v<remove_cvref_t<_Fn>, 可停线程实现>)
     _NODISCARD_CTOR_JTHREAD explicit 可停线程实现(_Fn&& _Fx, _Args&&... _Ax) {
         if constexpr (is_invocable_v<decay_t<_Fn>, 停止令牌实现, decay_t<_Args>...>) {
-            _Impl._Start(_STD forward<_Fn>(_Fx), _Ssource.取令牌(), _STD forward<_Args>(_Ax)...);
+            _Impl._启动(_STD forward<_Fn>(_Fx), _Ssource.取令牌(), _STD forward<_Args>(_Ax)...);
         } else {
-            _Impl._Start(_STD forward<_Fn>(_Fx), _STD forward<_Args>(_Ax)...);
+            _Impl._启动(_STD forward<_Fn>(_Fx), _STD forward<_Args>(_Ax)...);
         }
     }
 

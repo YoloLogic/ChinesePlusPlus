@@ -397,6 +397,10 @@ $H = @{
       '_Try_cancel_and_join' = '_尝试取消并汇合'
 
       '_FnVals' = '_函数值'
+
+      # §17.55 【同步批】：`_Start`（thread:73 成员函数）的非限定用法在 `条件变量` 有 2 处，
+      #   按 §17.50 修法两边**同一译名**同时登记（那边有同款注释）。
+      '_Start' = '_启动'
     }
     # ⚠ 同样不放 swap（§3.12：类内 friend + `_STD swap` 调用形态，不能改名）
     data    = [ordered]@{}
@@ -1458,6 +1462,23 @@ $H = @{
       #     本批的教训是"只查第 ① 种"会漏掉 ②③ ⇒ 差点把一个条目级的小批变成 5 个条目齐红 ✗。
       #   ⚠ `_Assign_cast` 仍是多属主（非限定 3 处），一并留下。
       '_Appended' = '_已追加';
+
+      # §17.55 【同步批】：§17.53 撤下的这 5 个名字，按 §17.50 的修法**同步登记到 `哈希内部件`**
+      #   （xhash 的拷贝里有它们的成员访问/限定访问：`_Unchecked_splice` 3 处限定访问、
+      #    `_Make_const_iter` 10 处成员访问、`_Adopt_unique`/`_Reload_sentinel_and_proxy` 各 1、
+      #    `_Unlinknode` 2）⇒ 两边**同一译名**，才允许改这一头。
+      '_Adopt_unique' = '_收养唯一';
+
+      '_Make_const_iter' = '_造常量迭代器';
+
+      '_Reload_sentinel_and_proxy' = '_重载哨兵与代理';
+
+      '_Unchecked_splice' = '_非检查接合';
+
+      '_Unlinknode' = '_脱链节点';
+
+      # §17.55 同上：`_Assign_cast` 的非限定用法在 `哈希内部件` 有 3 处 ⇒ 一并同步。
+      '_Assign_cast' = '_赋值转换';
 }
     zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
@@ -3694,6 +3715,25 @@ $H = @{
       # 'extract' = '提取';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
 
       # 'merge' = '归并';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
+
+      # §17.55 【同步登记】（§17.50 修法）：这些名字的定义方是 `链表`（list），
+      #   而**本条目（xhash）的拷贝里有对它们的成员访问/限定访问/非限定访问**
+      #   （`_Unchecked_splice` 3 处限定访问 `我的链表::_迭代器检查值::_Unchecked_splice`、
+      #    `_Make_const_iter` 10 处成员访问、`_Adopt_unique`/`_Reload_sentinel_and_proxy` 各 1、
+      #    `_Unlinknode` 2、`_Assign_cast` 3 处非限定）——
+      #   §17.53 实测：只改 `链表` 那一头，这 6 个名字在这里全部断掉（5 个条目用例齐红）✗。
+      #   所以必须用**同一译名**同步登记到本条目。
+      '_Adopt_unique' = '_收养唯一';
+
+      '_Make_const_iter' = '_造常量迭代器';
+
+      '_Reload_sentinel_and_proxy' = '_重载哨兵与代理';
+
+      '_Unchecked_splice' = '_非检查接合';
+
+      '_Unlinknode' = '_脱链节点';
+
+      '_Assign_cast' = '_赋值转换';
 }
     data    = [ordered]@{}
     derive  = @()
@@ -4761,7 +4801,12 @@ $H = @{
                           # 否则 error: '独占锁实现<互斥量实现>' 中没有名为 'unlock' 的成员。
                           # ⚠ 这就是方案 §3.6.1 说的"译名必须全库共享"——
                           #   现在还是按头抄一遍，最终要提成一张全局表。
-                          'lock' = '加锁'; 'unlock' = '解锁'; }
+                          'lock' = '加锁'; 'unlock' = '解锁';
+
+      # §17.55 【同步登记】（§17.50 修法）：`_Start`（thread:73 成员函数）的定义方是 `线程`，
+      #   而**本条目**的拷贝里有它的 2 处非限定用法 ⇒ 两边必须同一译名，否则只改 thread 就会断在这里。
+      '_Start' = '_启动'
+    }
     data    = [ordered]@{}
     derive  = @( @('notify_all','通知全部'), @('notify_one','通知一个'),
                  @('wait','等待'), @('wait_for','限时等待'),

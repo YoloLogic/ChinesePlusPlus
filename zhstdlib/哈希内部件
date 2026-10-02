@@ -575,7 +575,7 @@ public:
                 _清空守卫 _Guard{this};
                 _特征对象     = _Right._特征对象;
                 using _适配器 = _重解释移动迭代器<typename _我的链表::_非检查迭代器, _可变值类型>;
-                _List.template _Assign_cast<_可变值类型&>(
+                _List.template _赋值转换<_可变值类型&>(
                     _适配器{_Right._List._非检查开始()}, _适配器{_Right._List._非检查结束()});
                 _用失效向量重插();
                 _Guard._Target = nullptr;
@@ -763,14 +763,14 @@ public:
                 auto&& _Alproxy       = _GET_PROXY_ALLOCATOR(_结点分配器, _Al);
                 auto&& _Right_alproxy = _GET_PROXY_ALLOCATOR(_结点分配器, _Right_al);
                 _Container_proxy_ptr<_结点分配器> _Vec_proxy(_Right_alproxy, _Leave_proxy_unbound{});
-                _List._Reload_sentinel_and_proxy(_Right._List);
+                _List._重载哨兵与代理(_Right._List);
                 _Vec._清理();
                 _传播复制赋值两者(_Right);
                 _Vec_proxy._Bind(_Alproxy, _STD addressof(_Vec._Mypair._Myval2));
 
                 _清空守卫 _Guard{this};
                 _特征对象 = _Right._特征对象;
-                _List.template _Assign_cast<_可变值类型&>(
+                _List.template _赋值转换<_可变值类型&>(
                     _Right._List._非检查开始(), _Right._List._非检查结束());
                 _用失效向量重插();
                 _Guard._Target = nullptr;
@@ -782,7 +782,7 @@ public:
         _清空守卫 _Guard{this};
         _特征对象 = _Right._特征对象;
         _传播复制赋值两者(_Right);
-        _List.template _Assign_cast<_可变值类型&>(
+        _List.template _赋值转换<_可变值类型&>(
             _Right._List._非检查开始(), _Right._List._非检查结束());
         _用失效向量重插();
         _Guard._Target = nullptr;
@@ -876,7 +876,7 @@ public:
     }
 
     _NODISCARD 常量局部迭代器 开始(size_type _Bucket) const noexcept /* strengthened */ {
-        return _List._Make_const_iter(_Vec._Mypair._Myval2._Myfirst[_Bucket << 1]._Ptr);
+        return _List._造常量迭代器(_Vec._Mypair._Myval2._Myfirst[_Bucket << 1]._Ptr);
     }
 
     _NODISCARD 局部迭代器 结束(size_type _Bucket) noexcept /* strengthened */ {
@@ -894,11 +894,11 @@ public:
             _Bucket_hi = _Bucket_hi->_Next;
         }
 
-        return _List._Make_const_iter(_Bucket_hi);
+        return _List._造常量迭代器(_Bucket_hi);
     }
 
     _NODISCARD 常量局部迭代器 cbegin(size_type _Bucket) const noexcept /* strengthened */ {
-        return _List._Make_const_iter(_Vec._Mypair._Myval2._Myfirst[_Bucket << 1]._Ptr);
+        return _List._造常量迭代器(_Vec._Mypair._Myval2._Myfirst[_Bucket << 1]._Ptr);
     }
 
     _NODISCARD 常量局部迭代器 cend(size_type _Bucket) const noexcept /* strengthened */ {
@@ -907,7 +907,7 @@ public:
             _Bucket_hi = _Bucket_hi->_Next;
         }
 
-        return _List._Make_const_iter(_Bucket_hi);
+        return _List._造常量迭代器(_Bucket_hi);
     }
 
     _NODISCARD float 负载因子() const noexcept {
@@ -1243,14 +1243,14 @@ public:
 #endif // _HAS_CXX20
 
     _NODISCARD const_iterator find(const 键类型& _Keyval) const {
-        return _List._Make_const_iter(_查找(_Keyval, _特征对象(_Keyval)));
+        return _List._造常量迭代器(_查找(_Keyval, _特征对象(_Keyval)));
     }
 
 #if _HAS_CXX20
     template <class _KeyTy>
         requires _特征::_Has_transparent_overloads
     _NODISCARD const_iterator find(const _KeyTy& _Keyval) const {
-        return _List._Make_const_iter(_查找(_Keyval, _特征对象(_Keyval)));
+        return _List._造常量迭代器(_查找(_Keyval, _特征对象(_Keyval)));
     }
 
     _NODISCARD bool contains(const 键类型& _Keyval) const {
@@ -1357,7 +1357,7 @@ public:
 
     _NODISCARD pair<const_iterator, const_iterator> 相等区间(const 键类型& _Keyval) const {
         const auto _结果 = _等值区间(_Keyval, _特征对象(_Keyval));
-        return {_List._Make_const_iter(_结果._首个._Ptr), _List._Make_const_iter(_结果._最后._Ptr)};
+        return {_List._造常量迭代器(_结果._首个._Ptr), _List._造常量迭代器(_结果._最后._Ptr)};
     }
 
 #if _HAS_CXX20
@@ -1365,7 +1365,7 @@ public:
         requires _特征::_Has_transparent_overloads
     _NODISCARD pair<const_iterator, const_iterator> 相等区间(const _KeyTy& _Keyval) const {
         const auto _结果 = _等值区间(_Keyval, _特征对象(_Keyval));
-        return {_List._Make_const_iter(_结果._首个._Ptr), _List._Make_const_iter(_结果._最后._Ptr)};
+        return {_List._造常量迭代器(_结果._首个._Ptr), _List._造常量迭代器(_结果._最后._Ptr)};
     }
 #endif // _HAS_CXX20
 
@@ -1495,7 +1495,7 @@ public:
             _就地析构(_Candidate->_Next); // TRANSITION, ABI
             _就地析构(_Candidate->_Prev);
 #if _ITERATOR_DEBUG_LEVEL == 2
-            _List._Mypair._Myval2._Adopt_unique(_That._List._Mypair._Myval2, _Candidate);
+            _List._Mypair._Myval2._收养唯一(_That._List._Mypair._Myval2, _Candidate);
 #endif // _ITERATOR_DEBUG_LEVEL == 2
             (void) _在之前插入新节点(_Hashval, _Target._Insert_before, _Candidate);
         }
@@ -1516,7 +1516,7 @@ protected:
     _结点指针 _摘取(const _非检查常量迭代器 _Where) {
         const size_type _Bucket = 桶(_特征::_取键(*_Where));
         _擦除桶(_Where._Ptr, _Bucket);
-        return _List._Mypair._Myval2._Unlinknode(_Where._Ptr);
+        return _List._Mypair._Myval2._脱链节点(_Where._Ptr);
     }
 
     template <class _Kx>
@@ -1536,7 +1536,7 @@ protected:
         }
 
         _擦除桶(_Target, _Hashval & _Mask);
-        return _List._Mypair._Myval2._Unlinknode(_Target);
+        return _List._Mypair._Myval2._脱链节点(_Target);
     }
 
 public:
@@ -1780,7 +1780,7 @@ protected:
                 // new 桶 inclusive 结束.
                 ++_Insert_before;
                 if (_Insert_before != _Inserted) { // avoid splice on element already in position
-                    _我的链表::_迭代器检查值::_Unchecked_splice(_Insert_before._Ptr, _Inserted._Ptr, _Next_inserted._Ptr);
+                    _我的链表::_迭代器检查值::_非检查接合(_Insert_before._Ptr, _Inserted._Ptr, _Next_inserted._Ptr);
                 }
 
                 _Bucket_hi = _Inserted;
@@ -1795,7 +1795,7 @@ protected:
                     // Element can't be already in position here because:
                     // * (for !_Standard) _Inserted_key < *_Insert_before or
                     // * (for _Standard) _Inserted_key != *_Insert_before
-                    _我的链表::_迭代器检查值::_Unchecked_splice(_Insert_before._Ptr, _Inserted._Ptr, _Next_inserted._Ptr);
+                    _我的链表::_迭代器检查值::_非检查接合(_Insert_before._Ptr, _Inserted._Ptr, _Next_inserted._Ptr);
                     _Bucket_lo = _Inserted;
                     break;
                 }
@@ -1805,7 +1805,7 @@ protected:
                     ++_Insert_before;
                     // Element can't be already in position here because all elements we're inserting are after all
                     // the elements already in buckets, and *_Insert_before isn't the highest element in the 桶.
-                    _我的链表::_迭代器检查值::_Unchecked_splice(_Insert_before._Ptr, _Inserted._Ptr, _Next_inserted._Ptr);
+                    _我的链表::_迭代器检查值::_非检查接合(_Insert_before._Ptr, _Inserted._Ptr, _Next_inserted._Ptr);
                     break;
                 }
             }
