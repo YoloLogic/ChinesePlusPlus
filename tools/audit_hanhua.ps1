@@ -349,6 +349,10 @@ $script:BdRefuted = @{
     'propagate_on_container_copy_assignment' = 'D-借来接收者'
     'propagate_on_container_move_assignment' = 'D-借来接收者'
     'propagate_on_container_swap'            = 'D-借来接收者'
+    # §17.61 H 类：**项目早已拍过的不改名决定**（散在方案/生成器注释里）—— 登记并引用出处，
+    #   而不是重新试一遍（"先查既有决定"是本会话用两次失败换来的纪律）。
+    'id'                                     = 'H-项目已定边界'   # 方案 §3.13：`id` 太短，全局 \bid\b 替换不安全
+    'native_handle_type'                     = 'H-项目已定边界'   # 生成器 L90：MSVC 已官方删除（GH-3820）
 }
 function Get-BoundaryClass([string] $n, [string] $entryKey) {
     if ($script:BdRefuted.ContainsKey($n)) { return $script:BdRefuted[$n] }
@@ -638,6 +642,9 @@ $ledger = @(
     '- `E-显式特化`：本头里是 **std 模板的显式特化**（主模板不在本头）⇒ 铁律③ ⇒ 消除路径 = 抄主模板所在的那层。',
     '- `F-进口声明`：真头里 `using std::X;` ⇒ X 定义在别处（本头只是引进）⇒ 消除路径 = 抄那一层。',
     '- `G-C库调用`：真头里 `_CSTD X`（`_CSTD` = `::`）⇒ X 是 **C 库**的名字 ⇒ 消除路径 = 把 C 数学/C 库那层抄进来。',
+    '- `H-项目已定边界`：**项目早已拍过的不改名决定**（理由与出处在生成器/方案里逐条注明）：',
+    '  `id`（方案 §3.13：太短，全局 `\bid\b` 替换不安全）；`native_handle_type`（生成器 L90：MSVC 已官方删除 GH-3820）。',
+    '  ⇒ 消除路径：随上游删除而自然消失，或等"能重命名短名"的机制（目前没有）。',
     '⇒ A/B/C 三类都是外部约束，**无消除路径**；D/E/F/G 有"抄更多外部层"的消除路径（与 `_Cpo` 要抄 `<compare>` 同族）。',
     '⇒ 把它们从分子分母**同时**剔除会令分子下降 —— 与「分子只能升」冲突 ⇒ **留给大检查统一决定**（见 `build\_review_own\口径修订提案.md`）。'
 )
