@@ -1310,9 +1310,9 @@ _NODISCARD constexpr bool operator==(const 变体实现<_Types...>& _Left, const
 
 _EXPORT_STD template <class... _Types>
 _NODISCARD constexpr bool operator!=(const 变体实现<_Types...>& _Left, const 变体实现<_Types...>& _Right) noexcept(
-    conjunction_v<is_nothrow_invocable_r<bool, not_equal_to<>, const _Types&, const _Types&>...>) /* strengthened */ {
+    conjunction_v<is_nothrow_invocable_r<bool, 不等比较<>, const _Types&, const _Types&>...>) /* strengthened */ {
     // determine if the arguments have different active alternatives or contain unequal values
-    using _访问器            = _变体_关系访问器2<not_equal_to<>, bool, _Types...>;
+    using _访问器            = _变体_关系访问器2<不等比较<>, bool, _Types...>;
     const size_t _Right_index = _Right.索引();
     return _Left.索引() != _Right_index
         || _变体_裸访问(_Right_index, _Right._存储(), _访问器{_Left._存储()});
@@ -1346,10 +1346,10 @@ _NODISCARD constexpr bool operator>(const 变体实现<_Types...>& _Left, const 
 
 _EXPORT_STD template <class... _Types>
 _NODISCARD constexpr bool operator<=(const 变体实现<_Types...>& _Left, const 变体实现<_Types...>& _Right) noexcept(
-    conjunction_v<is_nothrow_invocable_r<bool, less_equal<>, const _Types&, const _Types&>...>) /* strengthened */ {
+    conjunction_v<is_nothrow_invocable_r<bool, 小于等于<>, const _Types&, const _Types&>...>) /* strengthened */ {
     // determine if _Left's 索引() is less than _Right's, or equal and
     // _Left contains a value less than or equal to _Right
-    using _访问器             = _变体_关系访问器2<less_equal<>, bool, _Types...>;
+    using _访问器             = _变体_关系访问器2<小于等于<>, bool, _Types...>;
     const size_t _Left_offset  = _Left.索引() + 1;
     const size_t _Right_offset = _Right.索引() + 1;
     return _Left_offset < _Right_offset
@@ -1359,10 +1359,10 @@ _NODISCARD constexpr bool operator<=(const 变体实现<_Types...>& _Left, const
 
 _EXPORT_STD template <class... _Types>
 _NODISCARD constexpr bool operator>=(const 变体实现<_Types...>& _Left, const 变体实现<_Types...>& _Right) noexcept(
-    conjunction_v<is_nothrow_invocable_r<bool, greater_equal<>, const _Types&, const _Types&>...>) /* strengthened */ {
+    conjunction_v<is_nothrow_invocable_r<bool, 大于等于<>, const _Types&, const _Types&>...>) /* strengthened */ {
     // determine if _Left's 索引() is greater than _Right's, or equal and
     // _Left contains a value greater than or equal to _Right
-    using _访问器             = _变体_关系访问器2<greater_equal<>, bool, _Types...>;
+    using _访问器             = _变体_关系访问器2<大于等于<>, bool, _Types...>;
     const size_t _Left_offset  = _Left.索引() + 1;
     const size_t _Right_offset = _Right.索引() + 1;
     return _Left_offset > _Right_offset

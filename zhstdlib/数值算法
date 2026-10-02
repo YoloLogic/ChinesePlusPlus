@@ -41,19 +41,19 @@ _NODISCARD _CONSTEXPR20 _类型 累加(const _InIt _首个, const _InIt _最后,
 _EXPORT_STD template <class _InIt, class _类型>
 _NODISCARD _CONSTEXPR20 _类型 累加(const _InIt _首个, const _InIt _最后, _类型 _Val) {
     // return noncommutative and nonassociative reduction of _Val and all in [_首个, _最后)
-    return 累加(_首个, _最后, _Val, plus<>{});
+    return 累加(_首个, _最后, _Val, 加法<>{});
 }
 
 #if _HAS_CXX17
 #if _STD_VECTORIZE_WITH_FLOAT_CONTROL
 template <class _InIt, class _类型, class _BinOp>
 constexpr bool _Plus_on_arithmetic_ranges_reduction_v =
-    conjunction_v<is_arithmetic<_类型>, is_arithmetic<remove_pointer_t<_InIt>>, is_same<plus<>, _BinOp>>;
+    conjunction_v<is_arithmetic<_类型>, is_arithmetic<remove_pointer_t<_InIt>>, is_same<加法<>, _BinOp>>;
 
 #pragma float_control(precise, off, push)
 template <class _InIt, class _类型>
 _类型 _Reduce_plus_arithmetic_ranges(_InIt _首个, const _InIt _最后, _类型 _Val) {
-    // return reduction, plus arithmetic on contiguous ranges case
+    // return reduction, 加法 arithmetic on contiguous ranges case
 #pragma loop(ivdep)
     for (; _首个 != _最后; ++_首个) {
         _Val += *_首个;
@@ -91,14 +91,14 @@ _NODISCARD _CONSTEXPR20 _类型 归约(const _InIt _首个, const _InIt _最后,
 _EXPORT_STD template <class _InIt, class _类型>
 _NODISCARD _CONSTEXPR20 _类型 归约(const _InIt _首个, const _InIt _最后, _类型 _Val) {
     // return commutative and associative reduction of _Val and [_首个, _最后)
-    return 归约(_首个, _最后, _STD move(_Val), plus{});
+    return 归约(_首个, _最后, _STD move(_Val), 加法{});
 }
 
 _EXPORT_STD template <class _InIt>
 _NODISCARD _CONSTEXPR20 _Iter_value_t<_InIt> 归约(const _InIt _首个, const _InIt _最后) {
     // return commutative and associative reduction of
     // iterator_traits<_InIt>::value_type{} and [_首个, _最后)
-    return 归约(_首个, _最后, _Iter_value_t<_InIt>{}, plus{});
+    return 归约(_首个, _最后, _Iter_value_t<_InIt>{}, 加法{});
 }
 
 _EXPORT_STD template <class _ExPo, class _FwdIt, class _类型, class _BinOp, _Enable_if_execution_policy_t<_ExPo> = 0>
@@ -107,7 +107,7 @@ _NODISCARD _类型 归约(_ExPo&& _Exec, _FwdIt _首个, _FwdIt _最后, _类型
 _EXPORT_STD template <class _ExPo, class _FwdIt, class _类型, _Enable_if_execution_policy_t<_ExPo> = 0>
 _NODISCARD _类型 归约(_ExPo&& _Exec, const _FwdIt _首个, const _FwdIt _最后, _类型 _Val) noexcept /* terminates */ {
     // return commutative and associative reduction of _Val and [_首个, _最后)
-    return 归约(_STD forward<_ExPo>(_Exec), _首个, _最后, _STD move(_Val), plus{});
+    return 归约(_STD forward<_ExPo>(_Exec), _首个, _最后, _STD move(_Val), 加法{});
 }
 
 _EXPORT_STD template <class _ExPo, class _FwdIt, _Enable_if_execution_policy_t<_ExPo> = 0>
@@ -115,7 +115,7 @@ _NODISCARD _Iter_value_t<_FwdIt> 归约(_ExPo&& _Exec, const _FwdIt _首个, con
 /* terminates */ {
     // return commutative and associative reduction of
     // iterator_traits<_FwdIt>::value_type{} and [_首个, _最后)
-    return 归约(_STD forward<_ExPo>(_Exec), _首个, _最后, _Iter_value_t<_FwdIt>{}, plus{});
+    return 归约(_STD forward<_ExPo>(_Exec), _首个, _最后, _Iter_value_t<_FwdIt>{}, 加法{});
 }
 #endif // _HAS_CXX17
 
@@ -142,7 +142,7 @@ _NODISCARD _CONSTEXPR20 _类型 内积(
 _EXPORT_STD template <class _InIt1, class _InIt2, class _类型>
 _NODISCARD _CONSTEXPR20 _类型 内积(const _InIt1 _First1, const _InIt1 _Last1, const _InIt2 _First2, _类型 _Val) {
     // return noncommutative and nonassociative transform-reduction of sequences
-    return 内积(_First1, _Last1, _First2, _STD move(_Val), plus<>{}, multiplies<>{});
+    return 内积(_First1, _Last1, _First2, _STD move(_Val), 加法<>{}, 乘法<>{});
 }
 
 #if _HAS_CXX17
@@ -150,7 +150,7 @@ _NODISCARD _CONSTEXPR20 _类型 内积(const _InIt1 _First1, const _InIt1 _Last1
 template <class _InIt1, class _InIt2, class _类型, class _BinOp1, class _BinOp2>
 constexpr bool _Default_ops_transform_reduce_v =
     conjunction_v<is_arithmetic<_类型>, is_arithmetic<remove_pointer_t<_InIt1>>, is_arithmetic<remove_pointer_t<_InIt2>>,
-        is_same<plus<>, _BinOp1>, is_same<multiplies<>, _BinOp2>>;
+        is_same<加法<>, _BinOp1>, is_same<乘法<>, _BinOp2>>;
 
 #pragma float_control(precise, off, push)
 template <class _InIt1, class _InIt2, class _类型>
@@ -197,7 +197,7 @@ _NODISCARD _CONSTEXPR20 _类型 变换归约(
 _EXPORT_STD template <class _InIt1, class _InIt2, class _类型>
 _NODISCARD _CONSTEXPR20 _类型 变换归约(_InIt1 _First1, _InIt1 _Last1, _InIt2 _First2, _类型 _Val) {
     // return commutative and associative transform-reduction of sequences
-    return 变换归约(_First1, _Last1, _First2, _STD move(_Val), plus{}, multiplies{});
+    return 变换归约(_First1, _Last1, _First2, _STD move(_Val), 加法{}, 乘法{});
 }
 
 _EXPORT_STD template <class _InIt, class _类型, class _BinOp, class _UnaryOp>
@@ -225,7 +225,7 @@ _NODISCARD _类型 变换归约(_ExPo&& _Exec, _FwdIt1 _First1, _FwdIt1 _Last1, 
 /* terminates */ {
     // return commutative and associative transform-reduction of sequences
     return 变换归约(
-        _STD forward<_ExPo>(_Exec), _First1, _Last1, _First2, _STD move(_Val), plus{}, multiplies{});
+        _STD forward<_ExPo>(_Exec), _First1, _Last1, _First2, _STD move(_Val), 加法{}, 乘法{});
 }
 
 _EXPORT_STD template <class _ExPo, class _FwdIt, class _类型, class _BinOp, class _UnaryOp,
@@ -266,7 +266,7 @@ _CONSTEXPR20 _OutIt 部分和(const _InIt _首个, const _InIt _最后, _OutIt _
 _EXPORT_STD template <class _InIt, class _OutIt>
 _CONSTEXPR20 _OutIt 部分和(_InIt _首个, _InIt _最后, _OutIt _目标) {
     // compute partial noncommutative and nonassociative reductions into _目标
-    return 部分和(_首个, _最后, _目标, plus<>{});
+    return 部分和(_首个, _最后, _目标, 加法<>{});
 }
 
 #if _HAS_CXX17
@@ -298,7 +298,7 @@ _CONSTEXPR20 _OutIt 排他扫描(const _InIt _首个, const _InIt _最后, _OutI
 _EXPORT_STD template <class _InIt, class _OutIt, class _类型>
 _CONSTEXPR20 _OutIt 排他扫描(const _InIt _首个, const _InIt _最后, const _OutIt _目标, _类型 _Val) {
     // set each value in [_目标, _目标 + (_最后 - _首个)) to the associative reduction of predecessors and _Val
-    return 排他扫描(_首个, _最后, _目标, _STD move(_Val), plus{});
+    return 排他扫描(_首个, _最后, _目标, _STD move(_Val), 加法{});
 }
 
 _EXPORT_STD template <class _ExPo, class _FwdIt1, class _FwdIt2, class _类型, class _BinOp,
@@ -310,7 +310,7 @@ _EXPORT_STD template <class _ExPo, class _FwdIt1, class _FwdIt2, class _类型, 
 _FwdIt2 排他扫描(_ExPo&& _Exec, const _FwdIt1 _首个, const _FwdIt1 _最后, const _FwdIt2 _目标, _类型 _Val) noexcept
 /* terminates */ {
     // set each value in [_目标, _目标 + (_最后 - _首个)) to the associative reduction of predecessors and _Val
-    return 排他扫描(_STD forward<_ExPo>(_Exec), _首个, _最后, _目标, _STD move(_Val), plus{});
+    return 排他扫描(_STD forward<_ExPo>(_Exec), _首个, _最后, _目标, _STD move(_Val), 加法{});
 }
 
 _EXPORT_STD template <class _InIt, class _OutIt, class _类型, class _BinOp>
@@ -358,7 +358,7 @@ _CONSTEXPR20 _OutIt 包含扫描(const _InIt _首个, const _InIt _最后, _OutI
 _EXPORT_STD template <class _InIt, class _OutIt>
 _CONSTEXPR20 _OutIt 包含扫描(const _InIt _首个, const _InIt _最后, const _OutIt _目标) {
     // compute partial noncommutative and associative reductions into _目标
-    return 包含扫描(_首个, _最后, _目标, plus{});
+    return 包含扫描(_首个, _最后, _目标, 加法{});
 }
 
 _EXPORT_STD template <class _ExPo, class _FwdIt1, class _FwdIt2, class _BinOp, class _类型,
@@ -374,7 +374,7 @@ _EXPORT_STD template <class _ExPo, class _FwdIt1, class _FwdIt2, _Enable_if_exec
 _FwdIt2 包含扫描(_ExPo&& _Exec, const _FwdIt1 _首个, const _FwdIt1 _最后, const _FwdIt2 _目标) noexcept
 /* terminates */ {
     // compute partial noncommutative and associative reductions into _目标
-    return 包含扫描(_STD forward<_ExPo>(_Exec), _首个, _最后, _目标, plus{});
+    return 包含扫描(_STD forward<_ExPo>(_Exec), _首个, _最后, _目标, 加法{});
 }
 
 _EXPORT_STD template <class _InIt, class _OutIt, class _类型, class _BinOp, class _UnaryOp>
@@ -533,7 +533,7 @@ _CONSTEXPR20 _OutIt 相邻差(const _InIt _首个, const _InIt _最后, _OutIt _
 _EXPORT_STD template <class _InIt, class _OutIt>
 _CONSTEXPR20 _OutIt 相邻差(const _InIt _首个, const _InIt _最后, const _OutIt _目标) {
     // compute adjacent differences into _目标
-    return 相邻差(_首个, _最后, _目标, minus<>{});
+    return 相邻差(_首个, _最后, _目标, 减法<>{});
 }
 
 #if _HAS_CXX17
@@ -545,7 +545,7 @@ _EXPORT_STD template <class _ExPo, class _FwdIt1, class _FwdIt2, _Enable_if_exec
 _FwdIt2 相邻差(_ExPo&& _Exec, const _FwdIt1 _首个, const _FwdIt1 _最后, const _FwdIt2 _目标) noexcept
 /* terminates */ {
     // compute adjacent differences into _目标
-    return 相邻差(_STD forward<_ExPo>(_Exec), _首个, _最后, _目标, minus{});
+    return 相邻差(_STD forward<_ExPo>(_Exec), _首个, _最后, _目标, 减法{});
 }
 #endif // _HAS_CXX17
 

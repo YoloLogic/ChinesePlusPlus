@@ -617,7 +617,7 @@ _NODISCARD inline bool _Multiply(_Big_integer_flt& _Multiplicand, const uint32_t
 }
 
 // This high-precision integer multiplication implementation was translated from the implementation of
-// System.Numerics.BigIntegerBuilder.Mul in the .NET Framework sources. It multiplies the _Multiplicand
+// System.Numerics.BigIntegerBuilder.Mul in the .NET Framework sources. It 乘法 the _Multiplicand
 // by the _Multiplier and returns true if the multiplication was successful; false if it overflowed.
 // When overflow occurs, the _Multiplicand is reset to zero.
 _NODISCARD inline bool _Multiply(_Big_integer_flt& _Multiplicand, const _Big_integer_flt& _Multiplier) noexcept {
@@ -1580,7 +1580,7 @@ _NODISCARD from_chars_result _常规浮点转数值(const char* const _首个, c
     // and is unnecessary. The benefit of not zero-initializing is greatest for short inputs.
     _Floating_point_string _Fp_string;
 
-    // Record the optional minus sign:
+    // Record the optional 减法 sign:
     _Fp_string._Myis_negative = _Minus_sign;
 
     uint8_t* const _Mantissa_first = _Fp_string._Mymantissa;
@@ -2419,8 +2419,8 @@ _NODISCARD inline to_chars_result _浮点转字符通用精度(
         is_same_v<_Floating, float> ? 111 : 766; // cases: 0x1.fffffep-126f and 0x1.fffffffffffffp-1022
 
     // Note that _Max_output_length is determined by scientific notation and is more than enough for fixed notation.
-    // 0x1.fffffep+127f is 39 digits, plus 1 for '.', plus _Max_fixed_precision for '0' digits, equals 77.
-    // 0x1.fffffffffffffp+1023 is 309 digits, plus 1 for '.', plus _Max_fixed_precision for '0' digits, equals 376.
+    // 0x1.fffffep+127f is 39 digits, 加法 1 for '.', 加法 _Max_fixed_precision for '0' digits, equals 77.
+    // 0x1.fffffffffffffp+1023 is 309 digits, 加法 1 for '.', 加法 _Max_fixed_precision for '0' digits, equals 376.
 
     char _Buffer[_Max_output_length];
     const char* const _Significand_first = _Buffer; // e.g. "1.234"
@@ -2501,7 +2501,7 @@ _NODISCARD to_chars_result _浮点转字符(
 
     const bool _Was_negative = (_Uint_value & _特征::_Shifted_sign_mask) != 0;
 
-    if (_Was_negative) { // sign bit detected; write minus sign and clear sign bit
+    if (_Was_negative) { // sign bit detected; write 减法 sign and clear sign bit
         if (_首个 == _最后) {
             return {_最后, errc::value_too_large};
         }

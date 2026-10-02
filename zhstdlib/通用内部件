@@ -573,7 +573,7 @@ _EXPORT_STD struct identity {
 #endif // _HAS_CXX20
 
 _EXPORT_STD template <class _类型 = void>
-struct plus {
+struct 加法 {
     using _FIRST_ARGUMENT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS  = _类型;
     using _SECOND_ARGUMENT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS = _类型;
     using _RESULT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS          = _类型;
@@ -584,7 +584,7 @@ struct plus {
 };
 
 _EXPORT_STD template <class _类型 = void>
-struct minus {
+struct 减法 {
     using _FIRST_ARGUMENT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS  = _类型;
     using _SECOND_ARGUMENT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS = _类型;
     using _RESULT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS          = _类型;
@@ -595,7 +595,7 @@ struct minus {
 };
 
 _EXPORT_STD template <class _类型 = void>
-struct multiplies {
+struct 乘法 {
     using _FIRST_ARGUMENT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS  = _类型;
     using _SECOND_ARGUMENT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS = _类型;
     using _RESULT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS          = _类型;
@@ -618,7 +618,7 @@ struct _相等比较 {
 };
 
 _EXPORT_STD template <class _类型 = void>
-struct not_equal_to {
+struct 不等比较 {
     using _FIRST_ARGUMENT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS  = _类型;
     using _SECOND_ARGUMENT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS = _类型;
     using _RESULT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS          = bool;
@@ -642,7 +642,7 @@ struct greater {
 };
 
 _EXPORT_STD template <class _类型 = void>
-struct greater_equal {
+struct 大于等于 {
     using _FIRST_ARGUMENT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS  = _类型;
     using _SECOND_ARGUMENT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS = _类型;
     using _RESULT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS          = bool;
@@ -654,7 +654,7 @@ struct greater_equal {
 };
 
 _EXPORT_STD template <class _类型 = void>
-struct less_equal {
+struct 小于等于 {
     using _FIRST_ARGUMENT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS  = _类型;
     using _SECOND_ARGUMENT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS = _类型;
     using _RESULT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS          = bool;
@@ -666,7 +666,7 @@ struct less_equal {
 };
 
 template <>
-struct plus<void> {
+struct 加法<void> {
     template <class _Ty1, class _Ty2>
     _NODISCARD constexpr auto operator()(_Ty1&& _Left, _Ty2&& _Right) const
         noexcept(noexcept(static_cast<_Ty1&&>(_Left) + static_cast<_Ty2&&>(_Right))) // strengthened
@@ -678,7 +678,7 @@ struct plus<void> {
 };
 
 template <>
-struct minus<void> {
+struct 减法<void> {
     template <class _Ty1, class _Ty2>
     _NODISCARD constexpr auto operator()(_Ty1&& _Left, _Ty2&& _Right) const
         noexcept(noexcept(static_cast<_Ty1&&>(_Left) - static_cast<_Ty2&&>(_Right))) // strengthened
@@ -690,7 +690,7 @@ struct minus<void> {
 };
 
 template <>
-struct multiplies<void> {
+struct 乘法<void> {
     template <class _Ty1, class _Ty2>
     _NODISCARD constexpr auto operator()(_Ty1&& _Left, _Ty2&& _Right) const
         noexcept(noexcept(static_cast<_Ty1&&>(_Left) * static_cast<_Ty2&&>(_Right))) // strengthened
@@ -714,7 +714,7 @@ struct _相等比较<void> {
 };
 
 template <>
-struct not_equal_to<void> {
+struct 不等比较<void> {
     template <class _Ty1, class _Ty2>
     _NODISCARD constexpr auto operator()(_Ty1&& _Left, _Ty2&& _Right) const
         noexcept(noexcept(static_cast<_Ty1&&>(_Left) != static_cast<_Ty2&&>(_Right))) // strengthened
@@ -738,7 +738,7 @@ struct greater<void> {
 };
 
 template <>
-struct greater_equal<void> {
+struct 大于等于<void> {
     template <class _Ty1, class _Ty2>
     _NODISCARD constexpr auto operator()(_Ty1&& _Left, _Ty2&& _Right) const
         noexcept(noexcept(static_cast<_Ty1&&>(_Left) >= static_cast<_Ty2&&>(_Right))) // strengthened
@@ -750,7 +750,7 @@ struct greater_equal<void> {
 };
 
 template <>
-struct less_equal<void> {
+struct 小于等于<void> {
     template <class _Ty1, class _Ty2>
     _NODISCARD constexpr auto operator()(_Ty1&& _Left, _Ty2&& _Right) const
         noexcept(noexcept(static_cast<_Ty1&&>(_Left) <= static_cast<_Ty2&&>(_Right))) // strengthened

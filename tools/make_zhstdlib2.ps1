@@ -293,6 +293,10 @@ $H = @{
       '_Lock_and_load' = '_加锁并载入';
 
       '_Locked_pointer' = '_已加锁指针';
+
+      # §17.51 同步登记（§17.50 修法）：本条目拷贝里有 `plus` 的**非限定**用法（2 处），
+      #   定义方在 `通用内部件` ⇒ 同一译名同步登记。
+      'plus' = '加法';
 }
     zhIncludes = @{ 'xmemory' = '内存内部件' }
     data    = [ordered]@{}
@@ -382,6 +386,10 @@ $H = @{
       # 跨头成员名：<停止令牌> 已定 请求停止 / 取令牌（跨头译名检查会强制一致）
       'request_stop' = '请求停止'
       'get_token'    = '取令牌'
+
+      # §17.51 同步登记（§17.50 修法）：本条目拷贝里有 `plus` 的**非限定**用法（1 处），
+      #   定义方在 `通用内部件` ⇒ 同一译名同步登记。
+      'plus' = '加法'
     }
     # ⚠ 同样不放 swap（§3.12：类内 friend + `_STD swap` 调用形态，不能改名）
     data    = [ordered]@{}
@@ -4489,6 +4497,26 @@ $H = @{
       'in_out_result' = '出入结果';
 
       'iterator_type' = '底层迭代器类型';
+
+      # §17.51 六个"多属主"函数对象：定义在本头（xutility:565-742，各一对「主模板 + void 特化」），
+      #   但别的条目拷贝里有【非限定】用法（scan_multiowner.ps1 实测）：
+      #     plus -> 数值算法16 字符转换4 停止令牌2 线程1；minus -> 数值算法2 字符转换2；
+      #     multiplies -> 数值算法4 字符转换1；less_equal/greater_equal/not_equal_to -> 变体 各2。
+      #   按 §17.50 的修法：**同一译名**同步登记到那 5 个条目（各条目有同款注释），
+      #   否则那些引用会悄悄改指向借来的 std 原件（§17.48 实测：用例 6/6 → 5/6）。
+      #   ⚠ `not_equal_to` 不能译「不等于」——那是汉语运算符关键词（`!=`，ChineseKeywords.def），
+      #     撞上会被守卫拦下，且报错完全不像命名问题。
+      'plus' = '加法';
+
+      'minus' = '减法';
+
+      'multiplies' = '乘法';
+
+      'less_equal' = '小于等于';
+
+      'greater_equal' = '大于等于';
+
+      'not_equal_to' = '不等比较';
 }
     data    = [ordered]@{}
     derive  = @()
@@ -5051,6 +5079,15 @@ $H = @{
       'borrowed_iterator_t' = '借用迭代器类型';
 
       'out_value_result' = '出值结果';
+
+      # §17.51 同步登记（§17.50 修法）：本条目拷贝里有 `plus`(16) / `minus`(2) / `multiplies`(4)
+      #   的**非限定**用法，定义方在 `通用内部件`；只在那头改名会让这些引用悄悄改指向借来的
+      #   std 原件（§17.48 实测的坑）⇒ 用**同一译名**同步登记。
+      'plus' = '加法';
+
+      'minus' = '减法';
+
+      'multiplies' = '乘法';
 }
     data    = [ordered]@{}
     # 纯自由函数头：没有类派生层，derive 显式为【空】（公开层在 extra 里手写双名转发）
@@ -5418,6 +5455,14 @@ $H = @{
       '_Variant_visit_index1' = '_变体_访问索引1';
       '_Visit' = '_访问';
       '_Visit2' = '_访问2';
+
+      # §17.51 同步登记（§17.50 修法）：本条目拷贝里有 `less_equal` / `greater_equal` /
+      #   `not_equal_to` 的**非限定**用法（各 2 处），定义方在 `通用内部件` ⇒ 同一译名同步登记。
+      'less_equal' = '小于等于';
+
+      'greater_equal' = '大于等于';
+
+      'not_equal_to' = '不等比较';
 }
     data    = [ordered]@{}
     # ⚠ emplace 在 std 里就要求【显式类型实参】（甲.emplace<整数>(7)），通用转发器是纯变参、接不住 -> 改手写。
@@ -5492,6 +5537,15 @@ $H = @{
                           '_Convert_decimal_string_to_floating_type' = '_十进制串转浮点类型'
                           '_Convert_hexadecimal_string_to_floating_type' = '_十六进制串转浮点类型'
                           '_Ordinary_floating_from_chars' = '_常规浮点转数值' ;
+
+       # §17.51 同步登记（§17.50 修法）：本条目拷贝里有 `plus`(4) / `minus`(2) / `multiplies`(1)
+       #   的**非限定**用法，定义方在 `通用内部件` ⇒ 用**同一译名**同步登记，
+       #   否则这些引用会悄悄改指向借来的 std 原件（§17.48 实测的坑）。
+       'plus' = '加法';
+
+       'minus' = '减法';
+
+       'multiplies' = '乘法';
       '_Unsigned' = '_无符号类型';
 }
     data    = [ordered]@{}

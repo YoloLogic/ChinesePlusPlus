@@ -68,8 +68,8 @@ protected:
 };
 
 struct _停止状态 {
-    atomic<uint32_t> _Stop_tokens  = 1; // plus one shared by all stop_sources
-    atomic<uint32_t> _Stop_sources = 2; // plus the low order bit is the stop requested bit
+    atomic<uint32_t> _Stop_tokens  = 1; // 加法 one shared by all stop_sources
+    atomic<uint32_t> _Stop_sources = 2; // 加法 the low order bit is the stop requested bit
     _Locked_pointer<_停止回调基类> _Callbacks;
     // always uses relaxed operations; ordering provided by the _Callbacks lock
     // (atomic just to get wait/notify support)

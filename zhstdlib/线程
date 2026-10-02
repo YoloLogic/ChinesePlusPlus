@@ -299,7 +299,7 @@ _NODISCARD inline bool operator>=(线程实现::id _Left, 线程实现::id _Righ
 _EXPORT_STD template <class _Ch, class _Tr>
 basic_ostream<_Ch, _Tr>& operator<<(basic_ostream<_Ch, _Tr>& _Str, 线程实现::id _Id) {
     _STL_INTERNAL_STATIC_ASSERT(sizeof(_Thrd_id_t) == 4);
-    _Ch _Buff[11]; // can hold 2^32 - 1, plus terminating null
+    _Ch _Buff[11]; // can hold 2^32 - 1, 加法 terminating null
     _Ch* _RNext = _STD end(_Buff);
     *--_RNext   = static_cast<_Ch>('\0');
     _RNext      = _UIntegral_to_buff(_RNext, _Id._Id);
