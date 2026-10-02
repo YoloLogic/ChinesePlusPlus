@@ -304,9 +304,27 @@ if (Test-Path $tkDef) {
         $script:BdKeywords[$m.Groups[1].Value] = $true
     }
 }
+# ---------------------------------------------------------------------------
+#  §17.60 再加两条机器边界类（都从**真头**量，健全性已验：与"已登记译名"的交集只有 1 个，
+#  而且是常年译好的 `log10`，不是任何产物的残留 ⇒ 不会掩盖真欠账）：
+#    F-进口声明：`using std::X;` —— 本头只是把 X 从 std **引进**来（X 定义在别处 ✗，§17.52 实测过）
+#    G-C库调用：`_CSTD X` —— `_CSTD` 展开成 `::` ⇒ `::X` 是 **C 库**的名字（不是名域限定 ✗）
+#  消除路径（判据① 要求逐条写明）：把 **C 数学 / C 库那一层**也抄成我们自己的内部件，两边一起翻
+#   —— 与 `_Cpo` 要抄 `<compare>` 是同一族"要抄更多外部层"。
+# ---------------------------------------------------------------------------
+$script:BdImport = @{}
+$script:BdCLib   = @{}
+foreach ($e2 in $entries) {
+    if (-not $e2.H) { continue }
+    $p2 = Join-Path $inc $e2.H
+    if (-not (Test-Path $p2)) { continue }
+    $t2 = [System.IO.File]::ReadAllText($p2)
+    foreach ($m2 in [regex]::Matches($t2, '(?m)^\s*using\s+std::([A-Za-z_]\w*)\s*;')) { $script:BdImport[$m2.Groups[1].Value] = $true }
+    foreach ($m2 in [regex]::Matches($t2, '_CSTD\s+([A-Za-z_]\w*)'))                   { $script:BdCLib[$m2.Groups[1].Value]   = $true }
+}
+Write-Host ("  边界来源F using std:: 进口名 {0} 个 / G _CSTD C 库名 {1} 个" -f $script:BdImport.Count, $script:BdCLib.Count)
 $tblJson = ''
-try { $tblJson = & pwsh -NoProfile -File (Join-Path $root 'tools\make_zhstdlib2.ps1') -ExportJson 2>$null | Out-String } catch { }
-if ($tblJson) {
+try { $tblJson = & pwsh -NoProfile -File (Join-Path $root 'tools\make_zhstdlib2.ps1') -ExportJson 2>$null | Out-String } catch { }if ($tblJson) {
     try {
         $tbl = $tblJson | ConvertFrom-Json
         foreach ($k in $tbl.PSObject.Properties.Name) {
@@ -334,9 +352,11 @@ $script:BdRefuted = @{
 }
 function Get-BoundaryClass([string] $n, [string] $entryKey) {
     if ($script:BdRefuted.ContainsKey($n)) { return $script:BdRefuted[$n] }
+    if ($script:BdImport.ContainsKey($n)) { return 'F-进口声明' }
+    if ($script:BdCLib.ContainsKey($n))   { return 'G-C库调用' }
     if ($script:BdDropTypes.ContainsKey($entryKey) -and ($script:BdDropTypes[$entryKey] -contains $n)) { return 'A-CRT契约名' }
     if ($script:BdKeywords.ContainsKey($n)) { return 'B-C++语言类型' }
-    foreach ($p in @('__std_', '__builtin_', '_Interlocked')) { if ($n.StartsWith($p)) { return 'C-编译器内建' } }
+    foreach ($p in @('__std_', '__builtin_', '_Interlocked', '_BitScan')) { if ($n.StartsWith($p)) { return 'C-编译器内建' } }
     return ''
 }
 foreach ($e in $entries) {
@@ -613,9 +633,13 @@ $ledger = @(
     '**理由与消除路径**（每一条都要写清，判据① 要求）：',
     '- `A-CRT契约名`：生成器 `dropTypes` 明列的 CRT 契约名（msvcp 的 `operator<<`/`>>` 按这些**类型**匹配，改了链不上）⇒ **无消除路径**。',
     '- `B-C++语言类型`：C++ **语言关键字**（clang `TokenKinds.def`）⇒ **无消除路径**。',
-    '- `C-编译器内建`：`__std_*` 等编译器内建例程 ⇒ **无消除路径**。',
-    '⇒ 这三类的"消除"只能是**改口径**（§17.19.47「尺子要维护」）：从分子分母**同时**剔除',
-    '   会令分子下降 —— 与「分子只能升」冲突 ⇒ **留给大检查统一决定**（见 `build\_review_own\口径修订提案.md`）。'
+    '- `C-编译器内建`：`__std_*` / `_BitScan*` 等编译器内建例程 ⇒ **无消除路径**。',
+    '- `D-借来接收者`：别处经**借来的真 std 模板**访问（如 `std::allocator_traits<…>::成员`）⇒ 消除路径 = 把那层也抄成我们的内部件。',
+    '- `E-显式特化`：本头里是 **std 模板的显式特化**（主模板不在本头）⇒ 铁律③ ⇒ 消除路径 = 抄主模板所在的那层。',
+    '- `F-进口声明`：真头里 `using std::X;` ⇒ X 定义在别处（本头只是引进）⇒ 消除路径 = 抄那一层。',
+    '- `G-C库调用`：真头里 `_CSTD X`（`_CSTD` = `::`）⇒ X 是 **C 库**的名字 ⇒ 消除路径 = 把 C 数学/C 库那层抄进来。',
+    '⇒ A/B/C 三类都是外部约束，**无消除路径**；D/E/F/G 有"抄更多外部层"的消除路径（与 `_Cpo` 要抄 `<compare>` 同族）。',
+    '⇒ 把它们从分子分母**同时**剔除会令分子下降 —— 与「分子只能升」冲突 ⇒ **留给大检查统一决定**（见 `build\_review_own\口径修订提案.md`）。'
 )
 $ledgerText = ($ledger -join "`n") + "`n"
 $utf8 = New-Object System.Text.UTF8Encoding($false)
