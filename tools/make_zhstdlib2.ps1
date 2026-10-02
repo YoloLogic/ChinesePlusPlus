@@ -3010,6 +3010,11 @@ $H = @{
       '_Release' = '_释放';
 
       '_Uninitialized_value_construct_n' = '_未初始化值构造若干';
+
+      # §17.50 多属主【同步登记】：本条目拷贝里有 `in_out_result` 的**非限定**用法（4 处），
+      #   定义方在 `通用内部件`（xutility）；只在那头改名会让这 4 处悄悄改指向借来的 std 原件
+      #   （§17.48 实测的坑）⇒ 这里用**同一译名**同步登记。
+      'in_out_result' = '出入结果';
 }
     data    = [ordered]@{}
     derive  = @()
@@ -4470,6 +4475,20 @@ $H = @{
       'range_size_t' = '范围尺寸类型';
 
       'range_value_t' = '范围值类型';
+
+      # §17.50 多属主【同步登记】（§17.48 二·3 的既定修法）：这 4 个名字在本头有定义，
+      #   但别的条目的拷贝里有【非限定】用法（build\_review_own\scan_multiowner.ps1 实测）：
+      #     borrowed_iterator_t -> 数值算法 1 处；out_value_result -> 数值算法 1 处；
+      #     in_out_result      -> 内存内部件 4 处；iterator_type    -> 迭代器   1 处。
+      #   只在本头改名会把那些引用**悄悄重定向到借来的 std 原件**（§17.48 实测：用例 6/6 → 5/6），
+      #   所以【同一译名】必须同步登记到那些条目（各条目里有同款注释）。
+      'borrowed_iterator_t' = '借用迭代器类型';
+
+      'out_value_result' = '出值结果';
+
+      'in_out_result' = '出入结果';
+
+      'iterator_type' = '底层迭代器类型';
 }
     data    = [ordered]@{}
     derive  = @()
@@ -5025,6 +5044,13 @@ $H = @{
       '_Common' = '_公共';
 
       '_Unsigned' = '_无符号类型';
+
+      # §17.50 多属主【同步登记】：本条目拷贝里有 `borrowed_iterator_t` / `out_value_result` 的
+      #   **非限定**用法（各 1 处），定义方在 `通用内部件`（xutility）；只在那头改名会让这两处
+      #   悄悄改指向借来的 std 原件（§17.48 实测的坑）⇒ 这里必须用**同一译名**同步登记。
+      'borrowed_iterator_t' = '借用迭代器类型';
+
+      'out_value_result' = '出值结果';
 }
     data    = [ordered]@{}
     # 纯自由函数头：没有类派生层，derive 显式为【空】（公开层在 extra 里手写双名转发）
@@ -6044,6 +6070,12 @@ $H = @{
       '_Verify_offset' = '_校验偏移';
 
       # 'count' = '计数';  # §17.19.52 公共成员名销账必须同时补 derive 英文转发，本轮先撤下
+
+      # §17.50 多属主【同步登记】：本条目拷贝里有 `iterator_type` 的**非限定**用法（1 处），
+      #   定义方在 `通用内部件`（xutility）；只在那头改名会让那一处悄悄改指向借来的 std 原件
+      #   （§17.48 实测的坑）⇒ 这里用**同一译名**同步登记。
+      #   译名取「底层迭代器类型」而不是「迭代器类型」——后者已被 `iterator_t` 占用（同头）。
+      'iterator_type' = '底层迭代器类型';
 }
     data    = [ordered]@{}
     extra   = ( @(

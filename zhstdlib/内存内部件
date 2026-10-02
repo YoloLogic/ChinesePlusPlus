@@ -1709,7 +1709,7 @@ namespace ranges {
     concept _No_throw_forward_range = _No_throw_input_range<_Rng> && _No_throw_forward_iterator<iterator_t<_Rng>>;
 
     template <class _InIt, class _OutIt>
-    in_out_result<_InIt, _OutIt> _内存复制计数(_InIt _IFirst, _OutIt _OFirst, const size_t _Count) noexcept {
+    出入结果<_InIt, _OutIt> _内存复制计数(_InIt _IFirst, _OutIt _OFirst, const size_t _Count) noexcept {
         const auto _IFirstPtr     = _取地址(_IFirst);
         const auto _OFirstPtr     = _取地址(_OFirst);
         const auto _IFirst_ch     = const_cast<char*>(reinterpret_cast<const volatile char*>(_IFirstPtr));
@@ -1731,7 +1731,7 @@ namespace ranges {
     }
 
     template <class _InIt, class _OutIt, class _DistIt>
-    in_out_result<_InIt, _OutIt> _内存复制距离(
+    出入结果<_InIt, _OutIt> _内存复制距离(
         _InIt _IFirst, _OutIt _OFirst, const _DistIt _DFirst, const _DistIt _DLast) noexcept {
         // equivalent to _内存复制计数(_IFirst, _OFirst, _DLast - _DFirst) but computes distance more efficiently
         const auto _IFirstPtr   = _取地址(_IFirst);
@@ -1759,7 +1759,7 @@ namespace ranges {
     }
 
     template <class _InIt, class _OutIt>
-    in_out_result<_InIt, _OutIt> _内存复制公共(
+    出入结果<_InIt, _OutIt> _内存复制公共(
         _InIt _IFirst, _InIt _ILast, _OutIt _OFirst, _OutIt _OLast) noexcept {
         const auto _IFirstPtr   = _取地址(_IFirst);
         const auto _ILastPtr    = _取地址(_ILast);
@@ -1786,7 +1786,7 @@ namespace ranges {
     }
 
     _EXPORT_STD template <class _In, class _Out>
-    using uninitialized_move_result = in_out_result<_In, _Out>;
+    using uninitialized_move_result = 出入结果<_In, _Out>;
 
     template <input_iterator _It, sentinel_for<_It> _Se, _No_throw_forward_iterator _Out,
         _No_throw_sentinel_for<_Out> _OSe>

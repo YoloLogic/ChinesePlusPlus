@@ -580,7 +580,7 @@ _CONSTEXPR20 void 递增填充(_FwdIt _首个, _FwdIt _最后, _类型 _Val) {
 namespace ranges {
     使用 名域 std::ranges;   // 嵌套名域暂不翻，但里面的名字要靠它找到（步 2b）
     _EXPORT_STD template <class _Out, class _类型>
-    using 递增填充结果 = out_value_result<_Out, _类型>;
+    using 递增填充结果 = 出值结果<_Out, _类型>;
 
     class _递增填充函数 {
     public:
@@ -595,7 +595,7 @@ namespace ranges {
         }
 
         template <weakly_incrementable _类型, output_range<const _类型&> _Rng>
-        _STATIC_CALL_OPERATOR constexpr 递增填充结果<borrowed_iterator_t<_Rng>, _类型> operator()(
+        _STATIC_CALL_OPERATOR constexpr 递增填充结果<借用迭代器类型<_Rng>, _类型> operator()(
             _Rng&& _Range, _类型 _Val) _CONST_CALL_OPERATOR {
             auto _首个 = _RANGES begin(_Range);
             _定位包装(

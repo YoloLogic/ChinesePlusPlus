@@ -1725,7 +1725,7 @@ constexpr bool _Has_nothrow_operator_arrow<_Iter, _Pointer, false> =
 _EXPORT_STD template <class _BidIt>
 class reverse_iterator {
 public:
-    using iterator_type = _BidIt;
+    using 底层迭代器类型 = _BidIt;
 
 #if _HAS_CXX20
     using iterator_concept =
@@ -4192,7 +4192,7 @@ namespace ranges {
     };
 
     _EXPORT_STD template <range _Rng>
-    using borrowed_iterator_t = conditional_t<borrowed_range<_Rng>, 迭代器类型<_Rng>, dangling>;
+    using 借用迭代器类型 = conditional_t<borrowed_range<_Rng>, 迭代器类型<_Rng>, dangling>;
 
     _EXPORT_STD template <range _Rng>
     using 借用子范围类型 = conditional_t<borrowed_range<_Rng>, 子范围<迭代器类型<_Rng>>, dangling>;
@@ -4230,7 +4230,7 @@ private:
     _Iter _Current{};
 
 public:
-    using iterator_type   = _Iter;
+    using 底层迭代器类型   = _Iter;
     using value_type      = _迭代器值类型<_Iter>;
     using difference_type = _迭代器差类型<_Iter>;
     using pointer         = _Iter;
@@ -4284,14 +4284,14 @@ public:
     }
 
 #if _HAS_CXX20
-    _NODISCARD constexpr const iterator_type& base() const& noexcept {
+    _NODISCARD constexpr const 底层迭代器类型& base() const& noexcept {
         return _Current;
     }
-    _NODISCARD constexpr iterator_type base() && noexcept(is_nothrow_move_constructible_v<_Iter>) /* strengthened */ {
+    _NODISCARD constexpr 底层迭代器类型 base() && noexcept(is_nothrow_move_constructible_v<_Iter>) /* strengthened */ {
         return _STD move(_Current);
     }
 #else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
-    _NODISCARD _CONSTEXPR17 iterator_type base() const
+    _NODISCARD _CONSTEXPR17 底层迭代器类型 base() const
         noexcept(is_nothrow_copy_constructible_v<_Iter>) /* strengthened */ {
         return _Current;
     }
@@ -4434,38 +4434,38 @@ public:
 
     using _阻止继承解包 = move_iterator;
 
-    template <class _Iter2 = iterator_type, enable_if_t<_Offset_verifiable_v<_Iter2>, int> = 0>
+    template <class _Iter2 = 底层迭代器类型, enable_if_t<_Offset_verifiable_v<_Iter2>, int> = 0>
     constexpr void _校验偏移(const difference_type _Off) const noexcept {
         _Current._校验偏移(_Off);
     }
 
-    template <class _Iter2 = iterator_type, enable_if_t<_Unwrappable_v<const _Iter2&>, int> = 0>
+    template <class _Iter2 = 底层迭代器类型, enable_if_t<_Unwrappable_v<const _Iter2&>, int> = 0>
     _NODISCARD constexpr move_iterator<_解包后类型<const _Iter2&>> _解包() const& noexcept(
         noexcept(static_cast<move_iterator<_解包后类型<const _Iter2&>>>(_Current._解包()))) {
         return static_cast<move_iterator<_解包后类型<const _Iter2&>>>(_Current._解包());
     }
-    template <class _Iter2 = iterator_type, enable_if_t<_Unwrappable_v<_Iter2>, int> = 0>
+    template <class _Iter2 = 底层迭代器类型, enable_if_t<_Unwrappable_v<_Iter2>, int> = 0>
     _NODISCARD constexpr move_iterator<_解包后类型<_Iter2>> _解包() && noexcept(
         noexcept(static_cast<move_iterator<_解包后类型<_Iter2>>>(_STD move(_Current)._解包()))) {
         return static_cast<move_iterator<_解包后类型<_Iter2>>>(_STD move(_Current)._解包());
     }
 
-    static constexpr bool _Unwrap_when_unverified = _Do_unwrap_when_unverified_v<iterator_type>;
+    static constexpr bool _Unwrap_when_unverified = _Do_unwrap_when_unverified_v<底层迭代器类型>;
 
-    template <class _Src, enable_if_t<_Wrapped_seekable_v<iterator_type, const _Src&>, int> = 0>
+    template <class _Src, enable_if_t<_Wrapped_seekable_v<底层迭代器类型, const _Src&>, int> = 0>
     constexpr void _定位到(const move_iterator<_Src>& _It) noexcept(noexcept(_Current._定位到(_It._取当前()))) {
         _Current._定位到(_It._取当前());
     }
-    template <class _Src, enable_if_t<_Wrapped_seekable_v<iterator_type, _Src>, int> = 0>
+    template <class _Src, enable_if_t<_Wrapped_seekable_v<底层迭代器类型, _Src>, int> = 0>
     constexpr void _定位到(move_iterator<_Src>&& _It)
         noexcept(noexcept(_Current._定位到(_STD move(_It)._取当前()))) {
         _Current._定位到(_STD move(_It)._取当前());
     }
 
-    _NODISCARD constexpr const iterator_type& _取当前() const& noexcept {
+    _NODISCARD constexpr const 底层迭代器类型& _取当前() const& noexcept {
         return _Current;
     }
-    _NODISCARD constexpr iterator_type&& _取当前() && noexcept {
+    _NODISCARD constexpr 底层迭代器类型&& _取当前() && noexcept {
         return _STD move(_Current);
     }
 };
@@ -4901,17 +4901,17 @@ namespace ranges {
     concept _Convertible_from = convertible_to<_From, _To>;
 
     _EXPORT_STD template <class _In, class _Out>
-    struct in_out_result {
+    struct 出入结果 {
         /* [[no_unique_address]] */ _In in;
         /* [[no_unique_address]] */ _Out out;
 
         template <_Convertible_from<const _In&> _IIn, _Convertible_from<const _Out&> _OOut>
-        constexpr operator in_out_result<_IIn, _OOut>() const& {
+        constexpr operator 出入结果<_IIn, _OOut>() const& {
             return {in, out};
         }
 
         template <_Convertible_from<_In> _IIn, _Convertible_from<_Out> _OOut>
-        constexpr operator in_out_result<_IIn, _OOut>() && {
+        constexpr operator 出入结果<_IIn, _OOut>() && {
             return {_STD move(in), _STD move(out)};
         }
     };
@@ -4969,24 +4969,24 @@ namespace ranges {
 
 #if _HAS_CXX23
     _EXPORT_STD template <class _Out, class _类型>
-    struct out_value_result {
+    struct 出值结果 {
         /* [[no_unique_address]] */ _Out out;
         /* [[no_unique_address]] */ _类型 value;
 
         template <_Convertible_from<const _Out&> _OOut, _Convertible_from<const _类型&> _TTy>
-        constexpr operator out_value_result<_OOut, _TTy>() const& {
+        constexpr operator 出值结果<_OOut, _TTy>() const& {
             return {out, value};
         }
 
         template <_Convertible_from<_Out> _OOut, _Convertible_from<_类型> _TTy>
-        constexpr operator out_value_result<_OOut, _TTy>() && {
+        constexpr operator 出值结果<_OOut, _TTy>() && {
             return {_STD move(out), _STD move(value)};
         }
     };
 #endif // _HAS_CXX23
 
     _EXPORT_STD template <class _In, class _Out>
-    using 复制结果 = in_out_result<_In, _Out>;
+    using 复制结果 = 出入结果<_In, _Out>;
 
     template <input_iterator _It, sentinel_for<_It> _Se, weakly_incrementable _Out>
         requires indirectly_copyable<_It, _Out>
@@ -5030,7 +5030,7 @@ namespace ranges {
 
         template <input_range _Rng, weakly_incrementable _Out>
             requires indirectly_copyable<迭代器类型<_Rng>, _Out>
-        _STATIC_CALL_OPERATOR constexpr 复制结果<borrowed_iterator_t<_Rng>, _Out> operator()(
+        _STATIC_CALL_OPERATOR constexpr 复制结果<借用迭代器类型<_Rng>, _Out> operator()(
             _Rng&& _Range, _Out _Output) _CONST_CALL_OPERATOR {
             const auto _Count = _IDL距离(_Range);
             auto _首个       = _RANGES begin(_Range);
@@ -5742,7 +5742,7 @@ namespace ranges {
             class _Pj2 = identity>
             requires indirectly_comparable<迭代器类型<_Rng1>, 迭代器类型<_Rng2>, _Pr, _Pj1, _Pj2>
         _NODISCARD
-            _STATIC_CALL_OPERATOR constexpr 不匹配结果<borrowed_iterator_t<_Rng1>, borrowed_iterator_t<_Rng2>>
+            _STATIC_CALL_OPERATOR constexpr 不匹配结果<借用迭代器类型<_Rng1>, 借用迭代器类型<_Rng2>>
             operator()(_Rng1&& _Range1, _Rng2&& _Range2, _Pr _谓词 = {}, _Pj1 _Proj1 = {},
                 _Pj2 _Proj2 = {}) _CONST_CALL_OPERATOR {
             if constexpr (sized_range<_Rng1> && sized_range<_Rng2>) {
@@ -6298,7 +6298,7 @@ namespace ranges {
 
         template <input_range _Rng, class _类型, class _Pj = identity>
             requires indirect_binary_predicate<ranges::_相等比较, 投影类型<迭代器类型<_Rng>, _Pj>, const _类型*>
-        _NODISCARD _STATIC_CALL_OPERATOR constexpr borrowed_iterator_t<_Rng> operator()(
+        _NODISCARD _STATIC_CALL_OPERATOR constexpr 借用迭代器类型<_Rng> operator()(
             _Rng&& _Range, const _类型& _Val, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             auto _首个   = _RANGES begin(_Range);
             auto _UResult = _查找非检查(
@@ -6710,7 +6710,7 @@ namespace ranges {
 
         template <input_range _Rng, class _Pj = identity,
             indirect_unary_predicate<投影类型<迭代器类型<_Rng>, _Pj>> _Pr>
-        _NODISCARD _STATIC_CALL_OPERATOR constexpr borrowed_iterator_t<_Rng> operator()(
+        _NODISCARD _STATIC_CALL_OPERATOR constexpr 借用迭代器类型<_Rng> operator()(
             _Rng&& _Range, _Pr _谓词, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             auto _首个   = _RANGES begin(_Range);
             auto _UResult = _查找若非检查(_RANGES _Unwrap_range_iter<_Rng>(_STD move(_首个)),
@@ -6740,7 +6740,7 @@ namespace ranges {
 
         template <input_range _Rng, class _Pj = identity,
             indirect_unary_predicate<投影类型<迭代器类型<_Rng>, _Pj>> _Pr>
-        _NODISCARD _STATIC_CALL_OPERATOR constexpr borrowed_iterator_t<_Rng> operator()(
+        _NODISCARD _STATIC_CALL_OPERATOR constexpr 借用迭代器类型<_Rng> operator()(
             _Rng&& _Range, _Pr _谓词, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             auto _首个 = _RANGES begin(_Range);
 
@@ -6788,7 +6788,7 @@ namespace ranges {
         template <forward_range _Rng, class _Pj = identity,
             indirect_binary_predicate<投影类型<迭代器类型<_Rng>, _Pj>, 投影类型<迭代器类型<_Rng>, _Pj>> _Pr =
                 ranges::_相等比较>
-        _NODISCARD _STATIC_CALL_OPERATOR constexpr borrowed_iterator_t<_Rng> operator()(
+        _NODISCARD _STATIC_CALL_OPERATOR constexpr 借用迭代器类型<_Rng> operator()(
             _Rng&& _Range, _Pr _谓词 = {}, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             auto _UResult =
                 _相邻查找未检查(_解包首(_Range), _解包尾(_Range), _传递函数(_谓词), _传递函数(_Proj));
@@ -7122,7 +7122,7 @@ namespace ranges {
 
         template <forward_range _Rng, class _Pj = identity,
             indirect_strict_weak_order<投影类型<迭代器类型<_Rng>, _Pj>> _Pr = ranges::less>
-        _NODISCARD _STATIC_CALL_OPERATOR constexpr borrowed_iterator_t<_Rng> operator()(
+        _NODISCARD _STATIC_CALL_OPERATOR constexpr 借用迭代器类型<_Rng> operator()(
             _Rng&& _Range, _Pr _谓词 = {}, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             auto _UResult = _最大元素非检查(
                 _解包首(_Range), _解包尾(_Range), _传递函数(_谓词), _传递函数(_Proj));
@@ -7348,7 +7348,7 @@ namespace ranges {
 
         template <forward_range _Rng, class _Pj = identity,
             indirect_strict_weak_order<投影类型<迭代器类型<_Rng>, _Pj>> _Pr = ranges::less>
-        _NODISCARD _STATIC_CALL_OPERATOR constexpr borrowed_iterator_t<_Rng> operator()(
+        _NODISCARD _STATIC_CALL_OPERATOR constexpr 借用迭代器类型<_Rng> operator()(
             _Rng&& _Range, _Pr _谓词 = {}, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             auto _UResult = _最小元素非检查(
                 _解包首(_Range), _解包尾(_Range), _传递函数(_谓词), _传递函数(_Proj));
