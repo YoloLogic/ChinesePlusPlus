@@ -606,7 +606,7 @@ struct multiplies {
 };
 
 _EXPORT_STD template <class _类型 = void>
-struct equal_to {
+struct _相等比较 {
     using _FIRST_ARGUMENT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS  = _类型;
     using _SECOND_ARGUMENT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS = _类型;
     using _RESULT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS          = bool;
@@ -702,7 +702,7 @@ struct multiplies<void> {
 };
 
 template <>
-struct equal_to<void> {
+struct _相等比较<void> {
     template <class _Ty1, class _Ty2>
     _NODISCARD constexpr auto operator()(_Ty1&& _Left, _Ty2&& _Right) const
         noexcept(noexcept(static_cast<_Ty1&&>(_Left) == static_cast<_Ty2&&>(_Right))) // strengthened
@@ -1693,9 +1693,9 @@ constexpr _InIt _下一迭代器(_InIt _首个) { // increment iterator
 }
 
 _EXPORT_STD template <class _InIt>
-_NODISCARD _CONSTEXPR17 _InIt next(
+_NODISCARD _CONSTEXPR17 _InIt _下一个(
     _InIt _首个, typename iterator_traits<_InIt>::difference_type _Off = 1) { // increment iterator
-    static_assert(_Is_ranges_input_iter_v<_InIt>, "next requires input iterator");
+    static_assert(_Is_ranges_input_iter_v<_InIt>, "_下一个 requires input iterator");
 
     _STD advance(_首个, _Off);
     return _首个;
@@ -1707,9 +1707,9 @@ constexpr _BidIt _上一迭代器(_BidIt _首个) { // decrement iterator
 }
 
 _EXPORT_STD template <class _BidIt>
-_NODISCARD _CONSTEXPR17 _BidIt prev(
+_NODISCARD _CONSTEXPR17 _BidIt _上一个(
     _BidIt _首个, typename iterator_traits<_BidIt>::difference_type _Off = 1) { // decrement iterator
-    static_assert(_Is_ranges_bidi_iter_v<_BidIt>, "prev requires bidirectional iterator");
+    static_assert(_Is_ranges_bidi_iter_v<_BidIt>, "_上一个 requires bidirectional iterator");
 
     _STD advance(_首个, -_Off);
     return _首个;
@@ -3062,13 +3062,13 @@ namespace ranges {
 
         template <class _类型>
         concept _Has_member = requires(_类型 __t) {
-            { _Fake_copy_init(__t.反向结束()) } -> sentinel_for<decltype(_RANGES rbegin(__t))>;
+            { _Fake_copy_init(__t.反向结束()) } -> sentinel_for<decltype(反向开始(__t))>;
         };
 
         template <class _类型>
         concept _Has_ADL = _Has_class_or_enum_type<_类型> && requires(_类型 __t) {
             // intentional ADL
-            { _Fake_copy_init(反向结束(__t)) } -> sentinel_for<decltype(_RANGES rbegin(__t))>;
+            { _Fake_copy_init(反向结束(__t)) } -> sentinel_for<decltype(反向开始(__t))>;
         };
 
         template <class _类型>
@@ -3127,25 +3127,25 @@ namespace ranges {
     struct _常量反向开始函数对象 {
 #if _HAS_CXX23
         template <class _类型>
-        using _常量上反向开始 = decltype(_RANGES rbegin(_可能常量范围(_STD declval<_类型&>())));
+        using _常量上反向开始 = decltype(反向开始(_可能常量范围(_STD declval<_类型&>())));
 
         template <_Should_range_access _类型>
             requires requires(_类型& _Val) {
                 typename _常量上反向开始<_类型>;
                 typename const_iterator<_常量上反向开始<_类型>>;
-                const_iterator<_常量上反向开始<_类型>>{_RANGES rbegin(_可能常量范围(_Val))};
+                const_iterator<_常量上反向开始<_类型>>{反向开始(_可能常量范围(_Val))};
             }
         _NODISCARD _STATIC_CALL_OPERATOR constexpr auto operator()(_类型&& _Val) _CONST_CALL_OPERATOR noexcept(
-            noexcept(const_iterator<_常量上反向开始<_类型>>{_RANGES rbegin(_可能常量范围(_Val))})) {
-            return const_iterator<_常量上反向开始<_类型>>{_RANGES rbegin(_可能常量范围(_Val))};
+            noexcept(const_iterator<_常量上反向开始<_类型>>{反向开始(_可能常量范围(_Val))})) {
+            return const_iterator<_常量上反向开始<_类型>>{反向开始(_可能常量范围(_Val))};
         }
 #else // ^^^ _HAS_CXX23 / !_HAS_CXX23 vvv
         template <class _类型, class _CTy = _Const_thru_ref<_类型>>
         _NODISCARD _STATIC_CALL_OPERATOR constexpr auto operator()(_类型&& _Val) _CONST_CALL_OPERATOR
-            noexcept(noexcept(_RANGES rbegin(static_cast<_CTy&&>(_Val))))
-            requires requires { _RANGES rbegin(static_cast<_CTy&&>(_Val)); }
+            noexcept(noexcept(反向开始(static_cast<_CTy&&>(_Val))))
+            requires requires { 反向开始(static_cast<_CTy&&>(_Val)); }
         {
-            return _RANGES rbegin(static_cast<_CTy&&>(_Val));
+            return 反向开始(static_cast<_CTy&&>(_Val));
         }
 #endif // ^^^ !_HAS_CXX23 ^^^
     };
@@ -3157,25 +3157,25 @@ namespace ranges {
     struct _常量反向结束函数对象 {
 #if _HAS_CXX23
         template <class _类型>
-        using _常量上反向结束 = decltype(_RANGES rend(_可能常量范围(_STD declval<_类型&>())));
+        using _常量上反向结束 = decltype(反向结束(_可能常量范围(_STD declval<_类型&>())));
 
         template <_Should_range_access _类型>
             requires requires(_类型& _Val) {
                 typename _常量上反向结束<_类型>;
                 typename const_sentinel<_常量上反向结束<_类型>>;
-                const_sentinel<_常量上反向结束<_类型>>{_RANGES rend(_可能常量范围(_Val))};
+                const_sentinel<_常量上反向结束<_类型>>{反向结束(_可能常量范围(_Val))};
             }
         _NODISCARD _STATIC_CALL_OPERATOR constexpr auto operator()(_类型&& _Val) _CONST_CALL_OPERATOR
-            noexcept(noexcept(const_sentinel<_常量上反向结束<_类型>>{_RANGES rend(_可能常量范围(_Val))})) {
-            return const_sentinel<_常量上反向结束<_类型>>{_RANGES rend(_可能常量范围(_Val))};
+            noexcept(noexcept(const_sentinel<_常量上反向结束<_类型>>{反向结束(_可能常量范围(_Val))})) {
+            return const_sentinel<_常量上反向结束<_类型>>{反向结束(_可能常量范围(_Val))};
         }
 #else // ^^^ _HAS_CXX23 / !_HAS_CXX23 vvv
         template <class _类型, class _CTy = _Const_thru_ref<_类型>>
         _NODISCARD _STATIC_CALL_OPERATOR constexpr auto operator()(_类型&& _Val) _CONST_CALL_OPERATOR
-            noexcept(noexcept(_RANGES rend(static_cast<_CTy&&>(_Val))))
-            requires requires { _RANGES rend(static_cast<_CTy&&>(_Val)); }
+            noexcept(noexcept(反向结束(static_cast<_CTy&&>(_Val))))
+            requires requires { 反向结束(static_cast<_CTy&&>(_Val)); }
         {
-            return _RANGES rend(static_cast<_CTy&&>(_Val));
+            return 反向结束(static_cast<_CTy&&>(_Val));
         }
 #endif // ^^^ !_HAS_CXX23 ^^^
     };
@@ -3642,7 +3642,7 @@ namespace ranges {
         }
     };
 
-    _EXPORT_STD inline constexpr _下一个函数对象 next;
+    _EXPORT_STD inline constexpr _下一个函数对象 _下一个;
 
     class _上一个函数对象 {
     public:
@@ -3669,7 +3669,7 @@ namespace ranges {
         }
     };
 
-    _EXPORT_STD inline constexpr _上一个函数对象 prev;
+    _EXPORT_STD inline constexpr _上一个函数对象 _上一个;
 
     template <forward_iterator _It, sentinel_for<_It> _Se>
     _NODISCARD constexpr _It _查找最后迭代器(
@@ -3679,11 +3679,11 @@ namespace ranges {
         if constexpr (is_same_v<_It, _Se>) {
             return _最后;
         } else {
-            return _RANGES next(_首个, _Count);
+            return _下一个(_首个, _Count);
         }
     }
 
-    _EXPORT_STD struct equal_to {
+    _EXPORT_STD struct _相等比较 {
         template <class _Ty1, class _Ty2>
             requires equality_comparable_with<_Ty1, _Ty2>
         _NODISCARD constexpr bool operator()(_Ty1&& _Left, _Ty2&& _Right) const noexcept(
@@ -4076,7 +4076,7 @@ namespace ranges {
             }
         }
 
-        _NODISCARD constexpr subrange next() const&
+        _NODISCARD constexpr subrange _下一个() const&
             requires forward_iterator<_It>
         {
             auto _Tmp = *this;
@@ -4088,7 +4088,7 @@ namespace ranges {
             }
             return _Tmp;
         }
-        _NODISCARD constexpr subrange next(const iter_difference_t<_It> _Count) const&
+        _NODISCARD constexpr subrange _下一个(const iter_difference_t<_It> _Count) const&
             requires forward_iterator<_It>
         {
             auto _Tmp = *this;
@@ -4096,7 +4096,7 @@ namespace ranges {
             return _Tmp;
         }
 
-        _NODISCARD constexpr subrange next() && {
+        _NODISCARD constexpr subrange _下一个() && {
             if (_首个 != _最后) {
                 ++_首个;
                 if constexpr (_Store_size<_It, _Se, _Ki>) {
@@ -4105,12 +4105,12 @@ namespace ranges {
             }
             return _STD move(*this);
         }
-        _NODISCARD constexpr subrange next(const iter_difference_t<_It> _Count) && {
+        _NODISCARD constexpr subrange _下一个(const iter_difference_t<_It> _Count) && {
             advance(_Count);
             return _STD move(*this);
         }
 
-        _NODISCARD constexpr subrange prev() const
+        _NODISCARD constexpr subrange _上一个() const
             requires bidirectional_iterator<_It>
         {
             auto _Tmp = *this;
@@ -4120,7 +4120,7 @@ namespace ranges {
             }
             return _Tmp;
         }
-        _NODISCARD constexpr subrange prev(const iter_difference_t<_It> _Count) const
+        _NODISCARD constexpr subrange _上一个(const iter_difference_t<_It> _Count) const
             requires bidirectional_iterator<_It>
         {
             auto _Tmp = *this;
@@ -4925,7 +4925,7 @@ namespace ranges {
         if constexpr (is_same_v<_解包迭代类型<_It, _Se>, _解包哨兵类型<_Se, _It>>) {
             return _RANGES _Unwrap_sent<_It>(_STD forward<_Se>(_最后));
         } else {
-            return _RANGES next(_UFirst, _RANGES _Unwrap_sent<_It>(_STD forward<_Se>(_最后)));
+            return _下一个(_UFirst, _RANGES _Unwrap_sent<_It>(_STD forward<_Se>(_最后)));
         }
     }
 
@@ -4939,9 +4939,9 @@ namespace ranges {
                 return _RANGES _Unwrap_range_sent<_Rng>(_RANGES end(_Range));
             }
         } else if constexpr (sized_range<_Rng>) {
-            return _RANGES next(_解包首(_Range), _RANGES distance(_Range));
+            return _下一个(_解包首(_Range), _RANGES distance(_Range));
         } else {
-            return _RANGES next(_解包首(_Range), _解包尾(_Range));
+            return _下一个(_解包首(_Range), _解包尾(_Range));
         }
     }
 
@@ -4958,12 +4958,12 @@ namespace ranges {
         } else if constexpr (sized_range<_Rng>) {
             const auto _Dist = _RANGES distance(_Range);
             if constexpr (sized_sentinel_for<_解包后迭代器类型<_Rng>, _解包后迭代器类型<_Rng>>) {
-                return _RANGES next(_Mid, _Dist - (_Mid - _解包首(_Range)));
+                return _下一个(_Mid, _Dist - (_Mid - _解包首(_Range)));
             } else {
-                return _RANGES next(_解包首(_Range), _Dist);
+                return _下一个(_解包首(_Range), _Dist);
             }
         } else {
-            return _RANGES next(_Mid, _解包尾(_Range));
+            return _下一个(_Mid, _解包尾(_Range));
         }
     }
 
@@ -5477,21 +5477,21 @@ constexpr bool _Can_memcmp_elements<_元素1, _元素2, false> = false;
 template <class _元素1, class _元素2, class _Pr>
 constexpr bool _Can_memcmp_elements_with_pred = false;
 
-// With equal_to<_Elem3> we need to make sure that both _元素1 and _元素2 are convertible to _Elem3 without changing
+// With _相等比较<_Elem3> we need to make sure that both _元素1 and _元素2 are convertible to _Elem3 without changing
 // object representation (we use _迭代器复制类别 for this task) and _Elem3 can be safely memcmp'ed with itself
 template <class _元素1, class _元素2, class _Elem3>
-constexpr bool _Can_memcmp_elements_with_pred<_元素1, _元素2, equal_to<_Elem3>> =
+constexpr bool _Can_memcmp_elements_with_pred<_元素1, _元素2, _相等比较<_Elem3>> =
     _迭代器复制类别<_元素1*, _Elem3*>::_Bitcopy_constructible && _迭代器复制类别<_元素2*, _Elem3*>::_Bitcopy_constructible
     && _Can_memcmp_elements<remove_cv_t<_Elem3>, remove_cv_t<_Elem3>>;
 
-// equal_to<> is transparent.
+// _相等比较<> is transparent.
 template <class _元素1, class _元素2>
-constexpr bool _Can_memcmp_elements_with_pred<_元素1, _元素2, equal_to<>> = _Can_memcmp_elements<_元素1, _元素2>;
+constexpr bool _Can_memcmp_elements_with_pred<_元素1, _元素2, _相等比较<>> = _Can_memcmp_elements<_元素1, _元素2>;
 
 #if _HAS_CXX20
-// ranges::equal_to is also transparent.
+// ranges::_相等比较 is also transparent.
 template <class _元素1, class _元素2>
-constexpr bool _Can_memcmp_elements_with_pred<_元素1, _元素2, _RANGES equal_to> = _Can_memcmp_elements<_元素1, _元素2>;
+constexpr bool _Can_memcmp_elements_with_pred<_元素1, _元素2, ranges::_相等比较> = _Can_memcmp_elements<_元素1, _元素2>;
 #endif // _HAS_CXX20
 
 // _Equal_memcmp_is_safe<_Iter1, _Iter2, _Pr> reports whether we can activate the memcmp optimization
@@ -5557,7 +5557,7 @@ _NODISCARD bool equal(_ExPo&& _Exec, _FwdIt1 _First1, _FwdIt1 _Last1, _FwdIt2 _F
 _EXPORT_STD template <class _InIt1, class _InIt2>
 _NODISCARD _CONSTEXPR20 bool equal(const _InIt1 _First1, const _InIt1 _Last1, const _InIt2 _First2) {
     // compare [_First1, _Last1) to [_First2, ...)
-    return _STD equal(_First1, _Last1, _First2, equal_to<>{});
+    return _STD equal(_First1, _Last1, _First2, _相等比较<>{});
 }
 
 #if _HAS_CXX17
@@ -5565,7 +5565,7 @@ _EXPORT_STD template <class _ExPo, class _FwdIt1, class _FwdIt2, _条件执行�
 _NODISCARD bool equal(_ExPo&& _Exec, const _FwdIt1 _First1, const _FwdIt1 _Last1, const _FwdIt2 _First2) noexcept
 /* terminates */ {
     // compare [_First1, _Last1) to [_First2, ...)
-    return _STD equal(_STD forward<_ExPo>(_Exec), _First1, _Last1, _First2, equal_to{});
+    return _STD equal(_STD forward<_ExPo>(_Exec), _First1, _Last1, _First2, _相等比较{});
 }
 #endif // _HAS_CXX17
 
@@ -5615,7 +5615,7 @@ _EXPORT_STD template <class _InIt1, class _InIt2>
 _NODISCARD _CONSTEXPR20 bool equal(
     const _InIt1 _First1, const _InIt1 _Last1, const _InIt2 _First2, const _InIt2 _Last2) {
     // compare [_First1, _Last1) to [_First2, _Last2)
-    return _STD equal(_First1, _Last1, _First2, _Last2, equal_to<>{});
+    return _STD equal(_First1, _Last1, _First2, _Last2, _相等比较<>{});
 }
 
 #if _HAS_CXX17
@@ -5623,7 +5623,7 @@ _EXPORT_STD template <class _ExPo, class _FwdIt1, class _FwdIt2, _条件执行�
 _NODISCARD bool equal(_ExPo&& _Exec, const _FwdIt1 _First1, const _FwdIt1 _Last1, const _FwdIt2 _First2,
     const _FwdIt2 _Last2) noexcept /* terminates */ {
     // compare [_First1, _Last1) to [_First2, _Last2)
-    return _STD equal(_STD forward<_ExPo>(_Exec), _First1, _Last1, _First2, _Last2, equal_to{});
+    return _STD equal(_STD forward<_ExPo>(_Exec), _First1, _Last1, _First2, _Last2, _相等比较{});
 }
 #endif // _HAS_CXX17
 
@@ -5707,7 +5707,7 @@ namespace ranges {
     class _首个不匹配函数对象 {
     public:
         template <input_iterator _It1, sentinel_for<_It1> _Se1, input_iterator _It2, sentinel_for<_It2> _Se2,
-            class _Pr = ranges::equal_to, class _Pj1 = identity, class _Pj2 = identity>
+            class _Pr = ranges::_相等比较, class _Pj1 = identity, class _Pj2 = identity>
             requires indirectly_comparable<_It1, _It2, _Pr, _Pj1, _Pj2>
         _NODISCARD _STATIC_CALL_OPERATOR constexpr mismatch_result<_It1, _It2> operator()(_It1 _First1, _Se1 _Last1,
             _It2 _First2, _Se2 _Last2, _Pr _谓词 = {}, _Pj1 _Proj1 = {}, _Pj2 _Proj2 = {}) _CONST_CALL_OPERATOR {
@@ -5738,7 +5738,7 @@ namespace ranges {
             }
         }
 
-        template <input_range _Rng1, input_range _Rng2, class _Pr = ranges::equal_to, class _Pj1 = identity,
+        template <input_range _Rng1, input_range _Rng2, class _Pr = ranges::_相等比较, class _Pj1 = identity,
             class _Pj2 = identity>
             requires indirectly_comparable<iterator_t<_Rng1>, iterator_t<_Rng2>, _Pr, _Pj1, _Pj2>
         _NODISCARD
@@ -6213,7 +6213,7 @@ namespace ranges {
 
     // concept-constrained for strict enforcement as it is used by several algorithms
     template <input_iterator _It, sentinel_for<_It> _Se, class _类型, class _Pj = identity>
-        requires indirect_binary_predicate<ranges::equal_to, projected<_It, _Pj>, const _类型*>
+        requires indirect_binary_predicate<ranges::_相等比较, projected<_It, _Pj>, const _类型*>
     _NODISCARD constexpr _It _查找非检查(_It _首个, const _Se _最后, const _类型& _Val, _Pj _Proj = {}) {
         constexpr bool _Elements_are_1_byte = sizeof(_迭代器值类型<_It>) == 1;
         constexpr bool _Is_sized            = sized_sentinel_for<_Se, _It>;
@@ -6225,7 +6225,7 @@ namespace ranges {
             if (!_STD is_constant_evaluated()) {
                 if (!_Could_compare_equal_to_value_type<_It>(_Val)) {
                     if constexpr (_Is_sized) {
-                        return _RANGES next(_STD move(_首个), _最后);
+                        return _下一个(_STD move(_首个), _最后);
                     } else {
                         _STL_ASSERT(false, "Tried to find a value in a range with unreachable sentinel "
                                            "that cannot be represented by the range's value type");
@@ -6260,7 +6260,7 @@ namespace ranges {
 
                     if constexpr (_Is_sized) {
                         if (_结果 == nullptr) {
-                            return _RANGES next(_STD move(_首个), _最后);
+                            return _下一个(_STD move(_首个), _最后);
                         }
                     }
                 }
@@ -6268,7 +6268,7 @@ namespace ranges {
                 if constexpr (is_pointer_v<_It>) {
                     return _结果;
                 } else {
-                    return _RANGES next(_STD move(_首个), _结果 - _First_ptr);
+                    return _下一个(_STD move(_首个), _结果 - _First_ptr);
                 }
             }
         }
@@ -6285,7 +6285,7 @@ namespace ranges {
     class _查找函数对象 {
     public:
         template <input_iterator _It, sentinel_for<_It> _Se, class _类型, class _Pj = identity>
-            requires indirect_binary_predicate<ranges::equal_to, projected<_It, _Pj>, const _类型*>
+            requires indirect_binary_predicate<ranges::_相等比较, projected<_It, _Pj>, const _类型*>
         _NODISCARD _STATIC_CALL_OPERATOR constexpr _It operator()(
             _It _首个, _Se _最后, const _类型& _Val, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             _ADL校验范围(_首个, _最后);
@@ -6297,7 +6297,7 @@ namespace ranges {
         }
 
         template <input_range _Rng, class _类型, class _Pj = identity>
-            requires indirect_binary_predicate<ranges::equal_to, projected<iterator_t<_Rng>, _Pj>, const _类型*>
+            requires indirect_binary_predicate<ranges::_相等比较, projected<iterator_t<_Rng>, _Pj>, const _类型*>
         _NODISCARD _STATIC_CALL_OPERATOR constexpr borrowed_iterator_t<_Rng> operator()(
             _Rng&& _Range, const _类型& _Val, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             auto _首个   = _RANGES begin(_Range);
@@ -6523,7 +6523,7 @@ _NODISCARD _CONSTEXPR20 bool _检查匹配计数(
 }
 
 _EXPORT_STD template <class _BidIt>
-_CONSTEXPR20 void reverse(const _BidIt _首个, const _BidIt _最后) { // reverse elements in [_首个, _最后)
+_CONSTEXPR20 void 反转(const _BidIt _首个, const _BidIt _最后) { // 反转 elements in [_首个, _最后)
     _ADL校验范围(_首个, _最后);
     auto _UFirst = _取解包(_首个);
     auto _ULast  = _取解包(_最后);
@@ -6551,17 +6551,17 @@ _CONSTEXPR20 void reverse(const _BidIt _首个, const _BidIt _最后) { // rever
 
 #if _HAS_CXX17
 _EXPORT_STD template <class _ExPo, class _BidIt, _条件执行策略类型<_ExPo> = 0>
-void reverse(_ExPo&&, _BidIt _首个, _BidIt _最后) noexcept /* terminates */ {
-    // reverse elements in [_首个, _最后)
+void 反转(_ExPo&&, _BidIt _首个, _BidIt _最后) noexcept /* terminates */ {
+    // 反转 elements in [_首个, _最后)
     // not parallelized as benchmarks show it isn't worth it
     _REQUIRE_CPP17_MUTABLE_BIDIRECTIONAL_ITERATOR(_BidIt);
-    return _STD reverse(_首个, _最后);
+    return 反转(_首个, _最后);
 }
 #endif // _HAS_CXX17
 
 template <class _BidIt>
 constexpr pair<_BidIt, _BidIt> _Reverse_until_sentinel_unchecked(_BidIt _首个, _BidIt _哨兵, _BidIt _最后) {
-    // reverse until either _首个 or _最后 hits _哨兵
+    // 反转 until either _首个 or _最后 hits _哨兵
     while (_首个 != _哨兵 && _最后 != _哨兵) {
         swap(*_首个, *--_最后); // intentional ADL
         ++_首个;
@@ -6589,15 +6589,15 @@ _CONSTEXPR20 _FwdIt rotate(_FwdIt _首个, _FwdIt _Mid, _FwdIt _最后) {
     }
 
     if constexpr (_Is_cpp17_random_iter_v<_FwdIt>) {
-        _STD reverse(_UFirst, _UMid);
-        _STD reverse(_UMid, _ULast);
-        _STD reverse(_UFirst, _ULast);
+        反转(_UFirst, _UMid);
+        反转(_UMid, _ULast);
+        反转(_UFirst, _ULast);
         _定位包装(_首个, _UFirst + (_ULast - _UMid));
     } else if constexpr (_Is_cpp17_bidi_iter_v<_FwdIt>) {
-        _STD reverse(_UFirst, _UMid);
-        _STD reverse(_UMid, _ULast);
+        反转(_UFirst, _UMid);
+        反转(_UMid, _ULast);
         auto _Tmp = _Reverse_until_sentinel_unchecked(_UFirst, _UMid, _ULast);
-        _STD reverse(_Tmp.first, _Tmp.second);
+        反转(_Tmp.first, _Tmp.second);
         _定位包装(_首个, _UMid != _Tmp.first ? _Tmp.first : _Tmp.second);
     } else {
         auto _UNext = _UMid;
@@ -6773,7 +6773,7 @@ namespace ranges {
     class _相邻查找函数对象 {
     public:
         template <forward_iterator _It, sentinel_for<_It> _Se, class _Pj = identity,
-            indirect_binary_predicate<projected<_It, _Pj>, projected<_It, _Pj>> _Pr = ranges::equal_to>
+            indirect_binary_predicate<projected<_It, _Pj>, projected<_It, _Pj>> _Pr = ranges::_相等比较>
         _NODISCARD _STATIC_CALL_OPERATOR constexpr _It operator()(
             _It _首个, _Se _最后, _Pr _谓词 = {}, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             _ADL校验范围(_首个, _最后);
@@ -6787,7 +6787,7 @@ namespace ranges {
 
         template <forward_range _Rng, class _Pj = identity,
             indirect_binary_predicate<projected<iterator_t<_Rng>, _Pj>, projected<iterator_t<_Rng>, _Pj>> _Pr =
-                ranges::equal_to>
+                ranges::_相等比较>
         _NODISCARD _STATIC_CALL_OPERATOR constexpr borrowed_iterator_t<_Rng> operator()(
             _Rng&& _Range, _Pr _谓词 = {}, _Pj _Proj = {}) _CONST_CALL_OPERATOR {
             auto _UResult =
@@ -6840,7 +6840,7 @@ namespace ranges {
     class _子序列查找函数对象 {
     public:
         template <forward_iterator _It1, sentinel_for<_It1> _Se1, forward_iterator _It2, sentinel_for<_It2> _Se2,
-            class _Pr = ranges::equal_to, class _Pj1 = identity, class _Pj2 = identity>
+            class _Pr = ranges::_相等比较, class _Pj1 = identity, class _Pj2 = identity>
             requires indirectly_comparable<_It1, _It2, _Pr, _Pj1, _Pj2>
         _NODISCARD _STATIC_CALL_OPERATOR constexpr subrange<_It1> operator()(_It1 _First1, _Se1 _Last1, _It2 _First2,
             _Se2 _Last2, _Pr _谓词 = {}, _Pj1 _Proj1 = {}, _Pj2 _Proj2 = {}) _CONST_CALL_OPERATOR {
@@ -6864,7 +6864,7 @@ namespace ranges {
             }
         }
 
-        template <forward_range _Rng1, forward_range _Rng2, class _Pr = ranges::equal_to, class _Pj1 = identity,
+        template <forward_range _Rng1, forward_range _Rng2, class _Pr = ranges::_相等比较, class _Pj1 = identity,
             class _Pj2 = identity>
             requires indirectly_comparable<iterator_t<_Rng1>, iterator_t<_Rng2>, _Pr, _Pj1, _Pj2>
         _NODISCARD _STATIC_CALL_OPERATOR constexpr borrowed_subrange_t<_Rng1> operator()(
@@ -6974,7 +6974,7 @@ namespace ranges {
 #endif // _HAS_CXX20
 
 template <class _Iter, class _Pr, class _元素 = _迭代器值类型<_Iter>>
-constexpr bool _Is_min_max_optimization_safe = // Activate the vector algorithms for min_/max_element?
+constexpr bool _Is_min_max_optimization_safe = // Activate the vector algorithms for min_/_最大元素?
     _Iterator_is_contiguous<_Iter> // The iterator must be contiguous so we can get raw pointers.
     && !_Iterator_is_volatile<_Iter> // The iterator must not be volatile.
     && conjunction_v<disjunction<
@@ -6999,7 +6999,7 @@ constexpr bool _Is_min_max_optimization_safe = // Activate the vector algorithms
 // This alters the order of comparison: index zero element is first compared against
 // vector size equal index element and only in the end against index one element.
 // With equivalent but distinguishable +0.0 and -0.0 values, the altered comparison order
-// will not produce the expected result in some cases (will return +0.0 instead of -0.0 or the reverse).
+// will not produce the expected result in some cases (will return +0.0 instead of -0.0 or the 反转).
 //
 // The result is still acceptable for /fp:fast when +0.0 / -0.0 are not expected to be properly distinguished,
 // and the compiler itself takes advantage of it.
@@ -7039,7 +7039,7 @@ constexpr _FwdIt _最大元素非检查(_FwdIt _首个, _FwdIt _最后, _Pr _谓
 }
 
 _EXPORT_STD template <class _FwdIt, class _Pr>
-_NODISCARD constexpr _FwdIt max_element(_FwdIt _首个, _FwdIt _最后, _Pr _谓词) { // find largest element
+_NODISCARD constexpr _FwdIt _最大元素(_FwdIt _首个, _FwdIt _最后, _Pr _谓词) { // find largest element
     _ADL校验范围(_首个, _最后);
     _定位包装(_首个,
         _最大元素非检查(_取解包(_首个), _取解包(_最后), _传递函数(_谓词)));
@@ -7047,25 +7047,25 @@ _NODISCARD constexpr _FwdIt max_element(_FwdIt _首个, _FwdIt _最后, _Pr _谓
 }
 
 _EXPORT_STD template <class _FwdIt>
-_NODISCARD constexpr _FwdIt max_element(_FwdIt _首个, _FwdIt _最后) { // find largest element
-    return _STD max_element(_首个, _最后, less<>{});
+_NODISCARD constexpr _FwdIt _最大元素(_FwdIt _首个, _FwdIt _最后) { // find largest element
+    return _最大元素(_首个, _最后, less<>{});
 }
 
 #if _HAS_CXX17
 _EXPORT_STD template <class _ExPo, class _FwdIt, class _Pr, _条件执行策略类型<_ExPo> = 0>
-_NODISCARD _FwdIt max_element(_ExPo&&, _FwdIt _首个, _FwdIt _最后, _Pr _谓词) noexcept /* terminates */ {
+_NODISCARD _FwdIt _最大元素(_ExPo&&, _FwdIt _首个, _FwdIt _最后, _Pr _谓词) noexcept /* terminates */ {
     // find largest element
     // not parallelized at present, parallelism expected to be feasible in a future release
     _REQUIRE_PARALLEL_ITERATOR(_FwdIt);
-    return _STD max_element(_首个, _最后, _传递函数(_谓词));
+    return _最大元素(_首个, _最后, _传递函数(_谓词));
 }
 
 _EXPORT_STD template <class _ExPo, class _FwdIt, _条件执行策略类型<_ExPo> = 0>
-_NODISCARD _FwdIt max_element(_ExPo&&, _FwdIt _首个, _FwdIt _最后) noexcept /* terminates */ {
+_NODISCARD _FwdIt _最大元素(_ExPo&&, _FwdIt _首个, _FwdIt _最后) noexcept /* terminates */ {
     // find largest element
     // not parallelized at present, parallelism expected to be feasible in a future release
     _REQUIRE_PARALLEL_ITERATOR(_FwdIt);
-    return _STD max_element(_首个, _最后);
+    return _最大元素(_首个, _最后);
 }
 
 #if _HAS_CXX20
@@ -7130,7 +7130,7 @@ namespace ranges {
         }
     };
 
-    _EXPORT_STD inline constexpr _最大元素函数对象 max_element;
+    _EXPORT_STD inline constexpr _最大元素函数对象 _最大元素;
 } // namespace ranges
 #endif // _HAS_CXX20
 #endif // _HAS_CXX17
@@ -7265,7 +7265,7 @@ constexpr _FwdIt _最小元素非检查(_FwdIt _首个, _FwdIt _最后, _Pr _谓
 }
 
 _EXPORT_STD template <class _FwdIt, class _Pr>
-_NODISCARD constexpr _FwdIt min_element(_FwdIt _首个, _FwdIt _最后, _Pr _谓词) { // find smallest element
+_NODISCARD constexpr _FwdIt _最小元素(_FwdIt _首个, _FwdIt _最后, _Pr _谓词) { // find smallest element
     _ADL校验范围(_首个, _最后);
     _定位包装(_首个,
         _最小元素非检查(_取解包(_首个), _取解包(_最后), _传递函数(_谓词)));
@@ -7273,25 +7273,25 @@ _NODISCARD constexpr _FwdIt min_element(_FwdIt _首个, _FwdIt _最后, _Pr _谓
 }
 
 _EXPORT_STD template <class _FwdIt>
-_NODISCARD constexpr _FwdIt min_element(_FwdIt _首个, _FwdIt _最后) { // find smallest element
-    return _STD min_element(_首个, _最后, less<>{});
+_NODISCARD constexpr _FwdIt _最小元素(_FwdIt _首个, _FwdIt _最后) { // find smallest element
+    return _最小元素(_首个, _最后, less<>{});
 }
 
 #if _HAS_CXX17
 _EXPORT_STD template <class _ExPo, class _FwdIt, class _Pr, _条件执行策略类型<_ExPo> = 0>
-_NODISCARD _FwdIt min_element(_ExPo&&, _FwdIt _首个, _FwdIt _最后, _Pr _谓词) noexcept /* terminates */ {
+_NODISCARD _FwdIt _最小元素(_ExPo&&, _FwdIt _首个, _FwdIt _最后, _Pr _谓词) noexcept /* terminates */ {
     // find smallest element
     // not parallelized at present, parallelism expected to be feasible in a future release
     _REQUIRE_PARALLEL_ITERATOR(_FwdIt);
-    return _STD min_element(_首个, _最后, _传递函数(_谓词));
+    return _最小元素(_首个, _最后, _传递函数(_谓词));
 }
 
 _EXPORT_STD template <class _ExPo, class _FwdIt, _条件执行策略类型<_ExPo> = 0>
-_NODISCARD _FwdIt min_element(_ExPo&&, _FwdIt _首个, _FwdIt _最后) noexcept /* terminates */ {
+_NODISCARD _FwdIt _最小元素(_ExPo&&, _FwdIt _首个, _FwdIt _最后) noexcept /* terminates */ {
     // find smallest element
     // not parallelized at present, parallelism expected to be feasible in a future release
     _REQUIRE_PARALLEL_ITERATOR(_FwdIt);
-    return _STD min_element(_首个, _最后);
+    return _最小元素(_首个, _最后);
 }
 
 #if _HAS_CXX20
@@ -7356,7 +7356,7 @@ namespace ranges {
         }
     };
 
-    _EXPORT_STD inline constexpr _最小元素函数对象 min_element;
+    _EXPORT_STD inline constexpr _最小元素函数对象 _最小元素;
 } // namespace ranges
 #endif // _HAS_CXX20
 #endif // _HAS_CXX17
@@ -7465,7 +7465,7 @@ _NODISCARD _CONSTEXPR20 _FwdIt lower_bound(_FwdIt _首个, const _FwdIt _最后,
 
     while (0 < _Count) { // divide and conquer, find half that contains answer
         const _迭代器差类型<_FwdIt> _Count2 = _Count / 2;
-        const auto _UMid                   = _STD next(_UFirst, _Count2);
+        const auto _UMid                   = _下一个(_UFirst, _Count2);
         if (_谓词(*_UMid, _Val)) { // try top half
             _UFirst = _下一迭代器(_UMid);
             _Count -= _Count2 + 1;
@@ -7493,7 +7493,7 @@ _NODISCARD _CONSTEXPR20 _FwdIt upper_bound(_FwdIt _首个, _FwdIt _最后, const
 
     while (0 < _Count) { // divide and conquer, find half that contains answer
         _迭代器差类型<_FwdIt> _Count2 = _Count / 2;
-        const auto _UMid             = _STD next(_UFirst, _Count2);
+        const auto _UMid             = _下一个(_UFirst, _Count2);
         if (_谓词(_Val, *_UMid)) {
             _Count = _Count2;
         } else { // try top half

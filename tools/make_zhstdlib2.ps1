@@ -4316,14 +4316,14 @@ $H = @{
     #   判据：**凡本头在名域作用域有定义、且其它产品无限定调用的自由函数，一律改名**
     #   （下表即按此判据从原件正则扫出，见 §17.27.52；成员名不受影响：成员查找只看类作用域）。
     copyFixes = @( @('extern "C++" [[noreturn]] _CRTIMP2_PURE void __CLRCALL_PURE_OR_CDECL _Xlength_error(_In_z_ const char*);', ''), @('extern "C++" [[noreturn]] _CRTIMP2_PURE void __CLRCALL_PURE_OR_CDECL _Xout_of_range(_In_z_ const char*);', ''),
-      # §17.46 宏限定调用点：`_RANGES` 展开为 `::std::ranges::`（yvals_core.h:1930），
-      #   所以 `_RANGES _Rewrap_subrange<` 是"限定到【借来的】真名域"的调用。
-      #   只改名字 -> `::std::ranges::_重包子范围` -> 真名域里没有这个中文名 -> 编不过 ->
-      #   §17.19.17.1 的【文件级一致撤回】把整个名字扫回英文，残留就此永久化。
-      #   判据：函数本身是【我们这份拷贝里的】（定义就在本产品 L6658），
-      #   所以正解是**连宏前缀一起定点改写**，让调用落回我们自己的中文声明。
-      #   实测：只改名字 exit=1（`没有名为（成员名）'_重包子范围'`），改整前缀 exit=0。
-      @('_RANGES _Rewrap_subrange<', '_重包子范围<') )
+      # §17.47 `equal_to` 【不能】进 `$RANGES_RENAMABLE`：本头里 `equal_to` 有**两个实体** ——
+      #   `std::equal_to`（类模板，xutility 里就有定义）与 `std::ranges::equal_to`（CPO）。
+      #   步 4d 的"去掉 `_RANGES ` 前缀"会把 `_RANGES equal_to` 变成**非限定** `_相等比较`，
+      #   于是非限定查找抓到那个**模板** ->
+      #     error: 使用类模板 '_相等比较' 需要模板实参（实测 L5494）
+      #   判据：`_RANGES X` 若 X 在本头里同名两义（`std::X` 与 `std::ranges::X`），
+      #   **只能保留名域、去掉宏**（`ranges::_相等比较`），不能整个去限定。
+      @('_RANGES equal_to', 'ranges::_相等比较') )
     members = [ordered]@{
       '_Strategy' = '_策略';
       '_Result' = '_结果';
@@ -4393,6 +4393,22 @@ $H = @{
       '_Verify_offset' = '_校验偏移';
 
       'rend' = '反向结束';
+
+      # §17.47 本头在名域作用域【有定义】的自由函数/CPO 对象：登记即全局改名
+      #   （`_STD X` 那种自调用会被步 4c 自动去限定；`_RANGES X` 那种要看 §17.47 的白名单）。
+      #   ⚠ `greater` **不许登记**：它在本头里是以 `strong_ordering::greater` 出现 ——
+      #     `strong_ordering` 定义在借来的 <compare>，那是真边界（同 §17.46 的 `_Cpo`）。
+      'max_element' = '_最大元素';
+
+      'min_element' = '_最小元素';
+
+      'reverse' = '反转';
+
+      'next' = '_下一个';
+
+      'prev' = '_上一个';
+
+      'equal_to' = '_相等比较';
 }
     data    = [ordered]@{}
     derive  = @()
@@ -6768,7 +6784,12 @@ $nI = 0
 #  **不能靠"改了再等编译器回退"**：回退只对【被编译到】的位置有效。
 #  所以从源头用负向后顾挡住（.NET 支持变长后顾，`\s+` 可跨行缩进）。
 # ---------------------------------------------------------------------------
-$RANGES_RENAMABLE = @('_Ubegin','_Uend','_Copy_memcpy_common','_Copy_memcpy_distance','_Copy_unchecked','_Find_unchecked','_Get_final_iterator_unwrapped','_As_const_pointer','_Equal_rev_pred','_Find_if_unchecked','_Find_last_iterator','_Idl_distance','_Max_element_unchecked','_Min_element_unchecked','_Mismatch_4','_Mismatch_n','_Possibly_const_range','_Rewrap_iterator')
+$RANGES_RENAMABLE = @('_Ubegin','_Uend','_Copy_memcpy_common','_Copy_memcpy_distance','_Copy_unchecked','_Find_unchecked','_Get_final_iterator_unwrapped','_As_const_pointer','_Equal_rev_pred','_Find_if_unchecked','_Find_last_iterator','_Idl_distance','_Max_element_unchecked','_Min_element_unchecked','_Mismatch_4','_Mismatch_n','_Possibly_const_range','_Rewrap_iterator',
+  # §17.47 白名单补入：这些名字【我们这份拷贝里就有定义】（`class subrange` 在 xutility:3969、
+  #   ranges 的 CPO 对象 `inline constexpr _Next_fn next;` 也在本头），所以 `_RANGES X` 这种
+  #   "限定到借来的真名域"的调用**应该**收回来指向我们自己的中文名（步 4d 随后去限定）。
+  #   不放进白名单的后果（§17.46 实测）：引用点根本不改名 -> 4d 无事可做 -> 残留永久化。
+  '_Rewrap_subrange','next','rbegin','rend')
 function Get-RenamePattern([string] $name) {
     if ($RANGES_RENAMABLE -contains $name) { return '\b' + [regex]::Escape($name) + '\b' }
     return '(?<!_RANGES\s+)\b' + [regex]::Escape($name) + '\b'
