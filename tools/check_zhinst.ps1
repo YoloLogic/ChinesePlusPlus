@@ -138,8 +138,27 @@ function Get-TemplateArgs([string] $decl) {
         }
         $nd += $pp
     }
+    #  §17.43 **非类型形参**：形参的类型写成"本模板已声明的类型形参名"时，它是**值**形参
+    #  （实测 `模板 <类型名 某类型, 某类型 值> 使用 整数常量 = std::integral_constant<…>`：
+    #   第二个形参是值 -> 给 `1` -> `标准::整数常量<整数, 1>` ✓）。
+    #  若是值**包**（`某类型... 值`）-> **直接不传**（空包合法：`标准::整数序列<整数>` ✓）。
+    #  一次销掉 `整数序列` / `整数常量` 两个公开名（§17.43 归属判定）。
+    $typeParamNames = @()
+    foreach ($p in $parts) {
+        $pp0 = ($p -split '=')[0].Trim()
+        $tm = [regex]::Match($pp0, '^(?:类型名|class|typename)\s+([\w\u4e00-\u9fff]+)$')
+        if ($tm.Success) { $typeParamNames += $tm.Groups[1].Value }
+    }
     $args = @()
     for ($i = 0; $i -lt $nd.Count; $i++) {
+        #  ⚠ 值包的写法是 `某类型... 值`（**点号跟着类型名**）—— 判类型形参名之前必须先把点号去掉，
+        #  否则 `某类型...` 匹配不上 `某类型`，包就漏判成"类型形参"（实测 `整数序列<无符号 整数, 整数>` ✗）。
+        $head = ($nd[$i] -split '\s+')[0].TrimEnd('.')
+        if ($typeParamNames -contains $head) {
+            if ($nd[$i] -match '\.\.\.') { continue }   # 值包：不传（空包合法）
+            $args += '1'
+            continue
+        }
         #  ⚠ 深拷贝里关键字混用：形参可能写成 `类型名 X`，也可能还是 `class X` / `typename X`
         #  （实测 `模板 <class _Kty, class _类型, class _Pr, class _分配器>`）—— 两种都要认。
         #  §17.36 形参分类改**默认当类型**：受约束形参（input_or_output_iterator _Iter）、
@@ -558,6 +577,25 @@ function Get-NamesFromCode([string] $code) {
 # ---------------------------------------------------------------------------
 #  三张表 -> (产品, tparam, 名字, 用例文本)
 # ---------------------------------------------------------------------------
+#  §17.43 「公开名 / 内部名」两栏口径（用户 2026-10-02 拍板）：
+#    · **公开名** = 用户能从 `标准::` 直接命名：`标准::X` / `标准::X<…>` / `标准::X<…>::名` / 库公开的 `标准::名`；
+#    · **内部名** = 只能经 `标准::细节::…` 或私有成员命名 —— 单列一栏、**不计入公开覆盖率**，
+#      但同样要有真实例化证据（不许当遮羞布）。
+#  ⚠ 这张表是**分类注记**，不是名字来源（名字仍只来自三张生成器表）。
+#    每一行都做过「原生对照」：原生**也不公开**同名 API，且我们没有转发。
+#    （反过来：**原生公开而我们写不出来的 = 真 bug**，必须立刻修 —— 见 §17.43 的四象限。）
+$script:InternalNames = @{
+    '流缓冲类型' = '原生 std::ranges::basic_istream_view 也没有 streambuf_type（实测）'
+    '独占锁实现' = '原生 std::unique_lock 的公开中文名是 标准::独占锁（实测可写）；本名是细节层实现类'
+    '锁守卫实现' = '原生 std::lock_guard 的公开中文名是 标准::锁守卫（实测可写）；本名是细节层实现类'
+    '键比较器'   = '原生 std::unordered_map 也不公开 key_compare（实测）；有序映射的 键比较器 经 标准::映射 已覆盖'
+    '值比较'     = '同 键比较器（原生不公开 value_compare）'
+}
+function Get-NameScope([string] $n) {
+    if ($script:InternalNames.ContainsKey($n)) { return '内部' }
+    return '公开'
+}
+
 #  §17.38：**子进程跳过整段表解析**。三张表各要起一个 `-ExportJson` 子进程，实测每片启动
 #  约 1.5 分钟；10 片就是 15 分钟的纯重复成本（比它要并行省下的还多）✗。
 #  子进程的清单由父进程用 `Export-Clixml` 落盘，这里直接跳过，账不会因此变松：
@@ -1187,20 +1225,24 @@ foreach ($p in $products) {
         $extraInc = @()
     }
     #  §17.22 逐名登记未覆盖：名字 + 类别 + 原因 + 消除路径（判据②：剩余项也是"有账的边界"）
+    #  §17.43 再加一栏**归属**（公开 / 内部）—— 用户 2026-10-02 拍板的两栏口径。
     foreach ($k in $uncovered.Keys) {
         $kn = @($p.Names | Where-Object { $_.Name -eq $k } | Select-Object -First 1)
         $kKind = $(if ($kn.Count) { [string]$kn[0].Kind } else { '?' })
         $reason = [string]$uncovered[$k]
         $uncoveredAll += [pscustomobject]@{
-            轨道 = $p.Track; 产物 = $p.Product; 名字 = $k; 类别 = $kKind
+            轨道 = $p.Track; 产物 = $p.Product; 名字 = $k; 类别 = $kKind; 归属 = (Get-NameScope $k)
             原因 = $reason; 分类 = (Get-ReasonClass $reason); 消除路径 = (Get-FixPath $reason $kKind)
         }
     }
+    $pubUn = @($uncovered.Keys | Where-Object { (Get-NameScope $_) -eq '公开' } | Sort-Object)
+    $intUn = @($uncovered.Keys | Where-Object { (Get-NameScope $_) -eq '内部' } | Sort-Object)
     $rows += [pscustomobject]@{
         轨道 = $p.Track; 产物 = $p.Product; 名字 = @($p.Names | Sort-Object Name -Unique).Count
         自动探针 = @($probed | Sort-Object -Unique).Count; 用例覆盖 = @($byTest | Sort-Object -Unique).Count
-        未覆盖 = $uncovered.Count; 编译 = $compiled; 运行 = $ran
-        未覆盖名单 = (($uncovered.Keys | Sort-Object) -join ' ')
+        未覆盖 = $uncovered.Count; 公开未覆盖 = $pubUn.Count; 内部未覆盖 = $intUn.Count
+        编译 = $compiled; 运行 = $ran
+        未覆盖名单 = ((($(if ($pubUn.Count) { '[公] ' + ($pubUn -join ' ') } else { '' })) + ' ' + ($(if ($intUn.Count) { '[内] ' + ($intUn -join ' ') } else { '' }))).Trim())
     }
 }
 
@@ -1216,6 +1258,9 @@ if (-not $totNames) { throw "实例化守卫：一个名字都没提出来（表
 $totProbe = ($rows | Measure-Object -Property 自动探针 -Sum).Sum
 $totTest = ($rows | Measure-Object -Property 用例覆盖 -Sum).Sum
 $totUncov = ($rows | Measure-Object -Property 未覆盖 -Sum).Sum
+#  §17.43 两栏口径：公开名未覆盖（**必须为 0** 才算目标完成）/ 内部名未覆盖（允许非 0，但每条带原因+消除路径）
+$totPubUncov = ($rows | Measure-Object -Property 公开未覆盖 -Sum).Sum
+$totIntUncov = ($rows | Measure-Object -Property 内部未覆盖 -Sum).Sum
 $failProducts = @($rows | Where-Object { $_.编译 -ne 0 -or $_.运行 -ne 0 })
 
 # ---------------------------------------------------------------------------
@@ -1233,13 +1278,18 @@ $lines = @(
     '> （那里的用例真编译 + 真运行，见 §17.19.58）；**未覆盖** = 模板函数/概念等无法自动生成实参的名字，',
     '> 末列写明原因 —— 账要诚实显示"还缺"。**§17.22 起每个未覆盖名字都在文末逐名登记原因与消除路径**',
     '',
-    ("**汇总**：名字 {0} 个；自动探针 {1}；用例覆盖 {2}；未覆盖 {3}；探针失败产物 {4} 个" -f $totNames, $totProbe, $totTest, $totUncov, $failProducts.Count),
+    ("**汇总**：名字 {0} 个；自动探针 {1}；用例覆盖 {2}；未覆盖 {3}（**公开名 {4}** / 内部名 {5}）；探针失败产物 {6} 个" -f $totNames, $totProbe, $totTest, $totUncov, $totPubUncov, $totIntUncov, $failProducts.Count),
     '',
-    '| 轨道 | 产物 | 名字 | 自动探针 | 用例覆盖 | 未覆盖 | 编译 | 运行 | 未覆盖名单（原因与消除路径见下一节） |',
-    '|---|---|---|---|---|---|---|---|---|'
+    '> **两栏口径（§17.43，用户 2026-10-02 拍板）**：**公开名** = 用户能从 `标准::` 直接命名（`标准::X` / `标准::X<…>` /',
+    '> `标准::X<…>::名` / 库公开的 `标准::名`）；**内部名** = 只能经 `标准::细节::…` 或私有成员命名 —— 单列一栏、',
+    '> **不计入公开覆盖率**，但同样要有真实例化证据（不许当遮羞布）。完成判据：**公开名未覆盖 = 0**；',
+    '> 内部名允许非 0，但每条必须带原因 + 消除路径。判据的由来见方案 §17.43 的四象限（原生公开而我们写不出来 = 真 bug，必须修）。',
+    '',
+    '| 轨道 | 产物 | 名字 | 自动探针 | 用例覆盖 | 未覆盖 | 公开未覆盖 | 内部未覆盖 | 编译 | 运行 | 未覆盖名单（原因与消除路径见下一节） |',
+    '|---|---|---|---|---|---|---|---|---|---|---|'
 )
 foreach ($r in ($rows | Sort-Object 轨道, 产物)) {
-    $lines += ("| {0} | {1} | {2} | {3} | {4} | {5} | {6} | {7} | {8} |" -f $r.轨道, $r.产物, $r.名字, $r.自动探针, $r.用例覆盖, $r.未覆盖, $r.编译, $r.运行, $r.未覆盖名单)
+    $lines += ("| {0} | {1} | {2} | {3} | {4} | {5} | {6} | {7} | {8} | {9} | {10} |" -f $r.轨道, $r.产物, $r.名字, $r.自动探针, $r.用例覆盖, $r.未覆盖, $r.公开未覆盖, $r.内部未覆盖, $r.编译, $r.运行, $r.未覆盖名单)
 }
 
 # ---------------------------------------------------------------------------
@@ -1254,12 +1304,12 @@ $lines += '> 每个名字都要写清**为什么没覆盖**与**下一步怎么�
 $lines += ''
 $lines += ('**原因分布**：' + (($hist | ForEach-Object { '{0} × {1}' -f $_.Name, $_.Count }) -join '；'))
 $lines += ''
-$lines += '| 产物 | 名字 | 类别 | 原因 | 消除路径 |'
-$lines += '|---|---|---|---|---|'
-foreach ($u in ($uncoveredAll | Sort-Object 分类, 产物, 名字)) {
+$lines += '| 产物 | 名字 | 归属 | 类别 | 原因 | 消除路径 |'
+$lines += '|---|---|---|---|---|---|'
+foreach ($u in ($uncoveredAll | Sort-Object 归属, 分类, 产物, 名字)) {
     $rn = ([string]$u.原因) -replace '\|', '\|' -replace "`r?`n", ' '
     $fx = ([string]$u.消除路径) -replace '\|', '\|'
-    $lines += ('| {0} | {1} | {2} | {3} | {4} |' -f $u.产物, $u.名字, $u.类别, $rn, $fx)
+    $lines += ('| {0} | {1} | {2} | {3} | {4} | {5} |' -f $u.产物, $u.名字, $u.归属, $u.类别, $rn, $fx)
 }
 $text = ($lines -join "`r`n") + "`r`n"
 
@@ -1276,7 +1326,9 @@ if ($Check) {
         $failAll | Select-Object -First 12 | ForEach-Object { Write-Host $_ -ForegroundColor Red }
         exit 1
     }
-    Write-Host ("  实例化守卫：通过（名字 {0}：自动探针 {1} / 用例覆盖 {2} / 未覆盖 {3}；{4} 个产物全部编过并跑过）" -f $totNames, $totProbe, $totTest, $totUncov, $rows.Count) -ForegroundColor Green
+    Write-Host ("  实例化守卫：通过（名字 {0}：自动探针 {1} / 用例覆盖 {2} / 未覆盖 {3}＝公开名 {4} + 内部名 {5}；{6} 个产物全部编过并跑过）" -f $totNames, $totProbe, $totTest, $totUncov, $totPubUncov, $totIntUncov, $rows.Count) -ForegroundColor Green
+    #  §17.43 两栏口径的**醒目**提示：公开名必须为 0（绿），否则黄 —— 一眼就能看出还剩多少欠账。
+    Write-Host ("    §17.43 两栏口径：公开名未覆盖 {0}（完成判据：必须为 0）／内部名未覆盖 {1}（允许非 0，须带原因与消除路径）" -f $totPubUncov, $totIntUncov) -ForegroundColor $(if ($totPubUncov -eq 0) { 'Green' } else { 'Yellow' })
     exit 0
 }
 
@@ -1286,7 +1338,7 @@ if ($Only.Count -and -not $Check) {
     [System.IO.File]::WriteAllText($ledger, $text, $utf8)
     Write-Host "  台账已写入 docs\标准库汉化\实例化台账.md"
 }
-Write-Host ("=== 实例化守卫（§17.20/§17.21/§17.22）：名字 {0} 个：自动探针 {1} / 用例覆盖 {2} / 未覆盖 {3} ===" -f $totNames, $totProbe, $totTest, $totUncov) -ForegroundColor Cyan
+Write-Host ("=== 实例化守卫（§17.20/§17.21/§17.22/§17.43）：名字 {0} 个：自动探针 {1} / 用例覆盖 {2} / 未覆盖 {3}（公开名 {4} / 内部名 {5}）===" -f $totNames, $totProbe, $totTest, $totUncov, $totPubUncov, $totIntUncov) -ForegroundColor Cyan
 if ($hist.Count) {
     Write-Host '  未覆盖原因分布（下一批的清单；逐名原因 + 消除路径见台账 §未覆盖逐名台账）：'
     foreach ($h in $hist) { Write-Host ("    {0,-36} {1}" -f $h.Name, $h.Count) }
