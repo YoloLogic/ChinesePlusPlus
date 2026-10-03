@@ -1,15 +1,33 @@
 diff --git a/clang/include/clang/AST/PrettyPrinter.h b/clang/include/clang/AST/PrettyPrinter.h
-index c655521..afed3c1 100644
+index c655521..360c9f0 100644
 --- a/clang/include/clang/AST/PrettyPrinter.h
 +++ b/clang/include/clang/AST/PrettyPrinter.h
-@@ -96,6 +96,22 @@ struct PrintingPolicy {
+@@ -15,6 +15,7 @@
+ 
+ #include "clang/Basic/LLVM.h"
+ #include "clang/Basic/LangOptions.h"
++#include "clang/Basic/TokenKinds.h"
+ #include "llvm/ADT/STLForwardCompat.h"
+ 
+ namespace clang {
+@@ -96,6 +97,32 @@ struct PrintingPolicy {
          PrettyEnums(true), UseEnumerators(true), UseHLSLTypes(LO.HLSL),
          SuppressDeclAttributes(false), SuppressLambdaBody(false) {}
  
-+  /// 打印**内建类型名**时用不用中文（大检查 P-09 / §18.8）。
++  /// 打印**语言构造名**（内建类型名、限定符、表达式/语句里的关键字）时用不用中文
++  ///（大检查 P-09 + P-13 / §18.8 + §18.9）。
 +  ///
-+  /// 效果：诊断里 `int` 打印成 `整数`、`unsigned int` 打印成 `无符号 整数`、
-+  /// `int *` 打印成 `整数 *`、`标准::向量<int>` 打印成 `标准::向量<整数>`。
++  /// 效果：
++  ///   · 类型名：`int` → `整数`、`unsigned int` → `无符号 整数`、`int *` → `整数 *`、
++  ///     `标准::向量<int>` → `标准::向量<整数>`（P-09）；
++  ///   · 限定符：`const` → `常量`（P-09）；
++  ///   · 表达式里的关键字：`sizeof(x)` → `大小(x)`、`static_cast<T>(x)` → `静态转换<T>(x)`、
++  ///     `new`/`delete`/`this`/`true`/`false`/`nullptr`/`typeid`/`throw` → 新建/删除/自身/
++  ///     真值/假值/空指针/类型标识/抛出（P-13）。
++  ///
++  /// 拼写**一律取自 `ChineseKeywords.def`**（经 `tok::getKeywordSpelling()`）——
++  /// 与关键字表同源，不另立第二份清单；表里没有译名的（`__int128`、`_BitInt`、
++  /// `__addrspace_cast`…）自动回退英文，不需要在这里枚举。
 +  ///
 +  /// 为什么放在 PrintingPolicy 而不是直接看 LangOptions：中文诊断的开关在
 +  /// **DiagnosticOptions** 里（`-fno-chinese-diagnostics`），LangOptions 看不到它；
@@ -18,13 +36,39 @@ index c655521..afed3c1 100644
 +  /// `CompilerInstance::createASTContext()` 建 context 时把它设进来
 +  /// ⇒ **与消息正文、关键字拼写共用同一个开关**。
 +  ///
-+  /// 默认 false：`-ast-print`、`-ast-dump`、clangd 之类的调用方不受影响 ——
-+  /// 它们打印的是 AST 而不是诊断。
-+  bool ChineseTypeNames = false;
++  /// 默认 false：库调用方（`-ast-dump` 的 TextNodeDumper / JSONNodeDumper、clangd
++  /// 之类自己建策略的地方）不受影响。
++  bool ChineseSpelling = false;
 +
    /// Adjust this printing policy for cases where it's known that we're
    /// printing C++ code (for instance, if AST dumping reaches a C++-only
    /// construct). This should not be used if a real LangOptions object is
+@@ -384,6 +411,25 @@ struct PrintingPolicy {
+   const PrintingCallbacks *Callbacks = nullptr;
+ };
+ 
++/// 打印一个**语言构造名**（关键字）时取该用哪种拼写（大检查 P-09 / P-13，
++/// §18.8 / §18.9）。
++///
++/// 中文模式（`Policy.ChineseSpelling`，由 `-fno-chinese-diagnostics` 一起关掉）：
++/// 拼写取自 `ChineseKeywords.def` —— 经 `tok::getKeywordSpelling()`，
++/// **与关键字表同源**，不需要在打印器里维护第二份清单；
++/// 表里没有译名的关键字（`__int128`、`__addrspace_cast`…）自动回退 `English`。
++///
++/// `English` 由调用方给出（就是原来写死的那个字面量），所以英文模式下逐字节
++/// 等于改动前 —— `-ast-dump`、`-ast-print` 的英文路径不受影响。
++inline StringRef getPrintedKeywordSpelling(const PrintingPolicy &Policy,
++                                          tok::TokenKind K, StringRef English) {
++  if (!Policy.ChineseSpelling)
++    return English;
++  if (const char *ZH = tok::getKeywordSpelling(K))
++    return StringRef(ZH);
++  return English;
++}
++
+ } // end namespace clang
+ 
+ #endif
 diff --git a/clang/include/clang/Basic/ChineseDiagnostics.def b/clang/include/clang/Basic/ChineseDiagnostics.def
 new file mode 100644
 index 0000000..622a0c9
@@ -22647,7 +22691,7 @@ index 41848b1..2befd85 100644
    HelpText<"Print diagnostic category">,
    Values<"none,id,name">,
 diff --git a/clang/include/clang/Sema/Sema.h b/clang/include/clang/Sema/Sema.h
-index 8a30f63..f7456ef 100644
+index 8a30f63..17dd543 100644
 --- a/clang/include/clang/Sema/Sema.h
 +++ b/clang/include/clang/Sema/Sema.h
 @@ -1212,7 +1212,22 @@ public:
@@ -22669,16 +22713,76 @@ index 8a30f63..f7456ef 100644
 +    //
 +    // 开关与消息正文、关键字拼写**共用**（DiagnosticOptions::ChineseDiagnostics）
 +    // ⇒ `-fno-chinese-diagnostics` 三样一起回退英文。
-+    P.ChineseTypeNames = Diags.getDiagnosticOptions().ChineseDiagnostics;
++    P.ChineseSpelling = Diags.getDiagnosticOptions().ChineseDiagnostics;
 +    return P;
    }
  
    /// Retrieve a suitable printing policy for diagnostics.
+diff --git a/clang/lib/AST/APValue.cpp b/clang/lib/AST/APValue.cpp
+index 727e5f8..7d1794d 100644
+--- a/clang/lib/AST/APValue.cpp
++++ b/clang/lib/AST/APValue.cpp
+@@ -734,7 +734,9 @@ void APValue::printPretty(raw_ostream &Out, const PrintingPolicy &Policy,
+     return;
+   case APValue::Int:
+     if (Ty->isBooleanType())
+-      Out << (getInt().getBoolValue() ? "true" : "false");
++      Out << (getInt().getBoolValue()
++                  ? getPrintedKeywordSpelling(Policy, tok::kw_true, "true")
++                  : getPrintedKeywordSpelling(Policy, tok::kw_false, "false"));
+     else
+       Out << getInt();
+     return;
+@@ -790,7 +792,10 @@ void APValue::printPretty(raw_ostream &Out, const PrintingPolicy &Policy,
+     LValueBase Base = getLValueBase();
+     if (!Base) {
+       if (isNullPointer()) {
+-        Out << (Policy.Nullptr ? "nullptr" : "0");
++        if (Policy.Nullptr)
++          Out << getPrintedKeywordSpelling(Policy, tok::kw_nullptr, "nullptr");
++        else
++          Out << "0";
+       } else if (IsReference) {
+         Out << "*(" << InnerTy.stream(Policy) << "*)"
+             << getLValueOffset().getQuantity();
 diff --git a/clang/lib/AST/ASTDiagnostic.cpp b/clang/lib/AST/ASTDiagnostic.cpp
-index f7888f5..0617a4c 100644
+index f7888f5..bb28c94 100644
 --- a/clang/lib/AST/ASTDiagnostic.cpp
 +++ b/clang/lib/AST/ASTDiagnostic.cpp
-@@ -2119,7 +2119,14 @@ public:
+@@ -1844,7 +1844,11 @@ class TemplateDiff {
+ 
+     if (Same) {
+       if (FromIntType->isBooleanType()) {
+-        OS << ((FromInt == 0) ? "false" : "true");
++        // 布尔值的 `true`/`false` 也是"夹英文"的一类（大检查 P-13 / §18.9）——
++        // 中文模式下打 真值/假值，拼写取自 ChineseKeywords.def（表同源）。
++        OS << (FromInt == 0
++                   ? getPrintedKeywordSpelling(Policy, tok::kw_false, "false")
++                   : getPrintedKeywordSpelling(Policy, tok::kw_true, "true"));
+       } else {
+         OS << toString(FromInt, 10);
+       }
+@@ -1888,7 +1892,9 @@ class TemplateDiff {
+         Bold();
+       }
+       if (IntType->isBooleanType()) {
+-        OS << ((Val == 0) ? "false" : "true");
++        OS << (Val == 0
++                   ? getPrintedKeywordSpelling(Policy, tok::kw_false, "false")
++                   : getPrintedKeywordSpelling(Policy, tok::kw_true, "true"));
+       } else {
+         OS << toString(Val, 10);
+       }
+@@ -1954,7 +1960,7 @@ class TemplateDiff {
+         }
+       }
+ 
+-      OS << "nullptr";
++      OS << getPrintedKeywordSpelling(Policy, tok::kw_nullptr, "nullptr");
+       return;
+     }
+ 
+@@ -2119,7 +2125,14 @@ public:
                 QualType ToType, bool PrintTree, bool PrintFromType,
                 bool ElideType, bool ShowColor)
      : Context(Context),
@@ -22688,17 +22792,41 @@ index f7888f5..0617a4c 100644
 +      // `%diff{ 从 $ 到 $}` 那条路打出来的**类型名**（主诊断；同一条消息下面的
 +      // note 走的是另一条路）永远是英文：`从 '盒<int>' 到 '盒<double>'`。
 +      // 改成取 ASTContext 的当前策略：Sema 在**每条诊断发射前**都会把
-+      // `getPrintingPolicy()` 拷进去（含 §18.8 P-09 设的 `ChineseTypeNames`），
++      // `getPrintingPolicy()` 拷进去（含 §18.8 P-09 设的 `ChineseSpelling`），
 +      // 所以这里拿到的就是"这条诊断该用的那份" —— 与 note、与其它类型参数一致。
 +      Policy(Context.getPrintingPolicy()),
        ElideType(ElideType),
        PrintTree(PrintTree),
        ShowColor(ShowColor),
+diff --git a/clang/lib/AST/Expr.cpp b/clang/lib/AST/Expr.cpp
+index 9a9a76e..f2bc3b1 100644
+--- a/clang/lib/AST/Expr.cpp
++++ b/clang/lib/AST/Expr.cpp
+@@ -766,6 +766,10 @@ std::string PredefinedExpr::ComputeName(PredefinedIdentKind IK,
+       const LangOptions &LO;
+     };
+     PrintingPolicy Policy(Context.getLangOpts());
++    // 中文诊断下，这里打印的函数签名（`空型()` 而不是 `void()`）也跟同一个开关走
++    // （大检查 P-13 / §18.9）。**只借那一个开关**，其余设置保持本函数原来的
++    // `LangOptions` 版本 —— 免得英文模式的输出被顺带改写。
++    Policy.ChineseSpelling = Context.getPrintingPolicy().ChineseSpelling;
+     PrettyCallbacks PrettyCB(Context.getLangOpts());
+     Policy.Callbacks = &PrettyCB;
+     if (IK == PredefinedIdentKind::Function && ForceElaboratedPrinting)
+@@ -824,7 +828,7 @@ std::string PredefinedExpr::ComputeName(PredefinedIdentKind IK,
+                   IK == PredefinedIdentKind::LFuncSig ||
+                   !Context.getLangOpts().CPlusPlus) &&
+                  !Decl->getNumParams()) {
+-        POut << "void";
++        POut << getPrintedKeywordSpelling(Policy, tok::kw_void, "void");
+       }
+     }
+     POut << ")";
 diff --git a/clang/lib/AST/StmtPrinter.cpp b/clang/lib/AST/StmtPrinter.cpp
-index 6035259..83f9382 100644
+index 6035259..e3fc482 100644
 --- a/clang/lib/AST/StmtPrinter.cpp
 +++ b/clang/lib/AST/StmtPrinter.cpp
-@@ -1702,6 +1702,22 @@ void StmtPrinter::VisitUnaryExprOrTypeTraitExpr(
+@@ -1702,6 +1702,17 @@ void StmtPrinter::VisitUnaryExprOrTypeTraitExpr(
        Spelling = "__alignof";
    }
  
@@ -22707,22 +22835,185 @@ index 6035259..83f9382 100644
 +  // 实测漏出来的样子：`静态断言失败，因为不满足要求（表达式） 'sizeof(整数) > 99'`
 +  // —— 类型已经中文、运算符还是英文，一条消息里两种口径。拼写取自
 +  // ChineseKeywords.def（`sizeof`→大小、`alignof`→对齐值，表同源）。
-+  // 其余几个（UETT_VecStep / OpenMP 那些）中文表里没有译名，保持英文。
-+  if (Policy.ChineseTypeNames) {
-+    if (Node->getKind() == UETT_SizeOf) {
-+      if (const char *ZH = tok::getKeywordSpelling(tok::kw_sizeof))
-+        Spelling = ZH;
-+    } else if (Node->getKind() == UETT_AlignOf) {
-+      if (const char *ZH = tok::getKeywordSpelling(tok::kw_alignof))
-+        Spelling = ZH;
-+    }
-+  }
++  // 其余几个（UETT_VecStep / OpenMP 那些）中文表里没有译名 ⇒ 自动回退英文。
++  if (Node->getKind() == UETT_SizeOf)
++    Spelling = getPrintedKeywordSpelling(Policy, tok::kw_sizeof, Spelling).data();
++  else if (Node->getKind() == UETT_AlignOf)
++    Spelling = getPrintedKeywordSpelling(Policy, tok::kw_alignof, Spelling).data();
 +
    OS << Spelling;
  
    if (Node->isArgumentType()) {
+@@ -2212,8 +2223,30 @@ void StmtPrinter::VisitCXXRewrittenBinaryOperator(
+   PrintExpr(const_cast<Expr*>(Decomposed.RHS));
+ }
+ 
++/// C++ 具名转换的拼写（大检查 P-13 / §18.9）。
++///
++/// 中文模式下取自 ChineseKeywords.def（`static_cast`→静态转换、`dynamic_cast`→动态转换、
++/// `reinterpret_cast`→重释转换、`const_cast`→常量转换 —— **表同源**）；
++/// 关掉中文诊断时逐字节等于改动前；`__addrspace_cast` 表里没有译名 ⇒ 回退英文。
++static StringRef 具名转换拼写(const PrintingPolicy &Policy,
++                             const CXXNamedCastExpr &E) {
++  switch (E.getStmtClass()) {
++  case Stmt::CXXStaticCastExprClass:
++    return getPrintedKeywordSpelling(Policy, tok::kw_static_cast, E.getCastName());
++  case Stmt::CXXDynamicCastExprClass:
++    return getPrintedKeywordSpelling(Policy, tok::kw_dynamic_cast, E.getCastName());
++  case Stmt::CXXReinterpretCastExprClass:
++    return getPrintedKeywordSpelling(Policy, tok::kw_reinterpret_cast,
++                                    E.getCastName());
++  case Stmt::CXXConstCastExprClass:
++    return getPrintedKeywordSpelling(Policy, tok::kw_const_cast, E.getCastName());
++  default:
++    return E.getCastName();
++  }
++}
++
+ void StmtPrinter::VisitCXXNamedCastExpr(CXXNamedCastExpr *Node) {
+-  OS << Node->getCastName() << '<';
++  OS << 具名转换拼写(Policy, *Node) << '<';
+   Node->getTypeAsWritten().print(OS, Policy);
+   OS << ">(";
+   PrintExpr(Node->getSubExpr());
+@@ -2249,7 +2282,7 @@ void StmtPrinter::VisitCXXAddrspaceCastExpr(CXXAddrspaceCastExpr *Node) {
+ }
+ 
+ void StmtPrinter::VisitCXXTypeidExpr(CXXTypeidExpr *Node) {
+-  OS << "typeid(";
++  OS << getPrintedKeywordSpelling(Policy, tok::kw_typeid, "typeid") << '(';
+   if (Node->isTypeOperand()) {
+     Node->getTypeOperandSourceInfo()->getType().print(OS, Policy);
+   } else {
+@@ -2335,22 +2368,25 @@ void StmtPrinter::VisitUserDefinedLiteral(UserDefinedLiteral *Node) {
+ }
+ 
+ void StmtPrinter::VisitCXXBoolLiteralExpr(CXXBoolLiteralExpr *Node) {
+-  OS << (Node->getValue() ? "true" : "false");
++  OS << (Node->getValue()
++             ? getPrintedKeywordSpelling(Policy, tok::kw_true, "true")
++             : getPrintedKeywordSpelling(Policy, tok::kw_false, "false"));
+ }
+ 
+ void StmtPrinter::VisitCXXNullPtrLiteralExpr(CXXNullPtrLiteralExpr *Node) {
+-  OS << "nullptr";
++  OS << getPrintedKeywordSpelling(Policy, tok::kw_nullptr, "nullptr");
+ }
+ 
+ void StmtPrinter::VisitCXXThisExpr(CXXThisExpr *Node) {
+-  OS << "this";
++  OS << getPrintedKeywordSpelling(Policy, tok::kw_this, "this");
+ }
+ 
+ void StmtPrinter::VisitCXXThrowExpr(CXXThrowExpr *Node) {
++  StringRef 抛出 = getPrintedKeywordSpelling(Policy, tok::kw_throw, "throw");
+   if (!Node->getSubExpr())
+-    OS << "throw";
++    OS << 抛出;
+   else {
+-    OS << "throw ";
++    OS << 抛出 << ' ';
+     PrintExpr(Node->getSubExpr());
+   }
+ }
+@@ -2442,11 +2478,11 @@ void StmtPrinter::VisitLambdaExpr(LambdaExpr *Node) {
+ 
+     switch (C->getCaptureKind()) {
+     case LCK_This:
+-      OS << "this";
++      OS << getPrintedKeywordSpelling(Policy, tok::kw_this, "this");
+       break;
+ 
+     case LCK_StarThis:
+-      OS << "*this";
++      OS << '*' << getPrintedKeywordSpelling(Policy, tok::kw_this, "this");
+       break;
+ 
+     case LCK_ByRef:
+@@ -2550,7 +2586,7 @@ void StmtPrinter::VisitCXXScalarValueInitExpr(CXXScalarValueInitExpr *Node) {
+ void StmtPrinter::VisitCXXNewExpr(CXXNewExpr *E) {
+   if (E->isGlobalNew())
+     OS << "::";
+-  OS << "new ";
++  OS << getPrintedKeywordSpelling(Policy, tok::kw_new, "new") << ' ';
+   unsigned NumPlace = E->getNumPlacementArgs();
+   if (NumPlace > 0 && !isa<CXXDefaultArgExpr>(E->getPlacementArg(0))) {
+     OS << "(";
+@@ -2592,7 +2628,7 @@ void StmtPrinter::VisitCXXNewExpr(CXXNewExpr *E) {
+ void StmtPrinter::VisitCXXDeleteExpr(CXXDeleteExpr *E) {
+   if (E->isGlobalDelete())
+     OS << "::";
+-  OS << "delete ";
++  OS << getPrintedKeywordSpelling(Policy, tok::kw_delete, "delete") << ' ';
+   if (E->isArrayForm())
+     OS << "[] ";
+   PrintExpr(E->getArgument());
+@@ -2726,7 +2762,8 @@ void StmtPrinter::VisitPackExpansionExpr(PackExpansionExpr *E) {
+ }
+ 
+ void StmtPrinter::VisitSizeOfPackExpr(SizeOfPackExpr *E) {
+-  OS << "sizeof...(" << *E->getPack() << ")";
++  OS << getPrintedKeywordSpelling(Policy, tok::kw_sizeof, "sizeof")
++     << "...(" << *E->getPack() << ")";
+ }
+ 
+ void StmtPrinter::VisitPackIndexingExpr(PackIndexingExpr *E) {
+@@ -2845,7 +2882,7 @@ void StmtPrinter::VisitCoroutineBodyStmt(CoroutineBodyStmt *S) {
+ }
+ 
+ void StmtPrinter::VisitCoreturnStmt(CoreturnStmt *S) {
+-  OS << "co_return";
++  OS << getPrintedKeywordSpelling(Policy, tok::kw_co_return, "co_return");
+   if (S->getOperand()) {
+     OS << " ";
+     Visit(S->getOperand());
+@@ -2854,17 +2891,17 @@ void StmtPrinter::VisitCoreturnStmt(CoreturnStmt *S) {
+ }
+ 
+ void StmtPrinter::VisitCoawaitExpr(CoawaitExpr *S) {
+-  OS << "co_await ";
++  OS << getPrintedKeywordSpelling(Policy, tok::kw_co_await, "co_await") << ' ';
+   PrintExpr(S->getOperand());
+ }
+ 
+ void StmtPrinter::VisitDependentCoawaitExpr(DependentCoawaitExpr *S) {
+-  OS << "co_await ";
++  OS << getPrintedKeywordSpelling(Policy, tok::kw_co_await, "co_await") << ' ';
+   PrintExpr(S->getOperand());
+ }
+ 
+ void StmtPrinter::VisitCoyieldExpr(CoyieldExpr *S) {
+-  OS << "co_yield ";
++  OS << getPrintedKeywordSpelling(Policy, tok::kw_co_yield, "co_yield") << ' ';
+   PrintExpr(S->getOperand());
+ }
+ 
+diff --git a/clang/lib/AST/TemplateBase.cpp b/clang/lib/AST/TemplateBase.cpp
+index d64d3bd..ce6ad9c 100644
+--- a/clang/lib/AST/TemplateBase.cpp
++++ b/clang/lib/AST/TemplateBase.cpp
+@@ -75,7 +75,9 @@ static void printIntegral(const TemplateArgument &TemplArg, raw_ostream &Out,
+ 
+   if (T->isBooleanType()) {
+     if (!Policy.MSVCFormatting)
+-      Out << (Val.getBoolValue() ? "true" : "false");
++      Out << (Val.getBoolValue()
++                  ? getPrintedKeywordSpelling(Policy, tok::kw_true, "true")
++                  : getPrintedKeywordSpelling(Policy, tok::kw_false, "false"));
+     else
+       Out << Val;
+   } else if (T->isCharType()) {
+@@ -579,7 +581,7 @@ void TemplateArgument::print(const PrintingPolicy &Policy, raw_ostream &Out,
+ 
+   case NullPtr:
+     // FIXME: Include the type if it's not obvious from the context.
+-    Out << "nullptr";
++    Out << getPrintedKeywordSpelling(Policy, tok::kw_nullptr, "nullptr");
+     break;
+ 
+   case Template: {
 diff --git a/clang/lib/AST/Type.cpp b/clang/lib/AST/Type.cpp
-index 42d1487..4caf642 100644
+index 42d1487..05b759c 100644
 --- a/clang/lib/AST/Type.cpp
 +++ b/clang/lib/AST/Type.cpp
 @@ -3491,6 +3491,75 @@ const char *Type::getTypeClassName() const {
@@ -22741,11 +23032,11 @@ index 42d1487..4caf642 100644
 +  //  `_Accum`、`__fp16`、`_Decimal32`…）自动回退英文，不需要在这里枚举。
 +  //
 +  //  由谁打开：`CompilerInstance::createASTContext()` 按
-+  //  `DiagnosticOptions::ChineseDiagnostics` 设 `PrintingPolicy::ChineseTypeNames`
++  //  `DiagnosticOptions::ChineseDiagnostics` 设 `PrintingPolicy::ChineseSpelling`
 +  //  ⇒ 与消息正文、关键字拼写**共用同一个开关**（`-fno-chinese-diagnostics`
-+  //  一起回退英文）。默认 false，所以 `-ast-print` / `-ast-dump` / clangd 不受影响。
++  //  一起回退英文）。默认 false，所以 `-ast-dump` / clangd 不受影响。
 +  // ---------------------------------------------------------------------
-+  if (Policy.ChineseTypeNames) {
++  if (Policy.ChineseSpelling) {
 +    auto 关键字 = [](tok::TokenKind K) -> StringRef {
 +      return StringRef(tok::getKeywordSpelling(K));
 +    };
@@ -22802,7 +23093,7 @@ index 42d1487..4caf642 100644
    case Void:
      return "void";
 diff --git a/clang/lib/AST/TypePrinter.cpp b/clang/lib/AST/TypePrinter.cpp
-index 60964d2..1c71b13 100644
+index 60964d2..130fb4f 100644
 --- a/clang/lib/AST/TypePrinter.cpp
 +++ b/clang/lib/AST/TypePrinter.cpp
 @@ -147,21 +147,32 @@ private:
@@ -22847,7 +23138,7 @@ index 60964d2..1c71b13 100644
    if (T->getIndexTypeQualifiers().hasQualifiers()) {
      AppendTypeQualList(OS, T->getIndexTypeCVRQualifiers(),
 -                       Policy.Restrict);
-+                       Policy.Restrict, Policy.ChineseTypeNames);
++                       Policy.Restrict, Policy.ChineseSpelling);
      OS << ' ';
    }
  
@@ -22856,7 +23147,7 @@ index 60964d2..1c71b13 100644
    OS << '[';
    if (T->getIndexTypeQualifiers().hasQualifiers()) {
 -    AppendTypeQualList(OS, T->getIndexTypeCVRQualifiers(), Policy.Restrict);
-+    AppendTypeQualList(OS, T->getIndexTypeCVRQualifiers(), Policy.Restrict, Policy.ChineseTypeNames);
++    AppendTypeQualList(OS, T->getIndexTypeCVRQualifiers(), Policy.Restrict, Policy.ChineseSpelling);
      OS << ' ';
    }
  
@@ -22865,7 +23156,7 @@ index 60964d2..1c71b13 100644
    unsigned quals = getCVRQualifiers();
    if (quals) {
 -    AppendTypeQualList(OS, quals, Policy.Restrict);
-+    AppendTypeQualList(OS, quals, Policy.Restrict, Policy.ChineseTypeNames);
++    AppendTypeQualList(OS, quals, Policy.Restrict, Policy.ChineseSpelling);
      addSpace = true;
    }
    if (hasUnaligned()) {
@@ -23042,6 +23333,25 @@ index 660e61d..99f7c90 100644
    Args.addOptOutFlag(CmdArgs, options::OPT_fdiagnostics_show_line_numbers,
                       options::OPT_fno_diagnostics_show_line_numbers);
  
+diff --git a/clang/lib/Frontend/ASTConsumers.cpp b/clang/lib/Frontend/ASTConsumers.cpp
+index 40995e3..f180405 100644
+--- a/clang/lib/Frontend/ASTConsumers.cpp
++++ b/clang/lib/Frontend/ASTConsumers.cpp
+@@ -98,6 +98,14 @@ namespace {
+           Out << "Not a DeclContext\n";
+       } else if (OutputKind == Print) {
+         PrintingPolicy Policy(D->getASTContext().getLangOpts());
++        // 中文诊断下 `-ast-print` 也跟着用中文拼写（大检查 P-13 / §18.9）——
++        // 与消息正文、类型名、限定符、关键字**共用同一个开关**
++        // （`-fno-chinese-diagnostics` 一起回退英文）。
++        // **只借那一个开关**，其余设置保持原样。
++        // ⚠ `-ast-dump`（TextNodeDumper / JSONNodeDumper，OutputKind != Print）
++        // **故意不动**：那是调试/机器可读格式，记号名与 JSON 键名必须保持英文。
++        Policy.ChineseSpelling =
++            D->getASTContext().getPrintingPolicy().ChineseSpelling;
+         Policy.IncludeTagDefinition = true;
+         Policy.PrettyEnums = false;
+         D->print(Out, Policy, /*Indentation=*/0, /*PrintInstantiation=*/true);
 diff --git a/clang/lib/Frontend/CompilerInstance.cpp b/clang/lib/Frontend/CompilerInstance.cpp
 index 66662a7..7814f15 100644
 --- a/clang/lib/Frontend/CompilerInstance.cpp

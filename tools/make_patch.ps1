@@ -131,6 +131,14 @@ $DiagFiles = @(
     'clang/lib/AST/TypePrinter.cpp',
     'clang/lib/AST/StmtPrinter.cpp',
     'clang/lib/AST/ASTDiagnostic.cpp',
+    # 2026-10-04（§18.9 P-13）加：**表达式**里其余关键字（`static_cast<…>`、
+    # `new`/`delete`、`true`/`false`、`this`、`typeid`、`throw`、`sizeof...`、
+    # `co_await`/`co_yield`）与诊断专用的"值/模板实参"打印。它们同样只引用
+    # `PrintingPolicy::ChineseSpelling`（诊断开关）⇒ 归诊断补丁（理由同上面 P-09）。
+    'clang/lib/AST/APValue.cpp',
+    'clang/lib/AST/TemplateBase.cpp',
+    'clang/lib/AST/Expr.cpp',
+    'clang/lib/Frontend/ASTConsumers.cpp',
     'clang/include/clang/Options/Options.td',
     'clang/lib/Basic/Diagnostic.cpp',
     'clang/lib/Driver/ToolChains/Clang.cpp',

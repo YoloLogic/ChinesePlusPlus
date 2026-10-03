@@ -51,10 +51,11 @@ $黑名单 = @(
     'sizeof', 'alignof'
 )
 
-# ⚠ 还没进黑名单、但**同类**的（登记为 P-13，见台账）：表达式打印里其余英文关键字 ——
-#   转换（`static_cast<…>`）、`new`/`delete`、`true`/`false`、`this`、`typeid`…
-#   它们走 StmtPrinter 的另一些分支，本次只修了测试撞到的 `sizeof`/`alignof`。
-#   加进黑名单之前先确认那些分支也改了，否则守卫会红得没有意义。
+# ⚠ 表达式里其余关键字（`static_cast<…>`、`new`/`delete`、`true`/`false`、`this`、
+#   `typeid`、`throw`、`sizeof...`、协程三兄弟）**故意不进这张黑名单**：
+#   同一个词可能正是"**代码里要照写的名字**"（`operator new`、`__super`、`'std::size_t'`），
+#   放进全局黑名单一扫就误报。§18.9（P-13）改用**正面探针**钉它们 ——
+#   `tools\check_zhexpr.ps1`（闸门第 22 道）：拿**英文源码**去编，断言打出**中文**。
 
 # 有意【不】列入黑名单的（写明理由，免得后来者以为是漏了）：
 #   template        —— `'template<>'` 是用户要【照写】的语法，中文消息里保留英文有据
