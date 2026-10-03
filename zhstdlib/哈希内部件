@@ -594,7 +594,7 @@ public:
 
     template <class... _Valtys>
     conditional_t<_Multi, iterator, pair<iterator, bool>> 就地构造(_Valtys&&... _Vals) {
-        // try to insert value_type(_Vals...)
+        // try to 插入 value_type(_Vals...)
         using _就地键提取器 = typename _特征::template _就地键提取器<_Valtys...>;
         if constexpr (_Multi) {
             _检查最大尺寸();
@@ -646,7 +646,7 @@ public:
     }
 
     template <class... _Valtys>
-    iterator 按提示就地构造(const_iterator _Hint, _Valtys&&... _Vals) { // try to insert value_type(_Vals...)
+    iterator 按提示就地构造(const_iterator _Hint, _Valtys&&... _Vals) { // try to 插入 value_type(_Vals...)
         using _就地键提取器 = typename _特征::template _就地键提取器<_Valtys...>;
         if constexpr (_Multi) {
             _检查最大尺寸();
@@ -937,19 +937,19 @@ public:
         重哈希(_最小负载因子桶数(_Maxcount));
     }
 
-    conditional_t<_Multi, iterator, pair<iterator, bool>> insert(const value_type& _Val) {
+    conditional_t<_Multi, iterator, pair<iterator, bool>> 插入(const value_type& _Val) {
         return 就地构造(_Val);
     }
 
-    conditional_t<_Multi, iterator, pair<iterator, bool>> insert(value_type&& _Val) {
+    conditional_t<_Multi, iterator, pair<iterator, bool>> 插入(value_type&& _Val) {
         return 就地构造(_STD move(_Val));
     }
 
-    iterator insert(const_iterator _Hint, const value_type& _Val) {
+    iterator 插入(const_iterator _Hint, const value_type& _Val) {
         return 按提示就地构造(_Hint, _Val);
     }
 
-    iterator insert(const_iterator _Hint, value_type&& _Val) {
+    iterator 插入(const_iterator _Hint, value_type&& _Val) {
         return 按提示就地构造(_Hint, _STD move(_Val));
     }
 
@@ -963,7 +963,7 @@ protected:
 
 public:
     template <class _Iter>
-    void insert(_Iter _首个, _Iter _最后) {
+    void 插入(_Iter _首个, _Iter _最后) {
         _ADL校验范围(_首个, _最后);
         _插入范围非检查(_取解包(_首个), _取解包(_最后));
     }
@@ -975,7 +975,7 @@ public:
     }
 #endif // _HAS_CXX23
 
-    void insert(initializer_list<value_type> _Ilist) {
+    void 插入(initializer_list<value_type> _Ilist) {
         _插入范围非检查(_Ilist.begin(), _Ilist.end());
     }
 
@@ -991,7 +991,7 @@ private:
         _范围擦除器& operator=(const _范围擦除器&) = delete;
 
 #if _ITERATOR_DEBUG_LEVEL == 2
-        // Keep the 链表实现 nodes around until we have found all those we will erase, for an O(iterators + erasures) update
+        // Keep the 链表实现 nodes around until we have found all those we will 擦除, for an O(iterators + erasures) update
         // of the iterator chain.
         _范围擦除器(_我的链表& _List_, const _结点指针 _First_) noexcept
             : _List(_List_), _首个(_First_), _Next(_First_) {}
@@ -1129,27 +1129,27 @@ private:
 
 public:
     template <class _Iter = iterator, enable_if_t<!is_same_v<_Iter, const_iterator>, int> = 0>
-    iterator erase(iterator _Plist) noexcept(_Nothrow_hash<_特征, 键类型>) /* strengthened */ {
+    iterator 擦除(iterator _Plist) noexcept(_Nothrow_hash<_特征, 键类型>) /* strengthened */ {
         return _List._造迭代器(_非检查擦除(_Plist._Ptr));
     }
 
-    iterator erase(const_iterator _Plist) noexcept(_Nothrow_hash<_特征, 键类型>) /* strengthened */ {
+    iterator 擦除(const_iterator _Plist) noexcept(_Nothrow_hash<_特征, 键类型>) /* strengthened */ {
         return _List._造迭代器(_非检查擦除(_Plist._Ptr));
     }
 
-    iterator erase(const_iterator _首个, const_iterator _最后)
+    iterator 擦除(const_iterator _首个, const_iterator _最后)
         noexcept(_Nothrow_hash<_特征, 键类型>) /* strengthened */ {
         return _List._造迭代器(_非检查擦除(_首个._Ptr, _最后._Ptr));
     }
 
-    size_type erase(const 键类型& _Keyval) noexcept(noexcept(_擦除(_Keyval))) /* strengthened */ {
+    size_type 擦除(const 键类型& _Keyval) noexcept(noexcept(_擦除(_Keyval))) /* strengthened */ {
         return _擦除(_Keyval);
     }
 
 #if _HAS_CXX23
     template <class _Kx>
         requires (_特征::template _Supports_transparency<_哈希, _Kx>)
-    size_type erase(_Kx&& _Keyval) noexcept(noexcept(_擦除(_Keyval))) /* strengthened */ {
+    size_type 擦除(_Kx&& _Keyval) noexcept(noexcept(_擦除(_Keyval))) /* strengthened */ {
         return _擦除(_Keyval);
     }
 #endif // _HAS_CXX23
@@ -1264,7 +1264,7 @@ public:
     }
 #endif // _HAS_CXX20
 
-    _NODISCARD size_type count(const 键类型& _Keyval) const {
+    _NODISCARD size_type 计数(const 键类型& _Keyval) const {
         const size_t _Hashval = _特征对象(_Keyval);
         if constexpr (_Multi) {
             return _等值区间(_Keyval, _Hashval)._Distance;
@@ -1276,7 +1276,7 @@ public:
 #if _HAS_CXX20
     template <class _KeyTy>
         requires _特征::_Has_transparent_overloads
-    _NODISCARD size_type count(const _KeyTy& _Keyval) const {
+    _NODISCARD size_type 计数(const _KeyTy& _Keyval) const {
         const size_t _Hashval = _特征对象(_Keyval);
         if constexpr (_Multi) {
             return _等值区间(_Keyval, _Hashval)._Distance;
@@ -1413,13 +1413,13 @@ public:
     }
 #endif // _HAS_CXX23
 
-    iterator insert(const_iterator _Hint, 结点类型&& _Handle) {
+    iterator 插入(const_iterator _Hint, 结点类型&& _Handle) {
         if (_Handle.为空()) {
             return 结束();
         }
 
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(_List.取分配器() == _Handle._取分配器(), "node handle allocator incompatible for insert");
+        _STL_VERIFY(_List.取分配器() == _Handle._取分配器(), "node handle allocator incompatible for 插入");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
         const auto& _Keyval   = _特征::_取键(_Handle._取指针()->_Myval);
@@ -1540,8 +1540,8 @@ protected:
     }
 
 public:
-    conditional_t<_特征::_Multi, iterator, _Insert_return_type<iterator, 结点类型>> insert(结点类型&& _Handle) {
-        // insert the node (if any) held in _Handle
+    conditional_t<_特征::_Multi, iterator, _Insert_return_type<iterator, 结点类型>> 插入(结点类型&& _Handle) {
+        // 插入 the node (if any) held in _Handle
         if (_Handle.为空()) {
             if constexpr (_特征::_Multi) {
                 return 结束();
@@ -1551,7 +1551,7 @@ public:
         }
 
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(_List.取分配器() == _Handle._取分配器(), "node handle allocator incompatible for insert");
+        _STL_VERIFY(_List.取分配器() == _Handle._取分配器(), "node handle allocator incompatible for 插入");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
         const auto& _Keyval   = _特征::_取键(_Handle._取指针()->_Myval);
@@ -1709,12 +1709,12 @@ protected:
         const size_type _Old_buckets = 桶数();
         const size_type _Req_buckets = (_STD max)(_Min_buckets, _最小负载因子桶数(_For_size));
         if (_Old_buckets >= _Req_buckets) {
-            // we already have enough buckets so there's no need to change the count
+            // we already have enough buckets so there's no need to change the 计数
             return _Old_buckets;
         }
 
         if (_Old_buckets < 512 && _Old_buckets * 8 >= _Req_buckets) {
-            // if we are changing the 桶 count and have less than 512 buckets, use 8x more buckets
+            // if we are changing the 桶 计数 and have less than 512 buckets, use 8x more buckets
             return _Old_buckets * 8;
         }
 
@@ -1722,7 +1722,7 @@ protected:
         return _Req_buckets;
     }
 
-    void _用失效向量重插() { // insert elements in [开始(), 结束()), distrusting existing _Vec elements
+    void _用失效向量重插() { // 插入 elements in [开始(), 结束()), distrusting existing _Vec elements
         _强制重哈希(_期望扩容桶数(_List.尺寸()));
     }
 
@@ -1736,7 +1736,7 @@ protected:
         const unsigned long _Max_storage_buckets_log2 = _Floor_of_log_2(static_cast<size_t>(_Vec.max_size() >> 1));
         const auto _Max_storage_buckets               = static_cast<size_type>(1) << _Max_storage_buckets_log2;
         if (_Buckets > _Max_storage_buckets) {
-            _Xlength_error("invalid hash 桶 count");
+            _Xlength_error("invalid hash 桶 计数");
         }
 
         // The above test also means that we won't perform a forbidden full shift when restoring the power of
@@ -1791,7 +1791,7 @@ protected:
             // go backwards to maintain sortedness when !_Standard.
             for (;;) {
                 if (_Bucket_lo == _Insert_before) {
-                    // There are no equivalent keys in the 桶, so insert it at the beginning.
+                    // There are no equivalent keys in the 桶, so 插入 it at the beginning.
                     // Element can't be already in position here because:
                     // * (for !_Standard) _Inserted_key < *_Insert_before or
                     // * (for _Standard) _Inserted_key != *_Insert_before
@@ -1953,10 +1953,10 @@ public:
         _STL_INTERNAL_CHECK(_Maxidx == (_Vecsize >> 1));
         _STL_INTERNAL_CHECK(_Maxidx - 1 == _Mask);
         _STL_INTERNAL_CHECK(_Maxidx >= _最小负载因子桶数(_List.尺寸()));
-        // asserts that 桶 count is a power of 2:
+        // asserts that 桶 计数 is a power of 2:
         _STL_INTERNAL_CHECK((static_cast<size_type>(1) << _Floor_of_log_2(_Vecsize)) == _Vecsize);
         _STL_INTERNAL_CHECK(负载因子() <= 最大负载因子());
-        // In the test that counts number of allocator copies, avoid an extra rebind that would incorrectly count as
+        // In the test that counts number of allocator copies, avoid an extra rebind that would incorrectly 计数 as
         // a copy; otherwise, allow allocators that support only homogeneous compare.
 #ifdef _USE_HETEROGENEOUS_ALLOCATOR_COMPARE_IN_INTERNAL_CHECK
         _STL_INTERNAL_CHECK(_List._取分配器() == _Vec._Mypair._取第一());

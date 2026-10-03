@@ -526,7 +526,7 @@ public:
     }
 
     _结点指针 _摘取(_非检查常量迭代器 _Where) noexcept {
-        _结点指针 _Erasednode = _Where._Ptr; // node to erase
+        _结点指针 _Erasednode = _Where._Ptr; // node to 擦除
         ++_Where; // save successor 迭代器 for return
 
         _结点指针 _Fixnode; // the node to recolor as needed
@@ -1085,10 +1085,10 @@ protected:
 
 public:
     template <class... _Valtys>
-    迭代器 按提示就地构造(常量迭代器 _Where, _Valtys&&... _Vals) { // insert value_type(_Val...) at _Where
+    迭代器 按提示就地构造(常量迭代器 _Where, _Valtys&&... _Vals) { // 插入 value_type(_Val...) at _Where
         const auto _Scary = _取检查值();
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(_Where._取容器() == _Scary, "map/set insert 迭代器 outside range");
+        _STL_VERIFY(_Where._取容器() == _Scary, "map/set 插入 迭代器 outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
         return 迭代器(_按提示就地构造(_Where._Ptr, _STD forward<_Valtys>(_Vals)...), _Scary);
     }
@@ -1232,39 +1232,39 @@ public:
     }
 
     template <bool _Multi2 = _Multi, enable_if_t<!_Multi2, int> = 0>
-    pair<迭代器, bool> insert(const value_type& _Val) {
+    pair<迭代器, bool> 插入(const value_type& _Val) {
         const auto _结果 = _就地安置(_Val);
         return {迭代器(_结果.first, _取检查值()), _结果.second};
     }
 
     template <bool _Multi2 = _Multi, enable_if_t<_Multi2, int> = 0>
-    迭代器 insert(const value_type& _Val) {
+    迭代器 插入(const value_type& _Val) {
         return 迭代器(_就地安置(_Val).first, _取检查值());
     }
 
     template <bool _Multi2 = _Multi, enable_if_t<!_Multi2, int> = 0>
-    pair<迭代器, bool> insert(value_type&& _Val) {
+    pair<迭代器, bool> 插入(value_type&& _Val) {
         const auto _结果 = _就地安置(_STD move(_Val));
         return {迭代器(_结果.first, _取检查值()), _结果.second};
     }
 
     template <bool _Multi2 = _Multi, enable_if_t<_Multi2, int> = 0>
-    迭代器 insert(value_type&& _Val) {
+    迭代器 插入(value_type&& _Val) {
         return 迭代器(_就地安置(_STD move(_Val)).first, _取检查值());
     }
 
-    迭代器 insert(常量迭代器 _Where, const value_type& _Val) {
+    迭代器 插入(常量迭代器 _Where, const value_type& _Val) {
         const auto _Scary = _取检查值();
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(_Where._取容器() == _Scary, "map/set insert 迭代器 outside range");
+        _STL_VERIFY(_Where._取容器() == _Scary, "map/set 插入 迭代器 outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
         return 迭代器(_按提示就地构造(_Where._Ptr, _Val), _Scary);
     }
 
-    迭代器 insert(常量迭代器 _Where, value_type&& _Val) {
+    迭代器 插入(常量迭代器 _Where, value_type&& _Val) {
         const auto _Scary = _取检查值();
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(_Where._取容器() == _Scary, "map/set insert 迭代器 outside range");
+        _STL_VERIFY(_Where._取容器() == _Scary, "map/set 插入 迭代器 outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
         return 迭代器(_按提示就地构造(_Where._Ptr, _STD move(_Val)), _Scary);
     }
@@ -1280,7 +1280,7 @@ protected:
 
 public:
     template <class _Iter>
-    void insert(_Iter _首个, _Iter _最后) {
+    void 插入(_Iter _首个, _Iter _最后) {
         _ADL校验范围(_首个, _最后);
         _插入范围非检查(_取解包(_首个), _取解包(_最后));
     }
@@ -1292,7 +1292,7 @@ public:
     }
 #endif // _HAS_CXX23
 
-    void insert(initializer_list<value_type> _Ilist) {
+    void 插入(initializer_list<value_type> _Ilist) {
         _插入范围非检查(_Ilist.begin(), _Ilist.end());
     }
 
@@ -1301,7 +1301,7 @@ private:
         const auto _Scary                    = _取检查值();
         _非检查常量迭代器 _Successor = _Where;
         ++_Successor; // save successor 迭代器 for return
-        _结点指针 _Erasednode = _Scary->_摘取(_Where); // node to erase
+        _结点指针 _Erasednode = _Scary->_摘取(_Where); // node to 擦除
         _Scary->_孤立指针(_Erasednode);
         _节点::_释放节点(_取分配器(), _Erasednode); // delete erased node
         return _Successor._Ptr; // return successor nodeptr
@@ -1310,12 +1310,12 @@ private:
     _结点指针 _擦除非检查(_非检查常量迭代器 _首个, _非检查常量迭代器 _最后) noexcept {
         const auto _Begin = _非检查开始();
         if (_首个 == _Begin && _最后._Ptr->_Isnil) {
-            // erase all
+            // 擦除 all
             清空();
             return _最后._Ptr;
         }
 
-        // partial erase, one at a time
+        // partial 擦除, one at a time
         while (_首个 != _最后) {
             _擦除非检查(_首个++);
         }
@@ -1333,29 +1333,29 @@ private:
 
 public:
     template <class _Iter = 迭代器, enable_if_t<!is_same_v<_Iter, 常量迭代器>, int> = 0>
-    迭代器 erase(迭代器 _Where) noexcept /* strengthened */ {
+    迭代器 擦除(迭代器 _Where) noexcept /* strengthened */ {
         const auto _Scary = _取检查值();
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(_Where._取容器() == _Scary, "map/set erase 迭代器 from incorrect container");
-        _STL_VERIFY(!_Where._Ptr->_Isnil, "cannot erase map/set end() 迭代器");
+        _STL_VERIFY(_Where._取容器() == _Scary, "map/set 擦除 迭代器 from incorrect container");
+        _STL_VERIFY(!_Where._Ptr->_Isnil, "cannot 擦除 map/set end() 迭代器");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
         return 迭代器(_擦除非检查(_Where._解包()), _Scary);
     }
 
-    迭代器 erase(常量迭代器 _Where) noexcept /* strengthened */ {
+    迭代器 擦除(常量迭代器 _Where) noexcept /* strengthened */ {
         const auto _Scary = _取检查值();
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(_Where._取容器() == _Scary, "map/set erase 迭代器 from incorrect container");
-        _STL_VERIFY(!_Where._Ptr->_Isnil, "cannot erase map/set end() 迭代器");
+        _STL_VERIFY(_Where._取容器() == _Scary, "map/set 擦除 迭代器 from incorrect container");
+        _STL_VERIFY(!_Where._Ptr->_Isnil, "cannot 擦除 map/set end() 迭代器");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
         return 迭代器(_擦除非检查(_Where._解包()), _Scary);
     }
 
-    迭代器 erase(常量迭代器 _首个, 常量迭代器 _最后) noexcept /* strengthened */ {
+    迭代器 擦除(常量迭代器 _首个, 常量迭代器 _最后) noexcept /* strengthened */ {
         return 迭代器(_擦除非检查(_首个._解包(), _最后._解包()), _取检查值());
     }
 
-    size_type erase(const 键类型& _Keyval) noexcept(noexcept(_等值区间(_Keyval))) /* strengthened */ {
+    size_type 擦除(const 键类型& _Keyval) noexcept(noexcept(_等值区间(_Keyval))) /* strengthened */ {
         return _擦除(_等值区间(_Keyval));
     }
 
@@ -1363,7 +1363,7 @@ public:
     template <class _Kx>
         requires _Is_transparent_v<键比较器> && (!is_convertible_v<_Kx, 常量迭代器>)
               && (!is_convertible_v<_Kx, 迭代器>)
-    size_type erase(_Kx&& _Keyval) noexcept(noexcept(_等值区间(_Keyval))) /* strengthened */ {
+    size_type 擦除(_Kx&& _Keyval) noexcept(noexcept(_等值区间(_Keyval))) /* strengthened */ {
         return _擦除(_等值区间(_Keyval));
     }
 #endif // _HAS_CXX23
@@ -1421,7 +1421,7 @@ public:
     }
 #endif // _HAS_CXX20
 
-    _NODISCARD size_type count(const 键类型& _Keyval) const {
+    _NODISCARD size_type 计数(const 键类型& _Keyval) const {
         if constexpr (_Multi) {
             const auto _Ans = _等值区间(_Keyval);
             return static_cast<size_type>(_STD distance(
@@ -1432,7 +1432,7 @@ public:
     }
 
     template <class _Other, class _Mycomp = 键比较器, enable_if_t<_Is_transparent_v<_Mycomp>, int> = 0>
-    _NODISCARD size_type count(const _Other& _Keyval) const {
+    _NODISCARD size_type 计数(const _Other& _Keyval) const {
         const auto _Ans = _等值区间(_Keyval);
         return static_cast<size_type>(_STD distance(
             _非检查常量迭代器(_Ans.first, nullptr), _非检查常量迭代器(_Ans.second, nullptr)));
@@ -1514,9 +1514,9 @@ protected:
     _树查找提示结果<_结点指针> _按提示查找(const _结点指针 _Hint, const _Keyty& _Keyval) const {
         const auto& _比较器 = _取比较器();
         const auto _Head  = _取检查值()->_Myhead;
-        if constexpr (_Multi) { // insert even if duplicate
+        if constexpr (_Multi) { // 插入 even if duplicate
             if (_Hint->_Isnil) {
-                // insert at end if greater than or equal to last element
+                // 插入 at end if greater than or equal to last element
                 if (_Head->_Parent->_Isnil || !_DEBUG_LT_PRED(_比较器, _Keyval, _特征::_取键(_Head->_Right->_Myval))) {
                     return {{_Head->_Right, _树子向::_Right}, false};
                 }
@@ -1526,7 +1526,7 @@ protected:
             }
 
             if (_Hint == _Head->_Left) {
-                // insert at beginning if less than or equal to first element
+                // 插入 at beginning if less than or equal to first element
                 if (!_DEBUG_LT_PRED(_比较器, _特征::_取键(_Hint->_Myval), _Keyval)) {
                     return {{_Hint, _树子向::_Left}, false};
                 }
@@ -1539,7 +1539,7 @@ protected:
                 // _Val <= *_Hint
                 const auto _Prev = (--(_非检查常量迭代器(_Hint, nullptr)))._Ptr;
                 if (!_DEBUG_LT_PRED(_比较器, _Keyval, _特征::_取键(_Prev->_Myval))) {
-                    // _Val <= *_Hint and _Val >= *prev(_Hint); insert here
+                    // _Val <= *_Hint and _Val >= *prev(_Hint); 插入 here
                     if (_Prev->_Right->_Isnil) {
                         return {{_Prev, _树子向::_Right}, false};
                     } else {
@@ -1553,14 +1553,14 @@ protected:
 
             // _Val goes after *_Hint; _Hint must be closer to the beginning of equivalents
             return {_查找下界(_Keyval)._Location, false};
-        } else { // insert only if unique
-            if (_Hint->_Isnil) { // insert at end if after last element
-                // insert at end if greater than last element
+        } else { // 插入 only if unique
+            if (_Hint->_Isnil) { // 插入 at end if after last element
+                // 插入 at end if greater than last element
                 if (_Head->_Parent->_Isnil || _DEBUG_LT_PRED(_比较器, _特征::_取键(_Head->_Right->_Myval), _Keyval)) {
                     return {{_Head->_Right, _树子向::_Right}, false};
                 }
             } else if (_Hint == _Head->_Left) {
-                // insert at beginning if less than first element
+                // 插入 at beginning if less than first element
                 if (_DEBUG_LT_PRED(_比较器, _Keyval, _特征::_取键(_Hint->_Myval))) {
                     return {{_Hint, _树子向::_Left}, false};
                 }
@@ -1568,7 +1568,7 @@ protected:
                 // _Val < *_Hint
                 const auto _Prev = (--(_非检查常量迭代器(_Hint, nullptr)))._Ptr;
                 if (_DEBUG_LT_PRED(_比较器, _特征::_取键(_Prev->_Myval), _Keyval)) {
-                    // _Val < *_Hint and _Val > *prev(_Hint); insert here
+                    // _Val < *_Hint and _Val > *prev(_Hint); 插入 here
                     if (_Prev->_Right->_Isnil) {
                         return {{_Prev, _树子向::_Right}, false};
                     } else {
@@ -1579,7 +1579,7 @@ protected:
                 // _Val > *_Hint
                 const auto _Next = (++(_非检查常量迭代器(_Hint, nullptr)))._Ptr;
                 if (_Next->_Isnil || _DEBUG_LT_PRED(_比较器, _Keyval, _特征::_取键(_Next->_Myval))) {
-                    // _Val > *_Hint and _Val < *next(_Hint); insert here
+                    // _Val > *_Hint and _Val < *next(_Hint); 插入 here
                     if (_Hint->_Right->_Isnil) {
                         return {{_Hint, _树子向::_Right}, false};
                     }
@@ -1587,7 +1587,7 @@ protected:
                     return {{_Next, _树子向::_Left}, false};
                 }
             } else {
-                // _Val is equivalent to *_Hint; don't insert
+                // _Val is equivalent to *_Hint; don't 插入
                 return {{_Hint, _树子向::_Right}, true};
             }
 
@@ -1746,7 +1746,7 @@ public:
     结点类型 extract(const 常量迭代器 _Where) {
         const auto _Scary = _取检查值();
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(_Where._取容器() == _Scary && !_Where._Ptr->_Isnil, "map/set erase 迭代器 outside range");
+        _STL_VERIFY(_Where._取容器() == _Scary && !_Where._Ptr->_Isnil, "map/set 擦除 迭代器 outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
         const auto _Ptr = _Scary->_摘取(_Where._解包());
@@ -1777,7 +1777,7 @@ public:
     }
 #endif // _HAS_CXX23
 
-    auto insert(结点类型&& _Handle) {
+    auto 插入(结点类型&& _Handle) {
         if (_Handle.empty()) {
             if constexpr (_Multi) {
                 return end();
@@ -1818,10 +1818,10 @@ public:
         }
     }
 
-    迭代器 insert(const 常量迭代器 _Hint, 结点类型&& _Handle) {
+    迭代器 插入(const 常量迭代器 _Hint, 结点类型&& _Handle) {
         const auto _Scary = _取检查值();
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(_Hint._取容器() == _Scary, "map/set insert 迭代器 outside range");
+        _STL_VERIFY(_Hint._取容器() == _Scary, "map/set 插入 迭代器 outside range");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
         if (_Handle.empty()) {
             return end();
@@ -1946,7 +1946,7 @@ protected:
     void _检查节点分配器(结点类型& _Handle) const {
         (void) _Handle;
 #if _ITERATOR_DEBUG_LEVEL == 2
-        _STL_VERIFY(取分配器() == _Handle._取分配器(), "node handle allocator incompatible for insert");
+        _STL_VERIFY(取分配器() == _Handle._取分配器(), "node handle allocator incompatible for 插入");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
     }
 #endif // _HAS_CXX17

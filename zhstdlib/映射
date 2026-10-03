@@ -119,22 +119,22 @@ public:
 
     template <class _Iter>
     映射实现(_Iter _首个, _Iter _最后) : _我的基类(键比较器()) {
-        insert(_首个, _最后);
+        插入(_首个, _最后);
     }
 
     template <class _Iter>
     映射实现(_Iter _首个, _Iter _最后, const 键比较器& _Pred) : _我的基类(_Pred) {
-        insert(_首个, _最后);
+        插入(_首个, _最后);
     }
 
     template <class _Iter>
     映射实现(_Iter _首个, _Iter _最后, const 分配器类型& _Al) : _我的基类(键比较器(), _Al) {
-        insert(_首个, _最后);
+        插入(_首个, _最后);
     }
 
     template <class _Iter>
     映射实现(_Iter _首个, _Iter _最后, const 键比较器& _Pred, const 分配器类型& _Al) : _我的基类(_Pred, _Al) {
-        insert(_首个, _最后);
+        插入(_首个, _最后);
     }
 
 #if _HAS_CXX23
@@ -173,7 +173,7 @@ public:
         return *this;
     }
 
-    映射类型& operator[](键类型&& _Keyval) { // find element matching _Keyval or insert value-initialized value
+    映射类型& operator[](键类型&& _Keyval) { // find element matching _Keyval or 插入 value-initialized value
         return _尝试就地构造(_STD move(_Keyval)).first->_Myval.second;
     }
 
@@ -181,15 +181,15 @@ public:
         _我的基类::swap(_Right);
     }
 
-    using _我的基类::insert;
+    using _我的基类::插入;
 
     template <class _值参数类型, enable_if_t<is_constructible_v<value_type, _值参数类型>, int> = 0>
-    pair<迭代器, bool> insert(_值参数类型&& _Val) {
+    pair<迭代器, bool> 插入(_值参数类型&& _Val) {
         return this->就地构造(_STD forward<_值参数类型>(_Val));
     }
 
     template <class _值参数类型, enable_if_t<is_constructible_v<value_type, _值参数类型>, int> = 0>
-    迭代器 insert(常量迭代器 _Where, _值参数类型&& _Val) {
+    迭代器 插入(常量迭代器 _Where, _值参数类型&& _Val) {
         return this->emplace_hint(_Where, _STD forward<_值参数类型>(_Val));
     }
 
@@ -322,25 +322,25 @@ public:
     }
 
     映射实现(initializer_list<value_type> _Ilist) : _我的基类(键比较器()) {
-        insert(_Ilist);
+        插入(_Ilist);
     }
 
     映射实现(initializer_list<value_type> _Ilist, const 键比较器& _Pred) : _我的基类(_Pred) {
-        insert(_Ilist);
+        插入(_Ilist);
     }
 
     映射实现(initializer_list<value_type> _Ilist, const 分配器类型& _Al) : _我的基类(键比较器(), _Al) {
-        insert(_Ilist);
+        插入(_Ilist);
     }
 
     映射实现(initializer_list<value_type> _Ilist, const 键比较器& _Pred, const 分配器类型& _Al)
         : _我的基类(_Pred, _Al) {
-        insert(_Ilist);
+        插入(_Ilist);
     }
 
     映射实现& operator=(initializer_list<value_type> _Ilist) {
         _我的基类::清空();
-        insert(_Ilist);
+        插入(_Ilist);
         return *this;
     }
 
@@ -497,22 +497,22 @@ public:
 
     template <class _Iter>
     多重映射实现(_Iter _首个, _Iter _最后) : _我的基类(键比较器()) {
-        insert(_首个, _最后);
+        插入(_首个, _最后);
     }
 
     template <class _Iter>
     多重映射实现(_Iter _首个, _Iter _最后, const 键比较器& _Pred) : _我的基类(_Pred) {
-        insert(_首个, _最后);
+        插入(_首个, _最后);
     }
 
     template <class _Iter>
     多重映射实现(_Iter _首个, _Iter _最后, const 分配器类型& _Al) : _我的基类(键比较器(), _Al) {
-        insert(_首个, _最后);
+        插入(_首个, _最后);
     }
 
     template <class _Iter>
     多重映射实现(_Iter _首个, _Iter _最后, const 键比较器& _Pred, const 分配器类型& _Al) : _我的基类(_Pred, _Al) {
-        insert(_首个, _最后);
+        插入(_首个, _最后);
     }
 
 #if _HAS_CXX23
@@ -561,38 +561,38 @@ public:
         _我的基类::swap(_Right);
     }
 
-    using _我的基类::insert;
+    using _我的基类::插入;
 
     template <class _值参数类型, enable_if_t<is_constructible_v<value_type, _值参数类型>, int> = 0>
-    迭代器 insert(_值参数类型&& _Val) {
+    迭代器 插入(_值参数类型&& _Val) {
         return this->就地构造(_STD forward<_值参数类型>(_Val));
     }
 
     template <class _值参数类型, enable_if_t<is_constructible_v<value_type, _值参数类型>, int> = 0>
-    迭代器 insert(常量迭代器 _Where, _值参数类型&& _Val) {
+    迭代器 插入(常量迭代器 _Where, _值参数类型&& _Val) {
         return this->emplace_hint(_Where, _STD forward<_值参数类型>(_Val));
     }
 
     多重映射实现(initializer_list<value_type> _Ilist) : _我的基类(键比较器()) {
-        insert(_Ilist);
+        插入(_Ilist);
     }
 
     多重映射实现(initializer_list<value_type> _Ilist, const 键比较器& _Pred) : _我的基类(_Pred) {
-        insert(_Ilist);
+        插入(_Ilist);
     }
 
     多重映射实现(initializer_list<value_type> _Ilist, const 分配器类型& _Al) : _我的基类(键比较器(), _Al) {
-        insert(_Ilist);
+        插入(_Ilist);
     }
 
     多重映射实现(initializer_list<value_type> _Ilist, const 键比较器& _Pred, const 分配器类型& _Al)
         : _我的基类(_Pred, _Al) {
-        insert(_Ilist);
+        插入(_Ilist);
     }
 
     多重映射实现& operator=(initializer_list<value_type> _Ilist) {
         _我的基类::清空();
-        insert(_Ilist);
+        插入(_Ilist);
         return *this;
     }
 
@@ -758,13 +758,20 @@ _STL_RESTORE_CLANG_WARNINGS
     模板 <类型名... 参数> 声明类型(自动) crbegin(参数&&... 值) 常量 { 返回 基类::常量反向开始(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) crend(参数&&... 值) { 返回 基类::常量反向结束(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) crend(参数&&... 值) 常量 { 返回 基类::常量反向结束(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) insert(参数&&... 值) { 返回 基类::插入(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) insert(参数&&... 值) 常量 { 返回 基类::插入(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) erase(参数&&... 值) { 返回 基类::擦除(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) erase(参数&&... 值) 常量 { 返回 基类::擦除(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) count(参数&&... 值) { 返回 基类::计数(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) count(参数&&... 值) 常量 { 返回 基类::计数(static_cast<参数&&>(值)...); }
 
     // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
     // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
-    模板 <类型名... 参数> 声明类型(自动) 插入(参数&&... 值) { 返回 基类::insert(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 声明类型(自动) 擦除(参数&&... 值) { 返回 基类::erase(static_cast<参数&&>(值)...); }
+    // §17.68 `insert` 的英文转发走 derive（模板），但 `甲.insert({1, 2})` 的花括号列表
+    //   **推不出模板实参** ⇒ 这里单发一条非模板重载（基类那侧是英文 `value_type`，边界名）。
+    声明类型(自动) insert(std::initializer_list<基类::value_type> 值) { 返回 基类::插入(值); }
+    声明类型(自动) insert(基类::value_type&& 值) { 返回 基类::插入(static_cast<基类::value_type&&>(值)); }
     模板 <类型名... 参数> 声明类型(自动) 查找(参数&&... 值) { 返回 基类::find(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 声明类型(自动) 计数(参数&&... 值) 常量 { 返回 基类::count(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 尺寸(参数&&... 值) 常量 { 返回 基类::size(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 为空(参数&&... 值) 常量 { 返回 基类::empty(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 清空(参数&&... 值) { 返回 基类::清空(static_cast<参数&&>(值)...); }
@@ -798,10 +805,18 @@ _STL_RESTORE_CLANG_WARNINGS
     使用 尺寸类型           = 基类::size_type;
     使用 反向迭代器         = 基类::reverse_iterator;
     使用 常量反向迭代器     = 基类::const_reverse_iterator;
-    模板 <类型名... 参数> 声明类型(自动) 插入(参数&&... 值) { 返回 基类::insert(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 声明类型(自动) 擦除(参数&&... 值) { 返回 基类::erase(static_cast<参数&&>(值)...); }
+    // §17.68 方向翻转：抄来那层已是 插入/擦除/计数 ⇒ 这里改成补**英文原名**
+    //   （中文名从基类继承，不再手写）。少一条 = 用户的甲.insert(...) 消失（铁律②）。
+    // §17.68 花括号初始化列表必须单独发一条**非模板**重载：
+    //   可变参模板的形参是 `参数&&...`，而 `甲.insert({1, 2})` 这种花括号列表
+    //   **推不出模板实参** ⇒ 模板转发器会报"没有匹配的成员函数" ✗（实测）。
+    //   基类那侧是英文 `value_type`（边界名，抄来层不翻）⇒ 参数类型写 `基类::value_type`。
+    声明类型(自动) insert(std::initializer_list<基类::value_type> 值) { 返回 基类::插入(值); }
+    声明类型(自动) insert(基类::value_type&& 值) { 返回 基类::插入(static_cast<基类::value_type&&>(值)); }
+    模板 <类型名... 参数> 声明类型(自动) insert(参数&&... 值) { 返回 基类::插入(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) erase(参数&&... 值) { 返回 基类::擦除(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 查找(参数&&... 值) { 返回 基类::find(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 声明类型(自动) 计数(参数&&... 值) 常量 { 返回 基类::count(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) count(参数&&... 值) 常量 { 返回 基类::计数(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 尺寸(参数&&... 值) 常量 { 返回 基类::size(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 为空(参数&&... 值) 常量 { 返回 基类::empty(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 清空(参数&&... 值) { 返回 基类::清空(static_cast<参数&&>(值)...); }

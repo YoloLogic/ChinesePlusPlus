@@ -134,46 +134,46 @@ public:
 
     template <class _Iter>
     无序集合实现(_Iter _首个, _Iter _最后) : _我的基类(_键比较器(), 分配器类型()) {
-        this->insert(_首个, _最后);
+        this->插入(_首个, _最后);
     }
 
     template <class _Iter>
     无序集合实现(_Iter _首个, _Iter _最后, const 分配器类型& _Al) : _我的基类(_键比较器(), _Al) {
-        this->insert(_首个, _最后);
+        this->插入(_首个, _最后);
     }
 
     template <class _Iter>
     无序集合实现(_Iter _首个, _Iter _最后, size_type _Buckets) : _我的基类(_键比较器(), 分配器类型()) {
         this->重哈希(_Buckets);
-        this->insert(_首个, _最后);
+        this->插入(_首个, _最后);
     }
 
     template <class _Iter>
     无序集合实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 分配器类型& _Al)
         : _我的基类(_键比较器(), _Al) {
         this->重哈希(_Buckets);
-        this->insert(_首个, _最后);
+        this->插入(_首个, _最后);
     }
 
     template <class _Iter>
     无序集合实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 散列器& _Hasharg)
         : _我的基类(_键比较器(_Hasharg), 分配器类型()) {
         this->重哈希(_Buckets);
-        this->insert(_首个, _最后);
+        this->插入(_首个, _最后);
     }
 
     template <class _Iter>
     无序集合实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 散列器& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg), _Al) {
         this->重哈希(_Buckets);
-        this->insert(_首个, _最后);
+        this->插入(_首个, _最后);
     }
 
     template <class _Iter>
     无序集合实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), 分配器类型()) {
         this->重哈希(_Buckets);
-        this->insert(_首个, _最后);
+        this->插入(_首个, _最后);
     }
 
     template <class _Iter>
@@ -181,7 +181,7 @@ public:
         const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), _Al) {
         this->重哈希(_Buckets);
-        this->insert(_首个, _最后);
+        this->插入(_首个, _最后);
     }
 
 #if _HAS_CXX23
@@ -259,54 +259,54 @@ public:
     }
 
     无序集合实现(initializer_list<value_type> _Ilist) : _我的基类(_键比较器(), 分配器类型()) {
-        this->insert(_Ilist);
+        this->插入(_Ilist);
     }
 
     无序集合实现(initializer_list<value_type> _Ilist, const 分配器类型& _Al) : _我的基类(_键比较器(), _Al) {
-        this->insert(_Ilist);
+        this->插入(_Ilist);
     }
 
     无序集合实现(initializer_list<value_type> _Ilist, size_type _Buckets) : _我的基类(_键比较器(), 分配器类型()) {
         this->重哈希(_Buckets);
-        this->insert(_Ilist);
+        this->插入(_Ilist);
     }
 
     无序集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const 分配器类型& _Al)
         : _我的基类(_键比较器(), _Al) {
         this->重哈希(_Buckets);
-        this->insert(_Ilist);
+        this->插入(_Ilist);
     }
 
     无序集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const 散列器& _Hasharg)
         : _我的基类(_键比较器(_Hasharg), 分配器类型()) {
         this->重哈希(_Buckets);
-        this->insert(_Ilist);
+        this->插入(_Ilist);
     }
 
     无序集合实现(
         initializer_list<value_type> _Ilist, size_type _Buckets, const 散列器& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg), _Al) {
         this->重哈希(_Buckets);
-        this->insert(_Ilist);
+        this->插入(_Ilist);
     }
 
     无序集合实现(
         initializer_list<value_type> _Ilist, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), 分配器类型()) {
         this->重哈希(_Buckets);
-        this->insert(_Ilist);
+        this->插入(_Ilist);
     }
 
     无序集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const 散列器& _Hasharg,
         const _Keyeq& _Keyeqarg, const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), _Al) {
         this->重哈希(_Buckets);
-        this->insert(_Ilist);
+        this->插入(_Ilist);
     }
 
     无序集合实现& operator=(initializer_list<value_type> _Ilist) {
         this->清空();
-        this->insert(_Ilist);
+        this->插入(_Ilist);
         return *this;
     }
 
@@ -475,46 +475,46 @@ public:
 
     template <class _Iter>
     无序多重集合实现(_Iter _首个, _Iter _最后) : _我的基类(_键比较器(), 分配器类型()) {
-        this->insert(_首个, _最后);
+        this->插入(_首个, _最后);
     }
 
     template <class _Iter>
     无序多重集合实现(_Iter _首个, _Iter _最后, const 分配器类型& _Al) : _我的基类(_键比较器(), _Al) {
-        this->insert(_首个, _最后);
+        this->插入(_首个, _最后);
     }
 
     template <class _Iter>
     无序多重集合实现(_Iter _首个, _Iter _最后, size_type _Buckets) : _我的基类(_键比较器(), 分配器类型()) {
         this->重哈希(_Buckets);
-        this->insert(_首个, _最后);
+        this->插入(_首个, _最后);
     }
 
     template <class _Iter>
     无序多重集合实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 分配器类型& _Al)
         : _我的基类(_键比较器(), _Al) {
         this->重哈希(_Buckets);
-        this->insert(_首个, _最后);
+        this->插入(_首个, _最后);
     }
 
     template <class _Iter>
     无序多重集合实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 散列器& _Hasharg)
         : _我的基类(_键比较器(_Hasharg), 分配器类型()) {
         this->重哈希(_Buckets);
-        this->insert(_首个, _最后);
+        this->插入(_首个, _最后);
     }
 
     template <class _Iter>
     无序多重集合实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 散列器& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg), _Al) {
         this->重哈希(_Buckets);
-        this->insert(_首个, _最后);
+        this->插入(_首个, _最后);
     }
 
     template <class _Iter>
     无序多重集合实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), 分配器类型()) {
         this->重哈希(_Buckets);
-        this->insert(_首个, _最后);
+        this->插入(_首个, _最后);
     }
 
     template <class _Iter>
@@ -522,7 +522,7 @@ public:
         const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), _Al) {
         this->重哈希(_Buckets);
-        this->insert(_首个, _最后);
+        this->插入(_首个, _最后);
     }
 
     无序多重集合实现& operator=(const 无序多重集合实现& _Right) {
@@ -601,55 +601,55 @@ public:
     }
 
     无序多重集合实现(initializer_list<value_type> _Ilist) : _我的基类(_键比较器(), 分配器类型()) {
-        this->insert(_Ilist);
+        this->插入(_Ilist);
     }
 
     无序多重集合实现(initializer_list<value_type> _Ilist, const 分配器类型& _Al) : _我的基类(_键比较器(), _Al) {
-        this->insert(_Ilist);
+        this->插入(_Ilist);
     }
 
     无序多重集合实现(initializer_list<value_type> _Ilist, size_type _Buckets)
         : _我的基类(_键比较器(), 分配器类型()) {
         this->重哈希(_Buckets);
-        this->insert(_Ilist);
+        this->插入(_Ilist);
     }
 
     无序多重集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const 分配器类型& _Al)
         : _我的基类(_键比较器(), _Al) {
         this->重哈希(_Buckets);
-        this->insert(_Ilist);
+        this->插入(_Ilist);
     }
 
     无序多重集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const 散列器& _Hasharg)
         : _我的基类(_键比较器(_Hasharg), 分配器类型()) {
         this->重哈希(_Buckets);
-        this->insert(_Ilist);
+        this->插入(_Ilist);
     }
 
     无序多重集合实现(
         initializer_list<value_type> _Ilist, size_type _Buckets, const 散列器& _Hasharg, const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg), _Al) {
         this->重哈希(_Buckets);
-        this->insert(_Ilist);
+        this->插入(_Ilist);
     }
 
     无序多重集合实现(
         initializer_list<value_type> _Ilist, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), 分配器类型()) {
         this->重哈希(_Buckets);
-        this->insert(_Ilist);
+        this->插入(_Ilist);
     }
 
     无序多重集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const 散列器& _Hasharg,
         const _Keyeq& _Keyeqarg, const 分配器类型& _Al)
         : _我的基类(_键比较器(_Hasharg, _Keyeqarg), _Al) {
         this->重哈希(_Buckets);
-        this->insert(_Ilist);
+        this->插入(_Ilist);
     }
 
     无序多重集合实现& operator=(initializer_list<value_type> _Ilist) {
         this->清空();
-        this->insert(_Ilist);
+        this->插入(_Ilist);
         return *this;
     }
 
@@ -830,10 +830,18 @@ _STL_RESTORE_CLANG_WARNINGS
 
     // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
     // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
-    模板 <类型名... 参数> 声明类型(自动) 插入(参数&&... 值) { 返回 基类::insert(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 声明类型(自动) 擦除(参数&&... 值) { 返回 基类::erase(static_cast<参数&&>(值)...); }
+    // §17.68 方向翻转：抄来那层已是 插入/擦除/计数 ⇒ 这里改成补**英文原名**
+    //   （中文名从基类继承，不再手写）。少一条 = 用户的甲.insert(...) 消失（铁律②）。
+    // §17.68 花括号初始化列表必须单独发一条**非模板**重载：
+    //   可变参模板的形参是 `参数&&...`，而 `甲.insert({1, 2})` 这种花括号列表
+    //   **推不出模板实参** ⇒ 模板转发器会报"没有匹配的成员函数" ✗（实测）。
+    //   基类那侧是英文 `value_type`（边界名，抄来层不翻）⇒ 参数类型写 `基类::value_type`。
+    声明类型(自动) insert(std::initializer_list<基类::value_type> 值) { 返回 基类::插入(值); }
+    声明类型(自动) insert(基类::value_type&& 值) { 返回 基类::插入(static_cast<基类::value_type&&>(值)); }
+    模板 <类型名... 参数> 声明类型(自动) insert(参数&&... 值) { 返回 基类::插入(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) erase(参数&&... 值) { 返回 基类::擦除(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 查找(参数&&... 值) { 返回 基类::find(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 声明类型(自动) 计数(参数&&... 值) 常量 { 返回 基类::count(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) count(参数&&... 值) 常量 { 返回 基类::计数(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 尺寸(参数&&... 值) 常量 { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 为空(参数&&... 值) 常量 { 返回 基类::为空(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 清空(参数&&... 值) { 返回 基类::清空(static_cast<参数&&>(值)...); }
@@ -900,10 +908,18 @@ _STL_RESTORE_CLANG_WARNINGS
     //   切到我们自己的 哈希内部件 之后，那些名字在基类里【已经是汉语】了。
     //   之所以一直没报错，是因为转发器是模板、没人实例化就不会查基类名字
     //   （"空测掩盖"）—— 现在由下面那条真测试把它钉住。
-    模板 <类型名... 参数> 声明类型(自动) 插入(参数&&... 值) { 返回 基类::insert(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 声明类型(自动) 擦除(参数&&... 值) { 返回 基类::erase(static_cast<参数&&>(值)...); }
+    // §17.68 方向翻转：抄来那层已是 插入/擦除/计数 ⇒ 这里改成补**英文原名**
+    //   （中文名从基类继承，不再手写）。少一条 = 用户的甲.insert(...) 消失（铁律②）。
+    // §17.68 花括号初始化列表必须单独发一条**非模板**重载：
+    //   可变参模板的形参是 `参数&&...`，而 `甲.insert({1, 2})` 这种花括号列表
+    //   **推不出模板实参** ⇒ 模板转发器会报"没有匹配的成员函数" ✗（实测）。
+    //   基类那侧是英文 `value_type`（边界名，抄来层不翻）⇒ 参数类型写 `基类::value_type`。
+    声明类型(自动) insert(std::initializer_list<基类::value_type> 值) { 返回 基类::插入(值); }
+    声明类型(自动) insert(基类::value_type&& 值) { 返回 基类::插入(static_cast<基类::value_type&&>(值)); }
+    模板 <类型名... 参数> 声明类型(自动) insert(参数&&... 值) { 返回 基类::插入(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) erase(参数&&... 值) { 返回 基类::擦除(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 查找(参数&&... 值) { 返回 基类::find(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 声明类型(自动) 计数(参数&&... 值) 常量 { 返回 基类::count(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) count(参数&&... 值) 常量 { 返回 基类::计数(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 尺寸(参数&&... 值) 常量 { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 为空(参数&&... 值) 常量 { 返回 基类::为空(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 清空(参数&&... 值) { 返回 基类::清空(static_cast<参数&&>(值)...); }
