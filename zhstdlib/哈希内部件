@@ -231,7 +231,7 @@ struct _链表头构造指针 {
 
     ~_链表头构造指针() {
         if (_Newhead) {
-            value_type::_释放节点0(_Al, _Newhead);
+            value_type::_Freenode0(_Al, _Newhead);
         }
     }
 };
@@ -1381,35 +1381,35 @@ public:
 #if _HAS_CXX17
     using 结点类型 = typename _特征::结点类型;
 
-    结点类型 extract(const const_iterator _Where) {
+    结点类型 提取(const const_iterator _Where) {
 #if _ITERATOR_DEBUG_LEVEL == 2
         const auto _List_data = _STD addressof(_List._Mypair._Myval2);
-        _STL_VERIFY(_Where._取容器() == _List_data, "extract mismatched container");
-        _STL_VERIFY(_Where._Ptr != _List_data->_Myhead, "cannot extract 结束()");
+        _STL_VERIFY(_Where._取容器() == _List_data, "提取 mismatched container");
+        _STL_VERIFY(_Where._Ptr != _List_data->_Myhead, "cannot 提取 结束()");
 #endif // _ITERATOR_DEBUG_LEVEL == 2
 
-        return 结点类型::_造(_摘取(_Where._解包()), _List._取分配器());
+        return 结点类型::_Make(_摘取(_Where._解包()), _List._取分配器());
     }
 
-    结点类型 extract(const 键类型& _Keyval) {
+    结点类型 提取(const 键类型& _Keyval) {
         const auto _Ptr = _摘取(_Keyval);
         if (!_Ptr) {
             return 结点类型{};
         }
 
-        return 结点类型::_造(_Ptr, _List._取分配器());
+        return 结点类型::_Make(_Ptr, _List._取分配器());
     }
 
 #if _HAS_CXX23
     template <class _Kx>
         requires (_特征::template _Supports_transparency<_哈希, _Kx>)
-    结点类型 extract(_Kx&& _Keyval) {
+    结点类型 提取(_Kx&& _Keyval) {
         const auto _Ptr = _摘取(_Keyval);
         if (!_Ptr) {
             return 结点类型{};
         }
 
-        return 结点类型::_造(_Ptr, _List._取分配器());
+        return 结点类型::_Make(_Ptr, _List._取分配器());
     }
 #endif // _HAS_CXX23
 

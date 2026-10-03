@@ -368,8 +368,8 @@ struct _树节点 {
     }
 
     template <class _分配器>
-    static void _释放节点0(_分配器& _Al, _结点指针 _Ptr) noexcept {
-        static_assert(is_same_v<typename _分配器::value_type, _树节点>, "Bad _释放节点0 call");
+    static void _Freenode0(_分配器& _Al, _结点指针 _Ptr) noexcept {
+        static_assert(is_same_v<typename _分配器::value_type, _树节点>, "Bad _Freenode0 call");
         _就地析构(_Ptr->_Left);
         _就地析构(_Ptr->_Parent);
         _就地析构(_Ptr->_Right);
@@ -380,7 +380,7 @@ struct _树节点 {
     static void _释放节点(_分配器& _Al, _结点指针 _Ptr) noexcept {
         static_assert(is_same_v<typename _分配器::value_type, _树节点>, "Bad _释放节点 call");
         allocator_traits<_分配器>::destroy(_Al, _STD addressof(_Ptr->_Myval));
-        _释放节点0(_Al, _Ptr);
+        _Freenode0(_Al, _Ptr);
     }
 };
 
@@ -776,7 +776,7 @@ public:
     void _擦除头(_结点分配器& _Al) noexcept {
         this->_孤儿化全部();
         _擦除树(_Al, _Myhead->_Parent);
-        _结点分配器::value_type::_释放节点0(_Al, _Myhead);
+        _结点分配器::value_type::_Freenode0(_Al, _Myhead);
     }
 
     _结点指针 _Myhead; // pointer to head node
@@ -1120,7 +1120,7 @@ public:
                 _容器代理指针<_分配器类型> _代理(_Right_alproxy, _离开代理未绑定{});
                 auto _Right_al_non_const = _Right_al;
                 auto _Newhead            = _节点::_建头节点(_Right_al_non_const);
-                _节点::_释放节点0(_Al, _Scary->_Myhead);
+                _节点::_Freenode0(_Al, _Scary->_Myhead);
                 _传播复制赋值(_Al, _Right_al);
                 _Scary->_Myhead = _Newhead;
                 _代理._绑定(_Alproxy, _Scary);
@@ -1743,7 +1743,7 @@ protected:
 public:
     using 结点类型 = typename _特征::结点类型;
 
-    结点类型 extract(const 常量迭代器 _Where) {
+    结点类型 提取(const 常量迭代器 _Where) {
         const auto _Scary = _取检查值();
 #if _ITERATOR_DEBUG_LEVEL == 2
         _STL_VERIFY(_Where._取容器() == _Scary && !_Where._Ptr->_Isnil, "map/set 擦除 迭代器 outside range");
@@ -1751,29 +1751,29 @@ public:
 
         const auto _Ptr = _Scary->_摘取(_Where._解包());
         _Scary->_孤立指针(_Ptr);
-        return 结点类型::_造(_Ptr, _取分配器());
+        return 结点类型::_Make(_Ptr, _取分配器());
     }
 
-    结点类型 extract(const 键类型& _Keyval) {
+    结点类型 提取(const 键类型& _Keyval) {
         const 常量迭代器 _Where = find(_Keyval);
         if (_Where == end()) {
             return 结点类型{};
         }
 
-        return extract(_Where);
+        return 提取(_Where);
     }
 
 #if _HAS_CXX23
     template <class _Kx>
         requires _Is_transparent_v<键比较器> && (!is_convertible_v<_Kx, 常量迭代器>)
               && (!is_convertible_v<_Kx, 迭代器>)
-    结点类型 extract(_Kx&& _Keyval) {
+    结点类型 提取(_Kx&& _Keyval) {
         const 常量迭代器 _Where = find(_Keyval);
         if (_Where == end()) {
             return 结点类型{};
         }
 
-        return extract(_Where);
+        return 提取(_Where);
     }
 #endif // _HAS_CXX23
 

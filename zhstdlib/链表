@@ -306,9 +306,9 @@ struct _链表节点 { // 链表实现 node
     }
 
     template <class _结点分配器>
-    static void _释放节点0(_结点分配器& _Al, _结点指针 _Ptr) noexcept {
+    static void _Freenode0(_结点分配器& _Al, _结点指针 _Ptr) noexcept {
         // destroy pointer members in _Ptr and deallocate with _Al
-        static_assert(is_same_v<typename _结点分配器::value_type, _链表节点>, "Bad _释放节点0 call");
+        static_assert(is_same_v<typename _结点分配器::value_type, _链表节点>, "Bad _Freenode0 call");
         _就地析构(_Ptr->_Next);
         _就地析构(_Ptr->_Prev);
         allocator_traits<_结点分配器>::deallocate(_Al, _Ptr, 1);
@@ -317,7 +317,7 @@ struct _链表节点 { // 链表实现 node
     template <class _结点分配器>
     static void _释放节点(_结点分配器& _Al, _结点指针 _Ptr) noexcept { // destroy all members in _Ptr and deallocate with _Al
         allocator_traits<_结点分配器>::destroy(_Al, _STD addressof(_Ptr->_Myval));
-        _释放节点0(_Al, _Ptr);
+        _Freenode0(_Al, _Ptr);
     }
 
     template <class _结点分配器>
@@ -1518,7 +1518,7 @@ private:
         auto& _My_data = _Mypair._Myval2;
         _My_data._孤儿化全部();
         _节点::_释放非头节点(_Al, _My_data._Myhead);
-        _节点::_释放节点0(_Al, _My_data._Myhead);
+        _节点::_Freenode0(_Al, _My_data._Myhead);
     }
 
 public:
