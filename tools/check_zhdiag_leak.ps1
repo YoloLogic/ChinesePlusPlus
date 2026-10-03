@@ -45,8 +45,16 @@ $黑名单 = @(
     'auto', 'const', 'static', 'extern', 'register', 'inline',
     'signed', 'unsigned', 'long', 'short', 'typedef',
     'override', 'final',
-    'identifier'
+    'identifier',
+    # §18.8 P-09 收尾时加的：**表达式**里的运算符也是同一类残留
+    # （实测 `（表达式）'sizeof(整数) > 99'` —— 类型已经中文、运算符还是英文）。
+    'sizeof', 'alignof'
 )
+
+# ⚠ 还没进黑名单、但**同类**的（登记为 P-13，见台账）：表达式打印里其余英文关键字 ——
+#   转换（`static_cast<…>`）、`new`/`delete`、`true`/`false`、`this`、`typeid`…
+#   它们走 StmtPrinter 的另一些分支，本次只修了测试撞到的 `sizeof`/`alignof`。
+#   加进黑名单之前先确认那些分支也改了，否则守卫会红得没有意义。
 
 # 有意【不】列入黑名单的（写明理由，免得后来者以为是漏了）：
 #   template        —— `'template<>'` 是用户要【照写】的语法，中文消息里保留英文有据
@@ -56,11 +64,11 @@ $黑名单 = @(
 #                   —— 实现拼写，中文关键字表里【本来就没有】对应译名
 #   ISO / C++ / C2y / OpenACC / HLSL / GCC / MSVC —— 专名与标准名
 
-# 已知未修（命中不算失败，但会打印；修好后会报"条目已消失"）
-$已知未修 = @(
-    @{ 探针 = 'L09-重复定义类型不同'; 词 = 'int';    因 = 'P-09 类型打印器未汉化' },
-    @{ 探针 = 'L09-重复定义类型不同'; 词 = 'double'; 因 = 'P-09 类型打印器未汉化' }
-)
+#                                                                  （§18.8 P-09 / D-04）
+#   内建类型名**不再**是残留了：只要中文诊断开着，TypePrinter 就打中文（`整数`/`双精度`/
+#   `整数 *`/`标准::向量<整数>`），关掉（-fno-chinese-diagnostics）打回英文。
+#   所以这里现在**空着** —— 留这张表是为了下一个同类欠账有地方登记。
+$已知未修 = @()
 
 # ---------------------------------------------------------------------------
 #  自测：这条判据必须【能失败】（项目纪律：永远返回"通过"的检查等于没有检查）
@@ -106,6 +114,11 @@ $探针 = @(
     @('L07-枚举量用关键字',   '枚举 甲 { 默认 = 1 }; 整数 主函数(){ 返回 0; }'),
     @('L08-存储类冲突',       '类型别名 静态 整数 甲; 整数 主函数(){ 返回 0; }'),
     @('L09-重复定义类型不同', '整数 甲 = 1; 双精度 甲 = 2; 整数 主函数(){ 返回 0; }'),
+    # §18.8 P-09：类型名汉化之后，指针类型也必须跟着（`整数 *` 而不是 `int *`）
+    @('L12-指针类型不匹配',   '整数* 甲 = 1; 整数 主函数(){ 返回 0; }'),
+    # §18.8 P-09：**模板实参**走的是另一条打印路（%diff / TemplateDiff，
+    # 它过去用 LangOptions 建策略 ⇒ 只有这条路漏英文：`盒<int>`）。
+    @('L13-模板类型不匹配',   '模板 <类型名 甲> 结构 盒 { 甲 内容; }; 整数 主函数(){ 盒<整数> 甲{}; 盒<双精度> 乙 = 甲; 返回 0; }'),
     @('L10-访问私有成员',     '类型 甲 { 私有: 整数 值; }; 整数 主函数(){ 甲 对象; 返回 对象.值; }'),
     @('L11-纯虚未实现',       '类型 接口 { 公开: 虚拟 整数 取() = 0; }; 类型 实现 : 公开 接口 { }; 整数 主函数(){ 实现 甲; 返回 0; }')
 )
@@ -168,6 +181,135 @@ if ($残留.Count -gt 0) {
     $残留 | ForEach-Object { Write-Host ("         " + $_) -ForegroundColor Red }
 } else {
     过 "中文诊断正文里没有英文关键字名残留"
+}
+
+# ---------------------------------------------------------------------------
+#  附加（§18.8 P-08）：中文表**自己的** `%select{...}` 备选串不许留英文
+#
+#  为什么要单列一条：上面那条判据看的是**渲染出来的正文**（实参黑名单），
+#  而中文表里还有一类英文藏在 `%select{a|b}` 的**备选串**里 —— 它同样是用户
+#  看到的正文，却不在上面那条路径上。P-08 就是"只扫表"扫出来的。
+#
+#  第一版判据（10 个**写死的英文形态**出现 0 次）是个**假守卫**：
+#  它钉的是字符串字面量 —— 同一个词换个写法（`%select{NULL|nullptr}1` 而不是
+#  `'%select{NULL|nullptr}0'`）就从缝里漏过去了（实测真漏了一条）。
+#  现在换成**与关键字表同源**的判据：
+#
+#  判据①（覆盖面最大）：备选串只要等于**中文关键字表已经译过的英文拼写**
+#    （if/switch/void/nullptr/final/… 共 88 个，直接从 ChineseKeywords.def 读），
+#    就必须是中文；只有在 `$备选豁免` 里**逐条写明理由**的才允许留英文
+#    （代码里要照写的名字：doxygen 命令名 `\class`、ObjC 属性特性名、ObjC 方法族名、
+#     GNU 属性名）。豁免表还**必须条条命中**（登记虚着就红）。
+#  判据②（处数登记）：某些"术语刚定/待定"的备选串按**处数**登记 ——
+#    登记处数必须**正好等于**实测处数（英文往回长就红；翻干净了就把登记钉成 0）。
+#    现在：`lambda` 已按 D-07 = **匿名函数** 全部翻掉 ⇒ 钉 0 处。
+#  判据③（防新增）：纯英文备选串**总出现次数**不得超过登记上限 ——
+#    新增英文一律要显式改这个数（第一版判据完全没有这层）。
+# ---------------------------------------------------------------------------
+$tbl = Join-Path $Root 'llvm-main\clang\include\clang\Basic\ChineseDiagnostics.def'
+$kwFile = Join-Path $Root 'llvm-main\clang\include\clang\Basic\ChineseKeywords.def'
+if ((Test-Path $tbl) -and (Test-Path $kwFile)) {
+    # 已译英文关键字拼写（判据①的"源" —— 与关键字表同源，不另外维护词表）
+    $已译英文 = @()
+    foreach ($l in [System.IO.File]::ReadAllLines($kwFile)) {
+        $km = [regex]::Match($l, '^\s*ZH_(?:KEYWORD|OPERATOR_KEYWORD|VIRT_SPECIFIER|CONTEXTUAL_KEYWORD)\(\s*([A-Za-z_][A-Za-z0-9_]*)')
+        if ($km.Success) { $已译英文 += $km.Groups[1].Value }
+    }
+    $已译英文 = @($已译英文 | Sort-Object -Unique)
+
+    # 备选串 == 已译关键字、但仍然必须留英文的**逐条**理由（键 '<诊断名>|<备选串>'）
+    $备选豁免 = @{
+        'warn_doc_api_container_decl_mismatch|class'    = 'doxygen 命令名（\class / @class），用户要照写'
+        'warn_doc_api_container_decl_mismatch|struct'   = 'doxygen 命令名（\struct / @struct）'
+        'warn_doc_api_container_decl_mismatch|union'    = 'doxygen 命令名（\union / @union）'
+        'err_module_odr_violation_objc_property|class'  = 'Objective-C 属性特性名（@property(class)）'
+        'note_module_odr_violation_objc_property|class' = '同上，note 一侧'
+        'note_related_result_type_family|new'           = 'Objective-C 方法族名 new'
+        'warn_pure_function_returns_void|const'         = 'GNU 属性名 const（代码里照写），与关键字 常量 无关'
+    }
+    # 备选串处数登记：'<备选串>' = @(登记处数, 理由)
+    $备选钉数 = @{ 'lambda' = @(0, '已按 D-07 = 匿名函数 翻完（2026-10-04）；钉 0，退回英文就红') }
+    $英文上限 = 760   # 纯英文备选串总出现次数（§18.8 实测；判据③）
+
+    # 扫描器写成函数：真表跑一次，自测（合成行）再跑一次 —— 判据必须**能失败**
+    function 扫备选([string[]]$行) {
+        $r = @{ 英文数 = 0; 钉数命中 = @{}; 漏 = @(); 豁免命中 = @{} }
+        foreach ($row in $行) {
+            $dm = [regex]::Match($row, '^\s*ZH_DIAG\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*,')
+            if (-not $dm.Success) { continue }
+            $dn = $dm.Groups[1].Value
+            foreach ($m in [regex]::Matches($row, '%select\{([^}]*)\}')) {
+                foreach ($a in ($m.Groups[1].Value -split '\|')) {
+                    $t = $a.Trim()
+                    if ($t -eq '') { continue }
+                    # 含汉字/全角标点的备选串 = 已翻，跳过
+                    if ($t -match '[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]') { continue }
+                    $r.英文数++
+                    $u = $t.Trim("'")
+                    if ($备选钉数.ContainsKey($u)) {
+                        if (-not $r.钉数命中.ContainsKey($u)) { $r.钉数命中[$u] = 0 }
+                        $r.钉数命中[$u]++
+                    }
+                    if ($已译英文 -contains $u) {
+                        $key = $dn + '|' + $u
+                        if ($备选豁免.ContainsKey($key)) { $r.豁免命中[$key] = $true }
+                        else { $r.漏 += $key }
+                    }
+                }
+            }
+        }
+        return $r
+    }
+
+    $rows = @([System.IO.File]::ReadAllLines($tbl) | Where-Object { $_ -match '^\s*ZH_DIAG\(' })
+    $扫 = 扫备选 $rows
+    $英文数 = $扫.英文数
+    $钉数命中 = $扫.钉数命中
+    $漏 = $扫.漏
+    $豁免命中 = $扫.豁免命中
+
+    # 自测：合成的英文备选串必须被抓到；豁免的要放行；已翻的不许误报
+    $自测行 = @(
+        'ZH_DIAG(testsyn_a, "前 %select{if|switch}0 后")',
+        'ZH_DIAG(warn_doc_api_container_decl_mismatch, "命令 ''%select{\\|@}0%select{class|interface}1'' 不对")',
+        'ZH_DIAG(testsyn_b, "前 %select{如果|选择}0 后")'
+    )
+    $自测 = 扫备选 $自测行
+    $自测过 = ($自测.漏.Count -eq 2) -and (($自测.漏 | Sort-Object) -join ',') -eq 'testsyn_a|if,testsyn_a|switch'
+    if ($自测过) {
+        过 'P-08 自测：合成的英文备选串被抓到、豁免与已翻的不误报'
+    } else {
+        错 ('P-08 自测失败：合成行应恰好命中「testsyn_a|if」「testsyn_a|switch」两条，实际 ' + $自测.漏.Count + ' 条 —— ' + ($自测.漏 -join '、'))
+    }
+    if ($漏.Count -eq 0) {
+        过 ("P-08①：备选串里没有'已译关键字的英文拼写'残留（对照 {0} 个关键字拼写 · 扫了 {1} 条表项）" -f $已译英文.Count, $rows.Count)
+    } else {
+        错 ("P-08①：备选串里还有'已译关键字的英文拼写' —— " + (($漏 | Sort-Object -Unique) -join '、'))
+    }
+    # 判据②：登记处数必须**正好**等于实测（多了=登记虚着，少了=英文在往回长）
+    $钉数错 = @()
+    foreach ($k in $备选钉数.Keys) {
+        $want = $备选钉数[$k][0]
+        $got = 0
+        if ($钉数命中.ContainsKey($k)) { $got = $钉数命中[$k] }
+        if ($got -ne $want) { $钉数错 += ("{0}：登记 {1} 处、实测 {2} 处" -f $k, $want, $got) }
+    }
+    if ($钉数错.Count -eq 0) {
+        过 ("P-08②：备选串处数登记与实测一致（" + (($备选钉数.Keys | Sort-Object | ForEach-Object { '{0} {1} 处' -f $_, $备选钉数[$_][0] }) -join '、') + "）")
+    } else {
+        错 ("P-08②：备选串处数登记和实测对不上（翻干净了就把登记改成 0）—— " + ($钉数错 -join '；'))
+    }
+    # 判据③：纯英文备选串总数不得超过登记上限
+    if ($英文数 -le $英文上限) {
+        过 ("P-08③：纯英文备选串 {0} 处 ≤ 登记上限 {1} 处" -f $英文数, $英文上限)
+    } else {
+        错 ("P-08③：纯英文备选串 {0} 处 > 登记上限 {1} 处（新增的英文备选串要么翻掉，要么显式改上限）" -f $英文数, $英文上限)
+    }
+    # 豁免表不许虚着：每条都要在表里真的命中
+    $虚 = @($备选豁免.Keys | Where-Object { -not $豁免命中.ContainsKey($_) })
+    if ($虚.Count -gt 0) {
+        提 ("`$备选豁免 里有条目已经查不到了（表改了就把豁免删掉）：{0}" -f ($虚 -join '、'))
+    }
 }
 
 # 已知未修条目必须【仍然存在】—— 修好了就要把登记删掉（分子不许偷偷变）

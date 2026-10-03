@@ -1,4 +1,4 @@
-// expect: 隐式实例化了未定义的模板（类型名） 'S<int>'
+// expect: 隐式实例化了未定义的模板（类型名） 'S<整数>'
 // forbid: instantiation of undefined template
 //
 // 用了只声明没定义（也不完整）的模板。同一个用例顺带覆盖

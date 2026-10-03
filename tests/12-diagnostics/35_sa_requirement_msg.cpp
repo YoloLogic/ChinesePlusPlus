@@ -1,4 +1,4 @@
-// expect: 静态断言失败，因为不满足要求（表达式） 'sizeof(int) > 99'：整数太小了
+// expect: 静态断言失败，因为不满足要求（表达式） '大小(整数) > 99'：整数太小了
 // forbid: static assertion failed due to requirement
 //
 // 静态断言不满足（%select 的带消息分支）

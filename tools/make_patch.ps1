@@ -119,6 +119,18 @@ $DiagFiles = @(
     # 它与 DiagnosticOptions.def / Options.td / TextDiagnostic.cpp 是同一件事，
     # 漏了它就会把"诊断的开关注解"切到关键字补丁里去。
     'clang/include/clang/Basic/DiagnosticOptions.h',
+    # 2026-10-04（§18.8 P-09）加：诊断里"内建类型名/限定符/表达式运算符用中文"
+    # 这一整件事。它们都引用 `DiagnosticOptions::ChineseDiagnostics`
+    # （在 DiagnosticOptions.def 里，属诊断补丁）⇒ 必须一起归诊断补丁，
+    # 否则**只打关键字补丁会编不过**，D-06 记的"单向依赖"就被破坏了。
+    # 注意：这些文件里用的是 `tok::getKeywordSpelling()` —— 它的**声明**上游就有，
+    # 所以只打诊断补丁也能编（那时它回退英文拼写，中文表不在场）。
+    'clang/include/clang/AST/PrettyPrinter.h',
+    'clang/include/clang/Sema/Sema.h',
+    'clang/lib/AST/Type.cpp',
+    'clang/lib/AST/TypePrinter.cpp',
+    'clang/lib/AST/StmtPrinter.cpp',
+    'clang/lib/AST/ASTDiagnostic.cpp',
     'clang/include/clang/Options/Options.td',
     'clang/lib/Basic/Diagnostic.cpp',
     'clang/lib/Driver/ToolChains/Clang.cpp',

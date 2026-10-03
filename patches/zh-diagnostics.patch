@@ -1,6 +1,33 @@
+diff --git a/clang/include/clang/AST/PrettyPrinter.h b/clang/include/clang/AST/PrettyPrinter.h
+index c655521..afed3c1 100644
+--- a/clang/include/clang/AST/PrettyPrinter.h
++++ b/clang/include/clang/AST/PrettyPrinter.h
+@@ -96,6 +96,22 @@ struct PrintingPolicy {
+         PrettyEnums(true), UseEnumerators(true), UseHLSLTypes(LO.HLSL),
+         SuppressDeclAttributes(false), SuppressLambdaBody(false) {}
+ 
++  /// 打印**内建类型名**时用不用中文（大检查 P-09 / §18.8）。
++  ///
++  /// 效果：诊断里 `int` 打印成 `整数`、`unsigned int` 打印成 `无符号 整数`、
++  /// `int *` 打印成 `整数 *`、`标准::向量<int>` 打印成 `标准::向量<整数>`。
++  ///
++  /// 为什么放在 PrintingPolicy 而不是直接看 LangOptions：中文诊断的开关在
++  /// **DiagnosticOptions** 里（`-fno-chinese-diagnostics`），LangOptions 看不到它；
++  /// 而诊断打印类型走的是 `ASTContext::getPrintingPolicy()`
++  /// （见 `ASTDiagnostic.cpp` 的 `ak_qualtype`），所以由
++  /// `CompilerInstance::createASTContext()` 建 context 时把它设进来
++  /// ⇒ **与消息正文、关键字拼写共用同一个开关**。
++  ///
++  /// 默认 false：`-ast-print`、`-ast-dump`、clangd 之类的调用方不受影响 ——
++  /// 它们打印的是 AST 而不是诊断。
++  bool ChineseTypeNames = false;
++
+   /// Adjust this printing policy for cases where it's known that we're
+   /// printing C++ code (for instance, if AST dumping reaches a C++-only
+   /// construct). This should not be used if a real LangOptions object is
 diff --git a/clang/include/clang/Basic/ChineseDiagnostics.def b/clang/include/clang/Basic/ChineseDiagnostics.def
 new file mode 100644
-index 0000000..c3c403e
+index 0000000..622a0c9
 --- /dev/null
 +++ b/clang/include/clang/Basic/ChineseDiagnostics.def
 @@ -0,0 +1,22513 @@
@@ -440,7 +467,7 @@ index 0000000..c3c403e
 +// 英文：lambda capture %0 is not used
 +// lambda 是语言术语，没有中文关键字拼写，保留英文。
 +ZH_DIAG(warn_unused_lambda_capture,
-+        "（变量名） %0 这个 lambda 捕获 %select{未被使用|在这一处用法中不必被捕获}1")
++        "（变量名） %0 这个匿名函数捕获 %select{未被使用|在这一处用法中不必被捕获}1")
 +
 +//===----------------------------------------------------------------------===//
 +// 十五、C1：补齐「兄弟条目」（2026-09-23）
@@ -589,7 +616,7 @@ index 0000000..c3c403e
 +// 只在 C++17 以前触发（源码里的条件是 !getLangOpts().CPlusPlus17）。
 +// 实测：-std=c++14 下 enum E { X = []{ return 0; }() };
 +ZH_DIAG(err_lambda_in_constant_expression,
-+        "lambda 表达式不能出现在常量表达式内部")
++        "匿名函数不能出现在常量表达式内部")
 +
 +// 英文：blocks support disabled - compile with -fblocks or
 +//       %select{pick a deployment target that supports them|for OpenCL C 2.0
@@ -643,7 +670,7 @@ index 0000000..c3c403e
 +// 2026-09-24：`'this'` 改中文关键字拼写。原先是表里唯一保留英文的关键字
 +// （另外两处是 warn_reinterpret_different_from_static），与其余 6 处中文拼写
 +// 不一致。用户裁定统一用中文关键字后改正。实测 [自身] 能编译。
-+ZH_DIAG(err_expected_capture, "lambda 捕获列表里缺少变量名或（关键字） 自身")
++ZH_DIAG(err_expected_capture, "匿名函数捕获列表里缺少变量名或（关键字） 自身")
 +
 +// 英文：in instantiation of static data member %q0 requested here
 +// 与已翻的 note_template_class_instantiation_here 句式对齐。
@@ -878,7 +905,7 @@ index 0000000..c3c403e
 +ZH_DIAG(err_acc_clause_routine_one_of_in_region, "OpenACC 'routine' 构造必须至少有一个适用于每个 'device_type' 的 'gang'、'seq'、'vector' 或 'worker' 子句")
 +
 +// 英文：expected function or lambda declaration for 'routine' construct
-+ZH_DIAG(err_acc_decl_for_routine, "'routine' 构造需要函数或 lambda 声明")
++ZH_DIAG(err_acc_decl_for_routine, "'routine' 构造需要函数或匿名函数声明")
 +
 +// 英文：no valid clauses specified in OpenACC 'declare' directive
 +ZH_DIAG(err_acc_declare_required_clauses, "OpenACC 'declare' 指令中没有指定任何有效子句")
@@ -1418,10 +1445,10 @@ index 0000000..c3c403e
 +ZH_DIAG(err_capture_default_first, "捕获默认值必须放在最前面")
 +
 +// 英文：non-local lambda expression cannot have a capture-default
-+ZH_DIAG(err_capture_default_non_local, "非局部的 lambda 表达式不能有捕获默认值")
++ZH_DIAG(err_capture_default_non_local, "非局部的匿名函数不能有捕获默认值")
 +
 +// 英文：'[[carries_dependency]]' attribute only allowed on parameter in a function declaration or lambda
-+ZH_DIAG(err_carries_dependency_param_not_function_decl, "'[[carries_dependency]]' 属性只允许用在函数声明或 lambda 的形参上")
++ZH_DIAG(err_carries_dependency_param_not_function_decl, "'[[carries_dependency]]' 属性只允许用在函数声明或匿名函数的形参上")
 +
 +// 英文：'case' statement not in switch statement
 +ZH_DIAG(err_case_not_in_switch, "（关键字） 情形 语句不在选择语句中")
@@ -1631,7 +1658,7 @@ index 0000000..c3c403e
 +ZH_DIAG(err_decomp_decl_context, "此上下文中不允许结构化绑定声明")
 +
 +// 英文：cannot bind lambda closure type
-+ZH_DIAG(err_decomp_decl_lambda, "不能绑定 lambda 闭包类型")
++ZH_DIAG(err_decomp_decl_lambda, "不能绑定匿名函数闭包类型")
 +
 +// 英文：structured binding declaration must be the only declaration in its group
 +ZH_DIAG(err_decomp_decl_not_alone, "结构化绑定声明必须是其所在组中唯一的声明")
@@ -1994,7 +2021,7 @@ index 0000000..c3c403e
 +ZH_DIAG(err_expansion_stmt_label, "展开语句中不允许出现标签")
 +
 +// 英文：cannot expand lambda closure type
-+ZH_DIAG(err_expansion_stmt_lambda, "不能展开 lambda 闭包类型")
++ZH_DIAG(err_expansion_stmt_lambda, "不能展开匿名函数闭包类型")
 +
 +// 英文：expansion statements are only supported in C++2c
 +ZH_DIAG(err_expansion_stmt_requires_cxx2c, "展开语句只在 C++2c 中受支持")
@@ -2036,7 +2063,7 @@ index 0000000..c3c403e
 +ZH_DIAG(err_expected_comma_greater, "模板形参列表中缺少 ',' 或 '>'")
 +
 +// 英文：expected ',' or ']' in lambda capture list
-+ZH_DIAG(err_expected_comma_or_rsquare, "lambda 捕获列表中缺少 ',' 或 ']'")
++ZH_DIAG(err_expected_comma_or_rsquare, "匿名函数捕获列表中缺少 ',' 或 ']'")
 +
 +// 英文：expected '= constant-expression' or end of enumerator definition
 +ZH_DIAG(err_expected_end_of_enumerator, "需要 '= constant-expression' 或者枚举量定义结束")
@@ -2069,7 +2096,7 @@ index 0000000..c3c403e
 +ZH_DIAG(err_expected_kernel_void_return_type, "内核的返回类型必须是空型")
 +
 +// 英文：expected body of lambda expression
-+ZH_DIAG(err_expected_lambda_body, "缺少 lambda 表达式的主体")
++ZH_DIAG(err_expected_lambda_body, "缺少匿名函数的主体")
 +
 +// 英文：expected '{' after base class list
 +ZH_DIAG(err_expected_lbrace_after_base_specifiers, "基类列表之后缺少 '{'")
@@ -2135,7 +2162,7 @@ index 0000000..c3c403e
 +ZH_DIAG(err_expected_sequence_or_directive, "缺少 OpenMP 'directive' 或 'sequence' 属性实参")
 +
 +// 英文：expected 'this' following '*' in lambda capture list
-+ZH_DIAG(err_expected_star_this_capture, "lambda 捕获列表中 '*' 之后缺少（关键字） 自身")
++ZH_DIAG(err_expected_star_this_capture, "匿名函数捕获列表中 '*' 之后缺少（关键字） 自身")
 +
 +// 英文：expected statement
 +ZH_DIAG(err_expected_statement, "缺少 语句")
@@ -2195,7 +2222,7 @@ index 0000000..c3c403e
 +ZH_DIAG(err_explicit_object_parameter_invalid, "显式对象形参只能作为成员函数的第一个形参出现")
 +
 +// 英文：a lambda with an explicit object parameter cannot be mutable
-+ZH_DIAG(err_explicit_object_parameter_mutable, "带有显式对象形参的 lambda 不能声明为可变")
++ZH_DIAG(err_explicit_object_parameter_mutable, "带有显式对象形参的匿名函数不能声明为可变")
 +
 +// 英文：the explicit object parameter cannot be a function parameter pack
 +ZH_DIAG(err_explicit_object_parameter_pack, "显式对象形参不能是函数形参包")
@@ -2348,7 +2375,7 @@ index 0000000..c3c403e
 +ZH_DIAG(err_friend_is_member, "友元不能是声明它的类的成员")
 +
 +// 英文：a member of a lambda should not be the target of a friend declaration
-+ZH_DIAG(err_friend_lambda_decl, "lambda 的成员不应当成为友元声明的目标")
++ZH_DIAG(err_friend_lambda_decl, "匿名函数的成员不应当成为友元声明的目标")
 +
 +// 英文：'friend' must appear first in a non-function declaration
 +ZH_DIAG(err_friend_not_first_in_declaration, "（关键字） 友元 必须出现在非函数声明的最前面")
@@ -2678,31 +2705,31 @@ index 0000000..c3c403e
 +ZH_DIAG(err_l_square_l_square_not_attribute, "C++11 只允许在引入属性时出现连续的两个左方括号")
 +
 +// 英文：'[]' after delete interpreted as 'delete[]'; add parentheses to treat this as a lambda-expression
-+ZH_DIAG(err_lambda_after_delete, "删除 后面的 '[]' 被解释为 'delete[]'；若想将其视为 lambda 表达式，请加上圆括号")
++ZH_DIAG(err_lambda_after_delete, "删除 后面的 '[]' 被解释为 'delete[]'；若想将其视为匿名函数，请加上圆括号")
 +
 +// 英文：unnamed variable cannot be implicitly captured in a lambda expression
-+ZH_DIAG(err_lambda_capture_anonymous_var, "未命名变量不能在 lambda 表达式中被隐式捕获")
++ZH_DIAG(err_lambda_capture_anonymous_var, "未命名变量不能在匿名函数中被隐式捕获")
 +
 +// 英文：lambda expression in default argument cannot capture any entity
-+ZH_DIAG(err_lambda_capture_default_arg, "默认实参中的 lambda 表达式不能捕获任何实体")
++ZH_DIAG(err_lambda_capture_default_arg, "默认实参中的匿名函数不能捕获任何实体")
 +
 +// 英文：multiple ellipses in pack capture
 +ZH_DIAG(err_lambda_capture_multiple_ellipses, "包捕获中有多个省略号")
 +
 +// 英文：cannot assign to a variable captured by copy in a non-mutable lambda
-+ZH_DIAG(err_lambda_decl_ref_not_modifiable_lvalue, "不能给在非可变 lambda 中按复制捕获的变量赋值")
++ZH_DIAG(err_lambda_decl_ref_not_modifiable_lvalue, "不能给在非可变匿名函数中按复制捕获的变量赋值")
 +
 +// 英文：a lambda expression cannot appear in this context
-+ZH_DIAG(err_lambda_in_invalid_context, "lambda 表达式不能出现在此上下文中")
++ZH_DIAG(err_lambda_in_invalid_context, "匿名函数不能出现在此上下文中")
 +
 +// 英文：cannot deduce lambda return type from initializer list
-+ZH_DIAG(err_lambda_return_init_list, "无法从初始化器列表推导 lambda 返回类型")
++ZH_DIAG(err_lambda_return_init_list, "无法从初始化器列表推导匿名函数返回类型")
 +
 +// 英文：lambda template parameter list cannot be empty
-+ZH_DIAG(err_lambda_template_parameter_list_empty, "lambda 模板形参列表不能为空")
++ZH_DIAG(err_lambda_template_parameter_list_empty, "匿名函数模板形参列表不能为空")
 +
 +// 英文：lambda expression in an unevaluated operand
-+ZH_DIAG(err_lambda_unevaluated_operand, "lambda 表达式出现在未求值的操作数中")
++ZH_DIAG(err_lambda_unevaluated_operand, "匿名函数出现在未求值的操作数中")
 +
 +// 英文：unknown linkage language
 +ZH_DIAG(err_language_linkage_spec_unknown, "未知的链接语言")
@@ -3800,7 +3827,7 @@ index 0000000..c3c403e
 +ZH_DIAG(err_param_with_void_type, "实参不能具有（关键字） 空型 类型")
 +
 +// 英文：a lambda parameter cannot shadow an explicitly captured entity
-+ZH_DIAG(err_parameter_shadow_capture, "lambda 形参不能遮蔽被显式捕获的实体")
++ZH_DIAG(err_parameter_shadow_capture, "匿名函数形参不能遮蔽被显式捕获的实体")
 +
 +// 英文：cannot parenthesize the name of a method when forming a member pointer
 +ZH_DIAG(err_parens_pointer_member_function, "在构成成员指针时不能给方法名加圆括号")
@@ -4370,16 +4397,16 @@ index 0000000..c3c403e
 +ZH_DIAG(err_static_kernel, "内核函数不能被声明为静态")
 +
 +// 英文：static lambdas are a C++23 extension
-+ZH_DIAG(err_static_lambda, "静态 lambda 是 C++23 扩展")
++ZH_DIAG(err_static_lambda, "静态匿名函数是 C++23 扩展")
 +
 +// 英文：a static lambda cannot have any captures
-+ZH_DIAG(err_static_lambda_captures, "静态 lambda 不能有任何捕获")
++ZH_DIAG(err_static_lambda_captures, "静态匿名函数不能有任何捕获")
 +
 +// 英文：'main' is not allowed to be declared static
 +ZH_DIAG(err_static_main, "'main' 不允许被声明为静态")
 +
 +// 英文：lambda cannot be both mutable and static
-+ZH_DIAG(err_static_mutable_lambda, "lambda 不能同时是可变 和静态")
++ZH_DIAG(err_static_mutable_lambda, "匿名函数不能同时是可变 和静态")
 +
 +// 英文：'static' can only be specified inside the class definition
 +ZH_DIAG(err_static_out_of_line, "（关键字） 静态 只能指定在类定义内部")
@@ -4409,7 +4436,7 @@ index 0000000..c3c403e
 +ZH_DIAG(err_subscript_svbool_t, "不允许对 svbool_t 使用下标")
 +
 +// 英文：use of '__super' inside a lambda is unsupported
-+ZH_DIAG(err_super_in_lambda_unsupported, "不支持在 lambda 内部使用 '__super'")
++ZH_DIAG(err_super_in_lambda_unsupported, "不支持在匿名函数内部使用 '__super'")
 +
 +// 英文：'__super' cannot be used with a using declaration
 +ZH_DIAG(err_super_in_using_declaration, "'__super' 不能与使用 声明一起使用")
@@ -5087,7 +5114,7 @@ index 0000000..c3c403e
 +ZH_DIAG(ext_constexpr_if, "constexpr if 是 C++17 扩展")
 +
 +// 英文：'constexpr' on lambda expressions is a C++17 extension
-+ZH_DIAG(ext_constexpr_on_lambda_cxx17, "lambda 表达式上的 （关键字） 常量表达式 是 C++17 扩展")
++ZH_DIAG(ext_constexpr_on_lambda_cxx17, "匿名函数上的 （关键字） 常量表达式 是 C++17 扩展")
 +
 +// 英文：'__COUNTER__' is a C2y extension
 +ZH_DIAG(ext_counter, "'__COUNTER__' 是 C2y 扩展")
@@ -5303,10 +5330,10 @@ index 0000000..c3c403e
 +ZH_DIAG(ext_increment_bool, "ISO C++17 不允许对 布尔 类型的表达式做自增")
 +
 +// 英文：initialized lambda captures are a C++14 extension
-+ZH_DIAG(ext_init_capture, "带初始化的 lambda 捕获是 C++14 扩展")
++ZH_DIAG(ext_init_capture, "带初始化的匿名函数捕获是 C++14 扩展")
 +
 +// 英文：initialized lambda pack captures are a C++20 extension
-+ZH_DIAG(ext_init_capture_pack, "带初始化的 lambda 包捕获是 C++20 扩展")
++ZH_DIAG(ext_init_capture_pack, "带初始化的匿名函数包捕获是 C++20 扩展")
 +
 +// 英文：initializer-string for char array is too long
 +ZH_DIAG(ext_initializer_string_for_char_array_too_long, "字符 数组的初始化字符串过长")
@@ -5324,10 +5351,10 @@ index 0000000..c3c403e
 +ZH_DIAG(ext_integer_literal_too_large_for_signed, "整数字面量太大，无法用有符号整数类型表示，按无符号处理")
 +
 +// 英文：lambda without a parameter clause is a C++23 extension
-+ZH_DIAG(ext_lambda_missing_parens, "不带形参子句的 lambda 是 C++23 扩展")
++ZH_DIAG(ext_lambda_missing_parens, "不带形参子句的匿名函数是 C++23 扩展")
 +
 +// 英文：explicit template parameter list for lambdas is a C++20 extension
-+ZH_DIAG(ext_lambda_template_parameter_list, "lambda 的显式模板形参列表是 C++20 扩展")
++ZH_DIAG(ext_lambda_template_parameter_list, "匿名函数的显式模板形参列表是 C++20 扩展")
 +
 +// 英文：// comments are not allowed in this language
 +ZH_DIAG(ext_line_comment, "此语言不允许 // 注释")
@@ -6278,16 +6305,16 @@ index 0000000..c3c403e
 +ZH_DIAG(note_ivar_decl, "实例变量在这里声明")
 +
 +// 英文：lambda expression begins here
-+ZH_DIAG(note_lambda_decl, "lambda 表达式从这里开始")
++ZH_DIAG(note_lambda_decl, "匿名函数从这里开始")
 +
 +// 英文：while substituting into a lambda expression here
-+ZH_DIAG(note_lambda_substitution_here, "在这里替换到 lambda 表达式中时")
++ZH_DIAG(note_lambda_substitution_here, "在这里替换到匿名函数中时")
 +
 +// 英文：explicitly capture 'this'
 +ZH_DIAG(note_lambda_this_capture_fixit, "显式捕获（关键字） 自身")
 +
 +// 英文：implicit capture of lambda object due to conversion to block pointer here
-+ZH_DIAG(note_lambda_to_block_conv, "因为转换为块指针而在这里隐式捕获 lambda 对象")
++ZH_DIAG(note_lambda_to_block_conv, "因为转换为块指针而在这里隐式捕获匿名函数对象")
 +
 +// 英文：this field dangles
 +ZH_DIAG(note_lifetime_safety_dangling_field_here, "此字段悬空")
@@ -6404,7 +6431,7 @@ index 0000000..c3c403e
 +ZH_DIAG(note_non_instantiated_member_here, "尚未实例化的成员在这里声明")
 +
 +// 英文：lambda closure types are non-literal types before C++17
-+ZH_DIAG(note_non_literal_lambda, "在 C++17 之前 lambda 闭包类型不是字面类型")
++ZH_DIAG(note_non_literal_lambda, "在 C++17 之前匿名函数闭包类型不是字面类型")
 +
 +// 英文：null passed to a callee that requires a non-null argument
 +ZH_DIAG(note_non_null_attribute_failed, "向要求非空实参的被调用方传入了空值")
@@ -7286,10 +7313,10 @@ index 0000000..c3c403e
 +ZH_DIAG(warn_cxx11_compat_digit_separator, "数字分隔符与 C++14 之前的 C++ 标准不兼容")
 +
 +// 英文：generic lambdas are incompatible with C++11
-+ZH_DIAG(warn_cxx11_compat_generic_lambda, "泛型 lambda 与 C++11 不兼容")
++ZH_DIAG(warn_cxx11_compat_generic_lambda, "泛型匿名函数与 C++11 不兼容")
 +
 +// 英文：initialized lambda captures are incompatible with C++ standards before C++14
-+ZH_DIAG(warn_cxx11_compat_init_capture, "带初始化的 lambda 捕获与 C++14 之前的 C++ 标准不兼容")
++ZH_DIAG(warn_cxx11_compat_init_capture, "带初始化的匿名函数捕获与 C++14 之前的 C++ 标准不兼容")
 +
 +// 英文：identifier after literal will be treated as a reserved user-defined literal suffix in C++11
 +ZH_DIAG(warn_cxx11_compat_reserved_user_defined_literal, "字面量之后的标识符在 C++11 中将被视为保留的用户定义字面量后缀")
@@ -7307,7 +7334,7 @@ index 0000000..c3c403e
 +ZH_DIAG(warn_cxx14_compat_constexpr_not_const, "（关键字） 常量表达式 非静态成员函数在 C++14 中不会隐式为 （关键字） 常量；请添加 （关键字） 常量 以避免行为改变")
 +
 +// 英文：constexpr on lambda expressions is incompatible with C++ standards before C++17
-+ZH_DIAG(warn_cxx14_compat_constexpr_on_lambda, "lambda 表达式上的 常量表达式 与 C++17 之前的 C++ 标准不兼容")
++ZH_DIAG(warn_cxx14_compat_constexpr_on_lambda, "匿名函数上的 常量表达式 与 C++17 之前的 C++ 标准不兼容")
 +
 +// 英文：pack fold expression is incompatible with C++ standards before C++17
 +ZH_DIAG(warn_cxx14_compat_fold_expression, "包折叠表达式与 C++17 之前的 C++ 标准不兼容")
@@ -7355,13 +7382,13 @@ index 0000000..c3c403e
 +ZH_DIAG(warn_cxx17_compat_for_range_init_stmt, "基于范围的 对于 循环的初始化语句与 C++20 之前的 C++ 标准不兼容")
 +
 +// 英文：initialized lambda capture packs are incompatible with C++ standards before C++20
-+ZH_DIAG(warn_cxx17_compat_init_capture_pack, "带初始化的 lambda 包捕获与 C++20 之前的 C++ 标准不兼容")
++ZH_DIAG(warn_cxx17_compat_init_capture_pack, "带初始化的匿名函数包捕获与 C++20 之前的 C++ 标准不兼容")
 +
 +// 英文：inline nested namespace definition is incompatible with C++ standards before C++20
 +ZH_DIAG(warn_cxx17_compat_inline_nested_namespace_definition, "内联嵌套名域定义与 C++20 之前的 C++ 标准不兼容")
 +
 +// 英文：explicit template parameter list for lambdas is incompatible with C++ standards before C++20
-+ZH_DIAG(warn_cxx17_compat_lambda_template_parameter_list, "lambda 的显式模板形参列表与 C++20 之前的 C++ 标准不兼容")
++ZH_DIAG(warn_cxx17_compat_lambda_template_parameter_list, "匿名函数的显式模板形参列表与 C++20 之前的 C++ 标准不兼容")
 +
 +// 英文：passing no argument for the '...' parameter of a variadic macro is incompatible with C++ standards before C++20
 +ZH_DIAG(warn_cxx17_compat_missing_varargs_arg, "没有为可变参数宏的 '...' 形参传入实参，与 C++20 之前的 C++ 标准不兼容")
@@ -7424,7 +7451,7 @@ index 0000000..c3c403e
 +ZH_DIAG(warn_cxx20_compat_static_assert_user_generated_message, "带用户生成消息的（关键字） 静态断言 与 C++26 之前的 C++ 标准不兼容")
 +
 +// 英文：static lambdas are incompatible with C++ standards before C++23
-+ZH_DIAG(warn_cxx20_compat_static_lambda, "静态 lambda 与 C++23 之前的 C++ 标准不兼容")
++ZH_DIAG(warn_cxx20_compat_static_lambda, "静态匿名函数与 C++23 之前的 C++ 标准不兼容")
 +
 +// 英文：taking address of non-addressable standard library function is incompatible with C++20
 +ZH_DIAG(warn_cxx20_compat_use_of_unaddressable_function, "取不可取址的标准库函数的地址与 C++20 不兼容")
@@ -7520,7 +7547,7 @@ index 0000000..c3c403e
 +ZH_DIAG(warn_cxx98_compat_inline_namespace, "内联 名域与 C++98 不兼容")
 +
 +// 英文：lambda expressions are incompatible with C++98
-+ZH_DIAG(warn_cxx98_compat_lambda, "lambda 表达式与 C++98 不兼容")
++ZH_DIAG(warn_cxx98_compat_lambda, "匿名函数与 C++98 不兼容")
 +
 +// 英文：'<::' is treated as digraph '<:' (aka '[') followed by ':' in C++98
 +ZH_DIAG(warn_cxx98_compat_less_colon_colon, "在 C++98 中，'<::' 会被当作双联符 '<:' 即 '[' 后接 ':' 处理")
@@ -8051,7 +8078,7 @@ index 0000000..c3c403e
 +ZH_DIAG(warn_main_returns_bool_literal, "从 'main' 返回了布尔 字面量")
 +
 +// 英文：capture host side class data member by this pointer in device or host device lambda function may result in invalid memory access if this pointer is not accessible on device side
-+ZH_DIAG(warn_maybe_capture_bad_target_this_ptr, "在设备端或主机设备 lambda 函数中通过自身 指针捕获主机侧类数据成员，若该指针在设备端不可访问，可能导致无效的内存访问")
++ZH_DIAG(warn_maybe_capture_bad_target_this_ptr, "在设备端或主机设备匿名函数中通过自身 指针捕获主机侧类数据成员，若该指针在设备端不可访问，可能导致无效的内存访问")
 +
 +// 英文：messaging unqualified id
 +ZH_DIAG(warn_messaging_unqualified_id, "向未限定 id 发送消息")
@@ -8715,8 +8742,8 @@ index 0000000..c3c403e
 +// 英文：use of incomplete type %0 in a '_Generic' association is incompatible with C standards before C2y
 +ZH_DIAG(compat_c2y_assoc_type_incomplete, "在 '_Generic' 关联中使用不完整类型（类型） %0 与 C2y 之前的 C 标准不兼容")
 +
-+// 英文：'%select{if|switch}0' declaration statements are incompatible with C standards before C2y
-+ZH_DIAG(compat_c2y_decl_statement, "'%select{if|switch}0' 声明语句与 C2y 之前的 C 标准不兼容")
++// 英文：'%select{如果|选择}0' declaration statements are incompatible with C standards before C2y
++ZH_DIAG(compat_c2y_decl_statement, "'%select{如果|选择}0' 声明语句与 C2y 之前的 C 标准不兼容")
 +
 +// 英文：'%select{--|++}0' on an object of complex type is incompatible with C standards before C2y
 +ZH_DIAG(compat_c2y_increment_complex, "对复数类型的对象使用 '%select{--|++}0' 与 C2y 之前的 C 标准不兼容")
@@ -8760,8 +8787,8 @@ index 0000000..c3c403e
 +// 英文：use of incomplete type %0 in a '_Generic' association is a C2y extension
 +ZH_DIAG(compat_pre_c2y_assoc_type_incomplete, "在 '_Generic' 关联中使用不完整类型（类型） %0 是 C2y 扩展")
 +
-+// 英文：'%select{if|switch}0' declaration statements are a C2y extension
-+ZH_DIAG(compat_pre_c2y_decl_statement, "'%select{if|switch}0' 声明语句是 C2y 扩展")
++// 英文：'%select{如果|选择}0' declaration statements are a C2y extension
++ZH_DIAG(compat_pre_c2y_decl_statement, "'%select{如果|选择}0' 声明语句是 C2y 扩展")
 +
 +// 英文：'%select{--|++}0' on an object of complex type is a C2y extension
 +ZH_DIAG(compat_pre_c2y_increment_complex, "对复数类型的对象使用 '%select{--|++}0' 是 C2y 扩展")
@@ -9030,8 +9057,8 @@ index 0000000..c3c403e
 +// 英文：capture of variable '%0' as type %1 calls %select{private|protected}3 %select{default |copy |move |*ERROR* |*ERROR* |*ERROR* |}2constructor
 +ZH_DIAG(err_access_lambda_capture, "把变量（变量名） '%0' 捕获为类型（类型） %1 会调用（关键字） %select{私有|受保护}3 %select{默认 |复制 |移动 |*ERROR* |*ERROR* |*ERROR* |}2构造函数")
 +
-+// 英文：interface types cannot specify '%select{private|protected}0' access
-+ZH_DIAG(err_access_specifier_interface, "接口类型不能指定 '%select{private|protected}0' 访问权限")
++// 英文：interface types cannot specify '%select{私有|受保护}0' access
++ZH_DIAG(err_access_specifier_interface, "接口类型不能指定 '%select{私有|受保护}0' 访问权限")
 +
 +// 英文：address of overloaded function %0 is ambiguous
 +ZH_DIAG(err_addr_ovl_ambiguous, "重载函数（函数名） %0 的地址有歧义")
@@ -9075,11 +9102,11 @@ index 0000000..c3c403e
 +// 英文：%select{partial specialization|explicit specialization|explicit instantiation}0 of alias templates is not permitted
 +ZH_DIAG(err_alias_declaration_specialization, "不允许别名模板的%select{部分特化|显式特化|显式实例化}0")
 +
-+// 英文：definition %0 cannot also be an %select{alias|ifunc}1
-+ZH_DIAG(err_alias_is_definition, "定义（名字） %0 不能同时又是%select{alias|ifunc}1")
++// 英文：definition %0 cannot also be an %select{别名|ifunc}1
++ZH_DIAG(err_alias_is_definition, "定义（名字） %0 不能同时又是%select{别名|ifunc}1")
 +
-+// 英文：%select{alias|ifunc}0 must point to a defined %select{variable or |}1function
-+ZH_DIAG(err_alias_to_undefined, "%select{alias|ifunc}0 必须指向已定义的%select{变量或|}1函数")
++// 英文：%select{别名|ifunc}0 must point to a defined %select{variable or |}1function
++ZH_DIAG(err_alias_to_undefined, "%select{别名|ifunc}0 必须指向已定义的%select{变量或|}1函数")
 +
 +// 英文：%0 attribute cannot be applied to %select{a function parameter|a variable with 'register' storage class|a 'catch' variable|a bit-field|an enumeration}1
 +ZH_DIAG(err_alignas_attribute_wrong_decl_type, "（属性名） %0 属性不能应用于%select{函数形参|存储类别为（关键字） 寄存器 的变量|（关键字） 捕获 变量|位域|枚举}1")
@@ -9223,7 +9250,7 @@ index 0000000..c3c403e
 +ZH_DIAG(err_arc_atomic_ownership, "不能对指向（类型） %0 的指针执行原子操作：该类型具有非平凡所有权")
 +
 +// 英文：cannot capture __autoreleasing variable in a %select{block|lambda by copy}0
-+ZH_DIAG(err_arc_autoreleasing_capture, "不能在%select{block|按值捕获的 lambda}0 中捕获 __autoreleasing 变量")
++ZH_DIAG(err_arc_autoreleasing_capture, "不能在%select{block|按值捕获的匿名函数}0 中捕获 __autoreleasing 变量")
 +
 +// 英文：%select{__block variables|global variables|fields|instance variables}0 cannot have __autoreleasing ownership
 +ZH_DIAG(err_arc_autoreleasing_var, "%select{__block 变量|全局变量|字段|实例变量}0 不能具有 __autoreleasing 所有权")
@@ -9664,7 +9691,7 @@ index 0000000..c3c403e
 +ZH_DIAG(err_attribute_dll_deleted, "（属性名） %q0 不能应用于已删除的函数")
 +
 +// 英文：lambda cannot be declared %0
-+ZH_DIAG(err_attribute_dll_lambda, "lambda 不能被声明为（选项） %0")
++ZH_DIAG(err_attribute_dll_lambda, "匿名函数不能被声明为（选项） %0")
 +
 +// 英文：attribute %q0 cannot be applied to member of %q1 class
 +ZH_DIAG(err_attribute_dll_member_of_dll_class, "（属性名） %q0 不能应用于（类型名） %q1 类的成员")
@@ -9892,7 +9919,7 @@ index 0000000..c3c403e
 +ZH_DIAG(err_auto_non_deduced_not_alone, "（种类） %select{具有推导返回类型的函数|带有尾置返回类型的声明}0 必须是其所在组中唯一的声明")
 +
 +// 英文：%select{'auto'|'decltype(auto)'|'__auto_type'|use of %select{class template|function template|variable template|alias template|template template parameter|concept|template}2 %3 requires template arguments; argument deduction}0 not allowed %select{in function prototype|in non-static struct member|in struct member|in non-static union member|in union member|in non-static class member|in interface member|in exception declaration|in template parameter until C++17|in block literal|in template argument|in typedef|in type alias|in function return type|in conversion function type|here|in lambda parameter|in type allocated by 'new'|in K&R-style function parameter|in template parameter|in friend declaration|in function prototype that is not a function declaration|in requires expression parameter|in array declaration|in declaration of conversion function template|in lambda parameter before C++14}1
-+ZH_DIAG(err_auto_not_allowed, "%select{（关键字） 自动|'decltype(auto)'|'__auto_type'|使用%select{类模板|函数模板|变量模板|别名模板|模板模板参数|概念|模板}2（名字） %3 需要模板实参；实参推导}0 不允许%select{在函数原型中|在非静态结构成员中|在结构成员中|在非静态共用体成员中|在共用体成员中|在非静态类成员中|在接口成员中|在异常声明中|在 C++17 之前的模板形参中|在块字面量中|在模板实参中|在类型别名中|在别名声明中|在函数返回类型中|在转换函数类型中|在这里|在 lambda 形参中|在用（关键字） 新建 分配的类型中|在 K&R 风格函数形参中|在模板形参中|在友元声明中|在不是函数声明的函数原型中|在约束表达式形参中|在数组声明中|在转换函数模板的声明中|在 C++14 之前的 lambda 形参中}1")
++ZH_DIAG(err_auto_not_allowed, "%select{（关键字） 自动|'decltype(auto)'|'__auto_type'|使用%select{类模板|函数模板|变量模板|别名模板|模板模板参数|概念|模板}2（名字） %3 需要模板实参；实参推导}0 不允许%select{在函数原型中|在非静态结构成员中|在结构成员中|在非静态共用体成员中|在共用体成员中|在非静态类成员中|在接口成员中|在异常声明中|在 C++17 之前的模板形参中|在块字面量中|在模板实参中|在类型别名中|在别名声明中|在函数返回类型中|在转换函数类型中|在这里|在匿名函数形参中|在用（关键字） 新建 分配的类型中|在 K&R 风格函数形参中|在模板形参中|在友元声明中|在不是函数声明的函数原型中|在约束表达式形参中|在数组声明中|在转换函数模板的声明中|在 C++14 之前的匿名函数形参中}1")
 +
 +// 英文：variable %0 with type %1 has incompatible initializer of type %2
 +ZH_DIAG(err_auto_var_deduction_failure, "变量（变量名） %0 具有类型（类型） %1，但初始化式类型（类型） %2 不兼容")
@@ -10255,10 +10282,10 @@ index 0000000..c3c403e
 +ZH_DIAG(err_cannot_write_file, "无法写入文件 '%0'：（名字） %1")
 +
 +// 英文：capture host variable %0 by reference in device or host device lambda function
-+ZH_DIAG(err_capture_bad_target, "在设备或主机设备 lambda 函数中按引用捕获主机变量（变量名） %0")
++ZH_DIAG(err_capture_bad_target, "在设备或主机设备匿名函数中按引用捕获主机变量（变量名） %0")
 +
 +// 英文：__block variable %0 cannot be captured in a %select{lambda expression|captured statement}1
-+ZH_DIAG(err_capture_block_variable, "__block 变量（变量名） %0 不能在%select{lambda 表达式|捕获语句}1中被捕获")
++ZH_DIAG(err_capture_block_variable, "__block 变量（变量名） %0 不能在%select{匿名函数|捕获语句}1中被捕获")
 +
 +// 英文：'lifetime_capture_by' attribute argument %0 is not a known function parameter; must be a function parameter, 'this', 'global' or 'unknown'
 +ZH_DIAG(err_capture_by_attribute_argument_unknown, "（属性名） 'lifetime_capture_by' 的实参（名字） %0 不是已知的函数形参；它必须是函数形参、（关键字） 自身、'global' 或 'unknown'")
@@ -10399,7 +10426,7 @@ index 0000000..c3c403e
 +ZH_DIAG(err_conditional_vector_element_size, "向量条件类型（类型） %0 和结果类型（类型） %1 的元素大小不同")
 +
 +// 英文：GNU vector conditional operand cannot be %select{void|a throw expression}0
-+ZH_DIAG(err_conditional_vector_has_void, "GNU 向量条件表达式的运算对象不能是%select{void|抛出表达式}0")
++ZH_DIAG(err_conditional_vector_has_void, "GNU 向量条件表达式的运算对象不能是%select{空型|抛出表达式}0")
 +
 +// 英文：vector operands to the vector conditional must be the same type %diff{($ and $)|}0,1}
 +ZH_DIAG(err_conditional_vector_mismatched, "向量条件表达式的向量运算对象必须是同一类型%diff{（$ 和 $）|}0,1")
@@ -10686,7 +10713,7 @@ index 0000000..c3c403e
 +// 英文：%select{variable template|concept}0 template parameter is a C++2c extension
 +ZH_DIAG(err_cxx26_template_template_params, "%select{变量模板|概念}0模板参数是 C++2c 扩展")
 +
-+// 英文：%select{alias|ifunc}0 definition is part of a cycle
++// 英文：%select{别名|ifunc}0 definition is part of a cycle
 +ZH_DIAG(err_cyclic_alias, "%select{别名|ifunc}0定义是某个循环的一部分")
 +
 +// 英文：%select{reference|backing array for 'std::initializer_list'}2 %select{|subobject of }1member %0 %select{binds to|is}2 a temporary object whose lifetime would be shorter than the lifetime of the constructed object
@@ -10803,8 +10830,8 @@ index 0000000..c3c403e
 +// 英文：addition of default argument on redeclaration makes this constructor a %select{default|copy|move}0 constructor
 +ZH_DIAG(err_default_arg_makes_ctor_special, "在重新声明时添加默认实参会使这个构造函数成为%select{默认|复制|移动}0构造函数")
 +
-+// 英文：'= %select{default|delete}0' is a function definition and must occur in a standalone declaration
-+ZH_DIAG(err_default_delete_in_multiple_declaration, "（符号） '= %select{default|delete}0' 是一个函数定义，必须出现在独立的声明中")
++// 英文：'= %select{默认|删除}0' is a function definition and must occur in a standalone declaration
++ZH_DIAG(err_default_delete_in_multiple_declaration, "（符号） '= %select{默认|删除}0' 是一个函数定义，必须出现在独立的声明中")
 +
 +// 英文：default initialization of an object of const type %0%select{| without a user-provided default constructor}1
 +ZH_DIAG(err_default_init_const, "常量类型（类型） %0 的对象的默认初始化%select{|，且没有用户提供的默认构造函数}1")
@@ -11662,19 +11689,19 @@ index 0000000..c3c403e
 +ZH_DIAG(err_explicit_instantiation_without_template_id, "（名字） %q0 的显式实例化必须指定模板实参列表")
 +
 +// 英文：lambda %0 is inaccessible due to ambiguity:%1
-+ZH_DIAG(err_explicit_object_lambda_ambiguous_base, "lambda（类型名） %0 因歧义而不可访问：%1")
++ZH_DIAG(err_explicit_object_lambda_ambiguous_base, "匿名函数（类型名） %0 因歧义而不可访问：%1")
 +
 +// 英文：invalid explicit object parameter type %0 in lambda with capture; the type must derive publicly from the lambda
-+ZH_DIAG(err_explicit_object_lambda_inaccessible_base, "带捕获的 lambda 中，显式对象形参的类型（类型） %0 无效；该类型必须公开派生自该 lambda")
++ZH_DIAG(err_explicit_object_lambda_inaccessible_base, "带捕获的匿名函数中，显式对象形参的类型（类型） %0 无效；该类型必须公开派生自该匿名函数")
 +
 +// 英文：an explicit object parameter cannot appear in a %select{constructor|destructor}0
 +ZH_DIAG(err_explicit_object_parameter_constructor, "显式对象形参不能出现在%select{构造函数|析构函数}0中")
 +
 +// 英文：an explicit object parameter can only appear as the first parameter of the %select{function|lambda}0
-+ZH_DIAG(err_explicit_object_parameter_must_be_first, "显式对象形参只能作为%select{函数|lambda}0的第一个形参出现")
++ZH_DIAG(err_explicit_object_parameter_must_be_first, "显式对象形参只能作为%select{函数|匿名函数}0的第一个形参出现")
 +
 +// 英文：an explicit object parameter cannot appear in a %select{static|virtual|non-member}0 %select{function|lambda}1
-+ZH_DIAG(err_explicit_object_parameter_nonmember, "显式对象形参不能出现在%select{静态|虚拟|非成员}0%select{函数|lambda}1中")
++ZH_DIAG(err_explicit_object_parameter_nonmember, "显式对象形参不能出现在%select{静态|虚拟|非成员}0%select{函数|匿名函数}1中")
 +
 +// 英文：explicit %select{specialization|instantiation}0 of %select{non-|undeclared }3template %1 %2
 +ZH_DIAG(err_explicit_spec_non_template, "显式%select{特化|实例化}0，针对%select{非|未声明的}3模板（名字） %1 %2")
@@ -11728,7 +11755,7 @@ index 0000000..c3c403e
 +ZH_DIAG(err_failed_to_open_for_embedding, "无法打开（名字） '%0' 用于嵌入")
 +
 +// 英文：non-void %select{function|block|lambda|coroutine}0 does not return a value%select{| in all control paths}1
-+ZH_DIAG(err_falloff_nonvoid, "非空型%select{函数|块|lambda|协程}0没有返回值%select{|，即并非所有控制路径都会返回值}1")
++ZH_DIAG(err_falloff_nonvoid, "非空型%select{函数|块|匿名函数|协程}0没有返回值%select{|，即并非所有控制路径都会返回值}1")
 +
 +// 英文：%0 attribute is only allowed on empty statements
 +ZH_DIAG(err_fallthrough_attr_wrong_target, "（属性名） %0 属性只允许用在空语句上")
@@ -11854,7 +11881,7 @@ index 0000000..c3c403e
 +ZH_DIAG(err_filter_expression_integral, "过滤表达式具有非整型类型（类型） %0")
 +
 +// 英文：declaration of %0 overrides a '%select{final|sealed}1' function
-+ZH_DIAG(err_final_function_overridden, "（名字） %0 的声明重写了 '%select{final|sealed}1' 函数")
++ZH_DIAG(err_final_function_overridden, "（名字） %0 的声明重写了 '%select{最终|sealed}1' 函数")
 +
 +// 英文：first argument to 'va_arg' is of type %0 and not 'va_list'
 +ZH_DIAG(err_first_argument_to_va_arg_not_of_type_va_list, "传给 'va_arg' 的第一个实参类型是（类型） %0，而不是 'va_list'")
@@ -12349,22 +12376,22 @@ index 0000000..c3c403e
 +ZH_DIAG(err_indirect_goto_in_protected_scope, "不能从这个 %select{间接|汇编}0 跳转语句跳到它的一个可能目标")
 +
 +// 英文：cannot deduce type for lambda capture %0 from initializer of type %2
-+ZH_DIAG(err_init_capture_deduction_failure, "无法从 lambda 捕获（变量名） %0 的初始化器推导类型，该初始化器的类型为（类型） %2")
++ZH_DIAG(err_init_capture_deduction_failure, "无法从匿名函数捕获（变量名） %0 的初始化器推导类型，该初始化器的类型为（类型） %2")
 +
 +// 英文：cannot deduce type for lambda capture %0 from initializer list
-+ZH_DIAG(err_init_capture_deduction_failure_from_init_list, "无法从初始化器列表推导 lambda 捕获（变量名） %0 的类型")
++ZH_DIAG(err_init_capture_deduction_failure_from_init_list, "无法从初始化器列表推导匿名函数捕获（变量名） %0 的类型")
 +
 +// 英文：initializer for lambda capture %0 contains multiple expressions
-+ZH_DIAG(err_init_capture_multiple_expressions, "lambda 捕获（变量名） %0 的初始化器包含多个表达式")
++ZH_DIAG(err_init_capture_multiple_expressions, "匿名函数捕获（变量名） %0 的初始化器包含多个表达式")
 +
 +// 英文：initializer missing for lambda capture %0
-+ZH_DIAG(err_init_capture_no_expression, "lambda 捕获（变量名） %0 缺少初始化器")
++ZH_DIAG(err_init_capture_no_expression, "匿名函数捕获（变量名） %0 缺少初始化器")
 +
 +// 英文：cannot deduce type for lambda capture %1 from %select{parenthesized|nested}0 initializer list
-+ZH_DIAG(err_init_capture_paren_braces, "无法从 lambda 捕获（变量名） %1 的 %select{带括号的|嵌套的}0 初始化器列表推导类型")
++ZH_DIAG(err_init_capture_paren_braces, "无法从匿名函数捕获（变量名） %1 的 %select{带括号的|嵌套的}0 初始化器列表推导类型")
 +
 +// 英文：cannot initialize %select{a variable|a parameter|template parameter|return object|statement expression result|an exception object|a member subobject|an array element|a new value|a value|a base class|a constructor delegation|a vector element|a matrix element|a block element|a block element|a complex element|a lambda capture|a compound literal initializer|a related result|a parameter of CF audited function|a structured binding|a member subobject}0 %diff{of type $ with an %select{rvalue|lvalue}2 of type $|with an %select{rvalue|lvalue}2 of incompatible type}1,3%select{|: different classes%diff{ ($ vs $)|}5,6|: different number of parameters (%5 vs %6)|: type mismatch at %ordinal5 parameter%diff{ ($ vs $)|}6,7|: different return type%diff{ ($ vs $)|}5,6|: different qualifiers (%5 vs %6)|: different exception specifications}4
-+ZH_DIAG(err_init_conversion_failed, "无法初始化 %select{变量|形参|模板参数|返回对象|语句表达式结果|异常对象|成员子对象|数组元素|新建值|值|基类|构造函数委托|向量元素|矩阵元素|块元素|块元素|复数元素|lambda 捕获|复合字面量初始化器|相关结果|CF 审计函数的形参|结构化绑定|成员子对象}0 %diff{，其类型为 $，而 %select{右值|左值}2 的类型为 $|，其 %select{右值|左值}2 的类型不兼容}1,3%select{|：类不同%diff{ （$ 与 $）|}5,6|：参数个数不同（%5 与 %6）|：第 %ordinal5 个参数的类型不匹配%diff{ （$ 与 $）|}6,7|：返回类型不同%diff{ （$ 与 $）|}5,6|：限定符不同（%5 与 %6）|：异常规格不同}4")
++ZH_DIAG(err_init_conversion_failed, "无法初始化 %select{变量|形参|模板参数|返回对象|语句表达式结果|异常对象|成员子对象|数组元素|新建值|值|基类|构造函数委托|向量元素|矩阵元素|块元素|块元素|复数元素|匿名函数捕获|复合字面量初始化器|相关结果|CF 审计函数的形参|结构化绑定|成员子对象}0 %diff{，其类型为 $，而 %select{右值|左值}2 的类型为 $|，其 %select{右值|左值}2 的类型不兼容}1,3%select{|：类不同%diff{ （$ 与 $）|}5,6|：参数个数不同（%5 与 %6）|：第 %ordinal5 个参数的类型不匹配%diff{ （$ 与 $）|}6,7|：返回类型不同%diff{ （$ 与 $）|}5,6|：限定符不同（%5 与 %6）|：异常规格不同}4")
 +
 +// 英文：cannot create object of function type %0
 +ZH_DIAG(err_init_for_function_type, "无法创建函数类型（类型） %0 的对象")
@@ -12514,7 +12541,7 @@ index 0000000..c3c403e
 +ZH_DIAG(err_invalid_digit, "数字（符号） '%0' 在 %select{十进制|八进制|二进制}1 常量中无效")
 +
 +// 英文：invalid explicit object parameter type %0 in lambda with capture; the type must be the same as, or derived from, the lambda
-+ZH_DIAG(err_invalid_explicit_object_type_in_lambda, "带捕获的 lambda 中显式对象形参类型（类型） %0 无效；该类型必须与 lambda 相同，或由 lambda 派生")
++ZH_DIAG(err_invalid_explicit_object_type_in_lambda, "带捕获的匿名函数中显式对象形参类型（类型） %0 无效；该类型必须与匿名函数相同，或由匿名函数派生")
 +
 +// 英文：invalid extra discrimination selection %0
 +ZH_DIAG(err_invalid_extra_discrimination, "额外的区分选择（名字） %0 无效")
@@ -12655,22 +12682,22 @@ index 0000000..c3c403e
 +ZH_DIAG(err_keyword_not_supported_on_target, "（属性名） %0 在此目标上不受支持")
 +
 +// 英文：variable %0 with flexible array member cannot be captured in a lambda expression
-+ZH_DIAG(err_lambda_capture_flexarray_type, "带有柔性数组成员的变量（变量名） %0 不能在 lambda 表达式中被捕获")
++ZH_DIAG(err_lambda_capture_flexarray_type, "带有柔性数组成员的变量（变量名） %0 不能在匿名函数中被捕获")
 +
 +// 英文：ellipsis in pack %select{|init-}0capture must appear %select{after|before}0 the name of the capture
 +ZH_DIAG(err_lambda_capture_misplaced_ellipsis, "包 %select{|init-}0捕获中的省略号必须出现在捕获名的 %select{后面|前面}0")
 +
 +// 英文：%select{'mutable'|'static'|'constexpr'|'consteval'}0 cannot appear multiple times in a lambda declarator
-+ZH_DIAG(err_lambda_decl_specifier_repeated, "%select{（关键字） 可变|（关键字） 静态|（关键字） 常量表达式|（关键字） 立即求值}0 不能在 lambda 声明器中多次出现")
++ZH_DIAG(err_lambda_decl_specifier_repeated, "%select{（关键字） 可变|（关键字） 静态|（关键字） 常量表达式|（关键字） 立即求值}0 不能在匿名函数声明器中多次出现")
 +
 +// 英文：a member of a lambda should not be explicitly %select{specialized|instantiated}0
-+ZH_DIAG(err_lambda_explicit_temp_spec, "lambda 的成员不应当被显式 %select{特化|实例化}0")
++ZH_DIAG(err_lambda_explicit_temp_spec, "匿名函数的成员不应当被显式 %select{特化|实例化}0")
 +
 +// 英文：variable %0 cannot be implicitly captured in a lambda with no capture-default specified
-+ZH_DIAG(err_lambda_impcap, "在未指定捕获默认值的 lambda 中，变量（变量名） %0 不能被隐式捕获")
++ZH_DIAG(err_lambda_impcap, "在未指定捕获默认值的匿名函数中，变量（变量名） %0 不能被隐式捕获")
 +
 +// 英文：incomplete result type %0 in lambda expression
-+ZH_DIAG(err_lambda_incomplete_result, "lambda 表达式中的结果类型不完整（类型） %0")
++ZH_DIAG(err_lambda_incomplete_result, "匿名函数中的结果类型不完整（类型） %0")
 +
 +// 英文：cannot apply asm label to %select{variable|function}0 after its first use
 +ZH_DIAG(err_late_asm_label_name, "不能在（种类） %select{变量|函数}0 首次使用之后再应用 汇编 标签")
@@ -13141,7 +13168,7 @@ index 0000000..c3c403e
 +ZH_DIAG(err_multiversion_disallowed_other_attr, "属性 '%select{|target|cpu_specific|cpu_dispatch|target_clones|target_version}0' 的多版本化不能与属性（属性名） %1 组合使用")
 +
 +// 英文：attribute '%select{|target|cpu_specific|cpu_dispatch|target_clones|target_version}0' multiversioned functions do not yet support %select{function templates|virtual functions|deduced return types|constructors|destructors|deleted functions|defaulted functions|constexpr functions|consteval function|lambdas}1
-+ZH_DIAG(err_multiversion_doesnt_support, "属性 '%select{|target|cpu_specific|cpu_dispatch|target_clones|target_version}0' 的多版本函数尚不支持%select{函数模板|虚函数|推导的返回类型|构造函数|析构函数|被删除的函数|默认化的函数|常量表达式函数|立即求值函数|lambda}1")
++ZH_DIAG(err_multiversion_doesnt_support, "属性 '%select{|target|cpu_specific|cpu_dispatch|target_clones|target_version}0' 的多版本函数尚不支持%select{函数模板|虚函数|推导的返回类型|构造函数|析构函数|被删除的函数|默认化的函数|常量表达式函数|立即求值函数|匿名函数}1")
 +
 +// 英文：function declaration is missing %select{'target'|'cpu_specific' or 'cpu_dispatch'|'target_version'}0 attribute in a multiversioned function
 +ZH_DIAG(err_multiversion_required_in_redecl, "在多版本函数中，函数声明缺少 %select{'target'|'cpu_specific' 或者 'cpu_dispatch'|'target_version'}0 属性")
@@ -13333,7 +13360,7 @@ index 0000000..c3c403e
 +ZH_DIAG(err_nontemporal_builtin_must_be_pointer_intfltptr_or_vector, "非临时内建函数的地址实参必须是指向整数、单精度浮点数、指针或者这些类型的向量的指针，但（类型） %0 无效")
 +
 +// 英文：%select{function|block|lambda|coroutine}0 declared 'noreturn' should not return
-+ZH_DIAG(err_noreturn_has_return_expr, "声明为 'noreturn' 的 %select{函数|代码块|lambda|协程}0 不应该返回")
++ZH_DIAG(err_noreturn_has_return_expr, "声明为 'noreturn' 的 %select{函数|代码块|匿名函数|协程}0 不应该返回")
 +
 +// 英文：%select{assignment to readonly property|no setter method %1 for assignment to property}0
 +ZH_DIAG(err_nosetter_property_assignment, "%select{给只读属性赋值|给属性赋值时缺少设值方法（函数名） %1}0")
@@ -15007,7 +15034,7 @@ index 0000000..c3c403e
 +ZH_DIAG(err_reference_to_function_with_unsatisfied_constraints, "对函数（函数名） %0 的引用无效：约束未满足")
 +
 +// 英文：reference to local %select{variable|binding}1 %0 declared in enclosing %select{%3|block literal|lambda expression|context}2
-+ZH_DIAG(err_reference_to_local_in_enclosing_context, "引用了局部 %select{变量|绑定}1（名字） %0，它声明于封闭的 %select{（名字） %3|blocks 字面量|lambda 表达式|上下文}2")
++ZH_DIAG(err_reference_to_local_in_enclosing_context, "引用了局部 %select{变量|绑定}1（名字） %0，它声明于封闭的 %select{（名字） %3|blocks 字面量|匿名函数|上下文}2")
 +
 +// 英文：declaration of reference variable %0 requires an initializer
 +ZH_DIAG(err_reference_var_requires_init, "引用变量（变量名） %0 的声明需要初始化器")
@@ -15025,7 +15052,7 @@ index 0000000..c3c403e
 +ZH_DIAG(err_requires_positive_value, "%select{无效的值（名字） '%0'；必须为正数|值（名字） '%0' 过大}1")
 +
 +// 英文：void %select{block|lambda}0 should not return a value
-+ZH_DIAG(err_return_block_has_expr, "空型 %select{块|lambda}0 不应返回值")
++ZH_DIAG(err_return_block_has_expr, "空型 %select{块|匿名函数}0 不应返回值")
 +
 +// 英文：cannot return from %0
 +ZH_DIAG(err_return_in_captured_stmt, "不能从（名字） %0 返回")
@@ -15733,7 +15760,7 @@ index 0000000..c3c403e
 +ZH_DIAG(err_typecheck_cond_incompatible_operands, "运算对象的类型不兼容%diff{（$ 与 $）|}0,1")
 +
 +// 英文：non-pointer operand type %0 incompatible with %select{NULL|nullptr}1
-+ZH_DIAG(err_typecheck_cond_incompatible_operands_null, "非指针的运算对象类型（类型） %0 与 %select{NULL|nullptr}1 不兼容")
++ZH_DIAG(err_typecheck_cond_incompatible_operands_null, "非指针的运算对象类型（类型） %0 与 %select{NULL|空指针}1 不兼容")
 +
 +// 英文：'__ptrauth' qualification mismatch%diff{ ($ and $)|}0,1
 +ZH_DIAG(err_typecheck_cond_incompatible_ptrauth, "'__ptrauth' 限定不匹配%diff{（$ 与 $）|}0,1")
@@ -15865,7 +15892,7 @@ index 0000000..c3c403e
 +ZH_DIAG(err_typecheck_member_reference_unknown, "不能用 '%select{.|->}2' 在（类型名） %1 中指称成员（成员名） %0")
 +
 +// 英文：%diff{return type $ must match previous return type $|return type must match previous return type}0,1 when %select{block literal|lambda expression}2 has unspecified explicit return type
-+ZH_DIAG(err_typecheck_missing_return_type_incompatible, "%diff{返回类型 $ 必须与之前的返回类型 $ 匹配|返回类型必须与之前的返回类型匹配}0,1，当 %select{块字面量|lambda 表达式}2 未指定显式返回类型时")
++ZH_DIAG(err_typecheck_missing_return_type_incompatible, "%diff{返回类型 $ 必须与之前的返回类型 $ 匹配|返回类型必须与之前的返回类型匹配}0,1，当 %select{块字面量|匿名函数}2 未指定显式返回类型时")
 +
 +// 英文：non-object type %0 is not assignable
 +ZH_DIAG(err_typecheck_non_object_not_modifiable_lvalue, "非对象类型（类型） %0 不可赋值")
@@ -16036,7 +16063,7 @@ index 0000000..c3c403e
 +ZH_DIAG(err_unevaluated_string_invalid_escape_sequence, "未求值的字符串字面量中有无效的转义序列（符号） '%0'")
 +
 +// 英文：%select{expression|base type|declaration type|data member type|bit-field size|static assertion|fixed underlying type|enumerator value|using declaration|friend declaration|qualifier|initializer|default argument|non-type template parameter type|exception type|explicit specialization|partial specialization|__if_exists name|__if_not_exists name|lambda|block|type constraint|requirement|requires clause}0 contains%plural{0: an|:}1 unexpanded parameter pack%plural{0:|1: %2|2:s %2 and %3|:s %2, %3, ...}1
-+ZH_DIAG(err_unexpanded_parameter_pack, "（种类） %select{表达式|基类型|声明类型|数据成员类型|位域大小|静态断言|固定底层类型|枚举值|使用 声明|友元声明|限定符|初始化器|默认实参|非类型模板参数类型|异常类型|显式特化|部分特化|__if_exists 名字|__if_not_exists 名字|lambda|块|类型约束|要求|约束 子句}0 含有%plural{0: 一个|:}1未展开的参数包%plural{0:|1: （名字） %2|2: （名字） %2 和（名字） %3|: （名字） %2、（名字） %3 等}1")
++ZH_DIAG(err_unexpanded_parameter_pack, "（种类） %select{表达式|基类型|声明类型|数据成员类型|位域大小|静态断言|固定底层类型|枚举值|使用 声明|友元声明|限定符|初始化器|默认实参|非类型模板参数类型|异常类型|显式特化|部分特化|__if_exists 名字|__if_not_exists 名字|匿名函数|块|类型约束|要求|约束 子句}0 含有%plural{0: 一个|:}1未展开的参数包%plural{0:|1: （名字） %2|2: （名字） %2 和（名字） %3|: （名字） %2、（名字） %3 等}1")
 +
 +// 英文：unexpected interface name %0: expected expression
 +ZH_DIAG(err_unexpected_interface, "意外的接口名（名字） %0：期望的是表达式")
@@ -16555,7 +16582,7 @@ index 0000000..c3c403e
 +ZH_DIAG(ext_hlsl_auto_type_specifier, "（关键字） 自动 类型说明符是%select{C++11|HLSL 202y}0扩展")
 +
 +// 英文：lambdas are a %select{C++11|clang HLSL}0 extension
-+ZH_DIAG(ext_hlsl_lambda, "lambda 表达式是%select{C++11|clang HLSL}0扩展")
++ZH_DIAG(ext_hlsl_lambda, "匿名函数是%select{C++11|clang HLSL}0扩展")
 +
 +// 英文：function previously declared with an %select{explicit|implicit}0 exception specification redeclared with an %select{implicit|explicit}0 exception specification
 +ZH_DIAG(ext_implicit_exception_spec_mismatch, "之前以%select{显式|隐式}0异常规范声明的函数被重新声明为%select{隐式|显式}0异常规范")
@@ -16596,7 +16623,7 @@ index 0000000..c3c403e
 +// 英文：non-constant-expression cannot be narrowed from type %0 to %1 in initializer list
 +ZH_DIAG(ext_init_list_variable_narrowing_const_reference, "在初始化器列表中，非常量表达式不能从类型（类型） %0 收窄为（类型） %1")
 +
-+// 英文：'%select{if|switch}0' initialization statements are a C++17 extension
++// 英文：'%select{如果|选择}0' initialization statements are a C++17 extension
 +ZH_DIAG(ext_init_statement, "（关键字） %select{如果|选择}0 初始化语句是 C++17 扩展")
 +
 +// 英文：initializer %select{partially |}0overrides prior initialization of this subobject
@@ -16621,7 +16648,7 @@ index 0000000..c3c403e
 +ZH_DIAG(ext_keyword_as_ident, "（关键字） '%0' 将%select{在此处|在翻译单元的其余部分}1作为标识符可用")
 +
 +// 英文：lambdas are a %select{C++11|clang HLSL}0 extension
-+ZH_DIAG(ext_lambda, "lambda 表达式是%select{C++11|clang HLSL}0扩展")
++ZH_DIAG(ext_lambda, "匿名函数是%select{C++11|clang HLSL}0扩展")
 +
 +// 英文：too many braces around %select{scalar |}0initializer
 +ZH_DIAG(ext_many_braces_around_init, "%select{标量 |}0初始化器周围的花括号太多")
@@ -16878,8 +16905,8 @@ index 0000000..c3c403e
 +// 英文：ISO C++ requires a definition in this translation unit for %select{function|variable}0 %q1 because its type does not have linkage
 +ZH_DIAG(ext_undefined_internal_type, "ISO C++ 要求在本翻译单元中为%select{函数|变量}0（名字） %q1 提供定义，因为它的类型没有链接")
 +
-+// 英文：unelaborated friend declaration is a C++11 extension; specify '%select{struct|interface|union|class|enum}0' to befriend %1
-+ZH_DIAG(ext_unelaborated_friend_type, "未加详细说明的友元声明是 C++11 扩展；请指定 '%select{struct|interface|union|class|enum}0' 来把（类型） %1 声明为友元")
++// 英文：unelaborated friend declaration is a C++11 extension; specify '%select{结构|接口|共用体|类型|枚举}0' to befriend %1
++ZH_DIAG(ext_unelaborated_friend_type, "未加详细说明的友元声明是 C++11 扩展；请指定 '%select{结构|接口|共用体|类型|枚举}0' 来把（类型） %1 声明为友元")
 +
 +// 英文：treating character %0 as whitespace
 +ZH_DIAG(ext_unicode_whitespace, "把字符（符号） %0 当作空白")
@@ -16965,7 +16992,7 @@ index 0000000..c3c403e
 +// 英文：function by that name is mangled as "%0"
 +ZH_DIAG(note_alias_mangled_name_alternative, "该名称对应的函数修饰后为（名字） \"%0\"")
 +
-+// 英文：the %select{function or variable|function}0 specified in an %select{alias|ifunc}1 must refer to its mangled name
++// 英文：the %select{function or variable|function}0 specified in an %select{别名|ifunc}1 must refer to its mangled name
 +ZH_DIAG(note_alias_requires_mangled_name, "%select{函数或变量|函数}0 在%select{别名|ifunc}1中指定时必须引用其修饰后的名称")
 +
 +// 英文：declared with %0 attribute here
@@ -17643,8 +17670,8 @@ index 0000000..c3c403e
 +// 英文：use '%0' to perform a bitwise shift
 +ZH_DIAG(note_enum_compare_typo_suggest, "请用（符号） '%0' 进行按位移位")
 +
-+// 英文：remove 'enum%select{| struct| class}0' to befriend an enum
-+ZH_DIAG(note_enum_friend, "请去掉 'enum%select{| struct| class}0' 才能把 枚举 声明为友元")
++// 英文：remove '枚举%select{| 结构| 类型}0' to befriend an enum
++ZH_DIAG(note_enum_friend, "请去掉 '枚举%select{| 结构| 类型}0' 才能把 枚举 声明为友元")
 +
 +// 英文：enum %0 was explicitly specialized here
 +ZH_DIAG(note_enum_specialized_here, "枚举（类型名） %0 在此被显式特化")
@@ -17725,7 +17752,7 @@ index 0000000..c3c403e
 +ZH_DIAG(note_file_sloc_usage, "文件进入（名字） %0 次，占用（名字） %1B（即（名字） %human1B）的空间%plural{0:|：宏展开还要再加（名字） %2B（即（名字） %human2B）}2")
 +
 +// 英文：mark %0 as '%select{final|sealed}1' to silence this warning
-+ZH_DIAG(note_final_dtor_non_final_class_silence, "把（名字） %0 标记为 '%select{final|sealed}1' 以消除此警告")
++ZH_DIAG(note_final_dtor_non_final_class_silence, "把（名字） %0 标记为 '%select{最终|sealed}1' 以消除此警告")
 +
 +// 英文：final overrider of %q0 in %1
 +ZH_DIAG(note_final_overrider, "（类型） %1 中（函数名） %q0 的最终覆盖者")
@@ -17764,7 +17791,7 @@ index 0000000..c3c403e
 +ZH_DIAG(note_from_diagnose_if, "来自（名字） %0 上的 'diagnose_if' 属性：")
 +
 +// 英文：%select{function|constructor|destructor|lambda|block}0 does not permit inference of '%1' because it is declared '%2'
-+ZH_DIAG(note_func_effect_call_disallows_inference, "%select{函数|构造函数|析构函数|lambda|块}0 不允许推导（名字） '%1'，因为它被声明为（名字） '%2'")
++ZH_DIAG(note_func_effect_call_disallows_inference, "%select{函数|构造函数|析构函数|匿名函数|块}0 不允许推导（名字） '%1'，因为它被声明为（名字） '%2'")
 +
 +// 英文：declaration cannot be inferred '%0' because it has no definition in this translation unit
 +ZH_DIAG(note_func_effect_call_extern, "无法推导（名字） '%0' 的声明，因为它在本翻译单元中没有定义")
@@ -17773,13 +17800,13 @@ index 0000000..c3c403e
 +ZH_DIAG(note_func_effect_call_indirect, "无法推导%select{虚方法|函数指针}0（名字） '%1'")
 +
 +// 英文：%select{function|constructor|destructor|lambda|block|member initializer}0 cannot be inferred '%1' because it calls non-'%1' %select{function|constructor|destructor|lambda|block}2 '%3'
-+ZH_DIAG(note_func_effect_calls_func_without_effect, "无法推导%select{函数|构造函数|析构函数|lambda|块|成员初始化器}0（名字） '%1'，因为它调用了非（名字） '%1' 的%select{函数|构造函数|析构函数|lambda|块}2（名字） '%3'")
++ZH_DIAG(note_func_effect_calls_func_without_effect, "无法推导%select{函数|构造函数|析构函数|匿名函数|块|成员初始化器}0（名字） '%1'，因为它调用了非（名字） '%1' 的%select{函数|构造函数|析构函数|匿名函数|块}2（名字） '%3'")
 +
 +// 英文：in%select{| implicit}0 constructor here
 +ZH_DIAG(note_func_effect_in_constructor, "这里的%select{|隐式}0构造函数")
 +
 +// 英文：%select{function|constructor|destructor|lambda|block|member initializer}0 cannot be inferred '%1' because it %select{allocates or deallocates memory|throws or catches exceptions|has a static local variable|uses a thread-local variable|accesses an ObjC method or property}2
-+ZH_DIAG(note_func_effect_violation, "无法推导%select{函数|构造函数|析构函数|lambda|块|成员初始化器}0（名字） '%1'，因为它%select{分配或释放了内存|抛出或捕获了异常|有静态局部变量|使用了线程局部变量|访问了 ObjC 方法或属性}2")
++ZH_DIAG(note_func_effect_violation, "无法推导%select{函数|构造函数|析构函数|匿名函数|块|成员初始化器}0（名字） '%1'，因为它%select{分配或释放了内存|抛出或捕获了异常|有静态局部变量|使用了线程局部变量|访问了 ObjC 方法或属性}2")
 +
 +// 英文：member function specialization matches %0
 +ZH_DIAG(note_function_member_spec_matched, "成员函数特化匹配（名字） %0")
@@ -17902,7 +17929,7 @@ index 0000000..c3c403e
 +ZH_DIAG(note_is_deducible_constraint_evaluated_to_false, "无法从（类型） %1 推导（名字） %0 的模板实参")
 +
 +// 英文：%select{implicitly |}2captured%select{| by reference}3%select{%select{ due to use|}2 here| via initialization of lambda capture %0}1
-+ZH_DIAG(note_lambda_capture_initializer, "%select{隐式|}2捕获%select{|按引用}3%select{%select{因被使用|}2而在此处|通过初始化 lambda 捕获（变量名） %0 而在此处}1")
++ZH_DIAG(note_lambda_capture_initializer, "%select{隐式|}2捕获%select{|按引用}3%select{%select{因被使用|}2而在此处|通过初始化匿名函数捕获（变量名） %0 而在此处}1")
 +
 +// 英文：default capture by %select{value|reference}0
 +ZH_DIAG(note_lambda_default_capture_fixit, "默认按%select{值|引用}0捕获")
@@ -18112,7 +18139,7 @@ index 0000000..c3c403e
 +ZH_DIAG(note_next_ivar_declaration, "下一个（种类） %select{实例变量声明|合成的实例变量}0 在这里")
 +
 +// 英文：type is not C-compatible due to this %select{base class|default member initializer|lambda expression|friend declaration|member declaration}0
-+ZH_DIAG(note_non_c_like_anon_struct, "类型与 C 不兼容，因为这个（种类） %select{基类|默认成员初始化器|lambda 表达式|友元声明|成员声明}0")
++ZH_DIAG(note_non_c_like_anon_struct, "类型与 C 不兼容，因为这个（种类） %select{基类|默认成员初始化器|匿名函数|友元声明|成员声明}0")
 +
 +// 英文：non-deducible template parameter %0
 +ZH_DIAG(note_non_deducible_parameter, "无法推导的模板形参（名字） %0")
@@ -18880,7 +18907,7 @@ index 0000000..c3c403e
 +ZH_DIAG(note_within_base_of_type, "位于类型（类型） %0 的基类之内，在此声明")
 +
 +// 英文：within capture %0 of lambda expression here
-+ZH_DIAG(note_within_capture, "在 lambda 表达式的捕获（变量名） %0 之内")
++ZH_DIAG(note_within_capture, "在匿名函数的捕获（变量名） %0 之内")
 +
 +// 英文：within field of type %0 declared here
 +ZH_DIAG(note_within_field_of_type, "位于类型（类型） %0 的字段之内，在此声明")
@@ -19035,7 +19062,7 @@ index 0000000..c3c403e
 +// 英文：alias and aliasee have different types %0 and %1
 +ZH_DIAG(warn_alias_type_mismatch, "别名和被别名者的类型不同（类型 和 类型）（%0 和 %1）")
 +
-+// 英文：%select{alias|ifunc}1 will not be in section '%0' but in the same section as the %select{aliasee|resolver}2
++// 英文：%select{别名|ifunc}1 will not be in section '%0' but in the same section as the %select{aliasee|resolver}2
 +ZH_DIAG(warn_alias_with_section, "%select{别名|ifunc}1 将不在节（名字） '%0' 中，而是与%select{被别名者|解析器}2 位于同一节")
 +
 +// 英文：requested alignment is less than minimum alignment of %1 for type %0
@@ -19087,10 +19114,10 @@ index 0000000..c3c403e
 +ZH_DIAG(warn_arc_object_memaccess, "这个（函数名） %1 调用的%select{目标|来源}0是指向所有权限定类型（类型） %2 的指针")
 +
 +// 英文：weak %select{variable|property|implicit property|instance variable}0 %1 may be accessed multiple times in this %select{function|method|block|lambda}2 and may be unpredictably set to nil; assign to a strong variable to keep the object alive
-+ZH_DIAG(warn_arc_possible_repeated_use_of_weak, "弱%select{变量|属性|隐式属性|实例变量}0（变量名） %1 在这个%select{函数|方法|块|lambda}2 中可能被访问多次，并且可能被不可预测地置为 nil；请把它赋给一个强变量以保持对象存活")
++ZH_DIAG(warn_arc_possible_repeated_use_of_weak, "弱%select{变量|属性|隐式属性|实例变量}0（变量名） %1 在这个%select{函数|方法|块|匿名函数}2 中可能被访问多次，并且可能被不可预测地置为 nil；请把它赋给一个强变量以保持对象存活")
 +
 +// 英文：weak %select{variable|property|implicit property|instance variable}0 %1 is accessed multiple times in this %select{function|method|block|lambda}2 but may be unpredictably set to nil; assign to a strong variable to keep the object alive
-+ZH_DIAG(warn_arc_repeated_use_of_weak, "弱%select{变量|属性|隐式属性|实例变量}0（变量名） %1 在这个%select{函数|方法|块|lambda}2 中被访问多次，但可能被不可预测地置为 nil；请把它赋给一个强变量以保持对象存活")
++ZH_DIAG(warn_arc_repeated_use_of_weak, "弱%select{变量|属性|隐式属性|实例变量}0（变量名） %1 在这个%select{函数|方法|块|匿名函数}2 中被访问多次，但可能被不可预测地置为 nil；请把它赋给一个强变量以保持对象存活")
 +
 +// 英文：capturing %0 strongly in this block is likely to lead to a retain cycle
 +ZH_DIAG(warn_arc_retain_cycle, "在这个块中强捕获（变量名） %0 很可能导致循环引用")
@@ -19636,7 +19663,7 @@ index 0000000..c3c403e
 +ZH_DIAG(warn_ctu_incompat_triple, "从（名字） '%0' 导入的 AST 是为另一个目标生成的，当前目标：（名字） %1，导入的目标：（名字） %2")
 +
 +// 英文：nvcc does not allow '__%0__' to appear after the parameter list in lambdas
-+ZH_DIAG(warn_cuda_attr_lambda_position, "nvcc 不允许（属性名） '__%0__' 出现在 lambda 的形参列表之后")
++ZH_DIAG(warn_cuda_attr_lambda_position, "nvcc 不允许（属性名） '__%0__' 出现在匿名函数的形参列表之后")
 +
 +// 英文：maxclusterrank requires sm_90 or higher, CUDA arch provided: %0, ignoring %1 attribute
 +ZH_DIAG(warn_cuda_maxclusterrank_sm_90, "maxclusterrank 需要 sm_90 或更高版本，提供的 CUDA 架构是（名字） %0，忽略（属性名） %1 属性")
@@ -19672,7 +19699,7 @@ index 0000000..c3c403e
 +ZH_DIAG(warn_cxx17_compat_exception_spec_in_signature, "由于函数签名中有不抛出异常规格，（函数名） %0 的修饰名在 C++17 中会改变")
 +
 +// 英文：%select{default construction|assignment}0 of lambda is incompatible with C++ standards before C++20
-+ZH_DIAG(warn_cxx17_compat_lambda_def_ctor_assign, "lambda 的%select{默认构造|赋值}0 与 C++20 之前的标准不兼容")
++ZH_DIAG(warn_cxx17_compat_lambda_def_ctor_assign, "匿名函数的%select{默认构造|赋值}0 与 C++20 之前的标准不兼容")
 +
 +// 英文：non-type template parameter of type %0 is incompatible with C++ standards before C++20
 +ZH_DIAG(warn_cxx17_compat_template_nontype_parm_type, "类型为（类型名） %0 的非类型模板形参与 C++20 之前的标准不兼容")
@@ -19743,7 +19770,7 @@ index 0000000..c3c403e
 +// 英文：non-type template argument referring to %select{function|object}0 %1 with internal linkage is incompatible with C++98
 +ZH_DIAG(warn_cxx98_compat_template_arg_object_internal, "引用具有内部链接的%select{函数|对象}0（名字） %1 的非类型模板实参与 C++98 不兼容")
 +
-+// 英文：befriending %1 without '%select{struct|interface|union|class|enum}0' keyword is incompatible with C++98
++// 英文：befriending %1 without '%select{结构|接口|共用体|类型|枚举}0' keyword is incompatible with C++98
 +ZH_DIAG(warn_cxx98_compat_unelaborated_friend_type, "不写%select{结构|接口|共用体|类型|枚举}0 关键字就把（类型名） %1 声明为友元，与 C++98 不兼容")
 +
 +// 英文：'%0' type specifier is incompatible with C++98
@@ -19828,7 +19855,7 @@ index 0000000..c3c403e
 +ZH_DIAG(warn_delegating_ctor_cycle, "（类型名） %0 的构造函数造成委托循环")
 +
 +// 英文：%select{delete|destructor}0 called on %1 that is abstract but has non-virtual destructor
-+ZH_DIAG(warn_delete_abstract_non_virtual_dtor, "对抽象但析构函数非虚的（类型名） %1 调用 %select{delete|析构函数}0")
++ZH_DIAG(warn_delete_abstract_non_virtual_dtor, "对抽象但析构函数非虚的（类型名） %1 调用 %select{删除|析构函数}0")
 +
 +// 英文：'delete' applied to a pointer-to-array type %0 treated as 'delete[]'
 +ZH_DIAG(warn_delete_array_type, "（关键字） 删除 应用于指向数组类型（类型名） %0 的指针，按 'delete[]' 处理")
@@ -19837,7 +19864,7 @@ index 0000000..c3c403e
 +ZH_DIAG(warn_delete_incomplete, "删除指向不完整类型（类型名） %0 的指针与 C++2c 不兼容，并可能导致未定义行为")
 +
 +// 英文：%select{delete|destructor}0 called on non-final %1 that has virtual functions but non-virtual destructor
-+ZH_DIAG(warn_delete_non_virtual_dtor, "%select{delete|析构函数}0 被调用在非最终（类型名） %1 上，该类型有虚函数但析构函数非虚")
++ZH_DIAG(warn_delete_non_virtual_dtor, "%select{删除|析构函数}0 被调用在非最终（类型名） %1 上，该类型有虚函数但析构函数非虚")
 +
 +// 英文：empty delimited universal character name; treating as '\' '%0' '{' '}'
 +ZH_DIAG(warn_delimited_ucn_empty, "空的分隔式通用字符名；按 '\\'（名字） '%0' '{' '}' 处理")
@@ -20214,8 +20241,8 @@ index 0000000..c3c403e
 +// 英文：%select{destination for|source of|first operand of|second operand of}0 this %1 call is a pointer to %select{|class containing a }2dynamic class %3; vtable pointer will be %select{overwritten|copied|moved|compared}4
 +ZH_DIAG(warn_dyn_class_memaccess, "这个 %1 调用的%select{目标是|来源是|第一个操作数是|第二个操作数是}0指向%select{|包含}2动态类（类型名） %3 的指针；虚表指针将被%select{覆盖|复制|移动|比较}4")
 +
-+// 英文：empty initialization statement of '%select{if|switch|range-based for}0' has no effect
-+ZH_DIAG(warn_empty_init_statement, "（名字） '%select{if|switch|range-based for}0' 的空初始化语句没有效果")
++// 英文：empty initialization statement of '%select{如果|选择|范围 对于}0' has no effect
++ZH_DIAG(warn_empty_init_statement, "（名字） '%select{如果|选择|范围 对于}0' 的空初始化语句没有效果")
 +
 +// 英文：exception of type %0 will be caught by earlier handler
 +ZH_DIAG(warn_exception_caught_by_earlier_handler, "类型（类型） %0 的异常将被更早的处理器捕获")
@@ -20254,7 +20281,7 @@ index 0000000..c3c403e
 +ZH_DIAG(warn_failed_to_resolve_pragma, "无法把 '#pragma（名字） %0' 解析为一个声明")
 +
 +// 英文：non-void %select{function|block|lambda|coroutine}0 does not return a value%select{| in all control paths}1
-+ZH_DIAG(warn_falloff_nonvoid, "非空型的%select{函数|块|lambda|协程}0没有返回值%select{|，并非所有控制路径都有返回值}1")
++ZH_DIAG(warn_falloff_nonvoid, "非空型的%select{函数|块|匿名函数|协程}0没有返回值%select{|，并非所有控制路径都有返回值}1")
 +
 +// 英文：feature flag '%0' must start with either '+' to enable the feature or '-' to disable it; flag ignored
 +ZH_DIAG(warn_fe_backend_invalid_feature_flag, "特性标志（名字） '%0' 必须以 '+' 开头以启用该特性，或以 '-' 开头以禁用该特性；该标志被忽略")
@@ -20437,7 +20464,7 @@ index 0000000..c3c403e
 +ZH_DIAG(warn_framework_include_private_from_public, "公开框架头文件包含了私有框架头文件（名字） '%0'")
 +
 +// 英文：attempt to call %0 on non-heap %select{object %2|object: block expression|object: lambda-to-function-pointer conversion}1
-+ZH_DIAG(warn_free_nonheap_object, "试图对非堆%select{对象（名字） %2|对象：块表达式|对象：lambda 到函数指针的转换}1 调用（函数名） %0")
++ZH_DIAG(warn_free_nonheap_object, "试图对非堆%select{对象（名字） %2|对象：块表达式|对象：匿名函数到函数指针的转换}1 调用（函数名） %0")
 +
 +// 英文：cannot call function '%1' while %0 '%2' is held
 +ZH_DIAG(warn_fun_excludes_mutex, "在持有（名字） %0 '%2' 时不能调用函数（函数名） '%1'")
@@ -20452,13 +20479,13 @@ index 0000000..c3c403e
 +ZH_DIAG(warn_fun_requires_negative_cap, "调用函数（函数名） %0 需要否定能力 '%1'")
 +
 +// 英文：%select{function|constructor|destructor|lambda|block|member initializer of constructor}0 with '%1' attribute must not call non-'%1' expression
-+ZH_DIAG(warn_func_effect_calls_expr_without_effect, "带有（属性名） '%1' 属性的%select{函数|构造函数|析构函数|lambda|块|构造函数的成员初始化器}0 不得调用非（名字） '%1' 表达式")
++ZH_DIAG(warn_func_effect_calls_expr_without_effect, "带有（属性名） '%1' 属性的%select{函数|构造函数|析构函数|匿名函数|块|构造函数的成员初始化器}0 不得调用非（名字） '%1' 表达式")
 +
 +// 英文：%select{function|constructor|destructor|lambda|block|member initializer of constructor}0 with '%1' attribute must not call non-'%1' %select{function|constructor|destructor|lambda|block}2 '%3'
-+ZH_DIAG(warn_func_effect_calls_func_without_effect, "带有（属性名） '%1' 属性的%select{函数|构造函数|析构函数|lambda|块|构造函数的成员初始化器}0 不得调用非（名字） '%1' %select{函数|构造函数|析构函数|lambda|块}2（名字） '%3'")
++ZH_DIAG(warn_func_effect_calls_func_without_effect, "带有（属性名） '%1' 属性的%select{函数|构造函数|析构函数|匿名函数|块|构造函数的成员初始化器}0 不得调用非（名字） '%1' %select{函数|构造函数|析构函数|匿名函数|块}2（名字） '%3'")
 +
 +// 英文：%select{function|constructor|destructor|lambda|block|member initializer of constructor}0 with '%1' attribute must not %select{allocate or deallocate memory|throw or catch exceptions|have static local variables|use thread-local variables|access ObjC methods or properties}2
-+ZH_DIAG(warn_func_effect_violation, "带有（属性名） '%1' 属性的%select{函数|构造函数|析构函数|lambda|块|构造函数的成员初始化器}0 不得%select{分配或释放内存|抛出或捕获异常|拥有静态局部变量|使用线程局部变量|访问 ObjC 方法或属性}2")
++ZH_DIAG(warn_func_effect_violation, "带有（属性名） '%1' 属性的%select{函数|构造函数|析构函数|匿名函数|块|构造函数的成员初始化器}0 不得%select{分配或释放内存|抛出或捕获异常|拥有静态局部变量|使用线程局部变量|访问 ObjC 方法或属性}2")
 +
 +// 英文：instantiation of function %q0 required here, but no definition is available
 +ZH_DIAG(warn_func_template_missing, "这里要求实例化函数（函数名） %q0，但没有可用的定义")
@@ -20652,7 +20679,7 @@ index 0000000..c3c403e
 +// 英文：implicit conversion turns matrix to scalar: %0 to %1
 +ZH_DIAG(warn_impcast_matrix_scalar, "隐式转换把矩阵变成标量：（类型） %0 到（类型） %1")
 +
-+// 英文：implicit conversion of %select{NULL|nullptr}0 constant to %1
++// 英文：implicit conversion of %select{NULL|空指针}0 constant to %1
 +ZH_DIAG(warn_impcast_null_pointer_to_integer, "把 %select{NULL|空指针}0 常量隐式转换为（类型） %1")
 +
 +// 英文：implicit conversion from %0 to %1 discards overflow behavior
@@ -20668,7 +20695,7 @@ index 0000000..c3c403e
 +ZH_DIAG(warn_impcast_overflow_behavior_pedantic, "从（类型） %0 到（类型） %1 的隐式转换丢弃了溢出行为")
 +
 +// 英文：address of %select{'%1'|function '%1'|array '%1'|lambda function pointer conversion operator}0 will always evaluate to 'true'
-+ZH_DIAG(warn_impcast_pointer_to_bool, "%select{'%1'|函数 '%1'|数组 '%1'|lambda 函数指针转换运算符}0 的地址将总是求值为（关键字） 真值")
++ZH_DIAG(warn_impcast_pointer_to_bool, "%select{'%1'|函数 '%1'|数组 '%1'|匿名函数指针转换运算符}0 的地址将总是求值为（关键字） 真值")
 +
 +// 英文：implicit truncation from %2 to a one-bit wide bit-field changes value from %0 to %1
 +ZH_DIAG(warn_impcast_single_bit_bitield_precision_constant, "从（类型） %2 到一位宽位字段的隐式截断把值从（表达式） %0 变成（表达式） %1")
@@ -21124,7 +21151,7 @@ index 0000000..c3c403e
 +ZH_DIAG(warn_noreturn_function_has_return_expr, "声明为 'noreturn' 的函数（函数名） %0 不应该返回")
 +
 +// 英文：%select{function|block|lambda|coroutine}0 declared 'noreturn' should not return
-+ZH_DIAG(warn_noreturn_has_return_expr, "声明为 'noreturn' 的（种类） %select{函数|块|lambda|协程}0 不应该返回")
++ZH_DIAG(warn_noreturn_has_return_expr, "声明为 'noreturn' 的（种类） %select{函数|块|匿名函数|协程}0 不应该返回")
 +
 +// 英文：use of unary operator that may be intended as compound assignment (%0=)
 +ZH_DIAG(warn_not_compound_assign, "使用了可能本意是复合赋值的单目运算符（表达式） %0=")
@@ -21451,7 +21478,7 @@ index 0000000..c3c403e
 +ZH_DIAG(warn_pass_class_arg_to_vararg, "通过可变参数 %select{函数|块|方法|构造函数}1 传递类类型（类型） %0 的对象%select{|；你是不是想调用（函数名） '%3'？}2")
 +
 +// 英文：%select{function|constructor|destructor|lambda|block}0 with '%1' attribute should be declared noexcept
-+ZH_DIAG(warn_perf_constraint_implies_noexcept, "带有（属性名） '%1' 属性的 %select{函数|构造函数|析构函数|lambda|块}0 应当声明为不抛出")
++ZH_DIAG(warn_perf_constraint_implies_noexcept, "带有（属性名） '%1' 属性的 %select{函数|构造函数|析构函数|匿名函数|块}0 应当声明为不抛出")
 +
 +// 英文：unsupported MC/DC boolean expression; number of conditions (%0) exceeds max (%1). Expression will not be covered
 +ZH_DIAG(warn_pgo_condition_limit, "不支持的 MC/DC 布尔表达式；条件数（表达式） %0 超过最大值（表达式） %1。表达式将不会被覆盖")
@@ -21787,7 +21814,7 @@ index 0000000..c3c403e
 +ZH_DIAG(warn_ptr_arith_precedes_bounds, "递减了（表达式） %0 的指针指向了数组开头之前")
 +
 +// 英文：'%select{pure|const}0' attribute on function returning 'void'; attribute ignored
-+ZH_DIAG(warn_pure_function_returns_void, "返回（关键字） 空型 的函数上的 %select{pure|常量}0 属性；属性被忽略")
++ZH_DIAG(warn_pure_function_returns_void, "返回（关键字） 空型 的函数上的 %select{pure|const}0 属性；属性被忽略")
 +
 +// 英文：'%0' qualifier%s1 on base class type %2 %plural{1:has|:have}1 no effect
 +ZH_DIAG(warn_qual_base_type, "基类类型（类型名） %2 上的（关键字） '%0' 限定符 %plural{1:没有|:没有}1 效果")
@@ -22619,6 +22646,229 @@ index 41848b1..2befd85 100644
  def fdiagnostics_show_category : Separate<["-"], "fdiagnostics-show-category">,
    HelpText<"Print diagnostic category">,
    Values<"none,id,name">,
+diff --git a/clang/include/clang/Sema/Sema.h b/clang/include/clang/Sema/Sema.h
+index 8a30f63..f7456ef 100644
+--- a/clang/include/clang/Sema/Sema.h
++++ b/clang/include/clang/Sema/Sema.h
+@@ -1212,7 +1212,22 @@ public:
+ 
+   /// Retrieve a suitable printing policy for diagnostics.
+   PrintingPolicy getPrintingPolicy() const {
+-    return getPrintingPolicy(Context, PP);
++    PrintingPolicy P = getPrintingPolicy(Context, PP);
++    // 中文诊断 ⇒ 内建类型名也用中文（大检查 P-09 / §18.8，决策 D-04）。
++    //
++    // 为什么是这里：Sema 在**每条诊断发射之前**都会执行
++    // `Context.setPrintingPolicy(getPrintingPolicy())`（Sema.cpp 里那行，
++    // 原注释 "Copy the diagnostic printing policy over the ASTContext printing
++    // policy"，还挂着一个 upstream 的 TODO）—— 所以**这里是"诊断打印用哪份
++    // policy"的唯一咽喉**：TYPE 参数走 `ASTDiagnostic.cpp` 的 `ak_qualtype`
++    // → `Context.getPrintingPolicy()`，而模板实参/重载候选那些消息走
++    // `Sema::getPrintingPolicy()`（"没有可行的转换 从 '盒<int>' 到 '盒<double>'"
++    // 就是这条）。两处都归这里管。
++    //
++    // 开关与消息正文、关键字拼写**共用**（DiagnosticOptions::ChineseDiagnostics）
++    // ⇒ `-fno-chinese-diagnostics` 三样一起回退英文。
++    P.ChineseTypeNames = Diags.getDiagnosticOptions().ChineseDiagnostics;
++    return P;
+   }
+ 
+   /// Retrieve a suitable printing policy for diagnostics.
+diff --git a/clang/lib/AST/ASTDiagnostic.cpp b/clang/lib/AST/ASTDiagnostic.cpp
+index f7888f5..0617a4c 100644
+--- a/clang/lib/AST/ASTDiagnostic.cpp
++++ b/clang/lib/AST/ASTDiagnostic.cpp
+@@ -2119,7 +2119,14 @@ public:
+                QualType ToType, bool PrintTree, bool PrintFromType,
+                bool ElideType, bool ShowColor)
+     : Context(Context),
+-      Policy(Context.getLangOpts()),
++      // ⚠ 这里过去是 `Policy(Context.getLangOpts())` —— 从 **LangOptions** 建策略，
++      // 而"中文诊断"这个开关在 **DiagnosticOptions** 里，LangOptions 看不见它 ⇒
++      // `%diff{ 从 $ 到 $}` 那条路打出来的**类型名**（主诊断；同一条消息下面的
++      // note 走的是另一条路）永远是英文：`从 '盒<int>' 到 '盒<double>'`。
++      // 改成取 ASTContext 的当前策略：Sema 在**每条诊断发射前**都会把
++      // `getPrintingPolicy()` 拷进去（含 §18.8 P-09 设的 `ChineseTypeNames`），
++      // 所以这里拿到的就是"这条诊断该用的那份" —— 与 note、与其它类型参数一致。
++      Policy(Context.getPrintingPolicy()),
+       ElideType(ElideType),
+       PrintTree(PrintTree),
+       ShowColor(ShowColor),
+diff --git a/clang/lib/AST/StmtPrinter.cpp b/clang/lib/AST/StmtPrinter.cpp
+index 6035259..83f9382 100644
+--- a/clang/lib/AST/StmtPrinter.cpp
++++ b/clang/lib/AST/StmtPrinter.cpp
+@@ -1702,6 +1702,22 @@ void StmtPrinter::VisitUnaryExprOrTypeTraitExpr(
+       Spelling = "__alignof";
+   }
+ 
++  // 中文诊断下这个运算符也用中文拼写（`大小(整数)` 而不是 `sizeof(整数)`）——
++  // 与类型名、限定符、消息正文**共用同一个开关**（大检查 P-09 / §18.8 的同一条规则）。
++  // 实测漏出来的样子：`静态断言失败，因为不满足要求（表达式） 'sizeof(整数) > 99'`
++  // —— 类型已经中文、运算符还是英文，一条消息里两种口径。拼写取自
++  // ChineseKeywords.def（`sizeof`→大小、`alignof`→对齐值，表同源）。
++  // 其余几个（UETT_VecStep / OpenMP 那些）中文表里没有译名，保持英文。
++  if (Policy.ChineseTypeNames) {
++    if (Node->getKind() == UETT_SizeOf) {
++      if (const char *ZH = tok::getKeywordSpelling(tok::kw_sizeof))
++        Spelling = ZH;
++    } else if (Node->getKind() == UETT_AlignOf) {
++      if (const char *ZH = tok::getKeywordSpelling(tok::kw_alignof))
++        Spelling = ZH;
++    }
++  }
++
+   OS << Spelling;
+ 
+   if (Node->isArgumentType()) {
+diff --git a/clang/lib/AST/Type.cpp b/clang/lib/AST/Type.cpp
+index 42d1487..4caf642 100644
+--- a/clang/lib/AST/Type.cpp
++++ b/clang/lib/AST/Type.cpp
+@@ -3491,6 +3491,75 @@ const char *Type::getTypeClassName() const {
+ }
+ 
+ StringRef BuiltinType::getName(const PrintingPolicy &Policy) const {
++  // ---------------------------------------------------------------------
++  //  中文诊断：内建类型名也用中文（大检查 P-09 / §18.8 / 决策 D-04）
++  //
++  //  为什么要有：用户写的是 `整数* 甲 = 1;`，诊断却打 `其类型为 'int *'` ——
++  //  同一个 `整数`，关键字位置已经打中文（P-04 修的），类型位置却打英文，
++  //  编译器自相矛盾。这里把"中文是对外正式拼写"这条规则延伸到类型名。
++  //
++  //  拼写**一律取自 `ChineseKeywords.def`**（经 tok::getKeywordSpelling）——
++  //  与关键字表同源，不另立第二份清单；表里没有译名的（`__int128`、`_BitInt`、
++  //  `_Accum`、`__fp16`、`_Decimal32`…）自动回退英文，不需要在这里枚举。
++  //
++  //  由谁打开：`CompilerInstance::createASTContext()` 按
++  //  `DiagnosticOptions::ChineseDiagnostics` 设 `PrintingPolicy::ChineseTypeNames`
++  //  ⇒ 与消息正文、关键字拼写**共用同一个开关**（`-fno-chinese-diagnostics`
++  //  一起回退英文）。默认 false，所以 `-ast-print` / `-ast-dump` / clangd 不受影响。
++  // ---------------------------------------------------------------------
++  if (Policy.ChineseTypeNames) {
++    auto 关键字 = [](tok::TokenKind K) -> StringRef {
++      return StringRef(tok::getKeywordSpelling(K));
++    };
++    // 组合名（`无符号 整数` / `长型 长型` …）：每个组合各用**自己的** static，
++    // 免得两个类型名在同一句诊断里（`'double' 与 'int'`）互相覆盖。
++#define ZH_BUILTIN_组合(名字, A, B)                                            \
++  case 名字: {                                                                 \
++    static const std::string S =                                               \
++        (关键字(tok::kw_##A) + " " + 关键字(tok::kw_##B)).str();               \
++    return S;                                                                  \
++  }
++    switch (getKind()) {
++    case Void:
++      return 关键字(tok::kw_void);
++    case Bool:
++      return Policy.Bool ? 关键字(tok::kw_bool) : "_Bool";
++    case Char_S:
++    case Char_U:
++      return 关键字(tok::kw_char);
++      ZH_BUILTIN_组合(SChar, signed, char)
++      ZH_BUILTIN_组合(UChar, unsigned, char)
++    case Short:
++      return 关键字(tok::kw_short);
++      ZH_BUILTIN_组合(UShort, unsigned, short)
++    case Int:
++      return 关键字(tok::kw_int);
++      ZH_BUILTIN_组合(UInt, unsigned, int)
++    case Long:
++      return 关键字(tok::kw_long);
++      ZH_BUILTIN_组合(ULong, unsigned, long)
++      ZH_BUILTIN_组合(LongLong, long, long)
++      ZH_BUILTIN_组合(ULongLong, unsigned, long)
++    case Float:
++      return 关键字(tok::kw_float);
++    case Double:
++      return 关键字(tok::kw_double);
++      ZH_BUILTIN_组合(LongDouble, long, double)
++    case WChar_S:
++    case WChar_U:
++      return Policy.MSWChar ? "__wchar_t" : 关键字(tok::kw_wchar_t);
++    case Char8:
++      return 关键字(tok::kw_char8_t);
++    case Char16:
++      return 关键字(tok::kw_char16_t);
++    case Char32:
++      return 关键字(tok::kw_char32_t);
++    default:
++      break; // 其余（__int128 / _BitInt / _Accum / __fp16 / _Decimal32 …）走英文
++    }
++#undef ZH_BUILTIN_组合
++  }
++
+   switch (getKind()) {
+   case Void:
+     return "void";
+diff --git a/clang/lib/AST/TypePrinter.cpp b/clang/lib/AST/TypePrinter.cpp
+index 60964d2..1c71b13 100644
+--- a/clang/lib/AST/TypePrinter.cpp
++++ b/clang/lib/AST/TypePrinter.cpp
+@@ -147,21 +147,32 @@ private:
+ } // namespace
+ 
+ static void AppendTypeQualList(raw_ostream &OS, unsigned TypeQuals,
+-                               bool HasRestrictKeyword) {
++                               bool HasRestrictKeyword, bool Chinese = false) {
++  // 中文诊断下限定符也用中文（§18.8 P-09 / D-04）：`const 盒<双精度> &` →
++  // `常量 盒<双精度> &`。拼写取自 ChineseKeywords.def（同源，不另立清单）。
++  // 不这么做就会自相矛盾：同一个字符串里类型已经中文、限定符还是英文
++  // （实测 `'const 盒<双精度> &'` —— 闸门第 18 道守卫抓到的）。
++  auto 名 = [Chinese](tok::TokenKind K, const char *英文) -> const char * {
++    if (!Chinese)
++      return 英文;
++    if (const char *S = tok::getKeywordSpelling(K))
++      return S;
++    return 英文;
++  };
+   bool appendSpace = false;
+   if (TypeQuals & Qualifiers::Const) {
+-    OS << "const";
++    OS << 名(tok::kw_const, "const");
+     appendSpace = true;
+   }
+   if (TypeQuals & Qualifiers::Volatile) {
+     if (appendSpace) OS << ' ';
+-    OS << "volatile";
++    OS << 名(tok::kw_volatile, "volatile");
+     appendSpace = true;
+   }
+   if (TypeQuals & Qualifiers::Restrict) {
+     if (appendSpace) OS << ' ';
+     if (HasRestrictKeyword) {
+-      OS << "restrict";
++      OS << 名(tok::kw_restrict, "restrict");
+     } else {
+       OS << "__restrict";
+     }
+@@ -529,7 +540,7 @@ void TypePrinter::printConstantArrayAfter(const ConstantArrayType *T,
+   OS << '[';
+   if (T->getIndexTypeQualifiers().hasQualifiers()) {
+     AppendTypeQualList(OS, T->getIndexTypeCVRQualifiers(),
+-                       Policy.Restrict);
++                       Policy.Restrict, Policy.ChineseTypeNames);
+     OS << ' ';
+   }
+ 
+@@ -562,7 +573,7 @@ void TypePrinter::printVariableArrayAfter(const VariableArrayType *T,
+                                           raw_ostream &OS) {
+   OS << '[';
+   if (T->getIndexTypeQualifiers().hasQualifiers()) {
+-    AppendTypeQualList(OS, T->getIndexTypeCVRQualifiers(), Policy.Restrict);
++    AppendTypeQualList(OS, T->getIndexTypeCVRQualifiers(), Policy.Restrict, Policy.ChineseTypeNames);
+     OS << ' ';
+   }
+ 
+@@ -2780,7 +2791,7 @@ void Qualifiers::print(raw_ostream &OS, const PrintingPolicy& Policy,
+ 
+   unsigned quals = getCVRQualifiers();
+   if (quals) {
+-    AppendTypeQualList(OS, quals, Policy.Restrict);
++    AppendTypeQualList(OS, quals, Policy.Restrict, Policy.ChineseTypeNames);
+     addSpace = true;
+   }
+   if (hasUnaligned()) {
 diff --git a/clang/lib/Basic/Diagnostic.cpp b/clang/lib/Basic/Diagnostic.cpp
 index 48dd955..bfd804c 100644
 --- a/clang/lib/Basic/Diagnostic.cpp
@@ -22793,10 +23043,22 @@ index 660e61d..99f7c90 100644
                       options::OPT_fno_diagnostics_show_line_numbers);
  
 diff --git a/clang/lib/Frontend/CompilerInstance.cpp b/clang/lib/Frontend/CompilerInstance.cpp
-index 66662a7..3d867f4 100644
+index 66662a7..7814f15 100644
 --- a/clang/lib/Frontend/CompilerInstance.cpp
 +++ b/clang/lib/Frontend/CompilerInstance.cpp
-@@ -1078,24 +1078,40 @@ void CompilerInstance::printDiagnosticStats() {
+@@ -577,6 +577,11 @@ void CompilerInstance::createASTContext() {
+       getLangOpts(), PP.getSourceManager(), PP.getIdentifierTable(),
+       PP.getSelectorTable(), PP.getBuiltinInfo(), PP.TUKind);
+   Context->InitBuiltinTypes(getTarget(), getAuxTarget());
++
++  // 注：诊断里"内建类型名用中文"的开关**不在这里**设 —— 它是
++  // `Sema::getPrintingPolicy()` 的职责（Sema 每次发诊断前都会把那份 policy
++  // 拷进 ASTContext，见 Sema.h 的注释）。大检查 P-09 / §18.8。
++
+   setASTContext(std::move(Context));
+ }
+ 
+@@ -1078,24 +1083,40 @@ void CompilerInstance::printDiagnosticStats() {
    unsigned NumWarnings = getDiagnostics().getClient()->getNumWarnings();
    unsigned NumErrors = getDiagnostics().getClient()->getNumErrors();
  
