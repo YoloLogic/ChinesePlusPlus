@@ -231,7 +231,10 @@ $rev = @{}
 foreach ($k in $memberMap.Keys) { $rev[$memberMap[$k]] = $k }
 
 for ($round = 1; $round -le 10; $round++) {
-    $raw = & cmd /c "`"$cxx`" -std=c++20 -isystem`"$OutDir`" -ferror-limit=0 -fsyntax-only `"$probe`" 2>&1"
+    #  ⚠ 必须钉住 `-fdiagnostics-column-unit=byte`：下面把列号直接当字节偏移用
+    #    （$off = $Col - 1）。2026-10-03 §18.5 把默认列号口径改成显示列后，
+    #    这里会算歪、撤回静默失效 —— 见 make_zhstdlib2.ps1 里同一处的长注释。
+    $raw = & cmd /c "`"$cxx`" -std=c++20 -fdiagnostics-column-unit=byte -isystem`"$OutDir`" -ferror-limit=0 -fsyntax-only `"$probe`" 2>&1"
     $hits = @()
     foreach ($l in @($raw)) {
         if ([string]$l -match "$headerName`:(\d+):(\d+): error: .*没有名为（成员名） '([^']+)' 的成员") {

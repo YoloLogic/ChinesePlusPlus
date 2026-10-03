@@ -538,9 +538,22 @@ Write-Host "=== 诊断列号口径守卫（§18.5：大检查 P-02）===" -Foreg
 & pwsh -NoProfile -File (Join-Path $root 'tools\check_zhcolumn.ps1')
 $zcu = $LASTEXITCODE
 
-if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0 -and $bd -eq 0 -and $orph -eq 0 -and $fw -eq 0 -and $zd -eq 0 -and $cv -eq 0 -and $nm -eq 0 -and $hb -eq 0 -and $tp -eq 0 -and $dc -eq 0 -and $zi -eq 0 -and $kwg -eq 0 -and $zdl -eq 0 -and $zkn -eq 0 -and $zcu -eq 0) {
-    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 边界台账 + 孤儿产物 + 公开层转发 + 中文类型名定义 + 标准头覆盖 + 中文名占用 + 汉化标尺 + 第三方开源项目 + 手写文档数字 + 实例化 + 关键字 + 英文残留 + 关键字措辞 + 列号口径 + 铁律①：全部通过" -ForegroundColor Green
+# ---------------------------------------------------------------------------
+#  §18.6 中英诊断对称性守卫（第 21 道）—— 大检查 P-03 + P-06 / P-11，2026-10-03
+#  三条判据：
+#    ① P-03：`#define override 1` 与 `#定义 重写 1` 在 -Wkeyword-macro 下必须报
+#       **同一条**警告（改之前中文一条都没有）。
+#    ② P-06：GBK 源码的诊断正文里必须有补救办法（出现「另存为 UTF-8」）。
+#    ③ P-11：同一个坏字节文件只能报**一条**编码诊断（改之前 18 条 + 撞 -ferror-limit）。
+#  自带自测（归一化比较能区分 / 「含补救」判断能失败）。耗时约 3 秒。
+# ---------------------------------------------------------------------------
+Write-Host "=== 中英诊断对称性守卫（§18.6：大检查 P-03 + P-06/P-11）===" -ForegroundColor Cyan
+& pwsh -NoProfile -File (Join-Path $root 'tools\check_zhdiag_parity.ps1')
+$zpa = $LASTEXITCODE
+
+if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0 -and $bd -eq 0 -and $orph -eq 0 -and $fw -eq 0 -and $zd -eq 0 -and $cv -eq 0 -and $nm -eq 0 -and $hb -eq 0 -and $tp -eq 0 -and $dc -eq 0 -and $zi -eq 0 -and $kwg -eq 0 -and $zdl -eq 0 -and $zkn -eq 0 -and $zcu -eq 0 -and $zpa -eq 0) {
+    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 边界台账 + 孤儿产物 + 公开层转发 + 中文类型名定义 + 标准头覆盖 + 中文名占用 + 汉化标尺 + 第三方开源项目 + 手写文档数字 + 实例化 + 关键字 + 英文残留 + 关键字措辞 + 列号口径 + 诊断对称 + 铁律①：全部通过" -ForegroundColor Green
     exit 0
 }
-Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；边界台账守卫退出码 {5}；孤儿产物守卫退出码 {6}；铁律①守卫退出码 {4}；公开层转发守卫退出码 {7}；中文类型名定义守卫退出码 {8}；标准头覆盖退出码 {9}；中文名占用退出码 {10}；汉化标尺退出码 {11}；第三方开源项目退出码 {12}；手写文档数字退出码 {13}；实例化退出码 {14}；关键字退出码 {15}；英文残留退出码 {16}；关键字措辞退出码 {17}；列号口径退出码 {18}" -f $fail, $v, $ex, $ud, $og, $bd, $orph, $fw, $zd, $cv, $nm, $hb, $tp, $dc, $zi, $kwg, $zdl, $zkn, $zcu) -ForegroundColor Red
+Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；边界台账守卫退出码 {5}；孤儿产物守卫退出码 {6}；铁律①守卫退出码 {4}；公开层转发守卫退出码 {7}；中文类型名定义守卫退出码 {8}；标准头覆盖退出码 {9}；中文名占用退出码 {10}；汉化标尺退出码 {11}；第三方开源项目退出码 {12}；手写文档数字退出码 {13}；实例化退出码 {14}；关键字退出码 {15}；英文残留退出码 {16}；关键字措辞退出码 {17}；列号口径退出码 {18}；诊断对称退出码 {19}" -f $fail, $v, $ex, $ud, $og, $bd, $orph, $fw, $zd, $cv, $nm, $hb, $tp, $dc, $zi, $kwg, $zdl, $zkn, $zcu, $zpa) -ForegroundColor Red
 exit 1

@@ -633,6 +633,27 @@ index 89b2d43..112379b 100644
  /// Determines the spelling of simple Objective-C keyword tokens like '@import'.
  /// Returns NULL for other token kinds.
  const char *getObjCKeywordSpelling(ObjCKeywordKind Kind) LLVM_READNONE;
+diff --git a/clang/include/clang/Lex/Lexer.h b/clang/include/clang/Lex/Lexer.h
+index b042e5f..e07220b 100644
+--- a/clang/include/clang/Lex/Lexer.h
++++ b/clang/include/clang/Lex/Lexer.h
+@@ -144,6 +144,16 @@ class Lexer : public PreprocessorLexer {
+   /// True if this is the first time we're lexing the input file.
+   bool IsFirstTimeLexingFile;
+ 
++  /// 非法 UTF-8 是不是已经报过了（大检查 P-06 / P-11 / §18.6）。
++  ///
++  /// 一份不是合法 UTF-8 的源码（Windows 中文环境最常见的 GBK 文件），Lexer 会
++  /// **逐字节**丢字符并报错 —— 实测一个 17 个汉字的 GBK 文件报了 **20 条**同样的
++  /// 错误，最后还撞上 `-ferror-limit` 变成 "发出的错误过多，现在停止"。
++  /// 用户真正需要看到的是**第一句**（现在它带着"请另存为 UTF-8"的补救提示），
++  /// 所以每个文件只报第一次；严重级别不变（仍是 error，不是 fatal）。
++  /// （就地初始化：Lexer 有四个构造函数，写在这里不会漏。）
++  bool ReportedInvalidUTF8 = false;
++
+   // NewLinePtr - A pointer to new line character '\n' being lexed. For '\r\n',
+   // it also points to '\n.'
+   const char *NewLinePtr;
 diff --git a/clang/include/clang/Parse/Parser.h b/clang/include/clang/Parse/Parser.h
 index 163aa48..733beed 100644
 --- a/clang/include/clang/Parse/Parser.h
@@ -994,11 +1015,70 @@ index ede5d49..191c89b 100644
                    .Default(pp_none);
    if (Kind == pp_none) {
      skipDirective(Id, First, End);
+diff --git a/clang/lib/Lex/Lexer.cpp b/clang/lib/Lex/Lexer.cpp
+index 5826485..d0db56a 100644
+--- a/clang/lib/Lex/Lexer.cpp
++++ b/clang/lib/Lex/Lexer.cpp
+@@ -4615,7 +4615,15 @@ LexStart:
+     // Non-ASCII characters tend to creep into source code unintentionally.
+     // Instead of letting the parser complain about the unknown token,
+     // just diagnose the invalid UTF-8, then drop the character.
+-    Diag(CurPtr, diag::err_invalid_utf8);
++    //
++    // 每个文件只报**第一次**（大检查 P-06 / P-11 / §18.6）：逐字节重复报错只会刷屏
++    // —— 实测一个 17 个汉字的 GBK 文件报 20 条，最后撞上 -ferror-limit 变成
++    // "发出的错误过多，现在停止"。第一句（带"请另存为 UTF-8"的补救提示）才是
++    // 用户要看的。严重级别不变：仍是 error，不是 fatal。
++    if (!ReportedInvalidUTF8) {
++      ReportedInvalidUTF8 = true;
++      Diag(CurPtr, diag::err_invalid_utf8);
++    }
+ 
+     BufferPtr = CurPtr+1;
+     // We're pretending the character didn't exist, so just try again with
 diff --git a/clang/lib/Lex/PPDirectives.cpp b/clang/lib/Lex/PPDirectives.cpp
-index c161f6a..e2607aa 100644
+index c161f6a..2ed01ad 100644
 --- a/clang/lib/Lex/PPDirectives.cpp
 +++ b/clang/lib/Lex/PPDirectives.cpp
-@@ -533,6 +533,39 @@ void Preprocessor::SuggestTypoedDirective(const Token &Tok,
+@@ -197,6 +197,25 @@ static bool isReservedCXXAttributeName(Preprocessor &PP, IdentifierInfo *II) {
+   return false;
+ }
+ 
++/// 这个标识符是不是**中文的 virt-specifier 拼写**（`重写` / `最终`）。
++///
++/// 为什么需要它（大检查 P-03 / §18.6）：`override` / `final` 在 C++ 里不是关键字，
++/// 而是"有特殊含义的标识符"，所以上面那句按**拼写字符串**比较 —— 中文拼不出来，
++/// 于是 `#定义 重写 1` **不会**报"关键字被宏定义隐藏"，而英文 `#define override 1`
++/// 会报（同一条规则、同一个开关，中文这边静默失效 = 中英不对称）。
++///
++/// 表来自 `ChineseKeywords.def`（与关键字表【同源】，不新增第二份拼写清单）；
++/// 这里只做字符串化后的比较，所以 .cpp 里**不出现汉字字面量**，
++/// `tools/zh_to_en.py`（无锁定证明工具）只解析那个 .def 就够。
++static bool isChineseVirtSpecifierSpelling(const IdentifierInfo *II) {
++#define ZH_VIRT_SPECIFIER(NAME, ZH)                                            \
++  if (II->isStr(#ZH))                                                          \
++    return true;
++#include "clang/Basic/ChineseKeywords.def"
++#undef ZH_VIRT_SPECIFIER
++  return false;
++}
++
+ static MacroDiag shouldWarnOnMacroDef(Preprocessor &PP, IdentifierInfo *II) {
+   const LangOptions &Lang = PP.getLangOpts();
+   StringRef Text = II->getName();
+@@ -204,7 +223,10 @@ static MacroDiag shouldWarnOnMacroDef(Preprocessor &PP, IdentifierInfo *II) {
+     return isFeatureTestMacro(Text) ? MD_NoWarn : MD_ReservedMacro;
+   if (II->isKeyword(Lang))
+     return MD_KeywordDef;
+-  if (Lang.CPlusPlus11 && (Text == "override" || Text == "final"))
++  // 中文拼写与英文拼写走同一条规则（同一个 C++11 前提、同一个警告）
++  if (Lang.CPlusPlus11 &&
++      (Text == "override" || Text == "final" ||
++       isChineseVirtSpecifierSpelling(II)))
+     return MD_KeywordDef;
+   if (isReservedCXXAttributeName(PP, II))
+     return MD_ReservedAttributeIdentifier;
+@@ -533,6 +555,39 @@ void Preprocessor::SuggestTypoedDirective(const Token &Tok,
    }
  }
  
@@ -1038,7 +1118,7 @@ index c161f6a..e2607aa 100644
  /// SkipExcludedConditionalBlock - We just read a \#if or related directive and
  /// decided that the subsequent tokens are in the \#if'd out portion of the
  /// file.  Lex the rest of the file, until we see an \#endif.  If
-@@ -761,6 +794,18 @@ void Preprocessor::SkipExcludedConditionalBlock(SourceLocation HashTokenLoc,
+@@ -761,6 +816,18 @@ void Preprocessor::SkipExcludedConditionalBlock(SourceLocation HashTokenLoc,
        Directive = StringRef(DirectiveBuf, IdLen);
      }
  

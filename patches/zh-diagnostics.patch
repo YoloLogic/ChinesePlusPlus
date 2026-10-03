@@ -1,6 +1,6 @@
 diff --git a/clang/include/clang/Basic/ChineseDiagnostics.def b/clang/include/clang/Basic/ChineseDiagnostics.def
 new file mode 100644
-index 0000000..3abd5bb
+index 0000000..c3c403e
 --- /dev/null
 +++ b/clang/include/clang/Basic/ChineseDiagnostics.def
 @@ -0,0 +1,22513 @@
@@ -2636,7 +2636,7 @@ index 0000000..3abd5bb
 +ZH_DIAG(err_invalid_use_of_function_type, "此处不允许使用函数类型")
 +
 +// 英文：source file is not valid UTF-8
-+ZH_DIAG(err_invalid_utf8, "源文件不是有效的 UTF-8")
++ZH_DIAG(err_invalid_utf8, "源文件不是有效的 UTF-8 —— 请把源文件另存为 UTF-8（记事本/VS Code 保存时可选编码）")
 +
 +// 英文：use of '__int128' with '__vector bool' requires VSX support enabled (on POWER10 or later)
 +ZH_DIAG(err_invalid_vector_bool_int128_decl_spec, "把 '__int128' 与 '__vector bool' 一起使用需要启用 VSX 支持（POWER10 或更高版本）")
@@ -22518,10 +22518,10 @@ index 0000000..3abd5bb
 +
 +#undef ZH_DIAG
 diff --git a/clang/include/clang/Basic/DiagnosticOptions.def b/clang/include/clang/Basic/DiagnosticOptions.def
-index 764e2f1..d38fd53 100644
+index 764e2f1..945b0c1 100644
 --- a/clang/include/clang/Basic/DiagnosticOptions.def
 +++ b/clang/include/clang/Basic/DiagnosticOptions.def
-@@ -60,6 +60,9 @@ DIAGOPT(ShowPresumedLoc, 1, 0)  /// Show presumed location for diagnostics.
+@@ -60,11 +60,19 @@ DIAGOPT(ShowPresumedLoc, 1, 0)  /// Show presumed location for diagnostics.
  DIAGOPT(ShowOptionNames, 1, 0)  /// Show the option name for mappable
                                  /// diagnostics.
  DIAGOPT(ShowNoteIncludeStack, 1, 0) /// Show include stacks for notes.
@@ -22531,11 +22531,65 @@ index 764e2f1..d38fd53 100644
  VALUE_DIAGOPT(ShowCategories, 2, 0) /// Show categories: 0 -> none, 1 -> Number,
                                      /// 2 -> Full Name.
  
+ ENUM_DIAGOPT(Format, TextDiagnosticFormat, 2, Clang) /// Format for diagnostics:
+ 
++/// 列的单位（§18.5 / 大检查 P-02）：byte=字节偏移（上游老行为）、
++/// display=显示列（与插入符同口径）、character=字符数（编辑器问题匹配器要的）。
++/// 默认 display —— 与上游后来加这个开关时的默认值一致。
++ENUM_DIAGOPT(ColumnUnit, ColumnUnitKind, 2, CU_Display)
++
+ ENUM_DIAGOPT(ShowColors, ShowColorsKind, 2, ShowColorsKind::Auto)
+ DIAGOPT(UseANSIEscapeCodes, 1, 0)
+ ENUM_DIAGOPT(ShowOverloads, OverloadsShown, 1,
+diff --git a/clang/include/clang/Basic/DiagnosticOptions.h b/clang/include/clang/Basic/DiagnosticOptions.h
+index 4cfc636..c7b83ca 100644
+--- a/clang/include/clang/Basic/DiagnosticOptions.h
++++ b/clang/include/clang/Basic/DiagnosticOptions.h
+@@ -86,6 +86,21 @@ class DiagnosticOptions {
+ public:
+   enum TextDiagnosticFormat { Clang, MSVC, Vi, SARIF };
+ 
++  /// 诊断里 `文件:行:列` 的【列】按什么单位算（§18.5 / 大检查 P-02）。
++  ///
++  /// 背景：`SourceManager::getColumnNumber()` 给的是**字节偏移**（+1），而
++  /// 汉语源码里一个汉字 3 个字节 ⇒ 报出来的列号既不是用户数出来的字符数，
++  /// 也不是终端上看到的显示列。实测：`整数 甲乙丙丁戊己庚辛 = 1; 整数 结果 =
++  /// 甲乙丙丁戊己庚辛 + 未定义名字;` 报 81，而字符序是 37、显示列是 59。
++  /// 插入符本身一直是对的（按显示宽度画），错的是这个数字。
++  ///
++  ///   CU_Byte      —— 字节偏移（上游一直如此，保留给"与老工具对拍"）
++  ///   CU_Display   —— 显示列（汉字 2 格、制表符按 -ftabstop）—— **与插入符同口径**，
++  ///                   也是上游后来加这个开关时的默认值
++  ///   CU_Character —— 字符数（第几个字符）—— **编辑器的问题匹配器要的就是它**
++  ///                   （VS Code 按 UTF-16 列解析，BMP 汉字算 1 列）
++  enum ColumnUnitKind { CU_Byte, CU_Display, CU_Character };
++
+   // Default values.
+   enum {
+     DefaultTabStop = 8,
+@@ -169,6 +184,7 @@ public:
+ };
+ 
+ using TextDiagnosticFormat = DiagnosticOptions::TextDiagnosticFormat;
++using ColumnUnitKind = DiagnosticOptions::ColumnUnitKind;
+ 
+ } // namespace clang
+ 
 diff --git a/clang/include/clang/Options/Options.td b/clang/include/clang/Options/Options.td
-index 41848b1..7d85045 100644
+index 41848b1..2befd85 100644
 --- a/clang/include/clang/Options/Options.td
 +++ b/clang/include/clang/Options/Options.td
-@@ -4492,6 +4492,12 @@ defm show_column : BoolFOption<"show-column",
+@@ -2333,6 +2333,9 @@ defm diagnostics_show_inlining_chain
+                           "[[gnu::warning/error]] diagnostics">,
+                   NegFlag<SetFalse, [], [ClangOption, CLOption, CC1Option]>>;
+ def fdiagnostics_format_EQ : Joined<["-"], "fdiagnostics-format=">, Group<f_clang_Group>;
++// 列的单位（§18.5 / 大检查 P-02）。驱动侧只声明 Join 形式，
++// 转发见 clang/lib/Driver/ToolChains/Clang.cpp（与 -fdiagnostics-format= 同一处）。
++def fdiagnostics_column_unit_EQ : Joined<["-"], "fdiagnostics-column-unit=">, Group<f_clang_Group>;
+ def fdiagnostics_show_category_EQ : Joined<["-"], "fdiagnostics-show-category=">, Group<f_clang_Group>;
+ def fdiagnostics_show_template_tree : Flag<["-"], "fdiagnostics-show-template-tree">,
+     Group<f_Group>, Visibility<[ClangOption, CC1Option]>,
+@@ -4492,6 +4495,12 @@ defm show_column : BoolFOption<"show-column",
    NegFlag<SetFalse, [], [ClangOption, CC1Option],
            "Do not include column number on diagnostics">,
    PosFlag<SetTrue>>;
@@ -22548,6 +22602,23 @@ index 41848b1..7d85045 100644
  defm show_source_location : BoolFOption<"show-source-location",
    DiagnosticOpts<"ShowLocation">, DefaultTrue,
    NegFlag<SetFalse, [], [ClangOption, CC1Option],
+@@ -8414,6 +8423,16 @@ def fdiagnostics_format : Separate<["-"], "fdiagnostics-format">,
+   Values<"clang,msvc,vi,sarif,SARIF">,
+   NormalizedValuesScope<"DiagnosticOptions">, NormalizedValues<["Clang", "MSVC", "Vi", "SARIF", "SARIF"]>,
+   MarshallingInfoEnum<DiagnosticOpts<"Format">, "Clang">;
++// 列的单位（§18.5 / 大检查 P-02）：
++//   byte      = 字节偏移（上游老行为）
++//   display   = 显示列（汉字 2 格、制表符按 -ftabstop）—— 与插入符同口径，默认
++//   character = 字符数 —— 编辑器（VS Code 之类）的问题匹配器要的就是它
++def fdiagnostics_column_unit : Separate<["-"], "fdiagnostics-column-unit">,
++  HelpText<"Select whether column numbers are in bytes, display columns, or characters">,
++  Values<"byte,display,character">,
++  NormalizedValuesScope<"DiagnosticOptions">,
++  NormalizedValues<["CU_Byte", "CU_Display", "CU_Character"]>,
++  MarshallingInfoEnum<DiagnosticOpts<"ColumnUnit">, "CU_Display">;
+ def fdiagnostics_show_category : Separate<["-"], "fdiagnostics-show-category">,
+   HelpText<"Print diagnostic category">,
+   Values<"none,id,name">,
 diff --git a/clang/lib/Basic/Diagnostic.cpp b/clang/lib/Basic/Diagnostic.cpp
 index 48dd955..bfd804c 100644
 --- a/clang/lib/Basic/Diagnostic.cpp
@@ -22693,10 +22764,24 @@ index 48dd955..bfd804c 100644
          Out << S;
        else if ((S = tok::getTokenName(Kind)))
 diff --git a/clang/lib/Driver/ToolChains/Clang.cpp b/clang/lib/Driver/ToolChains/Clang.cpp
-index 660e61d..62932ee 100644
+index 660e61d..99f7c90 100644
 --- a/clang/lib/Driver/ToolChains/Clang.cpp
 +++ b/clang/lib/Driver/ToolChains/Clang.cpp
-@@ -4606,6 +4606,10 @@ static void RenderDiagnosticsOptions(const Driver &D, const ArgList &Args,
+@@ -4588,6 +4588,13 @@ static void RenderDiagnosticsOptions(const Driver &D, const ArgList &Args,
+       D.Diag(diag::warn_drv_sarif_format_unstable);
+   }
+ 
++  // 列的单位（§18.5 / 大检查 P-02）：与 -fdiagnostics-format= 同一处、同一写法。
++  if (const Arg *A =
++          Args.getLastArg(options::OPT_fdiagnostics_column_unit_EQ)) {
++    CmdArgs.push_back("-fdiagnostics-column-unit");
++    CmdArgs.push_back(A->getValue());
++  }
++
+   if (const Arg *A = Args.getLastArg(
+           options::OPT_fdiagnostics_show_note_include_stack,
+           options::OPT_fno_diagnostics_show_note_include_stack)) {
+@@ -4606,6 +4613,10 @@ static void RenderDiagnosticsOptions(const Driver &D, const ArgList &Args,
    Args.addOptOutFlag(CmdArgs, options::OPT_fshow_source_location,
                       options::OPT_fno_show_source_location);
  
@@ -22856,10 +22941,80 @@ index 2b6fbc2..e05d270 100644
    emitNote(Loc, Message.str());
  }
 diff --git a/clang/lib/Frontend/TextDiagnostic.cpp b/clang/lib/Frontend/TextDiagnostic.cpp
-index 01a4d2f..5d58a25 100644
+index 01a4d2f..4f74223 100644
 --- a/clang/lib/Frontend/TextDiagnostic.cpp
 +++ b/clang/lib/Frontend/TextDiagnostic.cpp
-@@ -955,31 +955,40 @@ void TextDiagnostic::emitDiagnosticLoc(FullSourceLoc Loc, PresumedLoc PLoc,
+@@ -855,6 +855,57 @@ void TextDiagnostic::emitFilename(StringRef Filename, const SourceManager &SM) {
+ /// This includes extracting as much location information as is present for
+ /// the diagnostic and printing it, as well as any include stack or source
+ /// ranges necessary.
++/// 把一个"字节列"（SourceManager 的口径）换算成诊断要显示的单位
++/// （`-fdiagnostics-column-unit`，见 DiagnosticOptions.h / §18.5 / 大检查 P-02）。
++///
++///   字节列 = 这一行里第几个**字节**（+1）。汉语一个字 3 个字节，所以它既不是
++///   用户数出来的字符序，也不是终端上的显示列 —— 实测同一行：字节 81 / 字符 37 /
++///   显示 59，而插入符一直按显示宽度画得是对的，错的只是这个数字。
++///
++///   换不出来（位置在宏展开里、缓冲区读不到、越界）就**原样返回**：
++///   宁可给旧口径，也不能因为换算把列号弄丢或弄错。
++static unsigned convertDiagnosticColumn(FullSourceLoc Loc, unsigned ByteCol,
++                                        const DiagnosticOptions &DiagOpts) {
++  if (DiagOpts.getColumnUnit() == DiagnosticOptions::CU_Byte)
++    return ByteCol;
++  // 宏展开位置的"行/列"与文件偏移对不上，保留字节口径
++  if (!Loc.isFileID())
++    return ByteCol;
++
++  const SourceManager &SM = Loc.getManager();
++  bool Invalid = false;
++  StringRef Buf = SM.getBufferData(Loc.getFileID(), &Invalid);
++  if (Invalid || Buf.empty())
++    return ByteCol;
++
++  // SourceManager 的列号就是"文件偏移 + 1"，所以本行起始偏移 = 偏移 - (列-1)
++  unsigned FileOff = SM.getFileOffset(Loc);
++  if (FileOff + 1 < ByteCol)
++    return ByteCol;
++  unsigned LineStart = FileOff + 1 - ByteCol;
++  unsigned LineEnd = LineStart;
++  while (LineEnd < Buf.size() && Buf[LineEnd] != '\n' && Buf[LineEnd] != '\r')
++    ++LineEnd;
++  StringRef Line = Buf.substr(LineStart, LineEnd - LineStart);
++  if (ByteCol - 1 > Line.size())
++    return ByteCol;
++  StringRef Prefix = Line.substr(0, ByteCol - 1);
++
++  if (DiagOpts.getColumnUnit() == DiagnosticOptions::CU_Character) {
++    // 字符数：数 UTF-8 码点（制表符也算 1 个字符）—— 编辑器问题匹配器要的就是它
++    unsigned N = 0;
++    for (unsigned I = 0, E = Prefix.size(); I < E; ++N) {
++      unsigned Len = llvm::getNumBytesForUTF8(Prefix[I]);
++      I += (Len == 0 ? 1 : Len);
++    }
++    return N + 1;
++  }
++
++  // CU_Display：显示列（汉字 2 格、制表符按 -ftabstop）—— 与插入符同一口径
++  SourceColumnMap Map(Line, DiagOpts.TabStop);
++  return Map.byteToContainingColumn(Bytes(ByteCol - 1)).V + 1;
++}
++
+ void TextDiagnostic::emitDiagnosticLoc(FullSourceLoc Loc, PresumedLoc PLoc,
+                                        DiagnosticsEngine::Level Level,
+                                        ArrayRef<CharSourceRange> Ranges) {
+@@ -890,6 +941,11 @@ void TextDiagnostic::emitDiagnosticLoc(FullSourceLoc Loc, PresumedLoc PLoc,
+   if (DiagOpts.ShowColumn)
+     // Compute the column number.
+     if (unsigned ColNo = PLoc.getColumn()) {
++      // §18.5 / 大检查 P-02：SourceManager 给的是**字节偏移**。汉语源码里一个汉字
++      // 3 个字节 ⇒ 报出来的数字既不是字符序也不是显示列（实测 81 / 37 / 59），
++      // 而插入符一直按显示宽度画得是对的 —— 错的是这个数字。
++      // 按 -fdiagnostics-column-unit 换算（默认 display，与插入符同口径）。
++      ColNo = convertDiagnosticColumn(Loc, ColNo, DiagOpts);
+       if (DiagOpts.getFormat() == DiagnosticOptions::MSVC) {
+         OS << ',';
+         // Visual Studio 2010 or earlier expects column number to be off by one
+@@ -955,31 +1011,40 @@ void TextDiagnostic::emitDiagnosticLoc(FullSourceLoc Loc, PresumedLoc PLoc,
  }
  
  void TextDiagnostic::emitIncludeLocation(FullSourceLoc Loc, PresumedLoc PLoc) {

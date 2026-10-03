@@ -115,6 +115,10 @@ $ScanDirs = @('clang', 'llvm', 'clang-tools-extra')
 $DiagFiles = @(
     'clang/include/clang/Basic/ChineseDiagnostics.def',
     'clang/include/clang/Basic/DiagnosticOptions.def',
+    # 2026-10-03（§18.5 P-02）加的：列号口径那个枚举（ColumnUnitKind）声明在这里，
+    # 它与 DiagnosticOptions.def / Options.td / TextDiagnostic.cpp 是同一件事，
+    # 漏了它就会把"诊断的开关注解"切到关键字补丁里去。
+    'clang/include/clang/Basic/DiagnosticOptions.h',
     'clang/include/clang/Options/Options.td',
     'clang/lib/Basic/Diagnostic.cpp',
     'clang/lib/Driver/ToolChains/Clang.cpp',

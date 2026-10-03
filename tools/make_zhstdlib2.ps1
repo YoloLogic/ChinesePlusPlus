@@ -7793,7 +7793,15 @@ $cleanStreak = 0
 for ($round = 1; $round -le $maxRounds; $round++) {
     $ti = ($round - 1) % $probeBodies.Count
     [System.IO.File]::WriteAllText($probe, $probeBodies[$ti] + "`n", $utf8)
-    $raw = & cmd /c "`"$cxx`" -std=c++20 -isystem`"$out`" -ferror-limit=0 -fsyntax-only `"$probe`" 2>&1"
+    #  ⚠ 必须钉住 `-fdiagnostics-column-unit=byte`：下面第 7829 行把解析出来的
+    #    列号**直接当字节偏移**用（$off = $h.Col - 1），这是本生成器的契约
+    #    （见文件头第 14 行"报行列号，按【字节】偏移改回"）。
+    #    2026-10-03 §18.5 把诊断的**默认**列号口径改成了显示列（汉子 2 格），
+    #    于是这里的偏移全算歪 —— 33 个产物的"改回英文"静默失效、产品编不过，
+    #    是**闸门**（全量验证/实例化/汉化标尺同时报红）抓到的。教训：
+    #    "改一个对机器可见的数字的默认值"会打到自己的工具链上；
+    #    消费方要显式声明自己按哪个口径读。
+    $raw = & cmd /c "`"$cxx`" -std=c++20 -fdiagnostics-column-unit=byte -isystem`"$out`" -ferror-limit=0 -fsyntax-only `"$probe`" 2>&1"
     $hits = @()
     foreach ($l in @($raw)) {
         if ([string]$l -match "$($spec.zh)`:(\d+):(\d+): error: .*?(?:没有名为（成员名）|没有名为（名字）|未知的类型名（类型名）) '([^']+)'") {
