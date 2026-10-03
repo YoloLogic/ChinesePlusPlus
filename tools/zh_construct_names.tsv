@@ -1,0 +1,61 @@
+# 中文诊断「构造名对照表」（§18.10 / 大检查 P-08 的判据边界）
+#
+# 为什么需要这张表：
+#   关键字表（ChineseKeywords.def）里**只有关键字**（`if`/`class`/`sizeof`…）。
+#   中文诊断里还有一大类英文是**构造名** —— `function`/`constructor`/`identifier`/
+#   `block`/`lambda`… —— 它们在 C++ 里**不是关键字**，关键字表里查不到，
+#   所以 P-08 的判据①（"与关键字表同源"的扫描）扫不到这半边，
+#   过去只有"纯英文备选串总数上限"能兜住它们。这张表就是那半边的"源"。
+#
+# 格式：英文构造名 <TAB> 中文名 <TAB> 理由
+#
+# 规矩（tools\check_zhdiag_leak.ps1 会核）：
+#   ① 本表**不许凭空造词** —— 每行的中文名必须在 ChineseDiagnostics.def 的真表项里
+#      至少出现过一次（否则报"造词"）；
+#   ② 表里的英文名若出现在 `%select{...}` 的备选串里，就必须已经译成中文；
+#      只有守卫的 `$备选豁免` 里**逐条写明理由**的才准留英文
+#      （判断标准一条：**代码里要照写的名字** —— doxygen 命令名、ObjC 属性特性名、
+#        GNU 属性名、语言/标准专名）。
+#   ③ 本表**不求全**：只登记"已经翻过、需要钉住不许退回英文"的构造名。
+#      要加就加一行；加了之后守卫会立刻开始扫它（这是故意的：加表即加判据）。
+#
+# 英文构造名	中文名	理由
+function	函数	表里一直写「函数」（跟 构造函数/析构函数 同一套）
+constructor	构造函数	同上
+destructor	析构函数	同上
+identifier	标识符	记号名（中文消息里一直写「标识符」）
+unqualified-id	非限定标识符	P-08 A 类翻的就是它
+method	方法	ObjC/成员方法的统称（doc 命令名例外，见守卫豁免）
+block	块	ObjC block；与本表的 块字面量/块指针 同一套
+lambda	匿名函数	决策 D-07（用户拍板）
+coroutine	协程	表里一直写「协程」
+statement	语句	表里一直写「语句」
+expression	表达式	表里一直写「表达式」
+declaration	声明	表里一直写「声明」
+definition	定义	表里一直写「定义」
+namespace	名域	中文关键字表的译名
+overload	重载	表里一直写「重载」
+operator	运算符	中文关键字表的译名
+conversion	转换	表里一直写「转换」
+initializer	初始化器	表里一直写「初始化器」
+parameter	形参	表里一直写「形参」
+argument	实参	表里一直写「实参」
+variable	变量	表里一直写「变量」
+member	成员	表里一直写「成员」
+field	字段	表里一直写「字段」
+array	数组	表里一直写「数组」
+pointer	指针	表里一直写「指针」
+reference	引用	表里一直写「引用」
+literal	字面量	表里一直写「字面量」
+header	头文件	表里一直写「头文件」
+macro	宏	表里一直写「宏」
+module	模块	中文关键字表的译名
+type	类型	中文关键字表的译名（`class` → 类型）
+value	值	表里一直写「值」
+object	对象	表里一直写「对象」
+property	属性	表里一直写「属性」（ObjC 属性特性名例外，见守卫豁免）
+enumerator	枚举值	表里一直写「枚举值」
+base class	基类	表里一直写「基类」
+derived class	派生类	表里一直写「派生类」
+class template	类模板	表里一直写「类模板」
+function template	函数模板	表里一直写「函数模板」

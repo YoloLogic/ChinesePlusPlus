@@ -71,7 +71,7 @@ index c655521..360c9f0 100644
  #endif
 diff --git a/clang/include/clang/Basic/ChineseDiagnostics.def b/clang/include/clang/Basic/ChineseDiagnostics.def
 new file mode 100644
-index 0000000..622a0c9
+index 0000000..bb00ad7
 --- /dev/null
 +++ b/clang/include/clang/Basic/ChineseDiagnostics.def
 @@ -0,0 +1,22513 @@
@@ -9294,7 +9294,7 @@ index 0000000..622a0c9
 +ZH_DIAG(err_arc_atomic_ownership, "不能对指向（类型） %0 的指针执行原子操作：该类型具有非平凡所有权")
 +
 +// 英文：cannot capture __autoreleasing variable in a %select{block|lambda by copy}0
-+ZH_DIAG(err_arc_autoreleasing_capture, "不能在%select{block|按值捕获的匿名函数}0 中捕获 __autoreleasing 变量")
++ZH_DIAG(err_arc_autoreleasing_capture, "不能在%select{块|按值捕获的匿名函数}0 中捕获 __autoreleasing 变量")
 +
 +// 英文：%select{__block variables|global variables|fields|instance variables}0 cannot have __autoreleasing ownership
 +ZH_DIAG(err_arc_autoreleasing_var, "%select{__block 变量|全局变量|字段|实例变量}0 不能具有 __autoreleasing 所有权")
@@ -9303,10 +9303,10 @@ index 0000000..622a0c9
 +ZH_DIAG(err_arc_bridge_cast_incompatible, "用%select{__bridge|__bridge_transfer|__bridge_retained}2 转换把（类型） %0 转换为（类型） %1 时类型不兼容")
 +
 +// 英文：cast of %select{Objective-C|block|C}0 pointer type %1 to %select{Objective-C|block|C}2 pointer type %3 cannot use %select{__bridge|__bridge_transfer|__bridge_retained}4
-+ZH_DIAG(err_arc_bridge_cast_wrong_kind, "把 %select{Objective-C|block|C}0 指针类型（类型） %1 转换为 %select{Objective-C|block|C}2 指针类型（类型） %3 的转换不能使用 %select{__bridge|__bridge_transfer|__bridge_retained}4")
++ZH_DIAG(err_arc_bridge_cast_wrong_kind, "把 %select{Objective-C|块|C}0 指针类型（类型） %1 转换为 %select{Objective-C|块|C}2 指针类型（类型） %3 的转换不能使用 %select{__bridge|__bridge_transfer|__bridge_retained}4")
 +
 +// 英文：%select{cast|implicit conversion}0 of %select{Objective-C|block|C}1 pointer type %2 to %select{Objective-C|block|C}3 pointer type %4 requires a bridged cast
-+ZH_DIAG(err_arc_cast_requires_bridge, "%select{强制转换|隐式转换}0 把 %select{Objective-C|block|C}1 指针类型（类型） %2 转换为 %select{Objective-C|block|C}3 指针类型（类型） %4 时需要使用桥接转换")
++ZH_DIAG(err_arc_cast_requires_bridge, "%select{强制转换|隐式转换}0 把 %select{Objective-C|块|C}1 指针类型（类型） %2 转换为 %select{Objective-C|块|C}3 指针类型（类型） %4 时需要使用桥接转换")
 +
 +// 英文：collection expression type %0 is a forward declaration
 +ZH_DIAG(err_arc_collection_forward, "集合表达式类型（类型名） %0 只是一个前向声明")
@@ -15078,7 +15078,7 @@ index 0000000..622a0c9
 +ZH_DIAG(err_reference_to_function_with_unsatisfied_constraints, "对函数（函数名） %0 的引用无效：约束未满足")
 +
 +// 英文：reference to local %select{variable|binding}1 %0 declared in enclosing %select{%3|block literal|lambda expression|context}2
-+ZH_DIAG(err_reference_to_local_in_enclosing_context, "引用了局部 %select{变量|绑定}1（名字） %0，它声明于封闭的 %select{（名字） %3|blocks 字面量|匿名函数|上下文}2")
++ZH_DIAG(err_reference_to_local_in_enclosing_context, "引用了局部 %select{变量|绑定}1（名字） %0，它声明于封闭的 %select{（名字） %3|块字面量|匿名函数|上下文}2")
 +
 +// 英文：declaration of reference variable %0 requires an initializer
 +ZH_DIAG(err_reference_var_requires_init, "引用变量（变量名） %0 的声明需要初始化器")
@@ -22588,6 +22588,7 @@ index 0000000..622a0c9
 +//===----------------------------------------------------------------------===//
 +
 +#undef ZH_DIAG
+\ No newline at end of file
 diff --git a/clang/include/clang/Basic/DiagnosticOptions.def b/clang/include/clang/Basic/DiagnosticOptions.def
 index 764e2f1..945b0c1 100644
 --- a/clang/include/clang/Basic/DiagnosticOptions.def

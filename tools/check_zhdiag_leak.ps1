@@ -201,6 +201,12 @@ if ($残留.Count -gt 0) {
 #    就必须是中文；只有在 `$备选豁免` 里**逐条写明理由**的才允许留英文
 #    （代码里要照写的名字：doxygen 命令名 `\class`、ObjC 属性特性名、ObjC 方法族名、
 #     GNU 属性名）。豁免表还**必须条条命中**（登记虚着就红）。
+#  判据①b（§18.10 补的**构造名**那一半）：关键字表里**没有构造名**
+#    （`function`/`constructor`/`identifier`/`block`/`lambda`… 都不是 C++ 关键字），
+#    所以①扫不到它们，过去只有③的"总数上限"能兜。
+#    现在读 `tools\zh_construct_names.tsv`（构造名对照表）作为那半边的"源"：
+#    英文构造名出现在备选串里就必须已译成中文（豁免同①）；
+#    并核"**不许凭空造词**"—— 表里每个中文名必须在真表项里至少出现过一次。
 #  判据②（处数登记）：某些"术语刚定/待定"的备选串按**处数**登记 ——
 #    登记处数必须**正好等于**实测处数（英文往回长就红；翻干净了就把登记钉成 0）。
 #    现在：`lambda` 已按 D-07 = **匿名函数** 全部翻掉 ⇒ 钉 0 处。
@@ -209,6 +215,7 @@ if ($残留.Count -gt 0) {
 # ---------------------------------------------------------------------------
 $tbl = Join-Path $Root 'llvm-main\clang\include\clang\Basic\ChineseDiagnostics.def'
 $kwFile = Join-Path $Root 'llvm-main\clang\include\clang\Basic\ChineseKeywords.def'
+$cnFile = Join-Path $Root 'tools\zh_construct_names.tsv'
 if ((Test-Path $tbl) -and (Test-Path $kwFile)) {
     # 已译英文关键字拼写（判据①的"源" —— 与关键字表同源，不另外维护词表）
     $已译英文 = @()
@@ -218,11 +225,32 @@ if ((Test-Path $tbl) -and (Test-Path $kwFile)) {
     }
     $已译英文 = @($已译英文 | Sort-Object -Unique)
 
-    # 备选串 == 已译关键字、但仍然必须留英文的**逐条**理由（键 '<诊断名>|<备选串>'）
+    # 构造名对照表（判据①b 的"源"）：英文构造名 → 中文名
+    $构造名 = @{}          # 英文 → 中文
+    $构造名中文 = @()      # 中文名（核"不许凭空造词"用）
+    if (Test-Path $cnFile) {
+        foreach ($l in [System.IO.File]::ReadAllLines($cnFile)) {
+            if ($l.TrimStart().StartsWith('#')) { continue }
+            $f = $l -split "`t"
+            if ($f.Count -lt 2) { continue }
+            $en = $f[0].Trim(); $zh = $f[1].Trim()
+            if ($en -eq '' -or $zh -eq '') { continue }
+            $构造名[$en] = $zh
+            $构造名中文 += $zh
+        }
+    }
+
+    # 备选串 == 已译关键字 / 已译构造名、但仍然必须留英文的**逐条**理由
+    # （键 '<诊断名>|<备选串>'）
     $备选豁免 = @{
         'warn_doc_api_container_decl_mismatch|class'    = 'doxygen 命令名（\class / @class），用户要照写'
         'warn_doc_api_container_decl_mismatch|struct'   = 'doxygen 命令名（\struct / @struct）'
         'warn_doc_api_container_decl_mismatch|union'    = 'doxygen 命令名（\union / @union）'
+        # 注：`interface` / `protocol` 这两个词的备选串**没有**豁免 ——
+        # 它们既不在关键字表、也不在本项目的构造名对照表里（只有 doxygen 命令名
+        # 那一处出现），所以判据①②本来就扫不到它们；豁免表"虚着就报"会一直提示。
+        'warn_doc_function_method_decl_mismatch|function' = 'doxygen 命令名（\function）'
+        'warn_doc_function_method_decl_mismatch|method'   = 'doxygen 命令名（\method）'
         'err_module_odr_violation_objc_property|class'  = 'Objective-C 属性特性名（@property(class)）'
         'note_module_odr_violation_objc_property|class' = '同上，note 一侧'
         'note_related_result_type_family|new'           = 'Objective-C 方法族名 new'
@@ -230,7 +258,7 @@ if ((Test-Path $tbl) -and (Test-Path $kwFile)) {
     }
     # 备选串处数登记：'<备选串>' = @(登记处数, 理由)
     $备选钉数 = @{ 'lambda' = @(0, '已按 D-07 = 匿名函数 翻完（2026-10-04）；钉 0，退回英文就红') }
-    $英文上限 = 760   # 纯英文备选串总出现次数（§18.8 实测；判据③）
+    $英文上限 = 755   # 纯英文备选串总出现次数（§18.10 实测；判据③）
 
     # 扫描器写成函数：真表跑一次，自测（合成行）再跑一次 —— 判据必须**能失败**
     function 扫备选([string[]]$行) {
@@ -251,7 +279,7 @@ if ((Test-Path $tbl) -and (Test-Path $kwFile)) {
                         if (-not $r.钉数命中.ContainsKey($u)) { $r.钉数命中[$u] = 0 }
                         $r.钉数命中[$u]++
                     }
-                    if ($已译英文 -contains $u) {
+                    if ($已译英文 -contains $u -or $构造名.ContainsKey($u)) {
                         $key = $dn + '|' + $u
                         if ($备选豁免.ContainsKey($key)) { $r.豁免命中[$key] = $true }
                         else { $r.漏 += $key }
@@ -270,22 +298,36 @@ if ((Test-Path $tbl) -and (Test-Path $kwFile)) {
     $豁免命中 = $扫.豁免命中
 
     # 自测：合成的英文备选串必须被抓到；豁免的要放行；已翻的不许误报
+    # （`testsyn_c` 走的是**构造名**那条路 —— 判据①b 也要能失败）
     $自测行 = @(
         'ZH_DIAG(testsyn_a, "前 %select{if|switch}0 后")',
         'ZH_DIAG(warn_doc_api_container_decl_mismatch, "命令 ''%select{\\|@}0%select{class|interface}1'' 不对")',
-        'ZH_DIAG(testsyn_b, "前 %select{如果|选择}0 后")'
+        'ZH_DIAG(testsyn_b, "前 %select{如果|选择}0 后")',
+        'ZH_DIAG(testsyn_c, "前 %select{函数|constructor}0 后")'
     )
     $自测 = 扫备选 $自测行
-    $自测过 = ($自测.漏.Count -eq 2) -and (($自测.漏 | Sort-Object) -join ',') -eq 'testsyn_a|if,testsyn_a|switch'
+    $自测过 = ($自测.漏.Count -eq 3) -and (($自测.漏 | Sort-Object) -join ',') -eq 'testsyn_a|if,testsyn_a|switch,testsyn_c|constructor'
     if ($自测过) {
-        过 'P-08 自测：合成的英文备选串被抓到、豁免与已翻的不误报'
+        过 'P-08 自测：合成的英文备选串（含构造名那条路）被抓到、豁免与已翻的不误报'
     } else {
-        错 ('P-08 自测失败：合成行应恰好命中「testsyn_a|if」「testsyn_a|switch」两条，实际 ' + $自测.漏.Count + ' 条 —— ' + ($自测.漏 -join '、'))
+        错 ('P-08 自测失败：合成行应恰好命中「testsyn_a|if」「testsyn_a|switch」「testsyn_c|constructor」三条，实际 ' + $自测.漏.Count + ' 条 —— ' + ($自测.漏 -join '、'))
     }
     if ($漏.Count -eq 0) {
-        过 ("P-08①：备选串里没有'已译关键字的英文拼写'残留（对照 {0} 个关键字拼写 · 扫了 {1} 条表项）" -f $已译英文.Count, $rows.Count)
+        过 ("P-08①：备选串里没有'已译关键字'的英文残留（对照 {0} 个关键字拼写 · 扫了 {1} 条表项）" -f $已译英文.Count, $rows.Count)
     } else {
-        错 ("P-08①：备选串里还有'已译关键字的英文拼写' —— " + (($漏 | Sort-Object -Unique) -join '、'))
+        错 ("P-08①：备选串里还有'已译关键字'的英文 —— " + (($漏 | Sort-Object -Unique) -join '、'))
+    }
+    # 判据①b：构造名对照表（§18.10）—— 表里中文名不许凭空造词
+    if ($构造名.Count -eq 0) {
+        错 ("构造名对照表读不到或为空：{0}（P-08 判据①b 就没有'源'了）" -f $cnFile)
+    } else {
+        $tblTxt = [System.IO.File]::ReadAllText($tbl)
+        $造词 = @($构造名中文 | Where-Object { -not $tblTxt.Contains($_) })
+        if ($造词.Count -eq 0) {
+            过 ("P-08①b：构造名对照表 {0} 条，中文名在真表项里都能找到（不许凭空造词）" -f $构造名.Count)
+        } else {
+            错 ("构造名对照表里有 {0} 个中文名在表里一次都没出现（凭空造词）：{1}" -f $造词.Count, (($造词 | Sort-Object -Unique) -join '、'))
+        }
     }
     # 判据②：登记处数必须**正好**等于实测（多了=登记虚着，少了=英文在往回长）
     $钉数错 = @()
@@ -310,6 +352,45 @@ if ((Test-Path $tbl) -and (Test-Path $kwFile)) {
     $虚 = @($备选豁免.Keys | Where-Object { -not $豁免命中.ContainsKey($_) })
     if ($虚.Count -gt 0) {
         提 ("`$备选豁免 里有条目已经查不到了（表改了就把豁免删掉）：{0}" -f ($虚 -join '、'))
+    }
+}
+
+# ---------------------------------------------------------------------------
+#  附加（§18.10 P-08 **运行时**证据）：表内备选串翻掉之后，**从二进制**里真的要打出来
+#
+#  为什么单列：§18.8/§18.10 改的是 `ChineseDiagnostics.def`（表）。上面那几条判据
+#  是**扫表**——只能证明"表里写对了"，证明不了"编译器真的把它打出来"。
+#  §18.8 那次的运行时证据只留在 gitignored 的 scratch 目录里，**仓库里复现不了**；
+#  这一节把它固化成闸门项（每条都真的产生诊断，且断言中文出现、英文不出现）。
+#
+#  英文源码/中文源码都用过：这里用**中文源码**触发（表内备选串与源码拼写无关），
+#  断言的是"**备选串**那一个词"是从表里来的。
+# ---------------------------------------------------------------------------
+$表内探针 = @(
+    @('T01-最终',    '结构 甲 { 虚拟 空型 己(); }; 结构 乙 : 甲 { 空型 己() 最终; }; 结构 丙 : 乙 { 空型 己(); }',
+      @('-x', 'c++', '-std=c++20', '-fsyntax-only'), "重写了 '最终' 函数", "重写了 'final' 函数"),
+    @('T02-空指针',  '整数 主() { 返回 真值 ? 2 : 空指针; }',
+      @('-x', 'c++', '-std=c++20', '-fsyntax-only'), '与 空指针 不兼容', '与 nullptr 不兼容'),
+    @('T03-匿名函数', '空型 己() { 自动 庚 = [1](){}; }',
+      @('-x', 'c++', '-std=c++20', '-fsyntax-only'), '匿名函数捕获列表里缺少变量名', 'lambda 捕获列表'),
+    # `block` 那条要 ObjC + ARC 才触发（Windows 上默认是旧版运行时，要显式指定）
+    @('T04-块',      "void f() {`n  __autoreleasing id x = 0;`n  ^{ (void)x; };`n}",
+      @('-x', 'objective-c', '-fobjc-arc', '-fblocks', '-fobjc-runtime=macosx-10.15', '-fsyntax-only'),
+      '不能在块 中捕获', '不能在block 中捕获')
+)
+$表内失败 = 0
+foreach ($p in $表内探针) {
+    $名 = $p[0]; $源码 = $p[1]; $参数 = $p[2]; $应含 = $p[3]; $不应含 = $p[4]
+    $src = Join-Path $work ($名 + '.txt')
+    [System.IO.File]::WriteAllText($src, $源码, $utf8)
+    $正文 = 取诊断正文 (& $exe @参数 $src 2>&1 | Out-String)
+    if ($正文.Count -eq 0) { 错 ("{0}：一条诊断都没产生（探针没打中 = 没查过）" -f $名); $表内失败++; continue }
+    $全部 = $正文 -join ' / '
+    if ($全部.Contains($应含) -and -not $全部.Contains($不应含)) {
+        过 ("{0}：表内备选串从二进制里打出来了「{1}」" -f $名, $应含)
+    } else {
+        错 ("{0}：期望「{1}」且不许「{2}」—— 实际：{3}" -f $名, $应含, $不应含, $全部)
+        $表内失败++
     }
 }
 
