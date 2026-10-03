@@ -471,9 +471,28 @@ $dc = $LASTEXITCODE
 Write-Host "=== 实例化守卫（§17.20）===" -ForegroundColor Cyan
 & pwsh -NoProfile -File (Join-Path $root 'tools\check_zhinst.ps1') -Check
 $zi = $LASTEXITCODE
-if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0 -and $bd -eq 0 -and $orph -eq 0 -and $fw -eq 0 -and $zd -eq 0 -and $cv -eq 0 -and $nm -eq 0 -and $hb -eq 0 -and $tp -eq 0 -and $dc -eq 0 -and $zi -eq 0) {
-    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 边界台账 + 孤儿产物 + 公开层转发 + 中文类型名定义 + 标准头覆盖 + 中文名占用 + 汉化标尺 + 第三方开源项目 + 手写文档数字 + 实例化 + 铁律①：全部通过" -ForegroundColor Green
+# ---------------------------------------------------------------------------
+#  §18.1 关键字守卫（第 17 道）—— 大检查第 0 层，2026-10-03 从"一次性检查"变成闸门项
+#  为什么加它：`tests\` 那一整套（14 个目录 / 124 个 cpp）**都不在闸门里** ✗ ⇒ 按纪律
+#    「护栏不进闸门 = 护栏不存在」，关键字/语法/语义/诊断四层长期没有护栏。
+#    第 0 层先补最小的那一块：**中文关键字**（101 条）。
+#  它比已有的 `tests\checks\verify_chinese_keywords.py` 多查三件事（都在报告 §一写了）：
+#    ① 二进制：每个中文拼写必须能在 `chinese++.exe` 里搜到（抓"硬链接断了 / 二进制是旧的"——
+#       文档 §九 坑二真实发生过，静态表检查对那种情况完全无感）；
+#    ② 词法：拿关键字当标识符**必须被编译器拒绝**（带自测：已知关键字被拒 + 普通标识符放行，
+#       自测不过则后面的通过不算数）；
+#    ③ 第 4 个宏族 `ZH_CONTEXTUAL_KEYWORD`（模块/导入）—— py 校验器连数都没数（它打印 99，表里 101）。
+#  另含 D 相：每条关键字"真编真跑"+ 中英对照（中文版与英文版只差那个关键字，输出逐字节相同），
+#    模块三条真建一个模块（预编译→出对象→消费者链接→运行），协程三条真编译真跑。
+#  耗时实测 **1.3 分钟**（全跑；`-Only A,B,C` 约 1 分钟）。
+#  报告与判据出处：`docs\关键字\关键字大检查报告.md`
+# ---------------------------------------------------------------------------
+Write-Host "=== 关键字守卫（§18.1：大检查第 0 层）===" -ForegroundColor Cyan
+& pwsh -NoProfile -File (Join-Path $root 'tools\check_keywords.ps1')
+$kwg = $LASTEXITCODE
+if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0 -and $bd -eq 0 -and $orph -eq 0 -and $fw -eq 0 -and $zd -eq 0 -and $cv -eq 0 -and $nm -eq 0 -and $hb -eq 0 -and $tp -eq 0 -and $dc -eq 0 -and $zi -eq 0 -and $kwg -eq 0) {
+    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 边界台账 + 孤儿产物 + 公开层转发 + 中文类型名定义 + 标准头覆盖 + 中文名占用 + 汉化标尺 + 第三方开源项目 + 手写文档数字 + 实例化 + 关键字 + 铁律①：全部通过" -ForegroundColor Green
     exit 0
 }
-Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；边界台账守卫退出码 {5}；孤儿产物守卫退出码 {6}；铁律①守卫退出码 {4}；公开层转发守卫退出码 {7}；中文类型名定义守卫退出码 {8}；标准头覆盖退出码 {9}；中文名占用退出码 {10}；汉化标尺退出码 {11}；第三方开源项目退出码 {12}；手写文档数字退出码 {13}；实例化退出码 {14}" -f $fail, $v, $ex, $ud, $og, $bd, $orph, $fw, $zd, $cv, $nm, $hb, $tp, $dc, $zi) -ForegroundColor Red
+Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；边界台账守卫退出码 {5}；孤儿产物守卫退出码 {6}；铁律①守卫退出码 {4}；公开层转发守卫退出码 {7}；中文类型名定义守卫退出码 {8}；标准头覆盖退出码 {9}；中文名占用退出码 {10}；汉化标尺退出码 {11}；第三方开源项目退出码 {12}；手写文档数字退出码 {13}；实例化退出码 {14}；关键字退出码 {15}" -f $fail, $v, $ex, $ud, $og, $bd, $orph, $fw, $zd, $cv, $nm, $hb, $tp, $dc, $zi, $kwg) -ForegroundColor Red
 exit 1
