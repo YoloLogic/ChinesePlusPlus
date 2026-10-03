@@ -490,9 +490,27 @@ $zi = $LASTEXITCODE
 Write-Host "=== 关键字守卫（§18.1：大检查第 0 层）===" -ForegroundColor Cyan
 & pwsh -NoProfile -File (Join-Path $root 'tools\check_keywords.ps1')
 $kwg = $LASTEXITCODE
-if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0 -and $bd -eq 0 -and $orph -eq 0 -and $fw -eq 0 -and $zd -eq 0 -and $cv -eq 0 -and $nm -eq 0 -and $hb -eq 0 -and $tp -eq 0 -and $dc -eq 0 -and $zi -eq 0 -and $kwg -eq 0) {
-    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 边界台账 + 孤儿产物 + 公开层转发 + 中文类型名定义 + 标准头覆盖 + 中文名占用 + 汉化标尺 + 第三方开源项目 + 手写文档数字 + 实例化 + 关键字 + 铁律①：全部通过" -ForegroundColor Green
+
+# ---------------------------------------------------------------------------
+#  §18.3 中文诊断「英文残留」守卫（第 18 道）—— 大检查 P-04，2026-10-03
+#  为什么加它：**现有汉化覆盖率口径看不见这一类**。口径是"这句正文里有没有汉字"，
+#    而 `不能与前面的声明说明符（关键字） 'int' 组合` 里汉字俱全 —— 按那个口径它
+#    算【已汉化】。那些英文名是 **实参**，不是正文，中文诊断表（ChineseDiagnostics.def）
+#    根本够不着：`DeclSpec::getSpecifierName()`（int/class/struct/union）与
+#    `VirtSpecifiers::getSpecifierName()`（override/final）是两张硬编码英文表。
+#  判据两条：① 中文模式的正文里不许残留英文关键字名（黑名单与关键字表同源）；
+#    ② 同一份源码在 -fno-chinese-diagnostics 下必须仍是英文那套（不许把英文改坏）。
+#  自带自测（判据必须能失败）+ 已知未修登记（类型打印器 P-09：命中不算失败，但会打印，
+#    修好后会报"条目已消失"，逼着把登记删掉）。
+#  耗时实测约 10 秒。台账：`docs\大检查\大检查问题台账.md` 的 P-04
+# ---------------------------------------------------------------------------
+Write-Host "=== 中文诊断英文残留守卫（§18.3：大检查 P-04）===" -ForegroundColor Cyan
+& pwsh -NoProfile -File (Join-Path $root 'tools\check_zhdiag_leak.ps1')
+$zdl = $LASTEXITCODE
+
+if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0 -and $bd -eq 0 -and $orph -eq 0 -and $fw -eq 0 -and $zd -eq 0 -and $cv -eq 0 -and $nm -eq 0 -and $hb -eq 0 -and $tp -eq 0 -and $dc -eq 0 -and $zi -eq 0 -and $kwg -eq 0 -and $zdl -eq 0) {
+    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 边界台账 + 孤儿产物 + 公开层转发 + 中文类型名定义 + 标准头覆盖 + 中文名占用 + 汉化标尺 + 第三方开源项目 + 手写文档数字 + 实例化 + 关键字 + 英文残留 + 铁律①：全部通过" -ForegroundColor Green
     exit 0
 }
-Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；边界台账守卫退出码 {5}；孤儿产物守卫退出码 {6}；铁律①守卫退出码 {4}；公开层转发守卫退出码 {7}；中文类型名定义守卫退出码 {8}；标准头覆盖退出码 {9}；中文名占用退出码 {10}；汉化标尺退出码 {11}；第三方开源项目退出码 {12}；手写文档数字退出码 {13}；实例化退出码 {14}；关键字退出码 {15}" -f $fail, $v, $ex, $ud, $og, $bd, $orph, $fw, $zd, $cv, $nm, $hb, $tp, $dc, $zi, $kwg) -ForegroundColor Red
+Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；边界台账守卫退出码 {5}；孤儿产物守卫退出码 {6}；铁律①守卫退出码 {4}；公开层转发守卫退出码 {7}；中文类型名定义守卫退出码 {8}；标准头覆盖退出码 {9}；中文名占用退出码 {10}；汉化标尺退出码 {11}；第三方开源项目退出码 {12}；手写文档数字退出码 {13}；实例化退出码 {14}；关键字退出码 {15}；英文残留退出码 {16}" -f $fail, $v, $ex, $ud, $og, $bd, $orph, $fw, $zd, $cv, $nm, $hb, $tp, $dc, $zi, $kwg, $zdl) -ForegroundColor Red
 exit 1

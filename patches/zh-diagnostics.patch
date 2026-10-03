@@ -22542,7 +22542,7 @@ index 41848b1..7d85045 100644
    DiagnosticOpts<"ShowLocation">, DefaultTrue,
    NegFlag<SetFalse, [], [ClangOption, CC1Option],
 diff --git a/clang/lib/Basic/Diagnostic.cpp b/clang/lib/Basic/Diagnostic.cpp
-index 48dd955..d9b0e93 100644
+index 48dd955..bfd804c 100644
 --- a/clang/lib/Basic/Diagnostic.cpp
 +++ b/clang/lib/Basic/Diagnostic.cpp
 @@ -11,6 +11,7 @@
@@ -22553,10 +22553,63 @@ index 48dd955..d9b0e93 100644
  #include "clang/Basic/CharInfo.h"
  #include "clang/Basic/DiagnosticDriver.h"
  #include "clang/Basic/DiagnosticError.h"
-@@ -1027,6 +1028,28 @@ static const char *getTokenDescForDiagnostic(tok::TokenKind Kind) {
+@@ -1018,15 +1019,79 @@ static void HandlePluralModifier(const Diagnostic &DInfo, unsigned ValNo,
+ /// Returns the friendly description for a token kind that will appear
+ /// without quotes in diagnostic messages. These strings may be translatable in
+ /// future.
+-static const char *getTokenDescForDiagnostic(tok::TokenKind Kind) {
++///
++/// 中文诊断（ZH = true）下给中文记号名。判据与消息正文用的是【同一个开关】
++/// （DiagOpts.ChineseDiagnostics），所以 -fno-chinese-diagnostics 会一起回退英文。
++static const char *getTokenDescForDiagnostic(tok::TokenKind Kind, bool ZH) {
+   switch (Kind) {
+   case tok::identifier:
+-    return "identifier";
++    return ZH ? "标识符" : "identifier";
+   default:
+     return nullptr;
    }
  }
  
++/// 中文诊断下，把诊断【实参】里的英文关键字名换回中文拼写。
++///
++///  为什么需要它：clang 里有几张硬编码的英文名表，它们在诊断里当 **实参** 用，
++///  不是消息正文 —— 所以中文诊断表（ChineseDiagnostics.def）够不着它们：
++///
++///    · `DeclSpec::getSpecifierName()`      → "int" / "class" / "struct" / "union" …
++///    · `VirtSpecifiers::getSpecifierName()` → "override" / "final"
++///
++///  实测漏出来的样子（用户明明写的是中文）：
++///    `结构 甲 { 整数 整数; };`  → 不能与前面的声明说明符（关键字） 'int' 组合
++///    `整数 取() 最终 { }`       → 只有虚成员函数才能被标记为（关键字） 'final'
++///
++///  词法层的【关键字拼写】早就跟着中文诊断开关走了（写 `register` 也显示 `寄存器`），
++///  这里把同一条规则延伸到这些"按字符串传进来"的名字。
++///
++///  表来自 `ChineseKeywords.def` —— 与关键字表【同源】，不新增第二份拼写清单。
++///  只做**精确整串匹配**：实参是用户自己的标识符（`%0` 走 ak_identifierinfo，
++///  根本不会到这里）时不受影响。
++static const char *getChineseKeywordName(StringRef Name) {
++  if (Name.empty())
++    return nullptr;
++
++#define ZH_KEYWORD(NAME, ZH, FLAGS)                                            \
++  if (Name == #NAME)                                                           \
++    return #ZH;
++#define ZH_VIRT_SPECIFIER(NAME, ZH)                                            \
++  if (Name == #NAME)                                                           \
++    return #ZH;
++#define ZH_OPERATOR_KEYWORD(ZH, ALIAS)
++#define ZH_CONTEXTUAL_KEYWORD(NAME, ZH, SETTER)
++#include "clang/Basic/ChineseKeywords.def"
++#undef ZH_KEYWORD
++#undef ZH_VIRT_SPECIFIER
++#undef ZH_OPERATOR_KEYWORD
++#undef ZH_CONTEXTUAL_KEYWORD
++
++  return nullptr;
++}
++
 +//===----------------------------------------------------------------------===//
 +// 中文诊断正文（Chinese diagnostic messages）
 +//===----------------------------------------------------------------------===//
@@ -22582,7 +22635,7 @@ index 48dd955..d9b0e93 100644
  /// FormatDiagnostic - Format this diagnostic into a string, substituting the
  /// formal arguments into the %0 slots.  The result is appended onto the Str
  /// array.
-@@ -1036,7 +1059,17 @@ void Diagnostic::FormatDiagnostic(SmallVectorImpl<char> &OutStr) const {
+@@ -1036,7 +1101,17 @@ void Diagnostic::FormatDiagnostic(SmallVectorImpl<char> &OutStr) const {
      return;
    }
  
@@ -22601,6 +22654,37 @@ index 48dd955..d9b0e93 100644
  
    FormatDiagnostic(Diag.begin(), Diag.end(), OutStr);
  }
+@@ -1257,6 +1332,13 @@ void Diagnostic::FormatDiagnostic(const char *DiagStr, const char *DiagEnd,
+       } else {
+         assert(ModifierLen == 0 && "unknown modifier for string");
+       }
++      // 中文诊断：实参若是【英文关键字名】（DeclSpec::getSpecifierName /
++      // VirtSpecifiers::getSpecifierName 那两张硬编码表产出的 "int" / "class" /
++      // "final" 等），换回中文拼写。见 getChineseKeywordName() 的注释。
++      // 引用修饰符（%quoted）照旧生效 —— 中文拼写同样会被引号包住。
++      if (getDiags()->getDiagnosticOptions().ChineseDiagnostics)
++        if (const char *ZHName = getChineseKeywordName(S))
++          S = ZHName;
+       EscapeStringForDiagnostic(S, OutStr);
+       if (Quoted)
+         OutStr.push_back('\'');
+@@ -1308,6 +1390,7 @@ void Diagnostic::FormatDiagnostic(const char *DiagStr, const char *DiagEnd,
+     case DiagnosticsEngine::ak_tokenkind: {
+       tok::TokenKind Kind = static_cast<tok::TokenKind>(getRawArg(ArgNo));
+       assert(ModifierLen == 0 && "No modifiers for token kinds yet");
++      const bool ZH = getDiags()->getDiagnosticOptions().ChineseDiagnostics;
+ 
+       llvm::raw_svector_ostream Out(OutStr);
+       if (const char *S = tok::getPunctuatorSpelling(Kind))
+@@ -1316,7 +1399,7 @@ void Diagnostic::FormatDiagnostic(const char *DiagStr, const char *DiagEnd,
+       else if ((S = tok::getKeywordSpelling(Kind)))
+         // Unquoted token spelling for keywords.
+         Out << S;
+-      else if ((S = getTokenDescForDiagnostic(Kind)))
++      else if ((S = getTokenDescForDiagnostic(Kind, ZH)))
+         // Unquoted translatable token name.
+         Out << S;
+       else if ((S = tok::getTokenName(Kind)))
 diff --git a/clang/lib/Driver/ToolChains/Clang.cpp b/clang/lib/Driver/ToolChains/Clang.cpp
 index 660e61d..62932ee 100644
 --- a/clang/lib/Driver/ToolChains/Clang.cpp
