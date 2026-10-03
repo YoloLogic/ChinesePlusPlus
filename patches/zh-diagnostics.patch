@@ -1,9 +1,9 @@
 diff --git a/clang/include/clang/Basic/ChineseDiagnostics.def b/clang/include/clang/Basic/ChineseDiagnostics.def
 new file mode 100644
-index 0000000..b67b7f1
+index 0000000..3abd5bb
 --- /dev/null
 +++ b/clang/include/clang/Basic/ChineseDiagnostics.def
-@@ -0,0 +1,22506 @@
+@@ -0,0 +1,22513 @@
 +//===--- ChineseDiagnostics.def - 中文诊断文本表 ----------------*- C -*-===//
 +//
 +// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -114,6 +114,13 @@ index 0000000..b67b7f1
 +// 英文：expected %select{identifier|unqualified-id}0
 +ZH_DIAG(err_expected_unqualified_id,
 +        "缺少（种类） %select{标识符|非限定标识符}0")                  // expected unqualified-id
++
++// 英文：Chinese keyword %0 cannot be used as an identifier
++// （本项目**新增**的诊断，不是上游的：中文关键字当名字用时给一条说得清的消息。
++//   上游那句"缺少（种类） 非限定标识符"连是哪个词都不说 —— 而汉语词与标识符
++//   在视觉上没有区别，这是汉语使用者最可能撞的第一条错误。见 P05 / §18.4。）
++ZH_DIAG(err_chinese_keyword_as_identifier,
++        "（关键字） %0 不能用作标识符；要当名字请换一个词")
 +
 +// 英文：expected ';' at end of declaration
 +ZH_DIAG(err_expected_semi_declaration,

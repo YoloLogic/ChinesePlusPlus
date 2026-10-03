@@ -70,25 +70,77 @@ foreach ($l in [System.IO.File]::ReadAllLines($def)) {
 }
 if ($rows.Count -eq 0) { 错 '一条 ZH_KEYWORD 都没解析出来（表格式变了？）'; exit 1 }
 
-$说得清数 = 0; $说不清 = @()
-foreach ($r in $rows) {
-    $en = $r[0]; $zh = $r[1]
-    $f = Join-Path $work ("n_$en.cpp")
-    [System.IO.File]::WriteAllText($f, "整数 $zh = 1;`n整数 主函数(){ 返回 0; }`n", $utf8)
-    $out = (& $exe '-std=c++20' -fsyntax-only $f 2>&1 | Out-String)
-    $正文 = 取诊断正文 $out
-    if ($正文.Count -eq 0) { $说不清 += ("{0}（{1}）：★ 一条诊断都没有（探针没打中）" -f $zh, $en); continue }
-    if (说得清 $正文 $zh) { $说得清数++ }
-    else { $说不清 += ("{0}（{1}）→ {2}" -f $zh, $en, ($正文 -join ' || ')) }
+$说得清数 = 0; $说不清 = @(); $已知命中 = @(); $合法数 = 0
+
+# 上下文关键字（module / import）：**当标识符是合法的、而且必须继续合法** ——
+#   这不是"说不出词"，而是设计要求（ChineseKeywords.def 第八节原话：
+#   为了 `int module = 1;` 这类既有代码继续合法）。所以对它们反过来断言。
+$上下文关键字 = @('模块', '导入')
+
+# 已知未修（命中不算失败，但会打印；修好后会报"条目已消失"）
+$已知未修 = @{
+    '运算符' = '走 operator-function-id 路径：消息里打印的是**修饰后的算子名** operator=（英文），' +
+               '要说得清得让算子名的打印也走中文拼写 —— 与 P-04/P-09 同一类"打印器"问题，另记'
 }
 
-Write-Host ("  查了 {0} 条关键字（每条真编一次）" -f $rows.Count)
+# 语言模式：同一个关键字在不同标准下可能**根本不是关键字**（`受限`=restrict 是 C99 的，
+# 在 C++ 里它就是普通标识符，`整数 受限 = 1;` 合法、自然没有诊断）。
+# 所以逐个试，取第一个"这个关键字确实存在"的模式 —— 自动挑，不写死清单。
+$模式 = @(
+    @{ 标准 = 'c++20';   扩展 = '.cpp'; 额外 = @() },
+    @{ 标准 = 'c++23';   扩展 = '.cpp'; 额外 = @() },
+    @{ 标准 = 'gnu++20'; 扩展 = '.cpp'; 额外 = @() },
+    @{ 标准 = 'c11';     扩展 = '.c';   额外 = @('-x', 'c') },
+    @{ 标准 = 'c23';     扩展 = '.c';   额外 = @('-x', 'c') }
+)
+foreach ($r in $rows) {
+    $en = $r[0]; $zh = $r[1]
+
+    if ($上下文关键字 -contains $zh) {
+        # 必须【合法】：一条诊断都不许有
+        $f = Join-Path $work ("ctx_$en.cpp")
+        [System.IO.File]::WriteAllText($f, "整数 $zh = 1;`n整数 主函数(){ 返回 $zh - 1; }`n", $utf8)
+        $out = (& $exe '-std=c++20' -fsyntax-only $f 2>&1 | Out-String)
+        $d = 取诊断正文 $out
+        if ($d.Count -eq 0) { $合法数++ }
+        else { $说不清 += ("{0}（{1}）：★ 上下文关键字【必须】能当标识符，却报了诊断 → {2}" -f $zh, $en, ($d -join ' || ')) }
+        continue
+    }
+
+    $正文 = @(); $用的模式 = ''
+    foreach ($m in $模式) {
+        $f = Join-Path $work ("n_$en" + $m.扩展)
+        [System.IO.File]::WriteAllText($f, "整数 $zh = 1;`n整数 主函数(){ 返回 0; }`n", $utf8)
+        $out = (& $exe @($m.额外) ('-std=' + $m.标准) -fsyntax-only $f 2>&1 | Out-String)
+        $正文 = 取诊断正文 $out
+        if ($正文.Count -gt 0) { $用的模式 = $m.标准; break }
+    }
+    if ($正文.Count -eq 0) { $说不清 += ("{0}（{1}）：★ 试过 5 种标准都没有诊断（探针没打中）" -f $zh, $en); continue }
+    if (说得清 $正文 $zh) { $说得清数++ }
+    elseif ($已知未修.ContainsKey($zh)) { $已知命中 += ("{0}（{1}）[{2}] → {3}   ← 已知未修：{4}" -f $zh, $en, $用的模式, ($正文 -join ' || '), $已知未修[$zh]) }
+    else { $说不清 += ("{0}（{1}）[{2}] → {3}" -f $zh, $en, $用的模式, ($正文 -join ' || ')) }
+}
+
+Write-Host ("  查了 {0} 条关键字（每条真编一次）：{1} 条保留字 + {2} 条上下文关键字" -f $rows.Count, ($rows.Count - $上下文关键字.Count), $上下文关键字.Count)
+if ($已知命中.Count -gt 0) {
+    提 ("已知未修（登记在案，不算失败）{0} 条：" -f $已知命中.Count)
+    $已知命中 | ForEach-Object { Write-Host ("         " + $_) -ForegroundColor DarkYellow }
+}
 if ($说不清.Count -eq 0) {
-    过 ("{0} 条关键字当标识符时，诊断正文里都【说出了那个词】" -f $说得清数)
+    过 ("{0} 条保留字当标识符时，诊断正文里都【说出了那个词】；{1} 条上下文关键字仍可当标识符（设计要求）" -f $说得清数, $合法数)
 } else {
     Write-Host ("  有 {0} 条关键字的诊断【没说出那个词】：" -f $说不清.Count) -ForegroundColor Red
     $说不清 | Select-Object -First 25 | ForEach-Object { Write-Host ("         " + $_) -ForegroundColor Red }
     if ($说不清.Count -gt 25) { Write-Host ("         …（共 {0} 条，只列前 25）" -f $说不清.Count) -ForegroundColor Red }
+}
+
+# 已知未修条目必须【仍然存在】—— 修好了就要把登记删掉（分子不许偷偷变）
+$已消失 = @()
+foreach ($k in $已知未修.Keys) {
+    if (-not ($已知命中 | Where-Object { $_ -like ($k + "（*") })) { $已消失 += $k }
+}
+if ($已消失.Count -gt 0) {
+    提 ("这些'已知未修'条目已经查不到了（修好了就把登记删掉）：{0}" -f ($已消失 -join '、'))
 }
 
 Write-Host ''

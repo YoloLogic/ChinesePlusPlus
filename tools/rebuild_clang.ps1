@@ -74,6 +74,14 @@ Write-Output ""
 
 if (-not (Test-Path $MsBuild)) { Write-Output "MSBuild not found: $MsBuild"; exit 2 }
 
+# Exit-code honesty (added 2026-10-03): this script used to end with a
+# Write-Output, so $LASTEXITCODE was 0 even when BOTH targets printed
+# "!! clang.exe FAILED". A caller that checks the exit code (any guard, any
+# script) therefore saw a failed rebuild as success and could go on to verify
+# a STALE binary. Observed for real: a tablegen error (G4C611B0E) failed both
+# targets and the script still reported REBUILD_EXIT=0.
+$script:failed = @()
+
 foreach ($t in $Targets) {
     if (-not (Test-Path $t.Proj)) { Write-Output "[$($t.Name)] project not found: $($t.Proj)"; continue }
     $done = $false
@@ -113,7 +121,7 @@ foreach ($t in $Targets) {
             break
         }
     }
-    if (-not $done) { Write-Output "!! $($t.Name) FAILED" }
+    if (-not $done) { Write-Output "!! $($t.Name) FAILED"; $script:failed += $t.Name }
     Write-Output ""
 }
 
@@ -144,3 +152,13 @@ if (Test-Path $SrcExe) {
         Write-Output "chinese++.exe was missing; hard link created"
     }
 }
+
+# ---------------------------------------------------------------------------
+# Failure must be visible in the EXIT CODE, not only in the text above.
+# ---------------------------------------------------------------------------
+if ($script:failed.Count -gt 0) {
+    Write-Output ""
+    Write-Output ("!! BUILD FAILED: {0} -- exiting 1 (before 2026-10-03 this always returned 0, so a failed build looked like success)" -f ($script:failed -join ', '))
+    exit 1
+}
+exit 0

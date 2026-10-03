@@ -542,6 +542,26 @@ index 0000000..b721e42
 +//===----------------------------------------------------------------------===//
 +
 +#undef ZH_KEYWORD
+diff --git a/clang/include/clang/Basic/DiagnosticParseKinds.td b/clang/include/clang/Basic/DiagnosticParseKinds.td
+index 2672bfb..250aa6d 100644
+--- a/clang/include/clang/Basic/DiagnosticParseKinds.td
++++ b/clang/include/clang/Basic/DiagnosticParseKinds.td
+@@ -629,6 +629,15 @@ def err_invalid_operator_on_type : Error<
+   "cannot use %select{dot|arrow}0 operator on a type">;
+ def err_expected_unqualified_id : Error<
+   "expected %select{identifier|unqualified-id}0">;
++// 中文关键字被写在了需要名字的位置（`整数 如果 = 1;`）。
++// 只对【非 ASCII 拼写】的关键字发这条（见 Parser::DiagnoseChineseKeywordAsName），
++// 所以 `int if = 1;` 这类英文写法仍然走上游的 err_expected_unqualified_id，
++// 英文行为一个字节都不变。
++// 为什么要有它：汉语词与标识符在视觉上没有任何区别，这是汉语使用者最可能撞的
++// 第一条错误；而上游那句 "expected unqualified-id" 连【是哪个词】都不说。
++// ⚠ 正文不许以大写字母开头（tablegen 会拒：G4C611B0E），所以从 "the" 起头。
++def err_chinese_keyword_as_identifier : Error<
++  "the Chinese keyword %0 cannot be used as an identifier">;
+ def err_while_loop_outside_of_a_function : Error<
+   "while loop outside of a function">;
+ def err_brackets_go_after_unqualified_id : Error<
 diff --git a/clang/include/clang/Basic/IdentifierTable.h b/clang/include/clang/Basic/IdentifierTable.h
 index 79a2aec..30f3024 100644
 --- a/clang/include/clang/Basic/IdentifierTable.h
@@ -614,7 +634,7 @@ index 89b2d43..112379b 100644
  /// Returns NULL for other token kinds.
  const char *getObjCKeywordSpelling(ObjCKeywordKind Kind) LLVM_READNONE;
 diff --git a/clang/include/clang/Parse/Parser.h b/clang/include/clang/Parse/Parser.h
-index 163aa48..b9e645f 100644
+index 163aa48..733beed 100644
 --- a/clang/include/clang/Parse/Parser.h
 +++ b/clang/include/clang/Parse/Parser.h
 @@ -2887,6 +2887,11 @@ private:
@@ -629,6 +649,35 @@ index 163aa48..b9e645f 100644
    /// Representation of a class that has been parsed, including
    /// any member function declarations or definitions that need to be
    /// parsed after the corresponding top-level class is complete.
+@@ -3164,6 +3169,28 @@ private:
+     return isCXX11VirtSpecifier(Tok);
+   }
+ 
++  /// 若 `Loc` 处的拼写是【中文关键字】，就在那里发一条"这是关键字、不能当名字"的
++  /// 诊断并返回 true；否则什么都不做、返回 false。
++  ///
++  /// 为什么需要它（大检查 P-05 / §18.4）：汉语词与标识符在视觉上**没有任何区别**
++  /// （`如果` 看起来就是个普通词），所以这是汉语使用者最可能撞的**第一条**错误；
++  /// 实测 86 条保留字里有 **77 条**的消息是"缺少（种类） 非限定标识符" ——
++  /// 它连**是哪个词**都不说。英文用户反而几乎不会踩（谁会拿 `if` 当变量名）。
++  ///
++  /// 只在拼写**含非 ASCII 字节**时才认 —— 所以 `int if = 1;` 这类英文写法仍然
++  /// 走上游原来的诊断，英文行为一个字节都不变。
++  ///
++  /// 两个调用现场（都要）：
++  ///   ① `整数 如果 = 1;` 报错就落在关键字上 ⇒ 传 `Tok.getLocation()`
++  ///   ② `整数 常量 = 1;` 关键字被当成说明符吃掉了，报错落在后面的 `=` 上
++  ///      ⇒ 传 `PrevTokLocation` 回看一个 token（这是实测剩下的 34 条那种样子）
++  ///
++  /// ⚠ 定义在 ParseDeclCXX.cpp，不在这里内联：clang 的诊断 ID 按类别拆成
++  ///    `DiagnosticParse.h`（内含 DiagnosticParseInterface.inc），而 Parser.h
++  ///    **不**包含它 —— 内联会在没包含该头的 TU 里报"不是 clang::diag 的成员"。
++  ///    与 isCXX11VirtSpecifier() 同一个理由、同一个做法（2026-10-03 实测踩过）。
++  bool DiagnoseChineseKeywordSpellingAt(SourceLocation Loc);
++
+   /// ParseOptionalCXX11VirtSpecifierSeq - Parse a virt-specifier-seq.
+   ///
+   /// \verbatim
 diff --git a/clang/lib/Basic/Attributes.cpp b/clang/lib/Basic/Attributes.cpp
 index 8ee45a3..5ef7672 100644
 --- a/clang/lib/Basic/Attributes.cpp
@@ -1028,11 +1077,124 @@ index 212b781..98706be 100644
      return false;
  
    if (LastExportKeyword.is(tok::kw_export)) {
+diff --git a/clang/lib/Parse/ParseDecl.cpp b/clang/lib/Parse/ParseDecl.cpp
+index f03b839..a755579 100644
+--- a/clang/lib/Parse/ParseDecl.cpp
++++ b/clang/lib/Parse/ParseDecl.cpp
+@@ -5164,7 +5164,10 @@ void Parser::ParseEnumSpecifier(SourceLocation StartLoc, DeclSpec &DS,
+   // Must have either 'enum name' or 'enum {...}' or (rarely) 'enum : T { ... }'.
+   if (Tok.isNot(tok::identifier) && Tok.isNot(tok::l_brace) &&
+       Tok.isNot(tok::colon)) {
+-    Diag(Tok, diag::err_expected_either) << tok::identifier << tok::l_brace;
++    // 中文关键字当名字用：`整数 枚举 = 1;` —— 报错落在后面的 '=' 上，
++    // 而罪魁是刚被吃掉的 `枚举`，所以回看上一个 token（见 Parser.h）。
++    if (!DiagnoseChineseKeywordSpellingAt(PrevTokLocation))
++      Diag(Tok, diag::err_expected_either) << tok::identifier << tok::l_brace;
+ 
+     DS.SetTypeSpecError();
+     // Skip the rest of this declarator, up until the comma or semicolon.
+@@ -6820,9 +6823,11 @@ void Parser::ParseDirectDeclarator(Declarator &D) {
+ 
+     if (D.getCXXScopeSpec().isNotEmpty()) {
+       // We have a scope specifier but no following unqualified-id.
+-      Diag(PP.getLocForEndOfToken(D.getCXXScopeSpec().getEndLoc()),
+-           diag::err_expected_unqualified_id)
+-          << /*C++*/1;
++      // 中文关键字当名字用：给一条说得清的（见 Parser::DiagnoseChineseKeywordSpellingAt）
++      if (!DiagnoseChineseKeywordSpellingAt(Tok.getLocation()))
++        Diag(PP.getLocForEndOfToken(D.getCXXScopeSpec().getEndLoc()),
++             diag::err_expected_unqualified_id)
++            << /*C++*/1;
+       D.SetIdentifier(nullptr, Tok.getLocation());
+       goto PastIdentifier;
+     }
+@@ -6940,7 +6945,18 @@ void Parser::ParseDirectDeclarator(Declarator &D) {
+           Diag(Tok, diag::err_invalid_operator_on_type) << Tok.is(tok::arrow);
+         else {
+           SourceLocation Loc = D.getCXXScopeSpec().getEndLoc();
+-          if (Tok.isAtStartOfLine() && Loc.isValid())
++          // 中文关键字当名字用：给一条说得清的。两个现场都要试（见 Parser.h）：
++          //   ① 报错就落在关键字上（`整数 如果 = 1;`）
++          //   ② 关键字被当成说明符吃掉了、报错落在后面的 '=' 上（`整数 常量 = 1;`）
++          //      ⇒ 回看上一个 token。但若上一个 token 正是【类型说明符】，
++          //      说明用户只是漏写了名字，不该怪那个词（`常量 整数 = 1;`），故跳过。
++          bool 已诊断 = DiagnoseChineseKeywordSpellingAt(Tok.getLocation());
++          if (!已诊断 &&
++              D.getDeclSpec().getTypeSpecTypeLoc() != PrevTokLocation)
++            已诊断 = DiagnoseChineseKeywordSpellingAt(PrevTokLocation);
++          if (已诊断) {
++            // 已经发过"这是中文关键字"的诊断，不再发通用的那条。
++          } else if (Tok.isAtStartOfLine() && Loc.isValid())
+             Diag(PP.getLocForEndOfToken(Loc), diag::err_expected_unqualified_id)
+                 << getLangOpts().CPlusPlus;
+           else
+@@ -6949,9 +6965,16 @@ void Parser::ParseDirectDeclarator(Declarator &D) {
+                 << getLangOpts().CPlusPlus;
+         }
+       } else {
+-        Diag(getMissingDeclaratorIdLoc(D, Tok.getLocation()),
+-             diag::err_expected_either)
+-            << tok::identifier << tok::l_paren;
++        // C 模式（没有 C++ 那条 err_expected_unqualified_id）：同样的两个现场都要试
++        // （`整数 受限 = 1;` 在 C 里就落在这里 —— 受限=restrict 是 C99 的关键字）。
++        bool 已诊断 = DiagnoseChineseKeywordSpellingAt(Tok.getLocation());
++        if (!已诊断 &&
++            D.getDeclSpec().getTypeSpecTypeLoc() != PrevTokLocation)
++          已诊断 = DiagnoseChineseKeywordSpellingAt(PrevTokLocation);
++        if (!已诊断)
++          Diag(getMissingDeclaratorIdLoc(D, Tok.getLocation()),
++               diag::err_expected_either)
++              << tok::identifier << tok::l_paren;
+       }
+     }
+     D.SetIdentifier(nullptr, Tok.getLocation());
 diff --git a/clang/lib/Parse/ParseDeclCXX.cpp b/clang/lib/Parse/ParseDeclCXX.cpp
-index 150987d..b9787fe 100644
+index 150987d..84a7e2e 100644
 --- a/clang/lib/Parse/ParseDeclCXX.cpp
 +++ b/clang/lib/Parse/ParseDeclCXX.cpp
-@@ -2415,6 +2415,18 @@ VirtSpecifiers::Specifier Parser::isCXX11VirtSpecifier(const Token &Tok) const {
+@@ -2399,6 +2399,41 @@ void Parser::HandleMemberFunctionDeclDelays(Declarator &DeclaratorInfo,
+   }
+ }
+ 
++bool Parser::DiagnoseChineseKeywordSpellingAt(SourceLocation Loc) {
++  // 为什么定义在这里而不是 Parser.h 里内联：clang 的诊断 ID 按类别拆开
++  // （DiagnosticParseInterface.inc 通过 clang/Basic/DiagnosticParse.h 引入），
++  // 而 Parser.h **不**包含它 —— 内联会在没包含该头的 TU 里报
++  // "err_chinese_keyword_as_identifier 不是 clang::diag 的成员"（2026-10-03 实测）。
++  // 与 isCXX11VirtSpecifier() 同一个理由、同一个做法。
++  if (!Loc.isValid())
++    return false;
++
++  const SourceManager &SM = PP.getSourceManager();
++  SmallVector<char, 32> Buf;
++  StringRef Name = Lexer::getSpelling(Loc, Buf, SM, getLangOpts());
++  if (Name.empty())
++    return false;
++
++  // 只在【拼写是中文】时才认（含非 ASCII 字节的拼写）。
++  // `int if = 1;` 这类英文写法因此仍然走上游原来的诊断，英文行为一个字节不变。
++  bool 是中文拼写 = false;
++  for (char C : Name)
++    if (static_cast<unsigned char>(C) >= 0x80) {
++      是中文拼写 = true;
++      break;
++    }
++  if (!是中文拼写)
++    return false;
++
++  // 拼写要在本语言模式下【真是关键字】才发（否则用户只是起了个中文名字，与关键字无关）
++  IdentifierInfo &II = PP.getIdentifierTable().get(Name);
++  if (!II.isKeyword(getLangOpts()))
++    return false;
++
++  Diag(Loc, diag::err_chinese_keyword_as_identifier) << Name.str();
++  return true;
++}
++
+ VirtSpecifiers::Specifier Parser::isCXX11VirtSpecifier(const Token &Tok) const {
+   if (!getLangOpts().CPlusPlus || Tok.isNot(tok::identifier))
+     return VirtSpecifiers::VS_None;
+@@ -2415,6 +2450,18 @@ VirtSpecifiers::Specifier Parser::isCXX11VirtSpecifier(const Token &Tok) const {
        Ident_abstract = &PP.getIdentifierTable().get("abstract");
      }
      Ident_override = &PP.getIdentifierTable().get("override");
@@ -1051,7 +1213,7 @@ index 150987d..b9787fe 100644
    }
  
    if (II == Ident_override)
-@@ -2432,6 +2444,15 @@ VirtSpecifiers::Specifier Parser::isCXX11VirtSpecifier(const Token &Tok) const {
+@@ -2432,6 +2479,15 @@ VirtSpecifiers::Specifier Parser::isCXX11VirtSpecifier(const Token &Tok) const {
    if (II == Ident_GNU_final)
      return VirtSpecifiers::VS_GNU_Final;
  
@@ -1067,6 +1229,22 @@ index 150987d..b9787fe 100644
    return VirtSpecifiers::VS_None;
  }
  
+diff --git a/clang/lib/Parse/ParseExprCXX.cpp b/clang/lib/Parse/ParseExprCXX.cpp
+index 06ff45d..d5aa5d6 100644
+--- a/clang/lib/Parse/ParseExprCXX.cpp
++++ b/clang/lib/Parse/ParseExprCXX.cpp
+@@ -2890,7 +2890,10 @@ bool Parser::ParseUnqualifiedId(CXXScopeSpec &SS, ParsedType ObjectType,
+     }
+     [[fallthrough]];
+   default:
+-    Diag(Tok, diag::err_expected_unqualified_id) << getLangOpts().CPlusPlus;
++    // 中文关键字当名字用（`整数 如果 = 1;`）：给一条说得清的诊断，
++    // 而不是上游那句"缺少（种类） 非限定标识符"。见 Parser.h。
++    if (!DiagnoseChineseKeywordSpellingAt(Tok.getLocation()))
++      Diag(Tok, diag::err_expected_unqualified_id) << getLangOpts().CPlusPlus;
+     return true;
+   }
+ }
 diff --git a/clang/lib/Parse/Parser.cpp b/clang/lib/Parse/Parser.cpp
 index 6a21acd..81f1616 100644
 --- a/clang/lib/Parse/Parser.cpp

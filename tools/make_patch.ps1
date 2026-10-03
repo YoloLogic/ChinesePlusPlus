@@ -20,6 +20,18 @@
 #    Both need the same one-line /utf-8 prerequisite, which lives in
 #    llvm\CMakeLists.txt and therefore belongs to the keywords patch.
 #
+#    ⚠ 2026-10-03 起这条独立性是【单向】的，别再当成双向的（§18.4 P-05）：
+#      为"中文关键字不能当标识符"新增了一条诊断 `err_chinese_keyword_as_identifier`，
+#      它的 **ID 定义**（clang/include/clang/Basic/DiagnosticParseKinds.td）跟着
+#      **解析器代码**走 => 关键字补丁；它的**中文正文**只能放在
+#      `ChineseDiagnostics.def`（那是诊断汉化的唯一挂表处）=> 诊断补丁。
+#      所以：
+#        · 只打 keywords 补丁  => 能编（新诊断的正文回退英文）✓
+#        · 只打 diagnostics 补丁 => **编不过**（ChineseDiagnostics.def 引用了
+#          关键字补丁里才有的 diag:: 名字）✗ —— 这是刻意的取舍，不是疏忽：
+#          让新消息跟着"关键字"这个特性走，比把解析器改动塞进诊断补丁更合理。
+#      这条没有机器守卫（只是脚本注释），改补丁切分时请回头读这一段。
+#
 #  WHY cmd REDIRECTION FOR git diff
 #    The patch contains Chinese comments. Piping through PowerShell rewrites
 #    them; cmd redirection keeps the bytes exactly as git wrote them.
