@@ -185,38 +185,38 @@ public:
 
     _NODISCARD 数值数组实现 operator+() const {
         const size_t _Size = _我的尺寸; // eliminating indirection helps vectorization
-        数值数组实现<_类型> _Ans(_Size);
+        数值数组实现<_类型> _答案(_Size);
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _Ans[_Idx] = +_我的指针[_Idx];
+            _答案[_Idx] = +_我的指针[_Idx];
         }
-        return _Ans;
+        return _答案;
     }
 
     _NODISCARD 数值数组实现 operator-() const {
         const size_t _Size = _我的尺寸; // eliminating indirection helps vectorization
-        数值数组实现<_类型> _Ans(_Size);
+        数值数组实现<_类型> _答案(_Size);
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _Ans[_Idx] = -_我的指针[_Idx];
+            _答案[_Idx] = -_我的指针[_Idx];
         }
-        return _Ans;
+        return _答案;
     }
 
     _NODISCARD 数值数组实现 operator~() const {
         const size_t _Size = _我的尺寸; // eliminating indirection helps vectorization
-        数值数组实现<_类型> _Ans(_Size);
+        数值数组实现<_类型> _答案(_Size);
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _Ans[_Idx] = ~_我的指针[_Idx];
+            _答案[_Idx] = ~_我的指针[_Idx];
         }
-        return _Ans;
+        return _答案;
     }
 
     _NODISCARD _布尔数组 operator!() const {
         const size_t _Size = _我的尺寸; // eliminating indirection helps vectorization
-        数值数组实现<bool> _Ans(_Size);
+        数值数组实现<bool> _答案(_Size);
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _Ans[_Idx] = !_我的指针[_Idx];
+            _答案[_Idx] = !_我的指针[_Idx];
         }
-        return _Ans;
+        return _答案;
     }
 
     数值数组实现& operator*=(const _类型& _Right) {
@@ -413,20 +413,20 @@ public:
         return _我的尺寸;
     }
 
-    _NODISCARD const _类型& operator[](size_t _Off) const noexcept /* strengthened */ {
+    _NODISCARD const _类型& operator[](size_t _偏移) const noexcept /* strengthened */ {
 #if _MSVC_STL_HARDENING_VALARRAY || _ITERATOR_DEBUG_LEVEL != 0
-        _STL_VERIFY(_Off < _我的尺寸, "数值数组实现 subscript out of range");
+        _STL_VERIFY(_偏移 < _我的尺寸, "数值数组实现 subscript out of range");
 #endif
 
-        return _我的指针[_Off];
+        return _我的指针[_偏移];
     }
 
-    _NODISCARD _类型& operator[](size_t _Off) noexcept /* strengthened */ {
+    _NODISCARD _类型& operator[](size_t _偏移) noexcept /* strengthened */ {
 #if _MSVC_STL_HARDENING_VALARRAY || _ITERATOR_DEBUG_LEVEL != 0
-        _STL_VERIFY(_Off < _我的尺寸, "数值数组实现 subscript out of range");
+        _STL_VERIFY(_偏移 < _我的尺寸, "数值数组实现 subscript out of range");
 #endif
 
-        return _我的指针[_Off];
+        return _我的指针[_偏移];
     }
 
     _NODISCARD 数值数组实现 operator[](切片 _Slicearr) const; // defined below
@@ -481,7 +481,7 @@ public:
 
     _NODISCARD 数值数组实现 移位(int _Count) const {
         const size_t _Size = _我的尺寸; // eliminating indirection helps vectorization
-        数值数组实现<_类型> _Ans(_Size);
+        数值数组实现<_类型> _答案(_Size);
         size_t _最小 = 0;
         size_t _最大 = _Size;
         if (_Count < 0) {
@@ -496,9 +496,9 @@ public:
             }
         }
         for (size_t _Idx = _最小; _Idx < _最大; ++_Idx) {
-            _Ans[_Idx] = _我的指针[_Idx + _Count];
+            _答案[_Idx] = _我的指针[_Idx + _Count];
         }
-        return _Ans;
+        return _答案;
     }
 
     _NODISCARD 数值数组实现 循环移位(int _Count) const {
@@ -515,31 +515,31 @@ public:
             }
         }
 
-        数值数组实现<_类型> _Ans(_Size);
+        数值数组实现<_类型> _答案(_Size);
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _Ans[_Idx] =
+            _答案[_Idx] =
                 _Size - _Idx <= static_cast<size_t>(_Count) ? _我的指针[_Idx - _Size + _Count] : _我的指针[_Idx + _Count];
         }
-        return _Ans;
+        return _答案;
     }
 
     _NODISCARD 数值数组实现 应用(_类型 _Func(_类型)) const {
         const size_t _Size = _我的尺寸; // eliminating indirection helps vectorization
-        数值数组实现<_类型> _Ans(_Size);
+        数值数组实现<_类型> _答案(_Size);
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _Ans[_Idx] = _Func(_我的指针[_Idx]);
+            _答案[_Idx] = _Func(_我的指针[_Idx]);
         }
-        return _Ans;
+        return _答案;
     }
 
     _NODISCARD 数值数组实现 应用(_类型 _Func(const _类型&)) const {
         // return 数值数组实现 transformed by _Func, nonmutable argument
         const size_t _Size = _我的尺寸; // eliminating indirection helps vectorization
-        数值数组实现<_类型> _Ans(_Size);
+        数值数组实现<_类型> _答案(_Size);
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _Ans[_Idx] = _Func(_我的指针[_Idx]);
+            _答案[_Idx] = _Func(_我的指针[_Idx]);
         }
-        return _Ans;
+        return _答案;
     }
 
 private:
@@ -637,241 +637,241 @@ _NODISCARD const _类型* 结束(const 数值数组实现<_类型>& _Array) noex
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> operator*(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] * _Right;
+        _答案[_Idx] = _Left[_Idx] * _Right;
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> operator*(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left * _Right[_Idx];
+        _答案[_Idx] = _Left * _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> operator/(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] / _Right;
+        _答案[_Idx] = _Left[_Idx] / _Right;
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> operator/(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left / _Right[_Idx];
+        _答案[_Idx] = _Left / _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> operator%(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] % _Right;
+        _答案[_Idx] = _Left[_Idx] % _Right;
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> operator%(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left % _Right[_Idx];
+        _答案[_Idx] = _Left % _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> operator+(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] + _Right;
+        _答案[_Idx] = _Left[_Idx] + _Right;
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> operator+(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left + _Right[_Idx];
+        _答案[_Idx] = _Left + _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> operator-(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] - _Right;
+        _答案[_Idx] = _Left[_Idx] - _Right;
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> operator-(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left - _Right[_Idx];
+        _答案[_Idx] = _Left - _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> operator^(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] ^ _Right;
+        _答案[_Idx] = _Left[_Idx] ^ _Right;
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> operator^(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left ^ _Right[_Idx];
+        _答案[_Idx] = _Left ^ _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> operator&(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] & _Right;
+        _答案[_Idx] = _Left[_Idx] & _Right;
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> operator&(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left & _Right[_Idx];
+        _答案[_Idx] = _Left & _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> operator|(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] | _Right;
+        _答案[_Idx] = _Left[_Idx] | _Right;
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> operator|(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left | _Right[_Idx];
+        _答案[_Idx] = _Left | _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> operator<<(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] << _Right;
+        _答案[_Idx] = _Left[_Idx] << _Right;
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> operator<<(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left << _Right[_Idx];
+        _答案[_Idx] = _Left << _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> operator>>(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] >> _Right;
+        _答案[_Idx] = _Left[_Idx] >> _Right;
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> operator>>(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left >> _Right[_Idx];
+        _答案[_Idx] = _Left >> _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _布尔数组 operator&&(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<bool> _Ans(_Size);
+    数值数组实现<bool> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] && _Right;
+        _答案[_Idx] = _Left[_Idx] && _Right;
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _布尔数组 operator&&(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
-    数值数组实现<bool> _Ans(_Size);
+    数值数组实现<bool> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left && _Right[_Idx];
+        _答案[_Idx] = _Left && _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _布尔数组 operator||(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<bool> _Ans(_Size);
+    数值数组实现<bool> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] || _Right;
+        _答案[_Idx] = _Left[_Idx] || _Right;
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _布尔数组 operator||(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
-    数值数组实现<bool> _Ans(_Size);
+    数值数组实现<bool> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left || _Right[_Idx];
+        _答案[_Idx] = _Left || _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
@@ -880,11 +880,11 @@ _NODISCARD 数值数组实现<_类型> operator*(const 数值数组实现<_类�
     _STL_VERIFY(_Left.尺寸() == _Right.尺寸(), "valarrays of different lengths");
 #endif
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] * _Right[_Idx];
+        _答案[_Idx] = _Left[_Idx] * _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
@@ -893,11 +893,11 @@ _NODISCARD 数值数组实现<_类型> operator/(const 数值数组实现<_类�
     _STL_VERIFY(_Left.尺寸() == _Right.尺寸(), "valarrays of different lengths");
 #endif
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] / _Right[_Idx];
+        _答案[_Idx] = _Left[_Idx] / _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
@@ -906,11 +906,11 @@ _NODISCARD 数值数组实现<_类型> operator%(const 数值数组实现<_类�
     _STL_VERIFY(_Left.尺寸() == _Right.尺寸(), "valarrays of different lengths");
 #endif
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] % _Right[_Idx];
+        _答案[_Idx] = _Left[_Idx] % _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
@@ -919,11 +919,11 @@ _NODISCARD 数值数组实现<_类型> operator+(const 数值数组实现<_类�
     _STL_VERIFY(_Left.尺寸() == _Right.尺寸(), "valarrays of different lengths");
 #endif
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] + _Right[_Idx];
+        _答案[_Idx] = _Left[_Idx] + _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
@@ -932,11 +932,11 @@ _NODISCARD 数值数组实现<_类型> operator-(const 数值数组实现<_类�
     _STL_VERIFY(_Left.尺寸() == _Right.尺寸(), "valarrays of different lengths");
 #endif
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] - _Right[_Idx];
+        _答案[_Idx] = _Left[_Idx] - _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
@@ -945,11 +945,11 @@ _NODISCARD 数值数组实现<_类型> operator^(const 数值数组实现<_类�
     _STL_VERIFY(_Left.尺寸() == _Right.尺寸(), "valarrays of different lengths");
 #endif
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] ^ _Right[_Idx];
+        _答案[_Idx] = _Left[_Idx] ^ _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
@@ -958,11 +958,11 @@ _NODISCARD 数值数组实现<_类型> operator&(const 数值数组实现<_类�
     _STL_VERIFY(_Left.尺寸() == _Right.尺寸(), "valarrays of different lengths");
 #endif
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] & _Right[_Idx];
+        _答案[_Idx] = _Left[_Idx] & _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
@@ -971,11 +971,11 @@ _NODISCARD 数值数组实现<_类型> operator|(const 数值数组实现<_类�
     _STL_VERIFY(_Left.尺寸() == _Right.尺寸(), "valarrays of different lengths");
 #endif
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] | _Right[_Idx];
+        _答案[_Idx] = _Left[_Idx] | _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
@@ -984,11 +984,11 @@ _NODISCARD 数值数组实现<_类型> operator<<(const 数值数组实现<_类�
     _STL_VERIFY(_Left.尺寸() == _Right.尺寸(), "valarrays of different lengths");
 #endif
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] << _Right[_Idx];
+        _答案[_Idx] = _Left[_Idx] << _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
@@ -997,11 +997,11 @@ _NODISCARD 数值数组实现<_类型> operator>>(const 数值数组实现<_类�
     _STL_VERIFY(_Left.尺寸() == _Right.尺寸(), "valarrays of different lengths");
 #endif
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] >> _Right[_Idx];
+        _答案[_Idx] = _Left[_Idx] >> _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
@@ -1010,11 +1010,11 @@ _NODISCARD _布尔数组 operator&&(const 数值数组实现<_类型>& _Left, co
     _STL_VERIFY(_Left.尺寸() == _Right.尺寸(), "valarrays of different lengths");
 #endif
     const size_t _Size = _Left.尺寸();
-    数值数组实现<bool> _Ans(_Size);
+    数值数组实现<bool> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] && _Right[_Idx];
+        _答案[_Idx] = _Left[_Idx] && _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
@@ -1023,31 +1023,31 @@ _NODISCARD _布尔数组 operator||(const 数值数组实现<_类型>& _Left, co
     _STL_VERIFY(_Left.尺寸() == _Right.尺寸(), "valarrays of different lengths");
 #endif
     const size_t _Size = _Left.尺寸();
-    数值数组实现<bool> _Ans(_Size);
+    数值数组实现<bool> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] || _Right[_Idx];
+        _答案[_Idx] = _Left[_Idx] || _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _布尔数组 operator==(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<bool> _Ans(_Size);
+    数值数组实现<bool> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] == _Right;
+        _答案[_Idx] = _Left[_Idx] == _Right;
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _布尔数组 operator==(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
-    数值数组实现<bool> _Ans(_Size);
+    数值数组实现<bool> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left == _Right[_Idx];
+        _答案[_Idx] = _Left == _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
@@ -1056,31 +1056,31 @@ _NODISCARD _布尔数组 operator==(const 数值数组实现<_类型>& _Left, co
     _STL_VERIFY(_Left.尺寸() == _Right.尺寸(), "valarrays of different lengths");
 #endif
     const size_t _Size = _Left.尺寸();
-    数值数组实现<bool> _Ans(_Size);
+    数值数组实现<bool> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] == _Right[_Idx];
+        _答案[_Idx] = _Left[_Idx] == _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _布尔数组 operator!=(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<bool> _Ans(_Size);
+    数值数组实现<bool> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] != _Right;
+        _答案[_Idx] = _Left[_Idx] != _Right;
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _布尔数组 operator!=(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
-    数值数组实现<bool> _Ans(_Size);
+    数值数组实现<bool> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left != _Right[_Idx];
+        _答案[_Idx] = _Left != _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
@@ -1089,31 +1089,31 @@ _NODISCARD _布尔数组 operator!=(const 数值数组实现<_类型>& _Left, co
     _STL_VERIFY(_Left.尺寸() == _Right.尺寸(), "valarrays of different lengths");
 #endif
     const size_t _Size = _Left.尺寸();
-    数值数组实现<bool> _Ans(_Size);
+    数值数组实现<bool> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] != _Right[_Idx];
+        _答案[_Idx] = _Left[_Idx] != _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _布尔数组 operator<(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<bool> _Ans(_Size);
+    数值数组实现<bool> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] < _Right;
+        _答案[_Idx] = _Left[_Idx] < _Right;
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _布尔数组 operator<(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
-    数值数组实现<bool> _Ans(_Size);
+    数值数组实现<bool> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left < _Right[_Idx];
+        _答案[_Idx] = _Left < _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
@@ -1122,31 +1122,31 @@ _NODISCARD _布尔数组 operator<(const 数值数组实现<_类型>& _Left, con
     _STL_VERIFY(_Left.尺寸() == _Right.尺寸(), "valarrays of different lengths");
 #endif
     const size_t _Size = _Left.尺寸();
-    数值数组实现<bool> _Ans(_Size);
+    数值数组实现<bool> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] < _Right[_Idx];
+        _答案[_Idx] = _Left[_Idx] < _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _布尔数组 operator>(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<bool> _Ans(_Size);
+    数值数组实现<bool> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] > _Right;
+        _答案[_Idx] = _Left[_Idx] > _Right;
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _布尔数组 operator>(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
-    数值数组实现<bool> _Ans(_Size);
+    数值数组实现<bool> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left > _Right[_Idx];
+        _答案[_Idx] = _Left > _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
@@ -1155,31 +1155,31 @@ _NODISCARD _布尔数组 operator>(const 数值数组实现<_类型>& _Left, con
     _STL_VERIFY(_Left.尺寸() == _Right.尺寸(), "valarrays of different lengths");
 #endif
     const size_t _Size = _Left.尺寸();
-    数值数组实现<bool> _Ans(_Size);
+    数值数组实现<bool> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] > _Right[_Idx];
+        _答案[_Idx] = _Left[_Idx] > _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _布尔数组 operator<=(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<bool> _Ans(_Size);
+    数值数组实现<bool> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] <= _Right;
+        _答案[_Idx] = _Left[_Idx] <= _Right;
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _布尔数组 operator<=(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
-    数值数组实现<bool> _Ans(_Size);
+    数值数组实现<bool> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left <= _Right[_Idx];
+        _答案[_Idx] = _Left <= _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
@@ -1188,31 +1188,31 @@ _NODISCARD _布尔数组 operator<=(const 数值数组实现<_类型>& _Left, co
     _STL_VERIFY(_Left.尺寸() == _Right.尺寸(), "valarrays of different lengths");
 #endif
     const size_t _Size = _Left.尺寸();
-    数值数组实现<bool> _Ans(_Size);
+    数值数组实现<bool> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] <= _Right[_Idx];
+        _答案[_Idx] = _Left[_Idx] <= _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _布尔数组 operator>=(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<bool> _Ans(_Size);
+    数值数组实现<bool> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] >= _Right;
+        _答案[_Idx] = _Left[_Idx] >= _Right;
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD _布尔数组 operator>=(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
-    数值数组实现<bool> _Ans(_Size);
+    数值数组实现<bool> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left >= _Right[_Idx];
+        _答案[_Idx] = _Left >= _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
@@ -1221,220 +1221,220 @@ _NODISCARD _布尔数组 operator>=(const 数值数组实现<_类型>& _Left, co
     _STL_VERIFY(_Left.尺寸() == _Right.尺寸(), "valarrays of different lengths");
 #endif
     const size_t _Size = _Left.尺寸();
-    数值数组实现<bool> _Ans(_Size);
+    数值数组实现<bool> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = _Left[_Idx] >= _Right[_Idx];
+        _答案[_Idx] = _Left[_Idx] >= _Right[_Idx];
     }
-    return _Ans;
+    return _答案;
 }
 
 // [数值数组实现.transcend] Transcendentals
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> abs(const 数值数组实现<_类型>& _Left) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = abs(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
+        _答案[_Idx] = abs(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> acos(const 数值数组实现<_类型>& _Left) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = acos(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
+        _答案[_Idx] = acos(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> asin(const 数值数组实现<_类型>& _Left) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = asin(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
+        _答案[_Idx] = asin(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> atan(const 数值数组实现<_类型>& _Left) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = atan(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
+        _答案[_Idx] = atan(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> atan2(const 数值数组实现<_类型>& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = atan2(_Left[_Idx], _Right[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
+        _答案[_Idx] = atan2(_Left[_Idx], _Right[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> atan2(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = atan2(_Left[_Idx], _Right); // intentional ADL, N4950 [数值数组实现.transcend]/1
+        _答案[_Idx] = atan2(_Left[_Idx], _Right); // intentional ADL, N4950 [数值数组实现.transcend]/1
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> atan2(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = atan2(_Left, _Right[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
+        _答案[_Idx] = atan2(_Left, _Right[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> cos(const 数值数组实现<_类型>& _Left) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = cos(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
+        _答案[_Idx] = cos(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> cosh(const 数值数组实现<_类型>& _Left) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = cosh(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
+        _答案[_Idx] = cosh(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> exp(const 数值数组实现<_类型>& _Left) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = exp(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
+        _答案[_Idx] = exp(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> log(const 数值数组实现<_类型>& _Left) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = log(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
+        _答案[_Idx] = log(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> log10(const 数值数组实现<_类型>& _Left) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = log10(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
+        _答案[_Idx] = log10(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> pow(const 数值数组实现<_类型>& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = pow(_Left[_Idx], _Right[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
+        _答案[_Idx] = pow(_Left[_Idx], _Right[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> pow(const 数值数组实现<_类型>& _Left, const typename 数值数组实现<_类型>::value_type& _Right) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = pow(_Left[_Idx], _Right); // intentional ADL, N4950 [数值数组实现.transcend]/1
+        _答案[_Idx] = pow(_Left[_Idx], _Right); // intentional ADL, N4950 [数值数组实现.transcend]/1
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> pow(const typename 数值数组实现<_类型>::value_type& _Left, const 数值数组实现<_类型>& _Right) {
     const size_t _Size = _Right.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = pow(_Left, _Right[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
+        _答案[_Idx] = pow(_Left, _Right[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> sin(const 数值数组实现<_类型>& _Left) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = sin(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
+        _答案[_Idx] = sin(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> sinh(const 数值数组实现<_类型>& _Left) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = sinh(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
+        _答案[_Idx] = sinh(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> sqrt(const 数值数组实现<_类型>& _Left) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = sqrt(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
+        _答案[_Idx] = sqrt(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> tan(const 数值数组实现<_类型>& _Left) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = tan(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
+        _答案[_Idx] = tan(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 数值数组实现<_类型> tanh(const 数值数组实现<_类型>& _Left) {
     const size_t _Size = _Left.尺寸();
-    数值数组实现<_类型> _Ans(_Size);
+    数值数组实现<_类型> _答案(_Size);
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _Ans[_Idx] = tanh(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
+        _答案[_Idx] = tanh(_Left[_Idx]); // intentional ADL, N4950 [数值数组实现.transcend]/1
     }
-    return _Ans;
+    return _答案;
 }
 
 _EXPORT_STD class 切片 { // define a 切片 of a 数值数组实现
 public:
     切片() = default;
 
-    切片(size_t _Off, size_t _Count, size_t _递增) noexcept // strengthened
-        : _Start(_Off), _Len(_Count), _Stride(_递增) {}
+    切片(size_t _偏移, size_t _Count, size_t _递增) noexcept // strengthened
+        : _Start(_偏移), _Len(_Count), _Stride(_递增) {}
 
     _NODISCARD size_t 起始() const noexcept /* strengthened */ {
         return _Start;
@@ -1466,90 +1466,90 @@ public:
     using value_type = _类型;
 
     void operator=(const 数值数组实现<_类型>& _Right) const {
-        size_t _Off = _Start;
-        for (size_t _Idx = 0; _Idx < _Len; ++_Idx, _Off += _Stride) {
-            _我的指针[_Off] = _Right[_Idx];
+        size_t _偏移 = _Start;
+        for (size_t _Idx = 0; _Idx < _Len; ++_Idx, _偏移 += _Stride) {
+            _我的指针[_偏移] = _Right[_Idx];
         }
     }
 
     void operator=(const _类型& _Right) const {
-        size_t _Off = _Start;
-        for (size_t _Idx = 0; _Idx < _Len; ++_Idx, _Off += _Stride) {
-            _我的指针[_Off] = _Right;
+        size_t _偏移 = _Start;
+        for (size_t _Idx = 0; _Idx < _Len; ++_Idx, _偏移 += _Stride) {
+            _我的指针[_偏移] = _Right;
         }
     }
 
     void operator*=(const 数值数组实现<_类型>& _Right) const {
-        size_t _Off = _Start;
-        for (size_t _Idx = 0; _Idx < _Len; ++_Idx, _Off += _Stride) {
-            _我的指针[_Off] *= _Right[_Idx];
+        size_t _偏移 = _Start;
+        for (size_t _Idx = 0; _Idx < _Len; ++_Idx, _偏移 += _Stride) {
+            _我的指针[_偏移] *= _Right[_Idx];
         }
     }
 
     void operator/=(const 数值数组实现<_类型>& _Right) const {
-        size_t _Off = _Start;
-        for (size_t _Idx = 0; _Idx < _Len; ++_Idx, _Off += _Stride) {
-            _我的指针[_Off] /= _Right[_Idx];
+        size_t _偏移 = _Start;
+        for (size_t _Idx = 0; _Idx < _Len; ++_Idx, _偏移 += _Stride) {
+            _我的指针[_偏移] /= _Right[_Idx];
         }
     }
 
     void operator%=(const 数值数组实现<_类型>& _Right) const {
-        size_t _Off = _Start;
-        for (size_t _Idx = 0; _Idx < _Len; ++_Idx, _Off += _Stride) {
-            _我的指针[_Off] %= _Right[_Idx];
+        size_t _偏移 = _Start;
+        for (size_t _Idx = 0; _Idx < _Len; ++_Idx, _偏移 += _Stride) {
+            _我的指针[_偏移] %= _Right[_Idx];
         }
     }
 
     void operator+=(const 数值数组实现<_类型>& _Right) const {
-        size_t _Off = _Start;
-        for (size_t _Idx = 0; _Idx < _Len; ++_Idx, _Off += _Stride) {
-            _我的指针[_Off] += _Right[_Idx];
+        size_t _偏移 = _Start;
+        for (size_t _Idx = 0; _Idx < _Len; ++_Idx, _偏移 += _Stride) {
+            _我的指针[_偏移] += _Right[_Idx];
         }
     }
 
     void operator-=(const 数值数组实现<_类型>& _Right) const {
-        size_t _Off = _Start;
-        for (size_t _Idx = 0; _Idx < _Len; ++_Idx, _Off += _Stride) {
-            _我的指针[_Off] -= _Right[_Idx];
+        size_t _偏移 = _Start;
+        for (size_t _Idx = 0; _Idx < _Len; ++_Idx, _偏移 += _Stride) {
+            _我的指针[_偏移] -= _Right[_Idx];
         }
     }
 
     void operator^=(const 数值数组实现<_类型>& _Right) const {
-        size_t _Off = _Start;
-        for (size_t _Idx = 0; _Idx < _Len; ++_Idx, _Off += _Stride) {
-            _我的指针[_Off] ^= _Right[_Idx];
+        size_t _偏移 = _Start;
+        for (size_t _Idx = 0; _Idx < _Len; ++_Idx, _偏移 += _Stride) {
+            _我的指针[_偏移] ^= _Right[_Idx];
         }
     }
 
     void operator&=(const 数值数组实现<_类型>& _Right) const {
-        size_t _Off = _Start;
-        for (size_t _Idx = 0; _Idx < _Len; ++_Idx, _Off += _Stride) {
-            _我的指针[_Off] &= _Right[_Idx];
+        size_t _偏移 = _Start;
+        for (size_t _Idx = 0; _Idx < _Len; ++_Idx, _偏移 += _Stride) {
+            _我的指针[_偏移] &= _Right[_Idx];
         }
     }
 
     void operator|=(const 数值数组实现<_类型>& _Right) const {
-        size_t _Off = _Start;
-        for (size_t _Idx = 0; _Idx < _Len; ++_Idx, _Off += _Stride) {
-            _我的指针[_Off] |= _Right[_Idx];
+        size_t _偏移 = _Start;
+        for (size_t _Idx = 0; _Idx < _Len; ++_Idx, _偏移 += _Stride) {
+            _我的指针[_偏移] |= _Right[_Idx];
         }
     }
 
     void operator<<=(const 数值数组实现<_类型>& _Right) const {
-        size_t _Off = _Start;
-        for (size_t _Idx = 0; _Idx < _Len; ++_Idx, _Off += _Stride) {
-            _我的指针[_Off] <<= _Right[_Idx];
+        size_t _偏移 = _Start;
+        for (size_t _Idx = 0; _Idx < _Len; ++_Idx, _偏移 += _Stride) {
+            _我的指针[_偏移] <<= _Right[_Idx];
         }
     }
 
     void operator>>=(const 数值数组实现<_类型>& _Right) const {
-        size_t _Off = _Start;
-        for (size_t _Idx = 0; _Idx < _Len; ++_Idx, _Off += _Stride) {
-            _我的指针[_Off] >>= _Right[_Idx];
+        size_t _偏移 = _Start;
+        for (size_t _Idx = 0; _Idx < _Len; ++_Idx, _偏移 += _Stride) {
+            _我的指针[_偏移] >>= _Right[_Idx];
         }
     }
 
-    _类型& _Data(size_t _Idx) const noexcept {
+    _类型& _数据(size_t _Idx) const noexcept {
         return _我的指针[_Idx];
     }
 
@@ -1578,8 +1578,8 @@ _EXPORT_STD class 通用切片 { // define a generalized (multidimensional) 切�
 public:
     通用切片() = default; // construct with all zeros
 
-    通用切片(size_t _Off, const _尺寸数组& _Lenarr, const _尺寸数组& _Incarr)
-        : _Start(_Off), _Len(_Lenarr), _Stride(_Incarr) {}
+    通用切片(size_t _偏移, const _尺寸数组& _Lenarr, const _尺寸数组& _Incarr)
+        : _Start(_偏移), _Len(_Lenarr), _Stride(_Incarr) {}
 
     _NODISCARD size_t 起始() const noexcept /* strengthened */ {
         return _Start;
@@ -1593,16 +1593,16 @@ public:
         return _Stride;
     }
 
-    size_t _Nslice() const noexcept {
+    size_t _切片数() const noexcept {
         return _Len.尺寸();
     }
 
-    size_t _Off(_尺寸数组& _Indexarr) const noexcept {
+    size_t _偏移(_尺寸数组& _Indexarr) const noexcept {
         size_t _Idx;
-        size_t _Ans        = _Start;
+        size_t _答案        = _Start;
         const size_t _Size = _Indexarr.尺寸();
         for (_Idx = 0; _Idx < _Size; ++_Idx) {
-            _Ans += _Indexarr[_Idx] * _Stride[_Idx]; // compute offset
+            _答案 += _Indexarr[_Idx] * _Stride[_Idx]; // compute offset
         }
 
         while (0 < _Idx) {
@@ -1614,10 +1614,10 @@ public:
             }
         }
 
-        return _Ans;
+        return _答案;
     }
 
-    _NODISCARD size_t _Totlen() const noexcept {
+    _NODISCARD size_t _总长() const noexcept {
         const size_t _Size = _Len.尺寸();
         if (_Size == 0) {
             return 0;
@@ -1643,102 +1643,102 @@ public:
     using value_type = _类型;
 
     void operator=(const 数值数组实现<_类型>& _Right) const {
-        _尺寸数组 _Indexarray(size_t{0}, _Nslice());
-        const size_t _Size = _Totlen();
+        _尺寸数组 _索引数组(size_t{0}, _切片数());
+        const size_t _Size = _总长();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _我的指针[_Off(_Indexarray)] = _Right[_Idx];
+            _我的指针[_偏移(_索引数组)] = _Right[_Idx];
         }
     }
 
     void operator=(const _类型& _Right) const {
-        _尺寸数组 _Indexarray(size_t{0}, _Nslice());
-        const size_t _Size = _Totlen();
+        _尺寸数组 _索引数组(size_t{0}, _切片数());
+        const size_t _Size = _总长();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _我的指针[_Off(_Indexarray)] = _Right;
+            _我的指针[_偏移(_索引数组)] = _Right;
         }
     }
 
     void operator*=(const 数值数组实现<_类型>& _Right) const { // multiply generalized 切片 by 数值数组实现
-        _尺寸数组 _Indexarray(size_t{0}, _Nslice());
-        const size_t _Size = _Totlen();
+        _尺寸数组 _索引数组(size_t{0}, _切片数());
+        const size_t _Size = _总长();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _我的指针[_Off(_Indexarray)] *= _Right[_Idx];
+            _我的指针[_偏移(_索引数组)] *= _Right[_Idx];
         }
     }
 
     void operator/=(const 数值数组实现<_类型>& _Right) const { // divide generalized 切片 by 数值数组实现
-        _尺寸数组 _Indexarray(size_t{0}, _Nslice());
-        const size_t _Size = _Totlen();
+        _尺寸数组 _索引数组(size_t{0}, _切片数());
+        const size_t _Size = _总长();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _我的指针[_Off(_Indexarray)] /= _Right[_Idx];
+            _我的指针[_偏移(_索引数组)] /= _Right[_Idx];
         }
     }
 
     void operator%=(const 数值数组实现<_类型>& _Right) const { // remainder generalized 切片 by 数值数组实现
-        _尺寸数组 _Indexarray(size_t{0}, _Nslice());
-        const size_t _Size = _Totlen();
+        _尺寸数组 _索引数组(size_t{0}, _切片数());
+        const size_t _Size = _总长();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _我的指针[_Off(_Indexarray)] %= _Right[_Idx];
+            _我的指针[_偏移(_索引数组)] %= _Right[_Idx];
         }
     }
 
     void operator+=(const 数值数组实现<_类型>& _Right) const { // add 数值数组实现 to generalized 切片
-        _尺寸数组 _Indexarray(size_t{0}, _Nslice());
-        const size_t _Size = _Totlen();
+        _尺寸数组 _索引数组(size_t{0}, _切片数());
+        const size_t _Size = _总长();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _我的指针[_Off(_Indexarray)] += _Right[_Idx];
+            _我的指针[_偏移(_索引数组)] += _Right[_Idx];
         }
     }
 
     void operator-=(const 数值数组实现<_类型>& _Right) const { // subtract 数值数组实现 from generalized 切片
-        _尺寸数组 _Indexarray(size_t{0}, _Nslice());
-        const size_t _Size = _Totlen();
+        _尺寸数组 _索引数组(size_t{0}, _切片数());
+        const size_t _Size = _总长();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _我的指针[_Off(_Indexarray)] -= _Right[_Idx];
+            _我的指针[_偏移(_索引数组)] -= _Right[_Idx];
         }
     }
 
     void operator^=(const 数值数组实现<_类型>& _Right) const { // XOR 数值数组实现 into generalized 切片
-        _尺寸数组 _Indexarray(size_t{0}, _Nslice());
-        const size_t _Size = _Totlen();
+        _尺寸数组 _索引数组(size_t{0}, _切片数());
+        const size_t _Size = _总长();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _我的指针[_Off(_Indexarray)] ^= _Right[_Idx];
+            _我的指针[_偏移(_索引数组)] ^= _Right[_Idx];
         }
     }
 
     void operator&=(const 数值数组实现<_类型>& _Right) const { // AND 数值数组实现 into generalized 切片
-        _尺寸数组 _Indexarray(size_t{0}, _Nslice());
-        const size_t _Size = _Totlen();
+        _尺寸数组 _索引数组(size_t{0}, _切片数());
+        const size_t _Size = _总长();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _我的指针[_Off(_Indexarray)] &= _Right[_Idx];
+            _我的指针[_偏移(_索引数组)] &= _Right[_Idx];
         }
     }
 
     void operator|=(const 数值数组实现<_类型>& _Right) const { // OR 数值数组实现 into generalized 切片
-        _尺寸数组 _Indexarray(size_t{0}, _Nslice());
-        const size_t _Size = _Totlen();
+        _尺寸数组 _索引数组(size_t{0}, _切片数());
+        const size_t _Size = _总长();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _我的指针[_Off(_Indexarray)] |= _Right[_Idx];
+            _我的指针[_偏移(_索引数组)] |= _Right[_Idx];
         }
     }
 
     void operator<<=(const 数值数组实现<_类型>& _Right) const { // left 移位 generalized 切片 by 数值数组实现
-        _尺寸数组 _Indexarray(size_t{0}, _Nslice());
-        const size_t _Size = _Totlen();
+        _尺寸数组 _索引数组(size_t{0}, _切片数());
+        const size_t _Size = _总长();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _我的指针[_Off(_Indexarray)] <<= _Right[_Idx];
+            _我的指针[_偏移(_索引数组)] <<= _Right[_Idx];
         }
     }
 
     void operator>>=(const 数值数组实现<_类型>& _Right) const { // right 移位 generalized 切片 by 数值数组实现
-        _尺寸数组 _Indexarray(size_t{0}, _Nslice());
-        const size_t _Size = _Totlen();
+        _尺寸数组 _索引数组(size_t{0}, _切片数());
+        const size_t _Size = _总长();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _我的指针[_Off(_Indexarray)] >>= _Right[_Idx];
+            _我的指针[_偏移(_索引数组)] >>= _Right[_Idx];
         }
     }
 
-    _NODISCARD _类型& _Data(size_t _Idx) const noexcept {
+    _NODISCARD _类型& _数据(size_t _Idx) const noexcept {
         return _我的指针[_Idx];
     }
 
@@ -1747,11 +1747,11 @@ public:
     通用切片数组(const 通用切片数组&) = default;
 
     const 通用切片数组& operator=(const 通用切片数组& _Right) const {
-        _尺寸数组 _Dst_indexarray(size_t{0}, _Nslice());
-        _尺寸数组 _Src_indexarray(size_t{0}, _Right._Nslice());
-        const size_t _Size = _Totlen();
+        _尺寸数组 _目标索引数组(size_t{0}, _切片数());
+        _尺寸数组 _源索引数组(size_t{0}, _Right._切片数());
+        const size_t _Size = _总长();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _我的指针[_Off(_Dst_indexarray)] = _Right._我的指针[_Right._Off(_Src_indexarray)];
+            _我的指针[_偏移(_目标索引数组)] = _Right._我的指针[_Right._偏移(_源索引数组)];
         }
         return *this;
     }
@@ -1771,89 +1771,89 @@ public:
 
     void operator=(const 数值数组实现<_类型>& _Right) const {
         const size_t _Size = _Mybool.尺寸();
-        for (size_t _Idx = 0, _Off = _Start_off(); _Off < _Size; _Off = _Next_off(_Off), ++_Idx) {
-            _我的指针[_Off] = _Right[_Idx];
+        for (size_t _Idx = 0, _偏移 = _起始偏移(); _偏移 < _Size; _偏移 = _下一偏移(_偏移), ++_Idx) {
+            _我的指针[_偏移] = _Right[_Idx];
         }
     }
 
     void operator=(const _类型& _Right) const {
         const size_t _Size = _Mybool.尺寸();
-        for (size_t _Off = _Start_off(); _Off < _Size; _Off = _Next_off(_Off)) {
-            _我的指针[_Off] = _Right;
+        for (size_t _偏移 = _起始偏移(); _偏移 < _Size; _偏移 = _下一偏移(_偏移)) {
+            _我的指针[_偏移] = _Right;
         }
     }
 
     void operator*=(const 数值数组实现<_类型>& _Right) const { // multiply masked array by 数值数组实现
         const size_t _Size = _Mybool.尺寸();
-        for (size_t _Idx = 0, _Off = _Start_off(); _Off < _Size; _Off = _Next_off(_Off), ++_Idx) {
-            _我的指针[_Off] *= _Right[_Idx];
+        for (size_t _Idx = 0, _偏移 = _起始偏移(); _偏移 < _Size; _偏移 = _下一偏移(_偏移), ++_Idx) {
+            _我的指针[_偏移] *= _Right[_Idx];
         }
     }
 
     void operator/=(const 数值数组实现<_类型>& _Right) const { // divide masked array by 数值数组实现
         const size_t _Size = _Mybool.尺寸();
-        for (size_t _Idx = 0, _Off = _Start_off(); _Off < _Size; _Off = _Next_off(_Off), ++_Idx) {
-            _我的指针[_Off] /= _Right[_Idx];
+        for (size_t _Idx = 0, _偏移 = _起始偏移(); _偏移 < _Size; _偏移 = _下一偏移(_偏移), ++_Idx) {
+            _我的指针[_偏移] /= _Right[_Idx];
         }
     }
 
     void operator%=(const 数值数组实现<_类型>& _Right) const { // remainder masked array by 数值数组实现
         const size_t _Size = _Mybool.尺寸();
-        for (size_t _Idx = 0, _Off = _Start_off(); _Off < _Size; _Off = _Next_off(_Off), ++_Idx) {
-            _我的指针[_Off] %= _Right[_Idx];
+        for (size_t _Idx = 0, _偏移 = _起始偏移(); _偏移 < _Size; _偏移 = _下一偏移(_偏移), ++_Idx) {
+            _我的指针[_偏移] %= _Right[_Idx];
         }
     }
 
     void operator+=(const 数值数组实现<_类型>& _Right) const { // add 数值数组实现 to masked array
         const size_t _Size = _Mybool.尺寸();
-        for (size_t _Idx = 0, _Off = _Start_off(); _Off < _Size; _Off = _Next_off(_Off), ++_Idx) {
-            _我的指针[_Off] += _Right[_Idx];
+        for (size_t _Idx = 0, _偏移 = _起始偏移(); _偏移 < _Size; _偏移 = _下一偏移(_偏移), ++_Idx) {
+            _我的指针[_偏移] += _Right[_Idx];
         }
     }
 
     void operator-=(const 数值数组实现<_类型>& _Right) const { // subtract 数值数组实现 from masked array
         const size_t _Size = _Mybool.尺寸();
-        for (size_t _Idx = 0, _Off = _Start_off(); _Off < _Size; _Off = _Next_off(_Off), ++_Idx) {
-            _我的指针[_Off] -= _Right[_Idx];
+        for (size_t _Idx = 0, _偏移 = _起始偏移(); _偏移 < _Size; _偏移 = _下一偏移(_偏移), ++_Idx) {
+            _我的指针[_偏移] -= _Right[_Idx];
         }
     }
 
     void operator^=(const 数值数组实现<_类型>& _Right) const { // XOR 数值数组实现 into masked array
         const size_t _Size = _Mybool.尺寸();
-        for (size_t _Idx = 0, _Off = _Start_off(); _Off < _Size; _Off = _Next_off(_Off), ++_Idx) {
-            _我的指针[_Off] ^= _Right[_Idx];
+        for (size_t _Idx = 0, _偏移 = _起始偏移(); _偏移 < _Size; _偏移 = _下一偏移(_偏移), ++_Idx) {
+            _我的指针[_偏移] ^= _Right[_Idx];
         }
     }
 
     void operator&=(const 数值数组实现<_类型>& _Right) const { // OR 数值数组实现 into masked array
         const size_t _Size = _Mybool.尺寸();
-        for (size_t _Idx = 0, _Off = _Start_off(); _Off < _Size; _Off = _Next_off(_Off), ++_Idx) {
-            _我的指针[_Off] &= _Right[_Idx];
+        for (size_t _Idx = 0, _偏移 = _起始偏移(); _偏移 < _Size; _偏移 = _下一偏移(_偏移), ++_Idx) {
+            _我的指针[_偏移] &= _Right[_Idx];
         }
     }
 
     void operator|=(const 数值数组实现<_类型>& _Right) const { // OR 数值数组实现 into masked array
         const size_t _Size = _Mybool.尺寸();
-        for (size_t _Idx = 0, _Off = _Start_off(); _Off < _Size; _Off = _Next_off(_Off), ++_Idx) {
-            _我的指针[_Off] |= _Right[_Idx];
+        for (size_t _Idx = 0, _偏移 = _起始偏移(); _偏移 < _Size; _偏移 = _下一偏移(_偏移), ++_Idx) {
+            _我的指针[_偏移] |= _Right[_Idx];
         }
     }
 
     void operator<<=(const 数值数组实现<_类型>& _Right) const { // left 移位 masked array by 数值数组实现
         const size_t _Size = _Mybool.尺寸();
-        for (size_t _Idx = 0, _Off = _Start_off(); _Off < _Size; _Off = _Next_off(_Off), ++_Idx) {
-            _我的指针[_Off] <<= _Right[_Idx];
+        for (size_t _Idx = 0, _偏移 = _起始偏移(); _偏移 < _Size; _偏移 = _下一偏移(_偏移), ++_Idx) {
+            _我的指针[_偏移] <<= _Right[_Idx];
         }
     }
 
     void operator>>=(const 数值数组实现<_类型>& _Right) const { // right 移位 masked array by 数值数组实现
         const size_t _Size = _Mybool.尺寸();
-        for (size_t _Idx = 0, _Off = _Start_off(); _Off < _Size; _Off = _Next_off(_Off), ++_Idx) {
-            _我的指针[_Off] >>= _Right[_Idx];
+        for (size_t _Idx = 0, _偏移 = _起始偏移(); _偏移 < _Size; _偏移 = _下一偏移(_偏移), ++_Idx) {
+            _我的指针[_偏移] >>= _Right[_Idx];
         }
     }
 
-    _NODISCARD _类型& _Data(size_t _Idx) const noexcept {
+    _NODISCARD _类型& _数据(size_t _Idx) const noexcept {
         return _我的指针[_Idx];
     }
 
@@ -1861,24 +1861,24 @@ public:
         return _Mybool[_Idx];
     }
 
-    _NODISCARD size_t _Start_off() const noexcept {
-        size_t _Off        = 0;
+    _NODISCARD size_t _起始偏移() const noexcept {
+        size_t _偏移        = 0;
         const size_t _Size = _Mybool.尺寸();
-        while (_Off < _Size && !_Mybool[_Off]) {
-            ++_Off;
+        while (_偏移 < _Size && !_Mybool[_偏移]) {
+            ++_偏移;
         }
-        return _Off;
+        return _偏移;
     }
 
-    _NODISCARD size_t _Next_off(size_t _Off) const noexcept {
+    _NODISCARD size_t _下一偏移(size_t _偏移) const noexcept {
         const size_t _Size = _Mybool.尺寸();
         do {
-            ++_Off;
-        } while (_Off < _Size && !_Mybool[_Off]);
-        return _Off;
+            ++_偏移;
+        } while (_偏移 < _Size && !_Mybool[_偏移]);
+        return _偏移;
     }
 
-    _NODISCARD size_t _Totlen() const noexcept {
+    _NODISCARD size_t _总长() const noexcept {
         size_t _Count      = 0;
         const size_t _Size = _Mybool.尺寸();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
@@ -1896,9 +1896,9 @@ public:
 
     const 掩码数组& operator=(const 掩码数组& _Right) const noexcept /* strengthened */ {
         const size_t _Size = _Mybool.尺寸();
-        size_t _Dst_off    = _Start_off();
-        size_t _Src_off    = _Right._Start_off();
-        for (; _Dst_off < _Size; _Src_off = _Right._Next_off(_Src_off), _Dst_off = _Next_off(_Dst_off)) {
+        size_t _Dst_off    = _起始偏移();
+        size_t _Src_off    = _Right._起始偏移();
+        for (; _Dst_off < _Size; _Src_off = _Right._下一偏移(_Src_off), _Dst_off = _下一偏移(_Dst_off)) {
             _我的指针[_Dst_off] = _Right._我的指针[_Src_off];
         }
         return *this;
@@ -1919,98 +1919,98 @@ public:
     using value_type = _类型;
 
     void operator=(const 数值数组实现<_类型>& _Right) const {
-        const size_t _Size = _Totlen();
+        const size_t _Size = _总长();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _我的指针[_Indir(_Idx)] = _Right[_Idx];
+            _我的指针[_间接索引(_Idx)] = _Right[_Idx];
         }
     }
 
     void operator=(const _类型& _Right) const {
-        const size_t _Size = _Totlen();
+        const size_t _Size = _总长();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _我的指针[_Indir(_Idx)] = _Right;
+            _我的指针[_间接索引(_Idx)] = _Right;
         }
     }
 
     void operator*=(const 数值数组实现<_类型>& _Right) const { // multiply indirect array by 数值数组实现
-        const size_t _Size = _Totlen();
+        const size_t _Size = _总长();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _我的指针[_Indir(_Idx)] *= _Right[_Idx];
+            _我的指针[_间接索引(_Idx)] *= _Right[_Idx];
         }
     }
 
     void operator/=(const 数值数组实现<_类型>& _Right) const { // divide indirect array by 数值数组实现
-        const size_t _Size = _Totlen();
+        const size_t _Size = _总长();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _我的指针[_Indir(_Idx)] /= _Right[_Idx];
+            _我的指针[_间接索引(_Idx)] /= _Right[_Idx];
         }
     }
 
     void operator%=(const 数值数组实现<_类型>& _Right) const { // remainder indirect array by 数值数组实现
-        const size_t _Size = _Totlen();
+        const size_t _Size = _总长();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _我的指针[_Indir(_Idx)] %= _Right[_Idx];
+            _我的指针[_间接索引(_Idx)] %= _Right[_Idx];
         }
     }
 
     void operator+=(const 数值数组实现<_类型>& _Right) const { // add 数值数组实现 to indirect array
-        const size_t _Size = _Totlen();
+        const size_t _Size = _总长();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _我的指针[_Indir(_Idx)] += _Right[_Idx];
+            _我的指针[_间接索引(_Idx)] += _Right[_Idx];
         }
     }
 
     void operator-=(const 数值数组实现<_类型>& _Right) const { // subtract 数值数组实现 from indirect array
-        const size_t _Size = _Totlen();
+        const size_t _Size = _总长();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _我的指针[_Indir(_Idx)] -= _Right[_Idx];
+            _我的指针[_间接索引(_Idx)] -= _Right[_Idx];
         }
     }
 
     void operator^=(const 数值数组实现<_类型>& _Right) const { // XOR 数值数组实现 into indirect array
-        const size_t _Size = _Totlen();
+        const size_t _Size = _总长();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _我的指针[_Indir(_Idx)] ^= _Right[_Idx];
+            _我的指针[_间接索引(_Idx)] ^= _Right[_Idx];
         }
     }
 
     void operator&=(const 数值数组实现<_类型>& _Right) const { // AND 数值数组实现 into indirect array
-        const size_t _Size = _Totlen();
+        const size_t _Size = _总长();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _我的指针[_Indir(_Idx)] &= _Right[_Idx];
+            _我的指针[_间接索引(_Idx)] &= _Right[_Idx];
         }
     }
 
     void operator|=(const 数值数组实现<_类型>& _Right) const { // OR 数值数组实现 into indirect array
-        const size_t _Size = _Totlen();
+        const size_t _Size = _总长();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _我的指针[_Indir(_Idx)] |= _Right[_Idx];
+            _我的指针[_间接索引(_Idx)] |= _Right[_Idx];
         }
     }
 
     void operator<<=(const 数值数组实现<_类型>& _Right) const { // left 移位 indirect array by 数值数组实现
-        const size_t _Size = _Totlen();
+        const size_t _Size = _总长();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _我的指针[_Indir(_Idx)] <<= _Right[_Idx];
+            _我的指针[_间接索引(_Idx)] <<= _Right[_Idx];
         }
     }
 
     void operator>>=(const 数值数组实现<_类型>& _Right) const { // right 移位 indirect array by 数值数组实现
-        const size_t _Size = _Totlen();
+        const size_t _Size = _总长();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _我的指针[_Indir(_Idx)] >>= _Right[_Idx];
+            _我的指针[_间接索引(_Idx)] >>= _Right[_Idx];
         }
     }
 
-    _NODISCARD _类型& _Data(size_t _Idx) const noexcept {
+    _NODISCARD _类型& _数据(size_t _Idx) const noexcept {
         return _我的指针[_Idx];
     }
 
-    _NODISCARD size_t _Indir(size_t _Idx) const noexcept {
+    _NODISCARD size_t _间接索引(size_t _Idx) const noexcept {
         return _Myindarr[_Idx];
     }
 
-    _NODISCARD size_t _Totlen() const noexcept {
+    _NODISCARD size_t _总长() const noexcept {
         return _Myindarr.尺寸();
     }
 
@@ -2019,9 +2019,9 @@ public:
     间接数组(const 间接数组&) = default;
 
     const 间接数组& operator=(const 间接数组& _Right) const noexcept /* strengthened */ {
-        const size_t _Size = _Totlen();
+        const size_t _Size = _总长();
         for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-            _我的指针[_Indir(_Idx)] = _Right._我的指针[_Right._Indir(_Idx)];
+            _我的指针[_间接索引(_Idx)] = _Right._我的指针[_Right._间接索引(_Idx)];
         }
         return *this;
     }
@@ -2038,7 +2038,7 @@ private:
 template <class _类型>
 数值数组实现<_类型>& 数值数组实现<_类型>::operator=(const 切片数组<_类型>& _Slicearr) {
     _清理释放();
-    _增长(_Slicearr.尺寸(), _STD addressof(_Slicearr._Data(_Slicearr.起始())), _Slicearr.步长());
+    _增长(_Slicearr.尺寸(), _STD addressof(_Slicearr._数据(_Slicearr.起始())), _Slicearr.步长());
     return *this;
 }
 
@@ -2055,11 +2055,11 @@ _NODISCARD 切片数组<_类型> 数值数组实现<_类型>::operator[](切片 
 template <class _类型>
 数值数组实现<_类型>& 数值数组实现<_类型>::operator=(const 通用切片数组<_类型>& _Gslicearr) {
     _清理释放();
-    _增长(_Gslicearr._Totlen());
-    _尺寸数组 _Indexarray(size_t{0}, _Gslicearr._Nslice());
+    _增长(_Gslicearr._总长());
+    _尺寸数组 _索引数组(size_t{0}, _Gslicearr._切片数());
     const size_t _Size = _我的尺寸; // eliminating indirection helps vectorization
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _我的指针[_Idx] = _Gslicearr._Data(_Gslicearr._Off(_Indexarray));
+        _我的指针[_Idx] = _Gslicearr._数据(_Gslicearr._偏移(_索引数组));
     }
     return *this;
 }
@@ -2077,13 +2077,13 @@ _NODISCARD 通用切片数组<_类型> 数值数组实现<_类型>::operator[](c
 template <class _类型>
 数值数组实现<_类型>& 数值数组实现<_类型>::operator=(const 掩码数组<_类型>& _Maskarr) {
     _清理释放();
-    _增长(_Maskarr._Totlen());
+    _增长(_Maskarr._总长());
     size_t _Count = 0;
 
     const size_t _Size = _我的尺寸; // eliminating indirection helps vectorization
     for (size_t _Idx = 0; _Idx < _Size; ++_Count) {
         if (_Maskarr._掩码(_Count)) {
-            _我的指针[_Idx++] = _Maskarr._Data(_Count);
+            _我的指针[_Idx++] = _Maskarr._数据(_Count);
         }
     }
 
@@ -2103,10 +2103,10 @@ _NODISCARD 掩码数组<_类型> 数值数组实现<_类型>::operator[](const _
 template <class _类型>
 数值数组实现<_类型>& 数值数组实现<_类型>::operator=(const 间接数组<_类型>& _Indarr) {
     _清理释放();
-    _增长(_Indarr._Totlen());
+    _增长(_Indarr._总长());
     const size_t _Size = _我的尺寸; // eliminating indirection helps vectorization
     for (size_t _Idx = 0; _Idx < _Size; ++_Idx) {
-        _我的指针[_Idx] = _Indarr._Data(_Indarr._Indir(_Idx));
+        _我的指针[_Idx] = _Indarr._数据(_Indarr._间接索引(_Idx));
     }
     return *this;
 }

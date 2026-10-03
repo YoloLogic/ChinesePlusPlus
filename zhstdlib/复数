@@ -255,7 +255,7 @@ namespace _Math_algorithms {
         return static_cast<float>((_Dx * _Dx - 1.0) + _Dy * _Dy);
     }
 
-    // TRANSITION: CRT log1p can be inaccurate for tiny inputs under directed rounding modes
+    // TRANSITION: CRT _对数一加 can be inaccurate for tiny inputs under directed rounding modes
     template <class _类型>
     _NODISCARD _类型 _对数加一(const _类型 _Xval) noexcept { // returns log(1 + _Xval)
         static_assert(is_floating_point_v<_类型>, "_类型 must be floating-point");
@@ -288,7 +288,7 @@ namespace _Math_algorithms {
     }
 
     template <class _类型>
-    _NODISCARD _类型 _Log_hypot(const _类型 _Xval, const _类型 _Yval) noexcept { // returns log(hypot(_Xval, _Yval))
+    _NODISCARD _类型 _对数直角边(const _类型 _Xval, const _类型 _Yval) noexcept { // returns log(hypot(_Xval, _Yval))
         static_assert(is_floating_point_v<_类型>, "_类型 must be floating-point");
 
         if (!_Is_finite(_Xval) || !_Is_finite(_Yval)) { // Inf or NaN
@@ -445,7 +445,7 @@ public:
         _Left = _取模(_Left);
 
         if (_Left < 2 / _浮点最小增量()) {
-            _Ans = log1p(_Left + _Left * _Left / (1 + sqrt(_Left * _Left + 1)));
+            _Ans = _对数一加(_Left + _Left * _Left / (1 + sqrt(_Left * _Left + 1)));
         } else {
             _Ans = log(_Left) + _Ln2;
         }
@@ -473,7 +473,7 @@ public:
         return static_cast<_类型>(_CSTD log(static_cast<double>(_Left)));
     }
 
-    static _类型 log1p(_类型 _Left) { // return log(1 + _Left)
+    static _类型 _对数一加(_类型 _Left) { // return log(1 + _Left)
         if (_Left < -1) {
             return _非数值();
         } else if (_Left == 0) {
@@ -589,7 +589,7 @@ public:
         _Left = _取模(_Left);
 
         if (_Left < 2 / _浮点最小增量()) {
-            _Ans = log1p(_Left + _Left * _Left / (1 + sqrt(_Left * _Left + 1)));
+            _Ans = _对数一加(_Left + _Left * _Left / (1 + sqrt(_Left * _Left + 1)));
         } else {
             _Ans = log(_Left) + _Ln2;
         }
@@ -617,7 +617,7 @@ public:
         return _CSTD logl(_Left);
     }
 
-    static _类型 log1p(_类型 _Left) noexcept { // return log(1 + _Left)
+    static _类型 _对数一加(_类型 _Left) noexcept { // return log(1 + _Left)
         if (_Left < -1) {
             return _非数值();
         } else if (_Left == 0) {
@@ -722,7 +722,7 @@ public:
             _Left = _取模(_Left);
 
             if (_Left < 2 / _浮点最小增量()) {
-                _Ans = log1p(_Left + _Left * _Left / (1 + sqrt(_Left * _Left + 1)));
+                _Ans = _对数一加(_Left + _Left * _Left / (1 + sqrt(_Left * _Left + 1)));
             } else {
                 _Ans = log(_Left) // _Left big, compute log(_Left+_Left)
                      + static_cast<_类型>(0.69314718055994530941723212145817658L);
@@ -752,7 +752,7 @@ public:
         return _CSTD log(_Left);
     }
 
-    static _类型 log1p(_类型 _Left) noexcept { // return log(1 + _Left)
+    static _类型 _对数一加(_类型 _Left) noexcept { // return log(1 + _Left)
         if (_是非数值(_Left) || _Left == 0 || (_是无穷(_Left) && 0 < _Left)) {
             return _Left;
         } else if (_Left < -1) {
@@ -864,7 +864,7 @@ public:
         _Left = _取模(_Left);
 
         if (_Left < 2 / _浮点最小增量()) {
-            _Ans = log1p(_Left + _Left * _Left / (1 + sqrt(_Left * _Left + 1)));
+            _Ans = _对数一加(_Left + _Left * _Left / (1 + sqrt(_Left * _Left + 1)));
         } else {
             _Ans = log(_Left) + _Ln2;
         }
@@ -892,7 +892,7 @@ public:
         return _CSTD logf(_Left);
     }
 
-    static _类型 log1p(_类型 _Left) noexcept { // return log(1 + _Left)
+    static _类型 _对数一加(_类型 _Left) noexcept { // return log(1 + _Left)
         if (_Left < -1) {
             return _非数值();
         } else if (_Left == 0) {
@@ -1823,7 +1823,7 @@ _NODISCARD 复数实现<_类型> 反双曲正切(const 复数实现<_类型>& _L
             _类型 _Refrom1 = 1 - _Re;
             _类型 _Imeps2  = _Magim * _Magim;
 
-            _Ux = static_cast<_类型>(0.25) * _复数特征<_类型>::log1p(4 * _Re / (_Refrom1 * _Refrom1 + _Imeps2));
+            _Ux = static_cast<_类型>(0.25) * _复数特征<_类型>::_对数一加(4 * _Re / (_Refrom1 * _Refrom1 + _Imeps2));
             _Vx = static_cast<_类型>(0.50) * _复数特征<_类型>::atan2(2 * _Im, _Refrom1 * (1 + _Re) - _Imeps2);
         } else if (_Im == 0) { // {+/-1, 0)
             _Ux = _复数特征<_类型>::_无穷值();
@@ -1963,11 +1963,11 @@ _类型 _Fabs(const 复数实现<_类型>& _Left, int* _Pexp) noexcept(_Is_unqua
 template <class _类型>
 _NODISCARD _类型 _Log_abs(const 复数实现<_类型>& _Left) noexcept { // for double, long double, and non-floating-point types
     return static_cast<_类型>(
-        _Math_algorithms::_Log_hypot(static_cast<double>(实部(_Left)), static_cast<double>(虚部(_Left))));
+        _Math_algorithms::_对数直角边(static_cast<double>(实部(_Left)), static_cast<double>(虚部(_Left))));
 }
 
 _NODISCARD inline float _Log_abs(const 复数实现<float>& _Left) noexcept {
-    return _Math_algorithms::_Log_hypot(实部(_Left), 虚部(_Left));
+    return _Math_algorithms::_对数直角边(实部(_Left), 虚部(_Left));
 }
 
 _EXPORT_STD template <class _类型>
@@ -2165,8 +2165,8 @@ _NODISCARD 复数实现<_类型> sin(const 复数实现<_类型>& _Left) noexcep
 
 _EXPORT_STD template <class _类型>
 _NODISCARD 复数实现<_类型> tan(const 复数实现<_类型>& _Left) noexcept(_Is_unqual_fp<_类型>) /* strengthened */ {
-    复数实现<_类型> _Zv(双曲正切(复数实现<_类型>(-虚部(_Left), 实部(_Left))));
-    return 复数实现<_类型>(虚部(_Zv), -实部(_Zv));
+    复数实现<_类型> _复临时(双曲正切(复数实现<_类型>(-虚部(_Left), 实部(_Left))));
+    return 复数实现<_类型>(虚部(_复临时), -实部(_复临时));
 }
 
 template <class _类型>
@@ -2270,8 +2270,8 @@ basic_istream<_元素, _Tr>& operator>>(basic_istream<_元素, _Tr>& _Istr, 复�
     }
 
     if (!_Istr.fail()) { // store valid result
-        _类型 _Tyreal(static_cast<_类型>(_Real)), _Tyimag(static_cast<_类型>(_Imag));
-        _Right = 复数实现<_类型>(_Tyreal, _Tyimag);
+        _类型 _实分量(static_cast<_类型>(_Real)), _虚分量(static_cast<_类型>(_Imag));
+        _Right = 复数实现<_类型>(_实分量, _虚分量);
     }
     return _Istr;
 }

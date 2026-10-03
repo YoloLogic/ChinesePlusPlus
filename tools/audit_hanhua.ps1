@@ -369,6 +369,26 @@ $script:BdRefuted = @{
     'is_transparent'                         = 'H-项目已定边界'
     # `_Fmp_t`：`_FMP` 展开成 `::std::_Float_multi_prec::` ⇒ 指向**别的真头的名域**（I 类）。
     '_Fmp_t'                                 = 'I-指向别的真头名域'
+    # §17.64 <复数> 的三条同族名字（与 `_Fmp_t` 同一个宏、同一个接收者）：
+    #   调用点写作 `_FMP_汉 _Sqr_x2(...)`，而 `_FMP_汉` = `_STD _Float_multi_prec::` ⇒ 指向
+    #   **真 <complex> 那一份**（realInclude 把真头带进来了），不是我们 `细节` 里那份 ⇒ 改名后
+    #   调用点找不到声明。编译实证（§17.26 那次撤下）：`error: 使用了未声明的标识符 _加一倍`
+    #   （实参类型来自真 std 的 `_FMP_汉 _Fmp_t`，ADL 只找得到 std 那份）。
+    #   消除路径 = **切借用面**（把 `_FMP_汉` 指向 `细节::_Float_multi_prec`，§17.15 那一批）。
+    '_Sqr_x2'                                = 'I-指向别的真头名域'
+    '_Add_small_x2'                          = 'I-指向别的真头名域'
+    '_Add_x1'                                = 'I-指向别的真头名域'
+    # §17.64 `_Float_abs_bits`：**定义在我们没抄的真头里**（`<type_traits>`:2461），
+    #   本头只有 2 个调用点（产物 67/74 行），靠 `使用 名域 std;` 解析到真 std ⇒ 改名即找不到声明。
+    #   消除路径 = 把 `<type_traits>` 那一层也抄成我们的内部件（J 类）。
+    '_Float_abs_bits'                        = 'J-借来的真头实现'
+    # §17.64 `epsilon` / `infinity` / `quiet_NaN`：接收者是**真 `std::numeric_limits`**
+    #   （产物 377/408/424 等处 `numeric_limits<_类型>::epsilon()`；该条目 L5870 已判定"不切借用面"）
+    #   ⇒ D 类（与 §17.59 编译证伪的 `const_void_pointer` 同一形态：纯正则判不出，靠产物实证）。
+    #   消除路径 = 切借用面到我们自己的 `数值极限`（它已有中文成员名）。
+    'epsilon'                                = 'D-借来接收者'
+    'infinity'                               = 'D-借来接收者'
+    'quiet_NaN'                              = 'D-借来接收者'
 }
 function Get-BoundaryClass([string] $n, [string] $entryKey) {
     if ($script:BdRefuted.ContainsKey($n)) { return $script:BdRefuted[$n] }
@@ -714,7 +734,9 @@ $ledger = @(
     '  `id`（方案 §3.13：太短，全局 `\bid\b` 替换不安全）；`native_handle_type`（生成器 L90：MSVC 已官方删除 GH-3820）。',
     '  ⇒ 消除路径：随上游删除而自然消失，或等"能重命名短名"的机制（目前没有）。',
     '- `I-指向别的真头名域`：宏展开成**别的真头**的名域（如 `_FMP` → `::std::_Float_multi_prec::`）⇒ 消除路径 = 把那个真头也抄成我们的内部件。',
-    '⇒ A/B/C 三类都是外部约束，**无消除路径**；D/E/F/G 有"抄更多外部层"的消除路径（与 `_Cpo` 要抄 `<compare>` 同族）。',
+    '- `J-借来的真头实现`：名字**定义在我们没抄的真头**里、本头只有调用点（如 `_Float_abs_bits` ← `<type_traits>`:2461），',
+    '  改名后调用点找不到声明 ⇒ 消除路径 = 把那个真头（或其所在层）也抄成我们的内部件。',
+    '⇒ A/B/C 三类都是外部约束，**无消除路径**；D/E/F/G/I/J 有"抄更多外部层 / 切借用面"的消除路径（与 `_Cpo` 要抄 `<compare>` 同族）。',
     '⇒ 把它们从分子分母**同时**剔除会令分子下降 —— 与「分子只能升」冲突 ⇒ **留给大检查统一决定**（见 `build\_review_own\口径修订提案.md`）。'
 )
 $ledgerText = ($ledger -join "`n") + "`n"
