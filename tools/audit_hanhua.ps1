@@ -311,18 +311,38 @@ if (Test-Path $tkDef) {
 #    G-C库调用：`_CSTD X` —— `_CSTD` 展开成 `::` ⇒ `::X` 是 **C 库**的名字（不是名域限定 ✗）
 #  消除路径（判据① 要求逐条写明）：把 **C 数学 / C 库那一层**也抄成我们自己的内部件，两边一起翻
 #   —— 与 `_Cpo` 要抄 `<compare>` 是同一族"要抄更多外部层"。
+#  §17.65 两处修正（都是"让机器源更准"，方向只有一个：把**确实改不了**的认出来）：
+#    ① 微软真头写的是 `using _STD X;`（`_STD` 就是 `std::`），旧正则只认 `using std::X;`
+#       ⇒ F 类**常年 0 个**，把 <字符转换> 的 3 个进口名错算成欠账 ✗（§17.52 早已实测过它们改不了）。
+#    ② F 必须**按产物分桶**：`using _STD X;` 只证明"在**这个头**里 X 是进口的"，
+#       不能证明别的产物里同名者也不能翻 —— 名字全局登记会**掩盖**那边的真欠账 ✗。
 # ---------------------------------------------------------------------------
-$script:BdImport = @{}
+$script:BdImport = @{}    # 键 = 真头名（= $e.H）；值 = 该头里被进口的名字集合
 $script:BdCLib   = @{}
 foreach ($e2 in $entries) {
     if (-not $e2.H) { continue }
+    $imp = @{}
     $p2 = Join-Path $inc $e2.H
-    if (-not (Test-Path $p2)) { continue }
-    $t2 = [System.IO.File]::ReadAllText($p2)
-    foreach ($m2 in [regex]::Matches($t2, '(?m)^\s*using\s+std::([A-Za-z_]\w*)\s*;')) { $script:BdImport[$m2.Groups[1].Value] = $true }
-    foreach ($m2 in [regex]::Matches($t2, '_CSTD\s+([A-Za-z_]\w*)'))                   { $script:BdCLib[$m2.Groups[1].Value]   = $true }
+    if (Test-Path $p2) {
+        $t2 = [System.IO.File]::ReadAllText($p2)
+        foreach ($m2 in [regex]::Matches($t2, '(?<![\w])using\s+(?:std::|_STD\s+)([A-Za-z_]\w*)\s*;')) { $imp[$m2.Groups[1].Value] = $true }
+        foreach ($m2 in [regex]::Matches($t2, '_CSTD\s+([A-Za-z_]\w*)'))                   { $script:BdCLib[$m2.Groups[1].Value]   = $true }
+    }
+    # §17.65 更直接的机器源：**我们自己的产物**里那条 `使用 std::X;`（`使用` = `using`）。
+    #   为什么必须补它：<字符转换> 的 3 个名字在真头里只有【调用点】，
+    #   进口声明是生成器 `prologue` 写进产物的（§17.52 实测改名 ⇒ 编不过 ⇒ 整份撤回），
+    #   只扫真头抓不到 ⇒ 它们一直挂在真欠账里 ✗。产物的进口声明本身就是"X 定义在别处"的证据 ✓。
+    $p3 = Join-Path $root "zhstdlib\$($e2.Zh)"
+    if ($e2.Zh -and (Test-Path $p3)) {
+        $t3 = [System.IO.File]::ReadAllText($p3)
+        $cut3 = $t3.IndexOf('// [ZH-DERIVE-LAYER]')
+        if ($cut3 -ge 0) { $t3 = $t3.Substring(0, $cut3) }   # 只认抄来那层
+        foreach ($m3 in [regex]::Matches($t3, '(?<![\w])使用\s+std::([A-Za-z_]\w*)\s*;')) { $imp[$m3.Groups[1].Value] = $true }
+    }
+    if ($imp.Count) { $script:BdImport[$e2.H] = $imp }
 }
-Write-Host ("  边界来源F using std:: 进口名 {0} 个 / G _CSTD C 库名 {1} 个" -f $script:BdImport.Count, $script:BdCLib.Count)
+$impTot = (@($script:BdImport.Values | ForEach-Object { $_.Keys }) | Sort-Object -Unique).Count
+Write-Host ("  边界来源F using std::/_STD 进口名 {0} 个（分布在 {1} 个真头里） / G _CSTD C 库名 {2} 个" -f $impTot, $script:BdImport.Count, $script:BdCLib.Count)
 $tblJson = ''
 try { $tblJson = & pwsh -NoProfile -File (Join-Path $root 'tools\make_zhstdlib2.ps1') -ExportJson 2>$null | Out-String } catch { }if ($tblJson) {
     try {
@@ -389,10 +409,52 @@ $script:BdRefuted = @{
     'epsilon'                                = 'D-借来接收者'
     'infinity'                               = 'D-借来接收者'
     'quiet_NaN'                              = 'D-借来接收者'
+    # §17.65 J 类补登（定义在我们**没抄的真头**里，本产物只有调用点 —— 逐条查过真头与产物）：
+    #   `_Mtx_trylock` / `_Thrd_hardware_concurrency` ← 真 `<xthreads.h>`:43/:26 只有声明，
+    #     产物里各自只有 1 处调用（互斥量:69 / 线程:161）⇒ 改名即"未声明的标识符"。
+    #     消除路径 = 把 `<xthreads.h>` 也抄成我们的内部件。
+    #   `_Hash_representation` ← 定义在真 `<xhash>`；我们自己那份**已经译成 `_散列数组表示`**，
+    #     而 <位集>/<线程> 都没引我们的 `哈希内部件` ⇒ 它们解析到**真 std 那一份**。
+    #     消除路径 = 给这两个条目加 `zhIncludes` 切借用面，并同步译名（§17.50 修法）。
+    #   `_Throw_bad_variant_access` ← 真 `<exception>`:416 定义、<variant> 里 5 处 `_STD` 调用。
+    #     消除路径 = 把 `<exception>` 那一层抄成我们的内部件。
+    '_Mtx_trylock'                           = 'J-借来的真头实现'
+    '_Thrd_hardware_concurrency'             = 'J-借来的真头实现'
+    '_Hash_representation'                   = 'J-借来的真头实现'
+    '_Throw_bad_variant_access'              = 'J-借来的真头实现'
+}
+# ---------------------------------------------------------------------------
+#  §17.65 **按产物限定**的边界（$script:BdScoped）——
+#  为什么需要：`front` / `back` / `find_if` 这种**通用英文单词**在不同条目里意义完全不同：
+#    在 <队列> 里 `front`/`back` 调的是【借来的容器】的 `c.front()`（§15.10 形态②，改了必炸），
+#    但在别的条目里可能只是能改的本头成员 ⇒ 边界必须**绑到产物**。
+#    名字全局登记会顺带**掩盖**别的产物里的真欠账 ✗ —— 那是本项目最防范的失败模式。
+#  键 = 生成器表里的条目【源真头名】；值 = 名字 -> 类。每条都注明判据出处。
+# ---------------------------------------------------------------------------
+$script:BdScoped = @{
+    # <队列>：L2015/L2028 早写明「back / front **不翻**：调的是借来的容器 c.back()/c.front()」
+    #   （中文名手写在 deriveExtra 里，公开 API 不缺）；L2017「make_heap/pop_heap/push_heap
+    #   是 std 算法（借来的）-> 边界」，产物里写作 `_STD push_heap(...)`（K 类）。
+    'queue' = @{
+        'front'     = 'D-借来接收者'
+        'back'      = 'D-借来接收者'
+        'make_heap' = 'K-_STD绑定真std'
+        'pop_heap'  = 'K-_STD绑定真std'
+        'push_heap' = 'K-_STD绑定真std'
+    }
+    # <互斥量>：产物 400/425 `_STD this_thread::yield();` —— 钉死在真 std 的 `this_thread`
+    #   （我们那份的中文名是 `细节::本线程::让出`，要改就得切借用面）。
+    'mutex' = @{ 'yield' = 'K-_STD绑定真std' }
+    # <复数>：产物 179 `_STD fma(...)` —— 真 std 的 C 数学函数；<C数学> 里没有 fma 的转发。
+    'complex' = @{ 'fma' = 'K-_STD绑定真std' }
+    # <字符转换>：L5693 早写明「find_if —— 本头是 `_STD find_if(...)`，借来的 `<algorithm>`」。
+    'charconv' = @{ 'find_if' = 'K-_STD绑定真std' }
 }
 function Get-BoundaryClass([string] $n, [string] $entryKey) {
+    $sc = $script:BdScoped[$entryKey]
+    if ($sc -and $sc.ContainsKey($n)) { return $sc[$n] }
     if ($script:BdRefuted.ContainsKey($n)) { return $script:BdRefuted[$n] }
-    if ($script:BdImport.ContainsKey($n)) { return 'F-进口声明' }
+    if ($script:BdImport.ContainsKey($entryKey) -and $script:BdImport[$entryKey].ContainsKey($n)) { return 'F-进口声明' }
     if ($script:BdCLib.ContainsKey($n))   { return 'G-C库调用' }
     if ($script:BdDropTypes.ContainsKey($entryKey) -and ($script:BdDropTypes[$entryKey] -contains $n)) { return 'A-CRT契约名' }
     if ($script:BdKeywords.ContainsKey($n)) { return 'B-C++语言类型' }
@@ -717,7 +779,16 @@ $ledger = @(
         $src = switch ($_.Name) {
             'A-CRT契约名'   { '生成器 `dropTypes`（`-ExportJson`）' }
             'B-C++语言类型' { 'clang `TokenKinds.def` 的 `*KEYWORD`' }
-            default          { '前缀 `__std_`/`__builtin_`/`_Interlocked`' }
+            'C-编译器内建' { '前缀 `__std_`/`__builtin_`/`_Interlocked`/`_BitScan`' }
+            'D-借来接收者' { '产物里实证的**借用接收者**（§17.59 编译证伪 / §17.62–17.65 逐条查产物）' }
+            'E-显式特化'   { '本头是 std 模板的**显式特化**（§17.59 编译证伪）' }
+            'F-进口声明'   { '真头 `using std::X;` / `using _STD X;`，或**产物**里的 `使用 std::X;`（§17.65）' }
+            'G-C库调用'    { '真头 `_CSTD X`（`_CSTD` = `::`）' }
+            'H-项目已定边界' { '生成器/方案里**已拍过**的不改名决定（逐条注明出处）' }
+            'I-指向别的真头名域' { '宏展开到**真 std 名域**（如 `_FMP` → `::std::_Float_multi_prec::`）' }
+            'J-借来的真头实现' { '真头里有定义、**本产物只有调用点**（§17.64/§17.65 逐条：`_Float_abs_bits` ← `<type_traits>` 等）' }
+            'K-_STD绑定真std' { '调用点写作 `_STD X(...)` —— 被 `_STD` 钉死在真 std 那一份（§17.65 逐条）' }
+            default          { '（未注明来源）' }
         }
         "| {0} | {1} | {2} | {3} |" -f $_.Name, $src, $_.Count, ((@($_.Group | Select-Object -ExpandProperty 名字 | Sort-Object -Unique)) -join ' ')
     }) -join "`n"),
@@ -728,7 +799,7 @@ $ledger = @(
     '- `C-编译器内建`：`__std_*` / `_BitScan*` 等编译器内建例程 ⇒ **无消除路径**。',
     '- `D-借来接收者`：别处经**借来的真 std 模板**访问（如 `std::allocator_traits<…>::成员`）⇒ 消除路径 = 把那层也抄成我们的内部件。',
     '- `E-显式特化`：本头里是 **std 模板的显式特化**（主模板不在本头）⇒ 铁律③ ⇒ 消除路径 = 抄主模板所在的那层。',
-    '- `F-进口声明`：真头里 `using std::X;` ⇒ X 定义在别处（本头只是引进）⇒ 消除路径 = 抄那一层。',
+    '- `F-进口声明`：真头里 `using std::X;` / `using _STD X;`（§17.65 补全后者）⇒ X 定义在别处（本头只是引进）⇒ 消除路径 = 抄那一层。',
     '- `G-C库调用`：真头里 `_CSTD X`（`_CSTD` = `::`）⇒ X 是 **C 库**的名字 ⇒ 消除路径 = 把 C 数学/C 库那层抄进来。',
     '- `H-项目已定边界`：**项目早已拍过的不改名决定**（理由与出处在生成器/方案里逐条注明）：',
     '  `id`（方案 §3.13：太短，全局 `\bid\b` 替换不安全）；`native_handle_type`（生成器 L90：MSVC 已官方删除 GH-3820）。',
@@ -736,7 +807,9 @@ $ledger = @(
     '- `I-指向别的真头名域`：宏展开成**别的真头**的名域（如 `_FMP` → `::std::_Float_multi_prec::`）⇒ 消除路径 = 把那个真头也抄成我们的内部件。',
     '- `J-借来的真头实现`：名字**定义在我们没抄的真头**里、本头只有调用点（如 `_Float_abs_bits` ← `<type_traits>`:2461），',
     '  改名后调用点找不到声明 ⇒ 消除路径 = 把那个真头（或其所在层）也抄成我们的内部件。',
-    '⇒ A/B/C 三类都是外部约束，**无消除路径**；D/E/F/G/I/J 有"抄更多外部层 / 切借用面"的消除路径（与 `_Cpo` 要抄 `<compare>` 同族）。',
+    '- `K-_STD绑定真std`：调用点写作 `_STD X(...)`（或 `_STD 本线程::X(...)`）—— 名字被 `_STD` **钉死在真 std 那一份**，',
+    '  改名 + 步4c 去限定后会变成"我们这边根本没有的名字" ⇒ 消除路径 = 切借用面（换成我们自己的中文名，如 `<算法>`/`线程` 的中文名）。',
+    '⇒ A/B/C 三类都是外部约束，**无消除路径**；D/E/F/G/I/J/K 有"抄更多外部层 / 切借用面"的消除路径（与 `_Cpo` 要抄 `<compare>` 同族）。',
     '⇒ 把它们从分子分母**同时**剔除会令分子下降 —— 与「分子只能升」冲突 ⇒ **留给大检查统一决定**（见 `build\_review_own\口径修订提案.md`）。'
 )
 $ledgerText = ($ledger -join "`n") + "`n"
