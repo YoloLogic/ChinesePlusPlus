@@ -467,6 +467,30 @@ $script:BdScoped = @{
     #   解析到**真 std 那一份** ⇒ 在本产物里改名就会找不到声明（J 类）。
     #   消除路径 = 给该条目加 `zhIncludes = @{'xmemory' = '内存内部件'}` 切借用面 + 两边同步译名。
     'deque' = @{ '_Uninitialized_value_construct_n_unchecked1' = 'J-借来的真头实现' }
+    # §17.70 <通用内部件>（xutility）三条：逐条查过产物，性质各不相同。
+    #   · `common_type`：产物里**只有特化**（2515/2521/2527 `struct common_type<basic_const_iterator<…>, …>`）
+    #     ⇒ 主模板在 `<type_traits>`（我们没抄）⇒ 铁律③：改了就不再是 std 模板的特化 ⇒ E 类。
+    #   · `move_sentinel`：产物 4209 只是**前向声明**（`_EXPORT_STD template <semiregular> class move_sentinel;`），
+    #     定义在 `<iterator>`（我们那份叫 `移动哨兵实现`，在**另一个产物** `迭代器` 里）
+    #     ⇒ 在本产物把声明改名，后面所有用它的 friend 定义都会指向"没有定义的类型" ⇒ J 类。
+    #   · 消除路径同 J：把那一层（或那份借用面）抄进来 / 切过来。
+    'xutility' = @{
+        'common_type'   = 'E-显式特化'
+        'move_sentinel' = 'J-借来的真头实现'
+    }
+    # §17.70 <变体> 的 `enable_if_t`：定义在 `<type_traits>`（没抄），本产物只把它当**约束**用
+    #   （167/355/399/456/754 … `enable_if_t<…>`）⇒ 改名即找不到模板 ⇒ J 类。
+    'variant' = @{ 'enable_if_t' = 'J-借来的真头实现' }
+    # §17.70 `other`（两个产物，**理由与 §17.63 撤下时不同，这一条是查全了两半之后写的**）：
+    #   · <内存内部件>：产物里 `other` 有**两半** —— 我们自己的 `using other = 分配器<_Other>;`（968/1041）
+    #     **和**借来的 `typename _类型::template rebind<_Other>::other`（480/481）⇒
+    #     只改我们那半**消不掉**这个英文名（借来的半仍在），两半一起改**会打断**借来的那半 ✗ ⇒ 边界。
+    #   · <作用域分配器>：产物 147 `using other = 作用域分配器适配器实现<_另一分配器, _Inner...>;`
+    #     是它自己写的，但这个名字是**std 分配器契约**：真 `<xmemory>` 里的
+    #     `allocator_traits<我们的适配器>::rebind_alloc<U>` 就是读 `Alloc::rebind<U>::other` ⇒ 改了链不上。
+    #   消除路径 = 把 `allocator_traits` / `rebind` 那一层也抄成我们的（切借用面）✓。
+    'xmemory'          = @{ 'other' = 'D-借来接收者' }
+    'scoped_allocator' = @{ 'other' = 'D-借来接收者' }
 }
 function Get-BoundaryClass([string] $n, [string] $entryKey) {
     $sc = $script:BdScoped[$entryKey]

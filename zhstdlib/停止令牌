@@ -357,7 +357,7 @@ inline void _停止回调基类::_脱离() noexcept {
 _EXPORT_STD template <class _Callback>
 class 停止回调实现 : public _停止回调基类 {
 public:
-    using callback_type = _Callback;
+    using 回调类型 = _Callback;
 
     template <class _CbInitTy>
         requires is_constructible_v<_Callback, _CbInitTy>
@@ -451,6 +451,10 @@ _STL_RESTORE_CLANG_WARNINGS
 公开:
     使用 基类 = 细节::停止回调实现<回调类型>;
     使用 基类::基类;
+    // §17.70 `std::stop_callback::callback_type`（标准公开嵌套名）：产物 360
+    //   `using callback_type = _Callback;` 在 **停止回调实现** 里（不是主类）⇒
+    //   抄来那层改名成 回调类型 之后，这里必须把英文原名补回来（嵌套名不在 deriveTypes 范围）。
+    使用 callback_type = 基类::回调类型;
 };
 
 }  // 名域 标准

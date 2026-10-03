@@ -137,7 +137,7 @@ _EXPORT_STD _INLINE_VAR constexpr 尝试锁类型 尝试锁{};
 _EXPORT_STD template <class _Mutex>
 class 独占锁实现 { // whizzy class with destructor that unlocks 互斥量实现
 public:
-    using mutex_type = _Mutex;
+    using 互斥量类型 = _Mutex;
 
     独占锁实现() noexcept = default;
 
@@ -441,7 +441,7 @@ void 加锁(_Lock0& _Lk0, _Lock1& _Lk1, _LockN&... _LkN) { // 加锁 multiple lo
 _EXPORT_STD template <class _Mutex>
 class _NODISCARD_LOCK 锁守卫实现 { // class with destructor that unlocks a 互斥量实现
 public:
-    using mutex_type = _Mutex;
+    using 互斥量类型 = _Mutex;
 
     explicit 锁守卫实现(_Mutex& _Mtx) : _MyMutex(_Mtx) { // construct and 加锁
         _MyMutex.加锁();
@@ -486,7 +486,7 @@ private:
 template <class _Mutex>
 class _NODISCARD_LOCK 作用域锁实现<_Mutex> {
 public:
-    using mutex_type = _Mutex;
+    using 互斥量类型 = _Mutex;
 
     explicit 作用域锁实现(_Mutex& _Mtx) : _MyMutex(_Mtx) { // construct and 加锁
         _MyMutex.加锁();
@@ -855,6 +855,9 @@ _STL_RESTORE_CLANG_WARNINGS
     模板 <类型名... 参数> 声明类型(自动) unlock(参数&&... 值) { 返回 基类::解锁(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) owns_lock(参数&&... 值) 常量 { 返回 基类::持有锁(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) release(参数&&... 值) { 返回 基类::释放(static_cast<参数&&>(值)...); }
+    // §17.70 `std::unique_lock::mutex_type`（标准公开嵌套名）：抄来那层已译 互斥量类型，
+    //   英文原名必须在手写类里补回（嵌套名不在 deriveTypes 的作用范围）。
+    使用 mutex_type = 基类::互斥量类型;
 };
 
 // 锁守卫（std::lock_guard）
@@ -863,6 +866,8 @@ _STL_RESTORE_CLANG_WARNINGS
 公开:
     使用 基类 = 细节::锁守卫实现<互斥类型>;
     使用 基类::基类;
+    // §17.70 `std::lock_guard::mutex_type`（同一个坑，同一个补法）
+    使用 mutex_type = 基类::互斥量类型;
 };
 
 // 作用域锁（std::scoped_lock）
@@ -874,6 +879,18 @@ _STL_RESTORE_CLANG_WARNINGS
 公开:
     使用 基类 = 细节::作用域锁实现<互斥类型集...>;
     使用 基类::基类;
+};
+// §17.70 ⚠ **不能**在主模板里写 `使用 mutex_type = 基类::互斥量类型;` —— 实测：
+//   MSVC 的 `scoped_lock` **只在【单互斥量】那份实现**里有 `mutex_type`（产品 489 行，
+//   那是 `作用域锁实现<_Mutex>` 的偏特化；它**不是**标准成员），主模板没有 ⇒
+//   `标准::作用域锁<甲, 乙>` 与 `标准::作用域锁<>` 会立刻报"没有名为 '互斥量类型' 的类型" ✗。
+//   正解 = 按**同一个形状**做偏特化：单互斥量那份才有这个英文转发 ✓。
+模板 <类型名 互斥类型>
+类型 作用域锁<互斥类型> : 公开 细节::作用域锁实现<互斥类型> {
+公开:
+    使用 基类 = 细节::作用域锁实现<互斥类型>;
+    使用 基类::基类;
+    使用 mutex_type = 基类::互斥量类型;
 };
 
 // 自由函数（这两个自由函数是 <mutex> 自己定义的，已随正文搬进 细节）

@@ -210,32 +210,32 @@ private:
 _EXPORT_STD template <class _Mutex>
 class 共享锁实现 { // shareable 加锁
 public:
-    using mutex_type = _Mutex;
+    using 互斥量类型 = _Mutex;
 
     共享锁实现() noexcept = default;
 
-    _NODISCARD_CTOR_LOCK explicit 共享锁实现(mutex_type& _Mtx)
+    _NODISCARD_CTOR_LOCK explicit 共享锁实现(互斥量类型& _Mtx)
         : _Pmtx(_STD addressof(_Mtx)), _Owns(true) { // construct with 互斥量实现 and 加锁 shared
         _Mtx.共享加锁();
     }
 
-    共享锁实现(mutex_type& _Mtx, 延迟锁类型) noexcept
+    共享锁实现(互斥量类型& _Mtx, 延迟锁类型) noexcept
         : _Pmtx(_STD addressof(_Mtx)), _Owns(false) {} // construct with unlocked 互斥量实现
 
-    _NODISCARD_CTOR_LOCK 共享锁实现(mutex_type& _Mtx, 尝试锁类型)
+    _NODISCARD_CTOR_LOCK 共享锁实现(互斥量类型& _Mtx, 尝试锁类型)
         : _Pmtx(_STD addressof(_Mtx)), _Owns(_Mtx.尝试共享加锁()) {} // construct with 互斥量实现 and try to 加锁 shared
 
-    _NODISCARD_CTOR_LOCK 共享锁实现(mutex_type& _Mtx, 接管锁类型) noexcept // strengthened
+    _NODISCARD_CTOR_LOCK 共享锁实现(互斥量类型& _Mtx, 接管锁类型) noexcept // strengthened
         : _Pmtx(_STD addressof(_Mtx)), _Owns(true) {} // construct with 互斥量实现 and adopt ownership
 
     template <class _表示, class _Period>
-    _NODISCARD_CTOR_LOCK 共享锁实现(mutex_type& _Mtx, const chrono::duration<_表示, _Period>& _Rel_time)
+    _NODISCARD_CTOR_LOCK 共享锁实现(互斥量类型& _Mtx, const chrono::duration<_表示, _Period>& _Rel_time)
         : _Pmtx(_STD addressof(_Mtx)), _Owns(_Mtx.限时共享加锁(_Rel_time)) {
         // construct with 互斥量实现 and try to 加锁 for relative time
     }
 
     template <class _Clock, class _Duration>
-    _NODISCARD_CTOR_LOCK 共享锁实现(mutex_type& _Mtx, const chrono::time_point<_Clock, _Duration>& _Abs_time)
+    _NODISCARD_CTOR_LOCK 共享锁实现(互斥量类型& _Mtx, const chrono::time_point<_Clock, _Duration>& _Abs_time)
         : _Pmtx(_STD addressof(_Mtx)), _Owns(_Mtx.共享加锁至时刻(_Abs_time)) {
         // construct with 互斥量实现 and try to 加锁 until absolute time
         static_assert(chrono::_Is_clock_v<_Clock>, "Clock type required");
@@ -303,7 +303,7 @@ public:
         交换(_Owns, _Right._Owns);
     }
 
-    mutex_type* 释放() noexcept {
+    互斥量类型* 释放() noexcept {
         _Mutex* _Res = _Pmtx;
         _Pmtx        = nullptr;
         _Owns        = false;
@@ -318,7 +318,7 @@ public:
         return _Owns;
     }
 
-    _NODISCARD mutex_type* 互斥量实现() const noexcept {
+    _NODISCARD 互斥量类型* 互斥量实现() const noexcept {
         return _Pmtx;
     }
 
@@ -419,6 +419,11 @@ _STL_RESTORE_CLANG_WARNINGS
     模板 <类型名... 参数> 声明类型(自动) unlock_shared(参数&&... 值) { 返回 基类::共享解锁(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) owns_lock(参数&&... 值) 常量 { 返回 基类::持有锁(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) release(参数&&... 值) { 返回 基类::释放(static_cast<参数&&>(值)...); }
+    // §17.70 `mutex_type` 是 **C++ 标准公开嵌套名**（`std::shared_lock::mutex_type`）——
+    //   抄来那层已改成 互斥量类型（见本条目成员表），这里必须把**英文原名**补回来，
+    //   否则 标准::共享锁<T>::mutex_type 就没了 = 回归（铁律②）。
+    //   ⚠ 嵌套名不在 deriveTypes 的作用范围里（那只管主类 限时共享互斥量）⇒ **只能手写在 extra**。
+    使用 mutex_type = 基类::互斥量类型;
 };
 
 }  // 名域 标准
