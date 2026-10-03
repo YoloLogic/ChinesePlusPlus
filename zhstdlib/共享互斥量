@@ -114,16 +114,16 @@ public:
         auto _Zero_readers = [this] { return _Readers == 0; };
         独占锁实现<互斥量实现> _加锁(_我的互斥量);
 
-        if (!_Write_queue.wait_until(_加锁, _Abs_time, _Not_writing)) {
+        if (!_Write_queue.等待至时刻(_加锁, _Abs_time, _Not_writing)) {
             return false;
         }
 
         _Writing = true;
 
-        if (!_Read_queue.wait_until(_加锁, _Abs_time, _Zero_readers)) { // timeout, leave writing state
+        if (!_Read_queue.等待至时刻(_加锁, _Abs_time, _Zero_readers)) { // timeout, leave writing state
             _Writing = false;
             _加锁.解锁(); // 解锁 before notifying, for efficiency
-            _Write_queue.notify_all();
+            _Write_queue.通知全部();
             return false;
         }
 
@@ -137,7 +137,7 @@ public:
             _Writing = false;
         }
 
-        _Write_queue.notify_all();
+        _Write_queue.通知全部();
     }
 
     void 共享加锁() { // 加锁 non-exclusive
@@ -173,7 +173,7 @@ public:
 
         独占锁实现<互斥量实现> _加锁(_我的互斥量);
 
-        if (!_Write_queue.wait_until(_加锁, _Abs_time, _Can_acquire)) {
+        if (!_Write_queue.等待至时刻(_加锁, _Abs_time, _Can_acquire)) {
             return false;
         }
 
@@ -193,9 +193,9 @@ public:
         }
 
         if (_Local_writing && _Local_readers == 0) {
-            _Read_queue.notify_one();
+            _Read_queue.通知一个();
         } else if (!_Local_writing && _Local_readers == _Max_readers - 1) {
-            _Write_queue.notify_all();
+            _Write_queue.通知全部();
         }
     }
 

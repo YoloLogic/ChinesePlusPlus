@@ -456,6 +456,17 @@ $script:BdScoped = @{
     #   公开类型上的英文 `count()` 就**直接消失**，而且**没有地方能补转发**（别名加不了成员）✗。
     #   消除路径 = 把别名改成派生类（要付"类型身份变了"的代价，§16.35.5）⇒ 留下一批决定。
     'iterator' = @{ 'count' = 'L-别名轨道（无处补英文转发）' }
+    # §17.69 <可选> 的 `value`（`optional::value()`）：生成器 L961–963 **早已拍板**"故意不登记"——
+    #   它作为 `::value` 出现在**借来的** `bool_constant<…>::value` 里，改名会让约束恒假、
+    #   SFINAE 删掉 optional 的转换构造（实测，见方案 §15.5）；中文名 `取值` 改在派生层手写 ✓。
+    #   ⇒ H-项目已定边界。**必须按产物限定**：`value` 是通用词，全局登记会掩盖别处的真欠账 ✗。
+    'optional' = @{ 'value' = 'H-项目已定边界' }
+    # §17.69 <双端队列> 的 `_Uninitialized_value_construct_n_unchecked1`：
+    #   定义在**真** `<xmemory>`:2101 —— 我们其实抄了 `内存内部件`（那边 2108 行就是它的定义），
+    #   但 `双端队列` 条目**没有 zhIncludes 引它** ⇒ 产物 1065/1636/1637/1641 的四处调用
+    #   解析到**真 std 那一份** ⇒ 在本产物里改名就会找不到声明（J 类）。
+    #   消除路径 = 给该条目加 `zhIncludes = @{'xmemory' = '内存内部件'}` 切借用面 + 两边同步译名。
+    'deque' = @{ '_Uninitialized_value_construct_n_unchecked1' = 'J-借来的真头实现' }
 }
 function Get-BoundaryClass([string] $n, [string] $entryKey) {
     $sc = $script:BdScoped[$entryKey]

@@ -278,7 +278,7 @@ private:
     }
 
     template <class _Keyty, class _Mappedty>
-    _结点指针 _Insert_or_assign_hint(const _结点指针 _Hint, _Keyty&& _Keyval, _Mappedty&& _Mapval) {
+    _结点指针 _按提示插入或赋值(const _结点指针 _Hint, _Keyty&& _Keyval, _Mappedty&& _Mapval) {
         const auto _Loc = _我的基类::_按提示查找(_Hint, _Keyval);
         if (_Loc._Duplicate) {
             _Loc._Location._Parent->_Myval.second = _STD forward<_Mappedty>(_Mapval);
@@ -306,7 +306,7 @@ public:
     template <class _Mappedty>
     迭代器 插入或赋值(const 常量迭代器 _Hint, const 键类型& _Keyval, _Mappedty&& _Mapval) {
         return 迭代器(
-            _Insert_or_assign_hint(_Hint._Ptr, _Keyval, _STD forward<_Mappedty>(_Mapval)), _我的基类::_取检查值());
+            _按提示插入或赋值(_Hint._Ptr, _Keyval, _STD forward<_Mappedty>(_Mapval)), _我的基类::_取检查值());
     }
 
     template <class _Mappedty>
@@ -317,7 +317,7 @@ public:
 
     template <class _Mappedty>
     迭代器 插入或赋值(const 常量迭代器 _Hint, 键类型&& _Keyval, _Mappedty&& _Mapval) {
-        return 迭代器(_Insert_or_assign_hint(_Hint._Ptr, _STD move(_Keyval), _STD forward<_Mappedty>(_Mapval)),
+        return 迭代器(_按提示插入或赋值(_Hint._Ptr, _STD move(_Keyval), _STD forward<_Mappedty>(_Mapval)),
             _我的基类::_取检查值());
     }
 

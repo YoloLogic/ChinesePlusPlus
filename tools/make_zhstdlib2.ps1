@@ -84,6 +84,13 @@ $H = @{
       'native_handle' = '原生句柄'; 'owns_lock' = '持有锁'
       'release' = '释放'; 'swap' = '交换'
       'adopt_lock' = '接管锁'; 'defer_lock' = '延迟锁'; 'try_to_lock' = '尝试锁'
+      # §17.69 `condition_variable` 的四个成员（这个类体就定义在 <mutex> 里，产物 525 行起）：
+      #   译名与 `条件变量` 条目**完全一致**（跨头译名守卫强制）。
+      #   ⚠ 同步面：`共享互斥量:204/205` 的 `条件变量实现 _Read_queue/_Write_queue{}` 是**我们的**类
+      #     ⇒ 那两处 `.wait_until(...)/.notify_all()/.notify_one()` 必须同批登记；
+      #     而 `信号量`/`门闩`/`停止令牌`/`屏障` 的 `.notify_all()` 是 **atomic** 的 ⇒ 一律不碰 ✓。
+      'notify_all' = '通知全部'; 'notify_one' = '通知一个'
+      'wait_for' = '限时等待'; 'wait_until' = '等待至时刻'
     }
     data    = [ordered]@{}
     # ⚠ 实测教训：不要照【标准文档】的 API 写派生层，要照【微软这个版本实际有的】写。
@@ -191,6 +198,14 @@ $H = @{
       #   §16.41.2 说的"翻一半就是回归"）。它的正文调的是 `_Mtx_native_handle(...)`
       #   （另一个词，不受影响）。
       'native_handle' = '原生句柄'
+      # §17.69 同步登记（§17.50 修法）：产物 204/205 的
+      #   `条件变量实现 _Read_queue{}; 条件变量实现 _Write_queue{};` 是**我们的**类
+      #   （`条件变量实现` 的类体定义在 <互斥量> 那份拷贝里），而本头的 117/123/176/126/140/196/198
+      #   在这些对象上调 `.wait_until(...)/.notify_all()/.notify_one()` ⇒
+      #   互斥量 把这三个名字翻成汉语后，这里不同步就会报"没有名为 'wait_until' 的成员"。
+      #   ⚠ 只登记**实际出现过**的三个（`wait_for` 本头 0 处，登记了会被"登记≠落地"守卫拦下）。
+      'notify_all' = '通知全部'; 'notify_one' = '通知一个'
+      'wait_until' = '等待至时刻'
     }
     # ⚠ `shared_lock::mutex()` 这个取值函数名和类型名 `mutex` 撞车：
     #   types 表先跑，`mutex` 已被改成 `互斥量实现`，所以它读作 互斥量实现()。
@@ -799,6 +814,8 @@ $H = @{
       '_Insert_node'          = '_插入节点'
     ;
       '_Insert_or_assign' = '_插入或赋值';
+      # §17.69 本头**自己定义**的内部助手（产物 281 定义 + 309/320 两处调用；全库只有本产物有它）
+      '_Insert_or_assign_hint' = '_按提示插入或赋值';
 
       '_Release' = '_释放';
 
@@ -5323,6 +5340,10 @@ $H = @{
       '_To_address' = '_取地址'
       '_Ty' = '_类型';
       '_Uend' = '_解包尾'
+      # §17.69 `_Val`：本头 121 处**全是自己的形参/局部量**（`_类型 _Val`、`_Val = _Reduce_op(...)`），
+      #   实测 0 处 `._Val` / `->_Val` / `::_Val`（不是借来类型的成员）⇒ 可以翻。
+      #   ⚠ 本条目是 noPub ⇒ 没有派生层要补转发。
+      '_Val' = '_值';
       'accumulate' = '累加'; 'reduce' = '归约'
       'inner_product' = '内积'; 'transform_reduce' = '变换归约'
       'partial_sum' = '部分和'
