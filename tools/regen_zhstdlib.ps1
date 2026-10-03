@@ -566,9 +566,20 @@ Write-Host "=== 中文表达式打印守卫（§18.9：大检查 P-13）===" -Fo
 & pwsh -NoProfile -File (Join-Path $root 'tools\check_zhexpr.ps1')
 $zex = $LASTEXITCODE
 
-if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0 -and $bd -eq 0 -and $orph -eq 0 -and $fw -eq 0 -and $zd -eq 0 -and $cv -eq 0 -and $nm -eq 0 -and $hb -eq 0 -and $tp -eq 0 -and $dc -eq 0 -and $zi -eq 0 -and $kwg -eq 0 -and $zdl -eq 0 -and $zkn -eq 0 -and $zcu -eq 0 -and $zpa -eq 0 -and $zex -eq 0) {
-    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 边界台账 + 孤儿产物 + 公开层转发 + 中文类型名定义 + 标准头覆盖 + 中文名占用 + 汉化标尺 + 第三方开源项目 + 手写文档数字 + 实例化 + 关键字 + 英文残留 + 关键字措辞 + 列号口径 + 诊断对称 + 表达式打印 + 铁律①：全部通过" -ForegroundColor Green
+# ---------------------------------------------------------------------------
+#  §18.11 补丁与源码树一致性守卫（第 23 道）—— 台账"待定：没有护栏"那条，2026-10-04
+#  改了**编译器源码**却忘记重跑 tools\make_patch.ps1 ⇒ 补丁落后于源码树，
+#  而**没有任何守卫会发现**（这条之前只靠"人记得"）。
+#  判据：把补丁重新生成到 scratch（不动 patches\），与仓库里那份**逐字节**比。
+#  自带自测（改坏一个字节必须报不同）。耗时约 20 秒。
+# ---------------------------------------------------------------------------
+Write-Host "=== 补丁与源码树一致性守卫（§18.11）===" -ForegroundColor Cyan
+& pwsh -NoProfile -File (Join-Path $root 'tools\check_zhpatch.ps1')
+$zpt = $LASTEXITCODE
+
+if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0 -and $bd -eq 0 -and $orph -eq 0 -and $fw -eq 0 -and $zd -eq 0 -and $cv -eq 0 -and $nm -eq 0 -and $hb -eq 0 -and $tp -eq 0 -and $dc -eq 0 -and $zi -eq 0 -and $kwg -eq 0 -and $zdl -eq 0 -and $zkn -eq 0 -and $zcu -eq 0 -and $zpa -eq 0 -and $zex -eq 0 -and $zpt -eq 0) {
+    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 边界台账 + 孤儿产物 + 公开层转发 + 中文类型名定义 + 标准头覆盖 + 中文名占用 + 汉化标尺 + 第三方开源项目 + 手写文档数字 + 实例化 + 关键字 + 英文残留 + 关键字措辞 + 列号口径 + 诊断对称 + 表达式打印 + 补丁一致 + 铁律①：全部通过" -ForegroundColor Green
     exit 0
 }
-Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；边界台账守卫退出码 {5}；孤儿产物守卫退出码 {6}；铁律①守卫退出码 {4}；公开层转发守卫退出码 {7}；中文类型名定义守卫退出码 {8}；标准头覆盖退出码 {9}；中文名占用退出码 {10}；汉化标尺退出码 {11}；第三方开源项目退出码 {12}；手写文档数字退出码 {13}；实例化退出码 {14}；关键字退出码 {15}；英文残留退出码 {16}；关键字措辞退出码 {17}；列号口径退出码 {18}；诊断对称退出码 {19}；表达式打印退出码 {20}" -f $fail, $v, $ex, $ud, $og, $bd, $orph, $fw, $zd, $cv, $nm, $hb, $tp, $dc, $zi, $kwg, $zdl, $zkn, $zcu, $zpa, $zex) -ForegroundColor Red
+Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；边界台账守卫退出码 {5}；孤儿产物守卫退出码 {6}；铁律①守卫退出码 {4}；公开层转发守卫退出码 {7}；中文类型名定义守卫退出码 {8}；标准头覆盖退出码 {9}；中文名占用退出码 {10}；汉化标尺退出码 {11}；第三方开源项目退出码 {12}；手写文档数字退出码 {13}；实例化退出码 {14}；关键字退出码 {15}；英文残留退出码 {16}；关键字措辞退出码 {17}；列号口径退出码 {18}；诊断对称退出码 {19}；表达式打印退出码 {20}；补丁一致退出码 {21}" -f $fail, $v, $ex, $ud, $og, $bd, $orph, $fw, $zd, $cv, $nm, $hb, $tp, $dc, $zi, $kwg, $zdl, $zkn, $zcu, $zpa, $zex, $zpt) -ForegroundColor Red
 exit 1

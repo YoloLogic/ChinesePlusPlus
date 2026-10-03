@@ -82,7 +82,12 @@ param(
     [string]$Which = 'all',
     # Gate self-test. Proves that a broken patch is actually reported.
     # Never use this to produce a real patch.
-    [switch]$SelfTest
+    [switch]$SelfTest,
+    # §18.11（闸门第 23 道用）：**只生成到 scratch，不改 `patches\`**。
+    # 生成完仍然照原样做"重放校验"（补丁打到干净树上必须等于我们的树），
+    # 但不覆盖仓库里那份 —— 由 tools\check_zhpatch.ps1 拿它和 `patches\` 逐字节比，
+    # 从而把"改了编译器源码却忘了重跑 make_patch"变成闸门能抓的失败。
+    [switch]$Check
 )
 
 $ErrorActionPreference = 'Continue'
@@ -416,6 +421,14 @@ Write-Host "    changed files: $($changed.Count)"
 $changed | ForEach-Object { Write-Host "      $_" }
 if ($changed.Count -eq 0) { Write-Host "nothing differs, done."; exit 0 }
 
+# §18.11：-Check 模式把补丁生成到 scratch，**不碰** patches\ —— 见 param 里的说明。
+$PatchOut = if ($Check) { Join-Path $Root 'build\_zhpatch' } else { Join-Path $Root 'patches' }
+if ($Check) {
+    Remove-Item $PatchOut -Recurse -Force -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Force $PatchOut | Out-Null
+    Write-Host "    (-Check) 补丁只写到 $PatchOut，不改 patches\"
+}
+
 $diagFiles = @($changed | Where-Object { $DiagFiles -contains $_ })
 $keyFiles  = @($changed | Where-Object { $DiagFiles -notcontains $_ })
 Write-Host "    -> keywords patch   : $($keyFiles.Count) files"
@@ -440,7 +453,7 @@ if ($Which -eq 'all' -or $Which -eq 'keywords') {
     # `if (-not (New-Patch ...))` was the original bug: it fed the function's
     # whole output stream into the condition, so the evidence was swallowed and
     # the truthy array made the failure branch unreachable.
-    $r = New-Patch 'zh-keywords.patch' $keyFiles
+    $r = New-Patch 'zh-keywords.patch' $keyFiles -OutDir $PatchOut
     if ($r -isnot [bool]) {
         Write-Host "!! New-Patch leaked output into its verdict: [$(@($r) -join '|')]"
         exit 8
@@ -448,7 +461,7 @@ if ($Which -eq 'all' -or $Which -eq 'keywords') {
     if (-not $r) { $ok = $false }
 }
 if ($Which -eq 'all' -or $Which -eq 'diagnostics') {
-    $r = New-Patch 'zh-diagnostics.patch' $diagFiles
+    $r = New-Patch 'zh-diagnostics.patch' $diagFiles -OutDir $PatchOut
     if ($r -isnot [bool]) {
         Write-Host "!! New-Patch leaked output into its verdict: [$(@($r) -join '|')]"
         exit 8
@@ -457,5 +470,9 @@ if ($Which -eq 'all' -or $Which -eq 'diagnostics') {
 }
 
 Write-Host ""
-if ($ok) { Write-Host "all patches verified"; exit 0 }
+if ($ok) {
+    if ($Check) { Write-Host "all patches verified (check mode: patches\ untouched)" }
+    else { Write-Host "all patches verified" }
+    exit 0
+}
 Write-Host "!! something failed"; exit 1

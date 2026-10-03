@@ -14,7 +14,17 @@
 
   用法：
       pwsh -File tools\commit_zh.ps1 -MessageFile .git\ZH_MSG.txt
-  行为：先跑 regen；末尾一行不含「全部通过」就**拒绝提交**并退出 1（工作树不动）。
+  行为：先跑 regen；末尾一行不含「全部通过」就**拒绝提交**并退出 1。
+
+  §18.11 补的（"闸门拒绝提交 ≠ 工作树完好"）：拒绝提交时**不再只是"不 add / 不 commit"** ——
+    P-12 那次实测，拒绝提交之后**生成器已经把产物改坏了**留在工作树里
+    （`zhstdlib` 两个文件与 HEAD 不同、内容编不过），靠人手工 `git checkout -- zhstdlib` 恢复。
+    "靠人记得"正是本项目一直在消灭的东西 ⇒ 现在拒绝提交时会：
+      ① 比 regen 前后两份 `git status --porcelain`，取**本次 regen 新弄脏的**路径
+         （**用户原本就未提交的改动一律不碰**）；
+      ② 把这些文件的当前内容先**留档**到 `build\_review_own\regen_failed_<时间戳>\`；
+      ③ 再 `git checkout --` 把它们**恢复成 HEAD 的样子**（未跟踪的新文件只报告、不删）。
+    要临时关掉：设 `ZH_NO_REGEN_ROLLBACK=1`。
 #>
 param([Parameter(Mandatory = $true)][string] $MessageFile)
 
@@ -53,6 +63,24 @@ if ($env:ZH_NO_WATCHDOG -ne '1') {
     }
 }
 
+# ---------------------------------------------------------------------------
+#  §18.11 拒绝提交时的"工作树完好"保证：先记下此刻的脏清单，
+#  regen 之后再取一次，差集就是**本次 regen 新弄脏的**（用户原本的改动不在里面）。
+# ---------------------------------------------------------------------------
+function Get-DirtyMap {
+    $m = @{}
+    foreach ($l in @(& git -C $root status --porcelain 2>$null)) {
+        if ($l.Length -lt 4) { continue }
+        $st = $l.Substring(0, 2)
+        $p  = $l.Substring(3).Trim()
+        if ($p -match ' -> ') { $p = ($p -split ' -> ')[-1] }
+        $p = $p.Trim('"')
+        if ($p -ne '') { $m[$p] = $st }
+    }
+    return $m
+}
+$脏之前 = Get-DirtyMap
+
 & pwsh -NoProfile -File (Join-Path $root 'tools\regen_zhstdlib.ps1') 2>&1 |
     Tee-Object -FilePath $log | Select-Object -Last 3
 
@@ -71,8 +99,44 @@ if ($wdJob) {
 $tail = [string](Get-Content $log -Tail 1)
 if ($tail -notmatch '全部通过') {
     Write-Host ''
-    Write-Host '❌ regen 未全部通过 —— 拒绝提交（工作树保持原样）' -ForegroundColor Red
+    Write-Host '❌ regen 未全部通过 —— 拒绝提交' -ForegroundColor Red
     Write-Host ("   末尾一行：{0}" -f $tail) -ForegroundColor Red
+
+    # §18.11：把**本次 regen 新弄脏的**东西留档 + 恢复（用户原本的改动不碰）
+    $脏之后 = Get-DirtyMap
+    $新增 = @($脏之后.Keys | Where-Object { -not $脏之前.ContainsKey($_) })
+    $可恢复 = @($新增 | Where-Object { $脏之后[$_] -notmatch '\?\?' })
+    $新文件 = @($新增 | Where-Object { $脏之后[$_] -match '\?\?' })
+    if ($env:ZH_NO_REGEN_ROLLBACK -eq '1') {
+        Write-Host '   （ZH_NO_REGEN_ROLLBACK=1：不做自动恢复，工作树保持原样）' -ForegroundColor Yellow
+    } elseif ($新增.Count -eq 0) {
+        Write-Host '   ✅ 工作树与 regen 前一致（本次 regen 没有留下任何改动）' -ForegroundColor Green
+    } else {
+        $存 = Join-Path $root ('build\_review_own\regen_failed_' + (Get-Date -Format 'yyyyMMdd_HHmmss'))
+        New-Item -ItemType Directory -Force $存 | Out-Null
+        foreach ($p in $新增) {
+            $src = Join-Path $root $p
+            if (Test-Path $src -PathType Leaf) {
+                $dst = Join-Path $存 $p
+                New-Item -ItemType Directory -Force (Split-Path $dst) | Out-Null
+                Copy-Item $src $dst -Force
+            }
+        }
+        if ($可恢复.Count -gt 0) {
+            & git -C $root checkout -- @可恢复 2>&1 | Out-Null
+            Write-Host ("   ↩ 已把本次 regen 弄脏的 {0} 个**已跟踪**文件恢复成 HEAD 的样子（坏内容留档在 {1}）" -f $可恢复.Count, ($存.Replace($root + '\', ''))) -ForegroundColor Yellow
+            $可恢复 | Select-Object -First 8 | ForEach-Object { Write-Host ("        " + $_) -ForegroundColor DarkYellow }
+            if ($可恢复.Count -gt 8) { Write-Host ("        …（共 {0} 个）" -f $可恢复.Count) -ForegroundColor DarkYellow }
+        }
+        if ($新文件.Count -gt 0) {
+            Write-Host ("   ⚠ 另有 {0} 个**未跟踪**的新文件留着没删（自己看一眼要不要留）：" -f $新文件.Count) -ForegroundColor Yellow
+            $新文件 | Select-Object -First 8 | ForEach-Object { Write-Host ("        " + $_) -ForegroundColor DarkYellow }
+        }
+        $复核 = @((Get-DirtyMap).Keys | Where-Object { -not $脏之前.ContainsKey($_) })
+        if ($复核.Count -eq 0) { Write-Host '   ✅ 复核：现在的工作树 == regen 之前的状态' -ForegroundColor Green }
+        else { Write-Host ("   ⚠ 复核：还剩 {0} 个（未跟踪文件，见上）" -f $复核.Count) -ForegroundColor Yellow }
+    }
+
     Write-Host '   若确实要提交（例如只改文档），请显式说明理由后手工提交。' -ForegroundColor Yellow
     exit 1
 }
