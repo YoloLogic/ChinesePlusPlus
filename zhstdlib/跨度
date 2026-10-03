@@ -519,21 +519,21 @@ public:
     }
 #endif // _HAS_CXX23
 
-    _NODISCARD constexpr reverse_iterator rbegin() const noexcept {
+    _NODISCARD constexpr reverse_iterator 反向开始() const noexcept {
         return reverse_iterator{结束()};
     }
 
-    _NODISCARD constexpr reverse_iterator rend() const noexcept {
+    _NODISCARD constexpr reverse_iterator 反向结束() const noexcept {
         return reverse_iterator{开始()};
     }
 
 #if _HAS_CXX23
-    _NODISCARD constexpr 常量反向迭代器 crbegin() const noexcept {
-        return rbegin();
+    _NODISCARD constexpr 常量反向迭代器 常量反向开始() const noexcept {
+        return 反向开始();
     }
 
-    _NODISCARD constexpr 常量反向迭代器 crend() const noexcept {
-        return rend();
+    _NODISCARD constexpr 常量反向迭代器 常量反向结束() const noexcept {
+        return 反向结束();
     }
 #endif // _HAS_CXX23
 
@@ -641,7 +641,13 @@ _STL_RESTORE_CLANG_WARNINGS
 
     // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
     // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
-
+// §17.66 crbegin / crend：C++23 才有，转发必须与抄来那层用同一个宏护住（见本条目注释）
+#if _HAS_CXX23
+    模板 <类型名... 参数> 声明类型(自动) crbegin(参数&&... 值) { 返回 基类::常量反向开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) crbegin(参数&&... 值) 常量 { 返回 基类::常量反向开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) crend(参数&&... 值) { 返回 基类::常量反向结束(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) crend(参数&&... 值) 常量 { 返回 基类::常量反向结束(static_cast<参数&&>(值)...); }
+#endif // _HAS_CXX23
 };
 }
 
