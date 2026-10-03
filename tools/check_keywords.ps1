@@ -42,6 +42,29 @@ function 过($t)   { Write-Host ("  [通过] $t") -ForegroundColor Green }
 function 错($t)   { Write-Host ("  [失败] $t") -ForegroundColor Red; $script:fail++ }
 function 提($t)   { Write-Host ("  [注意] $t") -ForegroundColor Yellow }
 
+# ---------------------------------------------------------------------------
+#  中英警告差分（§P-01 的判据）
+#    返回 @{ 中多 = @(只在中文版出现的警告); 英多 = @(只在英文版出现的警告) }
+#    两边都出现的警告是探针自身的性质（`register` 在 C++14 已弃用、
+#    `extern` 带初始化器……），不算缺陷；【差异】才是缺陷。
+#    归一化时要把中英两个拼写都抹掉：本项目的设计是"中文是对外正式拼写"，
+#    所以英文版源码的诊断里也打中文（实测：写 register 报的也是"寄存器"）。
+# ---------------------------------------------------------------------------
+function 警告差分($警中, $警英, $中名, $英名) {
+    $规 = {
+        param($列表)
+        @($列表 | ForEach-Object {
+            ($_ -replace [regex]::Escape($中名), '<关键字>') -replace [regex]::Escape($英名), '<关键字>'
+        })
+    }
+    $a = & $规 $警中
+    $b = & $规 $警英
+    return @{
+        中多 = @($a | Where-Object { $b -notcontains $_ })
+        英多 = @($b | Where-Object { $a -notcontains $_ })
+    }
+}
+
 $kwDef  = Join-Path $Root 'LLVM-main\clang\include\clang\Basic\ChineseKeywords.def'
 $tkDef  = Join-Path $Root 'LLVM-main\clang\include\clang\Basic\TokenKinds.def'
 $idInfo = Join-Path $Root 'LLVM-main\clang\include\clang\Basic\IdentifierTable.h'   # IdentifierInfo 的声明在这里（不在 Lex 下）
@@ -265,6 +288,8 @@ if (@($Only) -contains 'E') {
 #  D 正例 + 中英对照：每条关键字一个最小程序，中文版与英文版**只差那个关键字**，
 #    两个都必须编过、跑出 0，并且**输出逐字节相同**（§K0-1 / K0-2 / K0-12）。
 #    `%` 是占位符：中文版替换成中文名，英文版替换成英文名。
+#    ⚠ 判据是四件事：**编过 + 无"中英不对称的警告" + 跑出 0 + 输出相同**。
+#      警告按【中英差分】判：中文版多出来的警告就是缺陷（见下方 P-01 那段注释）。
 # ---------------------------------------------------------------------------
 $探针 = @(
     # —— 基本类型 ——
@@ -302,7 +327,7 @@ $探针 = @(
     @('内联',        '% 整数 甲() { 返回 3; } 整数 主函数(){ 返回 甲() - 3; }'),
     @('自动',        '整数 主函数(){ 整数 甲 = 3; % 乙 = 甲; 返回 (整数)乙 - 3; }'),
     @('声明类型',    '整数 主函数(){ 整数 甲 = 3; %(甲) 乙 = 甲; 返回 (整数)乙 - 3; }'),
-    @('对齐',        '整数 主函数(){ %(8) 整数 甲 = 3; 返回 甲 - 3; }'),
+    @('对齐',        '结构 %(16) 甲 { 整数 值; }; 整数 主函数(){ 返回 (整数)(对齐值(甲) == 16) - 1; }'),
     @('对齐值',      '整数 主函数(){ 返回 (整数)%(整数) - 4; }'),
     @('大小',        '整数 主函数(){ 返回 (整数)%(整数) - 4; }'),
     @('类型别名',    '% 整数 甲; 整数 主函数(){ 甲 乙 = 3; 返回 乙 - 3; }'),
@@ -383,6 +408,19 @@ if (@($Only) -contains 'D') {
     $漏 = @($kw | Where-Object { $_.类 -ne 'ZH_VIRT_SPECIFIER' -and -not $表.ContainsKey($_.中) -and $特殊 -notcontains $_.中 } | Sort-Object 中 -Unique)
     if ($漏.Count) { $漏 | ForEach-Object { 错 ("探针表缺条目：{0}（{1}）—— 未覆盖就必须报出来，不许静默少查" -f $_.中, $_.英) } }
     else { 过 ("探针表覆盖把 {0} 条关键字全部列出（另有 {1} 条走专门分支：{2}）" -f $表.Count, $特殊.Count, ($特殊 -join ' ')) }
+
+    #  ---- 自测：警告差分判据必须【能失败】 -----------------------------------
+    #  项目纪律（tests\README.md）：一个永远返回"通过"的检查等于没有检查。
+    #  这里用两组构造数据证明 §P-01 那条判据真的会失败：
+    #    ① 只有中文版有警告（正是"对齐被当成未知属性忽略"的样子）⇒ 必须抓到
+    #    ② 两侧警告完全相同（`register` 已弃用那种）⇒ 必须不误报
+    $自测抓 = 警告差分 @('（关键字） 对齐 未知的属性被忽略') @() '对齐' 'alignas'
+    $自测静 = 警告差分 @('（关键字） 寄存器 存储类说明符已弃用') @('（关键字） 寄存器 存储类说明符已弃用') '寄存器' 'register'
+    if ($自测抓.中多.Count -eq 1 -and $自测静.中多.Count -eq 0 -and $自测静.英多.Count -eq 0) {
+        过 '自测：警告差分判据确实能失败（构造的中英不对称被抓到；两侧相同的警告不误报）'
+    } else {
+        错 ("自测失败：警告差分判据没有按预期工作（不对称应抓 1 条、实抓 {0} 条；对称应 0 条、实报 中{1}/英{2} 条）" -f $自测抓.中多.Count, $自测静.中多.Count, $自测静.英多.Count)
+    }
     #  英文拼写：ZH_OPERATOR_KEYWORD 的第二个字段是**token 名**（ampamp），不是源码拼写
     #  —— 源码拼写是 `CXX_KEYWORD_OPERATOR(and, ampamp)` 的**第一个**字段（`and`）。
     #  第一版直接拿 ampamp 去替英文版 ⇒ `甲 ampamp= 2;` 当然编不过 ✗（判据错，不是表错）。
@@ -406,6 +444,12 @@ if (@($Only) -contains 'D') {
         $编英 = (& $exe @额外 ('-std=' + $标准) -ferror-limit=0 -o $exe英 $p英 2>&1 | Out-String)
         if ($编中 -match '(?m)error') { $坏 += ("{0}（中文版编不过 / {1}）：{2}" -f $中名, $标准, (($编中 -split "`n" | Where-Object { $_ -match 'error' } | Select-Object -First 1))); continue }
         if ($编英 -match '(?m)error') { $坏 += ("{0}（英文版 {1} 编不过 / {2}）：{3}" -f $中名, $英名, $标准, (($编英 -split "`n" | Where-Object { $_ -match 'error' } | Select-Object -First 1))); continue }
+        $警中 = @(); $警英 = @()
+        foreach ($l in ($编中 -split "`n")) { if ($l -match 'warning:') { $警中 += (($l -replace '^.*?warning:\s*', '') -replace '\s*\[-W[^\]]*\]\s*$', '') } }
+        foreach ($l in ($编英 -split "`n")) { if ($l -match 'warning:') { $警英 += (($l -replace '^.*?warning:\s*', '') -replace '\s*\[-W[^\]]*\]\s*$', '') } }
+        $差 = 警告差分 $警中 $警英 $中名 $英名
+        if ($差.中多.Count) { $坏 += ("{0}（中文版多出警告 —— 中英不对称）：{1}" -f $中名, ($差.中多 -join ' / ')); continue }
+        if ($差.英多.Count) { $坏 += ("{0}（英文版多出警告 —— 中英不对称）：{1}" -f $中名, ($差.英多 -join ' / ')); continue }
         $出中 = (& $exe中 2>&1 | Out-String); $码中 = $LASTEXITCODE
         $出英 = (& $exe英 2>&1 | Out-String); $码英 = $LASTEXITCODE
         if ($码中 -ne 0) { $坏 += ("{0}：中文版运行返回 {1}" -f $中名, $码中); continue }

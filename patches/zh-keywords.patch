@@ -629,6 +629,83 @@ index 163aa48..b9e645f 100644
    /// Representation of a class that has been parsed, including
    /// any member function declarations or definitions that need to be
    /// parsed after the corresponding top-level class is complete.
+diff --git a/clang/lib/Basic/Attributes.cpp b/clang/lib/Basic/Attributes.cpp
+index 8ee45a3..5ef7672 100644
+--- a/clang/lib/Basic/Attributes.cpp
++++ b/clang/lib/Basic/Attributes.cpp
+@@ -185,12 +185,58 @@ static SmallString<64> normalizeName(const IdentifierInfo *Name,
+   return normalizeName(AttrName, ScopeName, SyntaxUsed);
+ }
+ 
++/// 中文关键字别名 → 英文规范拼写（**只用于按拼写查表**）。
++///
++///  为什么需要它：clang 里有一处关键字是【按拼写字符串】查表的 ——
++///  `AttributeList::getKind()`（属性名表，由 `Attr.td` 生成）。英文 `alignas`
++///  查得到 `AT_Aligned`，中文 `对齐` 查不到 ⇒ 落成 `AT_Unknown` ⇒ Sema 报
++///  `warn_unknown_attribute_ignored` 并把属性【丢掉】：**只警告、不报错，
++///  对齐静默失效**。而词法层中文与英文是同一个 token（`-Xclang -dump-tokens`
++///  两边都打 `alignas`），所以病根只可能在"之后再按字符串查一次表"的地方。
++///
++///  `AttrName` 本身保持中文不变 —— 诊断里显示的仍是中文拼写，
++///  "中文是对外正式拼写"这条设计不受影响。
++///
++///  表来自 `ChineseKeywords.def`（与关键字表【同源】，不新增第二份拼写清单）；
++///  该文件只解析这一个宏族，其余族在这里展开为空。
++static StringRef getCanonicalKeywordSpelling(StringRef Name) {
++  if (Name.empty() || llvm::isASCII(Name))
++    return Name;
++
++#define ZH_KEYWORD(NAME, ZH, FLAGS)                                            \
++  if (Name == #ZH)                                                             \
++    return #NAME;
++#define ZH_OPERATOR_KEYWORD(ZH, ALIAS)
++#define ZH_VIRT_SPECIFIER(NAME, ZH)
++#define ZH_CONTEXTUAL_KEYWORD(NAME, ZH, SETTER)
++#include "clang/Basic/ChineseKeywords.def"
++#undef ZH_KEYWORD
++#undef ZH_OPERATOR_KEYWORD
++#undef ZH_VIRT_SPECIFIER
++#undef ZH_CONTEXTUAL_KEYWORD
++
++  return Name;
++}
++
+ AttributeCommonInfo::Kind
+ AttributeCommonInfo::getParsedKind(const IdentifierInfo *Name,
+                                    const IdentifierInfo *ScopeName,
+                                    Syntax SyntaxUsed) {
+   AttributeCommonInfo::Kind Kind =
+       ::getAttrKind(normalizeName(Name, ScopeName, SyntaxUsed), SyntaxUsed);
++  // 中文别名：生成表按拼写查，中文拼不出来 ⇒ 换规范英文名再查一次。
++  // 不做这一步，`对齐(16)` 就是 UnknownAttribute，会被当成"未知属性"静默丢掉。
++  if (Kind == AttributeCommonInfo::Kind::UnknownAttribute && Name) {
++    StringRef Raw = Name->getName();
++    StringRef Canonical = getCanonicalKeywordSpelling(Raw);
++    if (Canonical.data() != Raw.data()) {
++      StringRef ScopeStr = normalizeAttrScopeName(ScopeName, SyntaxUsed);
++      Kind = ::getAttrKind(normalizeName(
++                               normalizeAttrName(Canonical, ScopeStr, SyntaxUsed),
++                               ScopeStr, SyntaxUsed),
++                           SyntaxUsed);
++    }
++  }
+   if (SyntaxUsed == AS_HLSLAnnotation &&
+       Kind == AttributeCommonInfo::Kind::UnknownAttribute)
+     return AttributeCommonInfo::Kind::AT_HLSLUnparsedSemantic;
+@@ -253,8 +299,11 @@ unsigned AttributeCommonInfo::calculateAttributeSpellingListIndex() const {
+   // attribute spell list index matching code.
+   auto Syntax = static_cast<AttributeCommonInfo::Syntax>(getSyntax());
+   StringRef ScopeName = normalizeAttrScopeName(getScopeName(), Syntax);
+-  StringRef Name =
+-      normalizeAttrName(getAttrName()->getName(), ScopeName, Syntax);
++  // 中文别名（`对齐`）在生成表里没有拼写条目，直接用中文名会落回索引 0
++  // （那是 GNU 的 `aligned`，打印出来是另一个名字）⇒ 与 getParsedKind 一样，
++  // 先用规范英文名查表。
++  StringRef Name = normalizeAttrName(
++      getCanonicalKeywordSpelling(getAttrName()->getName()), ScopeName, Syntax);
+   AttributeCommonInfo::Scope ComputedScope =
+       getScopeFromNormalizedScopeName(ScopeName);
+ 
 diff --git a/clang/lib/Basic/CMakeLists.txt b/clang/lib/Basic/CMakeLists.txt
 index 21851e7..11c7f30 100644
 --- a/clang/lib/Basic/CMakeLists.txt
