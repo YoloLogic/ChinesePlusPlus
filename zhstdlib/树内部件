@@ -1174,19 +1174,19 @@ public:
         return _非检查常量迭代器(_取检查值()->_Myhead, nullptr);
     }
 
-    _NODISCARD reverse_iterator rbegin() noexcept {
+    _NODISCARD reverse_iterator 反向开始() noexcept {
         return reverse_iterator(end());
     }
 
-    _NODISCARD const_reverse_iterator rbegin() const noexcept {
+    _NODISCARD const_reverse_iterator 反向开始() const noexcept {
         return const_reverse_iterator(end());
     }
 
-    _NODISCARD reverse_iterator rend() noexcept {
+    _NODISCARD reverse_iterator 反向结束() noexcept {
         return reverse_iterator(begin());
     }
 
-    _NODISCARD const_reverse_iterator rend() const noexcept {
+    _NODISCARD const_reverse_iterator 反向结束() const noexcept {
         return const_reverse_iterator(begin());
     }
 
@@ -1198,12 +1198,12 @@ public:
         return end();
     }
 
-    _NODISCARD const_reverse_iterator crbegin() const noexcept {
-        return rbegin();
+    _NODISCARD const_reverse_iterator 常量反向开始() const noexcept {
+        return 反向开始();
     }
 
-    _NODISCARD const_reverse_iterator crend() const noexcept {
-        return rend();
+    _NODISCARD const_reverse_iterator 常量反向结束() const noexcept {
+        return 反向结束();
     }
 
     _NODISCARD size_type size() const noexcept {
