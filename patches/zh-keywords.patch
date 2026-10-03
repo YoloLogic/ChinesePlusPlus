@@ -936,6 +936,34 @@ index 68cd02a..1350beb 100644
    // clang-format off
    switch (HASH(Len, Name[0], Name[2])) {
    default: return tok::pp_not_keyword;
+diff --git a/clang/lib/Basic/SourceManager.cpp b/clang/lib/Basic/SourceManager.cpp
+index 5540aad..b75597e 100644
+--- a/clang/lib/Basic/SourceManager.cpp
++++ b/clang/lib/Basic/SourceManager.cpp
+@@ -189,7 +189,22 @@ ContentCache::getBufferOrNone(DiagnosticsEngine &Diag, FileManager &FM,
+   if (InvalidBOM) {
+     Diag.Report(Loc, diag::err_unsupported_bom)
+       << InvalidBOM << ContentsEntry->getName();
+-    return std::nullopt;
++    // ⚠ 这里**不能**只 return nullopt（大检查 P-07 / §18.7）。
++    //
++    // 症状：主文件是 **UTF-16**（Windows 上 VS「另存为」的常见选项）时，
++    // 编译器**段错误**（Exception Code 0xC0000005 + "PLEASE submit a bug report"
++    // + 堆栈转储），而上游 clang 19.1.5 对同一个文件只是干净报错。
++    // 链路：这里返回 nullopt ⇒ `Preprocessor::EnterSourceFile` 失败（返回 true），
++    // 而 `EnterMainSourceFile` **忽略了那个返回值** ⇒ `CurLexer` 一直是 nullptr ⇒
++    //   · `-std=c++20`（默认开模块）那段 `CurLexer->peekNextPPToken()` ⇒ 空指针；
++    //   · `-E` 那条路更直接：`Preprocessor::Lex` 用 `CLK_Lexer` 解引用空的 CurLexer。
++    // 处理办法与上面"打不开文件"那条**一致**：缓存一个**空缓冲区**交出去
++    // （那段注释的原话就是 "we can't really deal with this situation, just create
++    // an empty buffer"）。这样调用方拿到的是"一个空的源文件" ⇒ 词法分析立刻 EOF
++    // ⇒ 各动作干净收场；而**致命诊断已经报过**，退出码仍是 1。
++    Buffer = llvm::MemoryBuffer::getMemBuffer("", ContentsEntry->getName());
++    IsBufferInvalid = false;
++    return Buffer->getMemBufferRef();
+   }
+ 
+   // Buffer has been validated.
 diff --git a/clang/lib/Basic/TokenKinds.cpp b/clang/lib/Basic/TokenKinds.cpp
 index a5b8c99..8f50a4e 100644
 --- a/clang/lib/Basic/TokenKinds.cpp
@@ -1137,11 +1165,40 @@ index c161f6a..2ed01ad 100644
      if (Directive.starts_with("if")) {
        StringRef Sub = Directive.substr(2);
        if (Sub.empty() ||   // "if"
+diff --git a/clang/lib/Lex/PPLexerChange.cpp b/clang/lib/Lex/PPLexerChange.cpp
+index b44bf2c..a9f4d19 100644
+--- a/clang/lib/Lex/PPLexerChange.cpp
++++ b/clang/lib/Lex/PPLexerChange.cpp
+@@ -81,6 +81,9 @@ bool Preprocessor::EnterSourceFile(FileID FID, ConstSearchDirIterator CurDir,
+     SourceLocation FileStart = SourceMgr.getLocForStartOfFile(FID);
+     Diag(Loc, diag::err_pp_error_opening_file)
+         << std::string(SourceMgr.getBufferName(FileStart)) << "";
++    // ⚠ 返回 true = 失败。**调用方必须看返回值**：`EnterMainSourceFile` 过去忽略了
++    // 它，于是主文件没进来时 CurLexer 仍是 nullptr，而 `-fmodules`（C++20 默认开）
++    // 那段会解引用 null ⇒ 段错误（大检查 P-07 / §18.7）。
+     return true;
+   }
+ 
 diff --git a/clang/lib/Lex/Preprocessor.cpp b/clang/lib/Lex/Preprocessor.cpp
-index 212b781..98706be 100644
+index 212b781..933a789 100644
 --- a/clang/lib/Lex/Preprocessor.cpp
 +++ b/clang/lib/Lex/Preprocessor.cpp
-@@ -1335,9 +1335,13 @@ bool Preprocessor::HandleModuleContextualKeyword(Token &Result) {
+@@ -593,7 +593,13 @@ void Preprocessor::EnterMainSourceFile() {
+   // a main file.
+   if (!SourceMgr.isLoadedFileID(MainFileID)) {
+     // Enter the main file source buffer.
+-    EnterSourceFile(MainFileID, nullptr, SourceLocation());
++    // ⚠ 仍然看返回值（大检查 P-07 / §18.7）：`EnterSourceFile` 失败时 CurLexer 是
++    // 空的，而下面 `-fmodules`（C++20 默认开）那段会解引用它 ⇒ 段错误。
++    // 主文件读不出来这条现在由 SourceManager 兜住（它会交出一个空缓冲区，
++    // 见 ContentCache::getBufferOrNone 的 BOM 分支），所以这里正常情况不会触发；
++    // 留着是因为**返回 true 就是失败**，忽略返回值是这个崩溃的根因。
++    if (EnterSourceFile(MainFileID, nullptr, SourceLocation()))
++      return;
+ 
+     // If we've been asked to skip bytes in the main file (e.g., as part of a
+     // precompiled preamble), do so now.
+@@ -1335,9 +1341,13 @@ bool Preprocessor::HandleModuleContextualKeyword(Token &Result) {
    /// preprocessed module file. We only allow '__preprocessed_module' and
    /// '__preprocessed_import' in this context.
    IdentifierInfo *II = Result.getIdentifierInfo();

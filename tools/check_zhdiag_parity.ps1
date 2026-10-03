@@ -105,6 +105,44 @@ if ($编码条.Count -eq 0) {
 }
 if ($gbk正文 -match '发出的错误过多') { 错 "★ 仍然撞上了 -ferror-limit（说明刷屏没治好）" }
 
+# ---- ④ P-07：主文件是 UTF-16 时**不许崩** ---------------------------------
+# 症状（改之前）：Exception Code 0xC0000005 + "PLEASE submit a bug report" + 堆栈转储，
+#   而上游 clang 19.1.5 对同一个文件只是干净报错（fatal error + 1 error generated）。
+# 判据：四种模式都要 ① 退出码 1、② 报出那条 UTF-16 致命诊断、③ **不许有崩溃痕迹**。
+$崩标 = { param($s) ($s -match 'Exception Code') -or ($s -match 'PLEASE submit') -or ($s -match 'Stack dump') }
+if ((& $崩标 'x Exception Code: 0xC0000005 y') -and -not (& $崩标 'fatal error: 干净报错')) {
+    过 "自测③：'崩溃痕迹'判断能失败（有 Exception Code 判崩、干净报错判不崩）"
+} else {
+    错 "自测③失败：'崩溃痕迹'判断不按预期"
+}
+
+$u16 = Join-Path $work 'utf16.cpp'
+# ⚠ 必须**自己加 BOM**：`Encoding.Unicode.GetBytes()` 只编码、**不写前导码**，
+#    少了 BOM 它只是一段非法 UTF-8，走的完全是另一条诊断路（探针就"没打中"了）。
+[System.IO.File]::WriteAllBytes($u16,
+    ([byte[]](0xFF, 0xFE)) + [System.Text.Encoding]::Unicode.GetBytes("整数 主函数(){ 返回 0; }`r`n"))
+foreach ($m in @('-fsyntax-only', '-E', '-S', '-c')) {
+    $out = (& $exe '-std=c++20' $m $u16 '-o' (Join-Path $work 'u16.bin') 2>&1 | Out-String)
+    $码 = $LASTEXITCODE
+    if (& $崩标 $out) {
+        错 ("★ P-07：{0} 时编译器**崩了**（出现 Exception Code / PLEASE submit / Stack dump）" -f $m)
+    } elseif ($码 -ne 1) {
+        错 ("★ P-07：{0} 退出码 {1}（应当 1）" -f $m, $码)
+    } elseif ($out -notmatch 'UTF-16') {
+        错 ("★ P-07：{0} 没报出那条 UTF-16 诊断 —— 探针没打中" -f $m)
+    } else {
+        过 ("P-07：{0} 干净收场（退出码 1 + 一条致命诊断，无崩溃痕迹）" -f $m)
+    }
+}
+# 对照：合法的 UTF-8 with BOM 必须照常编过（别把正常路径一起改了）
+$u8b = Join-Path $work 'utf8bom.cpp'
+[System.IO.File]::WriteAllBytes($u8b, ([byte[]](0xEF, 0xBB, 0xBF)) + [System.Text.Encoding]::UTF8.GetBytes("整数 主函数(){ 返回 0; }`n"))
+$exeU8 = Join-Path $work 'u8bom.exe'
+& $exe '-std=c++20' $u8b '-o' $exeU8 2>&1 | Out-Null
+if ($LASTEXITCODE -eq 0) { & $exeU8 | Out-Null; $r = $LASTEXITCODE } else { $r = 99 }
+if ($r -eq 0) { 过 "对照：UTF-8 with BOM 照常编译并运行（退出码 0）" }
+else { 错 ("对照失败：UTF-8 with BOM 的退出码是 {0}（应当 0）" -f $r) }
+
 Write-Host ''
 if ($script:fail -eq 0) { Write-Host '  => PASS' -ForegroundColor Green; exit 0 }
 Write-Host '  => FAIL' -ForegroundColor Red
