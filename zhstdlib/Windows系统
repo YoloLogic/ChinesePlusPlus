@@ -94,4 +94,24 @@
     模板 <类型名... 参数> 声明类型(自动) 释放堆内存(参数&&... 值) { 返回 HeapFree(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 调整堆内存(参数&&... 值) { 返回 HeapReAlloc(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 取堆块大小(参数&&... 值) { 返回 HeapSize(static_cast<参数&&>(值)...); }
+    使用 注册表键 = HKEY;
+    内联 常量 注册表键 当前用户键 = HKEY_CURRENT_USER;
+    内联 常量 注册表键 本机键 = HKEY_LOCAL_MACHINE;
+    内联 常量 双字 键可读 = KEY_READ;
+    内联 常量 双字 键可写 = KEY_WRITE;
+    内联 常量 双字 字符串值类型 = REG_SZ;
+    内联 常量 双字 双字值类型 = REG_DWORD;
+    模板 <类型名... 参数> 声明类型(自动) 打开注册表键(参数&&... 值) { 返回 RegOpenKeyExW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 创建注册表键(参数&&... 值) { 返回 RegCreateKeyExW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 关闭注册表键(参数&&... 值) { 返回 RegCloseKey(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 读注册表值(参数&&... 值) { 返回 RegQueryValueExW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 写注册表值(参数&&... 值) { 返回 RegSetValueExW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 删除注册表键(参数&&... 值) { 返回 RegDeleteKeyW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 删除注册表值(参数&&... 值) { 返回 RegDeleteValueW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 枚举注册表子键(参数&&... 值) { 返回 RegEnumKeyExW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 枚举注册表值(参数&&... 值) { 返回 RegEnumValueW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 读环境变量(参数&&... 值) { 返回 GetEnvironmentVariableW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 写环境变量(参数&&... 值) { 返回 SetEnvironmentVariableW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取环境变量块(参数&&... 值) { 返回 GetEnvironmentStringsW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 释放环境变量块(参数&&... 值) { 返回 FreeEnvironmentStringsW(static_cast<参数&&>(值)...); }
 }
