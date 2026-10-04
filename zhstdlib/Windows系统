@@ -57,4 +57,23 @@
     模板 <类型名... 参数> 声明类型(自动) 取命令行(参数&&... 值) { 返回 GetCommandLineW(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 取最后错误(参数&&... 值) { 返回 GetLastError(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 设置最后错误(参数&&... 值) { 返回 SetLastError(static_cast<参数&&>(值)...); }
+    使用 临界区 = CRITICAL_SECTION;
+    内联 常量 双字 无限等待 = INFINITE;
+    内联 常量 双字 等待成功 = WAIT_OBJECT_0;
+    内联 常量 双字 等待超时 = WAIT_TIMEOUT;
+    内联 常量 双字 等待失败 = WAIT_FAILED;
+    模板 <类型名... 参数> 声明类型(自动) 创建事件(参数&&... 值) { 返回 CreateEventW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 设置事件(参数&&... 值) { 返回 SetEvent(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 重置事件(参数&&... 值) { 返回 ResetEvent(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 等待单个对象(参数&&... 值) { 返回 WaitForSingleObject(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 等待多个对象(参数&&... 值) { 返回 WaitForMultipleObjects(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 创建互斥量(参数&&... 值) { 返回 CreateMutexW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 释放互斥量(参数&&... 值) { 返回 ReleaseMutex(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 创建信号量(参数&&... 值) { 返回 CreateSemaphoreW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 释放信号量(参数&&... 值) { 返回 ReleaseSemaphore(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 初始化临界区(参数&&... 值) { 返回 InitializeCriticalSection(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 进入临界区(参数&&... 值) { 返回 EnterCriticalSection(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 离开临界区(参数&&... 值) { 返回 LeaveCriticalSection(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 删除临界区(参数&&... 值) { 返回 DeleteCriticalSection(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 试进临界区(参数&&... 值) { 返回 TryEnterCriticalSection(static_cast<参数&&>(值)...); }
 }
