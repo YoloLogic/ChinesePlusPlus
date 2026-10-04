@@ -76,4 +76,22 @@
     模板 <类型名... 参数> 声明类型(自动) 离开临界区(参数&&... 值) { 返回 LeaveCriticalSection(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 删除临界区(参数&&... 值) { 返回 DeleteCriticalSection(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 试进临界区(参数&&... 值) { 返回 TryEnterCriticalSection(static_cast<参数&&>(值)...); }
+    使用 内存基本信息 = MEMORY_BASIC_INFORMATION;
+    内联 常量 双字 提交内存 = MEM_COMMIT;
+    内联 常量 双字 保留内存 = MEM_RESERVE;
+    内联 常量 双字 释放区域 = MEM_RELEASE;
+    内联 常量 双字 可读写页 = PAGE_READWRITE;
+    内联 常量 双字 可执行可读页 = PAGE_EXECUTE_READ;
+    内联 常量 双字 不可访问页 = PAGE_NOACCESS;
+    模板 <类型名... 参数> 声明类型(自动) 申请虚拟内存(参数&&... 值) { 返回 VirtualAlloc(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 释放虚拟内存(参数&&... 值) { 返回 VirtualFree(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 设置内存保护(参数&&... 值) { 返回 VirtualProtect(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取内存信息(参数&&... 值) { 返回 VirtualQuery(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取进程堆(参数&&... 值) { 返回 GetProcessHeap(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 创建堆(参数&&... 值) { 返回 HeapCreate(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 销毁堆(参数&&... 值) { 返回 HeapDestroy(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 从堆分配(参数&&... 值) { 返回 HeapAlloc(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 释放堆内存(参数&&... 值) { 返回 HeapFree(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 调整堆内存(参数&&... 值) { 返回 HeapReAlloc(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取堆块大小(参数&&... 值) { 返回 HeapSize(static_cast<参数&&>(值)...); }
 }
