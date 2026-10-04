@@ -761,14 +761,33 @@ if ($cj.Trim()) {
     }
 }
 $ctext = [System.IO.File]::ReadAllText((Join-Path $root 'tools\make_zhc.ps1'))
-foreach ($em in [regex]::Matches($ctext, "(?ms)^\s*'([a-z_][a-z0-9_.]*)'\s*=\s*@\{\s*zh\s*=\s*'([^']+)'\s*;?\s*a\s*=\s*@\((.*?)\)\s*\}")) {
+#  ⚠ §18.21：这里的正则**必须能匹配表里所有合法的条目形态**（同 regen_zhstdlib.ps1 开头那条教训）。
+#    原式要求 `zh='…'` **紧挨着** `a=@(`，于是给条目加了一个 `kind='系统头'` 字段之后，
+#    `'windows.h'` 整条**静默失配** —— 台账报"名字 1190 / 116 个产物 / 未覆盖 0"，
+#    而盘上明明有 117 个产物、1222 个名字。**漏扫的"全量"不是全量**（§15.3 的同一类病）。
+#    改法：允许 `zh=…` 与 `a=@(` 之间还有其他 `键=值;` 字段（限制在同一个 `@{…}` 内，用 `[^{}]`）。
+#    分组编号保持不变：1=英文键 2=中文头名 3=条正文。
+foreach ($em in [regex]::Matches($ctext, "(?ms)^\s*'([a-z_][a-z0-9_.]*)'\s*=\s*@\{(?:[^{}]*?)zh\s*=\s*'([^']+)'(?:[^{}]*?)a\s*=\s*@\((.*?)\)\s*\}")) {
     $names = @()
-    foreach ($nm in [regex]::Matches($em.Groups[3].Value, "@\('(\S+?)','([^']+)','([^']*)'\)")) {
+    #  ⚠ §18.21 同一条判据（正则必须匹配**所有合法形态**）：原式的第三条是
+    #    `@\('(\S+?)','([^']+)','([^']*)'\)` —— **只认三元条目**，于是
+    #    `@('宏','文件结束','EOF','整数')` / `@('变量','标准输入','stdin','文件*')`
+    #    这类**四元条目整片失配**（C 轨的值宏与全局变量**从来没进过台账**）。
+    #    现在第四元可选；并且按**条目形态**分派探针种类：
+    #      宏 / 变量 都是 `内联 常量 …` ⇒ 读一次（'常量'），不是"合成调用模板函数"；
+    #      函数式宏是 `#定义 名 原名`，**名字不在 `标准` 名域里**，没法取地址也没法合成调用
+    #      ⇒ 记 '全局宏名'（不生成探针），只能靠条目用例覆盖（§17.19.58）。
+    foreach ($nm in [regex]::Matches($em.Groups[3].Value, "@\('(\S+?)','([^']+)','([^']*)'(?:,'[^']*')?\)")) {
         $kind = $nm.Groups[1].Value; $nm2 = $nm.Groups[2].Value
         if (-not (Test-ZhName $nm2)) { continue }
-        if ($kind -eq '类型') { $names += [pscustomobject]@{ Name = $nm2; Kind = '类型'; Template = '' } }
-        elseif ($kind -eq '常量') { $names += [pscustomobject]@{ Name = $nm2; Kind = '常量'; Template = '' } }
-        else { $names += [pscustomobject]@{ Name = $nm2; Kind = '模板函数'; Template = '' } }
+        switch ($kind) {
+            '类型'     { $names += [pscustomobject]@{ Name = $nm2; Kind = '类型'; Template = '' } }
+            '常量'     { $names += [pscustomobject]@{ Name = $nm2; Kind = '常量'; Template = '' } }
+            '宏'       { $names += [pscustomobject]@{ Name = $nm2; Kind = '常量'; Template = '' } }
+            '变量'     { $names += [pscustomobject]@{ Name = $nm2; Kind = '常量'; Template = '' } }
+            '函数式宏' { $names += [pscustomobject]@{ Name = $nm2; Kind = '全局宏名'; Template = '' } }
+            default    { $names += [pscustomobject]@{ Name = $nm2; Kind = '模板函数'; Template = '' } }
+        }
     }
     #  §17.24 C 轨道也有真实用例了（`make_zhc.ps1` 的 `$TESTS`，**编译 + 运行**）；
     #  不接进来的话，这些用例在台账上等于不存在。
@@ -784,6 +803,30 @@ if ($Only.Count) {
     $products = @($products | Where-Object { $Only -contains $_.Product })
 }
 if ($products.Count -eq 0) { throw "实例化守卫：选中的产物数为 0（-Only 写法不对？§15.3：跑 0 条的通过不是通过）" }
+
+# ---------------------------------------------------------------------------
+#  §18.21 **产物集合守卫**：台账看到的产物集合，必须等于 zhstdlib\ 盘上的产物集合。
+#
+#  为什么必须有（本轮实测的静默洞）：上面那段"从三张生成器表扫条目"是靠正则的，
+#  我给 C 轨条目多加了一个 `kind='系统头'` 字段，正则就失配了 —— 于是
+#  **`<Windows系统>` 这个产物整条没进台账**：报"名字 1190 / 116 个产物 / 未覆盖 0"，
+#  而盘上有 117 个产物、其中一个的 32 个名字**从来没被算过**。
+#  更坏的是它**照样全绿**：漏扫的名字不会变成"未覆盖"，它只是"不存在"。
+#  这类"看不见"必须由机器兜住（同 regen_zhstdlib.ps1 的孤儿产物守卫、§15.3 跑 0 条的通过不是通过）。
+#  `-Only` 时不算（那是故意只看一个产物）。
+# ---------------------------------------------------------------------------
+if (-not $Only.Count) {
+    $inLedger = @($products | ForEach-Object { $_.Product })
+    $onDisk = @(Get-ChildItem (Join-Path $root 'zhstdlib') -File | ForEach-Object { $_.Name })
+    $miss = @($onDisk | Where-Object { $inLedger -notcontains $_ })
+    if ($miss.Count) {
+        Write-Host ("❌ 实例化守卫漏扫了 {0} 个产物（盘上有、但三张生成器表的扫描没看见）：{1}" -f $miss.Count, ($miss -join ' ')) -ForegroundColor Red
+        Write-Host '   修法：表的条目形态变了 ⇒ 补上本脚本的扫描正则（那条正则必须能匹配表里所有合法形态）。' -ForegroundColor Yellow
+        Write-Host '   为什么这条必须红：漏扫的名字不会变成"未覆盖"，它只是"不存在" —— 台账会假装全绿。' -ForegroundColor Yellow
+        exit 1
+    }
+    Write-Host ("  产物集合守卫：台账 {0} 个 == 盘上 {1} 个" -f $inLedger.Count, $onDisk.Count) -ForegroundColor Gray
+}
 }   #  §17.38 表解析块到此结束（子进程 `-ManifestFile` 时整段跳过）
 
 # ---------------------------------------------------------------------------

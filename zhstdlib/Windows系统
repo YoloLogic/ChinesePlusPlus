@@ -1,0 +1,60 @@
+// <Windows系统> —— windows.h 的中文别名层
+//
+// 这是什么：windows.h（Windows 系统 API）的**中文名层**，机制与 C 包装头相同（方案 §3.4）：
+//   类型 -> 使用 中文名 = 原名;      （**没有 std::**：Win32 名字住在全局名域）
+//   函数 -> 一模板转发（函数没有"别名"机制）—— 一律指向**显式的 …W 真函数**：
+//           Win32 里 CreateFile/WriteConsole/GetModuleHandle 这类"函数"其实是宏，
+//           宏会被展开、不能转发，所以表里一律取 …W（决策 D-14 第 3 条）。
+//   宏   -> 内联 常量 承载它的值（值仍取 SDK 自己的宏，**不重写定义**）
+//
+// ⚠ 下面两个宏是【必需】的，不是可选优化 —— 组合探针（全部汉语头放进同一个 TU）实测：
+//   · 不给 WIN32_LEAN_AND_MEAN ⇒ rpcndr.h 的 typedef unsigned char byte; 让 byte 有歧义，
+//     《通用内部件》里 20 条错（它与 std::byte 对不上号）；
+//   · 不给 NOMINMAX ⇒ windef.h 的 min/max 宏把《数值极限》里的 (min)(...) 拆坏，也是 20 条错。
+//   两个都给 = 0 条错（<Windows系统> 排在最前、后面跟全部 116 个汉语头也照样编过）。
+//   用 #ifndef 包住：用户自己已经定过就按用户的 —— 这里只是"没定过时的兜底"。
+//
+// 英文原名照旧可用：这里只是【多一个名字】，SDK 头一个字节没动。
+#pragma once
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+
+名域 标准 {
+    使用 句柄 = HANDLE;
+    使用 窗口句柄 = HWND;
+    使用 模块句柄 = HMODULE;
+    使用 双字 = DWORD;
+    内联 常量 双字 标准输入句柄 = STD_INPUT_HANDLE;
+    内联 常量 双字 标准输出句柄 = STD_OUTPUT_HANDLE;
+    内联 常量 双字 标准错误句柄 = STD_ERROR_HANDLE;
+    内联 常量 句柄 无效句柄 = INVALID_HANDLE_VALUE;
+    模板 <类型名... 参数> 声明类型(自动) 取标准句柄(参数&&... 值) { 返回 GetStdHandle(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 关闭句柄(参数&&... 值) { 返回 CloseHandle(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 冲刷文件缓冲(参数&&... 值) { 返回 FlushFileBuffers(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 创建文件(参数&&... 值) { 返回 CreateFileW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 读句柄(参数&&... 值) { 返回 ReadFile(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 写句柄(参数&&... 值) { 返回 WriteFile(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取文件大小(参数&&... 值) { 返回 GetFileSize(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 新建目录(参数&&... 值) { 返回 CreateDirectoryW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 删除目录(参数&&... 值) { 返回 RemoveDirectoryW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 设置控制台输出代码页(参数&&... 值) { 返回 SetConsoleOutputCP(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取控制台输出代码页(参数&&... 值) { 返回 GetConsoleOutputCP(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 设置控制台输入代码页(参数&&... 值) { 返回 SetConsoleCP(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取控制台输入代码页(参数&&... 值) { 返回 GetConsoleCP(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 写控制台(参数&&... 值) { 返回 WriteConsoleW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 读控制台(参数&&... 值) { 返回 ReadConsoleW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 设置控制台标题(参数&&... 值) { 返回 SetConsoleTitleW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取控制台窗口(参数&&... 值) { 返回 GetConsoleWindow(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取当前进程号(参数&&... 值) { 返回 GetCurrentProcessId(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取当前线程号(参数&&... 值) { 返回 GetCurrentThreadId(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 睡眠(参数&&... 值) { 返回 Sleep(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取模块句柄(参数&&... 值) { 返回 GetModuleHandleW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取命令行(参数&&... 值) { 返回 GetCommandLineW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取最后错误(参数&&... 值) { 返回 GetLastError(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 设置最后错误(参数&&... 值) { 返回 SetLastError(static_cast<参数&&>(值)...); }
+}

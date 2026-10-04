@@ -11,10 +11,15 @@
 //   宏   -> 内联 常量 承载它的值
 //
 // 英文原名照旧可用：这里只是【多一个名字】，原头一个字节没动。
-// 变参 C 函数（printf fprintf sprintf snprintf scanf sscanf fscanf setlocale setjmp va_start va_arg va_end va_copy）无法转发，只能继续用原名。
+// 变参函数（printf/scanf 一家）**也能转发** —— 用的就是上面那条变参模板，
+// §18.19 实测改正了原先"变参无法转发"的错误结论。真正转发不了的只剩**宏**：setjmp / va_start / va_arg / va_end / va_copy。
 #pragma once
 #include <cstdarg>
 
 名域 标准 {
-
+    使用 可变参数表 = std::va_list;
+#定义 开始可变参数表 va_start
+#定义 取可变参数项 va_arg
+#定义 结束可变参数表 va_end
+#定义 复制可变参数表 va_copy
 }

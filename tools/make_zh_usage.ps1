@@ -126,9 +126,10 @@ foreach ($p in ($aliasEntries | Sort-Object Name)) {
 }
 
 # ---------------------------------------------------------------------------
-# 四、C 包装头
+# 四、C 包装头（不含系统头 —— §18.21 起这张表里还有 windows.h，它单列第五节）
 # ---------------------------------------------------------------------------
-$cEntries = @($cwrap.PSObject.Properties)
+$cEntries   = @($cwrap.PSObject.Properties | Where-Object { $_.Value.kind -ne '系统头' })
+$sysEntries = @($cwrap.PSObject.Properties | Where-Object { $_.Value.kind -eq '系统头' })
 W ('## 四、C 包装头（{0} 个：把 C 库名字搬进 `std` 的那些头）' -f $cEntries.Count)
 W ''
 W '这些头自己没有实现，只是把 C 库名字搬进 `std`；`size_t` / `FILE` 这类**必须与全局同一个类型**。'
@@ -144,6 +145,9 @@ foreach ($p in ($cEntries | Sort-Object Name)) {
             '函数' { $lines += ('`{0}()`←`{1}()`' -f $item[1], $item[2]) }
             '宏'   { $lines += ('`{0}`←`{1}`' -f $item[1], $item[2]) }
             '值宏' { $lines += ('`{0}`←`{1}`' -f $item[1], $item[2]) }
+            # §18.20：函数式宏（va_start 一家）只能 #定义，名字**不在** `标准` 名域里 ——
+            #   这里的「（宏，不加 标准::）」是给读者的用法提示，不是装饰。
+            '函数式宏' { $lines += ('`{0}`（宏，不加 `标准::`）←`{1}`' -f $item[1], $item[2]) }
             default { $lines += ('`{0}`' -f ($item -join ' ')) }
         }
     }
@@ -151,17 +155,58 @@ foreach ($p in ($cEntries | Sort-Object Name)) {
     W ''
 }
 
+# ---------------------------------------------------------------------------
+# 五、系统头（Windows 系统 API）—— §18.21
+#
+#  为什么单列：它不是"把 C 库名字搬进 std"，而是"给 Win32 名字加一层中文名"；
+#  别名没有 std:: 前缀、函数直接转发全局原名，混进第四节会让读者以为 windows.h
+#  是标准库的一部分。分节的判据是生成器表里的 kind 字段（不是手写清单）。
+# ---------------------------------------------------------------------------
+if ($sysEntries.Count) {
+    W ('## 五、Windows 系统 API（{0} 个：给 Win32 名字加一层中文名）' -f $sysEntries.Count)
+    W ''
+    W '这一节的头**不是标准库头**：源头是系统 SDK（`windows.h`），那些名字住在**全局名域**，'
+    W '所以别名没有 `std::` 前缀，函数用同一条转发模板直接调 Win32 原名。'
+    W ''
+    W '三条注意（每条都有实测判据，见方案 §3.4.2）：'
+    W ''
+    W '1. **一律指向显式的 `…W` 真函数**：Win32 里 `CreateFile` / `WriteConsole` / `GetModuleHandle`'
+    W '   这类"函数"其实是宏，宏会被展开、不能转发。'
+    W '2. **产品头自己兜住 `NOMINMAX` 与 `WIN32_LEAN_AND_MEAN`**：不给它们，`windef.h` 的 `min/max`'
+    W '   宏与 `rpcndr.h` 的 `byte` 会拆坏标准库头（组合探针实测各 20 条错）。'
+    W '3. **只加名字，不改行为**：值宏直接引 SDK 自己的宏（`STD_OUTPUT_HANDLE` 等），不重写定义。'
+    W ''
+    foreach ($p in ($sysEntries | Sort-Object Name)) {
+        $e = $p.Value
+        W ('### `#包含 <{0}>`  ← 源头 `{1}`' -f $e.zh, $p.Name)
+        $lines = @()
+        foreach ($item in @($e.a)) {
+            $k = [string]$item[0]
+            switch ($k) {
+                '类型' { $lines += ('`{0}`←`{1}`' -f $item[1], $item[2]) }
+                '函数' { $lines += ('`{0}()`←`{1}()`' -f $item[1], $item[2]) }
+                '宏'   { $lines += ('`{0}`←`{1}`' -f $item[1], $item[2]) }
+                '函数式宏' { $lines += ('`{0}`（宏，不加 `标准::`）←`{1}`' -f $item[1], $item[2]) }
+                default { $lines += ('`{0}`' -f ($item -join ' ')) }
+            }
+        }
+        W ('- {0}' -f ($lines -join '、'))
+        W ''
+    }
+}
+
 W '---'
 W ''
-W ('**覆盖**：抄+派生 {0} 个、别名 {1} 个、C 包装 {2} 个，共 {3} 个中文头。' -f `
-    $mainEntries.Count, $aliasEntries.Count, $cEntries.Count, ($mainEntries.Count + $aliasEntries.Count + $cEntries.Count))
+W ('**覆盖**：抄+派生 {0} 个、别名 {1} 个、C 包装 {2} 个、Windows 系统 {3} 个，共 {4} 个中文头。' -f `
+    $mainEntries.Count, $aliasEntries.Count, $cEntries.Count, $sysEntries.Count, ($mainEntries.Count + $aliasEntries.Count + $cEntries.Count + $sysEntries.Count))
 W ''
 W '**还缺什么**（不要说"做完了"）：'
 W ''
+W '- **Windows 系统 API 只做了第一批 32 个名字**（句柄 / 控制台 / 进程线程 / 错误码 / 文件与目录）；'
+W '  同步对象、内存、注册表与环境变量、动态库、时间与性能计数**还没做** ——'
+W '  这一项记在 `docs\汉字第一公民-路线图.md` 第 4 项（C 运行库那一半已完成，§18.19/§18.20）。'
 W '- 步骤 1 的内部件：34 个里做完 3 个（`调用一次` / `特殊成员控制` / `内存内部件`），'
 W '  2 个判为边界（`xthreads.h` / `xpolymorphic_allocator.h`），其余未开始；'
-W '- 步骤 3 的公开头：`<chrono>` `<algorithm>` `<filesystem>` `<memory>` `<variant>` `<string>`'
-W '  `<string_view>` `<functional>` `<regex>` `<random>` `<future>` `<ranges>` … 未开始；'
 W '- 进度数字由 `tools\audit_hanhua.ps1` 给出（顶层类型名汉化率 / 嵌套名汉化率），'
 W '  不写死在这里 —— 写死了就会漂移。'
 W '- **每一处的"还没做"都记在 `docs\标准库汉化\标准库汉化方案.md` 里，附消除路径。**'
