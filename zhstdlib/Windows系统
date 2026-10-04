@@ -114,4 +114,19 @@
     模板 <类型名... 参数> 声明类型(自动) 写环境变量(参数&&... 值) { 返回 SetEnvironmentVariableW(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 取环境变量块(参数&&... 值) { 返回 GetEnvironmentStringsW(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 释放环境变量块(参数&&... 值) { 返回 FreeEnvironmentStringsW(static_cast<参数&&>(值)...); }
+    使用 系统时间 = SYSTEMTIME;
+    使用 大整数 = LARGE_INTEGER;
+    内联 常量 双字 按改变后的路径搜索 = LOAD_WITH_ALTERED_SEARCH_PATH;
+    内联 常量 双字 按地址取 = GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS;
+    模板 <类型名... 参数> 声明类型(自动) 加载动态库(参数&&... 值) { 返回 LoadLibraryW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 卸载动态库(参数&&... 值) { 返回 FreeLibrary(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取函数地址(参数&&... 值) { 返回 GetProcAddress(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取模块文件名(参数&&... 值) { 返回 GetModuleFileNameW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 带标志加载动态库(参数&&... 值) { 返回 LoadLibraryExW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 按标志取模块句柄(参数&&... 值) { 返回 GetModuleHandleExW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取性能计数(参数&&... 值) { 返回 QueryPerformanceCounter(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取性能频率(参数&&... 值) { 返回 QueryPerformanceFrequency(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取开机毫秒数(参数&&... 值) { 返回 GetTickCount64(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取本机时间(参数&&... 值) { 返回 GetLocalTime(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取世界时间(参数&&... 值) { 返回 GetSystemTime(static_cast<参数&&>(值)...); }
 }
