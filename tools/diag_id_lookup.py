@@ -1298,6 +1298,55 @@ def check_keyword_markers(name, en, zh):
     return problems
 
 
+# --------------------------------------------------------------------------
+#  §18.13（大检查收尾）：**未翻译的诊断必须"正文由运行时提供"**
+#
+#  覆盖率口径一直是「中文表条目数 / 生成诊断总数」——当前 7345 / 7375 = 99.59%。
+#  那个"差的 30 条"以前是个**没人解释的数字**：看起来像"没做完"。
+#  实测（2026-10-04）这 30 条**全部**是格式串恰好 `%0` 的诊断 —— 正文由
+#  运行时给（`#pragma message` / `#warning` / `#error` 的用户文本、
+#  LLVM 后端与内联汇编写入的消息、API notes 文件、`diagnose_if(..., "文案", ...)`），
+#  **没有可翻的东西**。
+#  ⇒ 做成判据：未翻译的每一条，其英文格式串必须**恰好是 `%0`**；谁要是漏翻了一条
+#    有真正英文正文的，这条判据立刻红。（把数字变成不变量，正是本项目一贯的做法。）
+# --------------------------------------------------------------------------
+def _zh_names(zh):
+    """中文表的 ID 集合。`check_table()` 返回的是 [(名字, 正文, 行号), …]；
+    允许传 dict 是为了自测与调用方便（两种形状都认）。"""
+    if isinstance(zh, dict):
+        return set(zh)
+    return {t[0] for t in zh}
+
+
+def check_untranslated(inc, zh):
+    """返回 (未翻译集合, 其中"正文由运行时提供"的, 其中**还有真英文正文**的)。"""
+    missing = sorted(set(inc) - _zh_names(zh))
+    runtime_only = [m for m in missing if inc[m][0].strip() == "%0"]
+    others = [m for m in missing if inc[m][0].strip() != "%0"]
+    return missing, runtime_only, others
+
+
+def self_test_untranslated():
+    """判据必须**能失败**：合成两条未翻译的，一条正文是英文、一条是 %0。
+    两种 zh 形状（list-of-tuple / dict）都要认。"""
+    fake = {
+        "rt": ("%0", "x.inc", 1),
+        "real": ("cannot do that", "x.inc", 2),
+        "translated": ("随便", "x.inc", 3),
+    }
+    problems = []
+    for 形状, zh in (("list-of-tuple", [("translated", "随便", 9)]),
+                     ("dict", {"translated": "随便"})):
+        missing, runtime_only, others = check_untranslated(fake, zh)
+        if missing != ["real", "rt"]:
+            problems.append("%s：未翻译集合算错了：%r" % (形状, missing))
+        if runtime_only != ["rt"]:
+            problems.append("%s：'正文由运行时提供'的那条没认出来：%r" % (形状, runtime_only))
+        if others != ["real"]:
+            problems.append("%s：'还有真英文正文'的那条没被抓到：%r" % (形状, others))
+    return problems
+
+
 def check_table(inc, zh=None, raw=None):
     """校核整张中文表。返回 (报告行, 问题列表, 条目列表)。
 

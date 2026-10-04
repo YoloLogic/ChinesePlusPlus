@@ -60,6 +60,29 @@ def main():
     print("coverage: %.2f%% of all builtin diagnostics"
           % (100.0 * len(zh) / max(1, len(inc))))
 
+    # 3) §18.13：未翻译的那几条必须"正文由运行时提供"（格式串恰好 `%0`）
+    #    —— 把覆盖率的"还差 30 条"从"没做完"变成"**结构上翻不了**"，而且**是判据**。
+    #    自检先跑（合成数据必须能被抓），再跑真表。
+    bad_self = d.self_test_untranslated()
+    if bad_self:
+        print("FAIL: untranslated self-test")
+        for b in bad_self:
+            print("  " + b.encode("ascii", "replace").decode("ascii"))
+        return 1
+    missing, runtime_only, others = d.check_untranslated(inc, zh)
+    print("untranslated: %d (runtime-supplied '%s': %d)"
+          % (len(missing), "%0", len(runtime_only)))
+    if others:
+        print("FAIL: %d untranslated diagnostic(s) still have a real English body"
+              % len(others))
+        for o in others[:20]:
+            print("  %s : %s" % (o, inc[o][0].encode("ascii", "replace").decode("ascii")))
+        return 1
+    total = len(inc)
+    print("translatable coverage: 100.00%% (%d / %d; "
+          "the other %d carry their text at runtime)"
+          % (total - len(missing), total, len(missing)))
+
     if problems:
         print("FAIL: %d problem(s)" % len(problems))
         for p in problems:
