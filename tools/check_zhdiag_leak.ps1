@@ -376,7 +376,20 @@ $表内探针 = @(
     # `block` 那条要 ObjC + ARC 才触发（Windows 上默认是旧版运行时，要显式指定）
     @('T04-块',      "void f() {`n  __autoreleasing id x = 0;`n  ^{ (void)x; };`n}",
       @('-x', 'objective-c', '-fobjc-arc', '-fblocks', '-fobjc-runtime=macosx-10.15', '-fsyntax-only'),
-      '不能在块 中捕获', '不能在block 中捕获')
+      '不能在块 中捕获', '不能在block 中捕获'),
+    # §18.15：**渲染器**会把"长得像英文关键字"的**流式字符串实参**换成中文
+    #   （`Diagnostic.cpp` 的 `getChineseKeywordName()`，P-04 修的那条路）。
+    #   这条探针直接钉住那个机制：`SemaAvailability.cpp` 把 `TagDecl::getKindName()`
+    #   （返回 "struct"）当字符串实参流进诊断，渲染出来必须是 `结构`。
+    #   为什么值钱：§18.9 登记的两处"拿不到 PrintingPolicy 的打印 API"
+    #   （`TemplateArgument::getKindName()` / `DiagTemplateArg()`）正是靠这条机制兜住
+    #   它们输出的关键字字符串 ⇒ 这条探针一起把它们的结论也钉住了。
+    #   触发条件：ObjC + Apple 目标 + `-Wunguarded-availability` +
+    #   **匿名 TagDecl 的字段类型**用了一个 availability 标注过的类型
+    #   （用成员函数里的调用不行 —— `findEnclosingDeclToAnnotate` 会先返回那个函数）。
+    @('T05-实参里的关键字名', "struct Yuan { int x; } __attribute__((availability(macos,introduced=99.0)));`nstruct { Yuan ziduan; } duixiang;`n",
+      @('-x', 'objective-c++', '-std=c++20', '--target=x86_64-apple-macosx10.15', '-Wunguarded-availability', '-fsyntax-only'),
+      '匿名 结构 加上可用性属性', 'anonymous struct')
 )
 $表内失败 = 0
 foreach ($p in $表内探针) {
