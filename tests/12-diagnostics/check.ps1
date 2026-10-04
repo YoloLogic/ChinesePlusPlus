@@ -272,6 +272,16 @@ Check-Case '74_override_exception_spec.cpp'    '-Wall'  -Expect ok
 Check-Case '75_template_member_here.cpp'
 Check-Case '76_uninit_const_pointer.cpp'       '-Wall'  -Expect ok
 
+# --- §18.16 (2026-10-04): 词法/标识符的四个"最容易撞"的坑，逐个钉住行为。
+#     台账「五、观察到的现象」里原先写着"未验证 / 口径待定"的那几条，
+#     实测之后写成用例 —— 行为要是哪天变了，这里会红。
+Check-Case '77_ucn_same_identifier.cpp'        -Expect ok
+Check-Case '78_fullwidth_identifier.cpp'       -Expect ok
+Check-Case '79_compat_hanzi_distinct.cpp'      -Expect ok
+Check-Case '80_multichar_constant.cpp'         -Expect ok
+Check-Case '81_char_literal_too_large.cpp'
+Check-Case '82_keyword_needs_space.cpp'
+
 # ---------------------------------------------------------------------------
 # 2) prefix and option name must survive (ASCII, so trivially checkable)
 # ---------------------------------------------------------------------------
