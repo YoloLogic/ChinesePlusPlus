@@ -144,6 +144,12 @@ $DiagFiles = @(
     'clang/lib/AST/TemplateBase.cpp',
     'clang/lib/AST/Expr.cpp',
     'clang/lib/Frontend/ASTConsumers.cpp',
+    # 2026-10-04（§18.12 P-14）加：**语句与声明**的打印器（DeclPrinter 里的
+    # `标签关键字` / 访问说明符 / 存储类映射，以及它引用的 `PrintingPolicy::ChineseSpelling`）。
+    # ⚠ 这一条是被**第 23 道守卫的新判据**（keywords 补丁不许提到诊断侧符号）当场抓出来的：
+    #    我先前只把 StmtPrinter.cpp 归了诊断补丁，DeclPrinter.cpp 落到了 keywords 补丁里
+    #    ⇒ 只打 keywords 会编不过，D-06 记的"单向依赖"被破坏。
+    'clang/lib/AST/DeclPrinter.cpp',
     'clang/include/clang/Options/Options.td',
     'clang/lib/Basic/Diagnostic.cpp',
     'clang/lib/Driver/ToolChains/Clang.cpp',

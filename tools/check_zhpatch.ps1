@@ -62,7 +62,66 @@ foreach ($n in @('zh-keywords.patch', 'zh-diagnostics.patch')) {
 }
 
 # ---------------------------------------------------------------------------
-#  ② 自测：这个判据必须能失败
+#  ② §18.12 补的：**keywords 补丁必须能单独编**（D-06 记的"单向依赖"）
+#
+#  为什么补这一条：`$DiagFiles` 是一张**手写清单**（make_patch.ps1 里写明「没进这张
+#  清单的新文件会落到 keywords 补丁里去」）。P-14 就踩了：DeclPrinter.cpp 引用了
+#  诊断补丁才引入的 `PrintingPolicy::ChineseSpelling`，却因为没进清单而落进了
+#  keywords 补丁 ⇒ **只打 keywords 会编不过**。而"补丁 == 源码树"那条判据
+#  **看不见**这件事（两边一致，只是切错了）。
+#
+#  判据：keywords 补丁里**不许出现**诊断侧新增的符号（那几样只在诊断补丁里定义）。
+#  这是**静态**判据（比"真去编一遍"便宜得多，一次全量 clang 构建 30 分钟起）；
+#  它挡不住"诊断补丁里定义的其它东西"，但挡住了"新增文件忘了归诊断补丁"这个
+#  实际会发生的错法。**真正的编译验证目前没有自动化**（太贵）—— 这一条登记在案，
+#  升级路径就是"把 keywords 补丁打到干净树上、只编 clang"。
+# ---------------------------------------------------------------------------
+$诊断侧符号 = @(
+    'ChineseSpelling',                  # PrintingPolicy 的字段（诊断补丁的 PrettyPrinter.h）
+    'ChineseDiagnostics.def',           # 中文诊断表
+    'ChineseDiagnostics',               # DiagnosticOptions 的开关
+    'getColumnUnit', 'ColumnUnitKind'   # §18.5 P-02 加的列号口径
+)
+$kwPatch = Join-Path $新 'zh-keywords.patch'
+
+# 判据写成函数：真扫一遍 + 自测（合成内容）—— 判据必须**能失败**
+function 提到诊断侧符号([string]$文) {
+    $命中 = @()
+    foreach ($符号 in $诊断侧符号) { if ($文.Contains($符号)) { $命中 += $符号 } }
+    return $命中
+}
+
+if (Test-Path $kwPatch) {
+    # 从补丁里取文件清单（`+++ b/<路径>`）
+    $kwFiles = @()
+    foreach ($l in [System.IO.File]::ReadAllLines($kwPatch)) {
+        $m = [regex]::Match($l, '^\+\+\+ b/(.+)$')
+        if ($m.Success) { $kwFiles += $m.Groups[1].Value.Trim() }
+    }
+    $越界 = @()
+    foreach ($rel in $kwFiles) {
+        $路径 = Join-Path $Root ('llvm-main\' + ($rel -replace '/', '\'))
+        if (-not (Test-Path $路径)) { continue }
+        # ⚠ 只看**非注释**行：注释里提一句"另一张表在哪个文件"不会让编译失败
+        #   （ChineseKeywords.def 的注释就提到了 ChineseDiagnostics.def —— 误报过一次）
+        $文 = ((@([System.IO.File]::ReadAllLines($路径)) |
+                Where-Object { -not $_.TrimStart().StartsWith('//') }) -join "`n")
+        foreach ($符号 in @(提到诊断侧符号 $文)) {
+            $越界 += ("{0} 提到 [{1}]" -f $rel, $符号)
+        }
+    }
+    if ($kwFiles.Count -eq 0) {
+        错 "keywords 补丁里一个文件都没解析出来（判据没打中）"
+    } elseif ($越界.Count -eq 0) {
+        过 ("keywords 补丁可以**单独编**：{0} 个文件都没有提到诊断侧符号（{1}）" -f $kwFiles.Count, ($诊断侧符号 -join '、'))
+    } else {
+        错 ("keywords 补丁**会编不过**（D-06 的单向依赖被破坏）—— 这些文件该归 `$DiagFiles`：" + ($越界 -join '；'))    }
+}
+
+# ---------------------------------------------------------------------------
+#  ③ 自测：上面两条判据都必须**能失败**
+#     （逐字节比较：改坏一个字节必须报不同；keywords 越界检查：造一行提到
+#      诊断侧符号的内容必须被抓到）
 # ---------------------------------------------------------------------------
 $样 = Join-Path $真 'zh-keywords.patch'
 if (Test-Path $样) {
@@ -80,6 +139,14 @@ if (Test-Path $样) {
     Remove-Item $坏 -Force -ErrorAction SilentlyContinue
 } else {
     错 "自测没法跑：patches\zh-keywords.patch 不存在"
+}
+
+$自测越界有 = @(提到诊断侧符号 '  Policy.ChineseSpelling = Context.getPrintingPolicy().ChineseSpelling;')
+$自测越界无 = @(提到诊断侧符号 '  Policy.Alignof = true;')
+if ($自测越界有.Count -eq 1 -and $自测越界有[0] -eq 'ChineseSpelling' -and $自测越界无.Count -eq 0) {
+    过 "自测：keywords 越界检查能失败（提到 ChineseSpelling 会被抓到，普通策略设置不误报）"
+} else {
+    错 ("自测失败：越界检查该抓 {0} 个（期望 1 个 ChineseSpelling）、普通内容误报 {1} 个（期望 0）" -f $自测越界有.Count, $自测越界无.Count)
 }
 
 Write-Host ''

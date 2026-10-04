@@ -22799,6 +22799,406 @@ index f7888f5..bb28c94 100644
        ElideType(ElideType),
        PrintTree(PrintTree),
        ShowColor(ShowColor),
+diff --git a/clang/lib/AST/DeclPrinter.cpp b/clang/lib/AST/DeclPrinter.cpp
+index 4be3e97..9b6b139 100644
+--- a/clang/lib/AST/DeclPrinter.cpp
++++ b/clang/lib/AST/DeclPrinter.cpp
+@@ -360,6 +360,22 @@ void DeclPrinter::Print(AccessSpecifier AS) {
+   const auto AccessSpelling = getAccessSpelling(AS);
+   if (AccessSpelling.empty())
+     llvm_unreachable("No access specifier!");
++  // 中文模式下访问说明符也用中文（大检查 P-14 / §18.12）。
++  // `getAccessSpelling()` 拿不到 PrintingPolicy ⇒ 这里按枚举选 token，
++  // 拼写仍然取自 ChineseKeywords.def（经共用帮手，与关键字表同源）。
++  switch (AS) {
++  case AS_public:
++    Out << getPrintedKeywordSpelling(Policy, tok::kw_public, AccessSpelling);
++    return;
++  case AS_private:
++    Out << getPrintedKeywordSpelling(Policy, tok::kw_private, AccessSpelling);
++    return;
++  case AS_protected:
++    Out << getPrintedKeywordSpelling(Policy, tok::kw_protected, AccessSpelling);
++    return;
++  case AS_none:
++    break;
++  }
+   Out << AccessSpelling;
+ }
+ 
+@@ -580,7 +596,7 @@ void DeclPrinter::VisitTranslationUnitDecl(TranslationUnitDecl *D) {
+ 
+ void DeclPrinter::VisitTypedefDecl(TypedefDecl *D) {
+   if (!Policy.SuppressSpecifiers) {
+-    Out << "typedef ";
++    Out << getPrintedKeywordSpelling(Policy, tok::kw_typedef, "typedef") << ' ';
+ 
+     if (D->isModulePrivate())
+       Out << "__module_private__ ";
+@@ -593,7 +609,7 @@ void DeclPrinter::VisitTypedefDecl(TypedefDecl *D) {
+ }
+ 
+ void DeclPrinter::VisitTypeAliasDecl(TypeAliasDecl *D) {
+-  Out << "using " << *D;
++  Out << getPrintedKeywordSpelling(Policy, tok::kw_using, "using") << ' ' << *D;
+   if (std::optional<std::string> Attrs = prettyPrintAttributes(D))
+     Out << ' ' << *Attrs;
+   Out << " = " << D->getTypeSourceInfo()->getType().getAsString(Policy);
+@@ -602,7 +618,7 @@ void DeclPrinter::VisitTypeAliasDecl(TypeAliasDecl *D) {
+ void DeclPrinter::VisitEnumDecl(EnumDecl *D) {
+   if (!Policy.SuppressSpecifiers && D->isModulePrivate())
+     Out << "__module_private__ ";
+-  Out << "enum";
++  Out << getPrintedKeywordSpelling(Policy, tok::kw_enum, "enum");
+   if (D->isScoped()) {
+     if (D->isScopedUsingClassTag())
+       Out << " class";
+@@ -626,10 +642,31 @@ void DeclPrinter::VisitEnumDecl(EnumDecl *D) {
+   }
+ }
+ 
++/// 标签声明（`struct`/`class`/`union`/`enum`）的拼写（大检查 P-14 / §18.12）。
++///
++/// `TagDecl::getKindName()` **拿不到 PrintingPolicy**，所以这里按 `TagTypeKind`
++/// 选 token，拼写仍然走共用帮手（取自 ChineseKeywords.def，**与关键字表同源**）。
++/// `__interface` 是 MS 扩展、中文表里没有译名 ⇒ 回退英文。
++static StringRef 标签关键字(const PrintingPolicy &Policy, TagTypeKind K) {
++  switch (K) {
++  case TagTypeKind::Struct:
++    return getPrintedKeywordSpelling(Policy, tok::kw_struct, "struct");
++  case TagTypeKind::Class:
++    return getPrintedKeywordSpelling(Policy, tok::kw_class, "class");
++  case TagTypeKind::Union:
++    return getPrintedKeywordSpelling(Policy, tok::kw_union, "union");
++  case TagTypeKind::Enum:
++    return getPrintedKeywordSpelling(Policy, tok::kw_enum, "enum");
++  case TagTypeKind::Interface:
++    return "__interface";
++  }
++  llvm_unreachable("Unknown tag type kind!");
++}
++
+ void DeclPrinter::VisitRecordDecl(RecordDecl *D) {
+   if (!Policy.SuppressSpecifiers && D->isModulePrivate())
+     Out << "__module_private__ ";
+-  Out << D->getKindName();
++  Out << 标签关键字(Policy, D->getTagKind());
+ 
+   if (std::optional<std::string> Attrs = prettyPrintAttributes(D))
+     Out << ' ' << *Attrs;
+@@ -657,7 +694,8 @@ void DeclPrinter::VisitEnumConstantDecl(EnumConstantDecl *D) {
+ static void printExplicitSpecifier(ExplicitSpecifier ES, llvm::raw_ostream &Out,
+                                    PrintingPolicy &Policy, unsigned Indentation,
+                                    const ASTContext &Context) {
+-  std::string Proto = "explicit";
++  std::string Proto =
++      getPrintedKeywordSpelling(Policy, tok::kw_explicit, "explicit").str();
+   llvm::raw_string_ostream EOut(Proto);
+   if (ES.getExpr()) {
+     EOut << "(";
+@@ -691,19 +729,19 @@ void DeclPrinter::VisitFunctionDecl(FunctionDecl *D) {
+   if (!Policy.SuppressSpecifiers) {
+     switch (D->getStorageClass()) {
+     case SC_None: break;
+-    case SC_Extern: Out << "extern "; break;
+-    case SC_Static: Out << "static "; break;
++    case SC_Extern: Out << getPrintedKeywordSpelling(Policy, tok::kw_extern, "extern") << ' '; break;
++    case SC_Static: Out << getPrintedKeywordSpelling(Policy, tok::kw_static, "static") << ' '; break;
+     case SC_PrivateExtern: Out << "__private_extern__ "; break;
+     case SC_Auto: case SC_Register:
+       llvm_unreachable("invalid for functions");
+     }
+ 
+-    if (D->isInlineSpecified())  Out << "inline ";
+-    if (D->isVirtualAsWritten()) Out << "virtual ";
++    if (D->isInlineSpecified())  Out << getPrintedKeywordSpelling(Policy, tok::kw_inline, "inline") << ' ';
++    if (D->isVirtualAsWritten()) Out << getPrintedKeywordSpelling(Policy, tok::kw_virtual, "virtual") << ' ';
+     if (D->isModulePrivate())    Out << "__module_private__ ";
+     if (D->isConstexprSpecified() && !D->isExplicitlyDefaulted())
+-      Out << "constexpr ";
+-    if (D->isConsteval())        Out << "consteval ";
++      Out << getPrintedKeywordSpelling(Policy, tok::kw_constexpr, "constexpr") << ' ';
++    if (D->isConsteval())        Out << getPrintedKeywordSpelling(Policy, tok::kw_consteval, "consteval") << ' ';
+     else if (D->isImmediateFunction())
+       Out << "immediate ";
+     ExplicitSpecifier ExplicitSpec = ExplicitSpecifier::getFromDecl(D);
+@@ -763,7 +801,7 @@ void DeclPrinter::VisitFunctionDecl(FunctionDecl *D) {
+       } else if (!D->getNumParams() && !Context.getLangOpts().CPlusPlus) {
+         // The function has a prototype, so it needs to retain the prototype
+         // in C.
+-        POut << "void";
++        POut << getPrintedKeywordSpelling(Policy, tok::kw_void, "void");
+       }
+     } else if (D->doesThisDeclarationHaveABody() && !D->hasPrototype()) {
+       for (unsigned i = 0, e = D->getNumParams(); i != e; ++i) {
+@@ -824,7 +862,7 @@ void DeclPrinter::VisitFunctionDecl(FunctionDecl *D) {
+     } else if (!ConversionDecl && !isa<CXXDestructorDecl>(D)) {
+       if (FT && FT->hasTrailingReturn()) {
+         if (!GuideDecl)
+-          Out << "auto ";
++          Out << getPrintedKeywordSpelling(Policy, tok::kw_auto, "auto") << ' ';
+         Out << Proto << " -> ";
+         Proto.clear();
+       }
+@@ -892,22 +930,22 @@ void DeclPrinter::VisitFriendDecl(FriendDecl *D) {
+     unsigned NumTPLists = D->getFriendTypeNumTemplateParameterLists();
+     for (unsigned i = 0; i < NumTPLists; ++i)
+       printTemplateParameters(D->getFriendTypeTemplateParameterList(i));
+-    Out << "friend ";
++    Out << getPrintedKeywordSpelling(Policy, tok::kw_friend, "friend") << ' ';
+     Out << TSI->getType().getAsString(Policy);
+   }
+   else if (FunctionDecl *FD =
+       dyn_cast<FunctionDecl>(D->getFriendDecl())) {
+-    Out << "friend ";
++    Out << getPrintedKeywordSpelling(Policy, tok::kw_friend, "friend") << ' ';
+     VisitFunctionDecl(FD);
+   }
+   else if (FunctionTemplateDecl *FTD =
+            dyn_cast<FunctionTemplateDecl>(D->getFriendDecl())) {
+-    Out << "friend ";
++    Out << getPrintedKeywordSpelling(Policy, tok::kw_friend, "friend") << ' ';
+     VisitFunctionTemplateDecl(FTD);
+   }
+   else if (ClassTemplateDecl *CTD =
+            dyn_cast<ClassTemplateDecl>(D->getFriendDecl())) {
+-    Out << "friend ";
++    Out << getPrintedKeywordSpelling(Policy, tok::kw_friend, "friend") << ' ';
+     VisitRedeclarableTemplateDecl(CTD);
+   }
+ 
+@@ -919,7 +957,7 @@ void DeclPrinter::VisitFieldDecl(FieldDecl *D) {
+   prettyPrintPragmas(D);
+   // FIXME: add printing of pragma attributes if required.
+   if (!Policy.SuppressSpecifiers && D->isMutable())
+-    Out << "mutable ";
++    Out << getPrintedKeywordSpelling(Policy, tok::kw_mutable, "mutable") << ' ';
+   if (!Policy.SuppressSpecifiers && D->isModulePrivate())
+     Out << "__module_private__ ";
+ 
+@@ -957,7 +995,7 @@ void DeclPrinter::VisitVarDecl(VarDecl *D) {
+ 
+   if (const auto *Param = dyn_cast<ParmVarDecl>(D);
+       Param && Param->isExplicitObjectParameter())
+-    Out << "this ";
++    Out << getPrintedKeywordSpelling(Policy, tok::kw_this, "this") << ' ';
+ 
+   QualType T = D->getTypeSourceInfo()
+     ? D->getTypeSourceInfo()->getType()
+@@ -965,8 +1003,30 @@ void DeclPrinter::VisitVarDecl(VarDecl *D) {
+ 
+   if (!Policy.SuppressSpecifiers) {
+     StorageClass SC = D->getStorageClass();
+-    if (SC != SC_None)
+-      Out << VarDecl::getStorageClassSpecifierString(SC) << " ";
++    if (SC != SC_None) {
++      // 中文模式下存储类也用中文（大检查 P-14 / §18.12）。
++      // `VarDecl::getStorageClassSpecifierString()` **拿不到 PrintingPolicy**
++      // ⇒ 这里按枚举选 token，拼写仍取自 ChineseKeywords.def（经共用帮手，表同源）。
++      // `__private_extern__` 是 MS 扩展、中文表里没有译名 ⇒ 回退英文。
++      StringRef 拼写 = VarDecl::getStorageClassSpecifierString(SC);
++      switch (SC) {
++      case SC_Static:
++        拼写 = getPrintedKeywordSpelling(Policy, tok::kw_static, 拼写);
++        break;
++      case SC_Extern:
++        拼写 = getPrintedKeywordSpelling(Policy, tok::kw_extern, 拼写);
++        break;
++      case SC_Auto:
++        拼写 = getPrintedKeywordSpelling(Policy, tok::kw_auto, 拼写);
++        break;
++      case SC_Register:
++        拼写 = getPrintedKeywordSpelling(Policy, tok::kw_register, 拼写);
++        break;
++      default:
++        break;
++      }
++      Out << 拼写 << ' ';
++    }
+ 
+     switch (D->getTSCSpec()) {
+     case TSCS_unspecified:
+@@ -978,7 +1038,7 @@ void DeclPrinter::VisitVarDecl(VarDecl *D) {
+       Out << "_Thread_local ";
+       break;
+     case TSCS_thread_local:
+-      Out << "thread_local ";
++      Out << getPrintedKeywordSpelling(Policy, tok::kw_thread_local, "thread_local") << ' ';
+       break;
+     }
+ 
+@@ -986,7 +1046,7 @@ void DeclPrinter::VisitVarDecl(VarDecl *D) {
+       Out << "__module_private__ ";
+ 
+     if (D->isConstexpr()) {
+-      Out << "constexpr ";
++      Out << getPrintedKeywordSpelling(Policy, tok::kw_constexpr, "constexpr") << ' ';
+       T.removeLocalConst();
+     }
+   }
+@@ -1051,7 +1111,7 @@ void DeclPrinter::VisitImportDecl(ImportDecl *D) {
+ }
+ 
+ void DeclPrinter::VisitStaticAssertDecl(StaticAssertDecl *D) {
+-  Out << "static_assert(";
++  Out << getPrintedKeywordSpelling(Policy, tok::kw_static_assert, "static_assert") << " (";
+   D->getAssertExpr()->printPretty(Out, nullptr, Policy, Indentation, "\n",
+                                   &Context);
+   if (Expr *E = D->getMessage()) {
+@@ -1066,9 +1126,9 @@ void DeclPrinter::VisitStaticAssertDecl(StaticAssertDecl *D) {
+ //----------------------------------------------------------------------------
+ void DeclPrinter::VisitNamespaceDecl(NamespaceDecl *D) {
+   if (D->isInline())
+-    Out << "inline ";
++    Out << getPrintedKeywordSpelling(Policy, tok::kw_inline, "inline") << ' ';
+ 
+-  Out << "namespace ";
++  Out << getPrintedKeywordSpelling(Policy, tok::kw_namespace, "namespace") << ' ';
+   if (D->getDeclName())
+     Out << D->getDeclName() << ' ';
+   Out << "{\n";
+@@ -1078,13 +1138,13 @@ void DeclPrinter::VisitNamespaceDecl(NamespaceDecl *D) {
+ }
+ 
+ void DeclPrinter::VisitUsingDirectiveDecl(UsingDirectiveDecl *D) {
+-  Out << "using namespace ";
++  Out << getPrintedKeywordSpelling(Policy, tok::kw_using, "using") << " namespace ";
+   D->getQualifier().print(Out, Policy);
+   Out << *D->getNominatedNamespaceAsWritten();
+ }
+ 
+ void DeclPrinter::VisitNamespaceAliasDecl(NamespaceAliasDecl *D) {
+-  Out << "namespace " << *D << " = ";
++  Out << getPrintedKeywordSpelling(Policy, tok::kw_namespace, "namespace") << ' ' << *D << " = ";
+   D->getQualifier().print(Out, Policy);
+   Out << *D->getAliasedNamespace();
+ }
+@@ -1099,7 +1159,7 @@ void DeclPrinter::VisitCXXRecordDecl(CXXRecordDecl *D) {
+   if (!Policy.SuppressSpecifiers && D->isModulePrivate())
+     Out << "__module_private__ ";
+ 
+-  Out << D->getKindName() << ' ';
++  Out << 标签关键字(Policy, D->getTagKind()) << ' ';
+ 
+   if (std::optional<std::string> Attrs =
+           prettyPrintAttributes(D, AttrPosAsWritten::Left))
+@@ -1136,7 +1196,7 @@ void DeclPrinter::VisitCXXRecordDecl(CXXRecordDecl *D) {
+           Out << ", ";
+ 
+         if (Base->isVirtual())
+-          Out << "virtual ";
++          Out << getPrintedKeywordSpelling(Policy, tok::kw_virtual, "virtual") << ' ';
+ 
+         AccessSpecifier AS = Base->getAccessSpecifierAsWritten();
+         if (AS != AS_none) {
+@@ -1173,7 +1233,8 @@ void DeclPrinter::VisitLinkageSpecDecl(LinkageSpecDecl *D) {
+     l = "C++";
+   }
+ 
+-  Out << "extern \"" << l << "\" ";
++  Out << getPrintedKeywordSpelling(Policy, tok::kw_extern, "extern") << " \""
++      << l << "\" ";
+   if (D->hasBraces()) {
+     Out << "{\n";
+     VisitDeclContext(D);
+@@ -1264,9 +1325,9 @@ void DeclPrinter::VisitTemplateDecl(const TemplateDecl *D) {
+   if (const TemplateTemplateParmDecl *TTP =
+         dyn_cast<TemplateTemplateParmDecl>(D)) {
+     if (TTP->wasDeclaredWithTypename())
+-      Out << "typename";
++      Out << getPrintedKeywordSpelling(Policy, tok::kw_typename, "typename");
+     else
+-      Out << "class";
++      Out << getPrintedKeywordSpelling(Policy, tok::kw_class, "class");
+ 
+     if (TTP->isParameterPack())
+       Out << " ...";
+@@ -1282,7 +1343,7 @@ void DeclPrinter::VisitTemplateDecl(const TemplateDecl *D) {
+   } else if (auto *TD = D->getTemplatedDecl())
+     Visit(TD);
+   else if (const auto *Concept = dyn_cast<ConceptDecl>(D)) {
+-    Out << "concept " << Concept->getName() << " = " ;
++    Out << getPrintedKeywordSpelling(Policy, tok::kw_concept, "concept") << ' ' << Concept->getName() << " = " ;
+     Concept->getConstraintExpr()->printPretty(Out, nullptr, Policy, Indentation,
+                                               "\n", &Context);
+   }
+@@ -1336,7 +1397,7 @@ void DeclPrinter::VisitClassTemplateDecl(ClassTemplateDecl *D) {
+ 
+ void DeclPrinter::VisitExplicitInstantiationDecl(ExplicitInstantiationDecl *D) {
+   if (D->isExternTemplate())
+-    Out << "extern ";
++    Out << getPrintedKeywordSpelling(Policy, tok::kw_extern, "extern") << ' ';
+   Out << "template ";
+ 
+   NamedDecl *Spec = D->getSpecialization();
+@@ -1355,7 +1416,7 @@ void DeclPrinter::VisitExplicitInstantiationDecl(ExplicitInstantiationDecl *D) {
+   }
+ 
+   if (auto *RD = dyn_cast<RecordDecl>(Spec)) {
+-    Out << RD->getKindName() << " " << Name;
++    Out << 标签关键字(Policy, RD->getTagKind()) << " " << Name;
+   } else if (auto *FD = dyn_cast<FunctionDecl>(Spec)) {
+     FD->getReturnType().print(Out, Policy);
+     Out << " " << Name << "(";
+@@ -1671,7 +1732,7 @@ void DeclPrinter::VisitObjCPropertyDecl(ObjCPropertyDecl *PDecl) {
+     bool first = true;
+     Out << "(";
+     if (PDecl->getPropertyAttributes() & ObjCPropertyAttribute::kind_class) {
+-      Out << (first ? "" : ", ") << "class";
++      Out << (first ? "" : ", ") << getPrintedKeywordSpelling(Policy, tok::kw_class, "class");
+       first = false;
+     }
+ 
+@@ -1778,9 +1839,9 @@ void DeclPrinter::VisitObjCPropertyImplDecl(ObjCPropertyImplDecl *PID) {
+ 
+ void DeclPrinter::VisitUsingDecl(UsingDecl *D) {
+   if (!D->isAccessDeclaration())
+-    Out << "using ";
++    Out << getPrintedKeywordSpelling(Policy, tok::kw_using, "using") << ' ';
+   if (D->hasTypename())
+-    Out << "typename ";
++    Out << getPrintedKeywordSpelling(Policy, tok::kw_typename, "typename") << ' ';
+   D->getQualifier().print(Out, Policy);
+ 
+   // Use the correct record name when the using declaration is used for
+@@ -1797,19 +1858,22 @@ void DeclPrinter::VisitUsingDecl(UsingDecl *D) {
+ }
+ 
+ void DeclPrinter::VisitUsingEnumDecl(UsingEnumDecl *D) {
+-  Out << "using enum " << D->getEnumDecl();
++  Out << getPrintedKeywordSpelling(Policy, tok::kw_using, "using") << ' '
++      << getPrintedKeywordSpelling(Policy, tok::kw_enum, "enum") << ' '
++      << D->getEnumDecl();
+ }
+ 
+ void
+ DeclPrinter::VisitUnresolvedUsingTypenameDecl(UnresolvedUsingTypenameDecl *D) {
+-  Out << "using typename ";
++  Out << getPrintedKeywordSpelling(Policy, tok::kw_using, "using") << ' '
++      << getPrintedKeywordSpelling(Policy, tok::kw_typename, "typename") << ' ';
+   D->getQualifier().print(Out, Policy);
+   Out << D->getDeclName();
+ }
+ 
+ void DeclPrinter::VisitUnresolvedUsingValueDecl(UnresolvedUsingValueDecl *D) {
+   if (!D->isAccessDeclaration())
+-    Out << "using ";
++    Out << getPrintedKeywordSpelling(Policy, tok::kw_using, "using") << ' ';
+   D->getQualifier().print(Out, Policy);
+   Out << D->getDeclName();
+ }
+@@ -1942,9 +2006,9 @@ void DeclPrinter::VisitTemplateTypeParmDecl(const TemplateTypeParmDecl *TTP) {
+   if (const TypeConstraint *TC = TTP->getTypeConstraint())
+     TC->print(Out, Policy);
+   else if (TTP->wasDeclaredWithTypename())
+-    Out << "typename";
++    Out << getPrintedKeywordSpelling(Policy, tok::kw_typename, "typename");
+   else
+-    Out << "class";
++    Out << getPrintedKeywordSpelling(Policy, tok::kw_class, "class");
+ 
+   if (TTP->isParameterPack())
+     Out << " ...";
 diff --git a/clang/lib/AST/Expr.cpp b/clang/lib/AST/Expr.cpp
 index 9a9a76e..f2bc3b1 100644
 --- a/clang/lib/AST/Expr.cpp
@@ -22824,10 +23224,220 @@ index 9a9a76e..f2bc3b1 100644
      }
      POut << ")";
 diff --git a/clang/lib/AST/StmtPrinter.cpp b/clang/lib/AST/StmtPrinter.cpp
-index 6035259..e3fc482 100644
+index 6035259..c54c8a3 100644
 --- a/clang/lib/AST/StmtPrinter.cpp
 +++ b/clang/lib/AST/StmtPrinter.cpp
-@@ -1702,6 +1702,17 @@ void StmtPrinter::VisitUnaryExprOrTypeTraitExpr(
+@@ -278,7 +278,7 @@ void StmtPrinter::VisitCompoundStmt(CompoundStmt *Node) {
+ }
+ 
+ void StmtPrinter::VisitCaseStmt(CaseStmt *Node) {
+-  Indent(-1) << "case ";
++  Indent(-1) << getPrintedKeywordSpelling(Policy, tok::kw_case, "case") << ' ';
+   PrintExpr(Node->getLHS());
+   if (Node->getRHS()) {
+     OS << " ... ";
+@@ -290,7 +290,7 @@ void StmtPrinter::VisitCaseStmt(CaseStmt *Node) {
+ }
+ 
+ void StmtPrinter::VisitDefaultStmt(DefaultStmt *Node) {
+-  Indent(-1) << "default:" << NL;
++  Indent(-1) << getPrintedKeywordSpelling(Policy, tok::kw_default, "default") << ':' << NL;
+   PrintStmt(Node->getSubStmt(), 0);
+ }
+ 
+@@ -312,22 +312,22 @@ void StmtPrinter::VisitAttributedStmt(AttributedStmt *Node) {
+ 
+ void StmtPrinter::PrintRawIfStmt(IfStmt *If) {
+   if (If->isConsteval()) {
+-    OS << "if ";
++    OS << getPrintedKeywordSpelling(Policy, tok::kw_if, "if") << ' ';
+     if (If->isNegatedConsteval())
+       OS << "!";
+-    OS << "consteval";
++    OS << getPrintedKeywordSpelling(Policy, tok::kw_consteval, "consteval");
+     OS << NL;
+     PrintStmt(If->getThen());
+     if (Stmt *Else = If->getElse()) {
+       Indent();
+-      OS << "else";
++      OS << getPrintedKeywordSpelling(Policy, tok::kw_else, "else");
+       PrintStmt(Else);
+       OS << NL;
+     }
+     return;
+   }
+ 
+-  OS << "if (";
++  OS << getPrintedKeywordSpelling(Policy, tok::kw_if, "if") << " (";
+   if (If->getInit())
+     PrintInitStmt(If->getInit(), 4);
+   if (const DeclStmt *DS = If->getConditionVariableDeclStmt())
+@@ -347,7 +347,7 @@ void StmtPrinter::PrintRawIfStmt(IfStmt *If) {
+   }
+ 
+   if (Stmt *Else = If->getElse()) {
+-    OS << "else";
++    OS << getPrintedKeywordSpelling(Policy, tok::kw_else, "else");
+ 
+     if (auto *CS = dyn_cast<CompoundStmt>(Else)) {
+       OS << ' ';
+@@ -369,7 +369,7 @@ void StmtPrinter::VisitIfStmt(IfStmt *If) {
+ }
+ 
+ void StmtPrinter::VisitSwitchStmt(SwitchStmt *Node) {
+-  Indent() << "switch (";
++  Indent() << getPrintedKeywordSpelling(Policy, tok::kw_switch, "switch") << " (";
+   if (Node->getInit())
+     PrintInitStmt(Node->getInit(), 8);
+   if (const DeclStmt *DS = Node->getConditionVariableDeclStmt())
+@@ -381,7 +381,7 @@ void StmtPrinter::VisitSwitchStmt(SwitchStmt *Node) {
+ }
+ 
+ void StmtPrinter::VisitWhileStmt(WhileStmt *Node) {
+-  Indent() << "while (";
++  Indent() << getPrintedKeywordSpelling(Policy, tok::kw_while, "while") << " (";
+   if (const DeclStmt *DS = Node->getConditionVariableDeclStmt())
+     PrintRawDeclStmt(DS);
+   else
+@@ -391,7 +391,7 @@ void StmtPrinter::VisitWhileStmt(WhileStmt *Node) {
+ }
+ 
+ void StmtPrinter::VisitDoStmt(DoStmt *Node) {
+-  Indent() << "do ";
++  Indent() << getPrintedKeywordSpelling(Policy, tok::kw_do, "do") << ' ';
+   if (auto *CS = dyn_cast<CompoundStmt>(Node->getBody())) {
+     PrintRawCompoundStmt(CS);
+     OS << " ";
+@@ -401,13 +401,13 @@ void StmtPrinter::VisitDoStmt(DoStmt *Node) {
+     Indent();
+   }
+ 
+-  OS << "while (";
++  OS << getPrintedKeywordSpelling(Policy, tok::kw_while, "while") << " (";
+   PrintExpr(Node->getCond());
+   OS << ");" << NL;
+ }
+ 
+ void StmtPrinter::VisitForStmt(ForStmt *Node) {
+-  Indent() << "for (";
++  Indent() << getPrintedKeywordSpelling(Policy, tok::kw_for, "for") << " (";
+   if (Node->getInit())
+     PrintInitStmt(Node->getInit(), 5);
+   else
+@@ -426,7 +426,7 @@ void StmtPrinter::VisitForStmt(ForStmt *Node) {
+ }
+ 
+ void StmtPrinter::VisitObjCForCollectionStmt(ObjCForCollectionStmt *Node) {
+-  Indent() << "for (";
++  Indent() << getPrintedKeywordSpelling(Policy, tok::kw_for, "for") << " (";
+   if (auto *DS = dyn_cast<DeclStmt>(Node->getElement()))
+     PrintRawDeclStmt(DS);
+   else
+@@ -438,7 +438,7 @@ void StmtPrinter::VisitObjCForCollectionStmt(ObjCForCollectionStmt *Node) {
+ }
+ 
+ void StmtPrinter::VisitCXXForRangeStmt(CXXForRangeStmt *Node) {
+-  Indent() << "for (";
++  Indent() << getPrintedKeywordSpelling(Policy, tok::kw_for, "for") << " (";
+   if (Node->getInit())
+     PrintInitStmt(Node->getInit(), 5);
+   PrintingPolicy SubPolicy(Policy);
+@@ -495,12 +495,12 @@ void StmtPrinter::VisitMSDependentExistsStmt(MSDependentExistsStmt *Node) {
+ }
+ 
+ void StmtPrinter::VisitGotoStmt(GotoStmt *Node) {
+-  Indent() << "goto " << Node->getLabel()->getName() << ";";
++  Indent() << getPrintedKeywordSpelling(Policy, tok::kw_goto, "goto") << ' ' << Node->getLabel()->getName() << ";";
+   if (Policy.IncludeNewlines) OS << NL;
+ }
+ 
+ void StmtPrinter::VisitIndirectGotoStmt(IndirectGotoStmt *Node) {
+-  Indent() << "goto *";
++  Indent() << getPrintedKeywordSpelling(Policy, tok::kw_goto, "goto") << " *";
+   PrintExpr(Node->getTarget());
+   OS << ";";
+   if (Policy.IncludeNewlines) OS << NL;
+@@ -509,19 +509,19 @@ void StmtPrinter::VisitIndirectGotoStmt(IndirectGotoStmt *Node) {
+ void StmtPrinter::VisitContinueStmt(ContinueStmt *Node) {
+   Indent();
+   if (Node->hasLabelTarget())
+-    OS << "continue " << Node->getLabelDecl()->getIdentifier()->getName()
++    OS << getPrintedKeywordSpelling(Policy, tok::kw_continue, "continue") << ' ' << Node->getLabelDecl()->getIdentifier()->getName()
+        << ';';
+   else
+-    OS << "continue;";
++    OS << getPrintedKeywordSpelling(Policy, tok::kw_continue, "continue") << ';';
+   if (Policy.IncludeNewlines) OS << NL;
+ }
+ 
+ void StmtPrinter::VisitBreakStmt(BreakStmt *Node) {
+   Indent();
+   if (Node->hasLabelTarget())
+-    OS << "break " << Node->getLabelDecl()->getIdentifier()->getName() << ';';
++    OS << getPrintedKeywordSpelling(Policy, tok::kw_break, "break") << ' ' << Node->getLabelDecl()->getIdentifier()->getName() << ';';
+   else
+-    OS << "break;";
++    OS << getPrintedKeywordSpelling(Policy, tok::kw_break, "break") << ';';
+   if (Policy.IncludeNewlines) OS << NL;
+ }
+ 
+@@ -531,7 +531,7 @@ void StmtPrinter::VisitDeferStmt(DeferStmt *Node) {
+ }
+ 
+ void StmtPrinter::VisitReturnStmt(ReturnStmt *Node) {
+-  Indent() << "return";
++  Indent() << getPrintedKeywordSpelling(Policy, tok::kw_return, "return");
+   if (Node->getRetValue()) {
+     OS << " ";
+     PrintExpr(Node->getRetValue());
+@@ -541,13 +541,13 @@ void StmtPrinter::VisitReturnStmt(ReturnStmt *Node) {
+ }
+ 
+ void StmtPrinter::VisitGCCAsmStmt(GCCAsmStmt *Node) {
+-  Indent() << "asm ";
++  Indent() << getPrintedKeywordSpelling(Policy, tok::kw_asm, "asm") << ' ';
+ 
+   if (Node->isVolatile())
+-    OS << "volatile ";
++    OS << getPrintedKeywordSpelling(Policy, tok::kw_volatile, "volatile") << ' ';
+ 
+   if (Node->isAsmGoto())
+-    OS << "goto ";
++    OS << getPrintedKeywordSpelling(Policy, tok::kw_goto, "goto") << ' ';
+ 
+   OS << "(";
+   Visit(Node->getAsmStringExpr());
+@@ -700,7 +700,7 @@ void StmtPrinter::VisitObjCAutoreleasePoolStmt(ObjCAutoreleasePoolStmt *Node) {
+ }
+ 
+ void StmtPrinter::PrintRawCXXCatchStmt(CXXCatchStmt *Node) {
+-  OS << "catch (";
++  OS << getPrintedKeywordSpelling(Policy, tok::kw_catch, "catch") << " (";
+   if (Decl *ExDecl = Node->getExceptionDecl())
+     PrintRawDecl(ExDecl);
+   else
+@@ -716,7 +716,7 @@ void StmtPrinter::VisitCXXCatchStmt(CXXCatchStmt *Node) {
+ }
+ 
+ void StmtPrinter::VisitCXXTryStmt(CXXTryStmt *Node) {
+-  Indent() << "try ";
++  Indent() << getPrintedKeywordSpelling(Policy, tok::kw_try, "try") << ' ';
+   PrintRawCompoundStmt(Node->getTryBlock());
+   for (unsigned i = 0, e = Node->getNumHandlers(); i < e; ++i) {
+     OS << " ";
+@@ -726,7 +726,10 @@ void StmtPrinter::VisitCXXTryStmt(CXXTryStmt *Node) {
+ }
+ 
+ void StmtPrinter::VisitSEHTryStmt(SEHTryStmt *Node) {
+-  Indent() << (Node->getIsCXXTry() ? "try " : "__try ");
++  // `__try` 是 MS 扩展、中文表里没有译名 ⇒ 保持英文（大检查 P-14 / §18.12）。
++  Indent() << (Node->getIsCXXTry()
++                   ? getPrintedKeywordSpelling(Policy, tok::kw_try, "try")
++                   : "__try ");
+   PrintRawCompoundStmt(Node->getTryBlock());
+   SEHExceptStmt *E = Node->getExceptHandler();
+   SEHFinallyStmt *F = Node->getFinallyHandler();
+@@ -1702,6 +1705,17 @@ void StmtPrinter::VisitUnaryExprOrTypeTraitExpr(
        Spelling = "__alignof";
    }
  
@@ -22845,7 +23455,16 @@ index 6035259..e3fc482 100644
    OS << Spelling;
  
    if (Node->isArgumentType()) {
-@@ -2212,8 +2223,30 @@ void StmtPrinter::VisitCXXRewrittenBinaryOperator(
+@@ -1725,7 +1739,7 @@ void StmtPrinter::VisitGenericSelectionExpr(GenericSelectionExpr *Node) {
+     OS << ", ";
+     QualType T = Assoc.getType();
+     if (T.isNull())
+-      OS << "default";
++      OS << getPrintedKeywordSpelling(Policy, tok::kw_default, "default");
+     else
+       T.print(OS, Policy);
+     OS << ": ";
+@@ -2212,8 +2226,30 @@ void StmtPrinter::VisitCXXRewrittenBinaryOperator(
    PrintExpr(const_cast<Expr*>(Decomposed.RHS));
  }
  
@@ -22877,7 +23496,7 @@ index 6035259..e3fc482 100644
    Node->getTypeAsWritten().print(OS, Policy);
    OS << ">(";
    PrintExpr(Node->getSubExpr());
-@@ -2249,7 +2282,7 @@ void StmtPrinter::VisitCXXAddrspaceCastExpr(CXXAddrspaceCastExpr *Node) {
+@@ -2249,7 +2285,7 @@ void StmtPrinter::VisitCXXAddrspaceCastExpr(CXXAddrspaceCastExpr *Node) {
  }
  
  void StmtPrinter::VisitCXXTypeidExpr(CXXTypeidExpr *Node) {
@@ -22886,7 +23505,17 @@ index 6035259..e3fc482 100644
    if (Node->isTypeOperand()) {
      Node->getTypeOperandSourceInfo()->getType().print(OS, Policy);
    } else {
-@@ -2335,22 +2368,25 @@ void StmtPrinter::VisitUserDefinedLiteral(UserDefinedLiteral *Node) {
+@@ -2301,7 +2337,8 @@ void StmtPrinter::VisitUserDefinedLiteral(UserDefinedLiteral *Node) {
+       if (!DRE->hadMultipleCandidates())
+         if (const auto *TD = dyn_cast<TemplateDecl>(DRE->getDecl()))
+           TPL = TD->getTemplateParameters();
+-      OS << "operator\"\"" << Node->getUDSuffix()->getName();
++      OS << getPrintedKeywordSpelling(Policy, tok::kw_operator, "operator")
++         << "\"\"" << Node->getUDSuffix()->getName();
+       printTemplateArgumentList(OS, Args->asArray(), Policy, TPL);
+       OS << "()";
+       return;
+@@ -2335,22 +2372,25 @@ void StmtPrinter::VisitUserDefinedLiteral(UserDefinedLiteral *Node) {
  }
  
  void StmtPrinter::VisitCXXBoolLiteralExpr(CXXBoolLiteralExpr *Node) {
@@ -22917,7 +23546,7 @@ index 6035259..e3fc482 100644
      PrintExpr(Node->getSubExpr());
    }
  }
-@@ -2442,11 +2478,11 @@ void StmtPrinter::VisitLambdaExpr(LambdaExpr *Node) {
+@@ -2442,11 +2482,11 @@ void StmtPrinter::VisitLambdaExpr(LambdaExpr *Node) {
  
      switch (C->getCaptureKind()) {
      case LCK_This:
@@ -22931,7 +23560,7 @@ index 6035259..e3fc482 100644
        break;
  
      case LCK_ByRef:
-@@ -2550,7 +2586,7 @@ void StmtPrinter::VisitCXXScalarValueInitExpr(CXXScalarValueInitExpr *Node) {
+@@ -2550,7 +2590,7 @@ void StmtPrinter::VisitCXXScalarValueInitExpr(CXXScalarValueInitExpr *Node) {
  void StmtPrinter::VisitCXXNewExpr(CXXNewExpr *E) {
    if (E->isGlobalNew())
      OS << "::";
@@ -22940,7 +23569,7 @@ index 6035259..e3fc482 100644
    unsigned NumPlace = E->getNumPlacementArgs();
    if (NumPlace > 0 && !isa<CXXDefaultArgExpr>(E->getPlacementArg(0))) {
      OS << "(";
-@@ -2592,7 +2628,7 @@ void StmtPrinter::VisitCXXNewExpr(CXXNewExpr *E) {
+@@ -2592,7 +2632,7 @@ void StmtPrinter::VisitCXXNewExpr(CXXNewExpr *E) {
  void StmtPrinter::VisitCXXDeleteExpr(CXXDeleteExpr *E) {
    if (E->isGlobalDelete())
      OS << "::";
@@ -22949,7 +23578,16 @@ index 6035259..e3fc482 100644
    if (E->isArrayForm())
      OS << "[] ";
    PrintExpr(E->getArgument());
-@@ -2726,7 +2762,8 @@ void StmtPrinter::VisitPackExpansionExpr(PackExpansionExpr *E) {
+@@ -2715,7 +2755,7 @@ void StmtPrinter::VisitExpressionTraitExpr(ExpressionTraitExpr *E) {
+ }
+ 
+ void StmtPrinter::VisitCXXNoexceptExpr(CXXNoexceptExpr *E) {
+-  OS << "noexcept(";
++  OS << getPrintedKeywordSpelling(Policy, tok::kw_noexcept, "noexcept") << " (";
+   PrintExpr(E->getOperand());
+   OS << ")";
+ }
+@@ -2726,7 +2766,8 @@ void StmtPrinter::VisitPackExpansionExpr(PackExpansionExpr *E) {
  }
  
  void StmtPrinter::VisitSizeOfPackExpr(SizeOfPackExpr *E) {
@@ -22959,7 +23597,25 @@ index 6035259..e3fc482 100644
  }
  
  void StmtPrinter::VisitPackIndexingExpr(PackIndexingExpr *E) {
-@@ -2845,7 +2882,7 @@ void StmtPrinter::VisitCoroutineBodyStmt(CoroutineBodyStmt *S) {
+@@ -2785,7 +2826,7 @@ void StmtPrinter::VisitConceptSpecializationExpr(ConceptSpecializationExpr *E) {
+ }
+ 
+ void StmtPrinter::VisitRequiresExpr(RequiresExpr *E) {
+-  OS << "requires ";
++  OS << getPrintedKeywordSpelling(Policy, tok::kw_requires, "requires") << ' ';
+   auto LocalParameters = E->getLocalParameters();
+   if (!LocalParameters.empty()) {
+     OS << "(";
+@@ -2827,7 +2868,7 @@ void StmtPrinter::VisitRequiresExpr(RequiresExpr *E) {
+       }
+     } else {
+       auto *NestedReq = cast<concepts::NestedRequirement>(Req);
+-      OS << "requires ";
++      OS << getPrintedKeywordSpelling(Policy, tok::kw_requires, "requires") << ' ';
+       if (NestedReq->hasInvalidConstraint())
+         OS << "<<error-expression>>";
+       else
+@@ -2845,7 +2886,7 @@ void StmtPrinter::VisitCoroutineBodyStmt(CoroutineBodyStmt *S) {
  }
  
  void StmtPrinter::VisitCoreturnStmt(CoreturnStmt *S) {
@@ -22968,7 +23624,7 @@ index 6035259..e3fc482 100644
    if (S->getOperand()) {
      OS << " ";
      Visit(S->getOperand());
-@@ -2854,17 +2891,17 @@ void StmtPrinter::VisitCoreturnStmt(CoreturnStmt *S) {
+@@ -2854,17 +2895,17 @@ void StmtPrinter::VisitCoreturnStmt(CoreturnStmt *S) {
  }
  
  void StmtPrinter::VisitCoawaitExpr(CoawaitExpr *S) {
