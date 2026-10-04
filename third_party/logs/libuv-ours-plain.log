@@ -49,7 +49,7 @@
       C compiler:    E:/Chinese++/build/Release/bin/clang.exe (Clang)
       CFLAGS:         
 
--- Configuring done (4.7s)
+-- Configuring done (4.8s)
 -- Generating done (0.1s)
 -- Build files have been written to: E:/Chinese++/third_party/build/libuv-ours
 -- build --
@@ -67,22 +67,110 @@
 [12/487] Building C object CMakeFiles/uv.dir/src/win/detect-wakeup.c.obj
 [13/487] Building C object CMakeFiles/uv.dir/src/win/dl.c.obj
 [14/487] Building C object CMakeFiles/uv.dir/src/win/error.c.obj
-[15/487] Building C object CMakeFiles/uv.dir/src/win/snprintf.c.obj
-[16/487] Building C object CMakeFiles/uv_a.dir/src/strtok.c.obj
-[17/487] Building C object CMakeFiles/uv.dir/src/win/getnameinfo.c.obj
+[15/487] Building C object CMakeFiles/uv.dir/src/win/getnameinfo.c.obj
+[16/487] Building C object CMakeFiles/uv.dir/src/win/snprintf.c.obj
+[17/487] Building C object CMakeFiles/uv_a.dir/src/strtok.c.obj
 [18/487] Building C object CMakeFiles/uv.dir/src/win/handle.c.obj
-[19/487] Building C object CMakeFiles/uv.dir/src/win/loop-watcher.c.obj
-[20/487] Building C object CMakeFiles/uv.dir/src/win/getaddrinfo.c.obj
+[19/487] Building C object CMakeFiles/uv.dir/src/uv-common.c.obj
+[20/487] Building C object CMakeFiles/uv.dir/src/win/loop-watcher.c.obj
+[21/487] Building C object CMakeFiles/uv.dir/src/win/getaddrinfo.c.obj
 E:/Chinese++/third_party/src/libuv/src/win/getaddrinfo.c:180:15: warning: 未使用的变量（变量名） 'r' [-Wunused-variable]
   180 |           int r = uv__copy_utf16_to_utf8(addrinfow_ptr->ai_canonname,
       |               ^
 生成了 1 个警告。
-[21/487] Building C object CMakeFiles/uv.dir/src/uv-common.c.obj
 [22/487] Building C object CMakeFiles/uv.dir/src/win/poll.c.obj
-[23/487] Building C object CMakeFiles/uv.dir/src/win/stream.c.obj
-[24/487] Building C object CMakeFiles/uv.dir/src/win/process-stdio.c.obj
+[23/487] Building C object CMakeFiles/uv.dir/src/win/process-stdio.c.obj
+[24/487] Building C object CMakeFiles/uv.dir/src/win/stream.c.obj
 [25/487] Building C object CMakeFiles/uv.dir/src/win/winapi.c.obj
-[26/487] Building C object CMakeFiles/uv.dir/src/win/signal.c.obj
+[26/487] Building C object CMakeFiles/uv.dir/src/timer.c.obj
+包含自 E:/Chinese++/third_party/src/libuv/src/timer.c:23:
+E:/Chinese++/third_party/src/libuv/src\heap-inl.h:62:18: warning: 未使用的函数（函数名） 'heap_init' [-Wunused-function]
+   62 | HEAP_EXPORT(void heap_init(struct heap* heap)) {
+      |                  ^~~~~~~~~
+E:/Chinese++/third_party/src/libuv/src\heap-inl.h:239:18: warning: 未使用的函数（函数名） 'heap_dequeue' [-Wunused-function]
+  239 | HEAP_EXPORT(void heap_dequeue(struct heap* heap, heap_compare_fn less_than)) {
+      |                  ^~~~~~~~~~~~
+生成了 2 个警告。
+[27/487] Building C object CMakeFiles/uv.dir/src/win/fs-event.c.obj
+E:/Chinese++/third_party/src/libuv/src/win/fs-event.c:83:3: warning: （名字） 'wcsncpy' 已被弃用：This function or variable may be unsafe. Consider using wcsncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
+   83 |   wcsncpy(*relpath, filename + dirlen + 1, relpathlen);
+      |   ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt_wstring.h:200:1: note: （名字） 'wcsncpy' 在此被明确标记为已弃用
+  200 | __DEFINE_CPP_OVERLOAD_STANDARD_NFUNC_0_2_EX(
+      | ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt.h:1974:17: note: 从宏 '__DEFINE_CPP_OVERLOAD_STANDARD_NFUNC_0_2_EX' 展开
+ 1974 |                 _CRT_INSECURE_DEPRECATE(_SecureFuncName) _DeclSpec _ReturnType __cdecl _FuncName(_SalAttributeDst _DstType *_Dst, _TType1 _TArg1, _TType2 _TArg2);
+      |                 ^
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:368:55: note: 从宏 '_CRT_INSECURE_DEPRECATE' 展开
+  368 |         #define _CRT_INSECURE_DEPRECATE(_Replacement) _CRT_DEPRECATE_TEXT(    \
+      |                                                       ^
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:358:47: note: 从宏 '_CRT_DEPRECATE_TEXT' 展开
+  358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
+      |                                               ^
+E:/Chinese++/third_party/src/libuv/src/win/fs-event.c:129:7: warning: （名字） 'wcsncpy' 已被弃用：This function or variable may be unsafe. Consider using wcsncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
+  129 |       wcsncpy(*dir, filename, i + 1);
+      |       ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt_wstring.h:200:1: note: （名字） 'wcsncpy' 在此被明确标记为已弃用
+  200 | __DEFINE_CPP_OVERLOAD_STANDARD_NFUNC_0_2_EX(
+      | ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt.h:1974:17: note: 从宏 '__DEFINE_CPP_OVERLOAD_STANDARD_NFUNC_0_2_EX' 展开
+ 1974 |                 _CRT_INSECURE_DEPRECATE(_SecureFuncName) _DeclSpec _ReturnType __cdecl _FuncName(_SalAttributeDst _DstType *_Dst, _TType1 _TArg1, _TType2 _TArg2);
+      |                 ^
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:368:55: note: 从宏 '_CRT_INSECURE_DEPRECATE' 展开
+  368 |         #define _CRT_INSECURE_DEPRECATE(_Replacement) _CRT_DEPRECATE_TEXT(    \
+      |                                                       ^
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:358:47: note: 从宏 '_CRT_DEPRECATE_TEXT' 展开
+  358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
+      |                                               ^
+E:/Chinese++/third_party/src/libuv/src/win/fs-event.c:137:5: warning: （名字） 'wcsncpy' 已被弃用：This function or variable may be unsafe. Consider using wcsncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
+  137 |     wcsncpy(*file, filename + i + 1, len - i - 1);
+      |     ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt_wstring.h:200:1: note: （名字） 'wcsncpy' 在此被明确标记为已弃用
+  200 | __DEFINE_CPP_OVERLOAD_STANDARD_NFUNC_0_2_EX(
+      | ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt.h:1974:17: note: 从宏 '__DEFINE_CPP_OVERLOAD_STANDARD_NFUNC_0_2_EX' 展开
+ 1974 |                 _CRT_INSECURE_DEPRECATE(_SecureFuncName) _DeclSpec _ReturnType __cdecl _FuncName(_SalAttributeDst _DstType *_Dst, _TType1 _TArg1, _TType2 _TArg2);
+      |                 ^
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:368:55: note: 从宏 '_CRT_INSECURE_DEPRECATE' 展开
+  368 |         #define _CRT_INSECURE_DEPRECATE(_Replacement) _CRT_DEPRECATE_TEXT(    \
+      |                                                       ^
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:358:47: note: 从宏 '_CRT_DEPRECATE_TEXT' 展开
+  358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
+      |                                               ^
+E:/Chinese++/third_party/src/libuv/src/win/fs-event.c:502:15: warning: （名字） '_snwprintf' 已被弃用：This function or variable may be unsafe. Consider using _snwprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
+  502 |               _snwprintf(filenamew, size, L"%s\\%.*s", handle->dirw,
+      |               ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt_wstdio.h:1109:5: note: （名字） '_snwprintf' 在此被明确标记为已弃用
+ 1109 |     __DEFINE_CPP_OVERLOAD_STANDARD_NFUNC_0_2_ARGLIST_EX(
+      |     ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt.h:1997:17: note: 从宏 '__DEFINE_CPP_OVERLOAD_STANDARD_NFUNC_0_2_ARGLIST_EX' 展开
+ 1997 |                 _CRT_INSECURE_DEPRECATE(_FuncName##_s) _DeclSpec _ReturnType _CC _FuncName(_SalAttributeDst _DstType *_Dst, _TType1 _TArg1, _TType2 _TArg2, ...); \
+      |                 ^
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:368:55: note: 从宏 '_CRT_INSECURE_DEPRECATE' 展开
+  368 |         #define _CRT_INSECURE_DEPRECATE(_Replacement) _CRT_DEPRECATE_TEXT(    \
+      |                                                       ^
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:358:47: note: 从宏 '_CRT_DEPRECATE_TEXT' 展开
+  358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
+      |                                               ^
+生成了 4 个警告。
+[28/487] Building C object CMakeFiles/uv.dir/src/win/thread.c.obj
+E:/Chinese++/third_party/src/libuv/src/win/thread.c:309:3: warning: （名字） 'strncpy' 已被弃用：This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
+  309 |   strncpy(namebuf, name, sizeof(namebuf) - 1);
+      |   ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\string.h:334:1: note: （名字） 'strncpy' 在此被明确标记为已弃用
+  334 | __DEFINE_CPP_OVERLOAD_STANDARD_NFUNC_0_2_EX(
+      | ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt.h:1974:17: note: 从宏 '__DEFINE_CPP_OVERLOAD_STANDARD_NFUNC_0_2_EX' 展开
+ 1974 |                 _CRT_INSECURE_DEPRECATE(_SecureFuncName) _DeclSpec _ReturnType __cdecl _FuncName(_SalAttributeDst _DstType *_Dst, _TType1 _TArg1, _TType2 _TArg2);
+      |                 ^
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:368:55: note: 从宏 '_CRT_INSECURE_DEPRECATE' 展开
+  368 |         #define _CRT_INSECURE_DEPRECATE(_Replacement) _CRT_DEPRECATE_TEXT(    \
+      |                                                       ^
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:358:47: note: 从宏 '_CRT_DEPRECATE_TEXT' 展开
+  358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
+      |                                               ^
+生成了 1 个警告。
+[29/487] Building C object CMakeFiles/uv.dir/src/win/signal.c.obj
 E:/Chinese++/third_party/src/libuv/src/win/signal.c:161:16: warning: 变量（变量名） 'removed_handle' 被赋值但未被使用 [-Wunused-but-set-variable]
   161 |   uv_signal_t* removed_handle;
       |                ^
@@ -132,7 +220,71 @@ E:/Chinese++/third_party/src/libuv/include\uv/tree.h:464:79: note: 从宏 'RB_GE
   300 | uv_signal_tree_s_RB_MINMAX
       | ^~~~~~~~~~~~~~~~~~~~~~~~~~
 生成了 5 个警告。
-[27/487] Building C object CMakeFiles/uv.dir/src/timer.c.obj
+[30/487] Building C object CMakeFiles/uv.dir/src/win/core.c.obj
+包含自 E:/Chinese++/third_party/src/libuv/src/win/core.c:36:
+E:/Chinese++/third_party/src/libuv/src\heap-inl.h:67:31: warning: 未使用的函数（函数名） 'heap_min' [-Wunused-function]
+   67 | HEAP_EXPORT(struct heap_node* heap_min(const struct heap* heap)) {
+      |                               ^~~~~~~~
+E:/Chinese++/third_party/src/libuv/src\heap-inl.h:106:18: warning: 未使用的函数（函数名） 'heap_insert' [-Wunused-function]
+  106 | HEAP_EXPORT(void heap_insert(struct heap* heap,
+      |                  ^~~~~~~~~~~
+E:/Chinese++/third_party/src/libuv/src\heap-inl.h:239:18: warning: 未使用的函数（函数名） 'heap_dequeue' [-Wunused-function]
+  239 | HEAP_EXPORT(void heap_dequeue(struct heap* heap, heap_compare_fn less_than)) {
+      |                  ^~~~~~~~~~~~
+生成了 3 个警告。
+[31/487] Building C object CMakeFiles/uv_a.dir/src/fs-poll.c.obj
+[32/487] Building C object CMakeFiles/uv_a.dir/src/strscpy.c.obj
+[33/487] Building C object CMakeFiles/uv_a.dir/src/random.c.obj
+[34/487] Building C object CMakeFiles/uv_a.dir/src/thread-common.c.obj
+[35/487] Building C object CMakeFiles/uv_a.dir/src/idna.c.obj
+[36/487] Building C object CMakeFiles/uv.dir/src/win/udp.c.obj
+[37/487] Building C object CMakeFiles/uv_a.dir/src/inet.c.obj
+[38/487] Building C object CMakeFiles/uv_a.dir/src/win/snprintf.c.obj
+[39/487] Building C object CMakeFiles/uv_a.dir/src/uv-data-getter-setters.c.obj
+[40/487] Building C object CMakeFiles/uv_a.dir/src/version.c.obj
+[41/487] Building C object CMakeFiles/uv.dir/src/win/tcp.c.obj
+[42/487] Building C object CMakeFiles/uv_a.dir/src/threadpool.c.obj
+[43/487] Building C object CMakeFiles/uv_a.dir/src/win/detect-wakeup.c.obj
+[44/487] Building C object CMakeFiles/uv_a.dir/src/win/async.c.obj
+[45/487] Building C object CMakeFiles/uv_a.dir/src/win/dl.c.obj
+[46/487] Building C object CMakeFiles/uv.dir/src/win/winsock.c.obj
+E:/Chinese++/third_party/src/libuv/src/win/winsock.c:570:40: warning: 建议给子对象的初始化加上花括号 [-Wmissing-braces]
+  570 |       struct in6_addr init_sin6_addr = IN6ADDR_LOOPBACK_INIT;
+      |                                        ^~~~~~~~~~~~~~~~~~~~~
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\ws2ipdef.h:251:33: note: 从宏 'IN6ADDR_LOOPBACK_INIT' 展开
+  251 | #define IN6ADDR_LOOPBACK_INIT { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1 }
+      |                                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+生成了 1 个警告。
+[47/487] Building C object CMakeFiles/uv_a.dir/src/win/error.c.obj
+[48/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/src/win/snprintf.c.obj
+[49/487] Building C object CMakeFiles/uv.dir/src/win/pipe.c.obj
+E:/Chinese++/third_party/src/libuv/src/win/pipe.c:1076:12: warning: 未使用的变量（变量名） 'r' [-Wunused-variable]
+ 1076 |       BOOL r = CancelSynchronousIo(thread);
+      |            ^
+生成了 1 个警告。
+[50/487] Building C object CMakeFiles/uv.dir/src/win/tty.c.obj
+[51/487] Building C object CMakeFiles/uv_a.dir/src/win/getnameinfo.c.obj
+[52/487] Building C object CMakeFiles/uv_a.dir/src/uv-common.c.obj
+[53/487] Building C object CMakeFiles/uv_a.dir/src/win/handle.c.obj
+[54/487] Building C object CMakeFiles/uv_a.dir/src/win/getaddrinfo.c.obj
+E:/Chinese++/third_party/src/libuv/src/win/getaddrinfo.c:180:15: warning: 未使用的变量（变量名） 'r' [-Wunused-variable]
+  180 |           int r = uv__copy_utf16_to_utf8(addrinfow_ptr->ai_canonname,
+      |               ^
+生成了 1 个警告。
+[55/487] Building C object CMakeFiles/uv_a.dir/src/win/core.c.obj
+包含自 E:/Chinese++/third_party/src/libuv/src/win/core.c:36:
+E:/Chinese++/third_party/src/libuv/src\heap-inl.h:67:31: warning: 未使用的函数（函数名） 'heap_min' [-Wunused-function]
+   67 | HEAP_EXPORT(struct heap_node* heap_min(const struct heap* heap)) {
+      |                               ^~~~~~~~
+E:/Chinese++/third_party/src/libuv/src\heap-inl.h:106:18: warning: 未使用的函数（函数名） 'heap_insert' [-Wunused-function]
+  106 | HEAP_EXPORT(void heap_insert(struct heap* heap,
+      |                  ^~~~~~~~~~~
+E:/Chinese++/third_party/src/libuv/src\heap-inl.h:239:18: warning: 未使用的函数（函数名） 'heap_dequeue' [-Wunused-function]
+  239 | HEAP_EXPORT(void heap_dequeue(struct heap* heap, heap_compare_fn less_than)) {
+      |                  ^~~~~~~~~~~~
+生成了 3 个警告。
+[56/487] Building C object CMakeFiles/uv_a.dir/src/win/loop-watcher.c.obj
+[57/487] Building C object CMakeFiles/uv_a.dir/src/timer.c.obj
 包含自 E:/Chinese++/third_party/src/libuv/src/timer.c:23:
 E:/Chinese++/third_party/src/libuv/src\heap-inl.h:62:18: warning: 未使用的函数（函数名） 'heap_init' [-Wunused-function]
    62 | HEAP_EXPORT(void heap_init(struct heap* heap)) {
@@ -141,7 +293,7 @@ E:/Chinese++/third_party/src/libuv/src\heap-inl.h:239:18: warning: 未使用的�
   239 | HEAP_EXPORT(void heap_dequeue(struct heap* heap, heap_compare_fn less_than)) {
       |                  ^~~~~~~~~~~~
 生成了 2 个警告。
-[28/487] Building C object CMakeFiles/uv.dir/src/win/thread.c.obj
+[58/487] Building C object CMakeFiles/uv_a.dir/src/win/thread.c.obj
 E:/Chinese++/third_party/src/libuv/src/win/thread.c:309:3: warning: （名字） 'strncpy' 已被弃用：This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
   309 |   strncpy(namebuf, name, sizeof(namebuf) - 1);
       |   ^
@@ -158,7 +310,7 @@ C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.3520
   358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
       |                                               ^
 生成了 1 个警告。
-[29/487] Building C object CMakeFiles/uv.dir/src/win/fs-event.c.obj
+[59/487] Building C object CMakeFiles/uv_a.dir/src/win/fs-event.c.obj
 E:/Chinese++/third_party/src/libuv/src/win/fs-event.c:83:3: warning: （名字） 'wcsncpy' 已被弃用：This function or variable may be unsafe. Consider using wcsncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
    83 |   wcsncpy(*relpath, filename + dirlen + 1, relpathlen);
       |   ^
@@ -220,144 +372,7 @@ C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.3520
   358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
       |                                               ^
 生成了 4 个警告。
-[30/487] Building C object CMakeFiles/uv.dir/src/win/core.c.obj
-包含自 E:/Chinese++/third_party/src/libuv/src/win/core.c:36:
-E:/Chinese++/third_party/src/libuv/src\heap-inl.h:67:31: warning: 未使用的函数（函数名） 'heap_min' [-Wunused-function]
-   67 | HEAP_EXPORT(struct heap_node* heap_min(const struct heap* heap)) {
-      |                               ^~~~~~~~
-E:/Chinese++/third_party/src/libuv/src\heap-inl.h:106:18: warning: 未使用的函数（函数名） 'heap_insert' [-Wunused-function]
-  106 | HEAP_EXPORT(void heap_insert(struct heap* heap,
-      |                  ^~~~~~~~~~~
-E:/Chinese++/third_party/src/libuv/src\heap-inl.h:239:18: warning: 未使用的函数（函数名） 'heap_dequeue' [-Wunused-function]
-  239 | HEAP_EXPORT(void heap_dequeue(struct heap* heap, heap_compare_fn less_than)) {
-      |                  ^~~~~~~~~~~~
-生成了 3 个警告。
-[31/487] Building C object CMakeFiles/uv_a.dir/src/random.c.obj
-[32/487] Building C object CMakeFiles/uv_a.dir/src/fs-poll.c.obj
-[33/487] Building C object CMakeFiles/uv_a.dir/src/strscpy.c.obj
-[34/487] Building C object CMakeFiles/uv_a.dir/src/thread-common.c.obj
-[35/487] Building C object CMakeFiles/uv.dir/src/win/udp.c.obj
-[36/487] Building C object CMakeFiles/uv_a.dir/src/inet.c.obj
-[37/487] Building C object CMakeFiles/uv_a.dir/src/win/snprintf.c.obj
-[38/487] Building C object CMakeFiles/uv_a.dir/src/idna.c.obj
-[39/487] Building C object CMakeFiles/uv.dir/src/win/tcp.c.obj
-[40/487] Building C object CMakeFiles/uv_a.dir/src/threadpool.c.obj
-[41/487] Building C object CMakeFiles/uv_a.dir/src/version.c.obj
-[42/487] Building C object CMakeFiles/uv_a.dir/src/uv-data-getter-setters.c.obj
-[43/487] Building C object CMakeFiles/uv_a.dir/src/win/async.c.obj
-[44/487] Building C object CMakeFiles/uv_a.dir/src/win/detect-wakeup.c.obj
-[45/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/src/win/snprintf.c.obj
-[46/487] Building C object CMakeFiles/uv_a.dir/src/win/dl.c.obj
-[47/487] Building C object CMakeFiles/uv.dir/src/win/pipe.c.obj
-E:/Chinese++/third_party/src/libuv/src/win/pipe.c:1076:12: warning: 未使用的变量（变量名） 'r' [-Wunused-variable]
- 1076 |       BOOL r = CancelSynchronousIo(thread);
-      |            ^
-生成了 1 个警告。
-[48/487] Building C object CMakeFiles/uv.dir/src/win/tty.c.obj
-[49/487] Building C object CMakeFiles/uv_a.dir/src/win/error.c.obj
-[50/487] Building C object CMakeFiles/uv_a.dir/src/uv-common.c.obj
-[51/487] Building C object CMakeFiles/uv_a.dir/src/win/getnameinfo.c.obj
-[52/487] Building C object CMakeFiles/uv_a.dir/src/win/handle.c.obj
-[53/487] Building C object CMakeFiles/uv_a.dir/src/win/loop-watcher.c.obj
-[54/487] Building C object CMakeFiles/uv.dir/src/win/winsock.c.obj
-E:/Chinese++/third_party/src/libuv/src/win/winsock.c:570:40: warning: 建议给子对象的初始化加上花括号 [-Wmissing-braces]
-  570 |       struct in6_addr init_sin6_addr = IN6ADDR_LOOPBACK_INIT;
-      |                                        ^~~~~~~~~~~~~~~~~~~~~
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\ws2ipdef.h:251:33: note: 从宏 'IN6ADDR_LOOPBACK_INIT' 展开
-  251 | #define IN6ADDR_LOOPBACK_INIT { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1 }
-      |                                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-生成了 1 个警告。
-[55/487] Building C object CMakeFiles/uv_a.dir/src/timer.c.obj
-包含自 E:/Chinese++/third_party/src/libuv/src/timer.c:23:
-E:/Chinese++/third_party/src/libuv/src\heap-inl.h:62:18: warning: 未使用的函数（函数名） 'heap_init' [-Wunused-function]
-   62 | HEAP_EXPORT(void heap_init(struct heap* heap)) {
-      |                  ^~~~~~~~~
-E:/Chinese++/third_party/src/libuv/src\heap-inl.h:239:18: warning: 未使用的函数（函数名） 'heap_dequeue' [-Wunused-function]
-  239 | HEAP_EXPORT(void heap_dequeue(struct heap* heap, heap_compare_fn less_than)) {
-      |                  ^~~~~~~~~~~~
-生成了 2 个警告。
-[56/487] Building C object CMakeFiles/uv_a.dir/src/win/getaddrinfo.c.obj
-E:/Chinese++/third_party/src/libuv/src/win/getaddrinfo.c:180:15: warning: 未使用的变量（变量名） 'r' [-Wunused-variable]
-  180 |           int r = uv__copy_utf16_to_utf8(addrinfow_ptr->ai_canonname,
-      |               ^
-生成了 1 个警告。
-[57/487] Building C object CMakeFiles/uv_a.dir/src/win/poll.c.obj
-[58/487] Building C object CMakeFiles/uv_a.dir/src/win/fs-event.c.obj
-E:/Chinese++/third_party/src/libuv/src/win/fs-event.c:83:3: warning: （名字） 'wcsncpy' 已被弃用：This function or variable may be unsafe. Consider using wcsncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
-   83 |   wcsncpy(*relpath, filename + dirlen + 1, relpathlen);
-      |   ^
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt_wstring.h:200:1: note: （名字） 'wcsncpy' 在此被明确标记为已弃用
-  200 | __DEFINE_CPP_OVERLOAD_STANDARD_NFUNC_0_2_EX(
-      | ^
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt.h:1974:17: note: 从宏 '__DEFINE_CPP_OVERLOAD_STANDARD_NFUNC_0_2_EX' 展开
- 1974 |                 _CRT_INSECURE_DEPRECATE(_SecureFuncName) _DeclSpec _ReturnType __cdecl _FuncName(_SalAttributeDst _DstType *_Dst, _TType1 _TArg1, _TType2 _TArg2);
-      |                 ^
-C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:368:55: note: 从宏 '_CRT_INSECURE_DEPRECATE' 展开
-  368 |         #define _CRT_INSECURE_DEPRECATE(_Replacement) _CRT_DEPRECATE_TEXT(    \
-      |                                                       ^
-C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:358:47: note: 从宏 '_CRT_DEPRECATE_TEXT' 展开
-  358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
-      |                                               ^
-E:/Chinese++/third_party/src/libuv/src/win/fs-event.c:129:7: warning: （名字） 'wcsncpy' 已被弃用：This function or variable may be unsafe. Consider using wcsncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
-  129 |       wcsncpy(*dir, filename, i + 1);
-      |       ^
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt_wstring.h:200:1: note: （名字） 'wcsncpy' 在此被明确标记为已弃用
-  200 | __DEFINE_CPP_OVERLOAD_STANDARD_NFUNC_0_2_EX(
-      | ^
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt.h:1974:17: note: 从宏 '__DEFINE_CPP_OVERLOAD_STANDARD_NFUNC_0_2_EX' 展开
- 1974 |                 _CRT_INSECURE_DEPRECATE(_SecureFuncName) _DeclSpec _ReturnType __cdecl _FuncName(_SalAttributeDst _DstType *_Dst, _TType1 _TArg1, _TType2 _TArg2);
-      |                 ^
-C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:368:55: note: 从宏 '_CRT_INSECURE_DEPRECATE' 展开
-  368 |         #define _CRT_INSECURE_DEPRECATE(_Replacement) _CRT_DEPRECATE_TEXT(    \
-      |                                                       ^
-C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:358:47: note: 从宏 '_CRT_DEPRECATE_TEXT' 展开
-  358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
-      |                                               ^
-E:/Chinese++/third_party/src/libuv/src/win/fs-event.c:137:5: warning: （名字） 'wcsncpy' 已被弃用：This function or variable may be unsafe. Consider using wcsncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
-  137 |     wcsncpy(*file, filename + i + 1, len - i - 1);
-      |     ^
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt_wstring.h:200:1: note: （名字） 'wcsncpy' 在此被明确标记为已弃用
-  200 | __DEFINE_CPP_OVERLOAD_STANDARD_NFUNC_0_2_EX(
-      | ^
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt.h:1974:17: note: 从宏 '__DEFINE_CPP_OVERLOAD_STANDARD_NFUNC_0_2_EX' 展开
- 1974 |                 _CRT_INSECURE_DEPRECATE(_SecureFuncName) _DeclSpec _ReturnType __cdecl _FuncName(_SalAttributeDst _DstType *_Dst, _TType1 _TArg1, _TType2 _TArg2);
-      |                 ^
-C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:368:55: note: 从宏 '_CRT_INSECURE_DEPRECATE' 展开
-  368 |         #define _CRT_INSECURE_DEPRECATE(_Replacement) _CRT_DEPRECATE_TEXT(    \
-      |                                                       ^
-C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:358:47: note: 从宏 '_CRT_DEPRECATE_TEXT' 展开
-  358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
-      |                                               ^
-E:/Chinese++/third_party/src/libuv/src/win/fs-event.c:502:15: warning: （名字） '_snwprintf' 已被弃用：This function or variable may be unsafe. Consider using _snwprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
-  502 |               _snwprintf(filenamew, size, L"%s\\%.*s", handle->dirw,
-      |               ^
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt_wstdio.h:1109:5: note: （名字） '_snwprintf' 在此被明确标记为已弃用
- 1109 |     __DEFINE_CPP_OVERLOAD_STANDARD_NFUNC_0_2_ARGLIST_EX(
-      |     ^
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt.h:1997:17: note: 从宏 '__DEFINE_CPP_OVERLOAD_STANDARD_NFUNC_0_2_ARGLIST_EX' 展开
- 1997 |                 _CRT_INSECURE_DEPRECATE(_FuncName##_s) _DeclSpec _ReturnType _CC _FuncName(_SalAttributeDst _DstType *_Dst, _TType1 _TArg1, _TType2 _TArg2, ...); \
-      |                 ^
-C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:368:55: note: 从宏 '_CRT_INSECURE_DEPRECATE' 展开
-  368 |         #define _CRT_INSECURE_DEPRECATE(_Replacement) _CRT_DEPRECATE_TEXT(    \
-      |                                                       ^
-C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:358:47: note: 从宏 '_CRT_DEPRECATE_TEXT' 展开
-  358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
-      |                                               ^
-生成了 4 个警告。
-[59/487] Building C object CMakeFiles/uv_a.dir/src/win/core.c.obj
-包含自 E:/Chinese++/third_party/src/libuv/src/win/core.c:36:
-E:/Chinese++/third_party/src/libuv/src\heap-inl.h:67:31: warning: 未使用的函数（函数名） 'heap_min' [-Wunused-function]
-   67 | HEAP_EXPORT(struct heap_node* heap_min(const struct heap* heap)) {
-      |                               ^~~~~~~~
-E:/Chinese++/third_party/src/libuv/src\heap-inl.h:106:18: warning: 未使用的函数（函数名） 'heap_insert' [-Wunused-function]
-  106 | HEAP_EXPORT(void heap_insert(struct heap* heap,
-      |                  ^~~~~~~~~~~
-E:/Chinese++/third_party/src/libuv/src\heap-inl.h:239:18: warning: 未使用的函数（函数名） 'heap_dequeue' [-Wunused-function]
-  239 | HEAP_EXPORT(void heap_dequeue(struct heap* heap, heap_compare_fn less_than)) {
-      |                  ^~~~~~~~~~~~
-生成了 3 个警告。
-[60/487] Building C object CMakeFiles/uv_a.dir/src/win/process-stdio.c.obj
-[61/487] Building C object CMakeFiles/uv.dir/src/win/fs.c.obj
+[60/487] Building C object CMakeFiles/uv.dir/src/win/fs.c.obj
 E:/Chinese++/third_party/src/libuv/src/win/fs.c:476:19: warning: （名字） '_umask' 已被弃用：This function or variable may be unsafe. Consider using _umask_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
   476 |   current_umask = _umask(0);
       |                   ^
@@ -431,25 +446,10 @@ C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.3520
   358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
       |                                               ^
 生成了 5 个警告。
-[62/487] Building C object CMakeFiles/uv_a.dir/src/win/stream.c.obj
-[63/487] Building C object CMakeFiles/uv_a.dir/src/win/winapi.c.obj
-[64/487] Building C object CMakeFiles/uv_a.dir/src/win/thread.c.obj
-E:/Chinese++/third_party/src/libuv/src/win/thread.c:309:3: warning: （名字） 'strncpy' 已被弃用：This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
-  309 |   strncpy(namebuf, name, sizeof(namebuf) - 1);
-      |   ^
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\string.h:334:1: note: （名字） 'strncpy' 在此被明确标记为已弃用
-  334 | __DEFINE_CPP_OVERLOAD_STANDARD_NFUNC_0_2_EX(
-      | ^
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt.h:1974:17: note: 从宏 '__DEFINE_CPP_OVERLOAD_STANDARD_NFUNC_0_2_EX' 展开
- 1974 |                 _CRT_INSECURE_DEPRECATE(_SecureFuncName) _DeclSpec _ReturnType __cdecl _FuncName(_SalAttributeDst _DstType *_Dst, _TType1 _TArg1, _TType2 _TArg2);
-      |                 ^
-C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:368:55: note: 从宏 '_CRT_INSECURE_DEPRECATE' 展开
-  368 |         #define _CRT_INSECURE_DEPRECATE(_Replacement) _CRT_DEPRECATE_TEXT(    \
-      |                                                       ^
-C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:358:47: note: 从宏 '_CRT_DEPRECATE_TEXT' 展开
-  358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
-      |                                               ^
-生成了 1 个警告。
+[61/487] Building C object CMakeFiles/uv_a.dir/src/win/poll.c.obj
+[62/487] Building C object CMakeFiles/uv_a.dir/src/win/process-stdio.c.obj
+[63/487] Building C object CMakeFiles/uv_a.dir/src/win/stream.c.obj
+[64/487] Building C object CMakeFiles/uv_a.dir/src/win/winapi.c.obj
 [65/487] Building C object CMakeFiles/uv_a.dir/src/win/signal.c.obj
 E:/Chinese++/third_party/src/libuv/src/win/signal.c:161:16: warning: 变量（变量名） 'removed_handle' 被赋值但未被使用 [-Wunused-but-set-variable]
   161 |   uv_signal_t* removed_handle;
@@ -500,15 +500,17 @@ E:/Chinese++/third_party/src/libuv/include\uv/tree.h:464:79: note: 从宏 'RB_GE
   300 | uv_signal_tree_s_RB_MINMAX
       | ^~~~~~~~~~~~~~~~~~~~~~~~~~
 生成了 5 个警告。
-[66/487] Building C object CMakeFiles/uv_a.dir/src/win/udp.c.obj
+[66/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-async-pummel.c.obj
 [67/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-fs-stat.c.obj
-[68/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-async.c.obj
-[69/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-async-pummel.c.obj
-[70/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/runner-win.c.obj
-[71/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-getaddrinfo.c.obj
-[72/487] Building C object CMakeFiles/uv_a.dir/src/win/tcp.c.obj
-[73/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-queue-work.c.obj
-[74/487] Building C object CMakeFiles/uv_a.dir/src/win/winsock.c.obj
+[68/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/runner-win.c.obj
+[69/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-async.c.obj
+[70/487] Building C object CMakeFiles/uv_a.dir/src/win/udp.c.obj
+[71/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-loop-count.c.obj
+[72/487] Building C object CMakeFiles/uv_run_tests.dir/src/win/snprintf.c.obj
+[73/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-getaddrinfo.c.obj
+[74/487] Building C object CMakeFiles/uv_a.dir/src/win/tcp.c.obj
+[75/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-queue-work.c.obj
+[76/487] Building C object CMakeFiles/uv_a.dir/src/win/winsock.c.obj
 E:/Chinese++/third_party/src/libuv/src/win/winsock.c:570:40: warning: 建议给子对象的初始化加上花括号 [-Wmissing-braces]
   570 |       struct in6_addr init_sin6_addr = IN6ADDR_LOOPBACK_INIT;
       |                                        ^~~~~~~~~~~~~~~~~~~~~
@@ -516,26 +518,24 @@ C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\ws2ipdef.h:25
   251 | #define IN6ADDR_LOOPBACK_INIT { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1 }
       |                                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 生成了 1 个警告。
-[75/487] Building C object CMakeFiles/uv_run_tests.dir/src/win/snprintf.c.obj
-[76/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-million-async.c.obj
-[77/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-loop-count.c.obj
+[77/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-million-async.c.obj
 [78/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-million-timers.c.obj
 [79/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-ping-pongs.c.obj
-[80/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-ping-udp.c.obj
-[81/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-multi-accept.c.obj
-[82/487] Building C object CMakeFiles/uv_a.dir/src/win/tty.c.obj
+[80/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-multi-accept.c.obj
+[81/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-ping-udp.c.obj
+[82/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-sizes.c.obj
 [83/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-pound.c.obj
-[84/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-sizes.c.obj
-[85/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-spawn.c.obj
+[84/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-spawn.c.obj
+[85/487] Building C object CMakeFiles/uv_a.dir/src/win/tty.c.obj
 [86/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-tcp-write-batch.c.obj
 [87/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-thread.c.obj
 [88/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/blackhole-server.c.obj
-[89/487] Building C object CMakeFiles/uv_a.dir/src/win/pipe.c.obj
+[89/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/run-benchmarks.c.obj
+[90/487] Building C object CMakeFiles/uv_a.dir/src/win/pipe.c.obj
 E:/Chinese++/third_party/src/libuv/src/win/pipe.c:1076:12: warning: 未使用的变量（变量名） 'r' [-Wunused-variable]
  1076 |       BOOL r = CancelSynchronousIo(thread);
       |            ^
 生成了 1 个警告。
-[90/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/run-benchmarks.c.obj
 [91/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/echo-server.c.obj
 [92/487] Building C object CMakeFiles/uv.dir/src/win/util.c.obj
 E:/Chinese++/third_party/src/libuv/src/win/util.c:582:11: warning: （名字） '_snwprintf' 已被弃用：This function or variable may be unsafe. Consider using _snwprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
@@ -561,7 +561,9 @@ E:/Chinese++/third_party/src/libuv/src/win/util.c:580:12: warning: 变量（变�
 [94/487] Building C object CMakeFiles/uv_run_tests.dir/test/blackhole-server.c.obj
 [95/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/runner.c.obj
 [96/487] Building C object CMakeFiles/uv_run_tests.dir/test/runner-win.c.obj
-[97/487] Building C object CMakeFiles/uv_a.dir/src/win/fs.c.obj
+[97/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-fork.c.obj
+[98/487] Building C object CMakeFiles/uv_run_tests.dir/test/echo-server.c.obj
+[99/487] Building C object CMakeFiles/uv_a.dir/src/win/fs.c.obj
 E:/Chinese++/third_party/src/libuv/src/win/fs.c:476:19: warning: （名字） '_umask' 已被弃用：This function or variable may be unsafe. Consider using _umask_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
   476 |   current_umask = _umask(0);
       |                   ^
@@ -635,32 +637,35 @@ C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.3520
   358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
       |                                               ^
 生成了 5 个警告。
-[98/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-fork.c.obj
-[99/487] Building C object CMakeFiles/uv_run_tests.dir/test/echo-server.c.obj
 [100/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-active.c.obj
-[101/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-async-null-cb.c.obj
-[102/487] Building C object CMakeFiles/uv_run_tests.dir/test/run-tests.c.obj
+[101/487] Building C object CMakeFiles/uv_run_tests.dir/test/run-tests.c.obj
+[102/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-async-null-cb.c.obj
 [103/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-async.c.obj
-[104/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-fs-fd-hash.c.obj
-[105/487] Building C object CMakeFiles/uv_run_tests.dir/test/runner.c.obj
-[106/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-barrier.c.obj
-[107/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-close-fd.c.obj
-[108/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-callback-stack.c.obj
-[109/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-cwd-and-chdir.c.obj
-[110/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-close-order.c.obj
-[111/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-condvar.c.obj
-[112/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-connect-unspecified.c.obj
-[113/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-default-loop-close.c.obj
-[114/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-connection-fail.c.obj
-[115/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-eintr-handling.c.obj
-[116/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-delayed-accept.c.obj
-[117/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-dlerror.c.obj
+[104/487] Building C object CMakeFiles/uv_run_tests.dir/test/runner.c.obj
+[105/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-close-fd.c.obj
+[106/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-close-order.c.obj
+[107/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-barrier.c.obj
+[108/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-fs-fd-hash.c.obj
+[109/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-callback-stack.c.obj
+[110/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-condvar.c.obj
+[111/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-connect-unspecified.c.obj
+[112/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-cwd-and-chdir.c.obj
+[113/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-connection-fail.c.obj
+[114/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-default-loop-close.c.obj
+[115/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-dlerror.c.obj
+[116/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-eintr-handling.c.obj
+[117/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-delayed-accept.c.obj
 [118/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-embed.c.obj
-[119/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-fail-always.c.obj
-[120/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-env-vars.c.obj
-[121/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-error.c.obj
+[119/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-error.c.obj
+[120/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-fail-always.c.obj
+[121/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-env-vars.c.obj
 [122/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-fs-copyfile.c.obj
-[123/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-pump.c.obj
+[123/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-udp-pummel.c.obj
+E:/Chinese++/third_party/src/libuv/test/benchmark-udp-pummel.c:57:21: warning: 变量（变量名） 'close_cb_called' 被赋值但未被使用 [-Wunused-but-set-global]
+   57 | static unsigned int close_cb_called;
+      |                     ^
+生成了 1 个警告。
+[124/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-pump.c.obj
 E:/Chinese++/third_party/src/libuv/test/benchmark-pump.c:62:16: warning: 变量（变量名） 'nrecv' 被赋值但未被使用 [-Wunused-but-set-global]
    62 | static int64_t nrecv = 0;
       |                ^
@@ -668,23 +673,7 @@ E:/Chinese++/third_party/src/libuv/test/benchmark-pump.c:64:16: warning: 变量�
    64 | static int64_t nsent = 0;
       |                ^
 生成了 2 个警告。
-[124/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-get-currentexe.c.obj
-[125/487] Building C object CMakeFiles/uv_run_benchmarks_a.dir/test/benchmark-udp-pummel.c.obj
-E:/Chinese++/third_party/src/libuv/test/benchmark-udp-pummel.c:57:21: warning: 变量（变量名） 'close_cb_called' 被赋值但未被使用 [-Wunused-but-set-global]
-   57 | static unsigned int close_cb_called;
-      |                     ^
-生成了 1 个警告。
-[126/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-get-memory.c.obj
-[127/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-get-loadavg.c.obj
-[128/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-fs-open-flags.c.obj
-[129/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-fs-readdir.c.obj
-[130/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-gethostname.c.obj
-[131/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-get-passwd.c.obj
-[132/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-getnameinfo.c.obj
-[133/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-getaddrinfo.c.obj
-[134/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-getters-setters.c.obj
-[135/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-gettimeofday.c.obj
-[136/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-fs-poll.c.obj
+[125/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-fs-poll.c.obj
 E:/Chinese++/third_party/src/libuv/test/test-fs-poll.c:59:16: warning: （名字） 'fopen' 已被弃用：This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
    59 |   ASSERT((fp = fopen(FIXTURE, "w+")));
       |                ^
@@ -698,18 +687,43 @@ C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.3520
   358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
       |                                               ^
 生成了 1 个警告。
+[126/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-get-currentexe.c.obj
+[127/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-get-loadavg.c.obj
+[128/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-get-memory.c.obj
+[129/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-fs-open-flags.c.obj
+[130/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-fs-readdir.c.obj
+[131/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-gethostname.c.obj
+[132/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-get-passwd.c.obj
+[133/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-getaddrinfo.c.obj
+[134/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-getnameinfo.c.obj
+[135/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-gettimeofday.c.obj
+[136/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-getters-setters.c.obj
 [137/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-getsockname.c.obj
 [138/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-homedir.c.obj
 [139/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-handle-fileno.c.obj
-[140/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-iouring-pollhup.c.obj
-[141/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-hrtime.c.obj
+[140/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-hrtime.c.obj
+[141/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-ip4-addr.c.obj
 [142/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-idle.c.obj
-[143/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-ip4-addr.c.obj
-[144/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-pipe-close-stdout-read-stdin.c.obj
-[145/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-ip-name.c.obj
-[146/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-ip6-addr.c.obj
-[147/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-ipc-heavy-traffic-deadlock-bug.c.obj
-[148/487] Building C object CMakeFiles/uv.dir/src/win/process.c.obj
+[143/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-ip-name.c.obj
+[144/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-iouring-pollhup.c.obj
+[145/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-loop-alive.c.obj
+[146/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-ipc-heavy-traffic-deadlock-bug.c.obj
+[147/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-ip6-addr.c.obj
+[148/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-pipe-close-stdout-read-stdin.c.obj
+[149/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-ipc-send-recv.c.obj
+[150/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-loop-close.c.obj
+[151/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-loop-configure.c.obj
+[152/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-loop-oom.c.obj
+[153/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-loop-stop.c.obj
+[154/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-loop-time.c.obj
+[155/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-multiple-listen.c.obj
+[156/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-osx-resident-set-memory.c.obj
+[157/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-metrics.c.obj
+[158/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-not-readable-nor-writable-on-read-error.c.obj
+[159/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-not-writable-after-shutdown.c.obj
+[160/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-mutexes.c.obj
+[161/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-poll-oob.c.obj
+[162/487] Building C object CMakeFiles/uv.dir/src/win/process.c.obj
 E:/Chinese++/third_party/src/libuv/src/win/process.c:193:3: warning: （名字） 'wcsncpy' 已被弃用：This function or variable may be unsafe. Consider using wcsncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
   193 |   wcsncpy(result_pos, cwd, cwd_len);
       |   ^
@@ -837,7 +851,7 @@ C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.3520
   358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
       |                                               ^
 生成了 8 个警告。
-[149/487] Building C object CMakeFiles/uv_a.dir/src/win/process.c.obj
+[163/487] Building C object CMakeFiles/uv_a.dir/src/win/process.c.obj
 E:/Chinese++/third_party/src/libuv/src/win/process.c:193:3: warning: （名字） 'wcsncpy' 已被弃用：This function or variable may be unsafe. Consider using wcsncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
   193 |   wcsncpy(result_pos, cwd, cwd_len);
       |   ^
@@ -965,7 +979,29 @@ C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.3520
   358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
       |                                               ^
 生成了 8 个警告。
-[150/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-fs-event.c.obj
+[164/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-osx-select.c.obj
+[165/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-pass-always.c.obj
+[166/487] Building C object CMakeFiles/uv_a.dir/src/win/util.c.obj
+E:/Chinese++/third_party/src/libuv/src/win/util.c:582:11: warning: （名字） '_snwprintf' 已被弃用：This function or variable may be unsafe. Consider using _snwprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
+  582 |     len = _snwprintf(key_name,
+      |           ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt_wstdio.h:1109:5: note: （名字） '_snwprintf' 在此被明确标记为已弃用
+ 1109 |     __DEFINE_CPP_OVERLOAD_STANDARD_NFUNC_0_2_ARGLIST_EX(
+      |     ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt.h:1997:17: note: 从宏 '__DEFINE_CPP_OVERLOAD_STANDARD_NFUNC_0_2_ARGLIST_EX' 展开
+ 1997 |                 _CRT_INSECURE_DEPRECATE(_FuncName##_s) _DeclSpec _ReturnType _CC _FuncName(_SalAttributeDst _DstType *_Dst, _TType1 _TArg1, _TType2 _TArg2, ...); \
+      |                 ^
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:368:55: note: 从宏 '_CRT_INSECURE_DEPRECATE' 展开
+  368 |         #define _CRT_INSECURE_DEPRECATE(_Replacement) _CRT_DEPRECATE_TEXT(    \
+      |                                                       ^
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:358:47: note: 从宏 '_CRT_DEPRECATE_TEXT' 展开
+  358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
+      |                                               ^
+E:/Chinese++/third_party/src/libuv/src/win/util.c:580:12: warning: 变量（变量名） 'len' 被赋值但未被使用 [-Wunused-but-set-variable]
+  580 |     size_t len;
+      |            ^
+生成了 2 个警告。
+[167/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-fs-event.c.obj
 E:/Chinese++/third_party/src/libuv/test/test-fs-event.c:931:27: warning: （名字） 'getenv' 已被弃用：This function or variable may be unsafe. Consider using _dupenv_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
   931 |   const char* sys_drive = getenv("SystemDrive");
       |                           ^
@@ -994,80 +1030,43 @@ C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.3520
   358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
       |                                               ^
 生成了 2 个警告。
-[151/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-loop-alive.c.obj
-[152/487] Building C object CMakeFiles/uv_a.dir/src/win/util.c.obj
-E:/Chinese++/third_party/src/libuv/src/win/util.c:582:11: warning: （名字） '_snwprintf' 已被弃用：This function or variable may be unsafe. Consider using _snwprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
-  582 |     len = _snwprintf(key_name,
-      |           ^
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt_wstdio.h:1109:5: note: （名字） '_snwprintf' 在此被明确标记为已弃用
- 1109 |     __DEFINE_CPP_OVERLOAD_STANDARD_NFUNC_0_2_ARGLIST_EX(
-      |     ^
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt.h:1997:17: note: 从宏 '__DEFINE_CPP_OVERLOAD_STANDARD_NFUNC_0_2_ARGLIST_EX' 展开
- 1997 |                 _CRT_INSECURE_DEPRECATE(_FuncName##_s) _DeclSpec _ReturnType _CC _FuncName(_SalAttributeDst _DstType *_Dst, _TType1 _TArg1, _TType2 _TArg2, ...); \
-      |                 ^
-C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:368:55: note: 从宏 '_CRT_INSECURE_DEPRECATE' 展开
-  368 |         #define _CRT_INSECURE_DEPRECATE(_Replacement) _CRT_DEPRECATE_TEXT(    \
-      |                                                       ^
-C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:358:47: note: 从宏 '_CRT_DEPRECATE_TEXT' 展开
-  358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
-      |                                               ^
-E:/Chinese++/third_party/src/libuv/src/win/util.c:580:12: warning: 变量（变量名） 'len' 被赋值但未被使用 [-Wunused-but-set-variable]
-  580 |     size_t len;
-      |            ^
-生成了 2 个警告。
-[153/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-ipc-send-recv.c.obj
-[154/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-loop-close.c.obj
-[155/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-loop-configure.c.obj
-[156/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-loop-oom.c.obj
-[157/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-loop-stop.c.obj
-[158/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-loop-time.c.obj
-[159/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-multiple-listen.c.obj
-[160/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-not-writable-after-shutdown.c.obj
-[161/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-not-readable-nor-writable-on-read-error.c.obj
-[162/487] Linking C static library libuv.lib
-[163/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-mutexes.c.obj
-[164/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-poll-oob.c.obj
-[165/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-osx-resident-set-memory.c.obj
-[166/487] Linking C shared library uv.dll
-[167/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-metrics.c.obj
-[168/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-osx-select.c.obj
-[169/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-pass-always.c.obj
-[170/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-pipe-connect-error.c.obj
-[171/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-pipe-connect-prepare.c.obj
-[172/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-pipe-bind-error.c.obj
-[173/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-ping-pong.c.obj
-[174/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-pipe-connect-multiple.c.obj
-[175/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-pipe-pending-instances.c.obj
-[176/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-pipe-sendmsg.c.obj
-[177/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-pipe-set-fchmod.c.obj
-[178/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-pipe-server-close.c.obj
-[179/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-pipe-getsockname.c.obj
-[180/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-signal-multiple-loops.c.obj
+[168/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-pipe-connect-error.c.obj
+[169/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-pipe-connect-prepare.c.obj
+[170/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-pipe-connect-multiple.c.obj
+[171/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-pipe-bind-error.c.obj
+[172/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-pipe-sendmsg.c.obj
+[173/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-pipe-pending-instances.c.obj
+[174/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-ping-pong.c.obj
+[175/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-pipe-set-fchmod.c.obj
+[176/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-pipe-server-close.c.obj
+[177/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-pipe-getsockname.c.obj
+[178/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-signal-multiple-loops.c.obj
+[179/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-signal-pending-on-close.c.obj
+[180/487] Linking C static library libuv.lib
 [181/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-pipe-set-non-blocking.c.obj
-[182/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-signal-pending-on-close.c.obj
-[183/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-platform-output.c.obj
-[184/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-poll-close-doesnt-corrupt-stack.c.obj
-[185/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-poll-close.c.obj
-[186/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-poll-closesocket.c.obj
-[187/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-poll-multiple-handles.c.obj
+[182/487] Linking C shared library uv.dll
+[183/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-poll-close-doesnt-corrupt-stack.c.obj
+[184/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-poll-close.c.obj
+[185/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-platform-output.c.obj
+[186/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-poll-multiple-handles.c.obj
+[187/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-poll-closesocket.c.obj
 [188/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-process-priority.c.obj
 [189/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-process-title-threadsafe.c.obj
-[190/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-random.c.obj
-[191/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-process-title.c.obj
-[192/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-queue-foreach-delete.c.obj
+[190/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-process-title.c.obj
+[191/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-readable-on-eof.c.obj
+[192/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-random.c.obj
 [193/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-close-accept.c.obj
-[194/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-readable-on-eof.c.obj
+[194/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-queue-foreach-delete.c.obj
 [195/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-run-nowait.c.obj
 [196/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-run-once.c.obj
 [197/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-semaphore.c.obj
-[198/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-ref.c.obj
-[199/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-shutdown-close.c.obj
-[200/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-oob.c.obj
-[201/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-shutdown-simultaneous.c.obj
-[202/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-shutdown-eof.c.obj
+[198/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-shutdown-close.c.obj
+[199/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-ref.c.obj
+[200/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-shutdown-simultaneous.c.obj
+[201/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-shutdown-eof.c.obj
+[202/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-oob.c.obj
 [203/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-shutdown-twice.c.obj
-[204/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-sizeof.c.obj
-[205/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-pipe-write.c.obj
+[204/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-pipe-write.c.obj
 E:/Chinese++/third_party/src/libuv/test/test-pipe-write.c:42:13: warning: 未使用的函数（函数名） 'write_cb' [-Wunused-function]
    42 | static void write_cb(uv_write_t* req, int status) {
       |             ^~~~~~~~
@@ -1078,16 +1077,18 @@ E:/Chinese++/third_party/src/libuv/test/test-pipe-write.c:33:12: warning: 变量
    33 | static int close_cb_called;
       |            ^
 生成了 3 个警告。
-[206/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-socket-buffer-size.c.obj
-[207/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-signal.c.obj
-[208/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-loop-handles.c.obj
+[205/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-signal.c.obj
+[206/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-sizeof.c.obj
+[207/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-socket-buffer-size.c.obj
+[208/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-io-64-safe.c.obj
+[209/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-loop-handles.c.obj
 E:/Chinese++/third_party/src/libuv/test/test-loop-handles.c:104:12: warning: 变量（变量名） 'idle_2_cb_called' 被赋值但未被使用 [-Wunused-but-set-global]
   104 | static int idle_2_cb_called = 0;
       |            ^
 生成了 1 个警告。
-[209/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-io-64-safe.c.obj
 [210/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-strscpy.c.obj
-[211/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-poll.c.obj
+[211/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-strtok.c.obj
+[212/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-poll.c.obj
 E:/Chinese++/third_party/src/libuv/test/test-poll.c:646:11: warning: （名字） '_open' 已被弃用：This function or variable may be unsafe. Consider using _sopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
   646 |   fd[0] = _open("test/fixtures/empty_file", UV_FS_O_RDONLY);
       |           ^
@@ -1101,30 +1102,29 @@ C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.3520
   358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
       |                                               ^
 生成了 1 个警告。
-[212/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-ipc.c.obj
+[213/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-stdio-over-pipes.c.obj
+[214/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-alloc-cb-fail.c.obj
+[215/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-write-after-connect.c.obj
+[216/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-ipc.c.obj
 E:/Chinese++/third_party/src/libuv/test/test-ipc.c:37:12: warning: 变量（变量名） 'on_pipe_read_called' 被赋值但未被使用 [-Wunused-but-set-global]
    37 | static int on_pipe_read_called;
       |            ^
 生成了 1 个警告。
-[213/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-strtok.c.obj
-[214/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-stdio-over-pipes.c.obj
-[215/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-write-after-connect.c.obj
-[216/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-alloc-cb-fail.c.obj
 [217/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-bind6-error.c.obj
 [218/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-close-after-read-timeout.c.obj
-[219/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-close-while-connecting.c.obj
-[220/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-bind-error.c.obj
+[219/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-bind-error.c.obj
+[220/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-close-while-connecting.c.obj
 [221/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-close.c.obj
-[222/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-connect-error-after-write.c.obj
-[223/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-connect-error.c.obj
-[224/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-close-reset.c.obj
+[222/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-connect-error.c.obj
+[223/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-connect-error-after-write.c.obj
+[224/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-flags.c.obj
 [225/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-connect6-error.c.obj
-[226/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-flags.c.obj
+[226/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-close-reset.c.obj
 [227/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-create-socket-early.c.obj
-[228/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-reuseport.c.obj
-[229/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-rst.c.obj
-[230/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-read-stop-start.c.obj
-[231/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-read-stop.c.obj
+[228/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-read-stop.c.obj
+[229/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-reuseport.c.obj
+[230/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-rst.c.obj
+[231/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-read-stop-start.c.obj
 [232/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-shutdown-after-write.c.obj
 [233/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-open.c.obj
 [234/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-write-in-a-row.c.obj
@@ -1132,7 +1132,38 @@ E:/Chinese++/third_party/src/libuv/test/test-ipc.c:37:12: warning: 变量（变�
 [236/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-try-write-error.c.obj
 [237/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-unexpected-read.c.obj
 [238/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-write-queue-order.c.obj
-[239/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-write-in-read-cb-backend-timeout.c.obj
+[239/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-test-macros.c.obj
+[240/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-write-to-half-open-connection.c.obj
+[241/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-thread-affinity.c.obj
+[242/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-writealot.c.obj
+[243/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-thread-equal.c.obj
+[244/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-write-cancel.c.obj
+[245/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-thread-priority.c.obj
+[246/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-thread-name.c.obj
+[247/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-idna.c.obj
+包含自 E:/Chinese++/third_party/src/libuv/test/test-idna.c:32:
+包含自 E:/Chinese++/third_party/src/libuv/test\../src/idna.c:21:
+E:/Chinese++/third_party/src/libuv/test\../src\uv-common.h:405:7: warning: （名字） 'malloc' 重新声明时未带（属性名） 'dllimport' 特性：之前的（属性名） 'dllimport' 被忽略 [-Winconsistent-dllimport]
+  405 | void* uv__malloc(size_t size);
+      |       ^
+E:/Chinese++/third_party/src/libuv/test/test-idna.c:31:20: note: 从宏 'uv__malloc' 展开
+   31 | #define uv__malloc malloc
+      |                    ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt_malloc.h:101:15: note: 上一次声明在这里
+  101 | void* __cdecl malloc(
+      |               ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt_malloc.h:100:1: note: 上一次属性在这里
+  100 | _ACRTIMP _CRTALLOCATOR _CRT_JIT_INTRINSIC _CRTRESTRICT _CRT_HYBRIDPATCHABLE
+      | ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt.h:136:37: note: 从宏 '_ACRTIMP' 展开
+  136 |         #define _ACRTIMP __declspec(dllimport)
+      |                                     ^
+生成了 1 个警告。
+[248/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-thread.c.obj
+[249/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-threadpool.c.obj
+[250/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-timer-again.c.obj
+[251/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-timer-from-check.c.obj
+[252/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-write-in-read-cb-backend-timeout.c.obj
 E:/Chinese++/third_party/src/libuv/test/test-tcp-write-in-read-cb-backend-timeout.c:31:17: warning: 未使用的变量（变量名） 'server' [-Wunused-variable]
    31 | static uv_tcp_t server;
       |                 ^~~~~~
@@ -1155,41 +1186,9 @@ E:/Chinese++/third_party/src/libuv/test/test-tcp-write-in-read-cb-backend-timeou
    40 | static int close_cb_called;
       |            ^
 生成了 7 个警告。
-[240/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-test-macros.c.obj
-[241/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-write-to-half-open-connection.c.obj
-[242/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-thread-equal.c.obj
-[243/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-writealot.c.obj
-[244/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-write-cancel.c.obj
-[245/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-thread-affinity.c.obj
-[246/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-thread-priority.c.obj
-[247/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-thread.c.obj
-[248/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-thread-name.c.obj
-[249/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-write-fail.c.obj
-E:/Chinese++/third_party/src/libuv/test/test-tcp-write-fail.c:106:17: warning: 变量（变量名） 'buf' 在这里作为常量指针实参传入时尚未初始化 [-Wuninitialized-const-pointer]
-  106 |                &buf,
-      |                 ^~~
-生成了 1 个警告。
-[250/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-threadpool.c.obj
-[251/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-idna.c.obj
-包含自 E:/Chinese++/third_party/src/libuv/test/test-idna.c:32:
-包含自 E:/Chinese++/third_party/src/libuv/test\../src/idna.c:21:
-E:/Chinese++/third_party/src/libuv/test\../src\uv-common.h:405:7: warning: （名字） 'malloc' 重新声明时未带（属性名） 'dllimport' 特性：之前的（属性名） 'dllimport' 被忽略 [-Winconsistent-dllimport]
-  405 | void* uv__malloc(size_t size);
-      |       ^
-E:/Chinese++/third_party/src/libuv/test/test-idna.c:31:20: note: 从宏 'uv__malloc' 展开
-   31 | #define uv__malloc malloc
-      |                    ^
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt_malloc.h:101:15: note: 上一次声明在这里
-  101 | void* __cdecl malloc(
-      |               ^
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt_malloc.h:100:1: note: 上一次属性在这里
-  100 | _ACRTIMP _CRTALLOCATOR _CRT_JIT_INTRINSIC _CRTRESTRICT _CRT_HYBRIDPATCHABLE
-      | ^
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt.h:136:37: note: 从宏 '_ACRTIMP' 展开
-  136 |         #define _ACRTIMP __declspec(dllimport)
-      |                                     ^
-生成了 1 个警告。
-[252/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-connect-timeout.c.obj
+[253/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-threadpool-cancel.c.obj
+[254/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tmpdir.c.obj
+[255/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-connect-timeout.c.obj
 E:/Chinese++/third_party/src/libuv/test/test-tcp-connect-timeout.c:110:11: warning: （名字） 'sscanf' 已被弃用：This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
   110 |     cnt = sscanf(uname.release, "%d.%d.%d", &semver[0], &semver[1], &semver[2]);
       |           ^
@@ -1209,99 +1208,88 @@ E:/Chinese++/third_party/src/libuv/test/test-tcp-connect-timeout.c:29:12: warnin
    29 | static int close_cb_called;
       |            ^
 生成了 3 个警告。
-[253/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-timer-again.c.obj
-[254/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-timer-from-check.c.obj
-[255/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tmpdir.c.obj
-[256/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-threadpool-cancel.c.obj
+[256/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tcp-write-fail.c.obj
+E:/Chinese++/third_party/src/libuv/test/test-tcp-write-fail.c:106:17: warning: 变量（变量名） 'buf' 在这里作为常量指针实参传入时尚未初始化 [-Wuninitialized-const-pointer]
+  106 |                &buf,
+      |                 ^~~
+生成了 1 个警告。
 [257/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-bind.c.obj
-[258/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-alloc-cb-fail.c.obj
-[259/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tty.c.obj
-[260/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-connect.c.obj
-[261/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tty-duplicate-key.c.obj
-[262/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-create-socket-early.c.obj
-[263/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-connect6.c.obj
-[264/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-dgram-too-big.c.obj
-[265/487] Building C object CMakeFiles/uv_run_tests_a.dir/src/win/snprintf.c.obj
-[266/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-ipv6.c.obj
-[267/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-multicast-interface.c.obj
+[258/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tty.c.obj
+[259/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-alloc-cb-fail.c.obj
+[260/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-dgram-too-big.c.obj
+[261/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-connect.c.obj
+[262/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tty-duplicate-key.c.obj
+[263/487] Building C object CMakeFiles/uv_run_tests_a.dir/src/win/snprintf.c.obj
+[264/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-connect6.c.obj
+[265/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-create-socket-early.c.obj
+[266/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-multicast-interface.c.obj
+[267/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-ipv6.c.obj
 [268/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-multicast-interface6.c.obj
 [269/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-mmsg.c.obj
-[270/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-multicast-ttl.c.obj
-[271/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-multicast-join.c.obj
+[270/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-multicast-join.c.obj
+[271/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-multicast-ttl.c.obj
 [272/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-multicast-join6.c.obj
-[273/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-send-fail.c.obj
-[274/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-open.c.obj
+[273/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-open.c.obj
+[274/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-options.c.obj
 [275/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-send-and-recv.c.obj
-[276/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-options.c.obj
+[276/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-send-fail.c.obj
 [277/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-send-hang-loop.c.obj
-[278/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-recvmsg-unreachable-error.c.obj
-[279/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-sendmmsg-error.c.obj
-[280/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-send-immediate.c.obj
-[281/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-recv-cb-close-pollerr.c.obj
-[282/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-send-unreachable.c.obj
-[283/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-timer.c.obj
+[278/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-sendmmsg-error.c.obj
+[279/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-send-immediate.c.obj
+[280/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-recv-cb-close-pollerr.c.obj
+[281/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-send-unreachable.c.obj
+[282/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-recvmsg-unreachable-error.c.obj
+[283/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-recv-in-a-row.c.obj
+[284/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tty-escape-sequence-processing.c.obj
+[285/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-timer.c.obj
 E:/Chinese++/third_party/src/libuv/test/test-timer.c:29:12: warning: 变量（变量名） 'twice_close_cb_called' 被赋值但未被使用 [-Wunused-but-set-global]
    29 | static int twice_close_cb_called = 0;
       |            ^
 生成了 1 个警告。
-[284/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-reuseport.c.obj
-[285/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-tty-escape-sequence-processing.c.obj
-[286/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-recv-in-a-row.c.obj
+[286/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-emfile.c.obj
 [287/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-try-send.c.obj
-[288/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-emfile.c.obj
+[288/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-udp-reuseport.c.obj
 [289/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-uname.c.obj
-[290/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-walk-handles.c.obj
-[291/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-fork.c.obj
+[290/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-fork.c.obj
+[291/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-walk-handles.c.obj
 [292/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-watcher-cross-stop.c.obj
 [293/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/blackhole-server.c.obj
 [294/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/runner-win.c.obj
-[295/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/echo-server.c.obj
+[295/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-active.c.obj
 [296/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/run-tests.c.obj
-[297/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-active.c.obj
-[298/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-async-null-cb.c.obj
+[297/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-async-null-cb.c.obj
+[298/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/echo-server.c.obj
 [299/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-async.c.obj
-[300/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/runner.c.obj
-[301/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-barrier.c.obj
+[300/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-barrier.c.obj
+[301/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/runner.c.obj
 [302/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-close-fd.c.obj
 [303/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-callback-stack.c.obj
 [304/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-close-order.c.obj
-[305/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-connect-unspecified.c.obj
-[306/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-condvar.c.obj
-[307/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-cwd-and-chdir.c.obj
-[308/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-connection-fail.c.obj
+[305/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-condvar.c.obj
+[306/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-connect-unspecified.c.obj
+[307/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-connection-fail.c.obj
+[308/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-cwd-and-chdir.c.obj
 [309/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-default-loop-close.c.obj
-[310/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-delayed-accept.c.obj
-[311/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-eintr-handling.c.obj
-[312/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-dlerror.c.obj
+[310/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-dlerror.c.obj
+[311/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-delayed-accept.c.obj
+[312/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-eintr-handling.c.obj
 [313/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-embed.c.obj
-[314/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-fail-always.c.obj
-[315/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-error.c.obj
+[314/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-error.c.obj
+[315/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-fail-always.c.obj
 [316/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-env-vars.c.obj
 [317/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-fs-copyfile.c.obj
-[318/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-get-loadavg.c.obj
-[319/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-get-currentexe.c.obj
-[320/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-fs-fd-hash.c.obj
-[321/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-get-memory.c.obj
+[318/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-get-currentexe.c.obj
+[319/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-get-loadavg.c.obj
+[320/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-get-memory.c.obj
+[321/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-fs-fd-hash.c.obj
 [322/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-fs-open-flags.c.obj
-[323/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-get-passwd.c.obj
-[324/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-fs-readdir.c.obj
-[325/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-getaddrinfo.c.obj
-[326/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-gethostname.c.obj
+[323/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-fs-readdir.c.obj
+[324/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-get-passwd.c.obj
+[325/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-gethostname.c.obj
+[326/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-getaddrinfo.c.obj
 [327/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-getnameinfo.c.obj
-[328/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-getters-setters.c.obj
-[329/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-gettimeofday.c.obj
-[330/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-getsockname.c.obj
-[331/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-hrtime.c.obj
-[332/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-handle-fileno.c.obj
-[333/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-homedir.c.obj
-[334/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-iouring-pollhup.c.obj
-[335/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-idle.c.obj
-[336/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-ip4-addr.c.obj
-[337/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-pipe-close-stdout-read-stdin.c.obj
-[338/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-ip-name.c.obj
-[339/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-ip6-addr.c.obj
-[340/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-ipc-heavy-traffic-deadlock-bug.c.obj
-[341/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-fs.c.obj
+[328/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-gettimeofday.c.obj
+[329/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-fs.c.obj
 E:/Chinese++/third_party/src/libuv/test/test-fs.c:266:3: warning: （名字） 'strcat' 已被弃用：This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
   266 |   strcat(test_file_abs_buf, "\\test_file");
       |   ^
@@ -1396,29 +1384,41 @@ C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.3520
   358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
       |                                               ^
 生成了 7 个警告。
+[330/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-getters-setters.c.obj
+[331/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-getsockname.c.obj
+[332/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-homedir.c.obj
+[333/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-handle-fileno.c.obj
+[334/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-hrtime.c.obj
+[335/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-idle.c.obj
+[336/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-iouring-pollhup.c.obj
+[337/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-ip4-addr.c.obj
+[338/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-pipe-close-stdout-read-stdin.c.obj
+[339/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-ip-name.c.obj
+[340/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-ipc-heavy-traffic-deadlock-bug.c.obj
+[341/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-ip6-addr.c.obj
 [342/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-loop-alive.c.obj
-[343/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-ipc-send-recv.c.obj
-[344/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-loop-close.c.obj
-[345/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-loop-configure.c.obj
+[343/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-loop-close.c.obj
+[344/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-loop-configure.c.obj
+[345/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-ipc-send-recv.c.obj
 [346/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-loop-oom.c.obj
 [347/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-loop-stop.c.obj
 [348/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-loop-time.c.obj
 [349/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-multiple-listen.c.obj
-[350/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-loop-handles.c.obj
+[350/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-poll-oob.c.obj
+[351/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-metrics.c.obj
+[352/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-mutexes.c.obj
+[353/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-not-readable-nor-writable-on-read-error.c.obj
+[354/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-osx-resident-set-memory.c.obj
+[355/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-not-writable-after-shutdown.c.obj
+[356/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-osx-select.c.obj
+[357/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-loop-handles.c.obj
 E:/Chinese++/third_party/src/libuv/test/test-loop-handles.c:104:12: warning: 变量（变量名） 'idle_2_cb_called' 被赋值但未被使用 [-Wunused-but-set-global]
   104 | static int idle_2_cb_called = 0;
       |            ^
 生成了 1 个警告。
-[351/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-mutexes.c.obj
-[352/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-osx-resident-set-memory.c.obj
-[353/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-not-readable-nor-writable-on-read-error.c.obj
-[354/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-metrics.c.obj
-[355/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-not-writable-after-shutdown.c.obj
-[356/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-poll-oob.c.obj
-[357/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-osx-select.c.obj
 [358/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-pass-always.c.obj
-[359/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-pipe-connect-error.c.obj
-[360/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-pipe-bind-error.c.obj
+[359/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-pipe-bind-error.c.obj
+[360/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-pipe-connect-error.c.obj
 [361/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-pipe-connect-prepare.c.obj
 [362/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-fs-poll.c.obj
 E:/Chinese++/third_party/src/libuv/test/test-fs-poll.c:59:16: warning: （名字） 'fopen' 已被弃用：This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
@@ -1434,30 +1434,113 @@ C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.3520
   358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
       |                                               ^
 生成了 1 个警告。
-[363/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-ping-pong.c.obj
-[364/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-pipe-connect-multiple.c.obj
-[365/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-pipe-sendmsg.c.obj
-[366/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-pipe-pending-instances.c.obj
+[363/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-pipe-connect-multiple.c.obj
+[364/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-pipe-pending-instances.c.obj
+[365/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-ping-pong.c.obj
+[366/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-pipe-sendmsg.c.obj
 [367/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-pipe-server-close.c.obj
 [368/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-pipe-set-fchmod.c.obj
 [369/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-pipe-getsockname.c.obj
-[370/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-signal-multiple-loops.c.obj
-[371/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-pipe-set-non-blocking.c.obj
+[370/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-pipe-set-non-blocking.c.obj
+[371/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-signal-multiple-loops.c.obj
 [372/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-signal-pending-on-close.c.obj
-[373/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-platform-output.c.obj
+[373/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-poll-close.c.obj
 [374/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-poll-close-doesnt-corrupt-stack.c.obj
-[375/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-ipc.c.obj
+[375/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-platform-output.c.obj
+[376/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-poll-closesocket.c.obj
+[377/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-poll-multiple-handles.c.obj
+[378/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-ipc.c.obj
 E:/Chinese++/third_party/src/libuv/test/test-ipc.c:37:12: warning: 变量（变量名） 'on_pipe_read_called' 被赋值但未被使用 [-Wunused-but-set-global]
    37 | static int on_pipe_read_called;
       |            ^
 生成了 1 个警告。
-[376/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-poll-close.c.obj
-[377/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-poll-closesocket.c.obj
-[378/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-poll-multiple-handles.c.obj
 [379/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-process-priority.c.obj
 [380/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-process-title-threadsafe.c.obj
 [381/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-process-title.c.obj
-[382/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-fs-event.c.obj
+[382/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-random.c.obj
+[383/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-queue-foreach-delete.c.obj
+[384/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-close-accept.c.obj
+[385/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-run-nowait.c.obj
+[386/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-readable-on-eof.c.obj
+[387/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-run-once.c.obj
+[388/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-semaphore.c.obj
+[389/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-ref.c.obj
+[390/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-idna.c.obj
+包含自 E:/Chinese++/third_party/src/libuv/test/test-idna.c:32:
+包含自 E:/Chinese++/third_party/src/libuv/test\../src/idna.c:21:
+E:/Chinese++/third_party/src/libuv/test\../src\uv-common.h:405:7: warning: （名字） 'malloc' 重新声明时未带（属性名） 'dllimport' 特性：之前的（属性名） 'dllimport' 被忽略 [-Winconsistent-dllimport]
+  405 | void* uv__malloc(size_t size);
+      |       ^
+E:/Chinese++/third_party/src/libuv/test/test-idna.c:31:20: note: 从宏 'uv__malloc' 展开
+   31 | #define uv__malloc malloc
+      |                    ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt_malloc.h:101:15: note: 上一次声明在这里
+  101 | void* __cdecl malloc(
+      |               ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt_malloc.h:100:1: note: 上一次属性在这里
+  100 | _ACRTIMP _CRTALLOCATOR _CRT_JIT_INTRINSIC _CRTRESTRICT _CRT_HYBRIDPATCHABLE
+      | ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt.h:136:37: note: 从宏 '_ACRTIMP' 展开
+  136 |         #define _ACRTIMP __declspec(dllimport)
+      |                                     ^
+生成了 1 个警告。
+[391/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-oob.c.obj
+[392/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-shutdown-close.c.obj
+[393/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-shutdown-simultaneous.c.obj
+[394/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-shutdown-twice.c.obj
+[395/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-shutdown-eof.c.obj
+[396/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-sizeof.c.obj
+[397/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-socket-buffer-size.c.obj
+[398/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-signal.c.obj
+[399/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-pipe-write.c.obj
+E:/Chinese++/third_party/src/libuv/test/test-pipe-write.c:42:13: warning: 未使用的函数（函数名） 'write_cb' [-Wunused-function]
+   42 | static void write_cb(uv_write_t* req, int status) {
+      |             ^~~~~~~~
+E:/Chinese++/third_party/src/libuv/test/test-pipe-write.c:32:12: warning: 变量（变量名） 'write_cb_called' 被赋值但未被使用 [-Wunused-but-set-global]
+   32 | static int write_cb_called;
+      |            ^
+E:/Chinese++/third_party/src/libuv/test/test-pipe-write.c:33:12: warning: 变量（变量名） 'close_cb_called' 被赋值但未被使用 [-Wunused-but-set-global]
+   33 | static int close_cb_called;
+      |            ^
+生成了 3 个警告。
+[400/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-strscpy.c.obj
+[401/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-stdio-over-pipes.c.obj
+[402/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-io-64-safe.c.obj
+[403/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-strtok.c.obj
+[404/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-alloc-cb-fail.c.obj
+[405/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-write-after-connect.c.obj
+[406/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-close-while-connecting.c.obj
+[407/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-bind-error.c.obj
+[408/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-close-after-read-timeout.c.obj
+[409/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-poll.c.obj
+E:/Chinese++/third_party/src/libuv/test/test-poll.c:646:11: warning: （名字） '_open' 已被弃用：This function or variable may be unsafe. Consider using _sopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
+  646 |   fd[0] = _open("test/fixtures/empty_file", UV_FS_O_RDONLY);
+      |           ^
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt_io.h:420:24: note: （名字） '_open' 在此被明确标记为已弃用
+  420 |         _Check_return_ _CRT_INSECURE_DEPRECATE(_sopen_s)
+      |                        ^
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:368:55: note: 从宏 '_CRT_INSECURE_DEPRECATE' 展开
+  368 |         #define _CRT_INSECURE_DEPRECATE(_Replacement) _CRT_DEPRECATE_TEXT(    \
+      |                                                       ^
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:358:47: note: 从宏 '_CRT_DEPRECATE_TEXT' 展开
+  358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
+      |                                               ^
+生成了 1 个警告。
+[410/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-bind6-error.c.obj
+[411/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-close.c.obj
+[412/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-connect-error-after-write.c.obj
+[413/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-connect-error.c.obj
+[414/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-close-reset.c.obj
+[415/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-connect6-error.c.obj
+[416/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-flags.c.obj
+[417/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-create-socket-early.c.obj
+[418/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-read-stop.c.obj
+[419/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-reuseport.c.obj
+[420/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-rst.c.obj
+[421/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-open.c.obj
+[422/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-read-stop-start.c.obj
+[423/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-shutdown-after-write.c.obj
+[424/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-fs-event.c.obj
 E:/Chinese++/third_party/src/libuv/test/test-fs-event.c:931:27: warning: （名字） 'getenv' 已被弃用：This function or variable may be unsafe. Consider using _dupenv_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
   931 |   const char* sys_drive = getenv("SystemDrive");
       |                           ^
@@ -1486,69 +1569,19 @@ C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.3520
   358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
       |                                               ^
 生成了 2 个警告。
-[383/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-close-accept.c.obj
-[384/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-random.c.obj
-[385/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-readable-on-eof.c.obj
-[386/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-queue-foreach-delete.c.obj
-[387/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-run-nowait.c.obj
-[388/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-run-once.c.obj
-[389/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-semaphore.c.obj
-[390/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-ref.c.obj
-[391/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-shutdown-close.c.obj
-[392/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-oob.c.obj
-[393/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-shutdown-eof.c.obj
-[394/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-shutdown-simultaneous.c.obj
-[395/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-shutdown-twice.c.obj
-[396/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-sizeof.c.obj
-[397/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-signal.c.obj
-[398/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-socket-buffer-size.c.obj
-[399/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-idna.c.obj
-包含自 E:/Chinese++/third_party/src/libuv/test/test-idna.c:32:
-包含自 E:/Chinese++/third_party/src/libuv/test\../src/idna.c:21:
-E:/Chinese++/third_party/src/libuv/test\../src\uv-common.h:405:7: warning: （名字） 'malloc' 重新声明时未带（属性名） 'dllimport' 特性：之前的（属性名） 'dllimport' 被忽略 [-Winconsistent-dllimport]
-  405 | void* uv__malloc(size_t size);
-      |       ^
-E:/Chinese++/third_party/src/libuv/test/test-idna.c:31:20: note: 从宏 'uv__malloc' 展开
-   31 | #define uv__malloc malloc
-      |                    ^
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt_malloc.h:101:15: note: 上一次声明在这里
-  101 | void* __cdecl malloc(
-      |               ^
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt_malloc.h:100:1: note: 上一次属性在这里
-  100 | _ACRTIMP _CRTALLOCATOR _CRT_JIT_INTRINSIC _CRTRESTRICT _CRT_HYBRIDPATCHABLE
-      | ^
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt.h:136:37: note: 从宏 '_ACRTIMP' 展开
-  136 |         #define _ACRTIMP __declspec(dllimport)
-      |                                     ^
-生成了 1 个警告。
-[400/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-strscpy.c.obj
-[401/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-io-64-safe.c.obj
-[402/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-strtok.c.obj
-[403/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-stdio-over-pipes.c.obj
-[404/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-alloc-cb-fail.c.obj
-[405/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-write-after-connect.c.obj
-[406/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-close-after-read-timeout.c.obj
-[407/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-close-while-connecting.c.obj
-[408/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-bind-error.c.obj
-[409/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-connect-error-after-write.c.obj
-[410/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-bind6-error.c.obj
-[411/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-close.c.obj
-[412/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-connect-error.c.obj
-[413/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-connect6-error.c.obj
-[414/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-close-reset.c.obj
-[415/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-create-socket-early.c.obj
-[416/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-flags.c.obj
-[417/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-reuseport.c.obj
-[418/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-read-stop.c.obj
-[419/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-rst.c.obj
-[420/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-read-stop-start.c.obj
-[421/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-write-in-a-row.c.obj
-[422/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-open.c.obj
-[423/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-shutdown-after-write.c.obj
-[424/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-try-write.c.obj
-[425/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-try-write-error.c.obj
-[426/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-unexpected-read.c.obj
-[427/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-write-in-read-cb-backend-timeout.c.obj
+[425/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-write-in-a-row.c.obj
+[426/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-try-write.c.obj
+[427/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-try-write-error.c.obj
+[428/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-unexpected-read.c.obj
+[429/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-write-queue-order.c.obj
+[430/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-test-macros.c.obj
+[431/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-write-to-half-open-connection.c.obj
+[432/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-writealot.c.obj
+[433/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-write-cancel.c.obj
+[434/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-thread-affinity.c.obj
+[435/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-thread-equal.c.obj
+[436/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-thread-priority.c.obj
+[437/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-write-in-read-cb-backend-timeout.c.obj
 E:/Chinese++/third_party/src/libuv/test/test-tcp-write-in-read-cb-backend-timeout.c:31:17: warning: 未使用的变量（变量名） 'server' [-Wunused-variable]
    31 | static uv_tcp_t server;
       |                 ^~~~~~
@@ -1571,25 +1604,19 @@ E:/Chinese++/third_party/src/libuv/test/test-tcp-write-in-read-cb-backend-timeou
    40 | static int close_cb_called;
       |            ^
 生成了 7 个警告。
-[428/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-pipe-write.c.obj
-E:/Chinese++/third_party/src/libuv/test/test-pipe-write.c:42:13: warning: 未使用的函数（函数名） 'write_cb' [-Wunused-function]
-   42 | static void write_cb(uv_write_t* req, int status) {
-      |             ^~~~~~~~
-E:/Chinese++/third_party/src/libuv/test/test-pipe-write.c:32:12: warning: 变量（变量名） 'write_cb_called' 被赋值但未被使用 [-Wunused-but-set-global]
-   32 | static int write_cb_called;
-      |            ^
-E:/Chinese++/third_party/src/libuv/test/test-pipe-write.c:33:12: warning: 变量（变量名） 'close_cb_called' 被赋值但未被使用 [-Wunused-but-set-global]
-   33 | static int close_cb_called;
-      |            ^
-生成了 3 个警告。
-[429/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-write-queue-order.c.obj
-[430/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-write-fail.c.obj
+[438/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-thread.c.obj
+[439/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-thread-name.c.obj
+[440/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-threadpool.c.obj
+[441/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-timer-again.c.obj
+[442/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-timer-from-check.c.obj
+[443/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-write-fail.c.obj
 E:/Chinese++/third_party/src/libuv/test/test-tcp-write-fail.c:106:17: warning: 变量（变量名） 'buf' 在这里作为常量指针实参传入时尚未初始化 [-Wuninitialized-const-pointer]
   106 |                &buf,
       |                 ^~~
 生成了 1 个警告。
-[431/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-write-to-half-open-connection.c.obj
-[432/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-connect-timeout.c.obj
+[444/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tmpdir.c.obj
+[445/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-threadpool-cancel.c.obj
+[446/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-connect-timeout.c.obj
 E:/Chinese++/third_party/src/libuv/test/test-tcp-connect-timeout.c:110:11: warning: （名字） 'sscanf' 已被弃用：This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
   110 |     cnt = sscanf(uname.release, "%d.%d.%d", &semver[0], &semver[1], &semver[2]);
       |           ^
@@ -1609,42 +1636,27 @@ E:/Chinese++/third_party/src/libuv/test/test-tcp-connect-timeout.c:29:12: warnin
    29 | static int close_cb_called;
       |            ^
 生成了 3 个警告。
-[433/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-test-macros.c.obj
-[434/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-write-cancel.c.obj
-[435/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-thread-equal.c.obj
-[436/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tcp-writealot.c.obj
-[437/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-thread-affinity.c.obj
-[438/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-thread-priority.c.obj
-[439/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-thread.c.obj
-[440/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-thread-name.c.obj
-[441/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-threadpool.c.obj
-[442/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-timer-again.c.obj
-[443/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-timer-from-check.c.obj
-[444/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tmpdir.c.obj
-[445/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-threadpool-cancel.c.obj
-[446/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-poll.c.obj
-E:/Chinese++/third_party/src/libuv/test/test-poll.c:646:11: warning: （名字） '_open' 已被弃用：This function or variable may be unsafe. Consider using _sopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
-  646 |   fd[0] = _open("test/fixtures/empty_file", UV_FS_O_RDONLY);
-      |           ^
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt\corecrt_io.h:420:24: note: （名字） '_open' 在此被明确标记为已弃用
-  420 |         _Check_return_ _CRT_INSECURE_DEPRECATE(_sopen_s)
-      |                        ^
-C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:368:55: note: 从宏 '_CRT_INSECURE_DEPRECATE' 展开
-  368 |         #define _CRT_INSECURE_DEPRECATE(_Replacement) _CRT_DEPRECATE_TEXT(    \
-      |                                                       ^
-C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\vcruntime.h:358:47: note: 从宏 '_CRT_DEPRECATE_TEXT' 展开
-  358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
-      |                                               ^
+[447/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-bind.c.obj
+[448/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tty-duplicate-key.c.obj
+[449/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-alloc-cb-fail.c.obj
+[450/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tty.c.obj
+[451/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-connect.c.obj
+[452/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-dgram-too-big.c.obj
+[453/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-create-socket-early.c.obj
+[454/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-connect6.c.obj
+[455/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-multicast-interface.c.obj
+[456/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-ipv6.c.obj
+[457/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-multicast-interface6.c.obj
+[458/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-mmsg.c.obj
+[459/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-multicast-join6.c.obj
+[460/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-multicast-join.c.obj
+[461/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-multicast-ttl.c.obj
+[462/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-timer.c.obj
+E:/Chinese++/third_party/src/libuv/test/test-timer.c:29:12: warning: 变量（变量名） 'twice_close_cb_called' 被赋值但未被使用 [-Wunused-but-set-global]
+   29 | static int twice_close_cb_called = 0;
+      |            ^
 生成了 1 个警告。
-[447/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-alloc-cb-fail.c.obj
-[448/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-bind.c.obj
-[449/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tty.c.obj
-[450/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tty-duplicate-key.c.obj
-[451/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-connect6.c.obj
-[452/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-connect.c.obj
-[453/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-dgram-too-big.c.obj
-[454/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-create-socket-early.c.obj
-[455/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-spawn.c.obj
+[463/487] Building C object CMakeFiles/uv_run_tests.dir/test/test-spawn.c.obj
 E:/Chinese++/third_party/src/libuv/test/test-spawn.c:243:15: warning: （名字） 'getenv' 已被弃用：This function or variable may be unsafe. Consider using _dupenv_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
   243 |   if (NULL != getenv("DYLD_LIBRARY_PATH") ||
       |               ^
@@ -1760,38 +1772,25 @@ C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.3520
   358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
       |                                               ^
 生成了 8 个警告。
-[456/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-ipv6.c.obj
-[457/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-multicast-interface.c.obj
-[458/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-multicast-interface6.c.obj
-[459/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-mmsg.c.obj
-[460/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-multicast-join.c.obj
-[461/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-timer.c.obj
-E:/Chinese++/third_party/src/libuv/test/test-timer.c:29:12: warning: 变量（变量名） 'twice_close_cb_called' 被赋值但未被使用 [-Wunused-but-set-global]
-   29 | static int twice_close_cb_called = 0;
-      |            ^
-生成了 1 个警告。
-[462/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-multicast-ttl.c.obj
-[463/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-multicast-join6.c.obj
-[464/487] Linking C executable uv_run_benchmarks_a.exe
-[465/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-send-fail.c.obj
+[464/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-options.c.obj
+[465/487] Linking C executable uv_run_benchmarks_a.exe
 [466/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-open.c.obj
-[467/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-options.c.obj
-[468/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-send-and-recv.c.obj
-[469/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tty-escape-sequence-processing.c.obj
-[470/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-send-hang-loop.c.obj
+[467/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-send-and-recv.c.obj
+[468/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-send-hang-loop.c.obj
+[469/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-send-fail.c.obj
+[470/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-sendmmsg-error.c.obj
 [471/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-send-immediate.c.obj
-[472/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-sendmmsg-error.c.obj
-[473/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-recv-cb-close-pollerr.c.obj
-[474/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-send-unreachable.c.obj
-[475/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-recvmsg-unreachable-error.c.obj
-[476/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-recv-in-a-row.c.obj
-[477/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-reuseport.c.obj
-[478/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-try-send.c.obj
-[479/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-uname.c.obj
-[480/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-walk-handles.c.obj
+[472/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-recv-cb-close-pollerr.c.obj
+[473/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-send-unreachable.c.obj
+[474/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-recvmsg-unreachable-error.c.obj
+[475/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-tty-escape-sequence-processing.c.obj
+[476/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-try-send.c.obj
+[477/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-recv-in-a-row.c.obj
+[478/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-udp-reuseport.c.obj
+[479/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-walk-handles.c.obj
+[480/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-uname.c.obj
 [481/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-watcher-cross-stop.c.obj
-[482/487] Linking C executable uv_run_tests.exe
-[483/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-spawn.c.obj
+[482/487] Building C object CMakeFiles/uv_run_tests_a.dir/test/test-spawn.c.obj
 E:/Chinese++/third_party/src/libuv/test/test-spawn.c:243:15: warning: （名字） 'getenv' 已被弃用：This function or variable may be unsafe. Consider using _dupenv_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
   243 |   if (NULL != getenv("DYLD_LIBRARY_PATH") ||
       |               ^
@@ -1943,6 +1942,7 @@ C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.3520
   358 | #define _CRT_DEPRECATE_TEXT(_Text) __declspec(deprecated(_Text))
       |                                               ^
 生成了 10 个警告。
+[483/487] Linking C executable uv_run_tests.exe
 [484/487] Building C object CMakeFiles/uv_run_appcontainer.dir/test/appcontainer.c.obj
 E:/Chinese++/third_party/src/libuv/test/appcontainer.c:166:3: warning: （名字） 'strncpy' 已被弃用：This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [-Wdeprecated-declarations]
   166 |   strncpy(parent, path, MAX_PATH - 1);
@@ -2060,244 +2060,244 @@ C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.3520
 -- ctest --
 Test project E:/Chinese++/third_party/build/libuv-ours
     Start 1: uv_test
-1/2 Test #1: uv_test ..........................***Failed   62.18 sec
+1/2 Test #1: uv_test ..........................***Failed   64.01 sec
 1..495
 ok 1 - platform_output
 # Output from process `platform_output`:
 # uv_get_process_title: E:\Chinese++\third_party\build\libuv-ours\uv_run_tests.exe
 # uv_cwd: E:\Chinese++\third_party\src\libuv
 # uv_resident_set_memory: 8994816
-# uv_uptime: 225471.406000
+# uv_uptime: 227900.296000
 # uv_getrusage:
 #   user: 0 sec 0 microsec
-#   system: 0 sec 31000 microsec
-#   page faults: 2299
+#   system: 0 sec 0 microsec
+#   page faults: 2300
 #   maximum resident set size: 8836
 # uv_available_parallelism: 32
 # uv_cpu_info:
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 29066937
-#   times.user: 50933968
-#   times.idle: 145470359
-#   times.irq: 3184718
+#   times.sys: 29413187
+#   times.user: 51605843
+#   times.idle: 146881125
+#   times.irq: 3219437
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 6836046
-#   times.user: 10727546
-#   times.idle: 207907343
-#   times.irq: 1323765
+#   times.sys: 6903781
+#   times.user: 10897171
+#   times.idle: 210098875
+#   times.irq: 1337453
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 39097453
-#   times.user: 65029515
-#   times.idle: 121343968
-#   times.irq: 8368906
+#   times.sys: 39574906
+#   times.user: 65908359
+#   times.idle: 122416562
+#   times.irq: 8476140
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 4336093
-#   times.user: 13484046
-#   times.idle: 207650812
-#   times.irq: 401406
+#   times.sys: 4387500
+#   times.user: 13683593
+#   times.idle: 209828734
+#   times.irq: 405500
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 24555765
-#   times.user: 103676843
-#   times.idle: 97238343
-#   times.irq: 1298593
+#   times.sys: 24774015
+#   times.user: 105078812
+#   times.idle: 98047015
+#   times.irq: 1307984
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 10345109
-#   times.user: 46053203
-#   times.idle: 169072625
-#   times.irq: 684546
+#   times.sys: 10446906
+#   times.user: 46680640
+#   times.idle: 170772281
+#   times.irq: 689468
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 24456687
-#   times.user: 105940015
-#   times.idle: 95074234
-#   times.irq: 1351140
+#   times.sys: 24660781
+#   times.user: 107377875
+#   times.idle: 95861187
+#   times.irq: 1359359
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 9688312
-#   times.user: 46205843
-#   times.idle: 169576796
-#   times.irq: 530421
+#   times.sys: 9777734
+#   times.user: 46845562
+#   times.idle: 171276531
+#   times.irq: 535156
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 19466640
-#   times.user: 53773906
-#   times.idle: 152230406
-#   times.irq: 1816531
+#   times.sys: 19709562
+#   times.user: 54470593
+#   times.idle: 153719671
+#   times.irq: 1838000
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 3081343
-#   times.user: 11825328
-#   times.idle: 210564265
-#   times.irq: 309890
+#   times.sys: 3125718
+#   times.user: 12003765
+#   times.idle: 212770343
+#   times.irq: 314359
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 20564406
-#   times.user: 52989531
-#   times.idle: 151917015
-#   times.irq: 2209546
+#   times.sys: 20809250
+#   times.user: 53730500
+#   times.idle: 153360093
+#   times.irq: 2234171
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 2929406
-#   times.user: 12289812
-#   times.idle: 210251718
-#   times.irq: 283109
+#   times.sys: 2967953
+#   times.user: 12459140
+#   times.idle: 212472734
+#   times.irq: 286625
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 15947812
-#   times.user: 53152796
-#   times.idle: 156370343
-#   times.irq: 1316265
+#   times.sys: 16150656
+#   times.user: 53884687
+#   times.idle: 157864500
+#   times.irq: 1331250
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 2558250
-#   times.user: 12784656
-#   times.idle: 210128031
-#   times.irq: 261156
+#   times.sys: 2594734
+#   times.user: 12963687
+#   times.idle: 212341406
+#   times.irq: 264781
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 14576671
-#   times.user: 53683015
-#   times.idle: 157211265
-#   times.irq: 1214031
+#   times.sys: 14753609
+#   times.user: 54424312
+#   times.idle: 158721906
+#   times.irq: 1226562
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 2404734
-#   times.user: 13495562
-#   times.idle: 209570640
-#   times.irq: 245250
+#   times.sys: 2439937
+#   times.user: 13685218
+#   times.idle: 211774671
+#   times.irq: 248203
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 29962812
-#   times.user: 24859046
-#   times.idle: 170649093
-#   times.irq: 1511015
+#   times.sys: 30356640
+#   times.user: 25160906
+#   times.idle: 172382296
+#   times.irq: 1530328
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 13311015
-#   times.user: 16265859
-#   times.idle: 195894062
-#   times.irq: 738281
+#   times.sys: 13503375
+#   times.user: 16471953
+#   times.idle: 197924500
+#   times.irq: 748546
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 10269718
-#   times.user: 13856812
-#   times.idle: 201344406
-#   times.irq: 598406
+#   times.sys: 10411640
+#   times.user: 14022937
+#   times.idle: 203465234
+#   times.irq: 606859
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 9655531
-#   times.user: 13606750
-#   times.idle: 202208656
-#   times.irq: 554421
+#   times.sys: 9783953
+#   times.user: 13760703
+#   times.idle: 204355156
+#   times.irq: 561609
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 31665843
-#   times.user: 33593968
-#   times.idle: 160211140
-#   times.irq: 1437546
+#   times.sys: 32136187
+#   times.user: 33987875
+#   times.idle: 161775781
+#   times.irq: 1455609
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 13016609
-#   times.user: 19260468
-#   times.idle: 193193859
-#   times.irq: 719609
+#   times.sys: 13202156
+#   times.user: 19483093
+#   times.idle: 195214562
+#   times.irq: 728890
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 10113546
-#   times.user: 16038031
-#   times.idle: 199319359
-#   times.irq: 586453
+#   times.sys: 10233937
+#   times.user: 16206421
+#   times.idle: 201459453
+#   times.irq: 593546
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 9665562
-#   times.user: 15485218
-#   times.idle: 200320156
-#   times.irq: 556625
+#   times.sys: 9777531
+#   times.user: 15639000
+#   times.idle: 202483281
+#   times.irq: 563109
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 27879953
-#   times.user: 38392156
-#   times.idle: 159198828
-#   times.irq: 1243781
+#   times.sys: 28300531
+#   times.user: 38805609
+#   times.idle: 160793687
+#   times.irq: 1260437
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 11452937
-#   times.user: 23403953
-#   times.idle: 190614046
-#   times.irq: 560390
+#   times.sys: 11597390
+#   times.user: 23646687
+#   times.idle: 192655734
+#   times.irq: 566968
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 9051687
-#   times.user: 19685593
-#   times.idle: 196733640
-#   times.irq: 445531
+#   times.sys: 9160875
+#   times.user: 19893281
+#   times.idle: 198845671
+#   times.irq: 450906
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 8373921
-#   times.user: 19297125
-#   times.idle: 197799906
-#   times.irq: 413812
+#   times.sys: 8485500
+#   times.user: 19515468
+#   times.idle: 199898843
+#   times.irq: 418812
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 28158312
-#   times.user: 47419453
-#   times.idle: 149893187
-#   times.irq: 1156312
+#   times.sys: 28586109
+#   times.user: 47939234
+#   times.idle: 151374500
+#   times.irq: 1172218
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 11083109
-#   times.user: 28830656
-#   times.idle: 185557171
-#   times.irq: 530453
+#   times.sys: 11243593
+#   times.user: 29141312
+#   times.idle: 187514921
+#   times.irq: 537625
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 9262296
-#   times.user: 24207937
-#   times.idle: 192000703
-#   times.irq: 474171
+#   times.sys: 9397328
+#   times.user: 24479562
+#   times.idle: 194022937
+#   times.irq: 480281
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 10904281
-#   times.user: 24312140
-#   times.idle: 190254515
-#   times.irq: 443234
+#   times.sys: 11052640
+#   times.user: 24587765
+#   times.idle: 192259421
+#   times.irq: 449187
 #   times.nice: 0
 # uv_interface_addresses:
 #   name: VMware Network Adapter VMnet1
@@ -2355,8 +2355,8 @@ ok 1 - platform_output
 #   gid: -1 (ENOTSUP)
 #   username: hp
 #   home directory: C:\Users\hp
-# uv_os_getpid: 18096
-# uv_os_getppid: 34476
+# uv_os_getpid: 42608
+# uv_os_getppid: 24116
 # uv_os_uname:
 #   sysname: Windows_NT
 #   release: 10.0.26200
@@ -2869,244 +2869,244 @@ ok 494 - win32_signum_number
 ok 495 - wtf8
 
     Start 2: uv_test_a
-2/2 Test #2: uv_test_a ........................***Failed   61.69 sec
+2/2 Test #2: uv_test_a ........................***Failed   61.17 sec
 1..498
 ok 1 - platform_output
 # Output from process `platform_output`:
 # uv_get_process_title: E:\Chinese++\third_party\build\libuv-ours\uv_run_tests_a.exe
 # uv_cwd: E:\Chinese++\third_party\src\libuv
-# uv_resident_set_memory: 8912896
-# uv_uptime: 225533.593000
+# uv_resident_set_memory: 8929280
+# uv_uptime: 227964.343000
 # uv_getrusage:
-#   user: 0 sec 0 microsec
-#   system: 0 sec 15000 microsec
-#   page faults: 2281
-#   maximum resident set size: 8760
+#   user: 0 sec 15000 microsec
+#   system: 0 sec 0 microsec
+#   page faults: 2285
+#   maximum resident set size: 8776
 # uv_available_parallelism: 32
 # uv_cpu_info:
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 29077796
-#   times.user: 50947765
-#   times.idle: 145507875
-#   times.irq: 3185609
+#   times.sys: 29419234
+#   times.user: 51611609
+#   times.idle: 146933343
+#   times.irq: 3220046
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 6836718
-#   times.user: 10728765
-#   times.idle: 207967625
-#   times.irq: 1323890
+#   times.sys: 6911406
+#   times.user: 10903046
+#   times.idle: 210149406
+#   times.irq: 1340062
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 39110718
-#   times.user: 65046031
-#   times.idle: 121376375
-#   times.irq: 8372000
+#   times.sys: 39586140
+#   times.user: 65926078
+#   times.idle: 122451656
+#   times.irq: 8477484
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 4338671
-#   times.user: 13489203
-#   times.idle: 207705234
-#   times.irq: 401562
+#   times.sys: 4387843
+#   times.user: 13684062
+#   times.idle: 209891953
+#   times.irq: 405578
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 24562593
-#   times.user: 103703656
-#   times.idle: 97266859
-#   times.irq: 1298968
+#   times.sys: 24778937
+#   times.user: 105102484
+#   times.idle: 98082453
+#   times.irq: 1308234
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 10349843
-#   times.user: 46071703
-#   times.idle: 169111578
-#   times.irq: 684765
+#   times.sys: 10450906
+#   times.user: 46702687
+#   times.idle: 170810265
+#   times.irq: 689750
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 24465359
-#   times.user: 105978546
-#   times.idle: 95089218
-#   times.irq: 1351515
+#   times.sys: 24668140
+#   times.user: 107423609
+#   times.idle: 95872125
+#   times.irq: 1359734
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 9690156
-#   times.user: 46213593
-#   times.idle: 169629359
-#   times.irq: 530578
+#   times.sys: 9778265
+#   times.user: 46847125
+#   times.idle: 171338468
+#   times.irq: 535218
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 19471890
-#   times.user: 53782484
-#   times.idle: 152278734
-#   times.irq: 1816937
+#   times.sys: 19716312
+#   times.user: 54482281
+#   times.idle: 153765281
+#   times.irq: 1838828
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 3084406
-#   times.user: 11831000
-#   times.idle: 210617718
-#   times.irq: 310171
+#   times.sys: 3126015
+#   times.user: 12004312
+#   times.idle: 212833531
+#   times.irq: 314406
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 20572703
-#   times.user: 53004296
-#   times.idle: 151956125
-#   times.irq: 2210359
+#   times.sys: 20815781
+#   times.user: 53741578
+#   times.idle: 153406515
+#   times.irq: 2234625
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 2929859
-#   times.user: 12290593
-#   times.idle: 210312656
-#   times.irq: 283171
+#   times.sys: 2968234
+#   times.user: 12459531
+#   times.idle: 212536093
+#   times.irq: 286671
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 15954921
-#   times.user: 53167796
-#   times.idle: 156410406
-#   times.irq: 1316828
+#   times.sys: 16155625
+#   times.user: 53895312
+#   times.idle: 157912937
+#   times.irq: 1331687
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 2558859
-#   times.user: 12785359
-#   times.idle: 210188890
-#   times.irq: 261250
+#   times.sys: 2594953
+#   times.user: 12964062
+#   times.idle: 212404843
+#   times.irq: 264843
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 14582812
-#   times.user: 53696562
-#   times.idle: 157253750
-#   times.irq: 1214500
+#   times.sys: 14758109
+#   times.user: 54433921
+#   times.idle: 158771843
+#   times.irq: 1227015
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 2405203
-#   times.user: 13496437
-#   times.idle: 209631468
-#   times.irq: 245296
+#   times.sys: 2440109
+#   times.user: 13685640
+#   times.idle: 211838109
+#   times.irq: 248234
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 29979296
-#   times.user: 24866640
-#   times.idle: 170687187
-#   times.irq: 1511765
+#   times.sys: 30370718
+#   times.user: 25165718
+#   times.idle: 172427437
+#   times.irq: 1531000
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 13314687
-#   times.user: 16268125
-#   times.idle: 195950296
-#   times.irq: 738578
+#   times.sys: 13505234
+#   times.user: 16472765
+#   times.idle: 197985859
+#   times.irq: 748781
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 10271125
-#   times.user: 13857875
-#   times.idle: 201404109
-#   times.irq: 598515
+#   times.sys: 10412859
+#   times.user: 14023625
+#   times.idle: 203527375
+#   times.irq: 606953
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 9656687
-#   times.user: 13607562
-#   times.idle: 202268843
-#   times.irq: 554484
+#   times.sys: 9785000
+#   times.user: 13761500
+#   times.idle: 204417359
+#   times.irq: 561656
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 31679406
-#   times.user: 33599812
-#   times.idle: 160253890
-#   times.irq: 1438109
+#   times.sys: 32146125
+#   times.user: 33991578
+#   times.idle: 161826171
+#   times.irq: 1456015
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 13018640
-#   times.user: 19261750
-#   times.idle: 193252718
-#   times.irq: 719734
+#   times.sys: 13203703
+#   times.user: 19483875
+#   times.idle: 195276281
+#   times.irq: 728984
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 10114687
-#   times.user: 16038750
-#   times.idle: 199379656
-#   times.irq: 586593
+#   times.sys: 10235000
+#   times.user: 16206875
+#   times.idle: 201521984
+#   times.irq: 593718
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 9666546
-#   times.user: 15486015
-#   times.idle: 200380531
-#   times.irq: 556718
+#   times.sys: 9778468
+#   times.user: 15639625
+#   times.idle: 202545765
+#   times.irq: 563218
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 27887218
-#   times.user: 38396062
-#   times.idle: 159249843
-#   times.irq: 1244203
+#   times.sys: 28304968
+#   times.user: 38807515
+#   times.idle: 160851390
+#   times.irq: 1260765
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 11453953
-#   times.user: 23404531
-#   times.idle: 190674609
-#   times.irq: 560546
+#   times.sys: 11598109
+#   times.user: 23647015
+#   times.idle: 192718734
+#   times.irq: 567046
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 9052453
-#   times.user: 19686234
-#   times.idle: 196794406
-#   times.irq: 445593
+#   times.sys: 9161515
+#   times.user: 19893687
+#   times.idle: 198908656
+#   times.irq: 450968
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 8377515
-#   times.user: 19299390
-#   times.idle: 197856187
-#   times.irq: 414078
+#   times.sys: 8486109
+#   times.user: 19515796
+#   times.idle: 199961953
+#   times.irq: 418828
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 28172265
-#   times.user: 47425218
-#   times.idle: 149935609
-#   times.irq: 1156656
+#   times.sys: 28590343
+#   times.user: 47940343
+#   times.idle: 151433187
+#   times.irq: 1172359
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 11095359
-#   times.user: 28837484
-#   times.idle: 185600281
-#   times.irq: 530921
+#   times.sys: 11253421
+#   times.user: 29144796
+#   times.idle: 187565640
+#   times.irq: 537937
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 9265546
-#   times.user: 24210484
-#   times.idle: 192057093
-#   times.irq: 474312
+#   times.sys: 9407546
+#   times.user: 24483375
+#   times.idle: 194072953
+#   times.irq: 480656
 #   times.nice: 0
 #   model: Intel(R) Core(TM) i9-14900HX
 #   speed: 2419
-#   times.sys: 10906187
-#   times.user: 24313468
-#   times.idle: 190313453
-#   times.irq: 443343
+#   times.sys: 11055296
+#   times.user: 24589343
+#   times.idle: 192319218
+#   times.irq: 449265
 #   times.nice: 0
 # uv_interface_addresses:
 #   name: VMware Network Adapter VMnet1
@@ -3164,16 +3164,16 @@ ok 1 - platform_output
 #   gid: -1 (ENOTSUP)
 #   username: hp
 #   home directory: C:\Users\hp
-# uv_os_getpid: 46404
-# uv_os_getppid: 28192
+# uv_os_getpid: 41680
+# uv_os_getppid: 20496
 # uv_os_uname:
 #   sysname: Windows_NT
 #   release: 10.0.26200
 #   version: Windows 11 Home China
 #   machine: x86_64
 # uv_getrusage_thread:
-#   user: 0 sec 15000 microsec
-#   system: 0 sec 31000 microsec
+#   user: 0 sec 31000 microsec
+#   system: 0 sec 0 microsec
 #   page faults: 0
 #   maximum resident set size: 0
 ok 2 - active
@@ -3683,7 +3683,7 @@ ok 498 - wtf8
 
 0% tests passed, 2 tests failed out of 2
 
-Total Test time (real) = 123.88 sec
+Total Test time (real) = 125.19 sec
 
 The following tests FAILED:
 	  1 - uv_test (Failed)
