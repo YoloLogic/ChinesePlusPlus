@@ -52,8 +52,29 @@
     static_assert(__builtin_offsetof(窗口类, lpszMenuName) == __builtin_offsetof(WNDCLASSEXW, lpszMenuName), "布局漂移：lpszMenuName");
     static_assert(__builtin_offsetof(窗口类, lpszClassName) == __builtin_offsetof(WNDCLASSEXW, lpszClassName), "布局漂移：lpszClassName");
     static_assert(__builtin_offsetof(窗口类, hIconSm) == __builtin_offsetof(WNDCLASSEXW, hIconSm), "布局漂移：hIconSm");
+    结构 消息 {
+        union { HWND hwnd; HWND 窗; };
+        union { UINT message; UINT 消息值; };
+        union { WPARAM wParam; WPARAM 甲参; };
+        union { LPARAM lParam; LPARAM 乙参; };
+        union { DWORD time; DWORD 时刻; };
+        union { POINT pt; POINT 坐标; };
+    };
+    static_assert(sizeof(消息) == sizeof(MSG), "布局漂移：sizeof");
+    static_assert(__builtin_offsetof(消息, hwnd) == __builtin_offsetof(MSG, hwnd), "布局漂移：hwnd");
+    static_assert(__builtin_offsetof(消息, message) == __builtin_offsetof(MSG, message), "布局漂移：message");
+    static_assert(__builtin_offsetof(消息, wParam) == __builtin_offsetof(MSG, wParam), "布局漂移：wParam");
+    static_assert(__builtin_offsetof(消息, lParam) == __builtin_offsetof(MSG, lParam), "布局漂移：lParam");
+    static_assert(__builtin_offsetof(消息, time) == __builtin_offsetof(MSG, time), "布局漂移：time");
+    static_assert(__builtin_offsetof(消息, pt) == __builtin_offsetof(MSG, pt), "布局漂移：pt");
+    内联 常量 无符号 整数 销毁消息 = WM_DESTROY;
+    内联 常量 无符号 整数 关闭消息 = WM_CLOSE;
+    内联 常量 无符号 整数 绘制消息 = WM_PAINT;
+    内联 常量 无符号 整数 退出消息 = WM_QUIT;
+    内联 常量 无符号 整数 计时器消息 = WM_TIMER;
     内联 整数 注册窗口类(常量 窗口类& 类){ 返回 RegisterClassExW((常量 WNDCLASSEXW*)&类); }
     内联 标准::窗口句柄 创建消息窗口(常量 宽字符* 类名, 常量 宽字符* 标题){ 返回 CreateWindowExW(0, 类名, 标题, 0, 0,0,0,0, HWND_MESSAGE, 空指针, 空指针, 空指针); }
-    内联 整数 取消息(MSG& 消){ 返回 GetMessageW(&消, 空指针, 0, 0); }
-    内联 整数 派发消息(常量 MSG& 消){ 返回 (整数)DispatchMessageW(&消); }
+    内联 整数 取消息(消息& 消){ 返回 GetMessageW((MSG*)&消, 空指针, 0, 0); }
+    内联 整数 翻译消息(常量 消息& 消){ 返回 (整数)TranslateMessage((常量 MSG*)&消); }
+    内联 整数 派发消息(常量 消息& 消){ 返回 (整数)DispatchMessageW((常量 MSG*)&消); }
 }

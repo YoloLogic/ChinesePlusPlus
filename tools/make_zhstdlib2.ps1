@@ -4711,7 +4711,22 @@ $H = @{
       #     error: 使用类模板 '_相等比较' 需要模板实参（实测 L5494）
       #   判据：`_RANGES X` 若 X 在本头里同名两义（`std::X` 与 `std::ranges::X`），
       #   **只能保留名域、去掉宏**（`ranges::_相等比较`），不能整个去限定。
-      @('_RANGES equal_to', 'ranges::_相等比较') )
+      @('_RANGES equal_to', 'ranges::_相等比较'),
+      # ---------------------------------------------------------------------
+      #  §18.31 混用边界修复：`#include <windows.h>`（或任何引入 rpcndr.h 的头）在**前**时，
+      #  rpcndr.h:202 的全局 `typedef unsigned char byte;` 会让本头里**未限定**的 `byte`
+      #  有歧义 —— 实测 16 条「对（名字）'byte' 的引用有歧义」，落在 5 个不同行。
+      #  根因：原件里这几处位于 `namespace std` 内（那时 `byte` 就是 `std::byte`，不会歧义），
+      #  翻译到 `名域 标准`（内有 `使用 名域 std;`）后，`::byte` 与 `std::byte` 同时可见 ⇒ 歧义。
+      #  修法：限定死成 `_STD byte`（`_STD` = `::std::`，MSVC yvals_core.h:1928）——
+      #  语义完全等价（我们的 `标准::字节` 就是 `std::byte`），只是名字不再靠查找。
+      #  ⚠ 顺序：更长的那条必须在前（否则短的那条先改了它内部，长条就"未命中"报错）。
+      #  ⚠ 不许用"全库 \bbyte\b 一键替换"：那会把 `std::byte` 改成 `std::_STD byte`。
+      @('_是字符或字节或布尔<byte>', '_是字符或字节或布尔<_STD byte>'),
+      @('_Can_memcmp_elements<byte, byte, false>', '_Can_memcmp_elements<_STD byte, _STD byte, false>'),
+      @('_Lex_compare_memcmp_classify_elements<byte, byte>', '_Lex_compare_memcmp_classify_elements<_STD byte, _STD byte>'),
+      @('conjunction<is_same<_类型, byte>, is_same<_元素, byte>>', 'conjunction<is_same<_类型, _STD byte>, is_same<_元素, _STD byte>>'),
+      @('is_same<_类型, byte>', 'is_same<_类型, _STD byte>') )
     members = [ordered]@{
       '_Strategy' = '_策略';
       '_Result' = '_结果';

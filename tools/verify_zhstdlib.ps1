@@ -126,8 +126,56 @@ if ($cfgOk) {
     }
 }
 
+# ---------------------------------------------------------------------------
+#  §18.30 「直接使用」探针：**不带任何搜索路径**编译并【真跑】。
+#
+#  为什么必须有它（2026-10-05 实测，两处窟窿）：
+#    · 裸驱动 `chinese++.exe -std=c++20 x.cpp` 报「找不到文件（名字）'向量'」
+#      —— 用户必须自己记得那 5 条 -isystem（本项目最怕的"靠人记得"）；
+#    · clangd（IDE）走 --query-driver 问编译器，拿到的也是"没有 zhstdlib"那份
+#      ⇒ `#包含 <向量>` 在编辑器里被标红（实测 pp_file_not_found）。
+#  修法不重编编译器：`<驱动名>.cfg`（与驱动同目录、同调用名）—— `tools\make_zhcfg.ps1` 生成。
+#
+#  判据：探针**同时**用中文头与英文头（`#包含 <向量>` + `#include <vector>`），
+#        命令行**只给 -std=c++20**，编译成功 **且** 运行退出码 0。
+#  ⚠ 这里先自己写一遍 cfg（幂等）：否则"有人忘了跑生成"会被误判成"直接使用坏了"。
+#    cfg 是否符合单一事实来源，由第 25 道守卫（check_zhpaths）判红 —— 两件事分开管。
+# ---------------------------------------------------------------------------
+& pwsh -NoProfile -File (Join-Path $root 'tools\make_zhcfg.ps1') -Quiet | Out-Null
+$d3 = Join-Path $root 'build\_zhverify_direct'
+New-Item -ItemType Directory -Force $d3 | Out-Null
+$src3 = Join-Path $d3 'zhpp.cpp'
+[System.IO.File]::WriteAllText($src3,
+    "#包含 <向量>`n#include <cstdio>`n#include <vector>`n整数 主函数(){`n" +
+    "    标准::向量<整数> 表; 表.尾插(41); 表.尾插(1);`n" +
+    "    std::vector<int> 乙{1, 2};`n" +
+    "    返回 ((整数)表.尺寸() == 2 && (整数)乙.size() == 2) ? 0 : 1;`n}`n", $utf8)
+$exe3  = Join-Path $d3 'zhpp.exe'
+$log3  = Join-Path $d3 'o.txt'
+$run3  = Join-Path $d3 'run.txt'
+& cmd /c "`"$cxx`" -std=c++20 `"$src3`" -o `"$exe3`" > `"$log3`" 2>&1"
+$buildOk = ($LASTEXITCODE -eq 0)
+$directErr = ''
+if ($buildOk) {
+    & $exe3 *> $run3
+    $runOk = ($LASTEXITCODE -eq 0)
+} else {
+    $runOk = $false
+    $directErr = ([string]((Get-Content $log3 -ErrorAction SilentlyContinue |
+                Where-Object { $_ -match 'error' } | Select-Object -First 1))).Trim()
+}
+Remove-Item -Recurse -Force $d3 -ErrorAction SilentlyContinue
+$directOk = ($buildOk -and $runOk)
+
 Write-Host ""
 Write-Host ("=== zhstdlib 全量验证: 通过 {0} / {1} ===" -f $ok, $files.Count) -ForegroundColor Cyan
+if ($directOk) {
+    Write-Host "  直接使用探针（不带任何 -isystem/-I，只靠编译器同目录 cfg）: 通过（真编译 + 真运行）" -ForegroundColor Green
+} else {
+    Write-Host "  直接使用探针: FAIL（「只敲 chinese++ 文件.cpp」这条路断了）" -ForegroundColor Yellow
+    if ($directErr) { Write-Host ("    " + $directErr) -ForegroundColor Yellow }
+    else { Write-Host "    编译成功但运行退出码非 0" -ForegroundColor Yellow }
+}
 if ($allOk) {
     Write-Host ("  组合探针（全部 {0} 个头一起引）: 通过" -f $files.Count) -ForegroundColor Green
 } else {
@@ -140,5 +188,6 @@ if ($bad.Count) {
 }
 if (-not $allOk) { exit 1 }
 if (-not $cfgOk) { exit 1 }
+if (-not $directOk) { exit 1 }
 Write-Host "  全部通过" -ForegroundColor Green
 exit 0

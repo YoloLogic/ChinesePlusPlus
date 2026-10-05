@@ -58,6 +58,23 @@ foreach ($f in $files) {
     if ($missing.Count) { $bad += ("{0}：缺 {1}" -f $rel, ($missing -join '、')) }
 }
 
+# ---------------------------------------------------------------------------
+#  §18.30：`<驱动名>.cfg`（"直接使用"用的那份）也是这张路径列表的一个**入口**。
+#  它由 tools\make_zhcfg.ps1 从**同一个事实来源**生成 —— 这里直接交给它自己核对：
+#  少写一条 = "某个头找不到"；被手改过也要红，否则"直接使用 / IDE 不标红"会悄悄坏掉。
+#  编译器还没构建（没有 bin 目录）时跳过：那是"还没生成"，不是"不一致"。
+# ---------------------------------------------------------------------------
+$binDir = Join-Path $root 'build\Release\bin'
+if (Test-Path $binDir) {
+    & pwsh -NoProfile -File (Join-Path $root 'tools\make_zhcfg.ps1') -Check -Quiet -BinDir $binDir
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host '❌ <驱动名>.cfg（§18.30「直接使用」）与搜索路径事实来源不一致' -ForegroundColor Red
+        Write-Host '   修法：pwsh -NoProfile -File tools\make_zhcfg.ps1' -ForegroundColor Yellow
+        exit 1
+    }
+    $checked++
+}
+
 if ($bad.Count) {
     Write-Host '❌ 汉化库搜索路径不一致（§18.26 方案②）—— 少一条就"某个头找不到"：' -ForegroundColor Red
     $bad | ForEach-Object { Write-Host ('   ' + $_) -ForegroundColor Red }
