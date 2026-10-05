@@ -36,7 +36,19 @@ param(
     # Default is OFF: the official VS Code may not be redistributed (its license
     # forbids "share, publish ... the software"), so the default package is
     # toolchain-only and install.ps1 downloads the editor on the user's machine.
-    [switch] $WithEditor
+    [switch] $WithEditor,
+    # Where to assemble the package. Default: <repo>\dist.
+    #
+    # WHY THIS IS A PARAMETER: "does the package work" must be tested where a
+    # user actually puts it. Point this at a folder whose path contains
+    # NON-ASCII characters (user instruction 2026-10-05) -- measured: a package
+    # under a Chinese-named folder compiles and runs a Chinese include with no
+    # flags, because bin\<driver>.cfg holds forward-slash ABSOLUTE paths.
+    # See docs\packaging\...  section 7.10.  The folder is created if missing.
+    #
+    # NOTE: this file is PURE ASCII on purpose, so no non-ASCII path is ever
+    # spelled here; pass it on the command line.
+    [string] $OutDir
 )
 
 $ErrorActionPreference = 'Stop'
@@ -47,7 +59,8 @@ $binSrc   = Join-Path $build 'bin'
 $resSrc   = Join-Path $build 'lib\clang'
 $licSrc   = Join-Path $root 'licenses'
 $packSrc  = Join-Path $root 'packaging'
-$distRoot = Join-Path $root 'dist'
+$distRoot = if ($OutDir) { $OutDir } else { Join-Path $root 'dist' }
+if (-not (Test-Path $distRoot)) { New-Item -ItemType Directory -Force $distRoot | Out-Null }
 $pkgName  = "Chinese++-$Version-win64"
 $pkg      = Join-Path $distRoot $pkgName
 
