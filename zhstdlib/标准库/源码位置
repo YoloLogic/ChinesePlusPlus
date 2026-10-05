@@ -1,0 +1,122 @@
+#include <source_location>
+// 源码位置 standard header (core)
+
+// Copyright (c) Microsoft Corporation.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#ifndef _ZH_SOURCE_LOCATION_
+#define _ZH_SOURCE_LOCATION_
+#include <yvals_core.h>
+#if _STL_COMPILER_PREPROCESSOR
+#if !_HAS_CXX20
+_EMIT_STL_WARNING(STL4038, "The contents of <源码位置> are available only with C++20 or later.");
+#else // ^^^ !_HAS_CXX20 / _HAS_CXX20 vvv
+
+#include <cstdint>
+
+#pragma pack(push, _CRT_PACKING)
+#pragma warning(push, _STL_WARNING_LEVEL)
+#pragma warning(disable : _STL_DISABLED_WARNINGS)
+_STL_DISABLE_CLANG_WARNINGS
+#pragma push_macro("new")
+#undef new
+
+#ifndef _USE_DETAILED_FUNCTION_NAME_IN_SOURCE_LOCATION
+#define _USE_DETAILED_FUNCTION_NAME_IN_SOURCE_LOCATION 1
+#endif // ^^^ !defined(_USE_DETAILED_FUNCTION_NAME_IN_SOURCE_LOCATION) ^^^
+
+名域 标准 { 名域 细节 {
+使用 名域 std;
+_EXPORT_STD struct 源码位置 {
+    _NODISCARD static consteval 源码位置 当前(const uint_least32_t _行号_ = __builtin_LINE(),
+        const uint_least32_t _列号_ = __builtin_COLUMN(), const char* const _文件_ = __builtin_FILE(),
+#if _USE_DETAILED_FUNCTION_NAME_IN_SOURCE_LOCATION
+        const char* const _函数_ = __builtin_FUNCSIG()
+#else // ^^^ detailed / basic vvv
+        const char* const _函数_ = __builtin_FUNCTION()
+#endif // ^^^ basic ^^^
+            ) noexcept {
+        源码位置 _结果{};
+        _结果._行号     = _行号_;
+        _结果._列号   = _列号_;
+        _结果._文件     = _文件_;
+        _结果._函数 = _函数_;
+        return _结果;
+    }
+
+    _NODISCARD_CTOR constexpr 源码位置() noexcept = default;
+
+    _NODISCARD constexpr uint_least32_t 行号() const noexcept {
+        return _行号;
+    }
+    _NODISCARD constexpr uint_least32_t 列号() const noexcept {
+        return _列号;
+    }
+    _NODISCARD constexpr const char* 文件名() const noexcept {
+        return _文件;
+    }
+    _NODISCARD constexpr const char* 函数名() const noexcept {
+        return _函数;
+    }
+
+private:
+    uint_least32_t _行号{};
+    uint_least32_t _列号{};
+    const char* _文件     = "";
+    const char* _函数 = "";
+};
+} }
+
+#pragma pop_macro("new")
+_STL_RESTORE_CLANG_WARNINGS
+#pragma warning(pop)
+#pragma pack(pop)
+#endif // ^^^ _HAS_CXX20 ^^^
+#endif // _STL_COMPILER_PREPROCESSOR
+// [ZH-DERIVE-LAYER] 汉语派生层（英文兼容层）从这一行开始 —— 本行【以上】属抄来那层，有英文名就是欠账
+// ============================================================================
+//  第二层：在【中文的基础上】派生，把英文原名补回来
+//  · 第一层 标准::细节::源码位置 是抄自微软的中文实现，成员名全中文
+//  · 本层加回英文原名，所以两种名字在【同一个对象】上都能用
+//  · 与微软的原类型并存：它是【另一个类型】，不碰 std 里的定义
+// ============================================================================
+名域 标准 {
+
+类型 源码位置 : 公开 细节::源码位置 {
+公开:
+    使用 基类 = 细节::源码位置;
+    使用 基类::基类;
+
+    // 嵌套类型名也要补回英文（数据成员不行 —— 那会改布局）
+
+
+    // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
+    模板 <类型名... 参数> 声明类型(自动) line(参数&&... 值) { 返回 基类::行号(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) line(参数&&... 值) 常量 { 返回 基类::行号(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) column(参数&&... 值) { 返回 基类::列号(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) column(参数&&... 值) 常量 { 返回 基类::列号(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) file_name(参数&&... 值) { 返回 基类::文件名(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) file_name(参数&&... 值) 常量 { 返回 基类::文件名(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) function_name(参数&&... 值) { 返回 基类::函数名(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) function_name(参数&&... 值) 常量 { 返回 基类::函数名(static_cast<参数&&>(值)...); }
+
+    // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
+    // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
+    // §17.19.3 通用规则（本条目也踩到了）：实现层按值返回【实现类型】，派生类型必须有一条
+    //   转发构造 —— 否则 返回 基类::当前(...) 报"没有可行的转换"。
+    模板 <类型名 源> constexpr 源码位置(常量 源& 值) : 基类(值) {}
+
+    // §17.19.5：默认实参必须在【调用点】求值 —— 通用模板转发会把它们在本头里求值。
+    静态 立即求值 源码位置 current(const uint_least32_t _行号_ = __builtin_LINE(),
+        const uint_least32_t _列号_ = __builtin_COLUMN(), const char* const _文件_ = __builtin_FILE(),
+#if _USE_DETAILED_FUNCTION_NAME_IN_SOURCE_LOCATION
+        const char* const _函数_ = __builtin_FUNCSIG()) 不抛出 {
+#else // ^^^ detailed / basic vvv
+        const char* const _函数_ = __builtin_FUNCTION()) 不抛出 {
+#endif // ^^^ basic ^^^
+        返回 基类::当前(_行号_, _列号_, _文件_, _函数_);
+    }
+};
+}
+
+#endif // _SOURCE_LOCATION_

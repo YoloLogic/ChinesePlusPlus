@@ -1,0 +1,290 @@
+#include <condition_variable>
+// 条件变量实现 standard header
+
+// Copyright (c) Microsoft Corporation.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#ifndef _ZH_CONDITION_VARIABLE_
+#define _ZH_CONDITION_VARIABLE_
+#include <yvals_core.h>
+#if _STL_COMPILER_PREPROCESSOR
+
+#ifdef _M_CEE_PURE
+#error <条件变量实现> is not supported when compiling with /clr:pure.
+#endif // defined(_M_CEE_PURE)
+
+#include <__msvc_chrono.hpp>
+#include <memory>
+#include <互斥量>
+#include <xthreads.h>
+#if _HAS_CXX20
+#include <stop_token>
+#endif // _HAS_CXX20
+
+#pragma pack(push, _CRT_PACKING)
+#pragma warning(push, _STL_WARNING_LEVEL)
+#pragma warning(disable : _STL_DISABLED_WARNINGS)
+_STL_DISABLE_CLANG_WARNINGS
+#pragma push_macro("new")
+#undef new
+
+名域 标准 { 名域 细节 {
+使用 名域 std;
+template <class _加锁>
+struct _NODISCARD _解锁卫兵 {
+    explicit _解锁卫兵(_加锁& _Mtx_) : _Mtx(_Mtx_) {
+        _Mtx.解锁();
+    }
+
+    ~_解锁卫兵() noexcept /* terminates */ {
+        // relock 互斥量实现 or terminate()
+        // 条件变量任意实现 等待 functions are required to terminate if
+        // the 互斥量实现 cannot be relocked;
+        // we slam into noexcept here for easier user debugging.
+        _Mtx.加锁();
+    }
+
+    _解锁卫兵(const _解锁卫兵&)            = delete;
+    _解锁卫兵& operator=(const _解锁卫兵&) = delete;
+
+private:
+    _加锁& _Mtx;
+};
+
+_EXPORT_STD class 条件变量任意实现 { // class for waiting for conditions with any kind of 互斥量实现
+public:
+    条件变量任意实现() : _我的指针{_STD make_shared<互斥量实现>()} {
+#ifdef _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR
+        _Cnd_init_in_situ(_Mycnd());
+#endif // ^^^ defined(_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR) ^^^
+    }
+
+    ~条件变量任意实现() noexcept = default;
+
+    条件变量任意实现(const 条件变量任意实现&)            = delete;
+    条件变量任意实现& operator=(const 条件变量任意实现&) = delete;
+
+    void 通知一个() noexcept { // wake up one waiter
+        锁守卫实现<互斥量实现> _Guard{*_我的指针};
+        _Cnd_signal(_Mycnd());
+    }
+
+    void 通知全部() noexcept { // wake up all waiters
+        锁守卫实现<互斥量实现> _Guard{*_我的指针};
+        _Cnd_broadcast(_Mycnd());
+    }
+
+    template <class _加锁>
+    void 等待(_加锁& _Lck) noexcept /* terminates */ { // 等待 for signal
+        const shared_ptr<互斥量实现> _Ptr = _我的指针; // for immunity to *this destruction
+        独占锁实现<互斥量实现> _Guard{*_Ptr};
+        _解锁卫兵<_加锁> _Unlock_outer{_Lck};
+        _Cnd_wait(_Mycnd(), _Ptr->_我的互斥量());
+        _Guard.解锁();
+    } // relock _Lck
+
+    template <class _加锁, class _Predicate>
+    void 等待(_加锁& _Lck, _Predicate _Pred) noexcept(noexcept(static_cast<bool>(_Pred()))) /* strengthened */ {
+        // 等待 for signal and check predicate
+        while (!static_cast<bool>(_Pred())) {
+            等待(_Lck);
+        }
+    }
+
+    template <class _加锁, class _Clock, class _Duration>
+    cv_status 等待至时刻(_加锁& _Lck, const chrono::time_point<_Clock, _Duration>& _Abs_time) {
+        // 等待 until time point
+        static_assert(chrono::_Is_clock_v<_Clock>, "Clock type required");
+        const auto _Now                  = _Clock::now();
+        using _公共时长           = decltype(_Abs_time - _Now);
+        const _公共时长 _Rel_time = (_Abs_time <= _Now) ? _公共时长::zero() : _Abs_time - _Now;
+        return 限时等待(_Lck, _Rel_time);
+    }
+
+    template <class _加锁, class _Clock, class _Duration, class _Predicate>
+    bool 等待至时刻(_加锁& _Lck, const chrono::time_point<_Clock, _Duration>& _Abs_time, _Predicate _Pred) {
+        // 等待 for signal with timeout and check predicate
+#if _HAS_CXX20
+        static_assert(chrono::is_clock_v<_Clock>, "Clock type required");
+#endif // _HAS_CXX20
+        while (!_Pred()) {
+            if (等待至时刻(_Lck, _Abs_time) == cv_status::timeout) {
+                return _Pred();
+            }
+        }
+
+        return true;
+    }
+
+    template <class _加锁, class _表示, class _Period>
+    cv_status 限时等待(_加锁& _Lck, const chrono::duration<_表示, _Period>& _Rel_time) { // 等待 for duration
+        if (_Rel_time <= chrono::duration<_表示, _Period>::zero()) {
+            _解锁卫兵<_加锁> _Unlock_outer{_Lck};
+            (void) _Unlock_outer;
+            return cv_status::timeout;
+        }
+
+        const auto _Rel_time_ms = _Clamped_rel_time_ms_count(_Rel_time);
+
+        // 等待 for signal with timeout
+        const shared_ptr<互斥量实现> _Ptr = _我的指针; // for immunity to *this destruction
+        const auto _启动            = _CHRONO steady_clock::now();
+        const auto _Target           = _启动 + _Rel_time;
+
+        独占锁实现<互斥量实现> _Guard{*_Ptr};
+        _解锁卫兵<_加锁> _Unlock_outer{_Lck};
+        const _Thrd_result _Res = _Cnd_timedwait_for_unchecked(_Mycnd(), _Ptr->_我的互斥量(), _Rel_time_ms._Count);
+        _Guard.解锁();
+
+        if (_Res == _Thrd_result::_Success) {
+            return cv_status::no_timeout; // Real or WinAPI-internal spurious wake
+        } else if (_Rel_time_ms._Clamped) {
+            return cv_status::no_timeout; // Spuriously wake due to clamped timeout
+        } else if (_CHRONO steady_clock::now() < _Target) {
+            return cv_status::no_timeout; // Spuriously wake due to premature timeout
+        } else {
+            return cv_status::timeout;
+        }
+    }
+
+    template <class _加锁, class _表示, class _Period, class _Predicate>
+    bool 限时等待(_加锁& _Lck, const chrono::duration<_表示, _Period>& _Rel_time, _Predicate _Pred) {
+        // 等待 for signal with timeout and check predicate
+        return 等待至时刻(_Lck, _To_absolute_time(_Rel_time), _STD move(_Pred));
+    }
+
+#if _HAS_CXX20
+private:
+    struct _条件变量任意通知全部 {
+        条件变量任意实现* _This;
+
+        explicit _条件变量任意通知全部(条件变量任意实现* _This_) noexcept : _This{_This_} {}
+
+        _条件变量任意通知全部(const _条件变量任意通知全部&)            = delete;
+        _条件变量任意通知全部& operator=(const _条件变量任意通知全部&) = delete;
+
+        void operator()() const noexcept {
+            _This->通知全部();
+        }
+    };
+
+public:
+    template <class _加锁, class _Predicate>
+    bool 等待(_加锁& _Lck, stop_token _Stoken, _Predicate _Pred)
+        noexcept(noexcept(static_cast<bool>(_Pred()))) /* strengthened */ {
+        // TRANSITION, ABI: Due to the unsynchronized delivery of 通知全部 by _Stoken,
+        // this implementation cannot tolerate *this destruction while an interruptible 等待
+        // is outstanding. A future ABI should store both the internal CV and internal 互斥量实现
+        // in the reference counted block to allow this.
+        stop_callback<_条件变量任意通知全部> _Cb{_Stoken, this};
+        for (;;) {
+            if (_Pred()) {
+                return true;
+            }
+
+            独占锁实现<互斥量实现> _Guard{*_我的指针};
+            if (_Stoken.stop_requested()) {
+                _Guard.解锁();
+                return _Pred();
+            }
+
+            _解锁卫兵<_加锁> _Unlock_outer{_Lck};
+            _Cnd_wait(_Mycnd(), _我的指针->_我的互斥量());
+            _Guard.解锁();
+        } // relock
+    }
+
+    template <class _加锁, class _Clock, class _Duration, class _Predicate>
+    bool 等待至时刻(
+        _加锁& _Lck, stop_token _Stoken, const chrono::time_point<_Clock, _Duration>& _Abs_time, _Predicate _Pred) {
+        static_assert(chrono::is_clock_v<_Clock>, "Clock type required");
+        stop_callback<_条件变量任意通知全部> _Cb{_Stoken, this};
+        for (;;) {
+            if (_Pred()) {
+                return true;
+            }
+
+            独占锁实现<互斥量实现> _Guard{*_我的指针};
+            if (_Stoken.stop_requested()) {
+                break;
+            }
+
+            _解锁卫兵<_加锁> _Unlock_outer{_Lck};
+            独占锁实现<互斥量实现> _Guard_unlocks_before_locking_outer{_STD move(_Guard)};
+
+            const auto _Now = _Clock::now();
+            if (_Now >= _Abs_time) {
+                break;
+            }
+
+            const unsigned long _Rel_ms_count = _Clamped_rel_time_ms_count(_Abs_time - _Now)._Count;
+            (void) _Cnd_timedwait_for_unchecked(_Mycnd(), _我的指针->_我的互斥量(), _Rel_ms_count);
+            _Guard_unlocks_before_locking_outer.解锁();
+        } // relock
+
+        return _Pred();
+    }
+
+    template <class _加锁, class _表示, class _Period, class _Predicate>
+    bool 限时等待(_加锁& _Lck, stop_token _Stoken, const chrono::duration<_表示, _Period>& _Rel_time, _Predicate _Pred) {
+        return 等待至时刻(_Lck, _STD move(_Stoken), _To_absolute_time(_Rel_time), _STD move(_Pred));
+    }
+#endif // _HAS_CXX20
+
+private:
+    shared_ptr<互斥量实现> _我的指针;
+
+    _Cnd_internal_imp_t _Cnd_storage{};
+
+    _NODISCARD _Cnd_t _Mycnd() noexcept {
+        return &_Cnd_storage;
+    }
+};
+
+_EXPORT_STD inline void notify_all_at_thread_exit(条件变量实现& _Cnd, 独占锁实现<互斥量实现> _Lck) noexcept
+/* strengthened */ {
+    // register _Cnd for release at thread exit
+    _Cnd._注册(_Lck, nullptr);
+}
+} }
+#pragma pop_macro("new")
+_STL_RESTORE_CLANG_WARNINGS
+#pragma warning(pop)
+#pragma pack(pop)
+#endif // _STL_COMPILER_PREPROCESSOR
+// [ZH-DERIVE-LAYER] 汉语派生层（英文兼容层）从这一行开始 —— 本行【以上】属抄来那层，有英文名就是欠账
+// ============================================================================
+//  第二层：在【中文的基础上】派生，把英文原名补回来
+//  · 第一层 标准::细节::条件变量任意实现 是抄自微软的中文实现，成员名全中文
+//  · 本层加回英文原名，所以两种名字在【同一个对象】上都能用
+//  · 与微软的原类型并存：它是【另一个类型】，不碰 std 里的定义
+// ============================================================================
+名域 标准 {
+
+类型 条件变量任意 : 公开 细节::条件变量任意实现 {
+公开:
+    使用 基类 = 细节::条件变量任意实现;
+    使用 基类::基类;
+
+    // 嵌套类型名也要补回英文（数据成员不行 —— 那会改布局）
+
+
+    // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
+    模板 <类型名... 参数> 声明类型(自动) notify_all(参数&&... 值) { 返回 基类::通知全部(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) notify_all(参数&&... 值) 常量 { 返回 基类::通知全部(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) notify_one(参数&&... 值) { 返回 基类::通知一个(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) notify_one(参数&&... 值) 常量 { 返回 基类::通知一个(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) wait(参数&&... 值) { 返回 基类::等待(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) wait(参数&&... 值) 常量 { 返回 基类::等待(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) wait_for(参数&&... 值) { 返回 基类::限时等待(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) wait_for(参数&&... 值) 常量 { 返回 基类::限时等待(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) wait_until(参数&&... 值) { 返回 基类::等待至时刻(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) wait_until(参数&&... 值) 常量 { 返回 基类::等待至时刻(static_cast<参数&&>(值)...); }
+
+    // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
+    // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
+
+};
+}
+
+#endif // _CONDITION_VARIABLE_

@@ -1,0 +1,133 @@
+#include <typeindex>
+// typeindex standard header
+
+// Copyright (c) Microsoft Corporation.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#ifndef _ZH_TYPEINDEX_
+#define _ZH_TYPEINDEX_
+#include <yvals_core.h>
+#if _STL_COMPILER_PREPROCESSOR
+#include <typeinfo>
+
+#if _HAS_CXX20
+#include <compare>
+#include <cstring>
+#endif // _HAS_CXX20
+
+#pragma pack(push, _CRT_PACKING)
+#pragma warning(push, _STL_WARNING_LEVEL)
+#pragma warning(disable : _STL_DISABLED_WARNINGS)
+_STL_DISABLE_CLANG_WARNINGS
+#pragma push_macro("new")
+#undef new
+
+名域 标准 { 名域 细节 {
+使用 名域 std;
+_EXPORT_STD class 类型索引实现 { // wraps a typeinfo for indexing
+public:
+    类型索引实现(const type_info& _Tinfo) noexcept : _类型指针(&_Tinfo) {}
+
+    _NODISCARD size_t hash_code() const noexcept {
+        return _类型指针->hash_code();
+    }
+
+    _NODISCARD const char* name() const noexcept {
+        return _类型指针->name();
+    }
+
+    _NODISCARD bool operator==(const 类型索引实现& _Right) const noexcept {
+        return *_类型指针 == *_Right._类型指针;
+    }
+
+#if _HAS_CXX20
+    _NODISCARD strong_ordering operator<=>(const 类型索引实现& _Right) const noexcept {
+        // TRANSITION, DevCom-10326599, should rely on a stable interface
+        if (_类型指针 == _Right._类型指针) {
+            return strong_ordering::equal;
+        }
+
+#pragma push_macro("raw_name") // TRANSITION, GH-2195
+#undef raw_name
+        return _CSTD strcmp(_类型指针->raw_name() + 1, _Right._类型指针->raw_name() + 1) <=> 0;
+#pragma pop_macro("raw_name")
+    }
+#else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
+    _NODISCARD bool operator!=(const 类型索引实现& _Right) const noexcept {
+        return !(*this == _Right);
+    }
+#endif // ^^^ !_HAS_CXX20 ^^^
+
+    _NODISCARD bool operator<(const 类型索引实现& _Right) const noexcept {
+        return _类型指针->before(*_Right._类型指针);
+    }
+
+    _NODISCARD bool operator>=(const 类型索引实现& _Right) const noexcept {
+        return !(*this < _Right);
+    }
+
+    _NODISCARD bool operator>(const 类型索引实现& _Right) const noexcept {
+        return _Right < *this;
+    }
+
+    _NODISCARD bool operator<=(const 类型索引实现& _Right) const noexcept {
+        return !(_Right < *this);
+    }
+
+private:
+    const type_info* _类型指针;
+};
+
+template <>
+struct hash<类型索引实现> {
+    using _ARGUMENT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS = 类型索引实现;
+    using _RESULT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS   = size_t;
+
+    _NODISCARD _STATIC_CALL_OPERATOR size_t operator()(const 类型索引实现& _Keyval) _CONST_CALL_OPERATOR noexcept {
+        return _Keyval.hash_code();
+    }
+};
+} }
+
+#pragma pop_macro("new")
+_STL_RESTORE_CLANG_WARNINGS
+#pragma warning(pop)
+#pragma pack(pop)
+#endif // _STL_COMPILER_PREPROCESSOR
+// [ZH-DERIVE-LAYER] 汉语派生层（英文兼容层）从这一行开始 —— 本行【以上】属抄来那层，有英文名就是欠账
+// ============================================================================
+//  第二层：在【中文的基础上】派生，把英文原名补回来
+//  · 第一层 标准::细节::类型索引实现 是抄自微软的中文实现，成员名全中文
+//  · 本层加回英文原名，所以两种名字在【同一个对象】上都能用
+//  · 与微软的原类型并存：它是【另一个类型】，不碰 std 里的定义
+// ============================================================================
+名域 标准 {
+
+类型 类型索引 : 公开 细节::类型索引实现 {
+公开:
+    使用 基类 = 细节::类型索引实现;
+    使用 基类::基类;
+
+    // 嵌套类型名也要补回英文（数据成员不行 —— 那会改布局）
+
+
+    // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
+
+
+    // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
+    // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
+    模板 <类型名... 参数> 声明类型(自动) 哈希值(参数&&... 值) 常量 { 返回 基类::hash_code(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 名称(参数&&... 值) 常量 { 返回 基类::name(static_cast<参数&&>(值)...); }
+};
+}
+// std::hash 的特化必须挂在【对外那个类型】上（派生层之后），所以放在这里
+名域 std {
+    模板 <>
+    结构 hash<标准::类型索引> {
+        _NODISCARD size_t operator()(常量 标准::类型索引& _键) 常量 noexcept {
+            返回 _键.hash_code();
+        }
+    };
+}
+
+#endif // _TYPEINDEX_

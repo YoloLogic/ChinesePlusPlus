@@ -275,6 +275,71 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # ---------------------------------------------------------------------------
+# 3b. the Chinese standard library, found with NO -I / -isystem on the command line
+#
+#     WHY THIS IS ITS OWN CLAIM (2026-10-05, decision D-22): the shipped library
+#     (zhstdlib\) is reachable only because bin\<driver>.cfg carries the search
+#     paths, and that same file is how clangd (the editor's language server)
+#     learns them. The list is NOT written here either: it comes from
+#     tools\zh_includes.ps1 (single source of truth) through make_zhcfg.ps1 --
+#     which is why this script never needs -I or -isystem for our own headers.
+#     Measured before it existed: a package user could not compile a single
+#     Chinese include, and NOTHING in the package said so. So this check compiles
+#     a Chinese include from a foreign working directory with no flags at all and
+#     runs the result; a moved/renamed package folder surfaces right here.
+# ---------------------------------------------------------------------------
+Write-Host ''
+Write-Host '--- 3b) the Chinese standard library (no -I, no -isystem)'
+
+$cfgs = @('chinese++.cfg', 'clang++.cfg', 'clang.cfg')
+$cfgMissing = @($cfgs | Where-Object { -not (Test-Path (Join-Path $bin $_)) })
+$zhRoot = Join-Path $here 'zhstdlib'
+if ($cfgMissing.Count) {
+    Bad ("missing include-path config: " + ($cfgMissing -join ', '))
+    Write-Host '         these are WRITTEN BY THE INSTALLER -- run setup first:' -ForegroundColor Yellow
+    Write-Host '             powershell -File install.ps1' -ForegroundColor Yellow
+    Write-Host '         without them the compiler cannot find the Chinese headers.' -ForegroundColor Yellow
+    Write-Host '         (clang.cfg is needed too: clangd falls back to the `clang`' -ForegroundColor Yellow
+    Write-Host '          next to it, so without that file the editor stays red.)' -ForegroundColor Yellow
+} elseif (-not (Test-Path $zhRoot)) {
+    Bad 'zhstdlib\ is missing from this package (the Chinese library did not ship)'
+} else {
+    Ok 'include-path config present (chinese++.cfg / clang++.cfg / clang.cfg)'
+    Ok 'zhstdlib\ present'
+    # The Chinese source is built from code points so this file stays ASCII:
+    #   #include-directive <vector-cn>
+    #   #include <vector>
+    #   int main(){ 标准::向量<int> 表; 表.尾插(1); std::vector<int> 乙{1,2};
+    #               return (int)表.尺寸() + (int)乙.size() - 3; }
+    $libSrc = Join-Path $tmp 'zhlib.cpp'
+    $l = -join @(
+        $zhInc, ' <', [char]0x5411, [char]0x91CF, ">`n",
+        "#include <vector>`n",
+        [char]0x6574, [char]0x6570, ' ', $zhMain, '(){ ',
+        [char]0x6807, [char]0x51C6, '::', [char]0x5411, [char]0x91CF, '<', [char]0x6574, [char]0x6570, '> ',
+        [char]0x8868, '; ', [char]0x8868, '.', [char]0x5C3E, [char]0x63D2, '(1); ',
+        'std::vector<int> ', [char]0x4E59, '{1,2}; ',
+        [char]0x8FD4, [char]0x56DE, ' (int)', [char]0x8868, '.', [char]0x5C3A, [char]0x5BF8,
+        '() + (int)', [char]0x4E59, '.size() - 3; }'
+    )
+    $l | Set-Content -Encoding UTF8 $libSrc
+    $libExe = Join-Path $tmp 'zhlib.exe'
+    # NOTE: deliberately NO -I and NO -isystem -- that is the whole point here.
+    $outLib = & $cxx -std=c++20 -o $libExe $libSrc 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Bad 'compiling a Chinese standard-library include with no include flags failed:'
+        $outLib | Select-Object -First 6 | ForEach-Object { Write-Host "         $_" }
+        Write-Host '         most likely cause: the package folder was moved or renamed' -ForegroundColor Yellow
+        Write-Host '         after setup -- re-run install.ps1 (the cfg holds absolute paths).' -ForegroundColor Yellow
+    } else {
+        Ok 'compiles a Chinese include + std::vector in one file, with no flags'
+        & cmd /c "`"$libExe`" > `"$tmp\zhlib.txt`" 2>&1"
+        if ($LASTEXITCODE -eq 0) { Ok 'the Chinese-library program runs (exit 0)' }
+        else { Bad ("the Chinese-library program exited " + $LASTEXITCODE) }
+    }
+}
+
+# ---------------------------------------------------------------------------
 if (-not $KeepTemp) { Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue }
 
 Write-Host ''

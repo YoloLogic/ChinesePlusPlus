@@ -1,0 +1,26 @@
+// <数字> —— numbers 的中文别名层
+//
+// 为什么是别名而不是抄一份（方案铁律 4）：
+//   本头里的东西，类型身份参与语义（换一份就成了两套互不相认的东西）。
+//   这类头一旦抄一份，就会和 std 里那份成为两套互不相认的东西。
+//
+// 英文原名照旧可用：这里只是【多一个名字】，原头一个字节没动。
+// 变体（英文里带 _v 的变量模板形式）暂未提供中文名，属"必须的妥协"，见方案 §六。
+#pragma once
+#include <numbers>
+
+名域 标准 {
+    内联 常量 双精度 圆周率 = std::numbers::pi;
+    内联 常量 双精度 自然常数 = std::numbers::e;
+    内联 常量 双精度 欧拉常数 = std::numbers::egamma;
+    内联 常量 双精度 黄金比例 = std::numbers::phi;
+    内联 常量 双精度 二的自然对数 = std::numbers::ln2;
+    内联 常量 双精度 十的自然对数 = std::numbers::ln10;
+    内联 常量 双精度 以二为底自然常数的对数 = std::numbers::log2e;
+    内联 常量 双精度 以十为底自然常数的对数 = std::numbers::log10e;
+    内联 常量 双精度 二的平方根 = std::numbers::sqrt2;
+    内联 常量 双精度 三的平方根 = std::numbers::sqrt3;
+    内联 常量 双精度 圆周率的倒数 = std::numbers::inv_pi;
+    内联 常量 双精度 圆周率平方根的倒数 = std::numbers::inv_sqrtpi;
+    内联 常量 双精度 三的平方根的倒数 = std::numbers::inv_sqrt3;
+}

@@ -1,0 +1,132 @@
+// <窗口> —— 窗口 的中文别名层
+//
+// 这是什么：窗口（Windows 系统 API）的**中文名层**，机制与 C 包装头相同（方案 §3.4）：
+//   类型 -> 使用 中文名 = 原名;      （**没有 std::**：Win32 名字住在全局名域）
+//   函数 -> 一模板转发（函数没有"别名"机制）—— 一律指向**显式的 …W 真函数**：
+//           Win32 里 CreateFile/WriteConsole/GetModuleHandle 这类"函数"其实是宏，
+//           宏会被展开、不能转发，所以表里一律取 …W（决策 D-14 第 3 条）。
+//   宏   -> 内联 常量 承载它的值（值仍取 SDK 自己的宏，**不重写定义**）
+//
+// ⚠ 下面两个宏是【必需】的，不是可选优化 —— 组合探针（全部汉语头放进同一个 TU）实测：
+//   · 不给 WIN32_LEAN_AND_MEAN ⇒ rpcndr.h 的 typedef unsigned char byte; 让 byte 有歧义，
+//     《通用内部件》里 20 条错（它与 std::byte 对不上号）；
+//   · 不给 NOMINMAX ⇒ windef.h 的 min/max 宏把《数值极限》里的 (min)(...) 拆坏，也是 20 条错。
+//   两个都给 = 0 条错（<Windows系统> 排在最前、后面跟全部 116 个汉语头也照样编过）。
+//   用 #ifndef 包住：用户自己已经定过就按用户的 —— 这里只是"没定过时的兜底"。
+//
+// 英文原名照旧可用：这里只是【多一个名字】，SDK 头一个字节没动。
+#pragma once
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <Windows系统>
+#include <C标准整数>
+
+名域 标准 {
+    使用 菜单句柄 = HMENU;
+    结构 窗口类 {
+        无符号 整数 cbSize;
+        无符号 整数 style;
+        union { WNDPROC lpfnWndProc; WNDPROC 窗口过程; };
+        int cbClsExtra;
+        int cbWndExtra;
+        HINSTANCE hInstance;
+        HICON hIcon;
+        HCURSOR hCursor;
+        HBRUSH hbrBackground;
+        LPCWSTR lpszMenuName;
+        LPCWSTR lpszClassName;
+        HICON hIconSm;
+    };
+    static_assert(sizeof(窗口类) == sizeof(WNDCLASSEXW), "布局漂移：sizeof");
+    static_assert(__builtin_offsetof(窗口类, cbSize) == __builtin_offsetof(WNDCLASSEXW, cbSize), "布局漂移：cbSize");
+    static_assert(__builtin_offsetof(窗口类, style) == __builtin_offsetof(WNDCLASSEXW, style), "布局漂移：style");
+    static_assert(__builtin_offsetof(窗口类, lpfnWndProc) == __builtin_offsetof(WNDCLASSEXW, lpfnWndProc), "布局漂移：lpfnWndProc");
+    static_assert(__builtin_offsetof(窗口类, cbClsExtra) == __builtin_offsetof(WNDCLASSEXW, cbClsExtra), "布局漂移：cbClsExtra");
+    static_assert(__builtin_offsetof(窗口类, cbWndExtra) == __builtin_offsetof(WNDCLASSEXW, cbWndExtra), "布局漂移：cbWndExtra");
+    static_assert(__builtin_offsetof(窗口类, hInstance) == __builtin_offsetof(WNDCLASSEXW, hInstance), "布局漂移：hInstance");
+    static_assert(__builtin_offsetof(窗口类, hIcon) == __builtin_offsetof(WNDCLASSEXW, hIcon), "布局漂移：hIcon");
+    static_assert(__builtin_offsetof(窗口类, hCursor) == __builtin_offsetof(WNDCLASSEXW, hCursor), "布局漂移：hCursor");
+    static_assert(__builtin_offsetof(窗口类, hbrBackground) == __builtin_offsetof(WNDCLASSEXW, hbrBackground), "布局漂移：hbrBackground");
+    static_assert(__builtin_offsetof(窗口类, lpszMenuName) == __builtin_offsetof(WNDCLASSEXW, lpszMenuName), "布局漂移：lpszMenuName");
+    static_assert(__builtin_offsetof(窗口类, lpszClassName) == __builtin_offsetof(WNDCLASSEXW, lpszClassName), "布局漂移：lpszClassName");
+    static_assert(__builtin_offsetof(窗口类, hIconSm) == __builtin_offsetof(WNDCLASSEXW, hIconSm), "布局漂移：hIconSm");
+    结构 消息 {
+        union { HWND hwnd; HWND 窗; };
+        union { UINT message; UINT 消息值; };
+        union { WPARAM wParam; WPARAM 甲参; };
+        union { LPARAM lParam; LPARAM 乙参; };
+        union { DWORD time; DWORD 时刻; };
+        union { POINT pt; POINT 坐标; };
+    };
+    static_assert(sizeof(消息) == sizeof(MSG), "布局漂移：sizeof");
+    static_assert(__builtin_offsetof(消息, hwnd) == __builtin_offsetof(MSG, hwnd), "布局漂移：hwnd");
+    static_assert(__builtin_offsetof(消息, message) == __builtin_offsetof(MSG, message), "布局漂移：message");
+    static_assert(__builtin_offsetof(消息, wParam) == __builtin_offsetof(MSG, wParam), "布局漂移：wParam");
+    static_assert(__builtin_offsetof(消息, lParam) == __builtin_offsetof(MSG, lParam), "布局漂移：lParam");
+    static_assert(__builtin_offsetof(消息, time) == __builtin_offsetof(MSG, time), "布局漂移：time");
+    static_assert(__builtin_offsetof(消息, pt) == __builtin_offsetof(MSG, pt), "布局漂移：pt");
+    内联 常量 无符号 整数 销毁消息 = WM_DESTROY;
+    内联 常量 无符号 整数 关闭消息 = WM_CLOSE;
+    内联 常量 无符号 整数 绘制消息 = WM_PAINT;
+    内联 常量 无符号 整数 退出消息 = WM_QUIT;
+    内联 常量 无符号 整数 计时器消息 = WM_TIMER;
+    内联 常量 无符号 整数 子窗口 = WS_CHILD;
+    内联 常量 无符号 整数 可见 = WS_VISIBLE;
+    内联 常量 无符号 整数 命令消息 = WM_COMMAND;
+    内联 常量 无符号 整数 点击通知 = BN_CLICKED;
+    内联 常量 无符号 整数 按钮点击 = BM_CLICK;
+    内联 常量 整数 隐藏 = SW_HIDE;
+    内联 常量 无符号 整数 自动复选框 = BS_AUTOCHECKBOX;
+    内联 常量 无符号 整数 边框 = WS_BORDER;
+    内联 常量 无符号 整数 制表停止 = WS_TABSTOP;
+    内联 常量 无符号 整数 设置勾选 = BM_SETCHECK;
+    内联 常量 无符号 整数 取勾选 = BM_GETCHECK;
+    内联 常量 整数 已勾选 = BST_CHECKED;
+    内联 常量 整数 未勾选 = BST_UNCHECKED;
+    内联 常量 无符号 整数 添加列表项 = LB_ADDSTRING;
+    内联 常量 无符号 整数 取列表项数 = LB_GETCOUNT;
+    内联 常量 无符号 整数 取列表选择 = LB_GETCURSEL;
+    内联 常量 无符号 整数 选择列表项 = LB_SETCURSEL;
+    内联 常量 无符号 整数 取列表项文本 = LB_GETTEXT;
+    内联 整数 注册窗口类(常量 窗口类& 类){ 返回 RegisterClassExW((常量 WNDCLASSEXW*)&类); }
+    内联 标准::窗口句柄 创建消息窗口(常量 宽字符* 类名, 常量 宽字符* 标题){ 返回 CreateWindowExW(0, 类名, 标题, 0, 0,0,0,0, HWND_MESSAGE, 空指针, 空指针, 空指针); }
+    内联 整数 取消息(消息& 消){ 返回 GetMessageW((MSG*)&消, 空指针, 0, 0); }
+    内联 整数 翻译消息(常量 消息& 消){ 返回 (整数)TranslateMessage((常量 MSG*)&消); }
+    内联 整数 派发消息(常量 消息& 消){ 返回 (整数)DispatchMessageW((常量 MSG*)&消); }
+    内联 整数 显示窗口(标准::窗口句柄 窗, 整数 如何显示){ 返回 ShowWindow(窗, 如何显示); }
+    内联 整数 更新窗口(标准::窗口句柄 窗){ 返回 UpdateWindow(窗); }
+    内联 整数 销毁窗口(标准::窗口句柄 窗){ 返回 DestroyWindow(窗); }
+    内联 整数 设置窗口标题(标准::窗口句柄 窗, 常量 宽字符* 标题){ 返回 SetWindowTextW(窗, 标题); }
+    内联 整数 取窗口标题(标准::窗口句柄 窗, 宽字符* 缓冲, 整数 容量){ 返回 GetWindowTextW(窗, 缓冲, 容量); }
+    内联 整数 取窗口矩形(标准::窗口句柄 窗, RECT* 矩形){ 返回 GetClientRect(窗, 矩形); }
+    内联 标准::指针整数 发送消息(标准::窗口句柄 窗, 无符号 整数 消息, 标准::无符号指针整数 甲参, 标准::指针整数 乙参){ 返回 SendMessageW(窗, 消息, 甲参, 乙参); }
+    内联 整数 投递消息(标准::窗口句柄 窗, 无符号 整数 消息, 标准::无符号指针整数 甲参, 标准::指针整数 乙参){ 返回 PostMessageW(窗, 消息, 甲参, 乙参); }
+    内联 标准::窗口句柄 创建按钮(标准::窗口句柄 父窗, 常量 宽字符* 文本, 整数 标识, 整数 左, 整数 上, 整数 宽, 整数 高){ 返回 CreateWindowExW(0, L"BUTTON", 文本, 子窗口 | 可见, 左, 上, 宽, 高, 父窗, (HMENU)(标准::指针整数)标识, 空指针, 空指针); }
+    内联 整数 消息框(标准::窗口句柄 父窗, 常量 宽字符* 正文, 常量 宽字符* 标题, 无符号 整数 样式){ 返回 MessageBoxW(父窗, 正文, 标题, 样式); }
+    内联 标准::窗口句柄 创建编辑框(标准::窗口句柄 父窗, 常量 宽字符* 文本, 整数 标识, 整数 左, 整数 上, 整数 宽, 整数 高){ 返回 CreateWindowExW(0, L"EDIT", 文本, 子窗口 | 可见 | 边框 | 制表停止, 左, 上, 宽, 高, 父窗, (HMENU)(标准::指针整数)标识, 空指针, 空指针); }
+    内联 标准::窗口句柄 创建静态文本(标准::窗口句柄 父窗, 常量 宽字符* 文本, 整数 标识, 整数 左, 整数 上, 整数 宽, 整数 高){ 返回 CreateWindowExW(0, L"STATIC", 文本, 子窗口 | 可见, 左, 上, 宽, 高, 父窗, (HMENU)(标准::指针整数)标识, 空指针, 空指针); }
+    内联 标准::窗口句柄 创建复选框(标准::窗口句柄 父窗, 常量 宽字符* 文本, 整数 标识, 整数 左, 整数 上, 整数 宽, 整数 高){ 返回 CreateWindowExW(0, L"BUTTON", 文本, 子窗口 | 可见 | 自动复选框 | 制表停止, 左, 上, 宽, 高, 父窗, (HMENU)(标准::指针整数)标识, 空指针, 空指针); }
+    内联 标准::窗口句柄 创建列表框(标准::窗口句柄 父窗, 常量 宽字符* 文本, 整数 标识, 整数 左, 整数 上, 整数 宽, 整数 高){ 返回 CreateWindowExW(0, L"LISTBOX", 文本, 子窗口 | 可见 | 边框 | 制表停止, 左, 上, 宽, 高, 父窗, (HMENU)(标准::指针整数)标识, 空指针, 空指针); }
+    内联 整数 启用窗口(标准::窗口句柄 窗, 整数 启用){ 返回 EnableWindow(窗, 启用); }
+    内联 整数 是否启用(标准::窗口句柄 窗){ 返回 IsWindowEnabled(窗); }
+    内联 整数 移动窗口(标准::窗口句柄 窗, 整数 左, 整数 上, 整数 宽, 整数 高){ 返回 SetWindowPos(窗, 空指针, 左, 上, 宽, 高, SWP_NOZORDER | SWP_NOACTIVATE); }
+    内联 整数 取窗口位置(标准::窗口句柄 窗, RECT* 框){ 返回 GetWindowRect(窗, 框); }
+    内联 整数 取控件标识(标准::窗口句柄 窗){ 返回 GetDlgCtrlID(窗); }
+    内联 常量 无符号 整数 弹出项 = MF_POPUP;
+    内联 常量 无符号 整数 字符串项 = MF_STRING;
+    内联 常量 无符号 整数 灰化项 = MF_GRAYED;
+    内联 常量 无符号 整数 分隔项 = MF_SEPARATOR;
+    内联 标准::菜单句柄 创建菜单(){ 返回 CreateMenu(); }
+    内联 标准::菜单句柄 创建弹出菜单(){ 返回 CreatePopupMenu(); }
+    内联 整数 追加菜单项(标准::菜单句柄 菜单, 无符号 整数 标志, 标准::无符号指针整数 标识, 常量 宽字符* 文本){ 返回 AppendMenuW(菜单, 标志, 标识, 文本); }
+    内联 标准::菜单句柄 取窗口菜单(标准::窗口句柄 窗){ 返回 GetMenu(窗); }
+    内联 整数 设置窗口菜单(标准::窗口句柄 窗, 标准::菜单句柄 菜单){ 返回 SetMenu(窗, 菜单); }
+    内联 整数 删除菜单(标准::菜单句柄 菜单){ 返回 DestroyMenu(菜单); }
+    内联 整数 取菜单项数(标准::菜单句柄 菜单){ 返回 GetMenuItemCount(菜单); }
+    内联 标准::菜单句柄 取子菜单(标准::菜单句柄 菜单, 整数 位置){ 返回 GetSubMenu(菜单, 位置); }
+    内联 整数 绘制菜单栏(标准::窗口句柄 窗){ 返回 DrawMenuBar(窗); }
+}

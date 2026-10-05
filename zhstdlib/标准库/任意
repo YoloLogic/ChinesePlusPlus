@@ -1,0 +1,509 @@
+#include <any>
+// 任意实现 standard header
+
+// Copyright (c) Microsoft Corporation.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#ifndef _ZH_ANY_
+#define _ZH_ANY_
+#include <yvals_core.h>
+#if _STL_COMPILER_PREPROCESSOR
+
+#if !_HAS_CXX17
+_EMIT_STL_WARNING(STL4038, "The contents of <任意实现> are available only with C++17 or later.");
+#elif !_HAS_STATIC_RTTI // ^^^ !_HAS_CXX17 / _HAS_CXX17 vvv
+_EMIT_STL_WARNING(STL4040, "The contents of <任意实现> require static RTTI.");
+#else // ^^^ !_HAS_STATIC_RTTI / _HAS_STATIC_RTTI vvv
+#include <initializer_list>
+#include <type_traits>
+#include <typeinfo>
+#include <utility>
+#include <内存内部件>
+
+#pragma pack(push, _CRT_PACKING)
+#pragma warning(push, _STL_WARNING_LEVEL)
+#pragma warning(disable : _STL_DISABLED_WARNINGS)
+_STL_DISABLE_CLANG_WARNINGS
+#pragma push_macro("new")
+#undef new
+
+名域 标准 { 名域 细节 {
+使用 名域 std;
+
+// [dropTypes] 这里删掉了抄来的 bad_any_cast 定义。
+// 它的身份必须是 std 的那个（铁律 4：捕获按类型匹配），所以改用真头的 std::bad_any_cast。
+[[noreturn]] inline void _Throw_bad_any_cast() {
+    _THROW(bad_any_cast{});
+}
+
+inline constexpr size_t _Any_trivial_space_size = (_Small_object_num_ptrs - 1) * sizeof(void*);
+
+template <class _类型>
+constexpr bool _Any_is_trivial =
+    alignof(_类型) <= alignof(max_align_t) && is_trivially_copyable_v<_类型> && sizeof(_类型) <= _Any_trivial_space_size;
+
+inline constexpr size_t _Any_small_space_size = (_Small_object_num_ptrs - 2) * sizeof(void*);
+
+template <class _类型>
+constexpr bool _Any_is_small = alignof(_类型) <= alignof(max_align_t)
+                            && is_nothrow_move_constructible_v<_类型> && sizeof(_类型) <= _Any_small_space_size;
+
+enum class _任意表示 : uintptr_t { _Trivial, _Big, _Small };
+
+struct _任意大对象类型信息 { // Hand-rolled vtable for types that must be heap allocated in an 任意实现
+    using _析构函数指针 = void __CLRCALL_PURE_OR_CDECL(void*) _NOEXCEPT_FNPTR;
+    using _复制函数指针    = void* __CLRCALL_PURE_OR_CDECL(const void*);
+
+    template <class _类型>
+    static void __CLRCALL_PURE_OR_CDECL _析构实现(void* const _Target) noexcept {
+        ::delete static_cast<_类型*>(_Target);
+    }
+
+    template <class _类型>
+    _NODISCARD static void* __CLRCALL_PURE_OR_CDECL _复制实现(const void* const _Source) {
+        return ::new _类型(*static_cast<const _类型*>(_Source));
+    }
+
+    _析构函数指针* _Destroy;
+    _复制函数指针* _复制;
+};
+
+struct _任意小对象类型信息 { // Hand-rolled vtable for nontrivial types that can be stored internally in an 任意实现
+    using _析构函数指针 = void __CLRCALL_PURE_OR_CDECL(void*) _NOEXCEPT_FNPTR;
+    using _复制函数指针    = void __CLRCALL_PURE_OR_CDECL(void*, const void*);
+    using _移动函数指针    = void __CLRCALL_PURE_OR_CDECL(void*, void*) _NOEXCEPT_FNPTR;
+
+    template <class _类型>
+    static void __CLRCALL_PURE_OR_CDECL _析构实现(void* const _Target) noexcept {
+        _就地析构(*static_cast<_类型*>(_Target));
+    }
+
+    template <class _类型>
+    static void __CLRCALL_PURE_OR_CDECL _复制实现(void* const _Target, const void* const _Source) {
+        _就地构造(*static_cast<_类型*>(_Target), *static_cast<const _类型*>(_Source));
+    }
+
+    template <class _类型>
+    static void __CLRCALL_PURE_OR_CDECL _移动实现(void* const _Target, void* const _Source) noexcept {
+        _就地构造(*static_cast<_类型*>(_Target), _STD move(*static_cast<_类型*>(_Source)));
+    }
+
+    _析构函数指针* _Destroy;
+    _复制函数指针* _复制;
+    _移动函数指针* _Move;
+};
+
+template <class _类型>
+constexpr _任意大对象类型信息 _Any_big_RTTI_obj = {&_任意大对象类型信息::_析构实现<_类型>, &_任意大对象类型信息::_复制实现<_类型>};
+
+template <class _类型>
+constexpr _任意小对象类型信息 _Any_small_RTTI_obj = {
+    &_任意小对象类型信息::_析构实现<_类型>, &_任意小对象类型信息::_复制实现<_类型>, &_任意小对象类型信息::_移动实现<_类型>};
+
+_EXPORT_STD class 任意实现 { // storage for 任意实现 (CopyConstructible) 所属类型
+public:
+    // Construction and destruction [任意实现.cons]
+    constexpr 任意实现() noexcept {}
+
+    任意实现(const 任意实现& _That) {
+        _Storage._TypeData = _That._Storage._TypeData;
+        switch (_表示()) {
+        case _任意表示::_Small:
+            _Storage._SmallStorage._RTTI = _That._Storage._SmallStorage._RTTI;
+            _Storage._SmallStorage._RTTI->_复制(&_Storage._SmallStorage._Data, &_That._Storage._SmallStorage._Data);
+            break;
+        case _任意表示::_Big:
+            _Storage._BigStorage._RTTI = _That._Storage._BigStorage._RTTI;
+            _Storage._BigStorage._Ptr  = _Storage._BigStorage._RTTI->_复制(_That._Storage._BigStorage._Ptr);
+            break;
+        case _任意表示::_Trivial:
+        default:
+            _CSTD memcpy(_Storage._TrivialData, _That._Storage._TrivialData, sizeof(_Storage._TrivialData));
+            break;
+        }
+    }
+
+    任意实现(任意实现&& _That) noexcept {
+        _由之移动(_That);
+    }
+
+    template <class _ValueType, enable_if_t<conjunction_v<negation<is_same<decay_t<_ValueType>, 任意实现>>,
+                                                negation<_Is_specialization<decay_t<_ValueType>, in_place_type_t>>,
+                                                is_copy_constructible<decay_t<_ValueType>>>,
+                                    int> = 0>
+    任意实现(_ValueType&& _Value) { // initialize with _Value
+        _就地安置<decay_t<_ValueType>>(_STD forward<_ValueType>(_Value));
+    }
+
+    template <class _ValueType, class... _Types,
+        enable_if_t<
+            conjunction_v<is_constructible<decay_t<_ValueType>, _Types...>, is_copy_constructible<decay_t<_ValueType>>>,
+            int> = 0>
+    explicit 任意实现(in_place_type_t<_ValueType>, _Types&&... _Args) {
+        // in-place initialize a value of 所属类型 decay_t<_ValueType> with _Args...
+        _就地安置<decay_t<_ValueType>>(_STD forward<_Types>(_Args)...);
+    }
+
+    template <class _ValueType, class _元素, class... _Types,
+        enable_if_t<conjunction_v<is_constructible<decay_t<_ValueType>, initializer_list<_元素>&, _Types...>,
+                        is_copy_constructible<decay_t<_ValueType>>>,
+            int> = 0>
+    explicit 任意实现(in_place_type_t<_ValueType>, initializer_list<_元素> _Ilist, _Types&&... _Args) {
+        // in-place initialize a value of 所属类型 decay_t<_ValueType> with _Ilist and _Args...
+        _就地安置<decay_t<_ValueType>>(_Ilist, _STD forward<_Types>(_Args)...);
+    }
+
+    ~任意实现() noexcept {
+        重置();
+
+#if _MSVC_STL_DESTRUCTOR_TOMBSTONES
+        // The two least significant bits (LSBs) of _Storage._TypeData encode whether we're in _Small, _Big,
+        // or _Trivial mode; see _表示(). The rest of the bits encode the type_info pointer that's used
+        // to remember what 所属类型 of object we're storing; see _类型信息(). So, we'll take the tombstone value,
+        // clear out the two LSBs with the _Rep_mask, then set the bits for _Small mode.
+        // _Small mode will prevent the most misuse, as the pseudo-vtable will be used for _Destroy, _复制, and _Move.
+        // _Big mode wouldn't use the pseudo-vtable for _Move, and _Trivial mode doesn't have a pseudo-vtable at all.
+        const uintptr_t _Tombstone_value{_MSVC_STL_UINTPTR_TOMBSTONE_VALUE};
+        // Set the pseudo-vtable pointer:
+        _Storage._SmallStorage._RTTI = reinterpret_cast<const _任意小对象类型信息*>(_Tombstone_value);
+        // Set the combined type_info pointer and representation mode bits:
+        _Storage._TypeData = (_Tombstone_value & ~_Rep_mask) | static_cast<uintptr_t>(_任意表示::_Small);
+#endif // _MSVC_STL_DESTRUCTOR_TOMBSTONES
+    }
+
+    // Assignment [任意实现.assign]
+    任意实现& operator=(const 任意实现& _That) {
+        _赋值(_That);
+        return *this;
+    }
+
+    任意实现& operator=(任意实现&& _That) noexcept {
+        _赋值(_STD move(_That));
+        return *this;
+    }
+
+    template <class _ValueType, enable_if_t<conjunction_v<negation<is_same<decay_t<_ValueType>, 任意实现>>,
+                                                is_copy_constructible<decay_t<_ValueType>>>,
+                                    int> = 0>
+    任意实现& operator=(_ValueType&& _Value) {
+        // replace contained value with an object of 所属类型 decay_t<_ValueType> initialized from _Value
+        _赋值(_STD forward<_ValueType>(_Value));
+        return *this;
+    }
+
+    // Modifiers [任意实现.modifiers]
+    template <class _ValueType, class... _Types,
+        enable_if_t<
+            conjunction_v<is_constructible<decay_t<_ValueType>, _Types...>, is_copy_constructible<decay_t<_ValueType>>>,
+            int> = 0>
+    decay_t<_ValueType>& 就地构造(_Types&&... _Args) {
+        // replace contained value with an object of 所属类型 decay_t<_ValueType> initialized from _Args...
+        重置();
+        return _就地安置<decay_t<_ValueType>>(_STD forward<_Types>(_Args)...);
+    }
+    template <class _ValueType, class _元素, class... _Types,
+        enable_if_t<conjunction_v<is_constructible<decay_t<_ValueType>, initializer_list<_元素>&, _Types...>,
+                        is_copy_constructible<decay_t<_ValueType>>>,
+            int> = 0>
+    decay_t<_ValueType>& 就地构造(initializer_list<_元素> _Ilist, _Types&&... _Args) {
+        // replace contained value with an object of 所属类型 decay_t<_ValueType> initialized from _Ilist and _Args...
+        重置();
+        return _就地安置<decay_t<_ValueType>>(_Ilist, _STD forward<_Types>(_Args)...);
+    }
+
+    void 重置() noexcept { // transition to the empty state
+        switch (_表示()) {
+        case _任意表示::_Small:
+            _Storage._SmallStorage._RTTI->_Destroy(&_Storage._SmallStorage._Data);
+            break;
+        case _任意表示::_Big:
+            _Storage._BigStorage._RTTI->_Destroy(_Storage._BigStorage._Ptr);
+            break;
+        case _任意表示::_Trivial:
+        default:
+            break;
+        }
+        _Storage._TypeData = 0;
+    }
+
+    void swap(任意实现& _That) noexcept {
+        _That = _STD exchange(*this, _STD move(_That));
+    }
+
+    // Observers [任意实现.observers]
+    _NODISCARD bool 有值() const noexcept {
+        return _Storage._TypeData != 0;
+    }
+
+    _NODISCARD const type_info& 所属类型() const noexcept {
+        // if *this contains a value of 所属类型 T, return typeid(T); otherwise typeid(void)
+        const type_info* const _Info = _类型信息();
+        if (_Info) {
+            return *_Info;
+        }
+
+        return typeid(void);
+    }
+
+    template <class _Decayed>
+    _NODISCARD const _Decayed* _Cast() const noexcept {
+        // if *this contains a value of 所属类型 _Decayed, return a pointer to it
+        const type_info* const _Info = _类型信息();
+        if (!_Info || *_Info != typeid(_Decayed)) {
+            return nullptr;
+        }
+
+        if constexpr (_Any_is_trivial<_Decayed>) {
+            // get a pointer to the contained _Trivial value of 所属类型 _Decayed
+            return reinterpret_cast<const _Decayed*>(&_Storage._TrivialData);
+        } else if constexpr (_Any_is_small<_Decayed>) {
+            // get a pointer to the contained _Small value of 所属类型 _Decayed
+            return reinterpret_cast<const _Decayed*>(&_Storage._SmallStorage._Data);
+        } else {
+            // get a pointer to the contained _Big value of 所属类型 _Decayed
+            return static_cast<const _Decayed*>(_Storage._BigStorage._Ptr);
+        }
+    }
+
+    template <class _Decayed>
+    _NODISCARD _Decayed* _Cast() noexcept { // if *this contains a value of 所属类型 _Decayed, return a pointer to it
+        return const_cast<_Decayed*>(static_cast<const 任意实现*>(this)->_Cast<_Decayed>());
+    }
+
+private:
+    static constexpr uintptr_t _Rep_mask = 3;
+
+    _NODISCARD _任意表示 _表示() const noexcept { // extract the representation format from _TypeData
+        return static_cast<_任意表示>(_Storage._TypeData & _Rep_mask);
+    }
+    _NODISCARD const type_info* _类型信息() const noexcept { // extract the type_info from _TypeData
+        return reinterpret_cast<const type_info*>(_Storage._TypeData & ~_Rep_mask);
+    }
+
+    void _由之移动(任意实现& _That) noexcept {
+        _Storage._TypeData = _That._Storage._TypeData;
+        switch (_表示()) {
+        case _任意表示::_Small:
+            _Storage._SmallStorage._RTTI = _That._Storage._SmallStorage._RTTI;
+            _Storage._SmallStorage._RTTI->_Move(&_Storage._SmallStorage._Data, &_That._Storage._SmallStorage._Data);
+            break;
+        case _任意表示::_Big:
+            _Storage._BigStorage._RTTI = _That._Storage._BigStorage._RTTI;
+            _Storage._BigStorage._Ptr  = _That._Storage._BigStorage._Ptr;
+            _That._Storage._TypeData   = 0;
+            break;
+        case _任意表示::_Trivial:
+        default:
+            _CSTD memcpy(_Storage._TrivialData, _That._Storage._TrivialData, sizeof(_Storage._TrivialData));
+            break;
+        }
+    }
+
+    void _赋值(任意实现 _That) noexcept { // intentionally pass by value
+        重置();
+        _由之移动(_That);
+    }
+
+    template <class _Decayed, class... _Types>
+    _Decayed& _就地安置(_Types&&... _Args) { // 就地构造 construct _Decayed
+        if constexpr (_Any_is_trivial<_Decayed>) {
+            // using the _Trivial representation
+            auto& _Obj = reinterpret_cast<_Decayed&>(_Storage._TrivialData);
+            _就地构造(_Obj, _STD forward<_Types>(_Args)...);
+            _Storage._TypeData =
+                reinterpret_cast<uintptr_t>(&typeid(_Decayed)) | static_cast<uintptr_t>(_任意表示::_Trivial);
+            return _Obj;
+        } else if constexpr (_Any_is_small<_Decayed>) {
+            // using the _Small representation
+            auto& _Obj = reinterpret_cast<_Decayed&>(_Storage._SmallStorage._Data);
+            _就地构造(_Obj, _STD forward<_Types>(_Args)...);
+            _Storage._SmallStorage._RTTI = &_Any_small_RTTI_obj<_Decayed>;
+            _Storage._TypeData =
+                reinterpret_cast<uintptr_t>(&typeid(_Decayed)) | static_cast<uintptr_t>(_任意表示::_Small);
+            return _Obj;
+        } else {
+            // using the _Big representation
+            _Decayed* const _Ptr       = ::new _Decayed(_STD forward<_Types>(_Args)...);
+            _Storage._BigStorage._Ptr  = _Ptr;
+            _Storage._BigStorage._RTTI = &_Any_big_RTTI_obj<_Decayed>;
+            _Storage._TypeData =
+                reinterpret_cast<uintptr_t>(&typeid(_Decayed)) | static_cast<uintptr_t>(_任意表示::_Big);
+            return *_Ptr;
+        }
+    }
+
+    struct _小存储类型 {
+        unsigned char _Data[_Any_small_space_size];
+        const _任意小对象类型信息* _RTTI;
+    };
+    static_assert(sizeof(_小存储类型) == _Any_trivial_space_size);
+
+    struct _大存储类型 {
+        // Pad so that _Ptr and _RTTI might share _TypeData's cache line
+        unsigned char _Padding[_Any_small_space_size - sizeof(void*)];
+        void* _Ptr;
+        const _任意大对象类型信息* _RTTI;
+    };
+    static_assert(sizeof(_大存储类型) == _Any_trivial_space_size);
+
+    struct _存储类型 {
+        union {
+            unsigned char _TrivialData[_Any_trivial_space_size];
+            _小存储类型 _SmallStorage;
+            _大存储类型 _BigStorage;
+        };
+        uintptr_t _TypeData;
+    };
+    static_assert(sizeof(_存储类型) == _Any_trivial_space_size + sizeof(void*));
+    static_assert(is_standard_layout_v<_存储类型>);
+
+    union {
+        _存储类型 _Storage{};
+        max_align_t _Dummy;
+    };
+};
+
+// Non-member functions [任意实现.nonmembers]
+_EXPORT_STD inline void swap(任意实现& _Left, 任意实现& _Right) noexcept {
+    _Left.swap(_Right);
+}
+
+_EXPORT_STD template <class _ValueType, class... _Types,
+    enable_if_t<is_constructible_v<任意实现, in_place_type_t<_ValueType>, _Types...>, int> = 0>
+_NODISCARD 任意实现 造任意(_Types&&... _Args) { // construct an 任意实现 containing a _ValueType initialized with _Args...
+    return 任意实现{in_place_type<_ValueType>, _STD forward<_Types>(_Args)...};
+}
+_EXPORT_STD template <class _ValueType, class _元素, class... _Types,
+    enable_if_t<is_constructible_v<任意实现, in_place_type_t<_ValueType>, initializer_list<_元素>&, _Types...>, int> = 0>
+_NODISCARD 任意实现 造任意(initializer_list<_元素> _Ilist, _Types&&... _Args) {
+    // construct an 任意实现 containing a _ValueType initialized with _Ilist and _Args...
+    return 任意实现{in_place_type<_ValueType>, _Ilist, _STD forward<_Types>(_Args)...};
+}
+
+_EXPORT_STD template <class _ValueType>
+_NODISCARD const _ValueType* 任意转换(const 任意实现* const _Any) noexcept {
+    // retrieve a pointer to the _ValueType contained in _Any, or null
+    static_assert(!is_void_v<_ValueType>, "std::任意实现 cannot contain void.");
+
+    if constexpr (is_function_v<_ValueType> || is_array_v<_ValueType>) {
+        return nullptr;
+    } else {
+        if (!_Any) {
+            return nullptr;
+        }
+
+        return _Any->_Cast<_Remove_cvref_t<_ValueType>>();
+    }
+}
+_EXPORT_STD template <class _ValueType>
+_NODISCARD _ValueType* 任意转换(任意实现* const _Any) noexcept {
+    // retrieve a pointer to the _ValueType contained in _Any, or null
+    static_assert(!is_void_v<_ValueType>, "std::任意实现 cannot contain void.");
+
+    if constexpr (is_function_v<_ValueType> || is_array_v<_ValueType>) {
+        return nullptr;
+    } else {
+        if (!_Any) {
+            return nullptr;
+        }
+
+        return _Any->_Cast<_Remove_cvref_t<_ValueType>>();
+    }
+}
+
+_EXPORT_STD template <class _类型>
+_NODISCARD remove_cv_t<_类型> 任意转换(const 任意实现& _Any) {
+    static_assert(is_constructible_v<remove_cv_t<_类型>, const _Remove_cvref_t<_类型>&>,
+        "任意转换<T>(const 任意实现&) requires remove_cv_t<T> to be constructible from "
+        "const remove_cv_t<remove_reference_t<T>>&");
+
+    const auto _Ptr = 任意转换<_Remove_cvref_t<_类型>>(&_Any);
+    if (!_Ptr) {
+        _Throw_bad_any_cast();
+    }
+
+    return static_cast<remove_cv_t<_类型>>(*_Ptr);
+}
+_EXPORT_STD template <class _类型>
+_NODISCARD remove_cv_t<_类型> 任意转换(任意实现& _Any) {
+    static_assert(is_constructible_v<remove_cv_t<_类型>, _Remove_cvref_t<_类型>&>,
+        "任意转换<T>(任意实现&) requires remove_cv_t<T> to be constructible from remove_cv_t<remove_reference_t<T>>&");
+
+    const auto _Ptr = 任意转换<_Remove_cvref_t<_类型>>(&_Any);
+    if (!_Ptr) {
+        _Throw_bad_any_cast();
+    }
+
+    return static_cast<remove_cv_t<_类型>>(*_Ptr);
+}
+_EXPORT_STD template <class _类型>
+_NODISCARD remove_cv_t<_类型> 任意转换(任意实现&& _Any) {
+    static_assert(is_constructible_v<remove_cv_t<_类型>, _Remove_cvref_t<_类型>>,
+        "任意转换<T>(任意实现&&) requires remove_cv_t<T> to be constructible from remove_cv_t<remove_reference_t<T>>");
+
+    const auto _Ptr = 任意转换<_Remove_cvref_t<_类型>>(&_Any);
+    if (!_Ptr) {
+        _Throw_bad_any_cast();
+    }
+
+    return static_cast<remove_cv_t<_类型>>(_STD move(*_Ptr));
+}
+
+} }
+
+#pragma pop_macro("new")
+_STL_RESTORE_CLANG_WARNINGS
+#pragma warning(pop)
+#pragma pack(pop)
+#endif // ^^^ _HAS_STATIC_RTTI ^^^
+
+#endif // _STL_COMPILER_PREPROCESSOR
+// [ZH-DERIVE-LAYER] 汉语派生层（英文兼容层）从这一行开始 —— 本行【以上】属抄来那层，有英文名就是欠账
+// ============================================================================
+//  第二层：在【中文的基础上】派生，把英文原名补回来
+//  · 第一层 标准::细节::任意实现 是抄自微软的中文实现，成员名全中文
+//  · 本层加回英文原名，所以两种名字在【同一个对象】上都能用
+//  · 与微软的原类型并存：它是【另一个类型】，不碰 std 里的定义
+// ============================================================================
+名域 标准 {
+
+类型 任意 : 公开 细节::任意实现 {
+公开:
+    使用 基类 = 细节::任意实现;
+    使用 基类::基类;
+
+    // 嵌套类型名也要补回英文（数据成员不行 —— 那会改布局）
+
+
+    // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
+    模板 <类型名... 参数> 声明类型(自动) reset(参数&&... 值) { 返回 基类::重置(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) reset(参数&&... 值) 常量 { 返回 基类::重置(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) has_value(参数&&... 值) { 返回 基类::有值(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) has_value(参数&&... 值) 常量 { 返回 基类::有值(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) type(参数&&... 值) { 返回 基类::所属类型(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) type(参数&&... 值) 常量 { 返回 基类::所属类型(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) emplace(参数&&... 值) { 返回 基类::就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) emplace(参数&&... 值) 常量 { 返回 基类::就地构造(static_cast<参数&&>(值)...); }
+
+    // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
+    // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
+    // 让【抄来那层】的自由函数返回值能直接用：
+    // make_any 返回 细节::任意实现，而对外类型是派生出来的 标准::任意。
+    // 派生类没有"从基类回来"的路，所以手写一个接管构造。
+    任意(细节::任意实现&& 内) noexcept : 基类(static_cast<细节::任意实现&&>(内)) {}
+};
+}
+
+名域 标准 {
+
+// 坏任意转换异常（std::bad_any_cast）—— 只能是 std 的那个（铁律 4）
+使用 坏任意转换 = std::bad_any_cast;
+
+// 自由函数：抄来后落在 细节::，这里用 using 声明引进 标准::
+// （比重写转发保真：重载全带上、返回引用也不丢）
+使用 细节::任意转换;
+使用 细节::造任意;
+
+}  // 名域 标准
+
+#endif // _ANY_

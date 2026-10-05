@@ -1,0 +1,935 @@
+#include <unordered_set>
+// 无序集合实现 standard header
+
+// Copyright (c) Microsoft Corporation.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#ifndef _ZH_UNORDERED_SET_
+#define _ZH_UNORDERED_SET_
+#include <yvals_core.h>
+#if _STL_COMPILER_PREPROCESSOR
+#include <哈希内部件>
+
+#if _HAS_CXX17
+#include <xpolymorphic_allocator.h>
+#endif // _HAS_CXX17
+
+#pragma pack(push, _CRT_PACKING)
+#pragma warning(push, _STL_WARNING_LEVEL)
+#pragma warning(disable : _STL_DISABLED_WARNINGS)
+_STL_DISABLE_CLANG_WARNINGS
+#pragma push_macro("new")
+#undef new
+
+名域 标准 { 名域 细节 {
+使用 名域 std;
+template <class _Kty, // key type (same as value type)
+    class _Tr, // comparator predicate type
+    class _分配器, // actual allocator type (should be value allocator)
+    bool _Mfl> // true if multiple equivalent keys are permitted
+class _无序集合特征 : public _Tr { // traits required to make _哈希 behave like a set
+public:
+    using 键类型            = _Kty;
+    using value_type          = _Kty;
+    using _可变值类型 = _Kty;
+    using 键比较器         = _Tr;
+    using 分配器类型      = _分配器;
+#if _HAS_CXX17
+    using 结点类型 = _Node_handle<_链表节点<value_type, typename allocator_traits<_分配器>::void_pointer>, _分配器,
+        _Node_handle_set_base, _Kty>;
+#endif // _HAS_CXX17
+
+    static constexpr bool _Multi    = _Mfl;
+    static constexpr bool _Standard = true;
+
+    template <class... _Args>
+    using _就地键提取器 = _就地键提取集合<_Kty, _Args...>;
+
+    _无序集合特征() = default;
+
+    explicit _无序集合特征(const _Tr& _特征) noexcept(is_nothrow_copy_constructible_v<_Tr>) : _Tr(_特征) {}
+
+    using 值比较 = void; // TRANSITION, remove when _Standard becomes unconditionally true
+
+    static const _Kty& _取键(const value_type& _Val) noexcept {
+        return _Val;
+    }
+};
+
+_EXPORT_STD template <class _Kty, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>,
+    class _分配器 = allocator<_Kty>>
+class 无序集合实现 : public _哈希<_无序集合特征<_Kty, _无序哈希比较<_Kty, _Hasher, _Keyeq>, _分配器, false>> {
+    // hash table of key-values, unique keys
+public:
+    static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<_Kty, typename _分配器::value_type>,
+        _MISMATCHED_ALLOCATOR_MESSAGE("无序集合实现<T, Hasher, Eq, Allocator>", "T"));
+    static_assert(is_object_v<_Kty>, "The C++ Standard forbids containers of non-object types "
+                                     "because of [container.requirements].");
+
+private:
+    using _我的特征      = _无序哈希比较<_Kty, _Hasher, _Keyeq>;
+    using _我的基类        = _哈希<_无序集合特征<_Kty, _我的特征, _分配器, false>>;
+    using _结点分配器        = typename _我的基类::_结点分配器;
+    using _结点分配器特征 = typename _我的基类::_结点分配器特征;
+    using _键比较器   = typename _我的基类::_键比较器;
+
+public:
+    using 散列器    = _Hasher;
+    using 键类型  = _Kty;
+    using 键相等器 = _Keyeq;
+
+    using value_type      = typename _我的基类::value_type;
+    using 分配器类型  = typename _我的基类::分配器类型;
+    using size_type       = typename _我的基类::size_type;
+    using difference_type = typename _我的基类::difference_type;
+    using pointer         = typename _我的基类::pointer;
+    using const_pointer   = typename _我的基类::const_pointer;
+    using reference       = value_type&;
+    using 常量引用 = const value_type&;
+    using iterator        = typename _我的基类::iterator;
+    using const_iterator  = typename _我的基类::const_iterator;
+
+    using 局部迭代器       = typename _我的基类::iterator;
+    using 常量局部迭代器 = typename _我的基类::const_iterator;
+
+#if _HAS_CXX17
+    using 插入返回类型 = _Insert_return_type<iterator, typename _我的基类::结点类型>;
+#endif // _HAS_CXX17
+
+    无序集合实现() : _我的基类(_键比较器(), 分配器类型()) {}
+
+    explicit 无序集合实现(const 分配器类型& _Al) : _我的基类(_键比较器(), _Al) {}
+
+    无序集合实现(const 无序集合实现& _Right)
+        : _我的基类(_Right, _结点分配器特征::select_on_container_copy_construction(_Right._取分配器())) {}
+
+    无序集合实现(const 无序集合实现& _Right, const 分配器类型& _Al) : _我的基类(_Right, _Al) {}
+
+    explicit 无序集合实现(size_type _Buckets) : _我的基类(_键比较器(), 分配器类型()) {
+        this->重哈希(_Buckets);
+    }
+
+    无序集合实现(size_type _Buckets, const 分配器类型& _Al) : _我的基类(_键比较器(), _Al) {
+        this->重哈希(_Buckets);
+    }
+
+    无序集合实现(size_type _Buckets, const 散列器& _Hasharg) : _我的基类(_键比较器(_Hasharg), 分配器类型()) {
+        this->重哈希(_Buckets);
+    }
+
+    无序集合实现(size_type _Buckets, const 散列器& _Hasharg, const 分配器类型& _Al)
+        : _我的基类(_键比较器(_Hasharg), _Al) {
+        this->重哈希(_Buckets);
+    }
+
+    无序集合实现(size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg)
+        : _我的基类(_键比较器(_Hasharg, _Keyeqarg), 分配器类型()) {
+        this->重哈希(_Buckets);
+    }
+
+    无序集合实现(size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg, const 分配器类型& _Al)
+        : _我的基类(_键比较器(_Hasharg, _Keyeqarg), _Al) {
+        this->重哈希(_Buckets);
+    }
+
+    template <class _Iter>
+    无序集合实现(_Iter _首个, _Iter _最后) : _我的基类(_键比较器(), 分配器类型()) {
+        this->插入(_首个, _最后);
+    }
+
+    template <class _Iter>
+    无序集合实现(_Iter _首个, _Iter _最后, const 分配器类型& _Al) : _我的基类(_键比较器(), _Al) {
+        this->插入(_首个, _最后);
+    }
+
+    template <class _Iter>
+    无序集合实现(_Iter _首个, _Iter _最后, size_type _Buckets) : _我的基类(_键比较器(), 分配器类型()) {
+        this->重哈希(_Buckets);
+        this->插入(_首个, _最后);
+    }
+
+    template <class _Iter>
+    无序集合实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 分配器类型& _Al)
+        : _我的基类(_键比较器(), _Al) {
+        this->重哈希(_Buckets);
+        this->插入(_首个, _最后);
+    }
+
+    template <class _Iter>
+    无序集合实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 散列器& _Hasharg)
+        : _我的基类(_键比较器(_Hasharg), 分配器类型()) {
+        this->重哈希(_Buckets);
+        this->插入(_首个, _最后);
+    }
+
+    template <class _Iter>
+    无序集合实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 散列器& _Hasharg, const 分配器类型& _Al)
+        : _我的基类(_键比较器(_Hasharg), _Al) {
+        this->重哈希(_Buckets);
+        this->插入(_首个, _最后);
+    }
+
+    template <class _Iter>
+    无序集合实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg)
+        : _我的基类(_键比较器(_Hasharg, _Keyeqarg), 分配器类型()) {
+        this->重哈希(_Buckets);
+        this->插入(_首个, _最后);
+    }
+
+    template <class _Iter>
+    无序集合实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg,
+        const 分配器类型& _Al)
+        : _我的基类(_键比较器(_Hasharg, _Keyeqarg), _Al) {
+        this->重哈希(_Buckets);
+        this->插入(_首个, _最后);
+    }
+
+#if _HAS_CXX23
+    template <_Container_compatible_range<value_type> _Rng>
+    无序集合实现(from_range_t, _Rng&& _Range) : _我的基类(_键比较器(), 分配器类型()) {
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序集合实现(from_range_t, _Rng&& _Range, const 分配器类型& _Al) : _我的基类(_键比较器(), _Al) {
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets) : _我的基类(_键比较器(), 分配器类型()) {
+        _我的基类::重哈希(_Buckets);
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 分配器类型& _Al)
+        : _我的基类(_键比较器(), _Al) {
+        _我的基类::重哈希(_Buckets);
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 散列器& _Hasharg)
+        : _我的基类(_键比较器(_Hasharg), 分配器类型()) {
+        _我的基类::重哈希(_Buckets);
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 散列器& _Hasharg, const 分配器类型& _Al)
+        : _我的基类(_键比较器(_Hasharg), _Al) {
+        _我的基类::重哈希(_Buckets);
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg)
+        : _我的基类(_键比较器(_Hasharg, _Keyeqarg), 分配器类型()) {
+        _我的基类::重哈希(_Buckets);
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg,
+        const 分配器类型& _Al)
+        : _我的基类(_键比较器(_Hasharg, _Keyeqarg), _Al) {
+        _我的基类::重哈希(_Buckets);
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
+    }
+#endif // _HAS_CXX23
+
+    无序集合实现& operator=(const 无序集合实现& _Right) {
+        _我的基类::operator=(_Right);
+        return *this;
+    }
+
+    无序集合实现(无序集合实现&& _Right) : _我的基类(_STD move(_Right)) {}
+
+    无序集合实现(无序集合实现&& _Right, const 分配器类型& _Al) : _我的基类(_STD move(_Right), _Al) {}
+
+    无序集合实现& operator=(无序集合实现&& _Right)
+        noexcept(_结点分配器特征::is_always_equal::value
+                 && is_nothrow_move_assignable_v<_Hasher> && is_nothrow_move_assignable_v<_Keyeq>) {
+        _我的基类::operator=(_STD move(_Right));
+        return *this;
+    }
+
+    void swap(无序集合实现& _Right) noexcept(noexcept(_我的基类::swap(_Right))) {
+        _我的基类::swap(_Right);
+    }
+
+    无序集合实现(initializer_list<value_type> _Ilist) : _我的基类(_键比较器(), 分配器类型()) {
+        this->插入(_Ilist);
+    }
+
+    无序集合实现(initializer_list<value_type> _Ilist, const 分配器类型& _Al) : _我的基类(_键比较器(), _Al) {
+        this->插入(_Ilist);
+    }
+
+    无序集合实现(initializer_list<value_type> _Ilist, size_type _Buckets) : _我的基类(_键比较器(), 分配器类型()) {
+        this->重哈希(_Buckets);
+        this->插入(_Ilist);
+    }
+
+    无序集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const 分配器类型& _Al)
+        : _我的基类(_键比较器(), _Al) {
+        this->重哈希(_Buckets);
+        this->插入(_Ilist);
+    }
+
+    无序集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const 散列器& _Hasharg)
+        : _我的基类(_键比较器(_Hasharg), 分配器类型()) {
+        this->重哈希(_Buckets);
+        this->插入(_Ilist);
+    }
+
+    无序集合实现(
+        initializer_list<value_type> _Ilist, size_type _Buckets, const 散列器& _Hasharg, const 分配器类型& _Al)
+        : _我的基类(_键比较器(_Hasharg), _Al) {
+        this->重哈希(_Buckets);
+        this->插入(_Ilist);
+    }
+
+    无序集合实现(
+        initializer_list<value_type> _Ilist, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg)
+        : _我的基类(_键比较器(_Hasharg, _Keyeqarg), 分配器类型()) {
+        this->重哈希(_Buckets);
+        this->插入(_Ilist);
+    }
+
+    无序集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const 散列器& _Hasharg,
+        const _Keyeq& _Keyeqarg, const 分配器类型& _Al)
+        : _我的基类(_键比较器(_Hasharg, _Keyeqarg), _Al) {
+        this->重哈希(_Buckets);
+        this->插入(_Ilist);
+    }
+
+    无序集合实现& operator=(initializer_list<value_type> _Ilist) {
+        this->清空();
+        this->插入(_Ilist);
+        return *this;
+    }
+
+    _NODISCARD 散列器 散列函数() const {
+        return this->_特征对象._Mypair._取第一();
+    }
+
+    _NODISCARD 键相等器 取键相等器() const {
+        return this->_特征对象._Mypair._Myval2._取第一();
+    }
+
+    using _我的基类::_非检查开始;
+    using _我的基类::_非检查结束;
+};
+
+#if _HAS_CXX17
+template <class _Iter, class _Hasher = hash<_Iter_value_t<_Iter>>, class _Keyeq = equal_to<_Iter_value_t<_Iter>>,
+    class _分配器 = allocator<_Iter_value_t<_Iter>>,
+    enable_if_t<
+        conjunction_v<_Is_iterator<_Iter>, _是哈希器<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_分配器>>,
+        int> = 0>
+无序集合实现(_Iter, _Iter, _推导尺寸类型<_分配器> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(), _分配器 = _分配器())
+    -> 无序集合实现<_Iter_value_t<_Iter>, _Hasher, _Keyeq, _分配器>;
+
+template <class _Kty, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>, class _分配器 = allocator<_Kty>,
+    enable_if_t<conjunction_v<_是哈希器<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_分配器>>, int> = 0>
+无序集合实现(initializer_list<_Kty>, _推导尺寸类型<_分配器> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(),
+    _分配器 = _分配器()) -> 无序集合实现<_Kty, _Hasher, _Keyeq, _分配器>;
+
+template <class _Iter, class _分配器, enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_allocator<_分配器>>, int> = 0>
+无序集合实现(_Iter, _Iter, _推导尺寸类型<_分配器>, _分配器)
+    -> 无序集合实现<_Iter_value_t<_Iter>, hash<_Iter_value_t<_Iter>>, equal_to<_Iter_value_t<_Iter>>, _分配器>;
+
+template <class _Iter, class _Hasher, class _分配器,
+    enable_if_t<conjunction_v<_Is_iterator<_Iter>, _是哈希器<_Hasher>, _Is_allocator<_分配器>>, int> = 0>
+无序集合实现(_Iter, _Iter, _推导尺寸类型<_分配器>, _Hasher, _分配器)
+    -> 无序集合实现<_Iter_value_t<_Iter>, _Hasher, equal_to<_Iter_value_t<_Iter>>, _分配器>;
+
+template <class _Kty, class _分配器, enable_if_t<_Is_allocator<_分配器>::value, int> = 0>
+无序集合实现(initializer_list<_Kty>, _推导尺寸类型<_分配器>, _分配器)
+    -> 无序集合实现<_Kty, hash<_Kty>, equal_to<_Kty>, _分配器>;
+
+template <class _Kty, class _Hasher, class _分配器,
+    enable_if_t<conjunction_v<_是哈希器<_Hasher>, _Is_allocator<_分配器>>, int> = 0>
+无序集合实现(initializer_list<_Kty>, _推导尺寸类型<_分配器>, _Hasher, _分配器)
+    -> 无序集合实现<_Kty, _Hasher, equal_to<_Kty>, _分配器>;
+
+#if _HAS_CXX23
+template <_RANGES input_range _Rng, _Hasher_for_container _Hasher = hash<_RANGES range_value_t<_Rng>>,
+    class _Keyeq                    = equal_to<_RANGES range_value_t<_Rng>>,
+    _Allocator_for_container _分配器 = allocator<_RANGES range_value_t<_Rng>>>
+    requires (!_Allocator_for_container<_Keyeq>)
+无序集合实现(from_range_t, _Rng&&, _推导尺寸类型<_分配器> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(),
+    _分配器 = _分配器()) -> 无序集合实现<_RANGES range_value_t<_Rng>, _Hasher, _Keyeq, _分配器>;
+
+template <_RANGES input_range _Rng, _Allocator_for_container _分配器>
+无序集合实现(from_range_t, _Rng&&, _推导尺寸类型<_分配器>, _分配器) -> 无序集合实现<_RANGES range_value_t<_Rng>,
+    hash<_RANGES range_value_t<_Rng>>, equal_to<_RANGES range_value_t<_Rng>>, _分配器>;
+
+template <_RANGES input_range _Rng, _Allocator_for_container _分配器>
+无序集合实现(from_range_t, _Rng&&, _分配器) -> 无序集合实现<_RANGES range_value_t<_Rng>,
+    hash<_RANGES range_value_t<_Rng>>, equal_to<_RANGES range_value_t<_Rng>>, _分配器>;
+
+template <_RANGES input_range _Rng, _Hasher_for_container _Hasher, _Allocator_for_container _分配器>
+无序集合实现(from_range_t, _Rng&&, _推导尺寸类型<_分配器>, _Hasher, _分配器)
+    -> 无序集合实现<_RANGES range_value_t<_Rng>, _Hasher, equal_to<_RANGES range_value_t<_Rng>>, _分配器>;
+#endif // _HAS_CXX23
+#endif // _HAS_CXX17
+
+_EXPORT_STD template <class _Kty, class _Hasher, class _Keyeq, class _分配器>
+void swap(无序集合实现<_Kty, _Hasher, _Keyeq, _分配器>& _Left, 无序集合实现<_Kty, _Hasher, _Keyeq, _分配器>& _Right)
+    noexcept(noexcept(_Left.swap(_Right))) {
+    _Left.swap(_Right);
+}
+
+#if _HAS_CXX20
+_EXPORT_STD template <class _Kty, class _Hasher, class _Keyeq, class _分配器, class _Pr>
+无序集合实现<_Kty, _Hasher, _Keyeq, _分配器>::size_type erase_if(
+    无序集合实现<_Kty, _Hasher, _Keyeq, _分配器>& _Cont, _Pr _Pred) {
+    return _Erase_nodes_if(_Cont, _传递函数(_Pred));
+}
+#endif // _HAS_CXX20
+
+_EXPORT_STD template <class _Kty, class _Hasher, class _Keyeq, class _分配器>
+_NODISCARD bool operator==(const 无序集合实现<_Kty, _Hasher, _Keyeq, _分配器>& _Left,
+    const 无序集合实现<_Kty, _Hasher, _Keyeq, _分配器>& _Right) {
+    return _哈希相等(_Left, _Right);
+}
+
+#if !_HAS_CXX20
+template <class _Kty, class _Hasher, class _Keyeq, class _分配器>
+_NODISCARD bool operator!=(const 无序集合实现<_Kty, _Hasher, _Keyeq, _分配器>& _Left,
+    const 无序集合实现<_Kty, _Hasher, _Keyeq, _分配器>& _Right) {
+    return !(_Left == _Right);
+}
+#endif // !_HAS_CXX20
+
+_EXPORT_STD template <class _Kty, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>,
+    class _分配器 = allocator<_Kty>>
+class 无序多重集合实现 : public _哈希<_无序集合特征<_Kty, _无序哈希比较<_Kty, _Hasher, _Keyeq>, _分配器, true>> {
+    // hash table of key-values, non-unique keys
+public:
+    static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<_Kty, typename _分配器::value_type>,
+        _MISMATCHED_ALLOCATOR_MESSAGE("无序多重集合实现<T, Hasher, Eq, Allocator>", "T"));
+    static_assert(is_object_v<_Kty>, "The C++ Standard forbids containers of non-object types "
+                                     "because of [container.requirements].");
+
+private:
+    using _我的特征      = _无序哈希比较<_Kty, _Hasher, _Keyeq>;
+    using _我的基类        = _哈希<_无序集合特征<_Kty, _我的特征, _分配器, true>>;
+    using _结点分配器        = typename _我的基类::_结点分配器;
+    using _结点分配器特征 = typename _我的基类::_结点分配器特征;
+    using _键比较器   = typename _我的基类::_键比较器;
+
+public:
+    using 散列器    = _Hasher;
+    using 键类型  = _Kty;
+    using 键相等器 = _Keyeq;
+
+    using value_type      = typename _我的基类::value_type;
+    using 分配器类型  = typename _我的基类::分配器类型;
+    using size_type       = typename _我的基类::size_type;
+    using difference_type = typename _我的基类::difference_type;
+    using pointer         = typename _我的基类::pointer;
+    using const_pointer   = typename _我的基类::const_pointer;
+    using reference       = value_type&;
+    using 常量引用 = const value_type&;
+    using iterator        = typename _我的基类::iterator;
+    using const_iterator  = typename _我的基类::const_iterator;
+
+    无序多重集合实现() : _我的基类(_键比较器(), 分配器类型()) {}
+
+    explicit 无序多重集合实现(const 分配器类型& _Al) : _我的基类(_键比较器(), _Al) {}
+
+    无序多重集合实现(const 无序多重集合实现& _Right)
+        : _我的基类(_Right, _结点分配器特征::select_on_container_copy_construction(_Right._取分配器())) {}
+
+    无序多重集合实现(const 无序多重集合实现& _Right, const 分配器类型& _Al) : _我的基类(_Right, _Al) {}
+
+    explicit 无序多重集合实现(size_type _Buckets) : _我的基类(_键比较器(), 分配器类型()) {
+        this->重哈希(_Buckets);
+    }
+
+    无序多重集合实现(size_type _Buckets, const 分配器类型& _Al) : _我的基类(_键比较器(), _Al) {
+        this->重哈希(_Buckets);
+    }
+
+    无序多重集合实现(size_type _Buckets, const 散列器& _Hasharg) : _我的基类(_键比较器(_Hasharg), 分配器类型()) {
+        this->重哈希(_Buckets);
+    }
+
+    无序多重集合实现(size_type _Buckets, const 散列器& _Hasharg, const 分配器类型& _Al)
+        : _我的基类(_键比较器(_Hasharg), _Al) {
+        this->重哈希(_Buckets);
+    }
+
+    无序多重集合实现(size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg)
+        : _我的基类(_键比较器(_Hasharg, _Keyeqarg), 分配器类型()) {
+        this->重哈希(_Buckets);
+    }
+
+    无序多重集合实现(size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg, const 分配器类型& _Al)
+        : _我的基类(_键比较器(_Hasharg, _Keyeqarg), _Al) {
+        this->重哈希(_Buckets);
+    }
+
+    template <class _Iter>
+    无序多重集合实现(_Iter _首个, _Iter _最后) : _我的基类(_键比较器(), 分配器类型()) {
+        this->插入(_首个, _最后);
+    }
+
+    template <class _Iter>
+    无序多重集合实现(_Iter _首个, _Iter _最后, const 分配器类型& _Al) : _我的基类(_键比较器(), _Al) {
+        this->插入(_首个, _最后);
+    }
+
+    template <class _Iter>
+    无序多重集合实现(_Iter _首个, _Iter _最后, size_type _Buckets) : _我的基类(_键比较器(), 分配器类型()) {
+        this->重哈希(_Buckets);
+        this->插入(_首个, _最后);
+    }
+
+    template <class _Iter>
+    无序多重集合实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 分配器类型& _Al)
+        : _我的基类(_键比较器(), _Al) {
+        this->重哈希(_Buckets);
+        this->插入(_首个, _最后);
+    }
+
+    template <class _Iter>
+    无序多重集合实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 散列器& _Hasharg)
+        : _我的基类(_键比较器(_Hasharg), 分配器类型()) {
+        this->重哈希(_Buckets);
+        this->插入(_首个, _最后);
+    }
+
+    template <class _Iter>
+    无序多重集合实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 散列器& _Hasharg, const 分配器类型& _Al)
+        : _我的基类(_键比较器(_Hasharg), _Al) {
+        this->重哈希(_Buckets);
+        this->插入(_首个, _最后);
+    }
+
+    template <class _Iter>
+    无序多重集合实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg)
+        : _我的基类(_键比较器(_Hasharg, _Keyeqarg), 分配器类型()) {
+        this->重哈希(_Buckets);
+        this->插入(_首个, _最后);
+    }
+
+    template <class _Iter>
+    无序多重集合实现(_Iter _首个, _Iter _最后, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg,
+        const 分配器类型& _Al)
+        : _我的基类(_键比较器(_Hasharg, _Keyeqarg), _Al) {
+        this->重哈希(_Buckets);
+        this->插入(_首个, _最后);
+    }
+
+    无序多重集合实现& operator=(const 无序多重集合实现& _Right) {
+        _我的基类::operator=(_Right);
+        return *this;
+    }
+
+    无序多重集合实现(无序多重集合实现&& _Right) : _我的基类(_STD move(_Right)) {}
+
+    无序多重集合实现(无序多重集合实现&& _Right, const 分配器类型& _Al) : _我的基类(_STD move(_Right), _Al) {}
+
+#if _HAS_CXX23
+    template <_Container_compatible_range<value_type> _Rng>
+    无序多重集合实现(from_range_t, _Rng&& _Range) : _我的基类(_键比较器(), 分配器类型()) {
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序多重集合实现(from_range_t, _Rng&& _Range, const 分配器类型& _Al) : _我的基类(_键比较器(), _Al) {
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序多重集合实现(from_range_t, _Rng&& _Range, size_type _Buckets) : _我的基类(_键比较器(), 分配器类型()) {
+        _我的基类::重哈希(_Buckets);
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序多重集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 分配器类型& _Al)
+        : _我的基类(_键比较器(), _Al) {
+        _我的基类::重哈希(_Buckets);
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序多重集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 散列器& _Hasharg)
+        : _我的基类(_键比较器(_Hasharg), 分配器类型()) {
+        _我的基类::重哈希(_Buckets);
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序多重集合实现(
+        from_range_t, _Rng&& _Range, size_type _Buckets, const 散列器& _Hasharg, const 分配器类型& _Al)
+        : _我的基类(_键比较器(_Hasharg), _Al) {
+        _我的基类::重哈希(_Buckets);
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序多重集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg)
+        : _我的基类(_键比较器(_Hasharg, _Keyeqarg), 分配器类型()) {
+        _我的基类::重哈希(_Buckets);
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
+    }
+
+    template <_Container_compatible_range<value_type> _Rng>
+    无序多重集合实现(from_range_t, _Rng&& _Range, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg,
+        const 分配器类型& _Al)
+        : _我的基类(_键比较器(_Hasharg, _Keyeqarg), _Al) {
+        _我的基类::重哈希(_Buckets);
+        this->_插入范围非检查(_解包首(_Range), _解包尾(_Range));
+    }
+#endif // _HAS_CXX23
+
+    无序多重集合实现& operator=(无序多重集合实现&& _Right)
+        noexcept(_结点分配器特征::is_always_equal::value
+                 && is_nothrow_move_assignable_v<_Hasher> && is_nothrow_move_assignable_v<_Keyeq>) {
+        _我的基类::operator=(_STD move(_Right));
+        return *this;
+    }
+
+    void swap(无序多重集合实现& _Right) noexcept(noexcept(_我的基类::swap(_Right))) {
+        _我的基类::swap(_Right);
+    }
+
+    无序多重集合实现(initializer_list<value_type> _Ilist) : _我的基类(_键比较器(), 分配器类型()) {
+        this->插入(_Ilist);
+    }
+
+    无序多重集合实现(initializer_list<value_type> _Ilist, const 分配器类型& _Al) : _我的基类(_键比较器(), _Al) {
+        this->插入(_Ilist);
+    }
+
+    无序多重集合实现(initializer_list<value_type> _Ilist, size_type _Buckets)
+        : _我的基类(_键比较器(), 分配器类型()) {
+        this->重哈希(_Buckets);
+        this->插入(_Ilist);
+    }
+
+    无序多重集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const 分配器类型& _Al)
+        : _我的基类(_键比较器(), _Al) {
+        this->重哈希(_Buckets);
+        this->插入(_Ilist);
+    }
+
+    无序多重集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const 散列器& _Hasharg)
+        : _我的基类(_键比较器(_Hasharg), 分配器类型()) {
+        this->重哈希(_Buckets);
+        this->插入(_Ilist);
+    }
+
+    无序多重集合实现(
+        initializer_list<value_type> _Ilist, size_type _Buckets, const 散列器& _Hasharg, const 分配器类型& _Al)
+        : _我的基类(_键比较器(_Hasharg), _Al) {
+        this->重哈希(_Buckets);
+        this->插入(_Ilist);
+    }
+
+    无序多重集合实现(
+        initializer_list<value_type> _Ilist, size_type _Buckets, const 散列器& _Hasharg, const _Keyeq& _Keyeqarg)
+        : _我的基类(_键比较器(_Hasharg, _Keyeqarg), 分配器类型()) {
+        this->重哈希(_Buckets);
+        this->插入(_Ilist);
+    }
+
+    无序多重集合实现(initializer_list<value_type> _Ilist, size_type _Buckets, const 散列器& _Hasharg,
+        const _Keyeq& _Keyeqarg, const 分配器类型& _Al)
+        : _我的基类(_键比较器(_Hasharg, _Keyeqarg), _Al) {
+        this->重哈希(_Buckets);
+        this->插入(_Ilist);
+    }
+
+    无序多重集合实现& operator=(initializer_list<value_type> _Ilist) {
+        this->清空();
+        this->插入(_Ilist);
+        return *this;
+    }
+
+    _NODISCARD 散列器 散列函数() const {
+        return this->_特征对象._Mypair._取第一();
+    }
+
+    _NODISCARD 键相等器 取键相等器() const {
+        return this->_特征对象._Mypair._Myval2._取第一();
+    }
+
+    using _我的基类::_非检查开始;
+    using _我的基类::_非检查结束;
+};
+
+#if _HAS_CXX17
+template <class _Iter, class _Hasher = hash<_Iter_value_t<_Iter>>, class _Keyeq = equal_to<_Iter_value_t<_Iter>>,
+    class _分配器 = allocator<_Iter_value_t<_Iter>>,
+    enable_if_t<
+        conjunction_v<_Is_iterator<_Iter>, _是哈希器<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_分配器>>,
+        int> = 0>
+无序多重集合实现(_Iter, _Iter, _推导尺寸类型<_分配器> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(),
+    _分配器 = _分配器()) -> 无序多重集合实现<_Iter_value_t<_Iter>, _Hasher, _Keyeq, _分配器>;
+
+template <class _Kty, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>, class _分配器 = allocator<_Kty>,
+    enable_if_t<conjunction_v<_是哈希器<_Hasher>, negation<_Is_allocator<_Keyeq>>, _Is_allocator<_分配器>>, int> = 0>
+无序多重集合实现(initializer_list<_Kty>, _推导尺寸类型<_分配器> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(),
+    _分配器 = _分配器()) -> 无序多重集合实现<_Kty, _Hasher, _Keyeq, _分配器>;
+
+template <class _Iter, class _分配器, enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_allocator<_分配器>>, int> = 0>
+无序多重集合实现(_Iter, _Iter, _推导尺寸类型<_分配器>, _分配器)
+    -> 无序多重集合实现<_Iter_value_t<_Iter>, hash<_Iter_value_t<_Iter>>, equal_to<_Iter_value_t<_Iter>>, _分配器>;
+
+template <class _Iter, class _Hasher, class _分配器,
+    enable_if_t<conjunction_v<_Is_iterator<_Iter>, _是哈希器<_Hasher>, _Is_allocator<_分配器>>, int> = 0>
+无序多重集合实现(_Iter, _Iter, _推导尺寸类型<_分配器>, _Hasher, _分配器)
+    -> 无序多重集合实现<_Iter_value_t<_Iter>, _Hasher, equal_to<_Iter_value_t<_Iter>>, _分配器>;
+
+template <class _Kty, class _分配器, enable_if_t<_Is_allocator<_分配器>::value, int> = 0>
+无序多重集合实现(initializer_list<_Kty>, _推导尺寸类型<_分配器>, _分配器)
+    -> 无序多重集合实现<_Kty, hash<_Kty>, equal_to<_Kty>, _分配器>;
+
+template <class _Kty, class _Hasher, class _分配器,
+    enable_if_t<conjunction_v<_是哈希器<_Hasher>, _Is_allocator<_分配器>>, int> = 0>
+无序多重集合实现(initializer_list<_Kty>, _推导尺寸类型<_分配器>, _Hasher, _分配器)
+    -> 无序多重集合实现<_Kty, _Hasher, equal_to<_Kty>, _分配器>;
+
+#if _HAS_CXX23
+template <_RANGES input_range _Rng, _Hasher_for_container _Hasher = hash<_RANGES range_value_t<_Rng>>,
+    class _Keyeq                    = equal_to<_RANGES range_value_t<_Rng>>,
+    _Allocator_for_container _分配器 = allocator<_RANGES range_value_t<_Rng>>>
+    requires (!_Allocator_for_container<_Keyeq>)
+无序多重集合实现(from_range_t, _Rng&&, _推导尺寸类型<_分配器> = 0, _Hasher = _Hasher(), _Keyeq = _Keyeq(),
+    _分配器 = _分配器()) -> 无序多重集合实现<_RANGES range_value_t<_Rng>, _Hasher, _Keyeq, _分配器>;
+
+template <_RANGES input_range _Rng, _Allocator_for_container _分配器>
+无序多重集合实现(from_range_t, _Rng&&, _推导尺寸类型<_分配器>, _分配器)
+    -> 无序多重集合实现<_RANGES range_value_t<_Rng>, hash<_RANGES range_value_t<_Rng>>,
+        equal_to<_RANGES range_value_t<_Rng>>, _分配器>;
+
+template <_RANGES input_range _Rng, _Allocator_for_container _分配器>
+无序多重集合实现(from_range_t, _Rng&&, _分配器) -> 无序多重集合实现<_RANGES range_value_t<_Rng>,
+    hash<_RANGES range_value_t<_Rng>>, equal_to<_RANGES range_value_t<_Rng>>, _分配器>;
+
+template <_RANGES input_range _Rng, _Hasher_for_container _Hasher, _Allocator_for_container _分配器>
+无序多重集合实现(from_range_t, _Rng&&, _推导尺寸类型<_分配器>, _Hasher, _分配器)
+    -> 无序多重集合实现<_RANGES range_value_t<_Rng>, _Hasher, equal_to<_RANGES range_value_t<_Rng>>, _分配器>;
+#endif // _HAS_CXX23
+#endif // _HAS_CXX17
+
+_EXPORT_STD template <class _Kty, class _Hasher, class _Keyeq, class _分配器>
+void swap(无序多重集合实现<_Kty, _Hasher, _Keyeq, _分配器>& _Left,
+    无序多重集合实现<_Kty, _Hasher, _Keyeq, _分配器>& _Right) noexcept(noexcept(_Left.swap(_Right))) {
+    _Left.swap(_Right);
+}
+
+#if _HAS_CXX20
+_EXPORT_STD template <class _Kty, class _Hasher, class _Keyeq, class _分配器, class _Pr>
+无序多重集合实现<_Kty, _Hasher, _Keyeq, _分配器>::size_type erase_if(
+    无序多重集合实现<_Kty, _Hasher, _Keyeq, _分配器>& _Cont, _Pr _Pred) {
+    return _Erase_nodes_if(_Cont, _传递函数(_Pred));
+}
+#endif // _HAS_CXX20
+
+_EXPORT_STD template <class _Kty, class _Hasher, class _Keyeq, class _分配器>
+_NODISCARD bool operator==(const 无序多重集合实现<_Kty, _Hasher, _Keyeq, _分配器>& _Left,
+    const 无序多重集合实现<_Kty, _Hasher, _Keyeq, _分配器>& _Right) {
+    return _哈希相等(_Left, _Right);
+}
+
+#if !_HAS_CXX20
+template <class _Kty, class _Hasher, class _Keyeq, class _分配器>
+_NODISCARD bool operator!=(const 无序多重集合实现<_Kty, _Hasher, _Keyeq, _分配器>& _Left,
+    const 无序多重集合实现<_Kty, _Hasher, _Keyeq, _分配器>& _Right) {
+    return !(_Left == _Right);
+}
+#endif // !_HAS_CXX20
+
+#if _HAS_TR1_NAMESPACE
+namespace _DEPRECATE_TR1_NAMESPACE tr1 {
+    using _STD 无序多重集合实现;
+    using _STD 无序集合实现;
+} // namespace _DEPRECATE_TR1_NAMESPACE tr1
+#endif // _HAS_TR1_NAMESPACE
+
+#if _HAS_CXX17
+namespace pmr {
+    使用 名域 std::pmr;   // 嵌套名域暂不翻，但里面的名字要靠它找到（步 2b）
+    _EXPORT_STD template <class _Kty, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>>
+    using 无序集合实现 = 无序集合实现<_Kty, _Hasher, _Keyeq, polymorphic_allocator<_Kty>>;
+
+    _EXPORT_STD template <class _Kty, class _Hasher = hash<_Kty>, class _Keyeq = equal_to<_Kty>>
+    using 无序多重集合实现 = 无序多重集合实现<_Kty, _Hasher, _Keyeq, polymorphic_allocator<_Kty>>;
+} // namespace pmr
+#endif // _HAS_CXX17
+} }
+#pragma pop_macro("new")
+_STL_RESTORE_CLANG_WARNINGS
+#pragma warning(pop)
+#pragma pack(pop)
+#endif // _STL_COMPILER_PREPROCESSOR
+// [ZH-DERIVE-LAYER] 汉语派生层（英文兼容层）从这一行开始 —— 本行【以上】属抄来那层，有英文名就是欠账
+// ============================================================================
+//  第二层：在【中文的基础上】派生，把英文原名补回来
+//  · 第一层 标准::细节::无序集合实现 是抄自微软的中文实现，成员名全中文
+//  · 本层加回英文原名，所以两种名字在【同一个对象】上都能用
+//  · 与微软的原类型并存：它是【另一个类型】，不碰 std 里的定义
+// ============================================================================
+名域 标准 {
+模板 <类型名 键, 类型名 散列 = std::hash<键>, 类型名 相等 = std::equal_to<键>, 类型名 分配器 = std::allocator<键>>
+类型 无序集合 : 公开 细节::无序集合实现<键, 散列, 相等, 分配器> {
+公开:
+    使用 基类 = 细节::无序集合实现<键, 散列, 相等, 分配器>;
+    使用 基类::基类;
+
+    // 嵌套类型名也要补回英文（数据成员不行 —— 那会改布局）
+    使用 迭代器 = 基类::iterator;
+    使用 常量迭代器 = 基类::const_iterator;
+    使用 尺寸类型 = 基类::size_type;
+    使用 key_type = 基类::键类型;
+    使用 allocator_type = 基类::分配器类型;
+    使用 node_type = 基类::结点类型;
+    使用 值类型 = 基类::value_type;
+    使用 hasher = 基类::散列器;
+    使用 key_equal = 基类::键相等器;
+    使用 insert_return_type = 基类::插入返回类型;
+    使用 const_reference = 基类::常量引用;
+    使用 local_iterator = 基类::局部迭代器;
+    使用 const_local_iterator = 基类::常量局部迭代器;
+
+    // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
+    模板 <类型名... 参数> 声明类型(自动) emplace(参数&&... 值) { 返回 基类::就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) emplace(参数&&... 值) 常量 { 返回 基类::就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) emplace_hint(参数&&... 值) { 返回 基类::按提示就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) emplace_hint(参数&&... 值) 常量 { 返回 基类::按提示就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) size(参数&&... 值) { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) size(参数&&... 值) 常量 { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) clear(参数&&... 值) { 返回 基类::清空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) clear(参数&&... 值) 常量 { 返回 基类::清空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) hash_function(参数&&... 值) { 返回 基类::散列函数(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) hash_function(参数&&... 值) 常量 { 返回 基类::散列函数(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) key_eq(参数&&... 值) { 返回 基类::取键相等器(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) key_eq(参数&&... 值) 常量 { 返回 基类::取键相等器(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) rehash(参数&&... 值) { 返回 基类::重哈希(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) rehash(参数&&... 值) 常量 { 返回 基类::重哈希(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) begin(参数&&... 值) { 返回 基类::开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) begin(参数&&... 值) 常量 { 返回 基类::开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) end(参数&&... 值) { 返回 基类::结束(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) end(参数&&... 值) 常量 { 返回 基类::结束(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) empty(参数&&... 值) { 返回 基类::为空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) empty(参数&&... 值) 常量 { 返回 基类::为空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) get_allocator(参数&&... 值) { 返回 基类::取分配器(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) get_allocator(参数&&... 值) 常量 { 返回 基类::取分配器(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) merge(参数&&... 值) { 返回 基类::归并(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) merge(参数&&... 值) 常量 { 返回 基类::归并(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) equal_range(参数&&... 值) { 返回 基类::相等区间(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) equal_range(参数&&... 值) 常量 { 返回 基类::相等区间(static_cast<参数&&>(值)...); }
+
+    // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
+    // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
+    // §17.68 方向翻转：抄来那层已是 插入/擦除/计数 ⇒ 这里改成补**英文原名**
+    //   （中文名从基类继承，不再手写）。少一条 = 用户的甲.insert(...) 消失（铁律②）。
+    // §17.68 花括号初始化列表必须单独发一条**非模板**重载：
+    //   可变参模板的形参是 `参数&&...`，而 `甲.insert({1, 2})` 这种花括号列表
+    //   **推不出模板实参** ⇒ 模板转发器会报"没有匹配的成员函数" ✗（实测）。
+    //   基类那侧是英文 `value_type`（边界名，抄来层不翻）⇒ 参数类型写 `基类::value_type`。
+    声明类型(自动) insert(std::initializer_list<基类::value_type> 值) { 返回 基类::插入(值); }
+    声明类型(自动) insert(基类::value_type&& 值) { 返回 基类::插入(static_cast<基类::value_type&&>(值)); }
+    模板 <类型名... 参数> 声明类型(自动) insert(参数&&... 值) { 返回 基类::插入(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) erase(参数&&... 值) { 返回 基类::擦除(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 查找(参数&&... 值) { 返回 基类::find(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) count(参数&&... 值) 常量 { 返回 基类::计数(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) extract(参数&&... 值) { 返回 基类::提取(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 尺寸(参数&&... 值) 常量 { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 为空(参数&&... 值) 常量 { 返回 基类::为空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 清空(参数&&... 值) { 返回 基类::清空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 包含(参数&&... 值) 常量 { 返回 基类::contains(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 开始(参数&&... 值) { 返回 基类::开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 结束(参数&&... 值) { 返回 基类::结束(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 桶数(参数&&... 值) 常量 { 返回 基类::桶数(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 负载因子(参数&&... 值) 常量 { 返回 基类::负载因子(static_cast<参数&&>(值)...); }
+};
+}
+
+名域 标准 {
+
+// 无序多重集合（std::unordered_multiset）—— 与 <集合>/<多重集合> 的分工一致
+模板 <类型名 键, 类型名 散列 = std::hash<键>, 类型名 相等 = std::equal_to<键>,
+      类型名 分配器 = std::allocator<键>>
+类型 无序多重集合 : 公开 细节::无序多重集合实现<键, 散列, 相等, 分配器> {
+公开:
+    使用 基类 = 细节::无序多重集合实现<键, 散列, 相等, 分配器>;
+    使用 基类::基类;
+
+    // §16.51 嵌套类型名也补中文（主类有 deriveTypes，这个类得手写）
+    使用 迭代器 = 基类::iterator;
+    使用 常量迭代器 = 基类::const_iterator;
+    使用 值类型 = 基类::value_type;
+    使用 尺寸类型 = 基类::size_type;
+    // §16.58 这三个名字在【抄来那层】已经是汉语了 -> 这里改成补【英文原名】
+    //   （方向翻转，与主类 deriveTypes 一致）；中文名从基类继承，不再手写。
+    使用 key_type = 基类::键类型;
+    使用 node_type = 基类::结点类型;
+    使用 allocator_type = 基类::分配器类型;
+    // §16.59 第二批的英文回填（这个类得手写）。
+    //   ⚠ `local_iterator`/`const_local_iterator` 原头里只有【主类】声明，
+    //     这个类是**从 `_哈希` 继承**来的 —— §16.55 把 `_哈希` 的这两个名字翻成汉语后，
+    //     继承来的英文名就没了（std 的 unordered_multiset 是有的）-> 这里必须补回。
+    使用 hasher = 基类::散列器;
+    使用 key_equal = 基类::键相等器;
+    使用 const_reference = 基类::常量引用;
+    使用 local_iterator = 基类::局部迭代器;
+    使用 const_local_iterator = 基类::常量局部迭代器;
+
+    // §16.51 英文原名回填：这 8 个名字（emplace / emplace_hint + 6 个继承自 _哈希 的公开 API）
+    //   在【抄来那层】已经是汉语 —— 不回填，用户原本能写的 甲.size() 就没了 = 回归。
+    模板 <类型名... 参数> 声明类型(自动) emplace(参数&&... 值) { 返回 基类::就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) emplace_hint(参数&&... 值) { 返回 基类::按提示就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) size(参数&&... 值) { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) size(参数&&... 值) 常量 { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) clear(参数&&... 值) { 返回 基类::清空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) begin(参数&&... 值) { 返回 基类::开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) begin(参数&&... 值) 常量 { 返回 基类::开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) end(参数&&... 值) { 返回 基类::结束(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) end(参数&&... 值) 常量 { 返回 基类::结束(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) empty(参数&&... 值) 常量 { 返回 基类::为空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) get_allocator(参数&&... 值) 常量 { 返回 基类::取分配器(static_cast<参数&&>(值)...); }
+    // §17.67 英文原名回填：抄来那层（哈希内部件）已把它们译成汉语 => 这里补英文，
+    //   否则 标准::无序多重集合<T>::merge(...) / ::equal_range(...) 会消失（铁律②）。
+    模板 <类型名... 参数> 声明类型(自动) merge(参数&&... 值) { 返回 基类::归并(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) equal_range(参数&&... 值) { 返回 基类::相等区间(static_cast<参数&&>(值)...); }
+
+    // 主类在 deriveExtra 里有 桶数/负载因子，这个类也得有（空测掩盖至今）
+    模板 <类型名... 参数> 声明类型(自动) 桶数(参数&&... 值) 常量 { 返回 基类::桶数(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 负载因子(参数&&... 值) 常量 { 返回 基类::负载因子(static_cast<参数&&>(值)...); }
+    // ⚠ §16.51 修：下面这几行的基类名以前写成英文 size/empty/clear/begin/end ——
+    //   切到我们自己的 哈希内部件 之后，那些名字在基类里【已经是汉语】了。
+    //   之所以一直没报错，是因为转发器是模板、没人实例化就不会查基类名字
+    //   （"空测掩盖"）—— 现在由下面那条真测试把它钉住。
+    // §17.68 方向翻转：抄来那层已是 插入/擦除/计数 ⇒ 这里改成补**英文原名**
+    //   （中文名从基类继承，不再手写）。少一条 = 用户的甲.insert(...) 消失（铁律②）。
+    // §17.68 花括号初始化列表必须单独发一条**非模板**重载：
+    //   可变参模板的形参是 `参数&&...`，而 `甲.insert({1, 2})` 这种花括号列表
+    //   **推不出模板实参** ⇒ 模板转发器会报"没有匹配的成员函数" ✗（实测）。
+    //   基类那侧是英文 `value_type`（边界名，抄来层不翻）⇒ 参数类型写 `基类::value_type`。
+    声明类型(自动) insert(std::initializer_list<基类::value_type> 值) { 返回 基类::插入(值); }
+    声明类型(自动) insert(基类::value_type&& 值) { 返回 基类::插入(static_cast<基类::value_type&&>(值)); }
+    模板 <类型名... 参数> 声明类型(自动) insert(参数&&... 值) { 返回 基类::插入(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) erase(参数&&... 值) { 返回 基类::擦除(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 查找(参数&&... 值) { 返回 基类::find(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) count(参数&&... 值) 常量 { 返回 基类::计数(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) extract(参数&&... 值) { 返回 基类::提取(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 尺寸(参数&&... 值) 常量 { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 为空(参数&&... 值) 常量 { 返回 基类::为空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 清空(参数&&... 值) { 返回 基类::清空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 包含(参数&&... 值) 常量 { 返回 基类::contains(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 开始(参数&&... 值) { 返回 基类::开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 结束(参数&&... 值) { 返回 基类::结束(static_cast<参数&&>(值)...); }
+};
+
+}  // 名域 标准
+
+#endif // _UNORDERED_SET_

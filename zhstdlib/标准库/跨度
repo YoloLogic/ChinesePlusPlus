@@ -1,0 +1,678 @@
+#include <span>
+// 跨度实现 standard header
+
+// Copyright (c) Microsoft Corporation.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#ifndef _ZH_SPAN_
+#define _ZH_SPAN_
+#include <yvals_core.h>
+#if _STL_COMPILER_PREPROCESSOR
+
+#if !_HAS_CXX20
+_EMIT_STL_WARNING(STL4038, "The contents of <跨度实现> are available only with C++20 or later.");
+#else // ^^^ !_HAS_CXX20 / _HAS_CXX20 vvv
+#include <compare>
+#include <cstddef>
+#include <type_traits>
+#include <通用内部件>
+
+#pragma pack(push, _CRT_PACKING)
+#pragma warning(push, _STL_WARNING_LEVEL)
+#pragma warning(disable : _STL_DISABLED_WARNINGS)
+_STL_DISABLE_CLANG_WARNINGS
+#pragma push_macro("new")
+#undef new
+
+名域 标准 { 名域 细节 {
+使用 名域 std;
+
+_EXPORT_STD inline constexpr size_t 动态范围 = static_cast<size_t>(-1);
+
+template <class _类型>
+struct _跨度迭代器 {
+    using iterator_concept  = contiguous_iterator_tag;
+    using iterator_category = random_access_iterator_tag;
+    using value_type        = remove_cv_t<_类型>;
+    using difference_type   = ptrdiff_t;
+    using pointer           = _类型*;
+    using reference         = _类型&;
+
+    _NODISCARD constexpr reference operator*() const noexcept {
+#if _ITERATOR_DEBUG_LEVEL >= 1
+        _STL_VERIFY(_Mybegin, "cannot dereference value-initialized 跨度实现 迭代器");
+        _STL_VERIFY(_我的指针 < _Myend, "cannot dereference 结束 跨度实现 迭代器");
+#endif // _ITERATOR_DEBUG_LEVEL >= 1
+        return *_我的指针;
+    }
+
+    _NODISCARD constexpr pointer operator->() const noexcept {
+#if _ITERATOR_DEBUG_LEVEL >= 1
+        _STL_VERIFY(_Mybegin, "cannot dereference value-initialized 跨度实现 迭代器");
+        _STL_VERIFY(_我的指针 < _Myend, "cannot dereference 结束 跨度实现 迭代器");
+#endif // _ITERATOR_DEBUG_LEVEL >= 1
+        return _我的指针;
+    }
+
+    constexpr _跨度迭代器& operator++() noexcept {
+#if _ITERATOR_DEBUG_LEVEL >= 1
+        _STL_VERIFY(_Mybegin, "cannot increment value-initialized 跨度实现 迭代器");
+        _STL_VERIFY(_我的指针 < _Myend, "cannot increment 跨度实现 迭代器 past 结束");
+#endif // _ITERATOR_DEBUG_LEVEL >= 1
+        ++_我的指针;
+        return *this;
+    }
+
+    constexpr _跨度迭代器 operator++(int) noexcept {
+        _跨度迭代器 _Tmp{*this};
+        ++*this;
+        return _Tmp;
+    }
+
+    constexpr _跨度迭代器& operator--() noexcept {
+#if _ITERATOR_DEBUG_LEVEL >= 1
+        _STL_VERIFY(_Mybegin, "cannot decrement value-initialized 跨度实现 迭代器");
+        _STL_VERIFY(_Mybegin < _我的指针, "cannot decrement 跨度实现 迭代器 before 开始");
+#endif // _ITERATOR_DEBUG_LEVEL >= 1
+        --_我的指针;
+        return *this;
+    }
+
+    constexpr _跨度迭代器 operator--(int) noexcept {
+        _跨度迭代器 _Tmp{*this};
+        --*this;
+        return _Tmp;
+    }
+
+    constexpr void _校验偏移([[maybe_unused]] const difference_type _Off) const noexcept {
+#if _ITERATOR_DEBUG_LEVEL >= 1
+        if (_Off != 0) {
+            _STL_VERIFY(_Mybegin, "cannot seek value-initialized 跨度实现 迭代器");
+        }
+
+        if (_Off < 0) {
+            _STL_VERIFY(_我的指针 - _Mybegin >= -_Off, "cannot seek 跨度实现 迭代器 before 开始");
+        }
+
+        if (_Off > 0) {
+            _STL_VERIFY(_Myend - _我的指针 >= _Off, "cannot seek 跨度实现 迭代器 after 结束");
+        }
+#endif // _ITERATOR_DEBUG_LEVEL >= 1
+    }
+
+    constexpr _跨度迭代器& operator+=(const difference_type _Off) noexcept {
+#if _ITERATOR_DEBUG_LEVEL >= 1
+        _校验偏移(_Off);
+#endif // _ITERATOR_DEBUG_LEVEL >= 1
+
+        _我的指针 += _Off;
+        return *this;
+    }
+
+    _NODISCARD constexpr _跨度迭代器 operator+(const difference_type _Off) const noexcept {
+        _跨度迭代器 _Tmp{*this};
+        _Tmp += _Off;
+        return _Tmp;
+    }
+
+    _NODISCARD friend constexpr _跨度迭代器 operator+(const difference_type _Off, _跨度迭代器 _Next) noexcept {
+        _Next += _Off;
+        return _Next;
+    }
+
+    constexpr _跨度迭代器& operator-=(const difference_type _Off) noexcept {
+#if _ITERATOR_DEBUG_LEVEL >= 1
+        _STL_VERIFY(_Off != _Min_possible_v<difference_type>, "integer overflow");
+        _校验偏移(-_Off);
+#endif // _ITERATOR_DEBUG_LEVEL >= 1
+
+        _我的指针 -= _Off;
+        return *this;
+    }
+
+    _NODISCARD constexpr _跨度迭代器 operator-(const difference_type _Off) const noexcept {
+        _跨度迭代器 _Tmp{*this};
+        _Tmp -= _Off;
+        return _Tmp;
+    }
+
+    _NODISCARD constexpr difference_type operator-(const _跨度迭代器& _Right) const noexcept {
+#if _ITERATOR_DEBUG_LEVEL >= 1
+        _STL_VERIFY(
+            _Mybegin == _Right._Mybegin && _Myend == _Right._Myend, "cannot subtract incompatible 跨度实现 iterators");
+#endif // _ITERATOR_DEBUG_LEVEL >= 1
+        return _我的指针 - _Right._我的指针;
+    }
+
+    _NODISCARD constexpr reference operator[](const difference_type _Off) const noexcept {
+        return *(*this + _Off);
+    }
+
+    _NODISCARD constexpr bool operator==(const _跨度迭代器& _Right) const noexcept {
+#if _ITERATOR_DEBUG_LEVEL >= 1
+        _STL_VERIFY(_Mybegin == _Right._Mybegin && _Myend == _Right._Myend,
+            "cannot compare incompatible 跨度实现 iterators for equality");
+#endif // _ITERATOR_DEBUG_LEVEL >= 1
+        return _我的指针 == _Right._我的指针;
+    }
+
+    _NODISCARD constexpr strong_ordering operator<=>(const _跨度迭代器& _Right) const noexcept {
+#if _ITERATOR_DEBUG_LEVEL >= 1
+        _STL_VERIFY(
+            _Mybegin == _Right._Mybegin && _Myend == _Right._Myend, "cannot compare incompatible 跨度实现 iterators");
+#endif // _ITERATOR_DEBUG_LEVEL >= 1
+        return _我的指针 <=> _Right._我的指针;
+    }
+
+#if _ITERATOR_DEBUG_LEVEL >= 1
+    friend constexpr void _校验范围(const _跨度迭代器& _首个, const _跨度迭代器& _最后) noexcept {
+        _STL_VERIFY(_首个._Mybegin == _最后._Mybegin && _首个._Myend == _最后._Myend,
+            "跨度实现 iterators from different views do not form a range");
+        _STL_VERIFY(_首个._我的指针 <= _最后._我的指针, "跨度实现 迭代器 range transposed");
+    }
+#endif // _ITERATOR_DEBUG_LEVEL >= 1
+
+    using _阻止继承解包 = _跨度迭代器;
+
+    _NODISCARD constexpr pointer _解包() const noexcept {
+        return _我的指针;
+    }
+
+    static constexpr bool _Unwrap_when_unverified = _ITERATOR_DEBUG_LEVEL == 0;
+
+    constexpr void _定位到(const pointer _It) noexcept {
+        _我的指针 = _It;
+    }
+
+    pointer _我的指针 = nullptr;
+#if _ITERATOR_DEBUG_LEVEL >= 1
+    pointer _Mybegin = nullptr;
+    pointer _Myend   = nullptr;
+#endif // _ITERATOR_DEBUG_LEVEL >= 1
+};
+
+template <class _类型>
+struct pointer_traits<_跨度迭代器<_类型>> {
+    using pointer         = _跨度迭代器<_类型>;
+    using element_type    = _类型;
+    using difference_type = ptrdiff_t;
+
+    _NODISCARD static constexpr element_type* to_address(const pointer _Iter) noexcept {
+        return _Iter._解包();
+    }
+};
+
+template <class _类型, size_t _Extent>
+struct _跨度范围类型 {
+    using pointer = _类型*;
+
+    constexpr _跨度范围类型() noexcept = default;
+
+    constexpr explicit _跨度范围类型(const pointer _Data, size_t) noexcept : _Mydata{_Data} {
+        // Verify that later calls to 字节尺寸() won't overflow:
+        static_assert(
+            _我的尺寸 <= 动态范围 / sizeof(_类型), "尺寸 of 跨度实现 in bytes exceeds numeric_limits<size_t>::max()");
+    }
+
+    pointer _Mydata{nullptr};
+    static constexpr size_t _我的尺寸 = _Extent;
+};
+
+template <class _类型>
+struct _跨度范围类型<_类型, 动态范围> {
+    using pointer = _类型*;
+
+    constexpr _跨度范围类型() noexcept = default;
+
+    constexpr explicit _跨度范围类型(const pointer _Data, const size_t _Size) noexcept
+        : _Mydata{_Data}, _我的尺寸{_Size} {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        // Verify that later calls to 字节尺寸() won't overflow:
+        _STL_VERIFY(
+            _我的尺寸 <= 动态范围 / sizeof(_类型), "尺寸 of 跨度实现 in bytes exceeds numeric_limits<size_t>::max()");
+#endif
+    }
+
+    pointer _Mydata{nullptr};
+    size_t _我的尺寸{0};
+};
+
+_EXPORT_STD template <class _类型, size_t _Extent>
+class 跨度实现;
+
+namespace ranges {
+    使用 名域 std::ranges;   // 嵌套名域暂不翻，但里面的名字要靠它找到（步 2b）
+    template <class _类型, size_t _Extent>
+    constexpr bool enable_view<跨度实现<_类型, _Extent>> = true;
+    template <class _类型, size_t _Extent>
+    constexpr bool enable_borrowed_range<跨度实现<_类型, _Extent>> = true;
+} // namespace ranges
+
+template <class>
+constexpr bool _Is_span_v = false;
+
+template <class _类型, size_t _Extent>
+constexpr bool _Is_span_v<跨度实现<_类型, _Extent>> = true;
+
+template <class>
+constexpr bool _Is_std_array_v = false;
+
+template <class _类型, size_t _Size>
+constexpr bool _Is_std_array_v<array<_类型, _Size>> = true;
+
+template <class _It, class _类型>
+concept _Span_compatible_iterator =
+    contiguous_iterator<_It> && is_convertible_v<remove_reference_t<iter_reference_t<_It>> (*)[], _类型 (*)[]>;
+
+template <class _哨兵, class _It>
+concept _Span_compatible_sentinel = sized_sentinel_for<_哨兵, _It> && !is_convertible_v<_哨兵, size_t>;
+
+template <class _Rng, class _类型>
+concept _Span_compatible_range =
+    !is_array_v<remove_cvref_t<_Rng>> && !_Is_span_v<remove_cvref_t<_Rng>> && !_Is_std_array_v<remove_cvref_t<_Rng>>
+    && _RANGES contiguous_range<_Rng> && _RANGES sized_range<_Rng> && (_RANGES borrowed_range<_Rng> || is_const_v<_类型>)
+    && is_convertible_v<remove_reference_t<_RANGES range_reference_t<_Rng>> (*)[], _类型 (*)[]>;
+
+// [views.跨度实现]
+_EXPORT_STD template <class _类型, size_t _Extent = 动态范围>
+class 跨度实现 : private _跨度范围类型<_类型, _Extent> {
+private:
+    using _我的基类 = _跨度范围类型<_类型, _Extent>;
+    using _我的基类::_Mydata;
+    using _我的基类::_我的尺寸;
+
+public:
+    using element_type     = _类型;
+    using value_type       = remove_cv_t<_类型>;
+    using 尺寸类型        = size_t;
+    using difference_type  = ptrdiff_t;
+    using pointer          = _类型*;
+    using 常量指针    = const _类型*;
+    using reference        = _类型&;
+    using 常量引用  = const _类型&;
+    using 迭代器         = _跨度迭代器<_类型>;
+    using reverse_iterator = _STD reverse_iterator<迭代器>;
+#if _HAS_CXX23
+    using const_iterator         = _STD const_iterator<迭代器>;
+    using 常量反向迭代器 = _STD const_iterator<reverse_iterator>;
+#endif // _HAS_CXX23
+
+    static constexpr 尺寸类型 extent = _Extent;
+
+    // [跨度实现.cons] Constructors, copy, and assignment
+    constexpr 跨度实现() noexcept
+        requires (_Extent == 0 || _Extent == 动态范围)
+    = default;
+
+    template <_Span_compatible_iterator<element_type> _It>
+    constexpr explicit(_Extent != 动态范围) 跨度实现(_It _首个, 尺寸类型 _Count) noexcept // strengthened
+        : _我的基类(_STD to_address(_STD _Get_unwrapped_n(_首个, _Count)), _Count) {
+#if _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
+        if constexpr (_Extent != 动态范围) {
+            _STL_VERIFY(_Count == _Extent,
+                "Cannot construct 跨度实现 with static extent from range [首段, 首段 + count) as count != extent");
+        }
+#endif // _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
+    }
+
+    template <_Span_compatible_iterator<element_type> _It, _Span_compatible_sentinel<_It> _哨兵>
+    constexpr explicit(_Extent != 动态范围) 跨度实现(_It _首个, _哨兵 _最后)
+        noexcept(noexcept(_最后 - _首个)) // strengthened
+        : _我的基类(_STD to_address(_首个), static_cast<尺寸类型>(_最后 - _首个)) {
+        _ADL校验范围(_首个, _最后);
+#if _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
+        if constexpr (_Extent != 动态范围) {
+            _STL_VERIFY(_最后 - _首个 == _Extent,
+                "Cannot construct 跨度实现 with static extent from range [首段, 末段) as 末段 - 首段 != extent");
+        }
+#endif // _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
+    }
+
+    template <size_t _Size>
+        requires (_Extent == 动态范围 || _Extent == _Size)
+    constexpr 跨度实现(type_identity_t<element_type> (&_Arr)[_Size]) noexcept : _我的基类(_Arr, _Size) {}
+
+    template <class _OtherTy, size_t _Size>
+        requires (_Extent == 动态范围 || _Extent == _Size) && is_convertible_v<_OtherTy (*)[], element_type (*)[]>
+    constexpr 跨度实现(array<_OtherTy, _Size>& _Arr) noexcept : _我的基类(_Arr.数据(), _Size) {}
+
+    template <class _OtherTy, size_t _Size>
+        requires (_Extent == 动态范围 || _Extent == _Size)
+              && is_convertible_v<const _OtherTy (*)[], element_type (*)[]>
+    constexpr 跨度实现(const array<_OtherTy, _Size>& _Arr) noexcept : _我的基类(_Arr.数据(), _Size) {}
+
+    template <_Span_compatible_range<element_type> _Rng>
+    constexpr explicit(_Extent != 动态范围) 跨度实现(_Rng&& _Range)
+        : _我的基类(_RANGES data(_Range), static_cast<尺寸类型>(_RANGES size(_Range))) {
+#if _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
+        if constexpr (_Extent != 动态范围) {
+            _STL_VERIFY(_RANGES size(_Range) == _Extent,
+                "Cannot construct 跨度实现 with static extent from range r as std::ranges::尺寸(r) != extent");
+        }
+#endif // _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
+    }
+
+    template <class _OtherTy, size_t _OtherExtent>
+        requires (_Extent == 动态范围 || _OtherExtent == 动态范围 || _Extent == _OtherExtent)
+              && is_convertible_v<_OtherTy (*)[], element_type (*)[]>
+    constexpr explicit(_Extent != 动态范围 && _OtherExtent == 动态范围)
+        跨度实现(const 跨度实现<_OtherTy, _OtherExtent>& _Other) noexcept
+        : _我的基类(_Other.数据(), _Other.尺寸()) {
+#if _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
+        if constexpr (_Extent != 动态范围) {
+            _STL_VERIFY(_Other.尺寸() == _Extent,
+                "Cannot construct 跨度实现 with static extent from other 跨度实现 as other.尺寸() != extent");
+        }
+#endif // _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
+    }
+
+    // [跨度实现.sub] Subviews
+    template <size_t _Count>
+    _NODISCARD constexpr auto 首段() const noexcept /* strengthened */ {
+        if constexpr (_Extent != 动态范围) {
+            static_assert(_Count <= _Extent, "Count out of range in 跨度实现::首段<Count>()");
+        }
+#if _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
+        else {
+            _STL_VERIFY(_Count <= _我的尺寸, "Count out of range in 跨度实现::首段<Count>()");
+        }
+#endif // _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
+
+        return 跨度实现<element_type, _Count>{_Mydata, _Count};
+    }
+
+    _NODISCARD constexpr auto 首段(const 尺寸类型 _Count) const noexcept /* strengthened */ {
+#if _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Count <= _我的尺寸, "Count out of range in 跨度实现::首段(count)");
+#endif
+
+        return 跨度实现<element_type, 动态范围>{_Mydata, _Count};
+    }
+
+    template <size_t _Count>
+    _NODISCARD constexpr auto 末段() const noexcept /* strengthened */ {
+        if constexpr (_Extent != 动态范围) {
+            static_assert(_Count <= _Extent, "Count out of range in 跨度实现::末段<Count>()");
+        }
+#if _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
+        else {
+            _STL_VERIFY(_Count <= _我的尺寸, "Count out of range in 跨度实现::末段<Count>()");
+        }
+#endif // _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
+
+        return 跨度实现<element_type, _Count>{_Mydata + (_我的尺寸 - _Count), _Count};
+    }
+
+    _NODISCARD constexpr auto 末段(const 尺寸类型 _Count) const noexcept /* strengthened */ {
+#if _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Count <= _我的尺寸, "Count out of range in 跨度实现::末段(count)");
+#endif
+
+        return 跨度实现<element_type, 动态范围>{_Mydata + (_我的尺寸 - _Count), _Count};
+    }
+
+    template <size_t _Offset, size_t _Count = 动态范围>
+    _NODISCARD constexpr auto 子跨度() const noexcept /* strengthened */ {
+        if constexpr (_Extent != 动态范围) {
+            static_assert(_Offset <= _Extent, "Offset out of range in 跨度实现::子跨度<Offset, Count>()");
+            static_assert(_Count == 动态范围 || _Count <= _Extent - _Offset,
+                "Count out of range in 跨度实现::子跨度<Offset, Count>()");
+        }
+#if _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
+        else {
+            _STL_VERIFY(_Offset <= _我的尺寸, "Offset out of range in 跨度实现::子跨度<Offset, Count>()");
+
+            if constexpr (_Count != 动态范围) {
+                _STL_VERIFY(_Count <= _我的尺寸 - _Offset, "Count out of range in 跨度实现::子跨度<Offset, Count>()");
+            }
+        }
+#endif // _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
+
+        using _返回类型 = 跨度实现<element_type,
+            _Count != 动态范围 ? _Count : (_Extent != 动态范围 ? _Extent - _Offset : 动态范围)>;
+        return _返回类型{_Mydata + _Offset, _Count == 动态范围 ? _我的尺寸 - _Offset : _Count};
+    }
+
+    _NODISCARD constexpr auto 子跨度(const 尺寸类型 _Offset, const 尺寸类型 _Count = 动态范围) const noexcept
+    /* strengthened */ {
+#if _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Offset <= _我的尺寸, "Offset out of range in 跨度实现::子跨度(offset, count)");
+        _STL_VERIFY(_Count == 动态范围 || _Count <= _我的尺寸 - _Offset,
+            "Count out of range in 跨度实现::子跨度(offset, count)");
+#endif // _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
+
+        using _返回类型 = 跨度实现<element_type, 动态范围>;
+        return _返回类型{_Mydata + _Offset, _Count == 动态范围 ? _我的尺寸 - _Offset : _Count};
+    }
+
+    // [跨度实现.obs] Observers
+    _NODISCARD constexpr size_t 尺寸() const noexcept {
+        return _我的尺寸;
+    }
+
+    _NODISCARD constexpr 尺寸类型 字节尺寸() const noexcept {
+        // Under _ITERATOR_DEBUG_LEVEL != 0, 跨度实现's constructors verify that this multiplication won't overflow.
+        return _我的尺寸 * sizeof(element_type);
+    }
+
+    _NODISCARD constexpr bool 为空() const noexcept {
+        return _我的尺寸 == 0;
+    }
+
+    // [跨度实现.elem] Element access
+    _NODISCARD constexpr reference operator[](const 尺寸类型 _Off) const noexcept /* strengthened */ {
+#if _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Off < _我的尺寸, "跨度实现 subscript out of range");
+#endif
+
+        return _Mydata[_Off];
+    }
+
+#pragma warning(push)
+#pragma warning(disable : 4127) // conditional expression is constant
+    _NODISCARD constexpr reference 前() const noexcept /* strengthened */ {
+#if _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_我的尺寸 > 0, "前() called on 为空 跨度实现");
+#endif
+
+        return _Mydata[0];
+    }
+
+    _NODISCARD constexpr reference 后() const noexcept /* strengthened */ {
+#if _MSVC_STL_HARDENING_SPAN || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_我的尺寸 > 0, "后() called on 为空 跨度实现");
+#endif
+
+        return _Mydata[_我的尺寸 - 1];
+    }
+#pragma warning(pop)
+
+    _NODISCARD constexpr pointer 数据() const noexcept {
+        return _Mydata;
+    }
+
+    // [跨度实现.iterators] Iterator support
+    _NODISCARD constexpr 迭代器 开始() const noexcept {
+#if _ITERATOR_DEBUG_LEVEL >= 1
+        return {_Mydata, _Mydata, _Mydata + _我的尺寸};
+#else // ^^^ _ITERATOR_DEBUG_LEVEL >= 1 / _ITERATOR_DEBUG_LEVEL == 0 vvv
+        return {_Mydata};
+#endif // ^^^ _ITERATOR_DEBUG_LEVEL == 0 ^^^
+    }
+
+    _NODISCARD constexpr 迭代器 结束() const noexcept {
+        const auto _End = _Mydata + _我的尺寸;
+#if _ITERATOR_DEBUG_LEVEL >= 1
+        return {_End, _Mydata, _End};
+#else // ^^^ _ITERATOR_DEBUG_LEVEL >= 1 / _ITERATOR_DEBUG_LEVEL == 0 vvv
+        return {_End};
+#endif // ^^^ _ITERATOR_DEBUG_LEVEL == 0 ^^^
+    }
+
+#if _HAS_CXX23
+    _NODISCARD constexpr const_iterator cbegin() const noexcept {
+        return 开始();
+    }
+
+    _NODISCARD constexpr const_iterator cend() const noexcept {
+        return 结束();
+    }
+#endif // _HAS_CXX23
+
+    _NODISCARD constexpr reverse_iterator 反向开始() const noexcept {
+        return reverse_iterator{结束()};
+    }
+
+    _NODISCARD constexpr reverse_iterator 反向结束() const noexcept {
+        return reverse_iterator{开始()};
+    }
+
+#if _HAS_CXX23
+    _NODISCARD constexpr 常量反向迭代器 常量反向开始() const noexcept {
+        return 反向开始();
+    }
+
+    _NODISCARD constexpr 常量反向迭代器 常量反向结束() const noexcept {
+        return 反向结束();
+    }
+#endif // _HAS_CXX23
+
+    _NODISCARD constexpr pointer _非检查开始() const noexcept {
+        return _Mydata;
+    }
+
+    _NODISCARD constexpr pointer _非检查结束() const noexcept {
+        return _Mydata + _我的尺寸;
+    }
+};
+
+template <class _类型, size_t _Extent>
+跨度实现(_类型 (&)[_Extent]) -> 跨度实现<_类型, _Extent>;
+
+template <class _类型, size_t _Size>
+跨度实现(array<_类型, _Size>&) -> 跨度实现<_类型, _Size>;
+
+template <class _类型, size_t _Size>
+跨度实现(const array<_类型, _Size>&) -> 跨度实现<const _类型, _Size>;
+
+template <contiguous_iterator _It, class _End>
+跨度实现(_It, _End) -> 跨度实现<remove_reference_t<iter_reference_t<_It>>>;
+
+template <_RANGES contiguous_range _Rng>
+跨度实现(_Rng&&) -> 跨度实现<remove_reference_t<_RANGES range_reference_t<_Rng>>>;
+
+#ifdef __cpp_lib_byte
+// [跨度实现.objectrep] Views of object representation
+_EXPORT_STD template <class _类型, size_t _Extent>
+_NODISCARD auto 转字节(跨度实现<_类型, _Extent> _Sp) noexcept {
+    using _返回类型 = 跨度实现<const byte, _Extent == 动态范围 ? 动态范围 : sizeof(_类型) * _Extent>;
+    return _返回类型{reinterpret_cast<const byte*>(_Sp.数据()), _Sp.字节尺寸()};
+}
+
+_EXPORT_STD template <class _类型, size_t _Extent>
+    requires (!is_const_v<_类型>)
+_NODISCARD auto 转可写字节(跨度实现<_类型, _Extent> _Sp) noexcept {
+    using _返回类型 = 跨度实现<byte, _Extent == 动态范围 ? 动态范围 : sizeof(_类型) * _Extent>;
+    return _返回类型{reinterpret_cast<byte*>(_Sp.数据()), _Sp.字节尺寸()};
+}
+#endif // defined(__cpp_lib_byte)
+
+} }
+
+#pragma pop_macro("new")
+_STL_RESTORE_CLANG_WARNINGS
+#pragma warning(pop)
+#pragma pack(pop)
+#endif // ^^^ _HAS_CXX20 ^^^
+#endif // _STL_COMPILER_PREPROCESSOR
+// [ZH-DERIVE-LAYER] 汉语派生层（英文兼容层）从这一行开始 —— 本行【以上】属抄来那层，有英文名就是欠账
+// ============================================================================
+//  第二层：在【中文的基础上】派生，把英文原名补回来
+//  · 第一层 标准::细节::跨度实现 是抄自微软的中文实现，成员名全中文
+//  · 本层加回英文原名，所以两种名字在【同一个对象】上都能用
+//  · 与微软的原类型并存：它是【另一个类型】，不碰 std 里的定义
+// ============================================================================
+名域 标准 {
+模板 <类型名 元素, size_t 范围 = 细节::动态范围>
+类型 跨度 : 公开 细节::跨度实现<元素, 范围> {
+公开:
+    使用 基类 = 细节::跨度实现<元素, 范围>;
+    使用 基类::基类;
+
+    // 嵌套类型名也要补回英文（数据成员不行 —— 那会改布局）
+    使用 iterator = 基类::迭代器;
+    使用 size_type = 基类::尺寸类型;
+    使用 const_pointer = 基类::常量指针;
+    使用 const_reference = 基类::常量引用;
+    使用 元素类型 = 基类::element_type;
+    使用 值类型 = 基类::value_type;
+    使用 指针 = 基类::pointer;
+    使用 引用 = 基类::reference;
+    使用 差异类型 = 基类::difference_type;
+    使用 反向迭代器 = 基类::reverse_iterator;
+
+    // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
+    模板 <类型名... 参数> 声明类型(自动) size(参数&&... 值) { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) size(参数&&... 值) 常量 { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) size_bytes(参数&&... 值) { 返回 基类::字节尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) size_bytes(参数&&... 值) 常量 { 返回 基类::字节尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) empty(参数&&... 值) { 返回 基类::为空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) empty(参数&&... 值) 常量 { 返回 基类::为空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) data(参数&&... 值) { 返回 基类::数据(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) data(参数&&... 值) 常量 { 返回 基类::数据(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) front(参数&&... 值) { 返回 基类::前(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) front(参数&&... 值) 常量 { 返回 基类::前(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) back(参数&&... 值) { 返回 基类::后(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) back(参数&&... 值) 常量 { 返回 基类::后(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) begin(参数&&... 值) { 返回 基类::开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) begin(参数&&... 值) 常量 { 返回 基类::开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) end(参数&&... 值) { 返回 基类::结束(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) end(参数&&... 值) 常量 { 返回 基类::结束(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) rbegin(参数&&... 值) { 返回 基类::反向开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) rbegin(参数&&... 值) 常量 { 返回 基类::反向开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) rend(参数&&... 值) { 返回 基类::反向结束(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) rend(参数&&... 值) 常量 { 返回 基类::反向结束(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) first(参数&&... 值) { 返回 基类::首段(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) first(参数&&... 值) 常量 { 返回 基类::首段(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) last(参数&&... 值) { 返回 基类::末段(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) last(参数&&... 值) 常量 { 返回 基类::末段(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) subspan(参数&&... 值) { 返回 基类::子跨度(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) subspan(参数&&... 值) 常量 { 返回 基类::子跨度(static_cast<参数&&>(值)...); }
+
+    // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
+    // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
+// §17.66 crbegin / crend：C++23 才有，转发必须与抄来那层用同一个宏护住（见本条目注释）
+#if _HAS_CXX23
+    模板 <类型名... 参数> 声明类型(自动) crbegin(参数&&... 值) { 返回 基类::常量反向开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) crbegin(参数&&... 值) 常量 { 返回 基类::常量反向开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) crend(参数&&... 值) { 返回 基类::常量反向结束(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) crend(参数&&... 值) 常量 { 返回 基类::常量反向结束(static_cast<参数&&>(值)...); }
+#endif // _HAS_CXX23
+};
+}
+
+名域 标准 {
+
+// 自由函数：抄来后落在 细节::，用 using 声明引进 标准::（§3.19.1，
+// 比重写转发保真：重载全带上、返回引用也不丢）
+使用 细节::转字节;
+使用 细节::转可写字节;
+
+// 动态范围常量（std::dynamic_extent）—— 变量，成员转发管不到，手写
+内联 常量表达式 size_t 动态范围常量 = 细节::动态范围;
+
+}  // 名域 标准
+
+// §17.41 **特征特化不会跟着派生走**（同 <字符串视图> 那条）：原生把
+//   `enable_view` / `enable_borrowed_range` 特化在【抄来那层】的 `跨度实现` 上，
+//   而公开类型是【派生层】的 `标准::跨度` ✗ —— 实测 `std::ranges::view<标准::跨度<整数>>`
+//   与 `borrowed_range` 都是假（原生 `std::span<int>` 两者皆真）。在 `std::ranges` 里
+//   对公开类型再特化一次。
+名域 std::ranges {
+  模板 <类型名 元素, size_t 范围>
+  常量 布尔 enable_view<标准::跨度<元素, 范围>> = 真值;
+  模板 <类型名 元素, size_t 范围>
+  常量 布尔 enable_borrowed_range<标准::跨度<元素, 范围>> = 真值;
+}  // 名域 std::ranges
+
+#endif // _SPAN_

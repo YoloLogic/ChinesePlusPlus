@@ -1,0 +1,275 @@
+#include <stack>
+// 栈实现 standard header
+
+// Copyright (c) Microsoft Corporation.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#ifndef _ZH_STACK_
+#define _ZH_STACK_
+#include <yvals_core.h>
+#if _STL_COMPILER_PREPROCESSOR
+#include <deque>
+
+#if _HAS_CXX23
+#include <__msvc_ranges_to.hpp>
+#include <__msvc_ranges_tuple_formatter.hpp>
+#include <iterator>
+#endif // _HAS_CXX23
+
+#pragma pack(压入, _CRT_PACKING)
+#pragma warning(压入, _STL_WARNING_LEVEL)
+#pragma warning(disable : _STL_DISABLED_WARNINGS)
+_STL_DISABLE_CLANG_WARNINGS
+#pragma push_macro("new")
+#undef new
+
+名域 标准 { 名域 细节 {
+使用 名域 std;
+_EXPORT_STD template <class _类型, class _Container = deque<_类型>>
+class 栈实现 {
+public:
+    using value_type      = typename _Container::value_type;
+    using reference       = typename _Container::reference;
+    using const_reference = typename _Container::const_reference;
+    using size_type       = typename _Container::size_type;
+    using 容器类型  = _Container;
+
+    static_assert(is_same_v<_类型, value_type>, "container adaptors require consistent types");
+    static_assert(is_object_v<_类型>, "The C++ Standard forbids container adaptors of non-object types "
+                                    "because of [container.requirements].");
+
+    栈实现() = default;
+
+    explicit 栈实现(const _Container& _Cont) : c(_Cont) {}
+
+    explicit 栈实现(_Container&& _Cont) noexcept(is_nothrow_move_constructible_v<_Container>) // strengthened
+        : c(_STD move(_Cont)) {}
+
+#if _HAS_CXX23
+    template <_Iterator_for_container _InIt>
+    栈实现(_InIt _首个, _InIt _最后) noexcept(is_nothrow_constructible_v<_Container, _InIt, _InIt>) // strengthened
+        : c(_STD move(_首个), _STD move(_最后)) {}
+
+    template <_Container_compatible_range<_类型> _Rng>
+    栈实现(from_range_t, _Rng&& _Range) : c(_RANGES to<_Container>(_STD forward<_Rng>(_Range))) {}
+#endif // _HAS_CXX23
+
+    template <class _分配器, enable_if_t<uses_allocator_v<_Container, _分配器>, int> = 0>
+    explicit 栈实现(const _分配器& _Al) noexcept(is_nothrow_constructible_v<_Container, const _分配器&>) // strengthened
+        : c(_Al) {}
+
+    template <class _分配器, enable_if_t<uses_allocator_v<_Container, _分配器>, int> = 0>
+    栈实现(const _Container& _Cont, const _分配器& _Al) : c(_Cont, _Al) {}
+
+    template <class _分配器, enable_if_t<uses_allocator_v<_Container, _分配器>, int> = 0>
+    栈实现(_Container&& _Cont, const _分配器& _Al)
+        noexcept(is_nothrow_constructible_v<_Container, _Container, const _分配器&>) // strengthened
+        : c(_STD move(_Cont), _Al) {}
+
+    template <class _分配器, enable_if_t<uses_allocator_v<_Container, _分配器>, int> = 0>
+    栈实现(const 栈实现& _Right, const _分配器& _Al) : c(_Right.c, _Al) {}
+
+    template <class _分配器, enable_if_t<uses_allocator_v<_Container, _分配器>, int> = 0>
+    栈实现(栈实现&& _Right, const _分配器& _Al)
+        noexcept(is_nothrow_constructible_v<_Container, _Container, const _分配器&>) // strengthened
+        : c(_STD move(_Right.c), _Al) {}
+
+#if _HAS_CXX23
+    template <_Iterator_for_container _InIt, class _分配器>
+        requires uses_allocator_v<_Container, _分配器>
+    栈实现(_InIt _首个, _InIt _最后, const _分配器& _Al)
+        noexcept(is_nothrow_constructible_v<_Container, _InIt, _InIt, const _分配器&>) // strengthened
+        : c(_STD move(_首个), _STD move(_最后), _Al) {}
+
+    template <_Container_compatible_range<_类型> _Rng, class _分配器>
+    栈实现(from_range_t, _Rng&& _Range, const _分配器& _Al)
+        : c(_RANGES to<_Container>(_STD forward<_Rng>(_Range), _Al)) {}
+#endif // _HAS_CXX23
+
+    _NODISCARD_EMPTY_MEMBER_NO_CLEAR bool 为空() const noexcept(noexcept(c.为空())) /* strengthened */ {
+        return c.为空();
+    }
+
+    _NODISCARD size_type size() const noexcept(noexcept(c.size())) /* strengthened */ {
+        return c.size();
+    }
+
+    _NODISCARD reference 栈顶() noexcept(noexcept(c.back())) /* strengthened */ {
+        return c.back();
+    }
+
+    _NODISCARD const_reference 栈顶() const noexcept(noexcept(c.back())) /* strengthened */ {
+        return c.back();
+    }
+
+    void 压入(const value_type& _Val) {
+        c.push_back(_Val);
+    }
+
+    void 压入(value_type&& _Val) {
+        c.push_back(_STD move(_Val));
+    }
+
+#if _HAS_CXX23
+    template <_Container_compatible_range<_类型> _Rng>
+    void 范围压入(_Rng&& _Range) {
+        if constexpr (requires { c.append_range(_STD forward<_Rng>(_Range)); }) {
+            c.append_range(_STD forward<_Rng>(_Range));
+        } else {
+            _RANGES copy(_Range, back_insert_iterator{c});
+        }
+    }
+#endif // _HAS_CXX23
+
+    template <class... _值参数类型>
+    _ADAPTOR_EMPLACE_RETURN 就地构造(_值参数类型&&... _Val) {
+#if _HAS_CXX17
+        return c.emplace_back(_STD forward<_值参数类型>(_Val)...);
+#else // ^^^ _HAS_CXX17 / !_HAS_CXX17 vvv
+        c.emplace_back(_STD forward<_值参数类型>(_Val)...);
+#endif // ^^^ !_HAS_CXX17 ^^^
+    }
+
+    void 弹出() noexcept(noexcept(c.pop_back())) /* strengthened */ {
+        c.pop_back();
+    }
+
+    void swap(栈实现& _Right) noexcept(_Is_nothrow_swappable<_Container>::value) {
+        using _STD swap;
+        swap(c, _Right.c); // intentional ADL
+    }
+
+    _NODISCARD const _Container& _取容器() const noexcept {
+        return c;
+    }
+
+protected:
+    _Container c{};
+};
+
+#if _HAS_CXX17
+template <class _Container, enable_if_t<!_Is_allocator<_Container>::value, int> = 0>
+栈实现(_Container) -> 栈实现<typename _Container::value_type, _Container>;
+
+template <class _Container, class _分配器,
+    enable_if_t<conjunction_v<negation<_Is_allocator<_Container>>, uses_allocator<_Container, _分配器>>, int> = 0>
+栈实现(_Container, _分配器) -> 栈实现<typename _Container::value_type, _Container>;
+#endif // _HAS_CXX17
+
+#if _HAS_CXX23
+template <_Iterator_for_container _InIt, _Allocator_for_container _分配器 = allocator<_Iter_value_t<_InIt>>>
+栈实现(_InIt, _InIt, _分配器 = _分配器()) -> 栈实现<_Iter_value_t<_InIt>, deque<_Iter_value_t<_InIt>, _分配器>>;
+
+template <_RANGES input_range _Rng>
+栈实现(from_range_t, _Rng&&) -> 栈实现<_RANGES range_value_t<_Rng>>;
+
+template <_RANGES input_range _Rng, _Allocator_for_container _分配器>
+栈实现(from_range_t, _Rng&&, _分配器) -> 栈实现<_RANGES range_value_t<_Rng>, deque<_RANGES range_value_t<_Rng>, _分配器>>;
+#endif // _HAS_CXX23
+
+_EXPORT_STD template <class _类型, class _Container>
+_NODISCARD bool operator==(const 栈实现<_类型, _Container>& _Left, const 栈实现<_类型, _Container>& _Right) {
+    return _Left._取容器() == _Right._取容器();
+}
+
+_EXPORT_STD template <class _类型, class _Container>
+_NODISCARD bool operator!=(const 栈实现<_类型, _Container>& _Left, const 栈实现<_类型, _Container>& _Right) {
+    return _Left._取容器() != _Right._取容器();
+}
+
+_EXPORT_STD template <class _类型, class _Container>
+_NODISCARD bool operator<(const 栈实现<_类型, _Container>& _Left, const 栈实现<_类型, _Container>& _Right) {
+    return _Left._取容器() < _Right._取容器();
+}
+
+_EXPORT_STD template <class _类型, class _Container>
+_NODISCARD bool operator>(const 栈实现<_类型, _Container>& _Left, const 栈实现<_类型, _Container>& _Right) {
+    return _Left._取容器() > _Right._取容器();
+}
+
+_EXPORT_STD template <class _类型, class _Container>
+_NODISCARD bool operator<=(const 栈实现<_类型, _Container>& _Left, const 栈实现<_类型, _Container>& _Right) {
+    return _Left._取容器() <= _Right._取容器();
+}
+
+_EXPORT_STD template <class _类型, class _Container>
+_NODISCARD bool operator>=(const 栈实现<_类型, _Container>& _Left, const 栈实现<_类型, _Container>& _Right) {
+    return _Left._取容器() >= _Right._取容器();
+}
+
+#if _HAS_CXX20
+_EXPORT_STD template <class _类型, three_way_comparable _Container>
+_NODISCARD compare_three_way_result_t<_Container> operator<=>(
+    const 栈实现<_类型, _Container>& _Left, const 栈实现<_类型, _Container>& _Right) {
+    return _Left._取容器() <=> _Right._取容器();
+}
+#endif // _HAS_CXX20
+
+_EXPORT_STD template <class _类型, class _Container, enable_if_t<_Is_swappable<_Container>::value, int> = 0>
+void swap(栈实现<_类型, _Container>& _Left, 栈实现<_类型, _Container>& _Right) noexcept(noexcept(_Left.swap(_Right))) {
+    _Left.swap(_Right);
+}
+
+template <class _类型, class _Container, class _分配器>
+struct uses_allocator<栈实现<_类型, _Container>, _分配器> : uses_allocator<_Container, _分配器>::type {};
+
+#if _HAS_CXX23
+// Per LWG-3997, `_CharT` in library-provided `formatter` specializations is
+// constrained to character types supported by `format`.
+template <_Format_supported_charT _CharT, class _类型, formattable<_CharT> _Container>
+struct formatter<栈实现<_类型, _Container>, _CharT>
+    : _Adaptor_formatter_base<栈实现<_类型, _Container>, _CharT, _RANGES ref_view> {};
+#endif // _HAS_CXX23
+} }
+
+#pragma pop_macro("new")
+_STL_RESTORE_CLANG_WARNINGS
+#pragma warning(弹出)
+#pragma pack(弹出)
+#endif // _STL_COMPILER_PREPROCESSOR
+// [ZH-DERIVE-LAYER] 汉语派生层（英文兼容层）从这一行开始 —— 本行【以上】属抄来那层，有英文名就是欠账
+// ============================================================================
+//  第二层：在【中文的基础上】派生，把英文原名补回来
+//  · 第一层 标准::细节::栈实现 是抄自微软的中文实现，成员名全中文
+//  · 本层加回英文原名，所以两种名字在【同一个对象】上都能用
+//  · 与微软的原类型并存：它是【另一个类型】，不碰 std 里的定义
+// ============================================================================
+名域 标准 {
+模板 <类型名 元素, 类型名 容器 = std::deque<元素>>
+类型 栈 : 公开 细节::栈实现<元素, 容器> {
+公开:
+    使用 基类 = 细节::栈实现<元素, 容器>;
+    使用 基类::基类;
+
+    // 嵌套类型名也要补回英文（数据成员不行 —— 那会改布局）
+    使用 container_type = 基类::容器类型;
+
+    // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
+    模板 <类型名... 参数> 声明类型(自动) emplace(参数&&... 值) { 返回 基类::就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) emplace(参数&&... 值) 常量 { 返回 基类::就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) empty(参数&&... 值) { 返回 基类::为空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) empty(参数&&... 值) 常量 { 返回 基类::为空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) pop(参数&&... 值) { 返回 基类::弹出(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) pop(参数&&... 值) 常量 { 返回 基类::弹出(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) push(参数&&... 值) { 返回 基类::压入(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) push(参数&&... 值) 常量 { 返回 基类::压入(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) push_range(参数&&... 值) { 返回 基类::范围压入(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) push_range(参数&&... 值) 常量 { 返回 基类::范围压入(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) top(参数&&... 值) { 返回 基类::栈顶(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) top(参数&&... 值) 常量 { 返回 基类::栈顶(static_cast<参数&&>(值)...); }
+
+    // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
+    // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
+    模板 <类型名... 参数> 声明类型(自动) 交换(参数&&... 值) { 返回 基类::swap(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 尺寸(参数&&... 值) 常量 { 返回 基类::size(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 为空(参数&&... 值) 常量 { 返回 基类::empty(static_cast<参数&&>(值)...); }
+};
+}
+
+// 表里给的额外 std 特化 —— 这些 std 模板也必须认识我们的类型
+名域 std {
+模板 <类型名 元素, 类型名 容器, 类型名 分配器>
+    结构 uses_allocator<标准::栈<元素, 容器>, 分配器> : std::uses_allocator<容器, 分配器>::type {};
+}
+
+#endif // _STACK_

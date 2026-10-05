@@ -1,0 +1,20 @@
+// <编码转换> —— codecvt 的中文别名层
+//
+// 为什么是别名而不是抄一份（方案铁律 4）：
+//   铁律③：codecvt_utf8 等是 std 的 facet 模板，locale 按类型身份取用。
+//   这类头一旦抄一份，就会和 std 里那份成为两套互不相认的东西。
+//
+// 英文原名照旧可用：这里只是【多一个名字】，原头一个字节没动。
+// 变体（英文里带 _v 的变量模板形式）暂未提供中文名，属"必须的妥协"，见方案 §六。
+#pragma once
+#include <codecvt>
+
+名域 标准 {
+    使用 编码转换模式 = std::codecvt_mode;
+    内联 常量表达式 自动 编码小端 = std::little_endian;
+    内联 常量表达式 自动 消费头部 = std::consume_header;
+    内联 常量表达式 自动 生成头部 = std::generate_header;
+    模板 <类型名 元素, unsigned long 最大码位 = 0x10ffff, 编码转换模式 模式 = 编码转换模式(0)> 使用 编码转换UTF8 = std::codecvt_utf8<元素, 最大码位, 模式>;
+    模板 <类型名 元素, unsigned long 最大码位 = 0x10ffff, 编码转换模式 模式 = 编码转换模式(0)> 使用 编码转换UTF16 = std::codecvt_utf16<元素, 最大码位, 模式>;
+    模板 <类型名 元素, unsigned long 最大码位 = 0x10ffff, 编码转换模式 模式 = 编码转换模式(0)> 使用 编码转换UTF8至UTF16 = std::codecvt_utf8_utf16<元素, 最大码位, 模式>;
+}

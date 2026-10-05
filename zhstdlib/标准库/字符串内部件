@@ -1,0 +1,3521 @@
+#include <string>
+// xstring internal header
+
+// Copyright (c) Microsoft Corporation.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#ifndef _ZH_XSTRING_
+#define _ZH_XSTRING_
+#include <yvals_core.h>
+#if _STL_COMPILER_PREPROCESSOR
+#include <__msvc_sanitizer_annotate_container.hpp>
+#include <字符串视图内部件>
+#include <iosfwd>
+#include <内存内部件>
+
+#if _HAS_CXX17
+#include <xpolymorphic_allocator.h>
+#endif // _HAS_CXX17
+
+#pragma pack(push, _CRT_PACKING)
+#pragma warning(push, _STL_WARNING_LEVEL)
+#pragma warning(disable : _STL_DISABLED_WARNINGS)
+_STL_DISABLE_CLANG_WARNINGS
+#pragma push_macro("new")
+#undef new
+
+名域 标准 { 名域 细节 {
+使用 名域 std;
+模板 <类型名 元素, 类型名 特征, 类型名 分配器> 类型 基础字符串缓冲;
+template <class _我的字符串>
+class _字符串常量迭代器 : public _迭代器基类 {
+public:
+#if _HAS_CXX20
+    using iterator_concept = contiguous_iterator_tag;
+#endif // _HAS_CXX20
+    using iterator_category = random_access_iterator_tag;
+    using value_type        = typename _我的字符串::value_type;
+    using difference_type   = typename _我的字符串::difference_type;
+    using pointer           = typename _我的字符串::const_pointer;
+    using reference         = const value_type&;
+
+    _CONSTEXPR20 _字符串常量迭代器() noexcept : _Ptr() {}
+
+    _CONSTEXPR20 _字符串常量迭代器(pointer _Parg, const _容器基类* _Pstring) noexcept : _Ptr(_Parg) {
+        this->_收养(_Pstring);
+    }
+
+    _NODISCARD _CONSTEXPR20 reference operator*() const noexcept {
+#if _ITERATOR_DEBUG_LEVEL >= 1
+        _STL_VERIFY(_Ptr, "cannot dereference value-initialized string iterator");
+        const auto _我的容器 = static_cast<const _我的字符串*>(this->_取容器());
+        _STL_VERIFY(_我的容器, "cannot dereference string iterator because the iterator was "
+                             "invalidated (e.g. reallocation occurred, or the string was destroyed)");
+        const auto _Contptr = _我的容器->_我的指针();
+        const auto _Rawptr  = _去花式(_Ptr);
+        _STL_VERIFY(_Contptr <= _Rawptr && _Rawptr < _Contptr + _我的容器->_我的尺寸,
+            "cannot dereference string iterator because it is out of range (e.g. an 结束 iterator)");
+#endif // _ITERATOR_DEBUG_LEVEL >= 1
+
+        _Analysis_assume_(_Ptr);
+        return *_Ptr;
+    }
+
+    _NODISCARD _CONSTEXPR20 pointer operator->() const noexcept {
+        return pointer_traits<pointer>::pointer_to(**this);
+    }
+
+    _CONSTEXPR20 _字符串常量迭代器& operator++() noexcept {
+#if _ITERATOR_DEBUG_LEVEL >= 1
+        _STL_VERIFY(_Ptr, "cannot increment value-initialized string iterator");
+        const auto _我的容器 = static_cast<const _我的字符串*>(this->_取容器());
+        _STL_VERIFY(_我的容器, "cannot increment string iterator because the iterator was "
+                             "invalidated (e.g. reallocation occurred, or the string was destroyed)");
+        _STL_VERIFY(_去花式(_Ptr) < _我的容器->_我的指针() + _我的容器->_我的尺寸, "cannot increment string iterator past 结束");
+#endif // _ITERATOR_DEBUG_LEVEL >= 1
+
+        ++_Ptr;
+        return *this;
+    }
+
+    _CONSTEXPR20 _字符串常量迭代器 operator++(int) noexcept {
+        _字符串常量迭代器 _Tmp = *this;
+        ++*this;
+        return _Tmp;
+    }
+
+    _CONSTEXPR20 _字符串常量迭代器& operator--() noexcept {
+#if _ITERATOR_DEBUG_LEVEL >= 1
+        _STL_VERIFY(_Ptr, "cannot decrement value-initialized string iterator");
+        const auto _我的容器 = static_cast<const _我的字符串*>(this->_取容器());
+        _STL_VERIFY(_我的容器, "cannot decrement string iterator because the iterator was "
+                             "invalidated (e.g. reallocation occurred, or the string was destroyed)");
+        _STL_VERIFY(_我的容器->_我的指针() < _去花式(_Ptr), "cannot decrement string iterator before 开始");
+#endif // _ITERATOR_DEBUG_LEVEL >= 1
+
+        --_Ptr;
+        return *this;
+    }
+
+    _CONSTEXPR20 _字符串常量迭代器 operator--(int) noexcept {
+        _字符串常量迭代器 _Tmp = *this;
+        --*this;
+        return _Tmp;
+    }
+
+    _CONSTEXPR20 void _校验偏移(const difference_type _Off) const noexcept {
+#if _ITERATOR_DEBUG_LEVEL >= 1
+        if (_Off == 0) {
+            return;
+        }
+
+        _STL_VERIFY(_Ptr, "cannot seek value-initialized string iterator");
+        const auto _我的容器 = static_cast<const _我的字符串*>(this->_取容器());
+        _STL_VERIFY(_我的容器, "cannot seek string iterator because the iterator was "
+                             "invalidated (e.g. reallocation occurred, or the string was destroyed)");
+        const auto _Contptr = _我的容器->_我的指针();
+        const auto _Rawptr  = _去花式(_Ptr);
+
+        if (_Off < 0) {
+            _STL_VERIFY(_Contptr - _Rawptr <= _Off, "cannot seek string iterator before 开始");
+        }
+
+        if (_Off > 0) {
+            using _尺寸类型 = typename _我的字符串::size_type;
+            const auto _Left = _我的容器->_我的尺寸 - static_cast<_尺寸类型>(_Rawptr - _Contptr);
+            _STL_VERIFY(static_cast<_尺寸类型>(_Off) <= _Left, "cannot seek string iterator after 结束");
+        }
+#else // ^^^ _ITERATOR_DEBUG_LEVEL >= 1 / _ITERATOR_DEBUG_LEVEL == 0 vvv
+        (void) _Off;
+#endif // ^^^ _ITERATOR_DEBUG_LEVEL == 0 ^^^
+    }
+
+    _CONSTEXPR20 _字符串常量迭代器& operator+=(const difference_type _Off) noexcept {
+#if _ITERATOR_DEBUG_LEVEL >= 1
+        _校验偏移(_Off);
+#endif // _ITERATOR_DEBUG_LEVEL >= 1
+        _Ptr += _Off;
+        return *this;
+    }
+
+    _NODISCARD _CONSTEXPR20 _字符串常量迭代器 operator+(const difference_type _Off) const noexcept {
+        _字符串常量迭代器 _Tmp = *this;
+        _Tmp += _Off;
+        return _Tmp;
+    }
+
+    _NODISCARD friend _CONSTEXPR20 _字符串常量迭代器 operator+(
+        const difference_type _Off, _字符串常量迭代器 _Next) noexcept {
+        _Next += _Off;
+        return _Next;
+    }
+
+    _CONSTEXPR20 _字符串常量迭代器& operator-=(const difference_type _Off) noexcept {
+        return *this += -_Off;
+    }
+
+    _NODISCARD _CONSTEXPR20 _字符串常量迭代器 operator-(const difference_type _Off) const noexcept {
+        _字符串常量迭代器 _Tmp = *this;
+        _Tmp -= _Off;
+        return _Tmp;
+    }
+
+    _NODISCARD _CONSTEXPR20 difference_type operator-(const _字符串常量迭代器& _Right) const noexcept {
+        _兼容(_Right);
+        return static_cast<difference_type>(_Ptr - _Right._Ptr);
+    }
+
+    _NODISCARD _CONSTEXPR20 reference operator[](const difference_type _Off) const noexcept {
+        return *(*this + _Off);
+    }
+
+    _NODISCARD _CONSTEXPR20 bool operator==(const _字符串常量迭代器& _Right) const noexcept {
+        _兼容(_Right);
+        return _Ptr == _Right._Ptr;
+    }
+
+#if _HAS_CXX20
+    _NODISCARD constexpr strong_ordering operator<=>(const _字符串常量迭代器& _Right) const noexcept {
+        _兼容(_Right);
+        return _去花式可空(_Ptr) <=> _去花式可空(_Right._Ptr);
+    }
+#else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
+    _NODISCARD bool operator!=(const _字符串常量迭代器& _Right) const noexcept {
+        return !(*this == _Right);
+    }
+
+    _NODISCARD bool operator<(const _字符串常量迭代器& _Right) const noexcept {
+        _兼容(_Right);
+        return _Ptr < _Right._Ptr;
+    }
+
+    _NODISCARD bool operator>(const _字符串常量迭代器& _Right) const noexcept {
+        return _Right < *this;
+    }
+
+    _NODISCARD bool operator<=(const _字符串常量迭代器& _Right) const noexcept {
+        return !(_Right < *this);
+    }
+
+    _NODISCARD bool operator>=(const _字符串常量迭代器& _Right) const noexcept {
+        return !(*this < _Right);
+    }
+#endif // !_HAS_CXX20
+
+    _CONSTEXPR20 void _兼容(const _字符串常量迭代器& _Right) const noexcept {
+        // test for compatible iterator pair
+#if _ITERATOR_DEBUG_LEVEL >= 1
+        _STL_VERIFY(this->_取容器() == _Right._取容器(),
+            "string iterators incompatible (e.g. point to different string instances)");
+#else // ^^^ _ITERATOR_DEBUG_LEVEL >= 1 / _ITERATOR_DEBUG_LEVEL == 0 vvv
+        (void) _Right;
+#endif // ^^^ _ITERATOR_DEBUG_LEVEL == 0 ^^^
+    }
+
+#if _ITERATOR_DEBUG_LEVEL >= 1
+    friend _CONSTEXPR20 void _校验范围(
+        const _字符串常量迭代器& _首个, const _字符串常量迭代器& _最后) noexcept {
+        _STL_VERIFY(_首个._取容器() == _最后._取容器(), "string iterators in range are from different containers");
+        _STL_VERIFY(_首个._Ptr <= _最后._Ptr, "string iterator range transposed");
+    }
+#endif // _ITERATOR_DEBUG_LEVEL >= 1
+
+    using _阻止继承解包 = _字符串常量迭代器;
+
+    _NODISCARD _CONSTEXPR20 const value_type* _解包() const noexcept {
+        return _去花式可空(_Ptr);
+    }
+
+    _CONSTEXPR20 void _定位到(const value_type* _It) noexcept {
+        _Ptr = _STD _Refancy_maybe_null<pointer>(const_cast<value_type*>(_It));
+    }
+
+    pointer _Ptr; // pointer to element in string
+};
+
+#if _HAS_CXX20
+template <class _我的字符串>
+struct pointer_traits<_字符串常量迭代器<_我的字符串>> {
+    using pointer         = _字符串常量迭代器<_我的字符串>;
+    using element_type    = const pointer::value_type;
+    using difference_type = pointer::difference_type;
+
+    _NODISCARD static constexpr element_type* to_address(const pointer _Iter) noexcept {
+#if _ITERATOR_DEBUG_LEVEL >= 1
+        const auto _我的容器 = static_cast<const _我的字符串*>(_Iter._取容器());
+        if (!_我的容器) {
+            _STL_VERIFY(!_Iter._Ptr, "cannot convert string iterator to pointer because the iterator was invalidated "
+                                     "(e.g. reallocation occurred, or the string was destroyed)");
+        }
+#endif // _ITERATOR_DEBUG_LEVEL >= 1
+
+        const auto _Rawptr = _STD to_address(_Iter._Ptr);
+
+#if _ITERATOR_DEBUG_LEVEL >= 1
+        if (_我的容器) {
+            const auto _Contptr = _我的容器->_我的指针();
+            _STL_VERIFY(_Contptr <= _Rawptr && _Rawptr <= _Contptr + _我的容器->_我的尺寸,
+                "cannot convert string iterator to pointer because it is out of range");
+        }
+#endif // _ITERATOR_DEBUG_LEVEL >= 1
+
+        return _Rawptr;
+    }
+};
+#endif // _HAS_CXX20
+
+template <class _我的字符串>
+class _字符串迭代器 : public _字符串常量迭代器<_我的字符串> {
+public:
+    using _我的基类 = _字符串常量迭代器<_我的字符串>;
+
+#if _HAS_CXX20
+    using iterator_concept = contiguous_iterator_tag;
+#endif // _HAS_CXX20
+    using iterator_category = random_access_iterator_tag;
+    using value_type        = typename _我的字符串::value_type;
+    using difference_type   = typename _我的字符串::difference_type;
+    using pointer           = typename _我的字符串::pointer;
+    using reference         = value_type&;
+
+    using _我的基类::_我的基类;
+
+    _NODISCARD _CONSTEXPR20 reference operator*() const noexcept {
+        return const_cast<reference>(_我的基类::operator*());
+    }
+
+    _NODISCARD _CONSTEXPR20 pointer operator->() const noexcept {
+        return pointer_traits<pointer>::pointer_to(**this);
+    }
+
+    _CONSTEXPR20 _字符串迭代器& operator++() noexcept {
+        _我的基类::operator++();
+        return *this;
+    }
+
+    _CONSTEXPR20 _字符串迭代器 operator++(int) noexcept {
+        _字符串迭代器 _Tmp = *this;
+        _我的基类::operator++();
+        return _Tmp;
+    }
+
+    _CONSTEXPR20 _字符串迭代器& operator--() noexcept {
+        _我的基类::operator--();
+        return *this;
+    }
+
+    _CONSTEXPR20 _字符串迭代器 operator--(int) noexcept {
+        _字符串迭代器 _Tmp = *this;
+        _我的基类::operator--();
+        return _Tmp;
+    }
+
+    _CONSTEXPR20 _字符串迭代器& operator+=(const difference_type _Off) noexcept {
+        _我的基类::operator+=(_Off);
+        return *this;
+    }
+
+    _NODISCARD _CONSTEXPR20 _字符串迭代器 operator+(const difference_type _Off) const noexcept {
+        _字符串迭代器 _Tmp = *this;
+        _Tmp += _Off;
+        return _Tmp;
+    }
+
+    _NODISCARD friend _CONSTEXPR20 _字符串迭代器 operator+(
+        const difference_type _Off, _字符串迭代器 _Next) noexcept {
+        _Next += _Off;
+        return _Next;
+    }
+
+    _CONSTEXPR20 _字符串迭代器& operator-=(const difference_type _Off) noexcept {
+        _我的基类::operator-=(_Off);
+        return *this;
+    }
+
+    using _我的基类::operator-;
+
+    _NODISCARD _CONSTEXPR20 _字符串迭代器 operator-(const difference_type _Off) const noexcept {
+        _字符串迭代器 _Tmp = *this;
+        _Tmp -= _Off;
+        return _Tmp;
+    }
+
+    _NODISCARD _CONSTEXPR20 reference operator[](const difference_type _Off) const noexcept {
+        return const_cast<reference>(_我的基类::operator[](_Off));
+    }
+
+    using _阻止继承解包 = _字符串迭代器;
+
+    _NODISCARD _CONSTEXPR20 value_type* _解包() const noexcept {
+        return const_cast<value_type*>(_去花式可空(this->_Ptr));
+    }
+};
+
+#if _HAS_CXX20
+template <class _我的字符串>
+struct pointer_traits<_字符串迭代器<_我的字符串>> {
+    using pointer         = _字符串迭代器<_我的字符串>;
+    using element_type    = pointer::value_type;
+    using difference_type = pointer::difference_type;
+
+    _NODISCARD static constexpr element_type* to_address(const pointer _Iter) noexcept {
+#if _ITERATOR_DEBUG_LEVEL >= 1
+        const auto _我的容器 = static_cast<const _我的字符串*>(_Iter._取容器());
+        if (!_我的容器) {
+            _STL_VERIFY(!_Iter._Ptr, "cannot convert string iterator to pointer because the iterator was invalidated "
+                                     "(e.g. reallocation occurred, or the string was destroyed)");
+        }
+#endif // _ITERATOR_DEBUG_LEVEL >= 1
+
+        const auto _Rawptr = _STD to_address(_Iter._Ptr);
+
+#if _ITERATOR_DEBUG_LEVEL >= 1
+        if (_我的容器) {
+            const auto _Contptr = _我的容器->_我的指针();
+            _STL_VERIFY(_Contptr <= _Rawptr && _Rawptr <= _Contptr + _我的容器->_我的尺寸,
+                "cannot convert string iterator to pointer because it is out of range");
+        }
+#endif // _ITERATOR_DEBUG_LEVEL >= 1
+
+        return const_cast<element_type*>(_Rawptr);
+    }
+};
+#endif // _HAS_CXX20
+
+template <class _Value_type, class _尺寸类型, class _差异类型, class _Pointer, class _Const_pointer>
+struct _字符串迭代类型集 {
+    using value_type      = _Value_type;
+    using size_type       = _尺寸类型;
+    using difference_type = _差异类型;
+    using pointer         = _Pointer;
+    using const_pointer   = _Const_pointer;
+};
+
+template <class _值类型集>
+class _字符串值 : public _容器基类 {
+public:
+    using value_type      = typename _值类型集::value_type;
+    using size_type       = typename _值类型集::size_type;
+    using difference_type = typename _值类型集::difference_type;
+    using pointer         = typename _值类型集::pointer;
+    using const_pointer   = typename _值类型集::const_pointer;
+    using reference       = value_type&;
+    using const_reference = const value_type&;
+
+    _CONSTEXPR20 _字符串值() noexcept : _Bx() {}
+
+#if _MSVC_STL_DESTRUCTOR_TOMBSTONES
+    _CONSTEXPR20 ~_字符串值() noexcept {
+        if constexpr (is_pointer_v<pointer>) {
+            if (!_Is_constant_evaluated()) {
+                const auto _Tombstone{reinterpret_cast<pointer>(_MSVC_STL_UINTPTR_TOMBSTONE_VALUE)};
+                _Bx._Ptr = _Tombstone;
+                _我的尺寸  = 0;
+                _Myres   = (_Small_string_capacity + 1) | _Alloc_mask; // first 容量 when entering large mode
+
+                // The 容量 indicates whether we're in small mode or large mode; see _已启用大串模式().
+                // The string would be usable in small mode, so we need large mode for the tombstone to be effective.
+                // `_Small_string_capacity + 1` would be sufficient to make _已启用大串模式() return true. However,
+                // 基础字符串实现 uses a "roundup mask" when allocating; see _计算增长(). So to avoid confusing
+                // the SSO logic, we use the first 容量 that would normally be used when entering large mode.
+            }
+        }
+    }
+#endif // _MSVC_STL_DESTRUCTOR_TOMBSTONES
+
+    // length of internal buffer, [1, 16] (NB: used by the debugger visualizer)
+    static constexpr size_type _BUF_SIZE = 16 / sizeof(value_type) < 1 ? 1 : 16 / sizeof(value_type);
+    // roundup mask for allocated buffers, [0, 15]
+    static constexpr size_type _Alloc_mask = sizeof(value_type) <= 1 ? 15
+                                           : sizeof(value_type) <= 2 ? 7
+                                           : sizeof(value_type) <= 4 ? 3
+                                           : sizeof(value_type) <= 8 ? 1
+                                                                     : 0;
+    // 容量 in small mode
+    static constexpr size_type _Small_string_capacity = _BUF_SIZE - 1;
+
+    _NODISCARD _CONSTEXPR20 value_type* _我的指针() noexcept {
+        value_type* _结果 = _Bx._Buf;
+        if (_已启用大串模式()) {
+            _结果 = _去花式(_Bx._Ptr);
+        }
+
+        return _结果;
+    }
+
+    _NODISCARD _CONSTEXPR20 const value_type* _我的指针() const noexcept {
+        const value_type* _结果 = _Bx._Buf;
+        if (_已启用大串模式()) {
+            _结果 = _去花式(_Bx._Ptr);
+        }
+
+        return _结果;
+    }
+
+    _NODISCARD _CONSTEXPR20 bool _已启用大串模式() const noexcept {
+        return _Myres > _Small_string_capacity;
+    }
+
+    _CONSTEXPR20 void _激活小串缓冲() noexcept {
+        // start the lifetime of the array elements
+#if _HAS_CXX20
+        if (_STD is_constant_evaluated()) {
+            for (size_type _Idx = 0; _Idx < _BUF_SIZE; ++_Idx) {
+                _Bx._Buf[_Idx] = value_type();
+            }
+        }
+#endif // _HAS_CXX20
+    }
+
+    _CONSTEXPR20 void _检查偏移(const size_type _Off) const {
+        // checks whether _Off is in the bounds of [0, 尺寸()]
+        if (_我的尺寸 < _Off) {
+            _抛范围错();
+        }
+    }
+
+    _CONSTEXPR20 void _检查偏移排他(const size_type _Off) const {
+        // checks whether _Off is in the bounds of [0, 尺寸())
+        if (_我的尺寸 <= _Off) {
+            _抛范围错();
+        }
+    }
+
+    [[noreturn]] static void _抛范围错() {
+        _Xout_of_range("invalid string position");
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type _夹取后缀尺寸(const size_type _Off, const size_type _Size) const noexcept {
+        // trims _Size to the longest it can be assuming a string 取值/after _Off
+        return (_STD min)(_Size, _我的尺寸 - _Off);
+    }
+
+    union _缓冲联合 { // storage for small buffer or pointer to larger one
+        // This constructor previously initialized _Ptr. Don't rely on the new behavior without
+        // renaming `_字符串值` (and fixing the visualizer).
+        _CONSTEXPR20 _缓冲联合() noexcept : _Buf() {} // user-provided, for fancy pointers
+        _CONSTEXPR20 ~_缓冲联合() noexcept {} // user-provided, for fancy pointers
+
+        value_type _Buf[_BUF_SIZE];
+        pointer _Ptr;
+        char _Alias[_BUF_SIZE]; // TRANSITION, ABI: _Alias is preserved for binary compatibility (especially /clr)
+
+        _CONSTEXPR20 void _切换到缓冲() noexcept {
+            _就地析构(_Ptr);
+
+#if _HAS_CXX20
+            // start the lifetime of the array elements
+            if (_STD is_constant_evaluated()) {
+                for (size_type _Idx = 0; _Idx < _BUF_SIZE; ++_Idx) {
+                    _Buf[_Idx] = value_type();
+                }
+            }
+#endif // _HAS_CXX20
+        }
+    };
+    _缓冲联合 _Bx;
+
+    // invariant: _Myres >= _我的尺寸, and _Myres >= _Small_string_capacity (after string's construction)
+    // neither _我的尺寸 nor _Myres takes account of the extra null terminator
+    size_type _我的尺寸 = 0; // current length of string (尺寸)
+    size_type _Myres  = 0; // current storage reserved for string (容量)
+};
+
+// get _类型's 尺寸 after being EBCO'd
+template <class _类型>
+constexpr size_t _Size_after_ebco_v = is_empty_v<_类型> ? 0 : sizeof(_类型);
+
+struct _字符串构造连接标号 {
+    // tag to select constructors used by 基础字符串实现's concatenation operators (operator+)
+    explicit _字符串构造连接标号() = default;
+};
+
+[[noreturn]] inline void _Xlen_string() {
+    _Xlength_error("string too long");
+}
+
+#if _HAS_CXX23
+template <class _Rng, class _类型>
+concept _Contiguous_range_of =
+    (_RANGES contiguous_range<_Rng>) && same_as<remove_cvref_t<_RANGES range_reference_t<_Rng>>, _类型>;
+#endif // _HAS_CXX23
+
+_EXPORT_STD template <class _元素, class _特征 = char_traits<_元素>, class _分配器 = allocator<_元素>>
+class 基础字符串实现 { // null-terminated transparent array of elements
+private:
+    friend _清理释放守卫<基础字符串实现>;
+    friend 基础字符串缓冲<_元素, _特征, _分配器>;
+
+    using _分配器类型        = _重绑定分配器类型<_分配器, _元素>;
+    using _分配器特征 = allocator_traits<_分配器类型>;
+
+    using _迭代器检查值 = _字符串值<conditional_t<_Is_simple_alloc_v<_分配器类型>, _简单类型集<_元素>,
+        _字符串迭代类型集<_元素, typename _分配器特征::size_type, typename _分配器特征::difference_type,
+            typename _分配器特征::pointer, typename _分配器特征::const_pointer>>>;
+
+    static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<_元素, typename _分配器::value_type>,
+        _MISMATCHED_ALLOCATOR_MESSAGE("基础字符串实现<T, Traits, Allocator>", "T"));
+
+    static_assert(is_same_v<_元素, typename _特征::char_type>,
+        "N4950 [string.require]/3 requires that the supplied "
+        "char_traits character type match the string's character type.");
+
+    static_assert(!is_array_v<_元素> && is_trivially_copyable_v<_元素> && is_trivially_default_constructible_v<_元素>
+                      && is_standard_layout_v<_元素>,
+        "The character type of 基础字符串实现 must be a non-array trivially copyable standard-layout type T where "
+        "is_trivially_default_constructible_v<T> is true. See N5001 [strings.general]/1.");
+
+public:
+    using traits_type    = _特征;
+    using 分配器类型 = _分配器;
+
+    using value_type      = _元素;
+    using size_type       = typename _分配器特征::size_type;
+    using difference_type = typename _分配器特征::difference_type;
+    using pointer         = typename _分配器特征::pointer;
+    using const_pointer   = typename _分配器特征::const_pointer;
+    using reference       = value_type&;
+    using const_reference = const value_type&;
+
+    using iterator       = _字符串迭代器<_迭代器检查值>;
+    using const_iterator = _字符串常量迭代器<_迭代器检查值>;
+
+    using reverse_iterator       = _STD reverse_iterator<iterator>;
+    using 常量反向迭代器 = _STD reverse_iterator<const_iterator>;
+
+private:
+    static constexpr size_type _BUF_SIZE              = _迭代器检查值::_BUF_SIZE;
+    static constexpr size_type _Alloc_mask            = _迭代器检查值::_Alloc_mask;
+    static constexpr size_type _Small_string_capacity = _迭代器检查值::_Small_string_capacity;
+
+    // least real allocation 尺寸, including space reserved for terminating null
+    static constexpr size_type _Least_allocation_size = _Small_string_capacity + 1 + 1;
+
+    // When doing _字符串值 operations by memcpy, we are touching:
+    //   _字符串值::_Bx::_Buf (type is array of _元素)
+    //   _字符串值::_Bx::_Ptr (type is pointer)
+    //   _字符串值::_我的尺寸   (type is size_type)
+    //   _字符串值::_Myres    (type is size_type)
+    // N5001 [strings.general]/1 says _元素 must be trivially copyable standard-layout, so memcpy is safe.
+    // We need to ask if pointer is safe to memcpy.
+    // size_type must be an unsigned integral type so memcpy is safe.
+    // We also need to disable memcpy if the user has supplied _特征, since
+    //   they can observe traits::assign and similar.
+    static constexpr bool _Can_memcpy_val =
+        _Is_specialization_v<_特征, char_traits> && is_trivially_copyable_v<pointer>;
+    // This offset skips over the _容器基类 members, if any
+    static constexpr size_t _Memcpy_val_offset = _Size_after_ebco_v<_容器基类>;
+    static constexpr size_t _Memcpy_val_size   = sizeof(_迭代器检查值) - _Memcpy_val_offset;
+
+    template <class _Iter>
+    // TRANSITION, /clr:pure is incompatible with templated static constexpr 数据 members
+    // static constexpr bool _是元素字符指针 =_Is_any_of_v<_Iter, const _元素* const, _元素* const, const _元素*, _元素*>;
+    using _是元素字符指针 = bool_constant<_Is_any_of_v<_Iter, const _元素* const, _元素* const, const _元素*, _元素*>>;
+
+#if _HAS_CXX17
+    template <class _StringViewIsh>
+    using _是字符串视图类 =
+        enable_if_t<conjunction_v<is_convertible<const _StringViewIsh&, 基础字符串视图<_元素, _特征>>,
+                        negation<is_convertible<const _StringViewIsh&, const _元素*>>>,
+            int>;
+#endif // _HAS_CXX17
+
+#ifdef _INSERT_STRING_ANNOTATION
+    _CONSTEXPR20 void _创建标注() const noexcept {
+        // Annotates the valid range with shadow memory
+        auto& _My_data = _Mypair._Myval2;
+        _应用标注(_My_data._我的指针(), _My_data._Myres, _My_data._Myres, _My_data._我的尺寸);
+    }
+
+    _CONSTEXPR20 void _移除标注() const noexcept {
+        // Removes annotation of the range with shadow memory
+        auto& _My_data = _Mypair._Myval2;
+        _应用标注(_My_data._我的指针(), _My_data._Myres, _My_data._我的尺寸, _My_data._Myres);
+    }
+
+    _CONSTEXPR20 void _修改标注(const size_type _Old_size, const size_type _New_size) const noexcept {
+        if (_Old_size == _New_size) {
+            return;
+        }
+
+        auto& _My_data = _Mypair._Myval2;
+        _应用标注(_My_data._我的指针(), _My_data._Myres, _Old_size, _New_size);
+    }
+
+    static _CONSTEXPR20 void _应用标注(const value_type* const _首个, const size_type _Capacity,
+        const size_type _Old_size, const size_type _New_size) noexcept {
+        if constexpr (!_Disable_ASan_container_annotations_for_allocator<分配器类型>) {
+#if _HAS_CXX20
+            if (_STD is_constant_evaluated()) {
+                return;
+            }
+#endif // _HAS_CXX20
+
+            // Don't annotate small strings; only annotate on the heap.
+            if (_Capacity <= _Small_string_capacity || !_Asan_string_should_annotate) {
+                return;
+            }
+
+            // Note that `_Capacity`, `_Old_size`, and `_New_size` do not include the null terminator
+            const void* const _End      = _首个 + _Capacity + 1;
+            const void* const _Old_last = _首个 + _Old_size + 1;
+            const void* const _New_last = _首个 + _New_size + 1;
+
+            constexpr bool _Large_string_always_asan_aligned =
+                (_Container_allocation_minimum_asan_alignment<基础字符串实现>) >= _Asan_granularity;
+
+            // for the non-aligned buffer options, the buffer must always have 尺寸 >= 9 bytes,
+            // so it will always 结束 取值 least one shadow memory section.
+
+            _地址消毒对齐指针 _Aligned;
+            if constexpr (_Large_string_always_asan_aligned) {
+                _Aligned = {_首个, _Get_asan_aligned_after(_End)};
+            } else {
+                _Aligned = _Get_asan_aligned_first_end(_首个, _End);
+            }
+            const void* const _Old_fixed = _Aligned._夹取至末尾(_Old_last);
+            const void* const _New_fixed = _Aligned._夹取至末尾(_New_last);
+
+            // --- always aligned case ---
+            // old state:
+            //   [_首个, _Old_last) valid
+            //   [_Old_last, asan_aligned_after(_End)) poison
+            // new state:
+            //   [_首个, _New_last) valid
+            //   [_New_last, asan_aligned_after(_End)) poison
+
+            // --- sometimes non-aligned case ---
+            // old state:
+            //   [_Aligned._首个, _Old_fixed) valid
+            //   [_Old_fixed, _Aligned._End) poison
+            //   [_Aligned._End, _End) valid
+            // new state:
+            //   [_Aligned._首个, _New_fixed) valid
+            //   [_New_fixed, _Aligned._End) poison
+            //   [_Aligned._End, _End) valid
+            _CSTD __sanitizer_annotate_contiguous_container(_Aligned._首个, _Aligned._End, _Old_fixed, _New_fixed);
+        }
+    }
+
+#define _ASAN_串移除(_Str)                       (_Str)._移除标注()
+#define _ASAN_串创建(_Str)                       (_Str)._创建标注()
+#define _ASAN_串修改(_Str, _Old_size, _New_size) (_Str)._修改标注(_Old_size, _New_size)
+#else // ^^^ _INSERT_STRING_ANNOTATION / !_INSERT_STRING_ANNOTATION vvv
+#define _ASAN_串移除(_Str)
+#define _ASAN_串创建(_Str)
+#define _ASAN_串修改(_Str, _Old_size, _New_size)
+#endif // ^^^ !_INSERT_STRING_ANNOTATION ^^^
+
+public:
+    _CONSTEXPR20
+    基础字符串实现() noexcept(is_nothrow_default_constructible_v<_分配器类型>) : _Mypair(_先零后变参实参{}) {
+        _构造为空串();
+    }
+
+    _CONSTEXPR20 explicit 基础字符串实现(const _分配器& _Al) noexcept : _Mypair(_先一后变参实参{}, _Al) {
+        _构造为空串();
+    }
+
+    _CONSTEXPR20 基础字符串实现(const 基础字符串实现& _Right)
+        : _Mypair(_先一后变参实参{}, _分配器特征::select_on_container_copy_construction(_Right._取分配器())) {
+        _构造<_构造策略::_From_string>(_Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸);
+    }
+
+    _CONSTEXPR20 基础字符串实现(const 基础字符串实现& _Right, const _分配器& _Al)
+        : _Mypair(_先一后变参实参{}, _Al) {
+        _构造<_构造策略::_From_string>(_Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸);
+    }
+
+    _CONSTEXPR20 基础字符串实现(const 基础字符串实现& _Right, const size_type _Roff, const _分配器& _Al = _分配器())
+        : _Mypair(_先一后变参实参{}, _Al) { // construct from _Right [_Roff, <结束>)
+        _Right._Mypair._Myval2._检查偏移(_Roff);
+        _构造<_构造策略::_From_ptr>(
+            _Right._Mypair._Myval2._我的指针() + _Roff, _Right._Mypair._Myval2._夹取后缀尺寸(_Roff, npos));
+    }
+
+    _CONSTEXPR20 基础字符串实现(
+        const 基础字符串实现& _Right, const size_type _Roff, const size_type _Count, const _分配器& _Al = _分配器())
+        : _Mypair(_先一后变参实参{}, _Al) { // construct from _Right [_Roff, _Roff + _Count)
+        _Right._Mypair._Myval2._检查偏移(_Roff);
+        _构造<_构造策略::_From_ptr>(
+            _Right._Mypair._Myval2._我的指针() + _Roff, _Right._Mypair._Myval2._夹取后缀尺寸(_Roff, _Count));
+    }
+
+#if _HAS_CXX23
+    constexpr 基础字符串实现(基础字符串实现&& _Right, const size_type _Roff, const _分配器& _Al = _分配器())
+        : _Mypair(_先一后变参实参{}, _Al) { // construct from _Right [_Roff, <结束>), potentially move
+        _由子串移动构造(_Right, _Roff, npos);
+    }
+
+    constexpr 基础字符串实现(
+        基础字符串实现&& _Right, const size_type _Roff, const size_type _Count, const _分配器& _Al = _分配器())
+        : _Mypair(_先一后变参实参{}, _Al) { // construct from _Right [_Roff, _Roff + _Count), potentially move
+        _由子串移动构造(_Right, _Roff, _Count);
+    }
+#endif // _HAS_CXX23
+
+    _CONSTEXPR20 基础字符串实现(_In_reads_(_Count) const _元素* const _Ptr, _CRT_GUARDOVERFLOW const size_type _Count)
+        : _Mypair(_先零后变参实参{}) {
+        _构造<_构造策略::_From_ptr>(_Ptr, _Count);
+    }
+
+#if _HAS_CXX17
+    template <class _Alloc2 = _分配器, enable_if_t<_Is_allocator<_Alloc2>::value, int> = 0>
+#endif // _HAS_CXX17
+    _CONSTEXPR20 基础字符串实现(
+        _In_reads_(_Count) const _元素* const _Ptr, _CRT_GUARDOVERFLOW const size_type _Count, const _分配器& _Al)
+        : _Mypair(_先一后变参实参{}, _Al) {
+        _构造<_构造策略::_From_ptr>(_Ptr, _Count);
+    }
+
+    _CONSTEXPR20 基础字符串实现(_In_z_ const _元素* const _Ptr) : _Mypair(_先零后变参实参{}) {
+        _构造<_构造策略::_From_ptr>(_Ptr, _Convert_size<size_type>(_特征::length(_Ptr)));
+    }
+
+#if _HAS_CXX17
+    template <class _Alloc2 = _分配器, enable_if_t<_Is_allocator<_Alloc2>::value, int> = 0>
+#endif // _HAS_CXX17
+    _CONSTEXPR20 基础字符串实现(_In_z_ const _元素* const _Ptr, const _分配器& _Al)
+        : _Mypair(_先一后变参实参{}, _Al) {
+        _构造<_构造策略::_From_ptr>(_Ptr, _Convert_size<size_type>(_特征::length(_Ptr)));
+    }
+
+#if _HAS_CXX23
+    基础字符串实现(nullptr_t) = delete;
+#endif // _HAS_CXX23
+
+    _CONSTEXPR20 基础字符串实现(_CRT_GUARDOVERFLOW const size_type _Count, const _元素 _Ch)
+        : _Mypair(_先零后变参实参{}) { // construct from _Count * _Ch
+        _构造<_构造策略::_From_char>(_Ch, _Count);
+    }
+
+#if _HAS_CXX17
+    template <class _Alloc2 = _分配器, enable_if_t<_Is_allocator<_Alloc2>::value, int> = 0>
+#endif // _HAS_CXX17
+    _CONSTEXPR20 基础字符串实现(_CRT_GUARDOVERFLOW const size_type _Count, const _元素 _Ch, const _分配器& _Al)
+        : _Mypair(_先一后变参实参{}, _Al) { // construct from _Count * _Ch with allocator
+        _构造<_构造策略::_From_char>(_Ch, _Count);
+    }
+
+    template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
+    _CONSTEXPR20 基础字符串实现(_Iter _首个, _Iter _最后, const _分配器& _Al = _分配器())
+        : _Mypair(_先一后变参实参{}, _Al) {
+        _ADL校验范围(_首个, _最后);
+        auto _UFirst = _取解包(_首个);
+        auto _ULast  = _取解包(_最后);
+        if (_UFirst == _ULast) {
+            _构造为空串();
+        } else {
+            if constexpr (_是元素字符指针<decltype(_UFirst)>::value) {
+                _构造<_构造策略::_From_ptr>(
+                    _UFirst, _STD _Convert_size<size_type>(static_cast<size_t>(_ULast - _UFirst)));
+            } else if constexpr (_Is_cpp17_fwd_iter_v<decltype(_UFirst)>) {
+                const auto _Length = static_cast<size_t>(_STD distance(_UFirst, _ULast));
+                const auto _Count  = _STD _Convert_size<size_type>(_Length);
+                _由迭代器构造(_STD move(_UFirst), _STD move(_ULast), _Count);
+            } else {
+                _由迭代器构造(_STD move(_UFirst), _STD move(_ULast));
+            }
+        }
+    }
+
+private:
+    enum class _分配策略 { _At_least, _Exactly };
+
+    template <_分配策略 _Policy = _分配策略::_At_least>
+    _NODISCARD static _CONSTEXPR20 pointer _按容量分配(_分配器类型& _Al, size_type& _Capacity) {
+        _STL_INTERNAL_CHECK(_Capacity > _Small_string_capacity);
+        ++_Capacity; // Take null terminator into consideration
+
+        pointer _Fancy_ptr = nullptr;
+        if constexpr (_Policy == _分配策略::_At_least) {
+            _Fancy_ptr = _分配至少助手(_Al, _Capacity);
+        } else {
+            _STL_INTERNAL_STATIC_ASSERT(_Policy == _分配策略::_Exactly);
+            _Fancy_ptr = _Al.allocate(_Capacity);
+        }
+
+#if _HAS_CXX20
+        // Start element lifetimes to avoid UB. This is a more general mechanism than _字符串值::_激活小串缓冲,
+        // but likely more impactful to throughput.
+        if (_STD is_constant_evaluated()) {
+            _元素* const _Ptr = _去花式(_Fancy_ptr);
+            for (size_type _Idx = 0; _Idx < _Capacity; ++_Idx) {
+                _STD construct_at(_Ptr + _Idx);
+            }
+        }
+#endif // _HAS_CXX20
+        --_Capacity;
+        return _Fancy_ptr;
+    }
+
+    static _CONSTEXPR20 void _按容量释放(
+        _分配器类型& _Al, const pointer _Old_ptr, const size_type _Capacity) noexcept {
+        _STL_INTERNAL_CHECK(_Capacity > _Small_string_capacity);
+        _Al.deallocate(_Old_ptr, _Capacity + 1); // +1 for null terminator
+    }
+
+    _CONSTEXPR20 void _构造为空串() {
+        auto& _My_data = _Mypair._Myval2;
+        _My_data._分配代理(_取代理分配器(_分配器类型, _取分配器()));
+
+        // initialize 基础字符串实现 数据 members
+        _My_data._我的尺寸 = 0;
+        _My_data._Myres  = _Small_string_capacity;
+        _My_data._激活小串缓冲();
+
+        // the _特征::assign is last so the codegen doesn't think the char write can alias this
+        _特征::assign(_My_data._Bx._Buf[0], _元素());
+    }
+
+    enum class _构造策略 : uint8_t { _From_char, _From_ptr, _From_string };
+
+    template <_构造策略 _Strat, class _Char_or_ptr>
+    _CONSTEXPR20 void _构造(const _Char_or_ptr _Arg, _CRT_GUARDOVERFLOW const size_type _Count) {
+        auto& _My_data = _Mypair._Myval2;
+        _STL_INTERNAL_CHECK(!_My_data._已启用大串模式());
+
+        if constexpr (_Strat == _构造策略::_From_char) {
+            _STL_INTERNAL_STATIC_ASSERT(is_same_v<_Char_or_ptr, _元素>);
+        } else {
+            _STL_INTERNAL_STATIC_ASSERT(_是元素字符指针<_Char_or_ptr>::value);
+        }
+
+        if (_Count > max_size()) {
+            _Xlen_string(); // result too long
+        }
+
+        auto& _Al       = _取分配器();
+        auto&& _Alproxy = _取代理分配器(_分配器类型, _Al);
+        _容器代理指针<_分配器类型> _代理(_Alproxy, _My_data);
+
+        if (_Count <= _Small_string_capacity) {
+            _My_data._我的尺寸 = _Count;
+            _My_data._Myres  = _Small_string_capacity;
+
+            if constexpr (_Strat == _构造策略::_From_char) {
+                _特征::assign(_My_data._Bx._Buf, _Count, _Arg);
+                _特征::assign(_My_data._Bx._Buf[_Count], _元素());
+            } else if constexpr (_Strat == _构造策略::_From_ptr) {
+                _特征::copy(_My_data._Bx._Buf, _Arg, _Count);
+                _特征::assign(_My_data._Bx._Buf[_Count], _元素());
+            } else { // _Strat == _构造策略::_From_string
+#ifdef _INSERT_STRING_ANNOTATION
+                _特征::copy(_My_data._Bx._Buf, _Arg, _Count + 1);
+#else // ^^^ _INSERT_STRING_ANNOTATION / !_INSERT_STRING_ANNOTATION vvv
+                _特征::copy(_My_data._Bx._Buf, _Arg, _BUF_SIZE);
+#endif // ^^^ !_INSERT_STRING_ANNOTATION ^^^
+            }
+
+            _代理._释放();
+            return;
+        }
+
+        size_type _New_capacity = _计算增长(_Count, _Small_string_capacity, max_size());
+        const pointer _New_ptr  = _按容量分配(_Al, _New_capacity); // throws
+        _就地构造(_My_data._Bx._Ptr, _New_ptr);
+
+        _My_data._我的尺寸 = _Count;
+        _My_data._Myres  = _New_capacity;
+        if constexpr (_Strat == _构造策略::_From_char) {
+            _特征::assign(_去花式(_New_ptr), _Count, _Arg);
+            _特征::assign(_去花式(_New_ptr)[_Count], _元素());
+        } else if constexpr (_Strat == _构造策略::_From_ptr) {
+            _特征::copy(_去花式(_New_ptr), _Arg, _Count);
+            _特征::assign(_去花式(_New_ptr)[_Count], _元素());
+        } else { // _Strat == _构造策略::_From_string
+            _特征::copy(_去花式(_New_ptr), _Arg, _Count + 1);
+        }
+
+        _ASAN_串创建(*this);
+        _代理._释放();
+    }
+
+    template <class _Iter, class _Sent, class _Size = nullptr_t>
+    _CONSTEXPR20 void _由迭代器构造(_Iter _首个, const _Sent _最后, _Size _Count = {}) {
+        // Pre: _Iter models input_iterator or meets the Cpp17InputIterator requirements.
+        // Pre: [_首个, _最后) is a valid range.
+        // Pre: if _Iter models forward_iterator or meets the Cpp17ForwardIterator requirements,
+        //      then is_same_v<_Size, size_type> holds.
+        // Pre: if is_same_v<_Size, size_type>, _Count is the length of [_首个, _最后).
+        // Pre: *this is in small mode; the lifetime of the SSO elements has already begun.
+
+        auto& _My_data  = _Mypair._Myval2;
+        auto& _Al       = _取分配器();
+        auto&& _Alproxy = _取代理分配器(_分配器类型, _Al);
+        _容器代理指针<_分配器类型> _代理(_Alproxy, _My_data);
+
+        _My_data._我的尺寸 = 0;
+        _My_data._Myres  = _Small_string_capacity;
+
+        if constexpr (is_same_v<_Size, size_type>) {
+            if (_Count > max_size()) {
+                _Xlen_string(); // result too long
+            }
+
+            if (_Count > _Small_string_capacity) {
+                size_type _New_capacity = _计算增长(_Count);
+                const pointer _New_ptr  = _按容量分配(_Al, _New_capacity); // throws
+                _就地构造(_My_data._Bx._Ptr, _New_ptr);
+                _My_data._Myres = _New_capacity;
+            }
+        }
+
+        _清理释放守卫<基础字符串实现> _Guard{this};
+
+        constexpr bool _Can_construct_by_copy =
+            _Is_specialization_v<_特征, char_traits> && _Is_EcharT<_元素> && is_same_v<_Size, size_type>;
+
+        if constexpr (_Can_construct_by_copy) {
+            const auto _Data = _My_data._我的指针();
+            _复制N个非检查4(_STD move(_首个), _Count, _Data);
+            _My_data._我的尺寸 = _Count;
+            _Data[_Count]    = _元素();
+        } else {
+            for (; _首个 != _最后; ++_首个) {
+                if constexpr (!is_same_v<_Size, size_type>) {
+                    if (_My_data._我的尺寸 == _My_data._Myres) { // Need to grow
+                        if (_My_data._我的尺寸 == max_size()) {
+                            _Xlen_string(); // result too long
+                        }
+
+                        _元素* const _Old_ptr   = _My_data._我的指针();
+                        size_type _New_capacity = _计算增长(_My_data._我的尺寸 + 1);
+                        const pointer _New_ptr  = _按容量分配(_Al, _New_capacity); // throws
+
+                        _特征::copy(_去花式(_New_ptr), _Old_ptr, _My_data._我的尺寸);
+                        if (_My_data._已启用大串模式()) { // Need to deallocate old storage
+                            _按容量释放(_Al, _My_data._Bx._Ptr, _My_data._Myres);
+                            _My_data._Bx._Ptr = _New_ptr;
+                        } else {
+                            _就地构造(_My_data._Bx._Ptr, _New_ptr);
+                        }
+                        _My_data._Myres = _New_capacity;
+                    }
+                }
+
+                _元素* const _Ptr = _My_data._我的指针();
+                _特征::assign(_Ptr[_My_data._我的尺寸], *_首个);
+                ++_My_data._我的尺寸;
+            }
+
+            _元素* const _Ptr = _My_data._我的指针();
+            _特征::assign(_Ptr[_My_data._我的尺寸], _元素());
+        }
+
+        _ASAN_串创建(*this);
+        _Guard._Target = nullptr;
+        _代理._释放();
+    }
+
+public:
+#if _HAS_CXX23
+    template <_Container_compatible_range<_元素> _Rng>
+    constexpr 基础字符串实现(from_range_t, _Rng&& _Range, const _分配器& _Al = _分配器())
+        : _Mypair(_先一后变参实参{}, _Al) {
+        if constexpr (_RANGES sized_range<_Rng> || _RANGES forward_range<_Rng>) {
+            const auto _Length = _转为无符号同型(_RANGES distance(_Range));
+            const auto _Count  = _Convert_size<size_type>(_Length);
+            if constexpr (_Contiguous_range_of<_Rng, _元素>) {
+                _构造<_构造策略::_From_ptr>(_RANGES data(_Range), _Count);
+            } else {
+                _由迭代器构造(_解包首(_Range), _解包尾(_Range), _Count);
+            }
+        } else {
+            _由迭代器构造(_解包首(_Range), _解包尾(_Range));
+        }
+    }
+#endif // _HAS_CXX23
+
+    _CONSTEXPR20 基础字符串实现(基础字符串实现&& _Right) noexcept
+        : _Mypair(_先一后变参实参{}, _STD move(_Right._取分配器())) {
+        _Mypair._Myval2._分配代理(_取代理分配器(_分配器类型, _取分配器()));
+        _接管内容(_Right);
+    }
+
+    _CONSTEXPR20 基础字符串实现(基础字符串实现&& _Right, const _分配器& _Al)
+        noexcept(_分配器特征::is_always_equal::value) // strengthened
+        : _Mypair(_先一后变参实参{}, _Al) {
+        if constexpr (!_分配器特征::is_always_equal::value) {
+            if (_取分配器() != _Right._取分配器()) {
+                _构造<_构造策略::_From_string>(
+                    _Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸);
+                return;
+            }
+        }
+
+        _Mypair._Myval2._分配代理(_取代理分配器(_分配器类型, _取分配器()));
+        _接管内容(_Right);
+    }
+
+    _CONSTEXPR20 基础字符串实现(_字符串构造连接标号, const 基础字符串实现& _Source_of_al,
+        const _元素* const _Left_ptr, const size_type _Left_size, const _元素* const _Right_ptr,
+        const size_type _Right_size)
+        : _Mypair(_先一后变参实参{},
+              _分配器特征::select_on_container_copy_construction(_Source_of_al._取分配器())) {
+        _STL_INTERNAL_CHECK(_Left_size <= max_size());
+        _STL_INTERNAL_CHECK(_Right_size <= max_size());
+        _STL_INTERNAL_CHECK(_Right_size <= max_size() - _Left_size);
+        const auto _New_size    = static_cast<size_type>(_Left_size + _Right_size);
+        size_type _New_capacity = _Small_string_capacity;
+        auto& _My_data          = _Mypair._Myval2;
+        _元素* _Ptr             = _My_data._Bx._Buf;
+        auto&& _Alproxy         = _取代理分配器(_分配器类型, _取分配器());
+        _容器代理指针<_分配器类型> _代理(_Alproxy, _My_data); // throws
+
+        if (_New_capacity < _New_size) {
+            _New_capacity           = _计算增长(_New_size, _Small_string_capacity, max_size());
+            const pointer _Fancyptr = _按容量分配(_取分配器(), _New_capacity); // throws
+            _Ptr                    = _去花式(_Fancyptr);
+            _就地构造(_My_data._Bx._Ptr, _Fancyptr);
+        }
+
+        _My_data._我的尺寸 = _New_size;
+        _My_data._Myres  = _New_capacity;
+        _特征::copy(_Ptr, _Left_ptr, _Left_size);
+        _特征::copy(_Ptr + static_cast<ptrdiff_t>(_Left_size), _Right_ptr, _Right_size);
+        _特征::assign(_Ptr[_New_size], _元素());
+        _ASAN_串创建(*this);
+        _代理._释放();
+    }
+
+    _CONSTEXPR20 基础字符串实现(_字符串构造连接标号, 基础字符串实现& _Left, 基础字符串实现& _Right)
+        : _Mypair(_先一后变参实参{}, _Left._取分配器()) {
+        auto& _My_data    = _Mypair._Myval2;
+        auto& _Left_data  = _Left._Mypair._Myval2;
+        auto& _Right_data = _Right._Mypair._Myval2;
+        _Left_data._孤儿化全部();
+        _Right_data._孤儿化全部();
+        const auto _Left_size  = _Left_data._我的尺寸;
+        const auto _Right_size = _Right_data._我的尺寸;
+
+        const auto _Left_capacity  = _Left_data._Myres;
+        const auto _Right_capacity = _Right_data._Myres;
+        // overflow is OK due to max_size() checks:
+        const auto _New_size     = static_cast<size_type>(_Left_size + _Right_size);
+        const bool _Fits_in_left = _Right_size <= _Left_capacity - _Left_size;
+        if (_Fits_in_left && _Right_capacity <= _Left_capacity) {
+            // take _Left's buffer, max_size() is OK because _Fits_in_left
+            _My_data._分配代理(_取代理分配器(_分配器类型, _取分配器())); // throws, hereafter nothrow in this block
+            _接管内容(_Left);
+            const auto _Ptr = _My_data._我的指针();
+            _ASAN_串修改(*this, _Left_size, _New_size);
+            _特征::copy(_Ptr + _Left_size, _Right_data._我的指针(), _Right_size + 1);
+            _My_data._我的尺寸 = _New_size;
+            return;
+        }
+
+        const bool _Fits_in_right = _Left_size <= _Right_capacity - _Right_size;
+        if (_Allocators_equal(_取分配器(), _Right._取分配器()) && _Fits_in_right) {
+            // take _Right's buffer, max_size() is OK because _Fits_in_right
+            // At this point, we have tested:
+            // !(_Fits_in_left && _Right_capacity <= _Left_capacity) && _Fits_in_right
+            // therefore: (by De Morgan's Laws)
+            // (!_Fits_in_left || _Right_capacity > _Left_capacity) && _Fits_in_right
+            // therefore: (by the distributive property)
+            // (!_Fits_in_left && _Fits_in_right)  // implying _Right has more 容量
+            //     || (_Right_capacity > _Left_capacity && _Fits_in_right)  // tests that _Right has more 容量
+            // therefore: _Right must have more than the minimum 容量, so it must be _已启用大串模式()
+            _STL_INTERNAL_CHECK(_Right_data._已启用大串模式());
+            _My_data._分配代理(_取代理分配器(_分配器类型, _取分配器())); // throws, hereafter nothrow in this block
+            _接管内容(_Right);
+            const auto _Ptr = _去花式(_My_data._Bx._Ptr);
+            _ASAN_串修改(*this, _Right_size, _New_size);
+            _特征::move(_Ptr + _Left_size, _Ptr, _Right_size + 1);
+            _特征::copy(_Ptr, _Left_data._我的指针(), _Left_size);
+            _My_data._我的尺寸 = _New_size;
+            return;
+        }
+
+        // can't use either buffer, reallocate
+        const auto _最大 = max_size();
+        if (_最大 - _Left_size < _Right_size) { // check if max_size() is OK
+            _Xlen_string();
+        }
+
+        size_type _New_capacity = _计算增长(_New_size, _Small_string_capacity, _最大);
+        auto&& _Alproxy         = _取代理分配器(_分配器类型, _取分配器());
+        _容器代理指针<_分配器类型> _代理(_Alproxy, _My_data); // throws
+        const pointer _Fancyptr = _按容量分配(_取分配器(), _New_capacity); // throws
+        // nothrow hereafter
+        _就地构造(_My_data._Bx._Ptr, _Fancyptr);
+        _My_data._我的尺寸 = _New_size;
+        _My_data._Myres  = _New_capacity;
+        const auto _Ptr  = _去花式(_Fancyptr);
+        _特征::copy(_Ptr, _Left_data._我的指针(), _Left_size);
+        _特征::copy(_Ptr + _Left_size, _Right_data._我的指针(), _Right_size + 1);
+        _ASAN_串创建(*this);
+        _代理._释放();
+    }
+
+#if _HAS_CXX17
+    template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
+    _CONSTEXPR20 explicit 基础字符串实现(const _StringViewIsh& _Right, const _分配器& _Al = _分配器())
+        : _Mypair(_先一后变参实参{}, _Al) {
+        const 基础字符串视图<_元素, _特征> _As_view = _Right;
+        _构造<_构造策略::_From_ptr>(_As_view.数据(), _Convert_size<size_type>(_As_view.尺寸()));
+    }
+
+    template <class _类型, enable_if_t<is_convertible_v<const _类型&, 基础字符串视图<_元素, _特征>>, int> = 0>
+    _CONSTEXPR20 基础字符串实现(
+        const _类型& _Right, const size_type _Roff, const size_type _Count, const _分配器& _Al = _分配器())
+        : _Mypair(_先一后变参实参{}, _Al) { // construct from _Right [_Roff, _Roff + _Count) using _Al
+        const 基础字符串视图<_元素, _特征> _As_view = _Right;
+        const auto _As_sub_view                          = _As_view.子串(_Roff, _Count);
+        _构造<_构造策略::_From_ptr>(_As_sub_view.数据(), _Convert_size<size_type>(_As_sub_view.尺寸()));
+    }
+#endif // _HAS_CXX17
+
+#if _HAS_CXX20
+    _NODISCARD bool _由缓冲移动赋值(
+        _元素* const _Right, const size_type _Size, const size_type _Actual_allocation_size) {
+        // Move assign from a buffer, used exclusively by 基础字符串缓冲; returns _已启用大串模式()
+        auto& _My_data = _Mypair._Myval2;
+        _STL_INTERNAL_CHECK(!_My_data._已启用大串模式() && _My_data._我的尺寸 == 0);
+        _STL_INTERNAL_CHECK(_Size < _Actual_allocation_size); // So there is room for null terminator
+        _特征::assign(_Right[_Size], _元素());
+
+        const bool _Is_large = _Actual_allocation_size >= _Least_allocation_size;
+        if (_Is_large) {
+            _ASAN_串移除(*this);
+            _就地构造(_My_data._Bx._Ptr, _Refancy<pointer>(_Right));
+            _My_data._我的尺寸 = _Size;
+            _My_data._Myres  = _Actual_allocation_size - 1;
+            _ASAN_串创建(*this);
+        } else {
+            _特征::copy(_My_data._Bx._Buf, _Right, _Actual_allocation_size);
+            _My_data._我的尺寸 = _Size;
+            _My_data._Myres  = _Small_string_capacity;
+        }
+
+        return _Is_large;
+    }
+
+    // No instance of this type can exist where an exception may be thrown.
+    struct _已释放缓冲 {
+        pointer _Ptr;
+        size_type _Size;
+        size_type _Actual_allocation_size;
+    };
+
+    _NODISCARD _已释放缓冲 _释放至缓冲(_分配器& _Al) {
+        // Release to a buffer, or allocate a new one if in small string mode; used exclusively by 基础字符串缓冲
+        _已释放缓冲 _结果;
+        auto& _My_data = _Mypair._Myval2;
+        _结果._Size  = _My_data._我的尺寸;
+        _My_data._孤儿化全部();
+        _ASAN_串移除(*this);
+        if (_My_data._已启用大串模式()) {
+            _结果._Ptr                    = _My_data._Bx._Ptr;
+            _结果._Actual_allocation_size = _My_data._Myres + 1;
+
+            _My_data._Bx._切换到缓冲();
+        } else {
+            // use _Least_allocation_size to avoid small mode, if the buffer is assigned 后
+            size_type _Allocated = _Least_allocation_size;
+            _结果._Ptr         = _分配至少助手(_Al, _Allocated);
+            _特征::copy(_去花式(_结果._Ptr), _My_data._Bx._Buf, _BUF_SIZE);
+            _结果._Actual_allocation_size = _Allocated;
+        }
+        _My_data._我的尺寸 = 0;
+        _My_data._Myres  = _Small_string_capacity;
+        _特征::assign(_My_data._Bx._Buf[0], _元素());
+        return _结果;
+    }
+#endif // _HAS_CXX20
+
+    _CONSTEXPR20 基础字符串实现& operator=(基础字符串实现&& _Right)
+        noexcept(_Choose_pocma_v<_分配器类型> != _传播复制移动赋值取值::_No_propagate_allocators) {
+        if (this == _STD addressof(_Right)) {
+            return *this;
+        }
+
+        auto& _Al                 = _取分配器();
+        auto& _Right_al           = _Right._取分配器();
+        constexpr auto _Pocma_val = _Choose_pocma_v<_分配器类型>;
+        if constexpr (_Pocma_val == _传播复制移动赋值取值::_Propagate_allocators) {
+            if (_Al != _Right_al) {
+                // intentionally slams into noexcept on OOM, TRANSITION, VSO-466800
+                _Mypair._Myval2._孤儿化全部();
+                _Mypair._Myval2._重载代理(_取代理分配器(_分配器类型, _Al), _取代理分配器(_分配器类型, _Right_al));
+            }
+        } else if constexpr (_Pocma_val == _传播复制移动赋值取值::_No_propagate_allocators) {
+            if (_Al != _Right_al) {
+                assign(_Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸);
+                return *this;
+            }
+        }
+
+        _清理释放();
+        _传播移动赋值(_Al, _Right_al);
+        _接管内容(_Right);
+        return *this;
+    }
+
+    _CONSTEXPR20 基础字符串实现& assign(基础字符串实现&& _Right) noexcept(noexcept(*this = _STD move(_Right))) {
+        *this = _STD move(_Right);
+        return *this;
+    }
+
+private:
+    _CONSTEXPR20 void _接管内容(基础字符串实现& _Right) noexcept {
+        // assign by stealing _Right's buffer
+        // pre: this != &_Right
+        // pre: allocator propagation (POCMA) from _Right, if necessary, is complete
+        // pre: *this owns no memory, iterators orphaned
+        // (note: _Buf/_Ptr/_我的尺寸/_Myres may be garbage init)
+        auto& _My_data    = _Mypair._Myval2;
+        auto& _Right_data = _Right._Mypair._Myval2;
+
+#if !defined(_INSERT_STRING_ANNOTATION)
+        if constexpr (_Can_memcpy_val) {
+#if _HAS_CXX20
+            if (!_STD is_constant_evaluated())
+#endif // _HAS_CXX20
+            {
+#if _ITERATOR_DEBUG_LEVEL != 0
+                if (_Right_data._已启用大串模式()) {
+                    // take ownership of _Right's iterators along with its buffer
+                    _交换代理与迭代器(_Right);
+                } else {
+                    _Right_data._孤儿化全部();
+                }
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+
+                const auto _My_data_mem =
+                    reinterpret_cast<unsigned char*>(_STD addressof(_Mypair._Myval2)) + _Memcpy_val_offset;
+                const auto _Right_data_mem =
+                    reinterpret_cast<const unsigned char*>(_STD addressof(_Right._Mypair._Myval2)) + _Memcpy_val_offset;
+                _CSTD memcpy(_My_data_mem, _Right_data_mem, _Memcpy_val_size);
+
+                _Right_data._我的尺寸 = 0;
+                _Right_data._Myres  = _Small_string_capacity;
+                _Right_data._激活小串缓冲();
+                _特征::assign(_Right_data._Bx._Buf[0], _元素());
+                return;
+            }
+        }
+#endif // !defined(_INSERT_STRING_ANNOTATION)
+
+        if (_Right_data._已启用大串模式()) { // steal buffer
+            _交换代理与迭代器(_Right);
+
+            _就地构造(_My_data._Bx._Ptr, _Right_data._Bx._Ptr);
+            _Right_data._Bx._切换到缓冲();
+        } else { // copy small string buffer
+            _Right_data._孤儿化全部();
+
+            _My_data._激活小串缓冲();
+            _特征::copy(_My_data._Bx._Buf, _Right_data._Bx._Buf, _Right_data._我的尺寸 + 1);
+        }
+
+        _My_data._Myres  = _Right_data._Myres;
+        _My_data._我的尺寸 = _Right_data._我的尺寸;
+
+        _Right_data._我的尺寸 = 0;
+        _Right_data._Myres  = _Small_string_capacity;
+        _特征::assign(_Right_data._Bx._Buf[0], _元素());
+    }
+
+#if _HAS_CXX23
+    constexpr void _由子串移动构造(基础字符串实现& _Right, const size_type _Roff, const size_type _Size_max) {
+        auto& _Right_data = _Right._Mypair._Myval2;
+        _Right_data._检查偏移(_Roff);
+
+        const auto _Result_size = _Right_data._夹取后缀尺寸(_Roff, _Size_max);
+        const auto _Right_ptr   = _Right_data._我的指针();
+        auto& _Al               = _取分配器();
+        if (_Allocators_equal(_Al, _Right._取分配器()) && _Result_size > _Small_string_capacity) {
+            _Mypair._Myval2._分配代理(_取代理分配器(_分配器类型, _Al));
+
+            if (_Roff != 0) {
+                _特征::move(_Right_ptr, _Right_ptr + _Roff, _Result_size);
+            }
+            _Right._串尾(_Result_size);
+            _接管内容(_Right);
+        } else {
+            _构造<_构造策略::_From_ptr>(_Right_ptr + _Roff, _Result_size);
+        }
+    }
+#endif // _HAS_CXX23
+
+public:
+    _CONSTEXPR20 基础字符串实现(initializer_list<_元素> _Ilist, const _分配器& _Al = 分配器类型())
+        : _Mypair(_先一后变参实参{}, _Al) {
+        _构造<_构造策略::_From_ptr>(_Ilist.begin(), _Convert_size<size_type>(_Ilist.size()));
+    }
+
+    _CONSTEXPR20 基础字符串实现& operator=(initializer_list<_元素> _Ilist) {
+        return assign(_Ilist.begin(), _Convert_size<size_type>(_Ilist.size()));
+    }
+
+    _CONSTEXPR20 基础字符串实现& operator+=(initializer_list<_元素> _Ilist) {
+        return 追加(_Ilist.begin(), _Convert_size<size_type>(_Ilist.size()));
+    }
+
+    _CONSTEXPR20 基础字符串实现& assign(initializer_list<_元素> _Ilist) {
+        return assign(_Ilist.begin(), _Convert_size<size_type>(_Ilist.size()));
+    }
+
+    _CONSTEXPR20 基础字符串实现& 追加(initializer_list<_元素> _Ilist) {
+        return 追加(_Ilist.begin(), _Convert_size<size_type>(_Ilist.size()));
+    }
+
+    _CONSTEXPR20 iterator 插入(const const_iterator _Where, const initializer_list<_元素> _Ilist) {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Where._取容器() == _STD addressof(_Mypair._Myval2), "string iterator incompatible");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        const auto _Off = static_cast<size_type>(_去花式(_Where._Ptr) - _Mypair._Myval2._我的指针());
+        插入(_Off, _Ilist.begin(), _Convert_size<size_type>(_Ilist.size()));
+        return 开始() + static_cast<difference_type>(_Off);
+    }
+
+    _CONSTEXPR20 基础字符串实现& 替换(
+        const const_iterator _首个, const const_iterator _最后, const initializer_list<_元素> _Ilist) {
+        // 替换 with initializer_list
+        _ADL校验范围(_首个, _最后);
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_首个._取容器() == _STD addressof(_Mypair._Myval2), "string iterators incompatible");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        const auto _Offset = static_cast<size_type>(_去花式(_首个._Ptr) - _Mypair._Myval2._我的指针());
+        const auto _Length = static_cast<size_type>(_最后._Ptr - _首个._Ptr);
+        return 替换(_Offset, _Length, _Ilist.begin(), _Convert_size<size_type>(_Ilist.size()));
+    }
+
+    _CONSTEXPR20 ~基础字符串实现() noexcept {
+        _清理释放();
+#if _ITERATOR_DEBUG_LEVEL != 0
+        auto&& _Alproxy          = _取代理分配器(_分配器类型, _取分配器());
+        const auto _To_delete    = _Mypair._Myval2._Myproxy;
+        _Mypair._Myval2._Myproxy = nullptr;
+        _删除原生内部(_Alproxy, _To_delete);
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+    }
+
+    static constexpr auto npos{static_cast<size_type>(-1)};
+
+    _CONSTEXPR20 基础字符串实现& operator=(const 基础字符串实现& _Right) {
+        if (this == _STD addressof(_Right)) {
+            return *this;
+        }
+
+        auto& _Al             = _取分配器();
+        const auto& _Right_al = _Right._取分配器();
+        if constexpr (_Choose_pocca_v<_分配器类型>) {
+            if (_Al != _Right_al) {
+                auto&& _Alproxy       = _取代理分配器(_分配器类型, _Al);
+                auto&& _Right_alproxy = _取代理分配器(_分配器类型, _Right_al);
+                _容器代理指针<_分配器类型> _New_proxy(_Right_alproxy, _离开代理未绑定{}); // throws
+
+                const size_type _Right_size   = _Right._Mypair._Myval2._我的尺寸;
+                const _元素* const _Right_ptr = _Right._Mypair._Myval2._我的指针();
+                if (_Right_size > _Small_string_capacity) {
+                    size_type _New_capacity = _计算增长(_Right_size, _Small_string_capacity, _Right.max_size());
+                    auto _Right_al_non_const = _Right_al;
+                    const pointer _New_ptr   = _按容量分配(_Right_al_non_const, _New_capacity); // throws
+                    _特征::copy(_去花式(_New_ptr), _Right_ptr, _Right_size + 1);
+
+                    _清理释放();
+                    _就地构造(_Mypair._Myval2._Bx._Ptr, _New_ptr);
+                    _Mypair._Myval2._我的尺寸 = _Right_size;
+                    _Mypair._Myval2._Myres  = _New_capacity;
+                    _ASAN_串创建(*this);
+                } else {
+                    _清理释放();
+                    _特征::copy(_Mypair._Myval2._Bx._Buf, _Right_ptr, _Right_size + 1);
+                    _Mypair._Myval2._我的尺寸 = _Right_size;
+                    _Mypair._Myval2._Myres  = _Small_string_capacity;
+                }
+
+                _传播复制赋值(_Al, _Right_al);
+                _New_proxy._绑定(_Alproxy, _STD addressof(_Mypair._Myval2));
+                return *this;
+            }
+        }
+
+        _传播复制赋值(_Al, _Right_al);
+        assign(_Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸);
+        return *this;
+    }
+
+#if _HAS_CXX17
+    template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
+    _CONSTEXPR20 基础字符串实现& operator=(const _StringViewIsh& _Right) {
+        return assign(_Right);
+    }
+#endif // _HAS_CXX17
+
+    _CONSTEXPR20 基础字符串实现& operator=(_In_z_ const _元素* const _Ptr) {
+        return assign(_Ptr);
+    }
+
+#if _HAS_CXX23
+    基础字符串实现& operator=(nullptr_t) = delete;
+#endif // _HAS_CXX23
+
+    _CONSTEXPR20 基础字符串实现& operator=(const _元素 _Ch) { // assign {_Ch, _元素()}
+        _ASAN_串修改(*this, _Mypair._Myval2._我的尺寸, 1);
+        _Mypair._Myval2._我的尺寸 = 1;
+        _元素* const _Ptr       = _Mypair._Myval2._我的指针();
+        _特征::assign(_Ptr[0], _Ch);
+        _特征::assign(_Ptr[1], _元素());
+        return *this;
+    }
+
+    _CONSTEXPR20 基础字符串实现& operator+=(const 基础字符串实现& _Right) {
+        return 追加(_Right);
+    }
+
+#if _HAS_CXX17
+    template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
+    _CONSTEXPR20 基础字符串实现& operator+=(const _StringViewIsh& _Right) {
+        return 追加(_Right);
+    }
+#endif // _HAS_CXX17
+
+    _CONSTEXPR20 基础字符串实现& operator+=(_In_z_ const _元素* const _Ptr) { // 追加 [_Ptr, <null>)
+        return 追加(_Ptr);
+    }
+
+    _CONSTEXPR20 基础字符串实现& operator+=(_元素 _Ch) {
+        尾插(_Ch);
+        return *this;
+    }
+
+    _CONSTEXPR20 基础字符串实现& 追加(const 基础字符串实现& _Right) {
+        return 追加(_Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸);
+    }
+
+    _CONSTEXPR20 基础字符串实现& 追加(const 基础字符串实现& _Right, const size_type _Roff, size_type _Count = npos) {
+        // 追加 _Right [_Roff, _Roff + _Count)
+        _Right._Mypair._Myval2._检查偏移(_Roff);
+        _Count = _Right._Mypair._Myval2._夹取后缀尺寸(_Roff, _Count);
+        return 追加(_Right._Mypair._Myval2._我的指针() + _Roff, _Count);
+    }
+
+#if _HAS_CXX17
+    template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
+    _CONSTEXPR20 基础字符串实现& 追加(const _StringViewIsh& _Right) {
+        const 基础字符串视图<_元素, _特征> _As_view = _Right;
+        return 追加(_As_view.数据(), _Convert_size<size_type>(_As_view.尺寸()));
+    }
+
+    template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
+    _CONSTEXPR20 基础字符串实现& 追加(
+        const _StringViewIsh& _Right, const size_type _Roff, const size_type _Count = npos) {
+        // 追加 _Right [_Roff, _Roff + _Count)
+        基础字符串视图<_元素, _特征> _As_view = _Right;
+        return 追加(_As_view.子串(_Roff, _Count));
+    }
+#endif // _HAS_CXX17
+
+    _CONSTEXPR20 基础字符串实现& 追加(
+        _In_reads_(_Count) const _元素* const _Ptr, _CRT_GUARDOVERFLOW const size_type _Count) {
+        // 追加 [_Ptr, _Ptr + _Count)
+        const size_type _Old_size = _Mypair._Myval2._我的尺寸;
+        if (_Count <= _Mypair._Myval2._Myres - _Old_size) {
+            _ASAN_串修改(*this, _Old_size, _Old_size + _Count);
+            _Mypair._Myval2._我的尺寸 = _Old_size + _Count;
+            _元素* const _Old_ptr   = _Mypair._Myval2._我的指针();
+            _特征::move(_Old_ptr + _Old_size, _Ptr, _Count);
+            _特征::assign(_Old_ptr[_Old_size + _Count], _元素());
+            return *this;
+        }
+
+        return _按增量重分配(
+            _Count,
+            [](_元素* const _New_ptr, const _元素* const _Old_ptr, const size_type _Old_size, const _元素* const _Ptr,
+                const size_type _Count) _STATIC_LAMBDA {
+                _特征::copy(_New_ptr, _Old_ptr, _Old_size);
+                _特征::copy(_New_ptr + _Old_size, _Ptr, _Count);
+                _特征::assign(_New_ptr[_Old_size + _Count], _元素());
+            },
+            _Ptr, _Count);
+    }
+
+    _CONSTEXPR20 基础字符串实现& 追加(_In_z_ const _元素* const _Ptr) { // 追加 [_Ptr, <null>)
+        return 追加(_Ptr, _Convert_size<size_type>(_特征::length(_Ptr)));
+    }
+
+    _CONSTEXPR20 基础字符串实现& 追加(_CRT_GUARDOVERFLOW const size_type _Count, const _元素 _Ch) {
+        // 追加 _Count * _Ch
+        const size_type _Old_size = _Mypair._Myval2._我的尺寸;
+        if (_Count <= _Mypair._Myval2._Myres - _Old_size) {
+            _ASAN_串修改(*this, _Old_size, _Old_size + _Count);
+            _Mypair._Myval2._我的尺寸 = _Old_size + _Count;
+            _元素* const _Old_ptr   = _Mypair._Myval2._我的指针();
+            _特征::assign(_Old_ptr + _Old_size, _Count, _Ch);
+            _特征::assign(_Old_ptr[_Old_size + _Count], _元素());
+            return *this;
+        }
+
+        return _按增量重分配(
+            _Count,
+            [](_元素* const _New_ptr, const _元素* const _Old_ptr, const size_type _Old_size, const size_type _Count,
+                const _元素 _Ch) _STATIC_LAMBDA {
+                _特征::copy(_New_ptr, _Old_ptr, _Old_size);
+                _特征::assign(_New_ptr + _Old_size, _Count, _Ch);
+                _特征::assign(_New_ptr[_Old_size + _Count], _元素());
+            },
+            _Count, _Ch);
+    }
+
+    template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
+    _CONSTEXPR20 基础字符串实现& 追加(const _Iter _首个, const _Iter _最后) {
+        // 追加 [_首个, _最后), input iterators
+        _ADL校验范围(_首个, _最后);
+        const auto _UFirst = _取解包(_首个);
+        const auto _ULast  = _取解包(_最后);
+        if constexpr (_是元素字符指针<decltype(_UFirst)>::value) {
+            return 追加(_UFirst, _STD _Convert_size<size_type>(static_cast<size_t>(_ULast - _UFirst)));
+        } else {
+            const 基础字符串实现 _Right(_UFirst, _ULast, 取分配器());
+            return 追加(_Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸);
+        }
+    }
+
+#if _HAS_CXX23
+    template <_Container_compatible_range<_元素> _Rng>
+    constexpr 基础字符串实现& 追加范围(_Rng&& _Range) {
+        if constexpr (_RANGES sized_range<_Rng> && _Contiguous_range_of<_Rng, _元素>) {
+            const auto _Count = _Convert_size<size_type>(_转为无符号同型(_RANGES size(_Range)));
+            return 追加(_RANGES data(_Range), _Count);
+        } else {
+            const 基础字符串实现 _Right(from_range, _Range, 取分配器());
+            return 追加(_Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸);
+        }
+    }
+#endif // _HAS_CXX23
+
+    _CONSTEXPR20 基础字符串实现& assign(const 基础字符串实现& _Right) {
+        *this = _Right;
+        return *this;
+    }
+
+    _CONSTEXPR20 基础字符串实现& assign(const 基础字符串实现& _Right, const size_type _Roff, size_type _Count = npos) {
+        // assign _Right [_Roff, _Roff + _Count)
+        _Right._Mypair._Myval2._检查偏移(_Roff);
+        _Count = _Right._Mypair._Myval2._夹取后缀尺寸(_Roff, _Count);
+        return assign(_Right._Mypair._Myval2._我的指针() + _Roff, _Count);
+    }
+
+#if _HAS_CXX17
+    template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
+    _CONSTEXPR20 基础字符串实现& assign(const _StringViewIsh& _Right) {
+        const 基础字符串视图<_元素, _特征> _As_view = _Right;
+        return assign(_As_view.数据(), _Convert_size<size_type>(_As_view.尺寸()));
+    }
+
+    template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
+    _CONSTEXPR20 基础字符串实现& assign(
+        const _StringViewIsh& _Right, const size_type _Roff, const size_type _Count = npos) {
+        // assign _Right [_Roff, _Roff + _Count)
+        基础字符串视图<_元素, _特征> _As_view = _Right;
+        return assign(_As_view.子串(_Roff, _Count));
+    }
+#endif // _HAS_CXX17
+
+    _CONSTEXPR20 基础字符串实现& assign(
+        _In_reads_(_Count) const _元素* const _Ptr, _CRT_GUARDOVERFLOW const size_type _Count) {
+        // assign [_Ptr, _Ptr + _Count)
+        if (_Count <= _Mypair._Myval2._Myres) {
+            _ASAN_串移除(*this);
+            _元素* const _Old_ptr   = _Mypair._Myval2._我的指针();
+            _Mypair._Myval2._我的尺寸 = _Count;
+            _特征::move(_Old_ptr, _Ptr, _Count);
+            _特征::assign(_Old_ptr[_Count], _元素());
+            _ASAN_串创建(*this);
+            return *this;
+        }
+
+        return _为重分配(
+            _Count,
+            [](_元素* const _New_ptr, const size_type _Count, const _元素* const _Ptr) _STATIC_LAMBDA {
+                _特征::copy(_New_ptr, _Ptr, _Count);
+                _特征::assign(_New_ptr[_Count], _元素());
+            },
+            _Ptr);
+    }
+
+    _CONSTEXPR20 基础字符串实现& assign(_In_z_ const _元素* const _Ptr) {
+        return assign(_Ptr, _Convert_size<size_type>(_特征::length(_Ptr)));
+    }
+
+    _CONSTEXPR20 基础字符串实现& assign(_CRT_GUARDOVERFLOW const size_type _Count, const _元素 _Ch) {
+        // assign _Count * _Ch
+        if (_Count <= _Mypair._Myval2._Myres) {
+            _ASAN_串修改(*this, _Mypair._Myval2._我的尺寸, _Count);
+            _元素* const _Old_ptr   = _Mypair._Myval2._我的指针();
+            _Mypair._Myval2._我的尺寸 = _Count;
+            _特征::assign(_Old_ptr, _Count, _Ch);
+            _特征::assign(_Old_ptr[_Count], _元素());
+            return *this;
+        }
+
+        return _为重分配(
+            _Count,
+            [](_元素* const _New_ptr, const size_type _Count, const _元素 _Ch) _STATIC_LAMBDA {
+                _特征::assign(_New_ptr, _Count, _Ch);
+                _特征::assign(_New_ptr[_Count], _元素());
+            },
+            _Ch);
+    }
+
+    template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
+    _CONSTEXPR20 基础字符串实现& assign(const _Iter _首个, const _Iter _最后) {
+        _ADL校验范围(_首个, _最后);
+        const auto _UFirst = _取解包(_首个);
+        const auto _ULast  = _取解包(_最后);
+        if constexpr (_是元素字符指针<decltype(_UFirst)>::value) {
+            return assign(_UFirst, _STD _Convert_size<size_type>(static_cast<size_t>(_ULast - _UFirst)));
+        } else {
+            基础字符串实现 _Right(_UFirst, _ULast, 取分配器());
+            if (_Mypair._Myval2._Myres < _Right._Mypair._Myval2._Myres) {
+                _Mypair._Myval2._孤儿化全部();
+                _交换数据(_Right);
+                return *this;
+            } else {
+                return assign(_Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸);
+            }
+        }
+    }
+
+#if _HAS_CXX23
+    template <_Container_compatible_range<_元素> _Rng>
+    constexpr 基础字符串实现& 范围赋值(_Rng&& _Range) {
+        if constexpr (_RANGES sized_range<_Rng> && _Contiguous_range_of<_Rng, _元素>) {
+            const auto _Count = _Convert_size<size_type>(_转为无符号同型(_RANGES size(_Range)));
+            return assign(_RANGES data(_Range), _Count);
+        } else {
+            基础字符串实现 _Right(from_range, _Range, 取分配器());
+            if (_Mypair._Myval2._Myres < _Right._Mypair._Myval2._Myres) {
+                _Mypair._Myval2._孤儿化全部();
+                _交换数据(_Right);
+                return *this;
+            } else {
+                return assign(_Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸);
+            }
+        }
+    }
+#endif // _HAS_CXX23
+
+    _CONSTEXPR20 基础字符串实现& 插入(const size_type _Off, const 基础字符串实现& _Right) {
+        // 插入 _Right 取值 _Off
+        return 插入(_Off, _Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸);
+    }
+
+    _CONSTEXPR20 基础字符串实现& 插入(
+        const size_type _Off, const 基础字符串实现& _Right, const size_type _Roff, size_type _Count = npos) {
+        // 插入 _Right [_Roff, _Roff + _Count) 取值 _Off
+        _Right._Mypair._Myval2._检查偏移(_Roff);
+        _Count = _Right._Mypair._Myval2._夹取后缀尺寸(_Roff, _Count);
+        return 插入(_Off, _Right._Mypair._Myval2._我的指针() + _Roff, _Count);
+    }
+
+#if _HAS_CXX17
+    template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
+    _CONSTEXPR20 基础字符串实现& 插入(const size_type _Off, const _StringViewIsh& _Right) {
+        // 插入 _Right 取值 _Off
+        const 基础字符串视图<_元素, _特征> _As_view = _Right;
+        return 插入(_Off, _As_view.数据(), _Convert_size<size_type>(_As_view.尺寸()));
+    }
+
+    template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
+    _CONSTEXPR20 基础字符串实现& 插入(
+        const size_type _Off, const _StringViewIsh& _Right, const size_type _Roff, const size_type _Count = npos) {
+        // 插入 _Right [_Roff, _Roff + _Count) 取值 _Off
+        基础字符串视图<_元素, _特征> _As_view = _Right;
+        return 插入(_Off, _As_view.子串(_Roff, _Count));
+    }
+#endif // _HAS_CXX17
+
+    _CONSTEXPR20 基础字符串实现& 插入(
+        const size_type _Off, _In_reads_(_Count) const _元素* const _Ptr, _CRT_GUARDOVERFLOW const size_type _Count) {
+        // 插入 [_Ptr, _Ptr + _Count) 取值 _Off
+        _Mypair._Myval2._检查偏移(_Off);
+        const size_type _Old_size = _Mypair._Myval2._我的尺寸;
+
+        // We can't check for overlapping ranges when constant evaluated since comparison of pointers into string
+        // literals is unspecified, so always reallocate and copy to the new buffer if constant evaluated.
+#if _HAS_CXX20
+        const bool _Check_overlap = _Count <= _Mypair._Myval2._Myres - _Old_size && !_STD is_constant_evaluated();
+#else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
+        const bool _Check_overlap = _Count <= _Mypair._Myval2._Myres - _Old_size;
+#endif // ^^^ !_HAS_CXX20 ^^^
+
+        if (_Check_overlap) {
+            _ASAN_串修改(*this, _Old_size, _Old_size + _Count);
+            _Mypair._Myval2._我的尺寸 = _Old_size + _Count;
+            _元素* const _Old_ptr   = _Mypair._Myval2._我的指针();
+            _元素* const _Insert_at = _Old_ptr + _Off;
+            // the range [_Ptr, _Ptr + _Ptr_shifted_after) is left alone by moving the suffix out,
+            // while the range [_Ptr + _Ptr_shifted_after, _Ptr + _Count) shifts down by _Count
+            size_type _Ptr_shifted_after;
+            if (_Ptr + _Count <= _Insert_at || _Ptr > _Old_ptr + _Old_size) {
+                // inserted content is before the shifted region, or does not alias
+                _Ptr_shifted_after = _Count; // none of _Ptr's 数据 shifts
+            } else if (_Insert_at <= _Ptr) { // all of [_Ptr, _Ptr + _Count) shifts
+                _Ptr_shifted_after = 0;
+            } else { // [_Ptr, _Ptr + _Count) 包含 _Insert_at, so only the part after _Insert_at shifts
+                _Ptr_shifted_after = static_cast<size_type>(_Insert_at - _Ptr);
+            }
+
+            _特征::move(_Insert_at + _Count, _Insert_at, _Old_size - _Off + 1); // move suffix + null down
+            _特征::copy(_Insert_at, _Ptr, _Ptr_shifted_after);
+            _特征::copy(
+                _Insert_at + _Ptr_shifted_after, _Ptr + _Count + _Ptr_shifted_after, _Count - _Ptr_shifted_after);
+            return *this;
+        }
+
+        return _按增量重分配(
+            _Count,
+            [](_元素* const _New_ptr, const _元素* const _Old_ptr, const size_type _Old_size, const size_type _Off,
+                const _元素* const _Ptr, const size_type _Count) _STATIC_LAMBDA {
+                _特征::copy(_New_ptr, _Old_ptr, _Off);
+                _特征::copy(_New_ptr + _Off, _Ptr, _Count);
+                _特征::copy(_New_ptr + _Off + _Count, _Old_ptr + _Off, _Old_size - _Off + 1);
+            },
+            _Off, _Ptr, _Count);
+    }
+
+    _CONSTEXPR20 基础字符串实现& 插入(const size_type _Off, _In_z_ const _元素* const _Ptr) {
+        // 插入 [_Ptr, <null>) 取值 _Off
+        return 插入(_Off, _Ptr, _Convert_size<size_type>(_特征::length(_Ptr)));
+    }
+
+    _CONSTEXPR20 基础字符串实现& 插入(
+        const size_type _Off, _CRT_GUARDOVERFLOW const size_type _Count, const _元素 _Ch) {
+        // 插入 _Count * _Ch 取值 _Off
+        _Mypair._Myval2._检查偏移(_Off);
+        const size_type _Old_size = _Mypair._Myval2._我的尺寸;
+        if (_Count <= _Mypair._Myval2._Myres - _Old_size) {
+            _ASAN_串修改(*this, _Old_size, _Old_size + _Count);
+            _Mypair._Myval2._我的尺寸 = _Old_size + _Count;
+            _元素* const _Old_ptr   = _Mypair._Myval2._我的指针();
+            _元素* const _Insert_at = _Old_ptr + _Off;
+            _特征::move(_Insert_at + _Count, _Insert_at, _Old_size - _Off + 1); // move suffix + null down
+            _特征::assign(_Insert_at, _Count, _Ch); // fill hole
+            return *this;
+        }
+
+        return _按增量重分配(
+            _Count,
+            [](_元素* const _New_ptr, const _元素* const _Old_ptr, const size_type _Old_size, const size_type _Off,
+                const size_type _Count, const _元素 _Ch) _STATIC_LAMBDA {
+                _特征::copy(_New_ptr, _Old_ptr, _Off);
+                _特征::assign(_New_ptr + _Off, _Count, _Ch);
+                _特征::copy(_New_ptr + _Off + _Count, _Old_ptr + _Off, _Old_size - _Off + 1);
+            },
+            _Off, _Count, _Ch);
+    }
+
+    _CONSTEXPR20 iterator 插入(const const_iterator _Where, const _元素 _Ch) { // 插入 _Ch 取值 _Where
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Where._取容器() == _STD addressof(_Mypair._Myval2), "string iterator incompatible");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        const auto _Off = static_cast<size_type>(_去花式(_Where._Ptr) - _Mypair._Myval2._我的指针());
+        插入(_Off, 1, _Ch);
+        return 开始() + static_cast<difference_type>(_Off);
+    }
+
+    _CONSTEXPR20 iterator 插入(
+        const const_iterator _Where, _CRT_GUARDOVERFLOW const size_type _Count, const _元素 _Ch) {
+        // 插入 _Count * _元素 取值 _Where
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Where._取容器() == _STD addressof(_Mypair._Myval2), "string iterator incompatible");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        const auto _Off = static_cast<size_type>(_去花式(_Where._Ptr) - _Mypair._Myval2._我的指针());
+        插入(_Off, _Count, _Ch);
+        return 开始() + static_cast<difference_type>(_Off);
+    }
+
+    template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
+    _CONSTEXPR20 iterator 插入(const const_iterator _Where, const _Iter _首个, const _Iter _最后) {
+        // 插入 [_首个, _最后) 取值 _Where, input iterators
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Where._取容器() == _STD addressof(_Mypair._Myval2), "string iterator incompatible");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        const auto _Off = static_cast<size_type>(_去花式(_Where._Ptr) - _Mypair._Myval2._我的指针());
+        _ADL校验范围(_首个, _最后);
+        const auto _UFirst = _取解包(_首个);
+        const auto _ULast  = _取解包(_最后);
+        if constexpr (_是元素字符指针<decltype(_UFirst)>::value) {
+            插入(_Off, _UFirst, _STD _Convert_size<size_type>(static_cast<size_t>(_ULast - _UFirst)));
+        } else {
+            const 基础字符串实现 _Right(_UFirst, _ULast, 取分配器());
+            插入(_Off, _Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸);
+        }
+
+        return 开始() + static_cast<difference_type>(_Off);
+    }
+
+#if _HAS_CXX23
+    template <_Container_compatible_range<_元素> _Rng>
+    constexpr iterator 范围插入(const const_iterator _Where, _Rng&& _Range) {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Where._取容器() == _STD addressof(_Mypair._Myval2), "string iterator incompatible");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        const auto _Off = static_cast<size_type>(_去花式(_Where._Ptr) - _Mypair._Myval2._我的指针());
+
+        if constexpr (_RANGES sized_range<_Rng> && _Contiguous_range_of<_Rng, _元素>) {
+            const auto _Count = _Convert_size<size_type>(_转为无符号同型(_RANGES size(_Range)));
+            插入(_Off, _RANGES data(_Range), _Count);
+        } else {
+            const 基础字符串实现 _Right(from_range, _Range, 取分配器());
+            插入(_Off, _Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸);
+        }
+
+        return 开始() + static_cast<difference_type>(_Off);
+    }
+#endif // _HAS_CXX23
+
+    _CONSTEXPR20 基础字符串实现& 擦除(const size_type _Off = 0) { // 擦除 elements [_Off, ...)
+        _Mypair._Myval2._检查偏移(_Off);
+        _串尾(_Off);
+        return *this;
+    }
+
+private:
+    _CONSTEXPR20 基础字符串实现& _擦除不抛出(const size_type _Off, size_type _Count) noexcept {
+        _Count                    = _Mypair._Myval2._夹取后缀尺寸(_Off, _Count);
+        const size_type _Old_size = _Mypair._Myval2._我的尺寸;
+        _元素* const _My_ptr      = _Mypair._Myval2._我的指针();
+        _元素* const _Erase_at    = _My_ptr + _Off;
+        const size_type _New_size = _Old_size - _Count;
+        _特征::move(_Erase_at, _Erase_at + _Count, _New_size - _Off + 1); // move suffix + null up
+        _ASAN_串修改(*this, _Old_size, _New_size);
+        _Mypair._Myval2._我的尺寸 = _New_size;
+        return *this;
+    }
+
+public:
+    _CONSTEXPR20 基础字符串实现& 擦除(const size_type _Off, const size_type _Count) {
+        // 擦除 elements [_Off, _Off + _Count)
+        _Mypair._Myval2._检查偏移(_Off);
+        return _擦除不抛出(_Off, _Count);
+    }
+
+    _CONSTEXPR20 iterator 擦除(const const_iterator _Where) noexcept /* strengthened */ {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Where._取容器() == _STD addressof(_Mypair._Myval2), "string iterator incompatible");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        const auto _Off = static_cast<size_type>(_去花式(_Where._Ptr) - _Mypair._Myval2._我的指针());
+        _擦除不抛出(_Off, 1);
+        return 开始() + static_cast<difference_type>(_Off);
+    }
+
+    _CONSTEXPR20 iterator 擦除(const const_iterator _首个, const const_iterator _最后) noexcept
+    /* strengthened */ {
+        _ADL校验范围(_首个, _最后);
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_首个._取容器() == _STD addressof(_Mypair._Myval2), "string iterators incompatible");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        const auto _Off = static_cast<size_type>(_去花式(_首个._Ptr) - _Mypair._Myval2._我的指针());
+        _擦除不抛出(_Off, static_cast<size_type>(_最后._Ptr - _首个._Ptr));
+        return 开始() + static_cast<difference_type>(_Off);
+    }
+
+    _CONSTEXPR20 void 清空() noexcept { // 擦除 all
+        _串尾(0);
+    }
+
+    _CONSTEXPR20 基础字符串实现& 替换(const size_type _Off, const size_type _Nx, const 基础字符串实现& _Right) {
+        // 替换 [_Off, _Off + _Nx) with _Right
+        return 替换(_Off, _Nx, _Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸);
+    }
+
+    _CONSTEXPR20 基础字符串实现& 替换(const size_type _Off, size_type _Nx, const 基础字符串实现& _Right,
+        const size_type _Roff, size_type _Count = npos) {
+        // 替换 [_Off, _Off + _Nx) with _Right [_Roff, _Roff + _Count)
+        _Right._Mypair._Myval2._检查偏移(_Roff);
+        _Count = _Right._Mypair._Myval2._夹取后缀尺寸(_Roff, _Count);
+        return 替换(_Off, _Nx, _Right._Mypair._Myval2._我的指针() + _Roff, _Count);
+    }
+
+#if _HAS_CXX17
+    template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
+    _CONSTEXPR20 基础字符串实现& 替换(const size_type _Off, const size_type _Nx, const _StringViewIsh& _Right) {
+        // 替换 [_Off, _Off + _Nx) with _Right
+        基础字符串视图<_元素, _特征> _As_view = _Right;
+        return 替换(_Off, _Nx, _As_view.数据(), _Convert_size<size_type>(_As_view.尺寸()));
+    }
+
+    template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
+    _CONSTEXPR20 基础字符串实现& 替换(const size_type _Off, const size_type _Nx, const _StringViewIsh& _Right,
+        const size_type _Roff, const size_type _Count = npos) {
+        // 替换 [_Off, _Off + _Nx) with _Right [_Roff, _Roff + _Count)
+        基础字符串视图<_元素, _特征> _As_view = _Right;
+        return 替换(_Off, _Nx, _As_view.子串(_Roff, _Count));
+    }
+#endif // _HAS_CXX17
+
+    _CONSTEXPR20 基础字符串实现& 替换(
+        const size_type _Off, size_type _Nx, _In_reads_(_Count) const _元素* const _Ptr, const size_type _Count) {
+        // 替换 [_Off, _Off + _Nx) with [_Ptr, _Ptr + _Count)
+        _Mypair._Myval2._检查偏移(_Off);
+        _Nx = _Mypair._Myval2._夹取后缀尺寸(_Off, _Nx);
+        if (_Nx == _Count) { // 尺寸 doesn't change, so a single move does the trick
+            _特征::move(_Mypair._Myval2._我的指针() + _Off, _Ptr, _Count);
+            return *this;
+        }
+
+        const size_type _Old_size    = _Mypair._Myval2._我的尺寸;
+        const size_type _Suffix_size = _Old_size - _Nx - _Off + 1;
+        if (_Count < _Nx) { // suffix shifts backwards; we don't have to move anything out of the way
+            _元素* const _Old_ptr   = _Mypair._Myval2._我的指针();
+            _元素* const _Insert_at = _Old_ptr + _Off;
+            _特征::move(_Insert_at, _Ptr, _Count);
+            _特征::move(_Insert_at + _Count, _Insert_at + _Nx, _Suffix_size);
+
+            const auto _New_size = _Old_size - (_Nx - _Count);
+            _ASAN_串修改(*this, _Old_size, _New_size);
+            _Mypair._Myval2._我的尺寸 = _New_size;
+            return *this;
+        }
+
+        const size_type _Growth = static_cast<size_type>(_Count - _Nx);
+
+        // checking for overlapping ranges is technically UB (considering string literals), so just always reallocate
+        // and copy to the new buffer if constant evaluated
+#if _HAS_CXX20
+        if (!_STD is_constant_evaluated())
+#endif // _HAS_CXX20
+        {
+            if (_Growth <= _Mypair._Myval2._Myres - _Old_size) { // growth fits
+                _ASAN_串修改(*this, _Old_size, _Old_size + _Growth);
+                _Mypair._Myval2._我的尺寸 = _Old_size + _Growth;
+                _元素* const _Old_ptr   = _Mypair._Myval2._我的指针();
+                _元素* const _Insert_at = _Old_ptr + _Off;
+                _元素* const _Suffix_at = _Insert_at + _Nx;
+
+                size_type _Ptr_shifted_after; // see rationale in 插入
+                if (_Ptr + _Count <= _Insert_at || _Ptr > _Old_ptr + _Old_size) {
+                    _Ptr_shifted_after = _Count;
+                } else if (_Suffix_at <= _Ptr) {
+                    _Ptr_shifted_after = 0;
+                } else {
+                    _Ptr_shifted_after = static_cast<size_type>(_Suffix_at - _Ptr);
+                }
+
+                _特征::move(_Suffix_at + _Growth, _Suffix_at, _Suffix_size);
+                // next case must be move, in case _Ptr begins before _Insert_at and 包含 part of the hole;
+                // this case doesn't occur in 插入 because the new content must come from outside the removed
+                // content there (because in 插入 there is no removed content)
+                _特征::move(_Insert_at, _Ptr, _Ptr_shifted_after);
+                // the next case can be copy, because it comes from the chunk moved out of the way in the
+                // first move, and the hole we're filling can't alias the chunk we moved out of the way
+                _特征::copy(
+                    _Insert_at + _Ptr_shifted_after, _Ptr + _Growth + _Ptr_shifted_after, _Count - _Ptr_shifted_after);
+                return *this;
+            }
+        }
+
+        return _按增量重分配(
+            _Growth,
+            [](_元素* const _New_ptr, const _元素* const _Old_ptr, const size_type _Old_size, const size_type _Off,
+                const size_type _Nx, const _元素* const _Ptr, const size_type _Count) _STATIC_LAMBDA {
+                _特征::copy(_New_ptr, _Old_ptr, _Off);
+                _特征::copy(_New_ptr + _Off, _Ptr, _Count);
+                _特征::copy(_New_ptr + _Off + _Count, _Old_ptr + _Off + _Nx, _Old_size - _Nx - _Off + 1);
+            },
+            _Off, _Nx, _Ptr, _Count);
+    }
+
+    _CONSTEXPR20 基础字符串实现& 替换(const size_type _Off, const size_type _Nx, _In_z_ const _元素* const _Ptr) {
+        // 替换 [_Off, _Off + _Nx) with [_Ptr, <null>)
+        return 替换(_Off, _Nx, _Ptr, _Convert_size<size_type>(_特征::length(_Ptr)));
+    }
+
+    _CONSTEXPR20 基础字符串实现& 替换(const size_type _Off, size_type _Nx, const size_type _Count, const _元素 _Ch) {
+        // 替换 [_Off, _Off + _Nx) with _Count * _Ch
+        _Mypair._Myval2._检查偏移(_Off);
+        _Nx = _Mypair._Myval2._夹取后缀尺寸(_Off, _Nx);
+        if (_Count == _Nx) {
+            _特征::assign(_Mypair._Myval2._我的指针() + _Off, _Count, _Ch);
+            return *this;
+        }
+
+        const size_type _Old_size = _Mypair._Myval2._我的尺寸;
+        if (_Count < _Nx || _Count - _Nx <= _Mypair._Myval2._Myres - _Old_size) {
+            // either we are shrinking, or the growth fits
+            // may temporarily overflow; OK because size_type must be unsigned
+            const auto _New_size = _Old_size + _Count - _Nx;
+            _ASAN_串移除(*this);
+            _Mypair._Myval2._我的尺寸 = _New_size;
+            _元素* const _Old_ptr   = _Mypair._Myval2._我的指针();
+            _元素* const _Insert_at = _Old_ptr + _Off;
+            _特征::move(_Insert_at + _Count, _Insert_at + _Nx, _Old_size - _Nx - _Off + 1);
+            _特征::assign(_Insert_at, _Count, _Ch);
+            _ASAN_串创建(*this);
+            return *this;
+        }
+
+        return _按增量重分配(
+            _Count - _Nx,
+            [](_元素* const _New_ptr, const _元素* const _Old_ptr, const size_type _Old_size, const size_type _Off,
+                const size_type _Nx, const size_type _Count, const _元素 _Ch) _STATIC_LAMBDA {
+                _特征::copy(_New_ptr, _Old_ptr, _Off);
+                _特征::assign(_New_ptr + _Off, _Count, _Ch);
+                _特征::copy(_New_ptr + _Off + _Count, _Old_ptr + _Off + _Nx, _Old_size - _Nx - _Off + 1);
+            },
+            _Off, _Nx, _Count, _Ch);
+    }
+
+    _CONSTEXPR20 基础字符串实现& 替换(
+        const const_iterator _首个, const const_iterator _最后, const 基础字符串实现& _Right) {
+        // 替换 [_首个, _最后) with _Right
+        _ADL校验范围(_首个, _最后);
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_首个._取容器() == _STD addressof(_Mypair._Myval2), "string iterators incompatible");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        return 替换(static_cast<size_type>(_去花式(_首个._Ptr) - _Mypair._Myval2._我的指针()),
+            static_cast<size_type>(_最后._Ptr - _首个._Ptr), _Right);
+    }
+
+#if _HAS_CXX17
+    template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
+    _CONSTEXPR20 基础字符串实现& 替换(
+        const const_iterator _首个, const const_iterator _最后, const _StringViewIsh& _Right) {
+        // 替换 [_首个, _最后) with _Right
+        _ADL校验范围(_首个, _最后);
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_首个._取容器() == _STD addressof(_Mypair._Myval2), "string iterators incompatible");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        return 替换(static_cast<size_type>(_去花式(_首个._Ptr) - _Mypair._Myval2._我的指针()),
+            static_cast<size_type>(_最后._Ptr - _首个._Ptr), _Right);
+    }
+#endif // _HAS_CXX17
+
+    _CONSTEXPR20 基础字符串实现& 替换(const const_iterator _首个, const const_iterator _最后,
+        _In_reads_(_Count) const _元素* const _Ptr, const size_type _Count) {
+        // 替换 [_首个, _最后) with [_Ptr, _Ptr + _Count)
+        _ADL校验范围(_首个, _最后);
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_首个._取容器() == _STD addressof(_Mypair._Myval2), "string iterators incompatible");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        return 替换(static_cast<size_type>(_去花式(_首个._Ptr) - _Mypair._Myval2._我的指针()),
+            static_cast<size_type>(_最后._Ptr - _首个._Ptr), _Ptr, _Count);
+    }
+
+    _CONSTEXPR20 基础字符串实现& 替换(
+        const const_iterator _首个, const const_iterator _最后, _In_z_ const _元素* const _Ptr) {
+        // 替换 [_首个, _最后) with [_Ptr, <null>)
+        _ADL校验范围(_首个, _最后);
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_首个._取容器() == _STD addressof(_Mypair._Myval2), "string iterators incompatible");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        return 替换(static_cast<size_type>(_去花式(_首个._Ptr) - _Mypair._Myval2._我的指针()),
+            static_cast<size_type>(_最后._Ptr - _首个._Ptr), _Ptr);
+    }
+
+    _CONSTEXPR20 基础字符串实现& 替换(
+        const const_iterator _首个, const const_iterator _最后, const size_type _Count, const _元素 _Ch) {
+        // 替换 [_首个, _最后) with _Count * _Ch
+        _ADL校验范围(_首个, _最后);
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_首个._取容器() == _STD addressof(_Mypair._Myval2), "string iterators incompatible");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        return 替换(static_cast<size_type>(_去花式(_首个._Ptr) - _Mypair._Myval2._我的指针()),
+            static_cast<size_type>(_最后._Ptr - _首个._Ptr), _Count, _Ch);
+    }
+
+    template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
+    _CONSTEXPR20 基础字符串实现& 替换(
+        const const_iterator _首个, const const_iterator _最后, const _Iter _First2, const _Iter _Last2) {
+        // 替换 [_首个, _最后) with [_First2, _Last2), input iterators
+        _ADL校验范围(_首个, _最后);
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_首个._取容器() == _STD addressof(_Mypair._Myval2), "string iterators incompatible");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        const auto _Off    = static_cast<size_type>(_去花式(_首个._Ptr) - _Mypair._Myval2._我的指针());
+        const auto _Length = static_cast<size_type>(_最后._Ptr - _首个._Ptr);
+        _ADL校验范围(_First2, _Last2);
+        const auto _UFirst2 = _取解包(_First2);
+        const auto _ULast2  = _取解包(_Last2);
+        if constexpr (_是元素字符指针<decltype(_UFirst2)>::value) {
+            return 替换(
+                _Off, _Length, _UFirst2, _STD _Convert_size<size_type>(static_cast<size_t>(_ULast2 - _UFirst2)));
+        } else {
+            const 基础字符串实现 _Right(_UFirst2, _ULast2, 取分配器());
+            return 替换(_Off, _Length, _Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸);
+        }
+    }
+
+#if _HAS_CXX23
+    template <_Container_compatible_range<_元素> _Rng>
+    constexpr 基础字符串实现& 按范围替换(const const_iterator _首个, const const_iterator _最后, _Rng&& _Range) {
+        _ADL校验范围(_首个, _最后);
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_首个._取容器() == _STD addressof(_Mypair._Myval2), "string iterators incompatible");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        const auto _Off    = static_cast<size_type>(_去花式(_首个._Ptr) - _Mypair._Myval2._我的指针());
+        const auto _Length = static_cast<size_type>(_最后._Ptr - _首个._Ptr);
+
+        if constexpr (_RANGES sized_range<_Rng> && _Contiguous_range_of<_Rng, _元素>) {
+            const auto _Count = _Convert_size<size_type>(_转为无符号同型(_RANGES size(_Range)));
+            return 替换(_Off, _Length, _RANGES data(_Range), _Count);
+        } else {
+            const 基础字符串实现 _Right(from_range, _Range, 取分配器());
+            return 替换(_Off, _Length, _Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸);
+        }
+    }
+#endif // _HAS_CXX23
+
+    _NODISCARD _CONSTEXPR20 iterator 开始() noexcept {
+        return iterator(_Refancy<pointer>(_Mypair._Myval2._我的指针()), _STD addressof(_Mypair._Myval2));
+    }
+
+    _NODISCARD _CONSTEXPR20 const_iterator 开始() const noexcept {
+        return const_iterator(_Refancy<const_pointer>(_Mypair._Myval2._我的指针()), _STD addressof(_Mypair._Myval2));
+    }
+
+    _NODISCARD _CONSTEXPR20 iterator 结束() noexcept {
+        return iterator(
+            _Refancy<pointer>(_Mypair._Myval2._我的指针()) + static_cast<difference_type>(_Mypair._Myval2._我的尺寸),
+            _STD addressof(_Mypair._Myval2));
+    }
+
+    _NODISCARD _CONSTEXPR20 const_iterator 结束() const noexcept {
+        return const_iterator(
+            _Refancy<const_pointer>(_Mypair._Myval2._我的指针()) + static_cast<difference_type>(_Mypair._Myval2._我的尺寸),
+            _STD addressof(_Mypair._Myval2));
+    }
+
+    _NODISCARD _CONSTEXPR20 _元素* _非检查开始() noexcept {
+        return _Mypair._Myval2._我的指针();
+    }
+
+    _NODISCARD _CONSTEXPR20 const _元素* _非检查开始() const noexcept {
+        return _Mypair._Myval2._我的指针();
+    }
+
+    _NODISCARD _CONSTEXPR20 _元素* _非检查结束() noexcept {
+        return _Mypair._Myval2._我的指针() + _Mypair._Myval2._我的尺寸;
+    }
+
+    _NODISCARD _CONSTEXPR20 const _元素* _非检查结束() const noexcept {
+        return _Mypair._Myval2._我的指针() + _Mypair._Myval2._我的尺寸;
+    }
+
+    _NODISCARD _CONSTEXPR20 reverse_iterator 反向开始() noexcept {
+        return reverse_iterator(结束());
+    }
+
+    _NODISCARD _CONSTEXPR20 常量反向迭代器 反向开始() const noexcept {
+        return 常量反向迭代器(结束());
+    }
+
+    _NODISCARD _CONSTEXPR20 reverse_iterator 反向结束() noexcept {
+        return reverse_iterator(开始());
+    }
+
+    _NODISCARD _CONSTEXPR20 常量反向迭代器 反向结束() const noexcept {
+        return 常量反向迭代器(开始());
+    }
+
+    _NODISCARD _CONSTEXPR20 const_iterator 常量开始() const noexcept {
+        return 开始();
+    }
+
+    _NODISCARD _CONSTEXPR20 const_iterator 常量结束() const noexcept {
+        return 结束();
+    }
+
+    _NODISCARD _CONSTEXPR20 常量反向迭代器 常量反向开始() const noexcept {
+        return 反向开始();
+    }
+
+    _NODISCARD _CONSTEXPR20 常量反向迭代器 常量反向结束() const noexcept {
+        return 反向结束();
+    }
+
+    _CONSTEXPR20 void 收缩至适应() { // reduce 容量
+        auto& _My_data = _Mypair._Myval2;
+
+        if (!_My_data._已启用大串模式()) { // can't shrink from small mode
+            return;
+        }
+
+        if (_My_data._我的尺寸 <= _Small_string_capacity) {
+            _转为小串();
+            return;
+        }
+
+        size_type _Target_capacity = (_STD min)(_My_data._我的尺寸 | _Alloc_mask, max_size());
+        if (_Target_capacity < _My_data._Myres) { // worth shrinking, do it
+            auto& _Al = _取分配器();
+            const pointer _New_ptr =
+                _按容量分配<_分配策略::_Exactly>(_Al, _Target_capacity); // throws
+            _ASAN_串移除(*this);
+
+            _My_data._孤儿化全部();
+            _特征::copy(_去花式(_New_ptr), _去花式(_My_data._Bx._Ptr), _My_data._我的尺寸 + 1);
+            _按容量释放(_Al, _My_data._Bx._Ptr, _My_data._Myres);
+            _My_data._Bx._Ptr = _New_ptr;
+            _My_data._Myres   = _Target_capacity;
+            _ASAN_串创建(*this);
+        }
+    }
+
+    _NODISCARD _CONSTEXPR20 reference 取值(const size_type _Off) {
+        _Mypair._Myval2._检查偏移排他(_Off);
+        return _Mypair._Myval2._我的指针()[_Off];
+    }
+
+    _NODISCARD _CONSTEXPR20 const_reference 取值(const size_type _Off) const {
+        _Mypair._Myval2._检查偏移排他(_Off);
+        return _Mypair._Myval2._我的指针()[_Off];
+    }
+
+    _NODISCARD _CONSTEXPR20 reference operator[](const size_type _Off) noexcept /* strengthened */ {
+#if _MSVC_STL_HARDENING_BASIC_STRING || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Off <= _Mypair._Myval2._我的尺寸, "string subscript out of range");
+#endif
+
+        return _Mypair._Myval2._我的指针()[_Off];
+    }
+
+    _NODISCARD _CONSTEXPR20 const_reference operator[](const size_type _Off) const noexcept
+    /* strengthened */ {
+#if _MSVC_STL_HARDENING_BASIC_STRING || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Off <= _Mypair._Myval2._我的尺寸, "string subscript out of range");
+#endif
+
+        return _Mypair._Myval2._我的指针()[_Off];
+    }
+
+#if _HAS_CXX17
+    /* implicit */ _CONSTEXPR20 operator 基础字符串视图<_元素, _特征>() const noexcept {
+        // return a string_view around *this's character-type sequence
+        return 基础字符串视图<_元素, _特征>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸};
+    }
+#endif // _HAS_CXX17
+
+    _CONSTEXPR20 void 尾插(const _元素 _Ch) { // 插入 element 取值 结束
+        const size_type _Old_size = _Mypair._Myval2._我的尺寸;
+        if (_Old_size < _Mypair._Myval2._Myres) {
+            _ASAN_串修改(*this, _Old_size, _Old_size + 1);
+            _Mypair._Myval2._我的尺寸 = _Old_size + 1;
+            _元素* const _Ptr       = _Mypair._Myval2._我的指针();
+            _特征::assign(_Ptr[_Old_size], _Ch);
+            _特征::assign(_Ptr[_Old_size + 1], _元素());
+            return;
+        }
+
+        _按增量重分配(
+            1,
+            [](_元素* const _New_ptr, const _元素* const _Old_ptr, const size_type _Old_size, const _元素 _Ch)
+                _STATIC_LAMBDA {
+                    _特征::copy(_New_ptr, _Old_ptr, _Old_size);
+                    _特征::assign(_New_ptr[_Old_size], _Ch);
+                    _特征::assign(_New_ptr[_Old_size + 1], _元素());
+                },
+            _Ch);
+    }
+
+    _CONSTEXPR20 void 尾删() noexcept /* strengthened */ {
+        const size_type _Old_size = _Mypair._Myval2._我的尺寸;
+
+#if _MSVC_STL_HARDENING_BASIC_STRING || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Old_size != 0, "尾删() called on 为空 string");
+#endif
+
+        _串尾(_Old_size - 1);
+    }
+
+    _NODISCARD _CONSTEXPR20 reference 前() noexcept /* strengthened */ {
+#if _MSVC_STL_HARDENING_BASIC_STRING || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Mypair._Myval2._我的尺寸 != 0, "前() called on 为空 string");
+#endif
+
+        return _Mypair._Myval2._我的指针()[0];
+    }
+
+    _NODISCARD _CONSTEXPR20 const_reference 前() const noexcept /* strengthened */ {
+#if _MSVC_STL_HARDENING_BASIC_STRING || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Mypair._Myval2._我的尺寸 != 0, "前() called on 为空 string");
+#endif
+
+        return _Mypair._Myval2._我的指针()[0];
+    }
+
+    _NODISCARD _CONSTEXPR20 reference 后() noexcept /* strengthened */ {
+#if _MSVC_STL_HARDENING_BASIC_STRING || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Mypair._Myval2._我的尺寸 != 0, "后() called on 为空 string");
+#endif
+
+        return _Mypair._Myval2._我的指针()[_Mypair._Myval2._我的尺寸 - 1];
+    }
+
+    _NODISCARD _CONSTEXPR20 const_reference 后() const noexcept /* strengthened */ {
+#if _MSVC_STL_HARDENING_BASIC_STRING || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Mypair._Myval2._我的尺寸 != 0, "后() called on 为空 string");
+#endif
+
+        return _Mypair._Myval2._我的指针()[_Mypair._Myval2._我的尺寸 - 1];
+    }
+
+    _NODISCARD _CONSTEXPR20 _Ret_z_ const _元素* C字符串() const noexcept {
+        return _Mypair._Myval2._我的指针();
+    }
+
+    _NODISCARD _CONSTEXPR20 _Ret_z_ const _元素* 数据() const noexcept {
+        return _Mypair._Myval2._我的指针();
+    }
+
+#if _HAS_CXX17
+    _NODISCARD _CONSTEXPR20 _Ret_z_ _元素* 数据() noexcept {
+        return _Mypair._Myval2._我的指针();
+    }
+#endif // _HAS_CXX17
+
+    _NODISCARD _CONSTEXPR20 size_type length() const noexcept {
+        return _Mypair._Myval2._我的尺寸;
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type 尺寸() const noexcept {
+        return _Mypair._Myval2._我的尺寸;
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type max_size() const noexcept {
+        const size_type _Alloc_max   = _分配器特征::max_size(_取分配器());
+        const size_type _Storage_max = // can always store small string
+            (_STD max)(_Alloc_max, static_cast<size_type>(_BUF_SIZE));
+        return (_STD min)(static_cast<size_type>(_STD _Max_limit<difference_type>()),
+            _Storage_max - 1 // -1 is for null terminator and/or npos
+        );
+    }
+
+    _CONSTEXPR20 void 调整尺寸(_CRT_GUARDOVERFLOW const size_type _New_size, const _元素 _Ch = _元素()) {
+        // determine new length, padding with _Ch elements as needed
+        const size_type _Old_size = 尺寸();
+        if (_New_size <= _Old_size) {
+            _串尾(_New_size);
+        } else {
+            追加(_New_size - _Old_size, _Ch);
+        }
+    }
+
+    template <class _Operation>
+    constexpr void
+#if _HAS_CXX23
+        resize_and_overwrite
+#else // ^^^ _HAS_CXX23 / !_HAS_CXX23 vvv
+        _调整尺寸并覆写
+#endif // ^^^ !_HAS_CXX23 ^^^
+        (_CRT_GUARDOVERFLOW const size_type _New_size, _Operation _操作) {
+        if (_Mypair._Myval2._Myres < _New_size) {
+            _按增量重分配(_New_size - _Mypair._Myval2._我的尺寸,
+                [](_元素* const _New_ptr, const _元素* const _Old_ptr, const size_type _Old_size)
+                    _STATIC_LAMBDA { _特征::copy(_New_ptr, _Old_ptr, _Old_size + 1); });
+        } else {
+            _ASAN_串修改(*this, _Mypair._Myval2._我的尺寸, _New_size);
+            _Mypair._Myval2._我的尺寸 = _New_size;
+        }
+
+        auto _Arg_ptr                   = _Mypair._Myval2._我的指针();
+        auto _Arg_size                  = _New_size;
+        const auto _Result_size         = _STD move(_操作)(_Arg_ptr, _Arg_size);
+        const auto _Result_as_size_type = static_cast<size_type>(_Result_size);
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Result_size >= 0, "the returned 尺寸 can't be smaller than 0");
+        _STL_VERIFY(_Result_as_size_type <= _New_size, "the returned 尺寸 can't be greater than the passed 尺寸");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        _串尾(_Result_as_size_type);
+    }
+
+#if _HAS_CXX23
+    template <class _Operation>
+    constexpr void _调整尺寸并覆写(_CRT_GUARDOVERFLOW const size_type _New_size, _Operation _操作) {
+        resize_and_overwrite(_New_size, _操作);
+    }
+#endif // _HAS_CXX23
+
+    _NODISCARD _CONSTEXPR20 size_type 容量() const noexcept {
+        return _Mypair._Myval2._Myres;
+    }
+
+#if _HAS_CXX20
+    constexpr void 预留(_CRT_GUARDOVERFLOW const size_type _Newcap) {
+        // determine new minimum length of allocated storage
+        if (_Mypair._Myval2._Myres >= _Newcap) { // requested 容量 is not larger than current 容量, ignore
+            return; // nothing to do
+        }
+
+        const size_type _Old_size = _Mypair._Myval2._我的尺寸;
+        _按增量重分配(_Newcap - _Old_size,
+            [](_元素* const _New_ptr, const _元素* const _Old_ptr, const size_type _Old_size)
+                _STATIC_LAMBDA { _特征::copy(_New_ptr, _Old_ptr, _Old_size + 1); });
+
+        // `_按增量重分配` calls `_ASAN_串创建` assuming that the string
+        // has 尺寸 (initialized memory) equal to its new 容量 (allocated memory).
+        // This is not true for the `预留` method, so we modify the ASan annotation.
+        _ASAN_串修改(*this, _Mypair._Myval2._我的尺寸, _Old_size);
+        _Mypair._Myval2._我的尺寸 = _Old_size;
+    }
+
+    _CXX20_DEPRECATE_STRING_RESERVE_WITHOUT_ARGUMENT void 预留() {
+        if (_Mypair._Myval2._我的尺寸 == 0 && _Mypair._Myval2._已启用大串模式()) {
+            _转为小串();
+        }
+    }
+#else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
+    void 预留(_CRT_GUARDOVERFLOW const size_type _Newcap = 0) { // determine new minimum length of allocated storage
+        if (_Mypair._Myval2._我的尺寸 > _Newcap) { // requested 容量 is not large enough for current 尺寸, ignore
+            return; // nothing to do
+        }
+
+        if (_Mypair._Myval2._Myres == _Newcap) { // we're already 取值 the requested 容量
+            return; // nothing to do
+        }
+
+        if (_Mypair._Myval2._Myres < _Newcap) { // reallocate to grow
+            const size_type _Old_size = _Mypair._Myval2._我的尺寸;
+            _按增量重分配(_Newcap - _Old_size,
+                [](_元素* const _New_ptr, const _元素* const _Old_ptr, const size_type _Old_size)
+                    _STATIC_LAMBDA { _特征::copy(_New_ptr, _Old_ptr, _Old_size + 1); });
+
+            // `_按增量重分配` calls `_ASAN_串创建` assuming that the string
+            // has 尺寸 (initialized memory) equal to its new 容量 (allocated memory).
+            // This is not true for the `预留` method, so we modify the ASan annotation.
+            _ASAN_串修改(*this, _Mypair._Myval2._我的尺寸, _Old_size);
+            _Mypair._Myval2._我的尺寸 = _Old_size;
+            return;
+        }
+
+        if (_Newcap <= _Small_string_capacity && _Mypair._Myval2._已启用大串模式()) {
+            // deallocate everything; switch 后 to "small" mode
+            _转为小串();
+            return;
+        }
+
+        // ignore requests to 预留 to [_Small_string_capacity + 1, _Myres)
+    }
+#endif // ^^^ !_HAS_CXX20 ^^^
+
+    _NODISCARD_EMPTY_MEMBER _CONSTEXPR20 bool 为空() const noexcept {
+        return _Mypair._Myval2._我的尺寸 == 0;
+    }
+
+    _CONSTEXPR20 size_type copy(
+        _Out_writes_(_Count) _元素* const _Ptr, size_type _Count, const size_type _Off = 0) const {
+        // copy [_Off, _Off + _Count) to [_Ptr, _Ptr + _Count)
+        _Mypair._Myval2._检查偏移(_Off);
+        _Count = _Mypair._Myval2._夹取后缀尺寸(_Off, _Count);
+        _特征::copy(_Ptr, _Mypair._Myval2._我的指针() + _Off, _Count);
+        return _Count;
+    }
+
+    _CONSTEXPR20 _Pre_satisfies_(_Dest_size >= _Count) size_type
+        _复制s(_Out_writes_all_(_Dest_size) _元素* const _目标, const size_type _Dest_size, size_type _Count,
+            const size_type _Off = 0) const {
+        // copy [_Off, _Off + _Count) to [_目标, _目标 + _Dest_size)
+        _Mypair._Myval2._检查偏移(_Off);
+        _Count = _Mypair._Myval2._夹取后缀尺寸(_Off, _Count);
+        _特征::_复制s(_目标, _Dest_size, _Mypair._Myval2._我的指针() + _Off, _Count);
+        return _Count;
+    }
+
+    static _CONSTEXPR20 void _交换大串小串缓冲(_迭代器检查值& _Starts_large, _迭代器检查值& _Starts_small) noexcept {
+        // exchange a string in large mode with one in small mode
+        const pointer _Ptr = _Starts_large._Bx._Ptr;
+        _Starts_large._Bx._切换到缓冲();
+        _特征::copy(_Starts_large._Bx._Buf, _Starts_small._Bx._Buf, _BUF_SIZE);
+
+        _就地构造(_Starts_small._Bx._Ptr, _Ptr);
+    }
+
+    _CONSTEXPR20 void _交换数据(基础字符串实现& _Right) noexcept {
+        using _STD swap;
+
+        auto& _My_data    = _Mypair._Myval2;
+        auto& _Right_data = _Right._Mypair._Myval2;
+
+#if !defined(_INSERT_STRING_ANNOTATION)
+        if constexpr (_Can_memcpy_val) {
+#if _HAS_CXX20
+            if (!_STD is_constant_evaluated())
+#endif // _HAS_CXX20
+            {
+                const auto _My_data_mem =
+                    reinterpret_cast<unsigned char*>(_STD addressof(_My_data)) + _Memcpy_val_offset;
+                const auto _Right_data_mem =
+                    reinterpret_cast<unsigned char*>(_STD addressof(_Right_data)) + _Memcpy_val_offset;
+                unsigned char _Temp_mem[_Memcpy_val_size];
+                _CSTD memcpy(_Temp_mem, _My_data_mem, _Memcpy_val_size);
+                _CSTD memcpy(_My_data_mem, _Right_data_mem, _Memcpy_val_size);
+                _CSTD memcpy(_Right_data_mem, _Temp_mem, _Memcpy_val_size);
+
+                return;
+            }
+        }
+#endif // !defined(_INSERT_STRING_ANNOTATION)
+
+        const bool _My_large    = _My_data._已启用大串模式();
+        const bool _Right_large = _Right_data._已启用大串模式();
+
+        if (_My_large && _Right_large) { // swap buffers, iterators preserved
+            swap(_My_data._Bx._Ptr, _Right_data._Bx._Ptr); // intentional ADL
+        } else if (_My_large) { // swap large with small
+            _交换大串小串缓冲(_My_data, _Right_data);
+        } else if (_Right_large) { // swap small with large
+            _交换大串小串缓冲(_Right_data, _My_data);
+        } else {
+            _元素 _Temp_buf[_BUF_SIZE];
+            _特征::copy(_Temp_buf, _My_data._Bx._Buf, _My_data._我的尺寸 + 1);
+            _特征::copy(_My_data._Bx._Buf, _Right_data._Bx._Buf, _Right_data._我的尺寸 + 1);
+            _特征::copy(_Right_data._Bx._Buf, _Temp_buf, _My_data._我的尺寸 + 1);
+        }
+
+        _STD swap(_My_data._我的尺寸, _Right_data._我的尺寸);
+        _STD swap(_My_data._Myres, _Right_data._Myres);
+    }
+
+    _CONSTEXPR20 void swap(基础字符串实现& _Right) noexcept /* strengthened */ {
+        if (this != _STD addressof(_Right)) {
+            _Pocs(_取分配器(), _Right._取分配器());
+
+#if _ITERATOR_DEBUG_LEVEL != 0
+            auto& _My_data    = _Mypair._Myval2;
+            auto& _Right_data = _Right._Mypair._Myval2;
+
+            if (!_My_data._已启用大串模式()) {
+                _My_data._孤儿化全部();
+            }
+
+            if (!_Right_data._已启用大串模式()) {
+                _Right_data._孤儿化全部();
+            }
+
+            _My_data._交换代理与迭代器(_Right_data);
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+
+            _交换数据(_Right);
+        }
+    }
+
+#if _HAS_CXX17
+    template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
+    _NODISCARD _CONSTEXPR20 size_type find(const _StringViewIsh& _Right, const size_type _Off = 0) const
+        noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, 基础字符串视图<_元素, _特征>>) {
+        // look for _Right beginning 取值 or after _Off
+        基础字符串视图<_元素, _特征> _As_view = _Right;
+        return static_cast<size_type>(_Traits_find<_特征>(
+            _Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Off, _As_view.数据(), _As_view.尺寸()));
+    }
+#endif // _HAS_CXX17
+
+    _NODISCARD _CONSTEXPR20 size_type find(const 基础字符串实现& _Right, const size_type _Off = 0) const noexcept {
+        // look for _Right beginning 取值 or after _Off
+        return static_cast<size_type>(_Traits_find<_特征>(_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Off,
+            _Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸));
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type find(_In_reads_(_Count) const _元素* const _Ptr, const size_type _Off,
+        const size_type _Count) const noexcept /* strengthened */ {
+        // look for [_Ptr, _Ptr + _Count) beginning 取值 or after _Off
+        return static_cast<size_type>(
+            _Traits_find<_特征>(_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Off, _Ptr, _Count));
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type find(_In_z_ const _元素* const _Ptr, const size_type _Off = 0) const noexcept
+    /* strengthened */ {
+        // look for [_Ptr, <null>) beginning 取值 or after _Off
+        return static_cast<size_type>(_Traits_find<_特征>(
+            _Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Off, _Ptr, _特征::length(_Ptr)));
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type find(const _元素 _Ch, const size_type _Off = 0) const noexcept {
+        // look for _Ch 取值 or after _Off
+        return static_cast<size_type>(
+            _Traits_find_ch<_特征>(_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Off, _Ch));
+    }
+
+#if _HAS_CXX17
+    template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
+    _NODISCARD _CONSTEXPR20 size_type 反向查找(const _StringViewIsh& _Right, const size_type _Off = npos) const
+        noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, 基础字符串视图<_元素, _特征>>) {
+        // look for _Right beginning before _Off
+        基础字符串视图<_元素, _特征> _As_view = _Right;
+        return static_cast<size_type>(_Traits_rfind<_特征>(
+            _Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Off, _As_view.数据(), _As_view.尺寸()));
+    }
+#endif // _HAS_CXX17
+
+    _NODISCARD _CONSTEXPR20 size_type 反向查找(const 基础字符串实现& _Right, const size_type _Off = npos) const noexcept {
+        // look for _Right beginning before _Off
+        return static_cast<size_type>(_Traits_rfind<_特征>(_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Off,
+            _Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸));
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type 反向查找(_In_reads_(_Count) const _元素* const _Ptr, const size_type _Off,
+        const size_type _Count) const noexcept /* strengthened */ {
+        // look for [_Ptr, _Ptr + _Count) beginning before _Off
+        return static_cast<size_type>(
+            _Traits_rfind<_特征>(_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Off, _Ptr, _Count));
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type 反向查找(_In_z_ const _元素* const _Ptr, const size_type _Off = npos) const noexcept
+    /* strengthened */ {
+        // look for [_Ptr, <null>) beginning before _Off
+        return static_cast<size_type>(_Traits_rfind<_特征>(
+            _Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Off, _Ptr, _特征::length(_Ptr)));
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type 反向查找(const _元素 _Ch, const size_type _Off = npos) const noexcept {
+        // look for _Ch before _Off
+        return static_cast<size_type>(
+            _Traits_rfind_ch<_特征>(_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Off, _Ch));
+    }
+
+#if _HAS_CXX17
+    template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
+    _NODISCARD _CONSTEXPR20 size_type 查找首次属于(const _StringViewIsh& _Right, const size_type _Off = 0) const
+        noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, 基础字符串视图<_元素, _特征>>) {
+        // look for one of _Right 取值 or after _Off
+        基础字符串视图<_元素, _特征> _As_view = _Right;
+        return static_cast<size_type>(_Traits_find_first_of<_特征>(
+            _Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Off, _As_view.数据(), _As_view.尺寸()));
+    }
+#endif // _HAS_CXX17
+
+    _NODISCARD _CONSTEXPR20 size_type 查找首次属于(
+        const 基础字符串实现& _Right, const size_type _Off = 0) const noexcept {
+        // look for one of _Right 取值 or after _Off
+        return static_cast<size_type>(_Traits_find_first_of<_特征>(_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸,
+            _Off, _Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸));
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type 查找首次属于(_In_reads_(_Count) const _元素* const _Ptr, const size_type _Off,
+        const size_type _Count) const noexcept /* strengthened */ {
+        // look for one of [_Ptr, _Ptr + _Count) 取值 or after _Off
+        return static_cast<size_type>(
+            _Traits_find_first_of<_特征>(_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Off, _Ptr, _Count));
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type 查找首次属于(
+        _In_z_ const _元素* const _Ptr, const size_type _Off = 0) const noexcept
+    /* strengthened */ {
+        // look for one of [_Ptr, <null>) 取值 or after _Off
+        return static_cast<size_type>(_Traits_find_first_of<_特征>(
+            _Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Off, _Ptr, _特征::length(_Ptr)));
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type 查找首次属于(const _元素 _Ch, const size_type _Off = 0) const noexcept {
+        // look for _Ch 取值 or after _Off
+        return static_cast<size_type>(
+            _Traits_find_ch<_特征>(_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Off, _Ch));
+    }
+
+#if _HAS_CXX17
+    template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
+    _NODISCARD _CONSTEXPR20 size_type 查找末次属于(const _StringViewIsh& _Right, const size_type _Off = npos) const
+        noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, 基础字符串视图<_元素, _特征>>) {
+        // look for one of _Right before _Off
+        基础字符串视图<_元素, _特征> _As_view = _Right;
+        return static_cast<size_type>(_Traits_find_last_of<_特征>(
+            _Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Off, _As_view.数据(), _As_view.尺寸()));
+    }
+#endif // _HAS_CXX17
+
+    _NODISCARD _CONSTEXPR20 size_type 查找末次属于(const 基础字符串实现& _Right, size_type _Off = npos) const noexcept {
+        // look for one of _Right before _Off
+        return static_cast<size_type>(_Traits_find_last_of<_特征>(_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸,
+            _Off, _Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸));
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type 查找末次属于(_In_reads_(_Count) const _元素* const _Ptr, const size_type _Off,
+        const size_type _Count) const noexcept /* strengthened */ {
+        // look for one of [_Ptr, _Ptr + _Count) before _Off
+        return static_cast<size_type>(
+            _Traits_find_last_of<_特征>(_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Off, _Ptr, _Count));
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type 查找末次属于(
+        _In_z_ const _元素* const _Ptr, const size_type _Off = npos) const noexcept /* strengthened */ {
+        // look for one of [_Ptr, <null>) before _Off
+        return static_cast<size_type>(_Traits_find_last_of<_特征>(
+            _Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Off, _Ptr, _特征::length(_Ptr)));
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type 查找末次属于(const _元素 _Ch, const size_type _Off = npos) const noexcept {
+        // look for _Ch before _Off
+        return static_cast<size_type>(
+            _Traits_rfind_ch<_特征>(_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Off, _Ch));
+    }
+
+#if _HAS_CXX17
+    template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
+    _NODISCARD _CONSTEXPR20 size_type 查找首次不属于(const _StringViewIsh& _Right, const size_type _Off = 0) const
+        noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, 基础字符串视图<_元素, _特征>>) {
+        // look for none of _Right 取值 or after _Off
+        基础字符串视图<_元素, _特征> _As_view = _Right;
+        return static_cast<size_type>(_Traits_find_first_not_of<_特征>(
+            _Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Off, _As_view.数据(), _As_view.尺寸()));
+    }
+#endif // _HAS_CXX17
+
+    _NODISCARD _CONSTEXPR20 size_type 查找首次不属于(
+        const 基础字符串实现& _Right, const size_type _Off = 0) const noexcept {
+        // look for none of _Right 取值 or after _Off
+        return static_cast<size_type>(_Traits_find_first_not_of<_特征>(_Mypair._Myval2._我的指针(),
+            _Mypair._Myval2._我的尺寸, _Off, _Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸));
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type 查找首次不属于(_In_reads_(_Count) const _元素* const _Ptr,
+        const size_type _Off, const size_type _Count) const noexcept /* strengthened */ {
+        // look for none of [_Ptr, _Ptr + _Count) 取值 or after _Off
+        return static_cast<size_type>(
+            _Traits_find_first_not_of<_特征>(_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Off, _Ptr, _Count));
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type 查找首次不属于(
+        _In_z_ const _元素* const _Ptr, size_type _Off = 0) const noexcept
+    /* strengthened */ {
+        // look for one of [_Ptr, <null>) 取值 or after _Off
+        return static_cast<size_type>(_Traits_find_first_not_of<_特征>(
+            _Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Off, _Ptr, _特征::length(_Ptr)));
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type 查找首次不属于(const _元素 _Ch, const size_type _Off = 0) const noexcept {
+        // look for non-_Ch 取值 or after _Off
+        return static_cast<size_type>(
+            _Traits_find_not_ch<_特征>(_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Off, _Ch));
+    }
+
+#if _HAS_CXX17
+    template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
+    _NODISCARD _CONSTEXPR20 size_type 查找末次不属于(const _StringViewIsh& _Right, const size_type _Off = npos) const
+        noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, 基础字符串视图<_元素, _特征>>) {
+        // look for none of _Right before _Off
+        基础字符串视图<_元素, _特征> _As_view = _Right;
+        return static_cast<size_type>(_Traits_find_last_not_of<_特征>(
+            _Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Off, _As_view.数据(), _As_view.尺寸()));
+    }
+#endif // _HAS_CXX17
+
+    _NODISCARD _CONSTEXPR20 size_type 查找末次不属于(
+        const 基础字符串实现& _Right, const size_type _Off = npos) const noexcept {
+        // look for none of _Right before _Off
+        return static_cast<size_type>(_Traits_find_last_not_of<_特征>(_Mypair._Myval2._我的指针(),
+            _Mypair._Myval2._我的尺寸, _Off, _Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸));
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type 查找末次不属于(_In_reads_(_Count) const _元素* const _Ptr, const size_type _Off,
+        const size_type _Count) const noexcept /* strengthened */ {
+        // look for none of [_Ptr, _Ptr + _Count) before _Off
+        return static_cast<size_type>(
+            _Traits_find_last_not_of<_特征>(_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Off, _Ptr, _Count));
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type 查找末次不属于(
+        _In_z_ const _元素* const _Ptr, const size_type _Off = npos) const noexcept /* strengthened */ {
+        // look for none of [_Ptr, <null>) before _Off
+        return static_cast<size_type>(_Traits_find_last_not_of<_特征>(
+            _Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Off, _Ptr, _特征::length(_Ptr)));
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type 查找末次不属于(const _元素 _Ch, const size_type _Off = npos) const noexcept {
+        // look for non-_Ch before _Off
+        return static_cast<size_type>(
+            _Traits_rfind_not_ch<_特征>(_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Off, _Ch));
+    }
+
+#if _HAS_CXX17
+    _NODISCARD bool _开头为(const 基础字符串视图<_元素, _特征> _Right) const noexcept {
+        // Used exclusively by filesystem
+        return 基础字符串视图<_元素, _特征>(*this)._开头为(_Right);
+    }
+#endif // _HAS_CXX17
+
+    _NODISCARD _CONSTEXPR20 基础字符串实现 子串(const size_type _Off = 0, const size_type _Count = npos)
+#if _HAS_CXX23
+        const&
+#else
+        const
+#endif
+    {
+        // return [_Off, _Off + _Count) as new string, default-constructing its allocator
+        return 基础字符串实现{*this, _Off, _Count};
+    }
+
+#if _HAS_CXX23
+    _NODISCARD constexpr 基础字符串实现 子串(const size_type _Off = 0, const size_type _Count = npos) && {
+        // return [_Off, _Off + _Count) as new string, potentially moving, default-constructing its allocator
+        return 基础字符串实现{_STD move(*this), _Off, _Count};
+    }
+#endif // _HAS_CXX23
+
+    _CONSTEXPR20 bool _相等(const 基础字符串实现& _Right) const noexcept {
+        // compare [0, 尺寸()) with _Right for equality
+        return _Traits_equal<_特征>(_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸,
+            _Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸);
+    }
+
+    _CONSTEXPR20 bool _相等(_In_z_ const _元素* const _Ptr) const noexcept {
+        // compare [0, 尺寸()) with _Ptr for equality
+        return _Traits_equal<_特征>(_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Ptr, _特征::length(_Ptr));
+    }
+
+#if _HAS_CXX17
+    template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
+    _NODISCARD _CONSTEXPR20 int compare(const _StringViewIsh& _Right) const
+        noexcept(_Is_nothrow_convertible_v<const _StringViewIsh&, 基础字符串视图<_元素, _特征>>) {
+        // compare [0, 尺寸()) with _Right
+        基础字符串视图<_元素, _特征> _As_view = _Right;
+        return _Traits_compare<_特征>(
+            _Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _As_view.数据(), _As_view.尺寸());
+    }
+
+    template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
+    _NODISCARD _CONSTEXPR20 int compare(const size_type _Off, const size_type _Nx, const _StringViewIsh& _Right) const {
+        // compare [_Off, _Off + _Nx) with _Right
+        基础字符串视图<_元素, _特征> _As_view = _Right;
+        _Mypair._Myval2._检查偏移(_Off);
+        return _Traits_compare<_特征>(_Mypair._Myval2._我的指针() + _Off, _Mypair._Myval2._夹取后缀尺寸(_Off, _Nx),
+            _As_view.数据(), _As_view.尺寸());
+    }
+
+    template <class _StringViewIsh, _是字符串视图类<_StringViewIsh> = 0>
+    _NODISCARD _CONSTEXPR20 int compare(const size_type _Off, const size_type _Nx, const _StringViewIsh& _Right,
+        const size_type _Roff, const size_type _Count = npos) const {
+        // compare [_Off, _Off + _Nx) with _Right [_Roff, _Roff + _Count)
+        基础字符串视图<_元素, _特征> _As_view = _Right;
+        _Mypair._Myval2._检查偏移(_Off);
+        const auto _With_substr = _As_view.子串(_Roff, _Count);
+        return _Traits_compare<_特征>(_Mypair._Myval2._我的指针() + _Off, _Mypair._Myval2._夹取后缀尺寸(_Off, _Nx),
+            _With_substr.数据(), _With_substr.尺寸());
+    }
+#endif // _HAS_CXX17
+
+    _NODISCARD _CONSTEXPR20 int compare(const 基础字符串实现& _Right) const noexcept {
+        // compare [0, 尺寸()) with _Right
+        return _Traits_compare<_特征>(_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸,
+            _Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸);
+    }
+
+    _NODISCARD _CONSTEXPR20 int compare(size_type _Off, size_type _Nx, const 基础字符串实现& _Right) const {
+        // compare [_Off, _Off + _Nx) with _Right
+        _Mypair._Myval2._检查偏移(_Off);
+        return _Traits_compare<_特征>(_Mypair._Myval2._我的指针() + _Off, _Mypair._Myval2._夹取后缀尺寸(_Off, _Nx),
+            _Right._Mypair._Myval2._我的指针(), _Right._Mypair._Myval2._我的尺寸);
+    }
+
+    _NODISCARD _CONSTEXPR20 int compare(const size_type _Off, const size_type _Nx, const 基础字符串实现& _Right,
+        const size_type _Roff, const size_type _Count = npos) const {
+        // compare [_Off, _Off + _Nx) with _Right [_Roff, _Roff + _Count)
+        _Mypair._Myval2._检查偏移(_Off);
+        _Right._Mypair._Myval2._检查偏移(_Roff);
+        return _Traits_compare<_特征>(_Mypair._Myval2._我的指针() + _Off, _Mypair._Myval2._夹取后缀尺寸(_Off, _Nx),
+            _Right._Mypair._Myval2._我的指针() + _Roff, _Right._Mypair._Myval2._夹取后缀尺寸(_Roff, _Count));
+    }
+
+    _NODISCARD _CONSTEXPR20 int compare(_In_z_ const _元素* const _Ptr) const noexcept /* strengthened */ {
+        // compare [0, 尺寸()) with [_Ptr, <null>)
+        return _Traits_compare<_特征>(_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸, _Ptr, _特征::length(_Ptr));
+    }
+
+    _NODISCARD _CONSTEXPR20 int compare(
+        const size_type _Off, const size_type _Nx, _In_z_ const _元素* const _Ptr) const {
+        // compare [_Off, _Off + _Nx) with [_Ptr, <null>)
+        _Mypair._Myval2._检查偏移(_Off);
+        return _Traits_compare<_特征>(_Mypair._Myval2._我的指针() + _Off, _Mypair._Myval2._夹取后缀尺寸(_Off, _Nx),
+            _Ptr, _特征::length(_Ptr));
+    }
+
+    _NODISCARD _CONSTEXPR20 int compare(const size_type _Off, const size_type _Nx,
+        _In_reads_(_Count) const _元素* const _Ptr, const size_type _Count) const {
+        // compare [_Off, _Off + _Nx) with [_Ptr, _Ptr + _Count)
+        _Mypair._Myval2._检查偏移(_Off);
+        return _Traits_compare<_特征>(
+            _Mypair._Myval2._我的指针() + _Off, _Mypair._Myval2._夹取后缀尺寸(_Off, _Nx), _Ptr, _Count);
+    }
+
+#if _HAS_CXX20
+    _NODISCARD constexpr bool 开头为(const 基础字符串视图<_元素, _特征> _Right) const noexcept {
+        return 基础字符串视图<_元素, _特征>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸}.开头为(_Right);
+    }
+
+    _NODISCARD constexpr bool 开头为(const _元素 _Right) const noexcept {
+        return 基础字符串视图<_元素, _特征>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸}.开头为(_Right);
+    }
+
+    _NODISCARD constexpr bool 开头为(const _元素* const _Right) const noexcept /* strengthened */ {
+        return 基础字符串视图<_元素, _特征>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸}.开头为(_Right);
+    }
+
+    _NODISCARD constexpr bool 结尾为(const 基础字符串视图<_元素, _特征> _Right) const noexcept {
+        return 基础字符串视图<_元素, _特征>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸}.结尾为(_Right);
+    }
+
+    _NODISCARD constexpr bool 结尾为(const _元素 _Right) const noexcept {
+        return 基础字符串视图<_元素, _特征>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸}.结尾为(_Right);
+    }
+
+    _NODISCARD constexpr bool 结尾为(const _元素* const _Right) const noexcept /* strengthened */ {
+        return 基础字符串视图<_元素, _特征>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸}.结尾为(_Right);
+    }
+#endif // _HAS_CXX20
+
+#if _HAS_CXX23
+    _NODISCARD constexpr bool 包含(const 基础字符串视图<_元素, _特征> _Right) const noexcept {
+        return 基础字符串视图<_元素, _特征>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸}.包含(_Right);
+    }
+
+    _NODISCARD constexpr bool 包含(const _元素 _Right) const noexcept {
+        return 基础字符串视图<_元素, _特征>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸}.包含(_Right);
+    }
+
+    _NODISCARD constexpr bool 包含(const _元素* const _Right) const noexcept /* strengthened */ {
+        return 基础字符串视图<_元素, _特征>{_Mypair._Myval2._我的指针(), _Mypair._Myval2._我的尺寸}.包含(_Right);
+    }
+#endif // _HAS_CXX23
+
+    _NODISCARD _CONSTEXPR20 分配器类型 取分配器() const noexcept {
+        return static_cast<分配器类型>(_取分配器());
+    }
+
+private:
+    _NODISCARD static _CONSTEXPR20 size_type _计算增长(
+        const size_type _Requested, const size_type _Old, const size_type _最大) noexcept {
+        const size_type _Masked = _Requested | _Alloc_mask;
+        if (_Masked > _最大) { // the mask overflows, settle for max_size()
+            return _最大;
+        }
+
+        if (_Old > _最大 - _Old / 2) { // similarly, geometric overflows
+            return _最大;
+        }
+
+        return (_STD max)(_Masked, _Old + _Old / 2);
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type _计算增长(const size_type _Requested) const noexcept {
+        return _计算增长(_Requested, _Mypair._Myval2._Myres, max_size());
+    }
+
+    template <class _Fty, class... _ArgTys>
+    _CONSTEXPR20 基础字符串实现& _为重分配(const size_type _New_size, _Fty _Fn, _ArgTys... _Args) {
+        // reallocate to store exactly _New_size elements, new buffer prepared by
+        // _Fn(_New_ptr, _New_size, _Args...)
+        if (_New_size > max_size()) {
+            _Xlen_string(); // result too long
+        }
+
+        const size_type _Old_capacity = _Mypair._Myval2._Myres;
+        size_type _New_capacity       = _计算增长(_New_size);
+        auto& _Al                     = _取分配器();
+        const pointer _New_ptr        = _按容量分配(_Al, _New_capacity); // throws
+
+        _Mypair._Myval2._孤儿化全部();
+        _ASAN_串移除(*this);
+        _Mypair._Myval2._我的尺寸 = _New_size;
+        _Mypair._Myval2._Myres  = _New_capacity;
+        _Fn(_去花式(_New_ptr), _New_size, _Args...);
+        if (_Old_capacity > _Small_string_capacity) {
+            _按容量释放(_Al, _Mypair._Myval2._Bx._Ptr, _Old_capacity);
+            _Mypair._Myval2._Bx._Ptr = _New_ptr;
+        } else {
+            _就地构造(_Mypair._Myval2._Bx._Ptr, _New_ptr);
+        }
+
+        _ASAN_串创建(*this);
+        return *this;
+    }
+
+    template <class _Fty, class... _ArgTys>
+    _CONSTEXPR20 基础字符串实现& _按增量重分配(const size_type _Size_increase, _Fty _Fn, _ArgTys... _Args) {
+        // reallocate to increase 尺寸 by _Size_increase elements, new buffer prepared by
+        // _Fn(_New_ptr, _Old_ptr, _Old_size, _Args...)
+        auto& _My_data            = _Mypair._Myval2;
+        const size_type _Old_size = _My_data._我的尺寸;
+        if (max_size() - _Old_size < _Size_increase) {
+            _Xlen_string(); // result too long
+        }
+
+        const size_type _New_size     = _Old_size + _Size_increase;
+        const size_type _Old_capacity = _My_data._Myres;
+        size_type _New_capacity       = _计算增长(_New_size);
+        auto& _Al                     = _取分配器();
+        const pointer _New_ptr        = _按容量分配(_Al, _New_capacity); // throws
+
+        _My_data._孤儿化全部();
+        _ASAN_串移除(*this);
+        _My_data._我的尺寸      = _New_size;
+        _My_data._Myres       = _New_capacity;
+        _元素* const _Raw_new = _去花式(_New_ptr);
+        if (_Old_capacity > _Small_string_capacity) {
+            const pointer _Old_ptr = _My_data._Bx._Ptr;
+            _Fn(_Raw_new, _去花式(_Old_ptr), _Old_size, _Args...);
+            _按容量释放(_Al, _Old_ptr, _Old_capacity);
+            _My_data._Bx._Ptr = _New_ptr;
+        } else {
+            _Fn(_Raw_new, _My_data._Bx._Buf, _Old_size, _Args...);
+            _就地构造(_My_data._Bx._Ptr, _New_ptr);
+        }
+
+        _ASAN_串创建(*this);
+        return *this;
+    }
+
+    _CONSTEXPR20 void _转为小串() noexcept {
+        // release any held storage and return to small string mode
+        auto& _My_data = _Mypair._Myval2;
+        _STL_INTERNAL_CHECK(_My_data._已启用大串模式());
+        _STL_INTERNAL_CHECK(_My_data._我的尺寸 <= _Small_string_capacity);
+
+        _My_data._孤儿化全部();
+        _ASAN_串移除(*this);
+        const pointer _Ptr = _My_data._Bx._Ptr;
+        _My_data._Bx._切换到缓冲();
+        _特征::copy(_My_data._Bx._Buf, _去花式(_Ptr), _My_data._我的尺寸 + 1);
+        auto& _Al = _取分配器();
+        _按容量释放(_Al, _Ptr, _My_data._Myres);
+        _My_data._Myres = _Small_string_capacity;
+    }
+
+    _CONSTEXPR20 void _串尾(const size_type _New_size) noexcept { // set new length and null terminator
+        _ASAN_串修改(*this, _Mypair._Myval2._我的尺寸, _New_size);
+        _Mypair._Myval2._我的尺寸 = _New_size;
+        _特征::assign(_Mypair._Myval2._我的指针()[_New_size], _元素());
+    }
+
+    _CONSTEXPR20 void _清理释放() noexcept { // initialize buffer, deallocating any storage
+        auto& _My_data = _Mypair._Myval2;
+        _My_data._孤儿化全部();
+        if (_My_data._已启用大串模式()) {
+            _ASAN_串移除(*this);
+            auto& _Al = _取分配器();
+            _按容量释放(_Al, _My_data._Bx._Ptr, _My_data._Myres);
+            _My_data._Bx._切换到缓冲();
+        }
+
+        _My_data._我的尺寸 = 0;
+        _My_data._Myres  = _Small_string_capacity;
+        // the _特征::assign is last so the codegen doesn't think the char write can alias this
+        _特征::assign(_My_data._Bx._Buf[0], _元素());
+    }
+
+public:
+    _CONSTEXPR20 void _孤儿化全部() noexcept { // used by filesystem::path
+        _Mypair._Myval2._孤儿化全部();
+    }
+
+private:
+    _CONSTEXPR20 void _交换代理与迭代器(基础字符串实现& _Right) noexcept {
+        _Mypair._Myval2._交换代理与迭代器(_Right._Mypair._Myval2);
+    }
+
+    _CONSTEXPR20 _分配器类型& _取分配器() noexcept {
+        return _Mypair._取第一();
+    }
+
+    _CONSTEXPR20 const _分配器类型& _取分配器() const noexcept {
+        return _Mypair._取第一();
+    }
+
+    _压缩对<_分配器类型, _迭代器检查值> _Mypair;
+};
+
+#if _HAS_CXX17
+template <class _Iter, class _分配器 = allocator<_Iter_value_t<_Iter>>,
+    enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_allocator<_分配器>>, int> = 0>
+基础字符串实现(_Iter, _Iter, _分配器 = _分配器())
+    -> 基础字符串实现<_Iter_value_t<_Iter>, char_traits<_Iter_value_t<_Iter>>, _分配器>;
+
+template <class _元素, class _特征, class _分配器 = allocator<_元素>,
+    enable_if_t<_Is_allocator<_分配器>::value, int> = 0>
+explicit 基础字符串实现(基础字符串视图<_元素, _特征>, const _分配器& = _分配器())
+    -> 基础字符串实现<_元素, _特征, _分配器>;
+
+template <class _元素, class _特征, class _分配器 = allocator<_元素>,
+    enable_if_t<_Is_allocator<_分配器>::value, int> = 0>
+基础字符串实现(基础字符串视图<_元素, _特征>, _推导尺寸类型<_分配器>, _推导尺寸类型<_分配器>,
+    const _分配器& = _分配器()) -> 基础字符串实现<_元素, _特征, _分配器>;
+
+#if _HAS_CXX23
+template <_RANGES input_range _Rng, _Allocator_for_container _分配器 = allocator<_RANGES range_value_t<_Rng>>>
+基础字符串实现(from_range_t, _Rng&&, _分配器 = _分配器())
+    -> 基础字符串实现<_RANGES range_value_t<_Rng>, char_traits<_RANGES range_value_t<_Rng>>, _分配器>;
+#endif // _HAS_CXX23
+#endif // _HAS_CXX17
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+_CONSTEXPR20 void swap(基础字符串实现<_元素, _特征, _分配器>& _Left,
+    基础字符串实现<_元素, _特征, _分配器>& _Right) noexcept /* strengthened */ {
+    _Left.swap(_Right);
+}
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+_NODISCARD _CONSTEXPR20 基础字符串实现<_元素, _特征, _分配器> operator+(
+    const 基础字符串实现<_元素, _特征, _分配器>& _Left, const 基础字符串实现<_元素, _特征, _分配器>& _Right) {
+    const auto _Left_size  = _Left.尺寸();
+    const auto _Right_size = _Right.尺寸();
+    if (_Left.max_size() - _Left_size < _Right_size) {
+        _Xlen_string();
+    }
+
+    return {_字符串构造连接标号{}, _Left, _Left.C字符串(), _Left_size, _Right.C字符串(), _Right_size};
+}
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+_NODISCARD _CONSTEXPR20 基础字符串实现<_元素, _特征, _分配器> operator+(
+    _In_z_ const _元素* const _Left, const 基础字符串实现<_元素, _特征, _分配器>& _Right) {
+    using _尺寸类型       = typename 基础字符串实现<_元素, _特征, _分配器>::size_type;
+    const auto _Left_size  = _Convert_size<_尺寸类型>(_特征::length(_Left));
+    const auto _Right_size = _Right.尺寸();
+    if (_Right.max_size() - _Right_size < _Left_size) {
+        _Xlen_string();
+    }
+
+    return {_字符串构造连接标号{}, _Right, _Left, _Left_size, _Right.C字符串(), _Right_size};
+}
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+_NODISCARD _CONSTEXPR20 基础字符串实现<_元素, _特征, _分配器> operator+(
+    const _元素 _Left, const 基础字符串实现<_元素, _特征, _分配器>& _Right) {
+    const auto _Right_size = _Right.尺寸();
+    if (_Right_size == _Right.max_size()) {
+        _Xlen_string();
+    }
+
+    return {_字符串构造连接标号{}, _Right, _STD addressof(_Left), 1, _Right.C字符串(), _Right_size};
+}
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+_NODISCARD _CONSTEXPR20 基础字符串实现<_元素, _特征, _分配器> operator+(
+    const 基础字符串实现<_元素, _特征, _分配器>& _Left, _In_z_ const _元素* const _Right) {
+    using _尺寸类型       = typename 基础字符串实现<_元素, _特征, _分配器>::size_type;
+    const auto _Left_size  = _Left.尺寸();
+    const auto _Right_size = _Convert_size<_尺寸类型>(_特征::length(_Right));
+    if (_Left.max_size() - _Left_size < _Right_size) {
+        _Xlen_string();
+    }
+
+    return {_字符串构造连接标号{}, _Left, _Left.C字符串(), _Left_size, _Right, _Right_size};
+}
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+_NODISCARD _CONSTEXPR20 基础字符串实现<_元素, _特征, _分配器> operator+(
+    const 基础字符串实现<_元素, _特征, _分配器>& _Left, const _元素 _Right) {
+    const auto _Left_size = _Left.尺寸();
+    if (_Left_size == _Left.max_size()) {
+        _Xlen_string();
+    }
+
+    return {_字符串构造连接标号{}, _Left, _Left.C字符串(), _Left_size, _STD addressof(_Right), 1};
+}
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+_NODISCARD _CONSTEXPR20 基础字符串实现<_元素, _特征, _分配器> operator+(
+    const 基础字符串实现<_元素, _特征, _分配器>& _Left, 基础字符串实现<_元素, _特征, _分配器>&& _Right) {
+    return _STD move(_Right.插入(0, _Left));
+}
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+_NODISCARD _CONSTEXPR20 基础字符串实现<_元素, _特征, _分配器> operator+(
+    基础字符串实现<_元素, _特征, _分配器>&& _Left, const 基础字符串实现<_元素, _特征, _分配器>& _Right) {
+    return _STD move(_Left.追加(_Right));
+}
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+_NODISCARD _CONSTEXPR20 基础字符串实现<_元素, _特征, _分配器> operator+(
+    基础字符串实现<_元素, _特征, _分配器>&& _Left, 基础字符串实现<_元素, _特征, _分配器>&& _Right) {
+#if _ITERATOR_DEBUG_LEVEL == 2
+    _STL_VERIFY(_STD addressof(_Left) != _STD addressof(_Right),
+        "You cannot concatenate the same moved string to itself. See N4950 [res.on.arguments]/1.3: "
+        "If a function argument is bound to an rvalue reference parameter, the implementation may assume that "
+        "this parameter is a unique reference to this argument, except that the argument passed to "
+        "a move-assignment operator may be a reference to *this ([lib.types.movedfrom]).");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+    return {_字符串构造连接标号{}, _Left, _Right};
+}
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+_NODISCARD _CONSTEXPR20 基础字符串实现<_元素, _特征, _分配器> operator+(
+    _In_z_ const _元素* const _Left, 基础字符串实现<_元素, _特征, _分配器>&& _Right) {
+    return _STD move(_Right.插入(0, _Left));
+}
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+_NODISCARD _CONSTEXPR20 基础字符串实现<_元素, _特征, _分配器> operator+(
+    const _元素 _Left, 基础字符串实现<_元素, _特征, _分配器>&& _Right) {
+    return _STD move(_Right.插入(0, 1, _Left));
+}
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+_NODISCARD _CONSTEXPR20 基础字符串实现<_元素, _特征, _分配器> operator+(
+    基础字符串实现<_元素, _特征, _分配器>&& _Left, _In_z_ const _元素* const _Right) {
+    return _STD move(_Left.追加(_Right));
+}
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+_NODISCARD _CONSTEXPR20 基础字符串实现<_元素, _特征, _分配器> operator+(
+    基础字符串实现<_元素, _特征, _分配器>&& _Left, const _元素 _Right) {
+    _Left.尾插(_Right);
+    return _STD move(_Left);
+}
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+_NODISCARD _CONSTEXPR20 bool operator==(
+    const 基础字符串实现<_元素, _特征, _分配器>& _Left, const 基础字符串实现<_元素, _特征, _分配器>& _Right) noexcept {
+    return _Left._相等(_Right);
+}
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+_NODISCARD _CONSTEXPR20 bool operator==(
+    const 基础字符串实现<_元素, _特征, _分配器>& _Left, _In_z_ const _元素* const _Right) noexcept /* strengthened */ {
+    return _Left._相等(_Right);
+}
+
+#if _HAS_CXX20
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+_NODISCARD constexpr _取比较类别类型<_特征> operator<=>(
+    const 基础字符串实现<_元素, _特征, _分配器>& _Left, const 基础字符串实现<_元素, _特征, _分配器>& _Right) noexcept {
+    return static_cast<_取比较类别类型<_特征>>(_Left.compare(_Right) <=> 0);
+}
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+_NODISCARD constexpr _取比较类别类型<_特征> operator<=>(
+    const 基础字符串实现<_元素, _特征, _分配器>& _Left, _In_z_ const _元素* const _Right) noexcept /* strengthened */ {
+    return static_cast<_取比较类别类型<_特征>>(_Left.compare(_Right) <=> 0);
+}
+#else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
+template <class _元素, class _特征, class _分配器>
+_NODISCARD bool operator==(_In_z_ const _元素* const _Left, const 基础字符串实现<_元素, _特征, _分配器>& _Right) noexcept
+/* strengthened */ {
+    return _Right._相等(_Left);
+}
+
+template <class _元素, class _特征, class _分配器>
+_NODISCARD bool operator!=(
+    const 基础字符串实现<_元素, _特征, _分配器>& _Left, const 基础字符串实现<_元素, _特征, _分配器>& _Right) noexcept {
+    return !(_Left == _Right);
+}
+
+template <class _元素, class _特征, class _分配器>
+_NODISCARD bool operator!=(_In_z_ const _元素* const _Left, const 基础字符串实现<_元素, _特征, _分配器>& _Right) noexcept
+/* strengthened */ {
+    return !(_Left == _Right);
+}
+
+template <class _元素, class _特征, class _分配器>
+_NODISCARD bool operator!=(const 基础字符串实现<_元素, _特征, _分配器>& _Left, _In_z_ const _元素* const _Right) noexcept
+/* strengthened */ {
+    return !(_Left == _Right);
+}
+
+template <class _元素, class _特征, class _分配器>
+_NODISCARD bool operator<(
+    const 基础字符串实现<_元素, _特征, _分配器>& _Left, const 基础字符串实现<_元素, _特征, _分配器>& _Right) noexcept {
+    return _Left.compare(_Right) < 0;
+}
+
+template <class _元素, class _特征, class _分配器>
+_NODISCARD bool operator<(_In_z_ const _元素* const _Left, const 基础字符串实现<_元素, _特征, _分配器>& _Right) noexcept
+/* strengthened */ {
+    return _Right.compare(_Left) > 0;
+}
+
+template <class _元素, class _特征, class _分配器>
+_NODISCARD bool operator<(const 基础字符串实现<_元素, _特征, _分配器>& _Left, _In_z_ const _元素* const _Right) noexcept
+/* strengthened */ {
+    return _Left.compare(_Right) < 0;
+}
+
+template <class _元素, class _特征, class _分配器>
+_NODISCARD bool operator>(
+    const 基础字符串实现<_元素, _特征, _分配器>& _Left, const 基础字符串实现<_元素, _特征, _分配器>& _Right) noexcept {
+    return _Right < _Left;
+}
+
+template <class _元素, class _特征, class _分配器>
+_NODISCARD bool operator>(_In_z_ const _元素* const _Left, const 基础字符串实现<_元素, _特征, _分配器>& _Right) noexcept
+/* strengthened */ {
+    return _Right < _Left;
+}
+
+template <class _元素, class _特征, class _分配器>
+_NODISCARD bool operator>(const 基础字符串实现<_元素, _特征, _分配器>& _Left, _In_z_ const _元素* const _Right) noexcept
+/* strengthened */ {
+    return _Right < _Left;
+}
+
+template <class _元素, class _特征, class _分配器>
+_NODISCARD bool operator<=(
+    const 基础字符串实现<_元素, _特征, _分配器>& _Left, const 基础字符串实现<_元素, _特征, _分配器>& _Right) noexcept {
+    return !(_Right < _Left);
+}
+
+template <class _元素, class _特征, class _分配器>
+_NODISCARD bool operator<=(_In_z_ const _元素* const _Left, const 基础字符串实现<_元素, _特征, _分配器>& _Right) noexcept
+/* strengthened */ {
+    return !(_Right < _Left);
+}
+
+template <class _元素, class _特征, class _分配器>
+_NODISCARD bool operator<=(const 基础字符串实现<_元素, _特征, _分配器>& _Left, _In_z_ const _元素* const _Right) noexcept
+/* strengthened */ {
+    return !(_Right < _Left);
+}
+
+template <class _元素, class _特征, class _分配器>
+_NODISCARD bool operator>=(
+    const 基础字符串实现<_元素, _特征, _分配器>& _Left, const 基础字符串实现<_元素, _特征, _分配器>& _Right) noexcept {
+    return !(_Left < _Right);
+}
+
+template <class _元素, class _特征, class _分配器>
+_NODISCARD bool operator>=(_In_z_ const _元素* const _Left, const 基础字符串实现<_元素, _特征, _分配器>& _Right) noexcept
+/* strengthened */ {
+    return !(_Left < _Right);
+}
+
+template <class _元素, class _特征, class _分配器>
+_NODISCARD bool operator>=(const 基础字符串实现<_元素, _特征, _分配器>& _Left, _In_z_ const _元素* const _Right) noexcept
+/* strengthened */ {
+    return !(_Left < _Right);
+}
+#endif // ^^^ !_HAS_CXX20 ^^^
+
+_EXPORT_STD using string  = 基础字符串实现<char, char_traits<char>, allocator<char>>;
+_EXPORT_STD using wstring = 基础字符串实现<wchar_t, char_traits<wchar_t>, allocator<wchar_t>>;
+#ifdef __cpp_lib_char8_t
+_EXPORT_STD using u8string = 基础字符串实现<char8_t, char_traits<char8_t>, allocator<char8_t>>;
+#endif // defined(__cpp_lib_char8_t)
+_EXPORT_STD using u16string = 基础字符串实现<char16_t, char_traits<char16_t>, allocator<char16_t>>;
+_EXPORT_STD using u32string = 基础字符串实现<char32_t, char_traits<char32_t>, allocator<char32_t>>;
+
+template <class _元素, class _分配器>
+struct hash<基础字符串实现<_元素, char_traits<_元素>, _分配器>>
+    : _Conditionally_enabled_hash<基础字符串实现<_元素, char_traits<_元素>, _分配器>, _Is_EcharT<_元素>> {
+    _NODISCARD static size_t _求散列(const 基础字符串实现<_元素, char_traits<_元素>, _分配器>& _Keyval) noexcept {
+        return _散列数组表示(_Keyval.C字符串(), _Keyval.尺寸());
+    }
+};
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+basic_istream<_元素, _特征>& operator>>(
+    basic_istream<_元素, _特征>& _Istr, 基础字符串实现<_元素, _特征, _分配器>& _Str) {
+    using _我的输入流   = basic_istream<_元素, _特征>;
+    using _字符类型  = typename _我的输入流::_字符类型;
+    using _我的字符串  = 基础字符串实现<_元素, _特征, _分配器>;
+    using _我的尺寸类型 = typename _我的字符串::size_type;
+
+    typename _我的输入流::iostate _State = _我的输入流::goodbit;
+    bool _Changed                  = false;
+    const typename _我的输入流::sentry _成功(_Istr);
+
+    if (_成功) { // state okay, extract characters
+        const _字符类型& _Ctype_fac = _STD use_facet<_字符类型>(_Istr.getloc());
+        _Str.擦除();
+
+        _TRY_IO_BEGIN
+        _我的尺寸类型 _Size;
+        if (0 < _Istr.width() && static_cast<_我的尺寸类型>(_Istr.width()) < _Str.max_size()) {
+            _Size = static_cast<_我的尺寸类型>(_Istr.width());
+        } else {
+            _Size = _Str.max_size();
+        }
+
+        typename _特征::int_type _Meta = _Istr.rdbuf()->sgetc();
+
+        for (; 0 < _Size; --_Size, _Meta = _Istr.rdbuf()->snextc()) {
+            if (_特征::eq_int_type(_特征::eof(), _Meta)) { // 结束 of file, quit
+                _State |= _我的输入流::eofbit;
+                break;
+            } else if (_Ctype_fac.is(_字符类型::space, _特征::to_char_type(_Meta))) {
+                break; // whitespace, quit
+            } else { // add character to string
+                _Str.尾插(_特征::to_char_type(_Meta));
+                _Changed = true;
+            }
+        }
+        _CATCH_IO_(_我的输入流, _Istr)
+    }
+
+    _Istr.width(0);
+    if (!_Changed) {
+        _State |= _我的输入流::failbit;
+    }
+
+    _Istr.setstate(_State);
+    return _Istr;
+}
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+basic_ostream<_元素, _特征>& operator<<(
+    basic_ostream<_元素, _特征>& _Ostr, const 基础字符串实现<_元素, _特征, _分配器>& _Str) {
+    return _插入字符串(_Ostr, _Str.数据(), _Str.尺寸());
+}
+
+inline namespace literals {
+    inline namespace string_literals {
+        _EXPORT_STD _NODISCARD _CONSTEXPR20 string operator""s(const char* _Str, size_t _Len) {
+            return string{_Str, _Len};
+        }
+
+        _EXPORT_STD _NODISCARD _CONSTEXPR20 wstring operator""s(const wchar_t* _Str, size_t _Len) {
+            return wstring{_Str, _Len};
+        }
+
+#ifdef __cpp_char8_t
+        _EXPORT_STD _NODISCARD _CONSTEXPR20 基础字符串实现<char8_t> operator""s(const char8_t* _Str, size_t _Len) {
+            return 基础字符串实现<char8_t>{_Str, _Len};
+        }
+#endif // defined(__cpp_char8_t)
+
+        _EXPORT_STD _NODISCARD _CONSTEXPR20 u16string operator""s(const char16_t* _Str, size_t _Len) {
+            return u16string{_Str, _Len};
+        }
+
+        _EXPORT_STD _NODISCARD _CONSTEXPR20 u32string operator""s(const char32_t* _Str, size_t _Len) {
+            return u32string{_Str, _Len};
+        }
+    } // namespace string_literals
+} // namespace literals
+
+#if _HAS_CXX20
+_EXPORT_STD template <class _元素, class _特征, class _分配器, class _结果类型>
+constexpr 基础字符串实现<_元素, _特征, _分配器>::size_type 擦除(
+    基础字符串实现<_元素, _特征, _分配器>& _Cont, const _结果类型& _Val) {
+    return _擦除并移除(_Cont, _Val);
+}
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器, class _Pr>
+constexpr 基础字符串实现<_元素, _特征, _分配器>::size_type erase_if(
+    基础字符串实现<_元素, _特征, _分配器>& _Cont, _Pr _Pred) {
+    return _按条件擦除并移除(_Cont, _传递函数(_Pred));
+}
+#endif // _HAS_CXX20
+
+#if _HAS_CXX17
+namespace pmr {
+    使用 名域 std::pmr;   // 嵌套名域暂不翻，但里面的名字要靠它找到（步 2b）
+    _EXPORT_STD template <class _元素, class _特征 = char_traits<_元素>>
+    using 基础字符串实现 = 基础字符串实现<_元素, _特征, polymorphic_allocator<_元素>>;
+
+    _EXPORT_STD using string = 基础字符串实现<char>;
+#ifdef __cpp_lib_char8_t
+    _EXPORT_STD using u8string = 基础字符串实现<char8_t>;
+#endif // defined(__cpp_lib_char8_t)
+    _EXPORT_STD using u16string = 基础字符串实现<char16_t>;
+    _EXPORT_STD using u32string = 基础字符串实现<char32_t>;
+    _EXPORT_STD using wstring   = 基础字符串实现<wchar_t>;
+} // namespace pmr
+#endif // _HAS_CXX17
+} }
+
+#undef _ASAN_串移除
+#undef _ASAN_串创建
+#undef _ASAN_串修改
+#undef _INSERT_STRING_ANNOTATION
+
+#pragma pop_macro("new")
+_STL_RESTORE_CLANG_WARNINGS
+#pragma warning(pop)
+#pragma pack(pop)
+#endif // _STL_COMPILER_PREPROCESSOR
+
+
+#endif // _XSTRING_

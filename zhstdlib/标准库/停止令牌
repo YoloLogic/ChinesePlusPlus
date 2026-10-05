@@ -1,0 +1,462 @@
+#include <stop_token>
+// 停止令牌实现 standard header
+
+// Copyright (c) Microsoft Corporation.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#ifndef _ZH_STOP_TOKEN_
+#define _ZH_STOP_TOKEN_
+#include <yvals.h>
+#if _STL_COMPILER_PREPROCESSOR
+
+#if !_HAS_CXX20
+_EMIT_STL_WARNING(STL4038, "The contents of <停止令牌实现> are available only with C++20 or later.");
+#else // ^^^ !_HAS_CXX20 / _HAS_CXX20 vvv
+
+#include <atomic>
+#include <内存内部件>
+#include <xthreads.h>
+
+#pragma pack(push, _CRT_PACKING)
+#pragma warning(push, _STL_WARNING_LEVEL)
+#pragma warning(disable : _STL_DISABLED_WARNINGS)
+_STL_DISABLE_CLANG_WARNINGS
+#pragma push_macro("new")
+#undef new
+
+名域 标准 { 名域 细节 {
+使用 名域 std;
+_EXPORT_STD struct 无停止状态类型 {
+    explicit 无停止状态类型() = default;
+};
+
+_EXPORT_STD inline constexpr 无停止状态类型 nostopstate{};
+
+struct _停止状态;
+_EXPORT_STD class 停止令牌实现;
+
+class _停止回调基类 {
+    friend _停止状态;
+
+private:
+    using _回调函数指针 = void(__cdecl*)(_停止回调基类*) _NOEXCEPT_FNPTR;
+
+public:
+    explicit _停止回调基类(const _回调函数指针 _Fn_) noexcept : _Fn{_Fn_} {}
+
+    _停止回调基类(const _停止回调基类&)            = delete;
+    _停止回调基类& operator=(const _停止回调基类&) = delete;
+
+protected:
+    // if _Token is _已请求停止, calls the callback;
+    // otherwise, inserts *this into the callback list if stop is possible
+    inline void _附着(const 停止令牌实现& _Token) noexcept;
+    inline void _附着(停止令牌实现&& _Token) noexcept;
+
+    // if *this is in a callback list, removes it
+    inline void _脱离() noexcept;
+
+private:
+    template <bool _转移所有权>
+    void _执行附着(conditional_t<_转移所有权, _停止状态*&, _停止状态* const> _State) noexcept;
+
+protected:
+    _停止状态* _Parent       = nullptr;
+    _停止回调基类* _Next = nullptr;
+    _停止回调基类* _Prev = nullptr;
+    _回调函数指针 _Fn;
+};
+
+struct _停止状态 {
+    atomic<uint32_t> _Stop_tokens  = 1; // 加法 one shared by all stop_sources
+    atomic<uint32_t> _Stop_sources = 2; // 加法 the low order bit is the stop requested bit
+    _Locked_pointer<_停止回调基类> _Callbacks;
+    // always uses relaxed operations; ordering provided by the _Callbacks lock
+    // (atomic just to get wait/notify support)
+    atomic<const _停止回调基类*> _Current_callback = nullptr;
+    _Thrd_id_t _Stopping_thread                          = 0;
+
+    _NODISCARD bool _已请求停止() const noexcept {
+        return (_Stop_sources.load() & uint32_t{1}) != 0;
+    }
+
+    _NODISCARD bool _可停止() const noexcept {
+        return _Stop_sources.load() != 0;
+    }
+
+    _NODISCARD bool _请求停止() noexcept {
+        // Attempts to request stop and call callbacks, returns whether request was successful
+        if ((_Stop_sources.fetch_or(uint32_t{1}) & uint32_t{1}) != 0) {
+            // another thread already requested
+            return false;
+        }
+
+        _Stopping_thread = _Thrd_id();
+        for (;;) {
+            auto _Head = _Callbacks._Lock_and_load();
+            _Current_callback.store(_Head, memory_order_relaxed);
+            _Current_callback.notify_all();
+            if (_Head == nullptr) {
+                _Callbacks._Store_and_unlock(nullptr);
+                return true;
+            }
+
+            const auto _Next = _STD exchange(_Head->_Next, nullptr);
+            _STL_INTERNAL_CHECK(_Head->_Prev == nullptr);
+            if (_Next != nullptr) {
+                _Next->_Prev = nullptr;
+            }
+
+            _Callbacks._Store_and_unlock(_Next); // unlock before running _Head so other registrations
+                                                 // can detach without blocking on the callback
+
+            _Head->_Fn(_Head); // might destroy *_Head
+        }
+    }
+};
+
+_EXPORT_STD class 停止源实现;
+
+_EXPORT_STD class 停止令牌实现 {
+    friend 停止源实现;
+    friend _停止回调基类;
+
+public:
+    停止令牌实现() noexcept : _State{} {}
+    停止令牌实现(const 停止令牌实现& _Other) noexcept : _State{_Other._State} {
+        const auto _Local = _State;
+        if (_Local != nullptr) {
+            _Local->_Stop_tokens.fetch_add(1, memory_order_relaxed);
+        }
+    }
+
+    停止令牌实现(停止令牌实现&& _Other) noexcept : _State{_STD exchange(_Other._State, nullptr)} {}
+    停止令牌实现& operator=(const 停止令牌实现& _Other) noexcept {
+        停止令牌实现{_Other}.swap(*this);
+        return *this;
+    }
+
+    停止令牌实现& operator=(停止令牌实现&& _Other) noexcept {
+        停止令牌实现{_STD move(_Other)}.swap(*this);
+        return *this;
+    }
+
+    ~停止令牌实现() {
+        const auto _Local = _State;
+        if (_Local != nullptr) {
+            if (_Local->_Stop_tokens.fetch_sub(1, memory_order_acq_rel) == 1) {
+                delete _Local;
+            }
+        }
+    }
+
+    void swap(停止令牌实现& _Other) noexcept {
+        _STD swap(_State, _Other._State);
+    }
+
+    _NODISCARD bool 已请求停止() const noexcept {
+        const auto _Local = _State;
+        return _Local != nullptr && _Local->_已请求停止();
+    }
+
+    _NODISCARD bool 可停止() const noexcept {
+        const auto _Local = _State;
+        return _Local != nullptr && _Local->_可停止();
+    }
+
+    _NODISCARD friend bool operator==(const 停止令牌实现& _Lhs, const 停止令牌实现& _Rhs) noexcept = default;
+
+    friend void swap(停止令牌实现& _Lhs, 停止令牌实现& _Rhs) noexcept {
+        _STD swap(_Lhs._State, _Rhs._State);
+    }
+
+private:
+    explicit 停止令牌实现(_停止状态* const _State_) : _State{_State_} {}
+
+    _停止状态* _State;
+};
+
+_EXPORT_STD class 停止源实现 {
+public:
+    停止源实现() : _State{new _停止状态} {}
+    explicit 停止源实现(无停止状态类型) noexcept : _State{} {}
+    停止源实现(const 停止源实现& _Other) noexcept : _State{_Other._State} {
+        const auto _Local = _State;
+        if (_Local != nullptr) {
+            _Local->_Stop_sources.fetch_add(2, memory_order_relaxed);
+        }
+    }
+
+    停止源实现(停止源实现&& _Other) noexcept : _State{_STD exchange(_Other._State, nullptr)} {}
+    停止源实现& operator=(const 停止源实现& _Other) noexcept {
+        停止源实现{_Other}.swap(*this);
+        return *this;
+    }
+
+    停止源实现& operator=(停止源实现&& _Other) noexcept {
+        停止源实现{_STD move(_Other)}.swap(*this);
+        return *this;
+    }
+
+    ~停止源实现() {
+        const auto _Local = _State;
+        if (_Local != nullptr) {
+            if ((_Local->_Stop_sources.fetch_sub(2, memory_order_acq_rel) >> 1) == 1) {
+                if (_Local->_Stop_tokens.fetch_sub(1, memory_order_acq_rel) == 1) {
+                    delete _Local;
+                }
+            }
+        }
+    }
+
+    void swap(停止源实现& _Other) noexcept {
+        _STD swap(_State, _Other._State);
+    }
+
+    _NODISCARD 停止令牌实现 取令牌() const noexcept {
+        const auto _Local = _State;
+        if (_Local != nullptr) {
+            _Local->_Stop_tokens.fetch_add(1, memory_order_relaxed);
+        }
+
+        return 停止令牌实现{_Local};
+    }
+
+    _NODISCARD bool 已请求停止() const noexcept {
+        const auto _Local = _State;
+        return _Local != nullptr && _Local->_已请求停止();
+    }
+
+    _NODISCARD bool 可停止() const noexcept {
+        return _State != nullptr;
+    }
+
+    bool 请求停止() noexcept {
+        const auto _Local = _State;
+        return _Local && _Local->_请求停止();
+    }
+
+    _NODISCARD friend bool operator==(const 停止源实现& _Lhs, const 停止源实现& _Rhs) noexcept = default;
+
+    friend void swap(停止源实现& _Lhs, 停止源实现& _Rhs) noexcept {
+        _STD swap(_Lhs._State, _Rhs._State);
+    }
+
+private:
+    _停止状态* _State;
+};
+
+template <bool _转移所有权>
+void _停止回调基类::_执行附着(
+    conditional_t<_转移所有权, _停止状态*&, _停止状态* const> _State_raw) noexcept {
+    const auto _State = _State_raw; // avoid an indirection in all of the below
+    if (_State == nullptr) {
+        return;
+    }
+
+    // fast path check if the state is already known
+    auto _Local_sources = _State->_Stop_sources.load();
+    if ((_Local_sources & uint32_t{1}) != 0) {
+        // stop already requested
+        _Fn(this);
+        return;
+    }
+
+    if (_Local_sources == 0) {
+        return; // stop not possible
+    }
+
+    // fast path doesn't know, so try to insert
+    auto _Head = _State->_Callbacks._Lock_and_load();
+    // recheck the state in case it changed while we were waiting to acquire the lock
+    _Local_sources = _State->_Stop_sources.load();
+    if ((_Local_sources & uint32_t{1}) != 0) {
+        // stop already requested
+        _State->_Callbacks._Store_and_unlock(_Head);
+        _Fn(this);
+        return;
+    }
+
+    if (_Local_sources != 0) {
+        // stop possible, do the insert
+        _Parent = _State;
+        _Next   = _Head;
+        if constexpr (_转移所有权) {
+            _State_raw = nullptr;
+        } else {
+            _State->_Stop_tokens.fetch_add(1, memory_order_relaxed);
+        }
+
+        if (_Head != nullptr) {
+            _Head->_Prev = this;
+        }
+
+        _Head = this;
+    }
+
+    _State->_Callbacks._Store_and_unlock(_Head);
+}
+
+inline void _停止回调基类::_附着(const 停止令牌实现& _Token) noexcept {
+    this->_执行附着<false>(_Token._State);
+}
+
+inline void _停止回调基类::_附着(停止令牌实现&& _Token) noexcept {
+    this->_执行附着<true>(_Token._State);
+}
+
+inline void _停止回调基类::_脱离() noexcept {
+    停止令牌实现 _Token{_Parent}; // transfers ownership
+    if (_Token._State == nullptr) {
+        // callback was never inserted into the list
+        return;
+    }
+
+    auto _Head = _Token._State->_Callbacks._Lock_and_load();
+    if (this == _Head) {
+        // we are still in the list, so the callback is not being 请求停止'd
+        const auto _Local_next = _Next;
+        if (_Local_next != nullptr) {
+            _Local_next->_Prev = nullptr;
+        }
+
+        _STL_INTERNAL_CHECK(_Prev == nullptr);
+        _Token._State->_Callbacks._Store_and_unlock(_Next);
+        return;
+    }
+
+    const auto _Local_prev = _Prev;
+    if (_Local_prev != nullptr) {
+        // we are still in the list, so the callback is not being 请求停止'd, and there is at least one other
+        // callback still registered
+        const auto _Local_next = _Next;
+        if (_Local_next != nullptr) {
+            _Next->_Prev = _Local_prev;
+        }
+
+        _Prev->_Next = _Local_next;
+        _Token._State->_Callbacks._Store_and_unlock(_Head);
+        return;
+    }
+
+    // we aren't in the callback list even though we were added to it, so the stop requesting thread is attempting to
+    // call the callback
+    _STL_INTERNAL_CHECK((_Token._State->_Stop_sources.load() & uint32_t{1}) != 0);
+    if (_Token._State->_Current_callback.load(memory_order_acquire) != this
+        || _Token._State->_Stopping_thread == _Thrd_id()) {
+        // the callback is done or the dtor is being recursively reentered, do not block
+        _Token._State->_Callbacks._Store_and_unlock(_Head);
+        return;
+    }
+
+    // the callback is being executed by another thread, block until it is complete
+    _Token._State->_Callbacks._Store_and_unlock(_Head);
+    _Token._State->_Current_callback.wait(this, memory_order_acquire);
+}
+
+_EXPORT_STD template <class _Callback>
+class 停止回调实现 : public _停止回调基类 {
+public:
+    using 回调类型 = _Callback;
+
+    template <class _CbInitTy>
+        requires is_constructible_v<_Callback, _CbInitTy>
+    explicit 停止回调实现(const 停止令牌实现& _Token, _CbInitTy&& _Cb_)
+        noexcept(is_nothrow_constructible_v<_Callback, _CbInitTy>)
+        : _停止回调基类{_按停止调用}, _Cb(_STD forward<_CbInitTy>(_Cb_)) {
+        _附着(_Token);
+    }
+
+    template <class _CbInitTy>
+        requires is_constructible_v<_Callback, _CbInitTy>
+    explicit 停止回调实现(停止令牌实现&& _Token, _CbInitTy&& _Cb_)
+        noexcept(is_nothrow_constructible_v<_Callback, _CbInitTy>)
+        : _停止回调基类{_按停止调用}, _Cb(_STD forward<_CbInitTy>(_Cb_)) {
+        _附着(_STD move(_Token));
+    }
+
+    ~停止回调实现() {
+        _脱离();
+    }
+
+private:
+    static void __cdecl _按停止调用(_停止回调基类* const _This) noexcept // terminates
+    {
+        _STD forward<_Callback>(static_cast<停止回调实现*>(_This)->_Cb)();
+    }
+
+    _Callback _Cb;
+};
+
+template <class _Callback>
+停止回调实现(停止令牌实现, _Callback) -> 停止回调实现<_Callback>;
+
+} }
+#pragma pop_macro("new")
+_STL_RESTORE_CLANG_WARNINGS
+#pragma warning(pop)
+#pragma pack(pop)
+#endif // ^^^ _HAS_CXX20 ^^^
+#endif // _STL_COMPILER_PREPROCESSOR
+// [ZH-DERIVE-LAYER] 汉语派生层（英文兼容层）从这一行开始 —— 本行【以上】属抄来那层，有英文名就是欠账
+// ============================================================================
+//  第二层：在【中文的基础上】派生，把英文原名补回来
+//  · 第一层 标准::细节::停止令牌实现 是抄自微软的中文实现，成员名全中文
+//  · 本层加回英文原名，所以两种名字在【同一个对象】上都能用
+//  · 与微软的原类型并存：它是【另一个类型】，不碰 std 里的定义
+// ============================================================================
+名域 标准 {
+
+类型 停止令牌 : 公开 细节::停止令牌实现 {
+公开:
+    使用 基类 = 细节::停止令牌实现;
+    使用 基类::基类;
+
+    // 嵌套类型名也要补回英文（数据成员不行 —— 那会改布局）
+
+
+    // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
+    模板 <类型名... 参数> 声明类型(自动) stop_requested(参数&&... 值) { 返回 基类::已请求停止(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) stop_requested(参数&&... 值) 常量 { 返回 基类::已请求停止(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) stop_possible(参数&&... 值) { 返回 基类::可停止(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) stop_possible(参数&&... 值) 常量 { 返回 基类::可停止(static_cast<参数&&>(值)...); }
+
+    // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
+    // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
+    停止令牌(细节::停止令牌实现&& 内) noexcept : 基类(static_cast<细节::停止令牌实现&&>(内)) {}
+    停止令牌(常量 细节::停止令牌实现& 内) : 基类(内) {}
+};
+}
+
+名域 标准 {
+
+// 顶层 tag 类型也要能在 标准 里直接写（成员转发机制只管类里的嵌套名）
+使用 无停止状态类型 = 细节::无停止状态类型;
+
+// 无停止状态（std::nostopstate）—— 它是个全局常量，不是类成员，所以手写
+内联 常量表达式 无停止状态类型 无停止状态{};
+
+// 停止源（std::stop_source）
+类型 停止源 : 公开 细节::停止源实现 {
+公开:
+    使用 基类 = 细节::停止源实现;
+    使用 基类::基类;
+    模板 <类型名... 参数> 声明类型(自动) request_stop(参数&&... 值) { 返回 基类::请求停止(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) get_token(参数&&... 值) { 返回 基类::取令牌(static_cast<参数&&>(值)...); }
+};
+
+// 停止回调（std::stop_callback）
+模板 <类型名 回调类型>
+类型 停止回调 : 公开 细节::停止回调实现<回调类型> {
+公开:
+    使用 基类 = 细节::停止回调实现<回调类型>;
+    使用 基类::基类;
+    // §17.70 `std::stop_callback::callback_type`（标准公开嵌套名）：产物 360
+    //   `using callback_type = _Callback;` 在 **停止回调实现** 里（不是主类）⇒
+    //   抄来那层改名成 回调类型 之后，这里必须把英文原名补回来（嵌套名不在 deriveTypes 范围）。
+    使用 callback_type = 基类::回调类型;
+};
+
+}  // 名域 标准
+
+#endif // _STOP_TOKEN_

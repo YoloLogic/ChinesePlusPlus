@@ -1,0 +1,868 @@
+#include <numeric>
+// numeric standard header
+
+// Copyright (c) Microsoft Corporation.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#ifndef _ZH_NUMERIC_
+#define _ZH_NUMERIC_
+#include <yvals_core.h>
+#if _STL_COMPILER_PREPROCESSOR
+#include <通用内部件>
+
+#if _HAS_CXX17
+#include <__msvc_bit_utils.hpp>
+#endif // _HAS_CXX17
+
+#pragma pack(push, _CRT_PACKING)
+#pragma warning(push, _STL_WARNING_LEVEL)
+#pragma warning(disable : _STL_DISABLED_WARNINGS)
+_STL_DISABLE_CLANG_WARNINGS
+#pragma push_macro("new")
+#undef new
+名域 标准 { 名域 细节 {
+使用 名域 std;
+_EXPORT_STD template <class _InIt, class _类型, class _Fn>
+_NODISCARD _CONSTEXPR20 _类型 累加(const _InIt _首个, const _InIt _最后, _类型 _值, _Fn _Reduce_op) {
+    // return noncommutative and nonassociative reduction of _值 and all in [_首个, _最后), using _Reduce_op
+    _ADL校验范围(_首个, _最后);
+    auto _UFirst      = _取解包(_首个);
+    const auto _ULast = _取解包(_最后);
+    for (; _UFirst != _ULast; ++_UFirst) {
+#if _HAS_CXX20
+        _值 = _Reduce_op(_STD move(_值), *_UFirst);
+#else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
+        _值 = _Reduce_op(_值, *_UFirst);
+#endif // ^^^ !_HAS_CXX20 ^^^
+    }
+    return _值;
+}
+
+_EXPORT_STD template <class _InIt, class _类型>
+_NODISCARD _CONSTEXPR20 _类型 累加(const _InIt _首个, const _InIt _最后, _类型 _值) {
+    // return noncommutative and nonassociative reduction of _值 and all in [_首个, _最后)
+    return 累加(_首个, _最后, _值, 加法<>{});
+}
+
+#if _HAS_CXX17
+#if _STD_VECTORIZE_WITH_FLOAT_CONTROL
+template <class _InIt, class _类型, class _BinOp>
+constexpr bool _Plus_on_arithmetic_ranges_reduction_v =
+    conjunction_v<is_arithmetic<_类型>, is_arithmetic<remove_pointer_t<_InIt>>, is_same<加法<>, _BinOp>>;
+
+#pragma float_control(precise, off, push)
+template <class _InIt, class _类型>
+_类型 _Reduce_plus_arithmetic_ranges(_InIt _首个, const _InIt _最后, _类型 _值) {
+    // return reduction, 加法 arithmetic on contiguous ranges case
+#pragma loop(ivdep)
+    for (; _首个 != _最后; ++_首个) {
+        _值 += *_首个;
+    }
+
+    return _值;
+}
+#pragma float_control(pop)
+#endif // ^^^ _STD_VECTORIZE_WITH_FLOAT_CONTROL ^^^
+
+_EXPORT_STD template <class _InIt, class _类型, class _BinOp>
+_NODISCARD _CONSTEXPR20 _类型 归约(const _InIt _首个, const _InIt _最后, _类型 _值, _BinOp _Reduce_op) {
+    // return commutative and associative reduction of _值 and [_首个, _最后), using _Reduce_op
+    _ADL校验范围(_首个, _最后);
+    auto _UFirst      = _取解包(_首个);
+    const auto _ULast = _取解包(_最后);
+#if _STD_VECTORIZE_WITH_FLOAT_CONTROL
+    if constexpr (_Plus_on_arithmetic_ranges_reduction_v<_Unwrapped_t<const _InIt&>, _类型, _BinOp>) {
+#if _HAS_CXX20
+        if (!_STD is_constant_evaluated())
+#endif // _HAS_CXX20
+        {
+            return _Reduce_plus_arithmetic_ranges(_UFirst, _ULast, _值);
+        }
+    }
+#endif // ^^^ _STD_VECTORIZE_WITH_FLOAT_CONTROL ^^^
+
+    for (; _UFirst != _ULast; ++_UFirst) {
+        _值 = _Reduce_op(_STD move(_值), *_UFirst); // Requirement missing from N4950
+    }
+
+    return _值;
+}
+
+_EXPORT_STD template <class _InIt, class _类型>
+_NODISCARD _CONSTEXPR20 _类型 归约(const _InIt _首个, const _InIt _最后, _类型 _值) {
+    // return commutative and associative reduction of _值 and [_首个, _最后)
+    return 归约(_首个, _最后, _STD move(_值), 加法{});
+}
+
+_EXPORT_STD template <class _InIt>
+_NODISCARD _CONSTEXPR20 _Iter_value_t<_InIt> 归约(const _InIt _首个, const _InIt _最后) {
+    // return commutative and associative reduction of
+    // iterator_traits<_InIt>::value_type{} and [_首个, _最后)
+    return 归约(_首个, _最后, _Iter_value_t<_InIt>{}, 加法{});
+}
+
+_EXPORT_STD template <class _ExPo, class _FwdIt, class _类型, class _BinOp, _Enable_if_execution_policy_t<_ExPo> = 0>
+_NODISCARD _类型 归约(_ExPo&& _Exec, _FwdIt _首个, _FwdIt _最后, _类型 _值, _BinOp _Reduce_op) noexcept; // terminates
+
+_EXPORT_STD template <class _ExPo, class _FwdIt, class _类型, _Enable_if_execution_policy_t<_ExPo> = 0>
+_NODISCARD _类型 归约(_ExPo&& _Exec, const _FwdIt _首个, const _FwdIt _最后, _类型 _值) noexcept /* terminates */ {
+    // return commutative and associative reduction of _值 and [_首个, _最后)
+    return 归约(_STD forward<_ExPo>(_Exec), _首个, _最后, _STD move(_值), 加法{});
+}
+
+_EXPORT_STD template <class _ExPo, class _FwdIt, _Enable_if_execution_policy_t<_ExPo> = 0>
+_NODISCARD _Iter_value_t<_FwdIt> 归约(_ExPo&& _Exec, const _FwdIt _首个, const _FwdIt _最后) noexcept
+/* terminates */ {
+    // return commutative and associative reduction of
+    // iterator_traits<_FwdIt>::value_type{} and [_首个, _最后)
+    return 归约(_STD forward<_ExPo>(_Exec), _首个, _最后, _Iter_value_t<_FwdIt>{}, 加法{});
+}
+#endif // _HAS_CXX17
+
+_EXPORT_STD template <class _InIt1, class _InIt2, class _类型, class _BinOp1, class _BinOp2>
+_NODISCARD _CONSTEXPR20 _类型 内积(
+    _InIt1 _First1, _InIt1 _Last1, _InIt2 _First2, _类型 _值, _BinOp1 _Reduce_op, _BinOp2 _Transform_op) {
+    // return noncommutative and nonassociative transform-reduction of sequences, using
+    // _Reduce_op and _Transform_op
+    _ADL校验范围(_First1, _Last1);
+    auto _UFirst1      = _取解包(_First1);
+    const auto _ULast1 = _取解包(_Last1);
+    auto _UFirst2      = _Get_unwrapped_n(_First2, _IDL距离<_InIt1>(_UFirst1, _ULast1));
+    for (; _UFirst1 != _ULast1; ++_UFirst1, (void) ++_UFirst2) {
+#if _HAS_CXX20
+        _值 = _Reduce_op(_STD move(_值), _Transform_op(*_UFirst1, *_UFirst2)); // Requirement missing from N4950
+#else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
+        _值 = _Reduce_op(_值, _Transform_op(*_UFirst1, *_UFirst2)); // Requirement missing from N4950
+#endif // ^^^ !_HAS_CXX20 ^^^
+    }
+
+    return _值;
+}
+
+_EXPORT_STD template <class _InIt1, class _InIt2, class _类型>
+_NODISCARD _CONSTEXPR20 _类型 内积(const _InIt1 _First1, const _InIt1 _Last1, const _InIt2 _First2, _类型 _值) {
+    // return noncommutative and nonassociative transform-reduction of sequences
+    return 内积(_First1, _Last1, _First2, _STD move(_值), 加法<>{}, 乘法<>{});
+}
+
+#if _HAS_CXX17
+#if _STD_VECTORIZE_WITH_FLOAT_CONTROL
+template <class _InIt1, class _InIt2, class _类型, class _BinOp1, class _BinOp2>
+constexpr bool _Default_ops_transform_reduce_v =
+    conjunction_v<is_arithmetic<_类型>, is_arithmetic<remove_pointer_t<_InIt1>>, is_arithmetic<remove_pointer_t<_InIt2>>,
+        is_same<加法<>, _BinOp1>, is_same<乘法<>, _BinOp2>>;
+
+#pragma float_control(precise, off, push)
+template <class _InIt1, class _InIt2, class _类型>
+_类型 _Transform_reduce_arithmetic_defaults(_InIt1 _First1, const _InIt1 _Last1, _InIt2 _First2, _类型 _值) {
+    // return transform-reduction, default ops on contiguous arithmetic ranges case
+#pragma loop(ivdep)
+    for (; _First1 != _Last1; ++_First1, (void) ++_First2) {
+        _值 += *_First1 * *_First2;
+    }
+
+    return _值;
+}
+#pragma float_control(pop)
+#endif // ^^^ _STD_VECTORIZE_WITH_FLOAT_CONTROL ^^^
+
+_EXPORT_STD template <class _InIt1, class _InIt2, class _类型, class _BinOp1, class _BinOp2>
+_NODISCARD _CONSTEXPR20 _类型 变换归约(
+    _InIt1 _First1, _InIt1 _Last1, _InIt2 _First2, _类型 _值, _BinOp1 _Reduce_op, _BinOp2 _Transform_op) {
+    // return commutative and associative transform-reduction of sequences, using
+    // _Reduce_op and _Transform_op
+    _ADL校验范围(_First1, _Last1);
+    auto _UFirst1      = _取解包(_First1);
+    const auto _ULast1 = _取解包(_Last1);
+    auto _UFirst2      = _Get_unwrapped_n(_First2, _IDL距离<_InIt1>(_UFirst1, _ULast1));
+#if _STD_VECTORIZE_WITH_FLOAT_CONTROL
+    if constexpr (_Default_ops_transform_reduce_v<_Unwrapped_t<const _InIt1&>, _Unwrapped_t<const _InIt2&>, _类型,
+                      _BinOp1, _BinOp2>) {
+#if _HAS_CXX20
+        // TRANSITION, DevCom-878972
+        if (!_STD is_constant_evaluated())
+#endif // _HAS_CXX20
+        {
+            return _Transform_reduce_arithmetic_defaults(_UFirst1, _ULast1, _UFirst2, _STD move(_值));
+        }
+    }
+#endif // ^^^ _STD_VECTORIZE_WITH_FLOAT_CONTROL ^^^
+
+    for (; _UFirst1 != _ULast1; ++_UFirst1, (void) ++_UFirst2) {
+        _值 = _Reduce_op(_STD move(_值), _Transform_op(*_UFirst1, *_UFirst2)); // Requirement missing from N4950
+    }
+    return _值;
+}
+
+_EXPORT_STD template <class _InIt1, class _InIt2, class _类型>
+_NODISCARD _CONSTEXPR20 _类型 变换归约(_InIt1 _First1, _InIt1 _Last1, _InIt2 _First2, _类型 _值) {
+    // return commutative and associative transform-reduction of sequences
+    return 变换归约(_First1, _Last1, _First2, _STD move(_值), 加法{}, 乘法{});
+}
+
+_EXPORT_STD template <class _InIt, class _类型, class _BinOp, class _UnaryOp>
+_NODISCARD _CONSTEXPR20 _类型 变换归约(
+    const _InIt _首个, const _InIt _最后, _类型 _值, _BinOp _Reduce_op, _UnaryOp _Transform_op) {
+    // return commutative and associative reduction of transformed sequence, using
+    // _Reduce_op and _Transform_op
+    _ADL校验范围(_首个, _最后);
+    auto _UFirst      = _取解包(_首个);
+    const auto _ULast = _取解包(_最后);
+    for (; _UFirst != _ULast; ++_UFirst) {
+        _值 = _Reduce_op(_STD move(_值), _Transform_op(*_UFirst)); // Requirement missing from N4950
+    }
+
+    return _值;
+}
+
+_EXPORT_STD template <class _ExPo, class _FwdIt1, class _FwdIt2, class _类型, class _BinOp1, class _BinOp2,
+    _Enable_if_execution_policy_t<_ExPo> = 0>
+_NODISCARD _类型 变换归约(_ExPo&& _Exec, _FwdIt1 _First1, _FwdIt1 _Last1, _FwdIt2 _First2, _类型 _值,
+    _BinOp1 _Reduce_op, _BinOp2 _Transform_op) noexcept; // terminates
+
+_EXPORT_STD template <class _ExPo, class _FwdIt1, class _FwdIt2, class _类型, _Enable_if_execution_policy_t<_ExPo> = 0>
+_NODISCARD _类型 变换归约(_ExPo&& _Exec, _FwdIt1 _First1, _FwdIt1 _Last1, _FwdIt2 _First2, _类型 _值) noexcept
+/* terminates */ {
+    // return commutative and associative transform-reduction of sequences
+    return 变换归约(
+        _STD forward<_ExPo>(_Exec), _First1, _Last1, _First2, _STD move(_值), 加法{}, 乘法{});
+}
+
+_EXPORT_STD template <class _ExPo, class _FwdIt, class _类型, class _BinOp, class _UnaryOp,
+    _Enable_if_execution_policy_t<_ExPo> = 0>
+_NODISCARD _类型 变换归约(_ExPo&& _Exec, _FwdIt _First1, _FwdIt _Last1, _类型 _值, _BinOp _Reduce_op,
+    _UnaryOp _Transform_op) noexcept; // terminates
+#endif // _HAS_CXX17
+
+_EXPORT_STD template <class _InIt, class _OutIt, class _BinOp>
+_CONSTEXPR20 _OutIt 部分和(const _InIt _首个, const _InIt _最后, _OutIt _目标, _BinOp _Reduce_op) {
+    // compute partial noncommutative and nonassociative reductions into _目标, using _Reduce_op
+    _ADL校验范围(_首个, _最后);
+    auto _UFirst      = _取解包(_首个);
+    const auto _ULast = _取解包(_最后);
+    auto _UDest       = _Get_unwrapped_n(_目标, _IDL距离<_InIt>(_UFirst, _ULast));
+
+    if (_UFirst != _ULast) {
+        _Iter_value_t<_InIt> _值(*_UFirst);
+        for (;;) {
+            *_UDest = _值;
+            ++_UDest;
+            ++_UFirst;
+            if (_UFirst == _ULast) {
+                break;
+            }
+#if _HAS_CXX20
+            _值 = _Reduce_op(_STD move(_值), *_UFirst);
+#else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
+            _值 = _Reduce_op(_值, *_UFirst);
+#endif // ^^^ !_HAS_CXX20 ^^^
+        }
+    }
+
+    _定位包装(_目标, _UDest);
+    return _目标;
+}
+
+_EXPORT_STD template <class _InIt, class _OutIt>
+_CONSTEXPR20 _OutIt 部分和(_InIt _首个, _InIt _最后, _OutIt _目标) {
+    // compute partial noncommutative and nonassociative reductions into _目标
+    return 部分和(_首个, _最后, _目标, 加法<>{});
+}
+
+#if _HAS_CXX17
+_EXPORT_STD template <class _InIt, class _OutIt, class _类型, class _BinOp>
+_CONSTEXPR20 _OutIt 排他扫描(const _InIt _首个, const _InIt _最后, _OutIt _目标, _类型 _值, _BinOp _Reduce_op) {
+    // set each value in [_目标, _目标 + (_最后 - _首个)) to the associative reduction of predecessors and _值
+    _ADL校验范围(_首个, _最后);
+    auto _UFirst      = _取解包(_首个);
+    const auto _ULast = _取解包(_最后);
+    auto _UDest       = _Get_unwrapped_n(_目标, _IDL距离<_InIt>(_UFirst, _ULast));
+    if (_UFirst != _ULast) {
+        for (;;) {
+            _类型 _Tmp = _Reduce_op(_值, *_UFirst); // temp to enable _首个 == _目标, also requirement missing
+            *_UDest  = _值;
+            ++_UDest;
+            ++_UFirst;
+            if (_UFirst == _ULast) {
+                break;
+            }
+
+            _值 = _STD move(_Tmp); // Requirement missing from N4950
+        }
+    }
+
+    _定位包装(_目标, _UDest);
+    return _目标;
+}
+
+_EXPORT_STD template <class _InIt, class _OutIt, class _类型>
+_CONSTEXPR20 _OutIt 排他扫描(const _InIt _首个, const _InIt _最后, const _OutIt _目标, _类型 _值) {
+    // set each value in [_目标, _目标 + (_最后 - _首个)) to the associative reduction of predecessors and _值
+    return 排他扫描(_首个, _最后, _目标, _STD move(_值), 加法{});
+}
+
+_EXPORT_STD template <class _ExPo, class _FwdIt1, class _FwdIt2, class _类型, class _BinOp,
+    _Enable_if_execution_policy_t<_ExPo> = 0>
+_FwdIt2 排他扫描(_ExPo&& _Exec, _FwdIt1 _首个, _FwdIt1 _最后, _FwdIt2 _目标, _类型 _值,
+    _BinOp _Reduce_op) noexcept; // terminates
+
+_EXPORT_STD template <class _ExPo, class _FwdIt1, class _FwdIt2, class _类型, _Enable_if_execution_policy_t<_ExPo> = 0>
+_FwdIt2 排他扫描(_ExPo&& _Exec, const _FwdIt1 _首个, const _FwdIt1 _最后, const _FwdIt2 _目标, _类型 _值) noexcept
+/* terminates */ {
+    // set each value in [_目标, _目标 + (_最后 - _首个)) to the associative reduction of predecessors and _值
+    return 排他扫描(_STD forward<_ExPo>(_Exec), _首个, _最后, _目标, _STD move(_值), 加法{});
+}
+
+_EXPORT_STD template <class _InIt, class _OutIt, class _类型, class _BinOp>
+_CONSTEXPR20 _OutIt 包含扫描(const _InIt _首个, const _InIt _最后, _OutIt _目标, _BinOp _Reduce_op, _类型 _值) {
+    // compute partial noncommutative and associative reductions including _值 into _目标, using _Reduce_op
+    _ADL校验范围(_首个, _最后);
+    auto _UFirst      = _取解包(_首个);
+    const auto _ULast = _取解包(_最后);
+    auto _UDest       = _Get_unwrapped_n(_目标, _IDL距离<_InIt>(_UFirst, _ULast));
+    for (; _UFirst != _ULast; ++_UFirst) {
+        _值    = _Reduce_op(_STD move(_值), *_UFirst); // Requirement missing from N4950
+        *_UDest = _值;
+        ++_UDest;
+    }
+
+    _定位包装(_目标, _UDest);
+    return _目标;
+}
+
+_EXPORT_STD template <class _InIt, class _OutIt, class _BinOp>
+_CONSTEXPR20 _OutIt 包含扫描(const _InIt _首个, const _InIt _最后, _OutIt _目标, _BinOp _Reduce_op) {
+    // compute partial noncommutative and associative reductions into _目标, using _Reduce_op
+    _ADL校验范围(_首个, _最后);
+    auto _UFirst      = _取解包(_首个);
+    const auto _ULast = _取解包(_最后);
+    auto _UDest       = _Get_unwrapped_n(_目标, _IDL距离<_InIt>(_UFirst, _ULast));
+    if (_UFirst != _ULast) {
+        _Iter_value_t<_InIt> _值(*_UFirst); // Requirement missing from N4950
+        for (;;) {
+            *_UDest = _值;
+            ++_UDest;
+            ++_UFirst;
+            if (_UFirst == _ULast) {
+                break;
+            }
+
+            _值 = _Reduce_op(_STD move(_值), *_UFirst); // Requirement missing from N4950
+        }
+    }
+
+    _定位包装(_目标, _UDest);
+    return _目标;
+}
+
+_EXPORT_STD template <class _InIt, class _OutIt>
+_CONSTEXPR20 _OutIt 包含扫描(const _InIt _首个, const _InIt _最后, const _OutIt _目标) {
+    // compute partial noncommutative and associative reductions into _目标
+    return 包含扫描(_首个, _最后, _目标, 加法{});
+}
+
+_EXPORT_STD template <class _ExPo, class _FwdIt1, class _FwdIt2, class _BinOp, class _类型,
+    _Enable_if_execution_policy_t<_ExPo> = 0>
+_FwdIt2 包含扫描(
+    _ExPo&& _Exec, _FwdIt1 _首个, _FwdIt1 _最后, _FwdIt2 _目标, _BinOp _Reduce_op, _类型 _值) noexcept; // terminates
+
+_EXPORT_STD template <class _ExPo, class _FwdIt1, class _FwdIt2, class _BinOp, _Enable_if_execution_policy_t<_ExPo> = 0>
+_FwdIt2 包含扫描(
+    _ExPo&& _Exec, _FwdIt1 _首个, _FwdIt1 _最后, _FwdIt2 _目标, _BinOp _Reduce_op) noexcept; // terminates
+
+_EXPORT_STD template <class _ExPo, class _FwdIt1, class _FwdIt2, _Enable_if_execution_policy_t<_ExPo> = 0>
+_FwdIt2 包含扫描(_ExPo&& _Exec, const _FwdIt1 _首个, const _FwdIt1 _最后, const _FwdIt2 _目标) noexcept
+/* terminates */ {
+    // compute partial noncommutative and associative reductions into _目标
+    return 包含扫描(_STD forward<_ExPo>(_Exec), _首个, _最后, _目标, 加法{});
+}
+
+_EXPORT_STD template <class _InIt, class _OutIt, class _类型, class _BinOp, class _UnaryOp>
+_CONSTEXPR20 _OutIt 变换排他扫描(
+    const _InIt _首个, const _InIt _最后, _OutIt _目标, _类型 _值, _BinOp _Reduce_op, _UnaryOp _Transform_op) {
+    // set each value in [_目标, _目标 + (_最后 - _首个)) to the associative reduction of transformed predecessors
+    _ADL校验范围(_首个, _最后);
+    auto _UFirst      = _取解包(_首个);
+    const auto _ULast = _取解包(_最后);
+    auto _UDest       = _Get_unwrapped_n(_目标, _IDL距离<_InIt>(_UFirst, _ULast));
+    if (_UFirst != _ULast) {
+        for (;;) {
+            _类型 _Tmp = _Reduce_op(_值, _Transform_op(*_UFirst)); // temp to enable _首个 == _目标
+            *_UDest  = _值;
+            ++_UDest;
+            ++_UFirst;
+            if (_UFirst == _ULast) {
+                break;
+            }
+
+            _值 = _STD move(_Tmp); // Requirement missing from N4950
+        }
+    }
+
+    _定位包装(_目标, _UDest);
+    return _目标;
+}
+
+_EXPORT_STD template <class _ExPo, class _FwdIt1, class _OutIt, class _类型, class _BinOp, class _UnaryOp,
+    _Enable_if_execution_policy_t<_ExPo> = 0>
+_OutIt 变换排他扫描(_ExPo&& _Exec, _FwdIt1 _首个, _FwdIt1 _最后, _OutIt _目标, _类型 _值, _BinOp _Reduce_op,
+    _UnaryOp _Transform_op) noexcept; // terminates
+
+_EXPORT_STD template <class _InIt, class _OutIt, class _类型, class _BinOp, class _UnaryOp>
+_CONSTEXPR20 _OutIt 变换包含扫描(
+    const _InIt _首个, const _InIt _最后, _OutIt _目标, _BinOp _Reduce_op, _UnaryOp _Transform_op, _类型 _值) {
+    // compute partial noncommutative and associative transformed reductions including _值 into _目标
+    _ADL校验范围(_首个, _最后);
+    auto _UFirst      = _取解包(_首个);
+    const auto _ULast = _取解包(_最后);
+    auto _UDest       = _Get_unwrapped_n(_目标, _IDL距离<_InIt>(_UFirst, _ULast));
+    for (; _UFirst != _ULast; ++_UFirst) {
+        _值    = _Reduce_op(_STD move(_值), _Transform_op(*_UFirst)); // Requirement missing from N4950
+        *_UDest = _值;
+        ++_UDest;
+    }
+
+    _定位包装(_目标, _UDest);
+    return _目标;
+}
+
+_EXPORT_STD template <class _InIt, class _OutIt, class _BinOp, class _UnaryOp>
+_CONSTEXPR20 _OutIt 变换包含扫描(
+    const _InIt _首个, const _InIt _最后, _OutIt _目标, _BinOp _Reduce_op, _UnaryOp _Transform_op) {
+    // compute partial noncommutative and associative transformed reductions into _目标
+    _ADL校验范围(_首个, _最后);
+    auto _UFirst      = _取解包(_首个);
+    const auto _ULast = _取解包(_最后);
+    auto _UDest       = _Get_unwrapped_n(_目标, _IDL距离<_InIt>(_UFirst, _ULast));
+    if (_UFirst != _ULast) {
+        auto _值 = _Transform_op(*_UFirst); // Requirement missing from N4950, also type to use unclear
+        for (;;) {
+            *_UDest = _值;
+            ++_UDest;
+            ++_UFirst;
+            if (_UFirst == _ULast) {
+                break;
+            }
+
+            _值 = _Reduce_op(_STD move(_值), _Transform_op(*_UFirst)); // Requirement missing from N4950
+        }
+    }
+
+    _定位包装(_目标, _UDest);
+    return _目标;
+}
+
+_EXPORT_STD template <class _ExPo, class _FwdIt1, class _FwdIt2, class _类型, class _BinOp, class _UnaryOp,
+    _Enable_if_execution_policy_t<_ExPo> = 0>
+_FwdIt2 变换包含扫描(_ExPo&& _Exec, _FwdIt1 _首个, _FwdIt1 _最后, _FwdIt2 _目标, _BinOp _Reduce_op,
+    _UnaryOp _Transform_op, _类型 _值) noexcept; // terminates
+
+_EXPORT_STD template <class _ExPo, class _FwdIt1, class _FwdIt2, class _BinOp, class _UnaryOp,
+    _Enable_if_execution_policy_t<_ExPo> = 0>
+_FwdIt2 变换包含扫描(_ExPo&& _Exec, _FwdIt1 _首个, _FwdIt1 _最后, _FwdIt2 _目标, _BinOp _Reduce_op,
+    _UnaryOp _Transform_op) noexcept; // terminates
+#endif // _HAS_CXX17
+
+template <class _TyDest, class _TySrc, class _BinOp>
+void _Adjacent_difference_no_overlap(
+    _TyDest* const _RESTRICT _目标, _TySrc* const _RESTRICT _Src, const ptrdiff_t _Count, _BinOp _Func) {
+    _目标[0] = _Src[0];
+    for (ptrdiff_t _Ix = 1; _Ix != _Count; ++_Ix) {
+#if _HAS_CXX20
+        _TySrc _Tmp = _Src[_Ix - 1];
+        _目标[_Ix]  = _Func(_Src[_Ix], _STD move(_Tmp));
+#else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
+        _目标[_Ix] = _Func(_Src[_Ix], _Src[_Ix - 1]);
+#endif // ^^^ !_HAS_CXX20 ^^^
+    }
+}
+
+_EXPORT_STD template <class _InIt, class _OutIt, class _BinOp>
+_CONSTEXPR20 _OutIt 相邻差(const _InIt _首个, const _InIt _最后, _OutIt _目标, _BinOp _Func) {
+    // compute adjacent differences into _目标
+    _ADL校验范围(_首个, _最后);
+    auto _UFirst      = _取解包(_首个);
+    const auto _ULast = _取解包(_最后);
+    auto _UDest       = _Get_unwrapped_n(_目标, _IDL距离<_InIt>(_UFirst, _ULast));
+    if (_UFirst != _ULast) {
+        if constexpr (_Iterators_are_contiguous<decltype(_UFirst), decltype(_UDest)> && !_Iterator_is_volatile<_InIt>
+                      && is_trivially_copyable_v<_Iter_value_t<_InIt>>) {
+#if _HAS_CXX20
+            if (!_STD is_constant_evaluated())
+#endif
+            {
+                // Go with pointers and without loop-carried dependency to enable vectorization
+                const auto _First_ptr = _取地址(_UFirst);
+                const auto _Last_ptr  = _取地址(_ULast);
+                const auto _Dest_ptr  = _取地址(_UDest);
+                const auto _Count     = _Last_ptr - _First_ptr;
+
+                // Need to perform aliasing analysis.
+                // The vectorizer is generally able to do that on its own, and would guard the vectorized code with
+                // that, but when we eliminate the loop-carried dependency we change the semantics of the unvectorized
+                // code too. So we need to perform this check manually, and after that we can tell the compiler that
+                // there's no aliasing, to avoid it checking for that again.
+                if (reinterpret_cast<uintptr_t>(_Dest_ptr + _Count) <= reinterpret_cast<uintptr_t>(_First_ptr)
+                    || reinterpret_cast<uintptr_t>(_Last_ptr) <= reinterpret_cast<uintptr_t>(_Dest_ptr)) {
+                    _Adjacent_difference_no_overlap(_Dest_ptr, _First_ptr, _Count, _传递函数(_Func));
+                    _定位包装(_目标, _UDest + _Count);
+                    return _目标;
+                }
+            }
+        }
+
+        _Iter_value_t<_InIt> _值(*_UFirst);
+        *_UDest = _值;
+        while (++_UFirst != _ULast) { // compute another difference
+            _Iter_value_t<_InIt> _Tmp(*_UFirst);
+#if _HAS_CXX20
+            *++_UDest = _Func(_Tmp, _STD move(_值));
+#else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
+            *++_UDest = _Func(_Tmp, _值);
+#endif // ^^^ !_HAS_CXX20 ^^^
+            _值 = _STD move(_Tmp);
+        }
+
+        ++_UDest;
+    }
+
+    _定位包装(_目标, _UDest);
+    return _目标;
+}
+
+_EXPORT_STD template <class _InIt, class _OutIt>
+_CONSTEXPR20 _OutIt 相邻差(const _InIt _首个, const _InIt _最后, const _OutIt _目标) {
+    // compute adjacent differences into _目标
+    return 相邻差(_首个, _最后, _目标, 减法<>{});
+}
+
+#if _HAS_CXX17
+_EXPORT_STD template <class _ExPo, class _FwdIt1, class _FwdIt2, class _BinOp, _Enable_if_execution_policy_t<_ExPo> = 0>
+_FwdIt2 相邻差(
+    _ExPo&& _Exec, _FwdIt1 _首个, _FwdIt1 _最后, _FwdIt2 _目标, _BinOp _Diff_op) noexcept; // terminates
+
+_EXPORT_STD template <class _ExPo, class _FwdIt1, class _FwdIt2, _Enable_if_execution_policy_t<_ExPo> = 0>
+_FwdIt2 相邻差(_ExPo&& _Exec, const _FwdIt1 _首个, const _FwdIt1 _最后, const _FwdIt2 _目标) noexcept
+/* terminates */ {
+    // compute adjacent differences into _目标
+    return 相邻差(_STD forward<_ExPo>(_Exec), _首个, _最后, _目标, 减法{});
+}
+#endif // _HAS_CXX17
+
+_EXPORT_STD template <class _FwdIt, class _类型>
+_CONSTEXPR20 void 递增填充(_FwdIt _首个, _FwdIt _最后, _类型 _值) {
+    // compute increasing sequence into [_首个, _最后)
+    _ADL校验范围(_首个, _最后);
+    auto _UFirst      = _取解包(_首个);
+    const auto _ULast = _取解包(_最后);
+
+    if constexpr (_Iterator_is_contiguous<decltype(_UFirst)> && is_integral_v<_类型> && sizeof(_类型) >= 4) {
+        // TRANSITION, DevCom-10593477: help the compiler vectorize
+        const auto _Ptr  = _取地址(_UFirst);
+        const auto _Size = static_cast<size_t>(_ULast - _UFirst);
+
+        if (_STD _In_range<_类型>(_Size)) {
+            const auto _Size_typed = static_cast<_类型>(_Size);
+            for (_类型 _Ix = 0; _Ix != _Size_typed; ++_Ix) {
+                _Ptr[_Ix] = _值 + _Ix;
+            }
+
+            return;
+        }
+    }
+
+    for (; _UFirst != _ULast; ++_UFirst, (void) ++_值) {
+        *_UFirst = _值;
+    }
+}
+
+#if _HAS_CXX23
+namespace ranges {
+    使用 名域 std::ranges;   // 嵌套名域暂不翻，但里面的名字要靠它找到（步 2b）
+    _EXPORT_STD template <class _Out, class _类型>
+    using 递增填充结果 = 出值结果<_Out, _类型>;
+
+    class _递增填充函数 {
+    public:
+        template <input_or_output_iterator _It, sentinel_for<_It> _Se, weakly_incrementable _类型>
+            requires indirectly_writable<_It, const _类型&>
+        _STATIC_CALL_OPERATOR constexpr 递增填充结果<_It, _类型> operator()(
+            _It _首个, _Se _最后, _类型 _值) _CONST_CALL_OPERATOR {
+            _ADL校验范围(_首个, _最后);
+            _定位包装(_首个, _递增填充实现(_RANGES _Unwrap_iter<_Se>(_STD move(_首个)),
+                                           _RANGES _Unwrap_sent<_It>(_STD move(_最后)), _值));
+            return {_STD move(_首个), _STD move(_值)};
+        }
+
+        template <weakly_incrementable _类型, output_range<const _类型&> _Rng>
+        _STATIC_CALL_OPERATOR constexpr 递增填充结果<借用迭代器类型<_Rng>, _类型> operator()(
+            _Rng&& _Range, _类型 _值) _CONST_CALL_OPERATOR {
+            auto _首个 = _RANGES begin(_Range);
+            _定位包装(
+                _首个, _递增填充实现(_RANGES _Unwrap_range_iter<_Rng>(_STD move(_首个)), _解包尾(_Range), _值));
+            return {_STD move(_首个), _STD move(_值)};
+        }
+
+    private:
+        template <class _It, class _Se, class _类型>
+        _NODISCARD static constexpr _It _递增填充实现(_It _首个, const _Se _最后, _类型& _值) {
+            _STL_INTERNAL_STATIC_ASSERT(sentinel_for<_Se, _It>);
+            _STL_INTERNAL_STATIC_ASSERT(weakly_incrementable<_类型>);
+            _STL_INTERNAL_STATIC_ASSERT(indirectly_writable<_It, const _类型&>);
+
+            if constexpr (_Iterator_is_contiguous<_It> && sized_sentinel_for<_Se, _It> && is_integral_v<_类型>
+                          && sizeof(_类型) >= 4) {
+                // TRANSITION, DevCom-10593477: help the compiler vectorize
+                const auto _Ptr  = _取地址(_首个);
+                const auto _Size = static_cast<size_t>(_最后 - _首个);
+
+                if (_STD _In_range<_类型>(_Size)) {
+                    const auto _Size_typed = static_cast<_类型>(_Size);
+                    for (_类型 _Ix = 0; _Ix != _Size_typed; ++_Ix) {
+                        const _类型 _Const_val = _值 + _Ix;
+                        _Ptr[_Ix]            = _Const_val;
+                    }
+
+                    _值 += _Size_typed;
+                    return _首个 + _Size;
+                }
+            }
+
+            const _类型& _Const_val = _值;
+            for (; _首个 != _最后; ++_首个, (void) ++_值) {
+                *_首个 = _Const_val;
+            }
+            return _首个;
+        }
+    };
+
+    _EXPORT_STD inline constexpr _递增填充函数 递增填充;
+} // namespace ranges
+#endif // _HAS_CXX23
+
+#if _HAS_CXX17
+template <class _Integral>
+_NODISCARD constexpr auto _Abs_u(const _Integral _值) noexcept {
+    // computes absolute value of _值 (converting to an unsigned integer type if necessary to avoid overflow
+    // representing the negation of the minimum value)
+    static_assert(is_integral_v<_Integral>);
+
+    if constexpr (is_signed_v<_Integral>) {
+        using _无符号类型 = make_unsigned_t<_Integral>;
+        if (_值 < 0) {
+            // note static_cast to _无符号类型 such that _Integral == short returns unsigned short rather than int
+            return static_cast<_无符号类型>(_无符号类型{0} - static_cast<_无符号类型>(_值));
+        }
+
+        return static_cast<_无符号类型>(_值);
+    } else {
+        return _值;
+    }
+}
+
+_EXPORT_STD template <class _Mt, class _Nt>
+_NODISCARD constexpr common_type_t<_Mt, _Nt> 最大公约数(const _Mt _Mx, const _Nt _Nx) noexcept /* strengthened */ {
+    // calculate greatest common divisor
+    static_assert(_Is_nonbool_integral<_Mt> && _Is_nonbool_integral<_Nt>, "GCD requires nonbool integral types");
+
+    using _公共          = common_type_t<_Mt, _Nt>;
+    using _公共无符号类型 = make_unsigned_t<_公共>;
+
+    if constexpr (is_signed_v<_公共>) {
+#ifndef _DEBUG
+        if (_Is_constant_evaluated())
+#endif // ^^^ !defined(_DEBUG) ^^^
+        {
+            constexpr auto _Min_common = _STD _Min_limit<_公共>();
+            _STL_VERIFY(_Mx != _Min_common && _Nx != _Min_common,
+                "Preconditions: |m| and |n| are representable as a value of common_type_t<M, N>. "
+                "(N4981 [numeric.ops.最大公约数]/2, N4981 [numeric.ops.最小公倍数]/2)");
+        }
+    }
+
+    return _Select_countr_zero_impl<_公共无符号类型>([=](auto _Countr_zero_impl) {
+        _公共无符号类型 _Mx_magnitude = _Abs_u(_Mx);
+        _公共无符号类型 _Nx_magnitude = _Abs_u(_Nx);
+        if (_Mx_magnitude == 0U) {
+            return static_cast<_公共>(_Nx_magnitude);
+        }
+
+        if (_Nx_magnitude == 0U) {
+            return static_cast<_公共>(_Mx_magnitude);
+        }
+
+        const auto _Mx_trailing_zeroes  = static_cast<unsigned long>(_Countr_zero_impl(_Mx_magnitude));
+        auto _Nx_trailing_zeroes        = static_cast<unsigned long>(_Countr_zero_impl(_Nx_magnitude));
+        const auto _Common_factors_of_2 = (_STD min)(_Mx_trailing_zeroes, _Nx_trailing_zeroes);
+        _Mx_magnitude >>= _Mx_trailing_zeroes;
+        for (;;) {
+            _Nx_magnitude >>= _Nx_trailing_zeroes;
+            if (_Mx_magnitude > _Nx_magnitude) {
+                _公共无符号类型 _Temp = _Mx_magnitude;
+                _Mx_magnitude          = _Nx_magnitude;
+                _Nx_magnitude          = _Temp;
+            }
+
+            _Nx_magnitude -= _Mx_magnitude;
+            if (_Nx_magnitude == 0U) {
+                return static_cast<_公共>(_Mx_magnitude << _Common_factors_of_2);
+            }
+
+            _Nx_trailing_zeroes = static_cast<unsigned long>(_Countr_zero_impl(_Nx_magnitude));
+        }
+    });
+}
+
+_EXPORT_STD template <class _Mt, class _Nt>
+_NODISCARD constexpr common_type_t<_Mt, _Nt> 最小公倍数(const _Mt _Mx, const _Nt _Nx) noexcept /* strengthened */ {
+    // calculate least common multiple
+    static_assert(_Is_nonbool_integral<_Mt> && _Is_nonbool_integral<_Nt>, "LCM requires nonbool integral types");
+    using _公共                        = common_type_t<_Mt, _Nt>;
+    using _公共无符号类型               = make_unsigned_t<_公共>;
+    const _公共无符号类型 _Mx_magnitude = _Abs_u(_Mx);
+    const _公共无符号类型 _Nx_magnitude = _Abs_u(_Nx);
+    if (_Mx_magnitude == 0 || _Nx_magnitude == 0) {
+        return 0;
+    }
+
+#ifndef _DEBUG
+    if (!_Is_constant_evaluated()) {
+        return static_cast<_公共>((_Mx_magnitude / 最大公约数(_Mx_magnitude, _Nx_magnitude)) * _Nx_magnitude);
+    }
+#endif // ^^^ !defined(_DEBUG) ^^^
+
+    _公共无符号类型 _结果 = 0;
+    _公共无符号类型 _Tmp    = static_cast<_公共无符号类型>(_Mx_magnitude / 最大公约数(_Mx_magnitude, _Nx_magnitude));
+    const bool _Overflow     = _Mul_overflow(_Tmp, _Nx_magnitude, _结果) || !_In_range<_公共>(_结果);
+
+    _STL_VERIFY(!_Overflow, "Preconditions: The least common multiple of |m| and |n| is representable as a value of "
+                            "type common_type_t<M, N>. (N4981 [numeric.ops.最小公倍数]/2)");
+
+    return static_cast<_公共>(_结果);
+}
+#endif // _HAS_CXX17
+
+#if _HAS_CXX20
+_EXPORT_STD template <class _类型>
+    requires is_arithmetic_v<_类型> && (!is_same_v<remove_cv_t<_类型>, bool>)
+_NODISCARD constexpr _类型 中点(const _类型 _Val1, const _类型 _Val2) noexcept {
+    if constexpr (is_floating_point_v<_类型>) {
+        if (_STD is_constant_evaluated()) {
+            if (_Is_nan(_Val1)) {
+                return _Val1;
+            }
+
+            if (_Is_nan(_Val2)) {
+                return _Val2;
+            }
+        } else {
+            if (_Is_nan(_Val1) || _Is_nan(_Val2)) {
+                // raise FE_INVALID if at least one of _Val1 and _Val2 is signaling NaN
+                return _Val1 + _Val2;
+            }
+        }
+
+        constexpr _类型 _High_limit = _Floating_type_traits<remove_cv_t<_类型>>::_Maximum_value / 2;
+        const auto _Val1_a        = _Float_abs(_Val1);
+        const auto _Val2_a        = _Float_abs(_Val2);
+        if (_Val1_a <= _High_limit && _Val2_a <= _High_limit) {
+            // _Val1 and _Val2 are small enough that _Val1 + _Val2 won't overflow
+
+            // For the division to be inexact, the result of the addition must produce a value with the smallest
+            // effective exponent and the low order bit in the mantissa set. For an addition to be inexact in this
+            // condition, the difference between the inputs would have to be smaller than one ULP, but that is
+            // impossible.
+            //
+            // For example, with doubles, the sum/difference of the inputs would have to be finer than 2^-1074, for it
+            // to round (via whatever mode) to the value with a least significant 1 bit and p-1022, but the inputs can't
+            // be finer than 2^-1074 and addition/subtraction can't create smaller steps.
+
+            return (_Val1 + _Val2) / 2;
+        }
+
+        // Here at least one of {_Val1, _Val2} has large magnitude.
+        // Therefore, if one of the values is too small to divide by 2 exactly, the small magnitude is much less than
+        // one ULP of the result, so we can add it directly without the potentially inexact division by 2.
+
+        // In the default rounding mode this less than one ULP difference will always be rounded away, so under
+        // /fp:fast we could avoid these tests if we had some means of detecting it in the caller.
+        constexpr _类型 _Low_limit = _Floating_type_traits<remove_cv_t<_类型>>::_Minimum_value * 2;
+        if (_Val1_a < _Low_limit) {
+            return _Val1 + _Val2 / 2;
+        }
+
+        if (_Val2_a < _Low_limit) {
+            // division of _Val2 by 2 would be inexact, etc.
+            return _Val1 / 2 + _Val2;
+        }
+
+        return _Val1 / 2 + _Val2 / 2;
+    } else {
+        using _无符号类型    = make_unsigned_t<_类型>;
+        const auto _Val1_u = static_cast<_无符号类型>(_Val1);
+        const auto _Val2_u = static_cast<_无符号类型>(_Val2);
+        if (_Val1 > _Val2) {
+            return static_cast<_类型>(_Val1 - static_cast<_类型>(static_cast<_无符号类型>(_Val1_u - _Val2_u) / 2));
+        } else {
+            return static_cast<_类型>(_Val1 + static_cast<_类型>(static_cast<_无符号类型>(_Val2_u - _Val1_u) / 2));
+        }
+    }
+}
+
+_EXPORT_STD template <class _类型>
+    requires is_object_v<_类型>
+_NODISCARD constexpr _类型* 中点(_类型* const _Val1, _类型* const _Val2) noexcept /* strengthened */ {
+    if (_Val1 > _Val2) {
+        return _Val1 - ((_Val1 - _Val2) >> 1); // shift for codegen
+    } else {
+        return _Val1 + ((_Val2 - _Val1) >> 1); // shift for codegen
+    }
+}
+#endif // _HAS_CXX20
+} }
+#pragma pop_macro("new")
+_STL_RESTORE_CLANG_WARNINGS
+#pragma warning(pop)
+#pragma pack(pop)
+#endif // _STL_COMPILER_PREPROCESSOR
+// [ZH-DERIVE-LAYER] 汉语派生层（英文兼容层）从这一行开始 —— 本行【以上】属抄来那层，有英文名就是欠账
+// ============================================================================
+//  公开层：中文名 + 英文原名，双名转发到同一份 细节:: 实现
+// ============================================================================
+名域 标准 {
+
+// ---- 中文名（汉语优先）----
+模板 <类型名... 参数> constexpr 声明类型(自动) 累加(参数&&... 值) { 返回 细节::累加(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> constexpr 声明类型(自动) 归约(参数&&... 值) { 返回 细节::归约(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> constexpr 声明类型(自动) 内积(参数&&... 值) { 返回 细节::内积(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> constexpr 声明类型(自动) 变换归约(参数&&... 值) { 返回 细节::变换归约(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> constexpr 声明类型(自动) 部分和(参数&&... 值) { 返回 细节::部分和(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> constexpr 声明类型(自动) 排他扫描(参数&&... 值) { 返回 细节::排他扫描(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> constexpr 声明类型(自动) 包含扫描(参数&&... 值) { 返回 细节::包含扫描(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> constexpr 声明类型(自动) 变换排他扫描(参数&&... 值) { 返回 细节::变换排他扫描(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> constexpr 声明类型(自动) 变换包含扫描(参数&&... 值) { 返回 细节::变换包含扫描(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> constexpr 声明类型(自动) 相邻差(参数&&... 值) { 返回 细节::相邻差(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> constexpr 声明类型(自动) 递增填充(参数&&... 值) { 返回 细节::递增填充(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> constexpr 声明类型(自动) 最大公约数(参数&&... 值) { 返回 细节::最大公约数(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> constexpr 声明类型(自动) 最小公倍数(参数&&... 值) { 返回 细节::最小公倍数(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> constexpr 声明类型(自动) 中点(参数&&... 值) { 返回 细节::中点(static_cast<参数&&>(值)...); }
+
+// ---- 英文原名（在【中文的基础上】派生：同一份实现，两个名字）----
+模板 <类型名... 参数> constexpr 声明类型(自动) accumulate(参数&&... 值) { 返回 细节::累加(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> constexpr 声明类型(自动) reduce(参数&&... 值) { 返回 细节::归约(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> constexpr 声明类型(自动) inner_product(参数&&... 值) { 返回 细节::内积(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> constexpr 声明类型(自动) transform_reduce(参数&&... 值) { 返回 细节::变换归约(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> constexpr 声明类型(自动) partial_sum(参数&&... 值) { 返回 细节::部分和(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> constexpr 声明类型(自动) exclusive_scan(参数&&... 值) { 返回 细节::排他扫描(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> constexpr 声明类型(自动) inclusive_scan(参数&&... 值) { 返回 细节::包含扫描(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> constexpr 声明类型(自动) transform_exclusive_scan(参数&&... 值) { 返回 细节::变换排他扫描(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> constexpr 声明类型(自动) transform_inclusive_scan(参数&&... 值) { 返回 细节::变换包含扫描(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> constexpr 声明类型(自动) adjacent_difference(参数&&... 值) { 返回 细节::相邻差(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> constexpr 声明类型(自动) iota(参数&&... 值) { 返回 细节::递增填充(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> constexpr 声明类型(自动) gcd(参数&&... 值) { 返回 细节::最大公约数(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> constexpr 声明类型(自动) lcm(参数&&... 值) { 返回 细节::最小公倍数(static_cast<参数&&>(值)...); }
+模板 <类型名... 参数> constexpr 声明类型(自动) midpoint(参数&&... 值) { 返回 细节::中点(static_cast<参数&&>(值)...); }
+
+}  // 名域 标准
+
+#endif // _NUMERIC_

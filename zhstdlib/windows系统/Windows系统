@@ -1,0 +1,132 @@
+// <Windows系统> —— windows.h 的中文别名层
+//
+// 这是什么：windows.h（Windows 系统 API）的**中文名层**，机制与 C 包装头相同（方案 §3.4）：
+//   类型 -> 使用 中文名 = 原名;      （**没有 std::**：Win32 名字住在全局名域）
+//   函数 -> 一模板转发（函数没有"别名"机制）—— 一律指向**显式的 …W 真函数**：
+//           Win32 里 CreateFile/WriteConsole/GetModuleHandle 这类"函数"其实是宏，
+//           宏会被展开、不能转发，所以表里一律取 …W（决策 D-14 第 3 条）。
+//   宏   -> 内联 常量 承载它的值（值仍取 SDK 自己的宏，**不重写定义**）
+//
+// ⚠ 下面两个宏是【必需】的，不是可选优化 —— 组合探针（全部汉语头放进同一个 TU）实测：
+//   · 不给 WIN32_LEAN_AND_MEAN ⇒ rpcndr.h 的 typedef unsigned char byte; 让 byte 有歧义，
+//     《通用内部件》里 20 条错（它与 std::byte 对不上号）；
+//   · 不给 NOMINMAX ⇒ windef.h 的 min/max 宏把《数值极限》里的 (min)(...) 拆坏，也是 20 条错。
+//   两个都给 = 0 条错（<Windows系统> 排在最前、后面跟全部 116 个汉语头也照样编过）。
+//   用 #ifndef 包住：用户自己已经定过就按用户的 —— 这里只是"没定过时的兜底"。
+//
+// 英文原名照旧可用：这里只是【多一个名字】，SDK 头一个字节没动。
+#pragma once
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+
+名域 标准 {
+    使用 句柄 = HANDLE;
+    使用 窗口句柄 = HWND;
+    使用 模块句柄 = HMODULE;
+    使用 双字 = DWORD;
+    内联 常量 双字 标准输入句柄 = STD_INPUT_HANDLE;
+    内联 常量 双字 标准输出句柄 = STD_OUTPUT_HANDLE;
+    内联 常量 双字 标准错误句柄 = STD_ERROR_HANDLE;
+    内联 常量 句柄 无效句柄 = INVALID_HANDLE_VALUE;
+    模板 <类型名... 参数> 声明类型(自动) 取标准句柄(参数&&... 值) { 返回 GetStdHandle(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 关闭句柄(参数&&... 值) { 返回 CloseHandle(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 冲刷文件缓冲(参数&&... 值) { 返回 FlushFileBuffers(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 创建文件(参数&&... 值) { 返回 CreateFileW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 读句柄(参数&&... 值) { 返回 ReadFile(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 写句柄(参数&&... 值) { 返回 WriteFile(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取文件大小(参数&&... 值) { 返回 GetFileSize(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 新建目录(参数&&... 值) { 返回 CreateDirectoryW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 删除目录(参数&&... 值) { 返回 RemoveDirectoryW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 设置控制台输出代码页(参数&&... 值) { 返回 SetConsoleOutputCP(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取控制台输出代码页(参数&&... 值) { 返回 GetConsoleOutputCP(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 设置控制台输入代码页(参数&&... 值) { 返回 SetConsoleCP(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取控制台输入代码页(参数&&... 值) { 返回 GetConsoleCP(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 写控制台(参数&&... 值) { 返回 WriteConsoleW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 读控制台(参数&&... 值) { 返回 ReadConsoleW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 设置控制台标题(参数&&... 值) { 返回 SetConsoleTitleW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取控制台窗口(参数&&... 值) { 返回 GetConsoleWindow(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取当前进程号(参数&&... 值) { 返回 GetCurrentProcessId(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取当前线程号(参数&&... 值) { 返回 GetCurrentThreadId(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 睡眠(参数&&... 值) { 返回 Sleep(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取模块句柄(参数&&... 值) { 返回 GetModuleHandleW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取命令行(参数&&... 值) { 返回 GetCommandLineW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取最后错误(参数&&... 值) { 返回 GetLastError(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 设置最后错误(参数&&... 值) { 返回 SetLastError(static_cast<参数&&>(值)...); }
+    使用 临界区 = CRITICAL_SECTION;
+    内联 常量 双字 无限等待 = INFINITE;
+    内联 常量 双字 等待成功 = WAIT_OBJECT_0;
+    内联 常量 双字 等待超时 = WAIT_TIMEOUT;
+    内联 常量 双字 等待失败 = WAIT_FAILED;
+    模板 <类型名... 参数> 声明类型(自动) 创建事件(参数&&... 值) { 返回 CreateEventW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 设置事件(参数&&... 值) { 返回 SetEvent(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 重置事件(参数&&... 值) { 返回 ResetEvent(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 等待单个对象(参数&&... 值) { 返回 WaitForSingleObject(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 等待多个对象(参数&&... 值) { 返回 WaitForMultipleObjects(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 创建互斥量(参数&&... 值) { 返回 CreateMutexW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 释放互斥量(参数&&... 值) { 返回 ReleaseMutex(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 创建信号量(参数&&... 值) { 返回 CreateSemaphoreW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 释放信号量(参数&&... 值) { 返回 ReleaseSemaphore(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 初始化临界区(参数&&... 值) { 返回 InitializeCriticalSection(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 进入临界区(参数&&... 值) { 返回 EnterCriticalSection(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 离开临界区(参数&&... 值) { 返回 LeaveCriticalSection(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 删除临界区(参数&&... 值) { 返回 DeleteCriticalSection(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 试进临界区(参数&&... 值) { 返回 TryEnterCriticalSection(static_cast<参数&&>(值)...); }
+    使用 内存基本信息 = MEMORY_BASIC_INFORMATION;
+    内联 常量 双字 提交内存 = MEM_COMMIT;
+    内联 常量 双字 保留内存 = MEM_RESERVE;
+    内联 常量 双字 释放区域 = MEM_RELEASE;
+    内联 常量 双字 可读写页 = PAGE_READWRITE;
+    内联 常量 双字 可执行可读页 = PAGE_EXECUTE_READ;
+    内联 常量 双字 不可访问页 = PAGE_NOACCESS;
+    模板 <类型名... 参数> 声明类型(自动) 申请虚拟内存(参数&&... 值) { 返回 VirtualAlloc(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 释放虚拟内存(参数&&... 值) { 返回 VirtualFree(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 设置内存保护(参数&&... 值) { 返回 VirtualProtect(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取内存信息(参数&&... 值) { 返回 VirtualQuery(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取进程堆(参数&&... 值) { 返回 GetProcessHeap(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 创建堆(参数&&... 值) { 返回 HeapCreate(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 销毁堆(参数&&... 值) { 返回 HeapDestroy(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 从堆分配(参数&&... 值) { 返回 HeapAlloc(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 释放堆内存(参数&&... 值) { 返回 HeapFree(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 调整堆内存(参数&&... 值) { 返回 HeapReAlloc(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取堆块大小(参数&&... 值) { 返回 HeapSize(static_cast<参数&&>(值)...); }
+    使用 注册表键 = HKEY;
+    内联 常量 注册表键 当前用户键 = HKEY_CURRENT_USER;
+    内联 常量 注册表键 本机键 = HKEY_LOCAL_MACHINE;
+    内联 常量 双字 键可读 = KEY_READ;
+    内联 常量 双字 键可写 = KEY_WRITE;
+    内联 常量 双字 字符串值类型 = REG_SZ;
+    内联 常量 双字 双字值类型 = REG_DWORD;
+    模板 <类型名... 参数> 声明类型(自动) 打开注册表键(参数&&... 值) { 返回 RegOpenKeyExW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 创建注册表键(参数&&... 值) { 返回 RegCreateKeyExW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 关闭注册表键(参数&&... 值) { 返回 RegCloseKey(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 读注册表值(参数&&... 值) { 返回 RegQueryValueExW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 写注册表值(参数&&... 值) { 返回 RegSetValueExW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 删除注册表键(参数&&... 值) { 返回 RegDeleteKeyW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 删除注册表值(参数&&... 值) { 返回 RegDeleteValueW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 枚举注册表子键(参数&&... 值) { 返回 RegEnumKeyExW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 枚举注册表值(参数&&... 值) { 返回 RegEnumValueW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 读环境变量(参数&&... 值) { 返回 GetEnvironmentVariableW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 写环境变量(参数&&... 值) { 返回 SetEnvironmentVariableW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取环境变量块(参数&&... 值) { 返回 GetEnvironmentStringsW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 释放环境变量块(参数&&... 值) { 返回 FreeEnvironmentStringsW(static_cast<参数&&>(值)...); }
+    使用 系统时间 = SYSTEMTIME;
+    使用 大整数 = LARGE_INTEGER;
+    内联 常量 双字 按改变后的路径搜索 = LOAD_WITH_ALTERED_SEARCH_PATH;
+    内联 常量 双字 按地址取 = GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS;
+    模板 <类型名... 参数> 声明类型(自动) 加载动态库(参数&&... 值) { 返回 LoadLibraryW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 卸载动态库(参数&&... 值) { 返回 FreeLibrary(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取函数地址(参数&&... 值) { 返回 GetProcAddress(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取模块文件名(参数&&... 值) { 返回 GetModuleFileNameW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 带标志加载动态库(参数&&... 值) { 返回 LoadLibraryExW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 按标志取模块句柄(参数&&... 值) { 返回 GetModuleHandleExW(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取性能计数(参数&&... 值) { 返回 QueryPerformanceCounter(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取性能频率(参数&&... 值) { 返回 QueryPerformanceFrequency(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取开机毫秒数(参数&&... 值) { 返回 GetTickCount64(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取本机时间(参数&&... 值) { 返回 GetLocalTime(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取世界时间(参数&&... 值) { 返回 GetSystemTime(static_cast<参数&&>(值)...); }
+}

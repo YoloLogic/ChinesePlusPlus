@@ -1,0 +1,1789 @@
+#include <variant>
+// 变体实现 standard header
+
+// Copyright (c) Microsoft Corporation.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#ifndef _ZH_VARIANT_
+#define _ZH_VARIANT_
+#include <yvals.h>
+#if _STL_COMPILER_PREPROCESSOR
+
+#if !_HAS_CXX17
+_EMIT_STL_WARNING(STL4038, "The contents of <变体实现> are available only with C++17 or later.");
+#else // ^^^ !_HAS_CXX17 / _HAS_CXX17 vvv
+#if _HAS_CXX20
+#include <比较>
+#endif // _HAS_CXX20
+#include <异常>
+#include <初始化列表>
+#include <类型特征>
+#include <工具>
+#include <特殊成员控制>
+#include <通用内部件>
+
+#pragma pack(push, _CRT_PACKING)
+#pragma warning(push, _STL_WARNING_LEVEL)
+#pragma warning(disable : _STL_DISABLED_WARNINGS)
+_STL_DISABLE_CLANG_WARNINGS
+#pragma push_macro("new")
+#undef new
+
+名域 标准 { 名域 细节 {
+使用 名域 std;
+
+template <class...>
+struct _元_列表; // a sequence of types (not defined)
+
+template <class _List>
+struct _元_取首_;
+template <class _List>
+using _元_取首 =
+    // extract the first type in a sequence (head of list)
+    typename _元_取首_<_List>::type;
+
+template <template <class...> class _List, class _首个, class... _Rest>
+struct _元_取首_<_List<_首个, _Rest...>> {
+    using type = _首个;
+};
+
+template <class _List>
+struct _元_弹首_;
+template <class _List>
+using _元_弹首 =
+    // subsequence including all but the first type (tail of list)
+    typename _元_弹首_<_List>::type;
+
+template <template <class...> class _List, class _首个, class... _Rest>
+struct _元_弹首_<_List<_首个, _Rest...>> {
+    using type = _List<_Rest...>;
+};
+
+template <class _List, class _类型>
+struct _元_压首_;
+template <class _List, class _类型>
+using _元_压首 =
+    // prepend a new type onto a sequence
+    typename _元_压首_<_List, _类型>::type;
+
+template <template <class...> class _List, class... _Types, class _类型>
+struct _元_压首_<_List<_Types...>, _类型> {
+    using type = _List<_类型, _Types...>;
+};
+
+template <class _Void, template <class...> class _Fn, class... _Args>
+struct _元_引用助手_;
+template <template <class...> class _Fn, class... _Args>
+struct _元_引用助手_<void_t<_Fn<_Args...>>, _Fn, _Args...> {
+    using type = _Fn<_Args...>;
+};
+template <template <class...> class _Fn>
+struct _元_引用 { // encapsulate a template into a meta-callable type
+    template <class... _Types>
+    using _调用 = typename _元_引用助手_<void, _Fn, _Types...>::type;
+};
+
+template <class _Fn, class... _Args>
+using _元_调用 = // invoke meta-callable _Fn with _Args
+    typename _Fn::template _调用<_Args...>;
+
+template <class _Fn, class... _Args>
+struct _元_后绑定 { // construct a meta-callable that passes its arguments and _Args to _Fn
+    template <class... _Types>
+    using _调用 = _元_调用<_Fn, _Types..., _Args...>;
+};
+
+template <class _Fn, class _List>
+struct _元_应用_;
+template <class _Fn, class _List>
+using _元_应用 =
+    // unpack _List into the parameters of meta-callable _Fn
+    typename _元_应用_<_Fn, _List>::type;
+
+template <class _Fn, template <class...> class _List, class... _Types>
+struct _元_应用_<_Fn, _List<_Types...>> {
+    // invoke meta-callable _Fn with the parameters of a template specialization
+    using type = _元_调用<_Fn, _Types...>;
+};
+
+template <class _Fn, class _类型, _类型... _Idxs>
+struct _元_应用_<_Fn, integer_sequence<_类型, _Idxs...>> {
+    // invoke meta-callable _Fn with the elements of an integer_sequence
+    using type = _元_调用<_Fn, integral_constant<_类型, _Idxs>...>;
+};
+
+template <class _Fn, class _List>
+struct _元_变换_;
+template <class _Fn, class _List>
+using _元_变换 =
+    // transform sequence of _Types... into sequence of _Fn<_Types...>
+    typename _元_变换_<_Fn, _List>::type;
+
+template <template <class...> class _List, class _Fn, class... _Types>
+struct _元_变换_<_Fn, _List<_Types...>> {
+    using type = _List<_元_调用<_Fn, _Types>...>;
+};
+
+template <class, class, template <class...> class>
+struct _元_重复n常量_;
+template <size_t _Count, class _类型, template <class...> class _Continue>
+using _元_重复n常量 =
+    // construct a sequence consisting of repetitions of _类型
+    typename _元_重复n常量_<_类型, make_index_sequence<_Count>, _Continue>::type;
+
+template <class _类型, size_t>
+using _元_重复首助手 = _类型;
+
+template <class _类型, size_t... _Idxs, template <class...> class _Continue>
+struct _元_重复n常量_<_类型, index_sequence<_Idxs...>, _Continue> {
+    using type = _Continue<_元_重复首助手<_类型, _Idxs>...>;
+};
+
+template <class _List, size_t _Idx, class = void>
+struct _元_取位_;
+template <class _List, size_t _Idx>
+using _元_取位常量 =
+    // Extract the _Idx-th type from _List
+    typename _元_取位_<_List, _Idx>::type;
+
+#ifdef __clang__
+template <template <class...> class _List, class... _Types, size_t _Idx>
+struct _元_取位_<_List<_Types...>, _Idx, void_t<__type_pack_element<_Idx, _Types...>>> {
+    using type = __type_pack_element<_Idx, _Types...>;
+};
+#else // ^^^ defined(__clang__) / !defined(__clang__) vvv
+template <class... _VoidPtrs>
+struct _元_取位实现 {
+    template <class _类型, class... _Types>
+    static _类型 _求值(_VoidPtrs..., _类型*, _Types*...); // undefined
+};
+
+template <class _类型>
+constexpr _Identity<_类型>* _Type_as_pointer() {
+    return nullptr;
+}
+
+template <template <class...> class _List, class... _Types, size_t _Idx>
+struct _元_取位_<_List<_Types...>, _Idx, enable_if_t<(_Idx < sizeof...(_Types))>> {
+    using type =
+        typename decltype(_元_重复n常量<_Idx, void*, _元_取位实现>::_求值(_Type_as_pointer<_Types>()...))::type;
+};
+#endif // ^^^ !defined(__clang__) ^^^
+
+template <class>
+struct _元_作列表_;
+template <class _类型>
+using _元_作列表 =
+    // convert _类型 to a _元_列表
+    typename _元_作列表_<_类型>::type;
+
+template <template <class...> class _List, class... _Types>
+struct _元_作列表_<_List<_Types...>> {
+    // convert the parameters of an arbitrary template specialization to a _元_列表 of types
+    using type = _元_列表<_Types...>;
+};
+
+template <class _类型, _类型... _Idxs>
+struct _元_作列表_<integer_sequence<_类型, _Idxs...>> {
+    // convert an integer_sequence to a _元_列表 of integral_constants
+    using type = _元_列表<integral_constant<_类型, _Idxs>...>;
+};
+
+template <class _List>
+struct _元_作整数序列_;
+template <class _List>
+using _元_作整数序列 =
+    // convert a list of integral_constants to an integer_sequence
+    typename _元_作整数序列_<_List>::type;
+
+template <template <class...> class _List, class _类型, _类型... _Idxs>
+struct _元_作整数序列_<_List<integral_constant<_类型, _Idxs>...>> {
+    using type = integer_sequence<_类型, _Idxs...>;
+};
+
+template <class...>
+struct _元_拼接_;
+template <class... _Types>
+using _元_拼接 =
+    // merge several lists into one
+    typename _元_拼接_<_Types...>::type;
+
+template <template <class...> class _List>
+struct _元_拼接_<_List<>> {
+    using type = _List<>;
+};
+
+template <template <class...> class _List, class... _Items1>
+struct _元_拼接_<_List<_Items1...>> {
+    using type = _List<_Items1...>;
+};
+
+template <template <class...> class _List, class... _Items1, class... _Items2>
+struct _元_拼接_<_List<_Items1...>, _List<_Items2...>> {
+    using type = _List<_Items1..., _Items2...>;
+};
+
+template <template <class...> class _List, class... _Items1, class... _Items2, class... _Items3>
+struct _元_拼接_<_List<_Items1...>, _List<_Items2...>, _List<_Items3...>> {
+    using type = _List<_Items1..., _Items2..., _Items3...>;
+};
+
+template <template <class...> class _List, class... _Items1, class... _Items2, class... _Items3, class... _Rest>
+struct _元_拼接_<_List<_Items1...>, _List<_Items2...>, _List<_Items3...>, _Rest...> {
+    using type = _元_拼接<_List<_Items1..., _Items2..., _Items3...>, _Rest...>;
+};
+
+template <class _ListOfLists>
+using _元_连接 =
+    // transform a list of lists of elements into a single list containing those elements
+    _元_应用<_元_引用<_元_拼接>, _ListOfLists>;
+
+template <class>
+struct _元_笛卡尔积_;
+template <class _ListOfLists>
+using _元_笛卡尔积 =
+    // find the n-ary Cartesian Product of the lists in the input list
+    typename _元_笛卡尔积_<_ListOfLists>::type;
+
+template <template <class...> class _List>
+struct _元_笛卡尔积_<_List<>> {
+    using type = _List<>;
+};
+
+template <template <class...> class _List1, template <class...> class _List2, class... _Items>
+struct _元_笛卡尔积_<_List1<_List2<_Items...>>> {
+    using type = _List1<_List2<_Items>...>;
+};
+
+template <template <class...> class _List1, class... _Items, template <class...> class _List2, class... _Lists>
+struct _元_笛卡尔积_<_List1<_List2<_Items...>, _Lists...>> {
+    using type = _元_连接<_List1<_元_变换<_元_后绑定<_元_引用<_元_压首>, _Items>,
+        _元_笛卡尔积<_List1<_Lists...>>>...>>;
+};
+
+#define _STL_STAMP4(n, x) \
+    x(n);                 \
+    x(n + 1);             \
+    x(n + 2);             \
+    x(n + 3)
+#define _STL_STAMP16(n, x) \
+    _STL_STAMP4(n, x);     \
+    _STL_STAMP4(n + 4, x); \
+    _STL_STAMP4(n + 8, x); \
+    _STL_STAMP4(n + 12, x)
+#define _STL_STAMP64(n, x)   \
+    _STL_STAMP16(n, x);      \
+    _STL_STAMP16(n + 16, x); \
+    _STL_STAMP16(n + 32, x); \
+    _STL_STAMP16(n + 48, x)
+#define _STL_STAMP256(n, x)   \
+    _STL_STAMP64(n, x);       \
+    _STL_STAMP64(n + 64, x);  \
+    _STL_STAMP64(n + 128, x); \
+    _STL_STAMP64(n + 192, x)
+
+#define _STL_STAMP(n, x) x(_STL_STAMP##n, n)
+
+_EXPORT_STD template <class... _Types>
+class 变体实现;
+
+_EXPORT_STD template <class _类型>
+struct 变体尺寸; // undefined
+template <class _类型>
+struct 变体尺寸<const _类型> : 变体尺寸<_类型>::type {};
+template <class _类型>
+struct _CXX20_DEPRECATE_VOLATILE 变体尺寸<volatile _类型> : 变体尺寸<_类型>::type {};
+template <class _类型>
+struct _CXX20_DEPRECATE_VOLATILE 变体尺寸<const volatile _类型> : 变体尺寸<_类型>::type {};
+_EXPORT_STD template <class _类型>
+constexpr size_t variant_size_v = 变体尺寸<_类型>::value;
+
+template <class... _Types>
+struct 变体尺寸<变体实现<_Types...>> : integral_constant<size_t, sizeof...(_Types)> {};
+
+_EXPORT_STD template <size_t _Idx, class _类型>
+struct 变体替体; // undefined
+_EXPORT_STD template <size_t _Idx, class _类型>
+using 变体备选类型 = typename 变体替体<_Idx, _类型>::type;
+template <size_t _Idx, class _类型>
+struct 变体替体<_Idx, const _类型> {
+    using type = add_const_t<变体备选类型<_Idx, _类型>>;
+};
+template <size_t _Idx, class _类型>
+struct _CXX20_DEPRECATE_VOLATILE 变体替体<_Idx, volatile _类型> {
+    using type = add_volatile_t<变体备选类型<_Idx, _类型>>;
+};
+template <size_t _Idx, class _类型>
+struct _CXX20_DEPRECATE_VOLATILE 变体替体<_Idx, const volatile _类型> {
+    using type = add_cv_t<变体备选类型<_Idx, _类型>>;
+};
+template <size_t _Idx, class... _Types>
+struct 变体替体<_Idx, 变体实现<_Types...>> {
+    static_assert(_Idx < sizeof...(_Types), "变体实现 索引 out of bounds");
+
+#ifdef __clang__
+    using type = __type_pack_element<_Idx, _Types...>;
+#else // ^^^ defined(__clang__) / !defined(__clang__) vvv
+    using type = _元_取位常量<变体实现<_Types...>, _Idx>;
+#endif // ^^^ !defined(__clang__) ^^^
+};
+
+_EXPORT_STD inline constexpr size_t 变体无位置 = _Meta_npos;
+
+template <bool _TrivialDestruction, class... _Types>
+class _变体_存储_ {}; // empty storage (empty "_Types" case)
+
+template <class... _Types>
+using _变体_存储 = _变体_存储_<conjunction_v<is_trivially_destructible<_Types>...>, _Types...>;
+
+template <class _首个, class... _Rest>
+class _变体_存储_<true, _首个, _Rest...> { // Storage for 变体实现 alternatives (trivially destructible case)
+public:
+    static constexpr size_t _Size = 1 + sizeof...(_Rest);
+    union {
+        remove_cv_t<_首个> _Head;
+        _变体_存储<_Rest...> _Tail;
+    };
+
+    _CONSTEXPR20 _变体_存储_() noexcept {} // no initialization (no active member)
+
+    template <class... _Types>
+    constexpr explicit _变体_存储_(integral_constant<size_t, 0>, _Types&&... _Args)
+        noexcept(is_nothrow_constructible_v<_首个, _Types...>)
+        : _Head(static_cast<_Types&&>(_Args)...) {} // initialize _Head with _Args...
+
+    template <size_t _Idx, class... _Types, enable_if_t<(_Idx > 0), int> = 0>
+    constexpr explicit _变体_存储_(integral_constant<size_t, _Idx>, _Types&&... _Args)
+        noexcept(is_nothrow_constructible_v<_变体_存储<_Rest...>, integral_constant<size_t, _Idx - 1>, _Types...>)
+        : _Tail(integral_constant<size_t, _Idx - 1>{}, static_cast<_Types&&>(_Args)...) {} // initialize _Tail (recurse)
+
+    _NODISCARD constexpr _首个& _取() & noexcept {
+        return _Head;
+    }
+    _NODISCARD constexpr const _首个& _取() const& noexcept {
+        return _Head;
+    }
+    _NODISCARD constexpr _首个&& _取() && noexcept {
+        return _STD move(_Head);
+    }
+    _NODISCARD constexpr const _首个&& _取() const&& noexcept {
+        return _STD move(_Head);
+    }
+};
+
+template <class _首个, class... _Rest>
+class _变体_存储_<false, _首个, _Rest...> { // Storage for 变体实现 alternatives (non-trivially destructible case)
+public:
+    static constexpr size_t _Size = 1 + sizeof...(_Rest);
+    union {
+        remove_cv_t<_首个> _Head;
+        _变体_存储<_Rest...> _Tail;
+    };
+
+    _CONSTEXPR20 ~_变体_存储_()
+#ifndef __clang__ // TRANSITION, LLVM-59854
+        noexcept
+#endif // ^^^ no workaround ^^^
+    {
+        // explicitly non-trivial destructor (which would otherwise be defined as deleted
+        // since the class has a 变体实现 member with a non-trivial destructor)
+    }
+
+    _CONSTEXPR20 _变体_存储_() noexcept {} // no initialization (no active member)
+
+    template <class... _Types>
+    constexpr explicit _变体_存储_(integral_constant<size_t, 0>, _Types&&... _Args)
+        noexcept(is_nothrow_constructible_v<_首个, _Types...>)
+        : _Head(static_cast<_Types&&>(_Args)...) {} // initialize _Head with _Args...
+
+    template <size_t _Idx, class... _Types, enable_if_t<(_Idx > 0), int> = 0>
+    constexpr explicit _变体_存储_(integral_constant<size_t, _Idx>, _Types&&... _Args)
+        noexcept(is_nothrow_constructible_v<_变体_存储<_Rest...>, integral_constant<size_t, _Idx - 1>, _Types...>)
+        : _Tail(integral_constant<size_t, _Idx - 1>{}, static_cast<_Types&&>(_Args)...) {} // initialize _Tail (recurse)
+
+    _变体_存储_(_变体_存储_&&)                 = default;
+    _变体_存储_(const _变体_存储_&)            = default;
+    _变体_存储_& operator=(_变体_存储_&&)      = default;
+    _变体_存储_& operator=(const _变体_存储_&) = default;
+
+    _NODISCARD constexpr _首个& _取() & noexcept {
+        return _Head;
+    }
+    _NODISCARD constexpr const _首个& _取() const& noexcept {
+        return _Head;
+    }
+    _NODISCARD constexpr _首个&& _取() && noexcept {
+        return _STD move(_Head);
+    }
+    _NODISCARD constexpr const _首个&& _取() const&& noexcept {
+        return _STD move(_Head);
+    }
+};
+
+#ifdef __cplusplus_winrt // TRANSITION, VSO-586813
+// C++/CX is unable to store hats in unions. We instead store them inside a
+// wrapper to enable minimal hats-in-variants support.
+template <class _类型>
+struct _变体_项 {
+    remove_cv_t<_类型> _Item;
+
+    template <class... _Types>
+    constexpr _变体_项(_Types&&... _Args) noexcept(is_nothrow_constructible_v<_类型, _Types...>)
+        : _Item(static_cast<_Types&&>(_Args)...) {}
+};
+
+template <class _首个, class... _Rest>
+class _变体_存储_<false, _首个 ^, _Rest...> { // Storage for 变体实现 alternatives (^ case)
+public:
+    static constexpr size_t _Size = 1 + sizeof...(_Rest);
+    union {
+        _变体_项<_首个 ^> _Head;
+        _变体_存储<_Rest...> _Tail;
+    };
+
+    _CONSTEXPR20 ~_变体_存储_() noexcept {
+        // explicitly non-trivial destructor (which would otherwise be defined as deleted
+        // since the class has a 变体实现 member with a non-trivial destructor)
+    }
+
+    _CONSTEXPR20 _变体_存储_() noexcept {} // no initialization (no active member)
+
+    template <class... _Types>
+    constexpr explicit _变体_存储_(integral_constant<size_t, 0>, _Types&&... _Args)
+        noexcept(is_nothrow_constructible_v<_首个 ^, _Types...>)
+        : _Head(static_cast<_Types&&>(_Args)...) {} // initialize _Head with _Args...
+
+    template <size_t _Idx, class... _Types, enable_if_t<(_Idx > 0), int> = 0>
+    constexpr explicit _变体_存储_(integral_constant<size_t, _Idx>, _Types&&... _Args)
+        noexcept(is_nothrow_constructible_v<_变体_存储<_Rest...>, integral_constant<size_t, _Idx - 1>, _Types...>)
+        : _Tail(integral_constant<size_t, _Idx - 1>{}, static_cast<_Types&&>(_Args)...) {} // initialize _Tail (recurse)
+
+    _变体_存储_(_变体_存储_&&)                 = default;
+    _变体_存储_(const _变体_存储_&)            = default;
+    _变体_存储_& operator=(_变体_存储_&&)      = default;
+    _变体_存储_& operator=(const _变体_存储_&) = default;
+
+    _NODISCARD constexpr _首个 ^ &_取() & noexcept {
+        return _Head._Item;
+    }
+    _NODISCARD constexpr _首个 ^ const& _取() const& noexcept {
+        return _Head._Item;
+    }
+    _NODISCARD constexpr _首个 ^ &&_取() && noexcept {
+        return _STD move(_Head)._Item;
+    }
+    _NODISCARD constexpr _首个 ^ const&& _取() const&& noexcept {
+        return _STD move(_Head)._Item;
+    }
+};
+#endif // ^^^ workaround ^^^
+
+template <size_t _Idx, class _存储>
+_NODISCARD constexpr decltype(auto) _Variant_raw_get(_存储&& _Obj) noexcept {
+    // access the _Idx-th element of a _变体_存储
+    if constexpr (_Idx == 0) {
+        return static_cast<_存储&&>(_Obj)._取();
+    } else if constexpr (_Idx == 1) {
+        return static_cast<_存储&&>(_Obj)._Tail._取();
+    } else if constexpr (_Idx == 2) {
+        return static_cast<_存储&&>(_Obj)._Tail._Tail._取();
+    } else if constexpr (_Idx == 3) {
+        return static_cast<_存储&&>(_Obj)._Tail._Tail._Tail._取();
+    } else if constexpr (_Idx == 4) {
+        return static_cast<_存储&&>(_Obj)._Tail._Tail._Tail._Tail._取();
+    } else if constexpr (_Idx == 5) {
+        return static_cast<_存储&&>(_Obj)._Tail._Tail._Tail._Tail._Tail._取();
+    } else if constexpr (_Idx == 6) {
+        return static_cast<_存储&&>(_Obj)._Tail._Tail._Tail._Tail._Tail._Tail._取();
+    } else if constexpr (_Idx == 7) {
+        return static_cast<_存储&&>(_Obj)._Tail._Tail._Tail._Tail._Tail._Tail._Tail._取();
+    } else if constexpr (_Idx < 16) {
+        return _Variant_raw_get<_Idx - 8>(
+            static_cast<_存储&&>(_Obj)._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail);
+    } else if constexpr (_Idx < 32) {
+        return _Variant_raw_get<_Idx - 16>(static_cast<_存储&&>(_Obj)
+                ._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail);
+    } else if constexpr (_Idx < 64) {
+        return _Variant_raw_get<_Idx - 32>(static_cast<_存储&&>(_Obj)
+                ._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail
+                ._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail);
+    } else { // _Idx >= 64
+        return _Variant_raw_get<_Idx - 64>(static_cast<_存储&&>(_Obj)
+                ._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail
+                ._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail
+                ._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail
+                ._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail);
+    }
+}
+
+template <class _类型, size_t _标记>
+struct _带标记 { // aggregate a runtime value and a compile-time tag value
+    static constexpr size_t _Idx = _标记;
+    _类型 _Val;
+};
+
+template <class _存储, size_t _Idx>
+using _变体_带标记引用类型 = _带标记<decltype(_Variant_raw_get<_Idx>(_STD declval<_存储>()))&&, _Idx>;
+
+template <class _Fn, class _存储>
+using _变体_裸访问类型 = decltype(_STD declval<_Fn>()(_STD declval<_变体_带标记引用类型<_存储, 0>>()));
+
+template <size_t _Idx, class _Fn, class _存储>
+_NODISCARD constexpr _变体_裸访问类型<_Fn, _存储> _Variant_raw_visit_dispatch(_Fn&& _Func, _存储&& _Var)
+    noexcept(is_nothrow_invocable_v<_Fn, _变体_带标记引用类型<_存储, _Idx>>) {
+    // call _Func with the _Idx-th element in _存储 (tagged with _Idx)
+    return static_cast<_Fn&&>(_Func)(
+        _变体_带标记引用类型<_存储, _Idx>{_Variant_raw_get<_Idx>(static_cast<_存储&&>(_Var))});
+}
+
+template <class _Fn, class _存储>
+_NODISCARD constexpr _变体_裸访问类型<_Fn, _存储> _Variant_raw_visit_valueless(_Fn&& _Func, _存储&& _Obj)
+    noexcept(is_nothrow_invocable_v<_Fn, _带标记<_存储&&, 变体无位置>>) {
+    // call _Func with _存储 (tagged with 变体无位置)
+    return static_cast<_Fn&&>(_Func)(_带标记<_存储&&, 变体无位置>{static_cast<_存储&&>(_Obj)});
+}
+
+template <class _Fn, class _存储, class _下标集 = make_index_sequence<remove_reference_t<_存储>::_Size>>
+constexpr bool _Variant_raw_visit_noexcept = false;
+
+template <class _Fn, class _存储, size_t... _Idxs>
+constexpr bool _Variant_raw_visit_noexcept<_Fn, _存储, index_sequence<_Idxs...>> =
+    conjunction_v<is_nothrow_invocable<_Fn, _带标记<_存储&&, 变体无位置>>,
+        is_nothrow_invocable<_Fn, _变体_带标记引用类型<_存储, _Idxs>>...>;
+
+template <class _Fn, class _存储,
+    class _下标集 = make_index_sequence<remove_reference_t<_存储>::_Size>>
+struct _变体_裸分派表1; // undefined
+
+template <class _Fn, class _存储, size_t... _Idxs>
+struct _变体_裸分派表1<_Fn, _存储, index_sequence<_Idxs...>> {
+    // map from canonical 索引 to visitation target
+    using _分派类型 = _变体_裸访问类型<_Fn, _存储> (*)(_Fn&&, _存储&&)
+        noexcept(_Variant_raw_visit_noexcept<_Fn, _存储>);
+    static constexpr _分派类型 _Array[] = {
+        &_Variant_raw_visit_valueless<_Fn, _存储>, &_Variant_raw_visit_dispatch<_Idxs, _Fn, _存储>...};
+};
+
+template <int _策略>
+struct _变体_裸访问1;
+
+template <>
+struct _变体_裸访问1<-1> { // Fallback case for variants too large for any of the following "switch" strategies
+    template <class _Fn, class _存储>
+    _NODISCARD static constexpr _变体_裸访问类型<_Fn, _存储> _访问(size_t _Idx, _Fn&& _Func, _存储&& _Obj)
+        noexcept(_Variant_raw_visit_noexcept<_Fn, _存储>) {
+        // dispatch a visitor for a _变体_存储 with many states
+        constexpr size_t _Size = remove_reference_t<_存储>::_Size;
+        static_assert(_Size > 256);
+        constexpr auto& _Array = _变体_裸分派表1<_Fn, _存储>::_Array;
+        return _Array[_Idx](static_cast<_Fn&&>(_Func), static_cast<_存储&&>(_Obj));
+    }
+};
+
+#define _STL_情形(n)                                                                                              \
+    case (n) + 1:                                                                                                 \
+        if constexpr ((n) < _Size) {                                                                              \
+            return static_cast<_Fn&&>(_Func)(                                                                     \
+                _变体_带标记引用类型<_存储, (n)>{_Variant_raw_get<(n)>(static_cast<_存储&&>(_Obj))}); \
+        }                                                                                                         \
+        _STL_UNREACHABLE;                                                                                         \
+        [[fallthrough]]
+
+#define _访问戳(stamper, n)                                                                        \
+    constexpr size_t _Size = remove_reference_t<_存储>::_Size;                                           \
+    static_assert(((n) == 4 || _Size > (n) / 4) && _Size <= (n));                                           \
+    switch (_Idx) {                                                                                         \
+    case 0:                                                                                                 \
+        return static_cast<_Fn&&>(_Func)(_带标记<_存储&&, 变体无位置>{static_cast<_存储&&>(_Obj)}); \
+                                                                                                            \
+        stamper(0, _STL_情形);                                                                              \
+    default:                                                                                                \
+        _STL_UNREACHABLE;                                                                                   \
+    }
+
+template <>
+struct _变体_裸访问1<1> {
+    template <class _Fn, class _存储>
+    _NODISCARD static constexpr _变体_裸访问类型<_Fn, _存储> _访问(size_t _Idx, _Fn&& _Func, _存储&& _Obj)
+        noexcept(_Variant_raw_visit_noexcept<_Fn, _存储>) {
+        // dispatch a visitor for a _变体_存储 with at most 4^1 states
+        _STL_STAMP(4, _访问戳);
+    }
+};
+
+template <>
+struct _变体_裸访问1<2> {
+    template <class _Fn, class _存储>
+    _NODISCARD static constexpr _变体_裸访问类型<_Fn, _存储> _访问(size_t _Idx, _Fn&& _Func, _存储&& _Obj)
+        noexcept(_Variant_raw_visit_noexcept<_Fn, _存储>) {
+        // dispatch a visitor for a _变体_存储 with at most 4^2 states
+        _STL_STAMP(16, _访问戳);
+    }
+};
+
+template <>
+struct _变体_裸访问1<3> {
+    template <class _Fn, class _存储>
+    _NODISCARD static constexpr _变体_裸访问类型<_Fn, _存储> _访问(size_t _Idx, _Fn&& _Func, _存储&& _Obj)
+        noexcept(_Variant_raw_visit_noexcept<_Fn, _存储>) {
+        // dispatch a visitor for a _变体_存储 with at most 4^3 states
+        _STL_STAMP(64, _访问戳);
+    }
+};
+
+template <>
+struct _变体_裸访问1<4> {
+    template <class _Fn, class _存储>
+    _NODISCARD static constexpr _变体_裸访问类型<_Fn, _存储> _访问(size_t _Idx, _Fn&& _Func, _存储&& _Obj)
+        noexcept(_Variant_raw_visit_noexcept<_Fn, _存储>) {
+        // dispatch a visitor for a _变体_存储 with at most 4^4 states
+        _STL_STAMP(256, _访问戳);
+    }
+};
+
+#undef _访问戳
+#undef _STL_情形
+
+template <class _存储, class _Fn>
+_NODISCARD constexpr _变体_裸访问类型<_Fn, _存储> _变体_裸访问(size_t _Idx, _存储&& _Obj, _Fn&& _Func)
+    noexcept(_Variant_raw_visit_noexcept<_Fn, _存储>) {
+    // Call _Func with _存储 if _Idx is 变体无位置, and otherwise the _Idx-th element in _存储.
+    // pre: _Idx + 1 <= remove_reference_t<_存储>::_Size
+    constexpr size_t _Size  = remove_reference_t<_存储>::_Size;
+    constexpr int _策略 = _Size <= 4 ? 1 : _Size <= 16 ? 2 : _Size <= 64 ? 3 : _Size <= 256 ? 4 : -1;
+    ++_Idx; // bias 索引 by +1 to map {变体无位置} U [0, _Size) to the contiguous range [0, _Size]
+    return _变体_裸访问1<_策略>::_访问(_Idx, static_cast<_Fn&&>(_Func), static_cast<_存储&&>(_Obj));
+}
+
+template <class...>
+class _变体_基;
+
+inline constexpr size_t _Schar_max_as_size = static_cast<unsigned char>(-1) / 2;
+inline constexpr size_t _Short_max_as_size = static_cast<unsigned short>(-1) / 2;
+
+template <size_t _Count>
+using _变体_索引类型 = // signed so that conversion of -1 to size_t can cheaply sign extend
+    conditional_t<(_Count < _Schar_max_as_size), signed char, conditional_t<(_Count < _Short_max_as_size), short, int>>;
+
+template <class... _Types>
+struct _变体_构造访问器 { // visitor that constructs the same alternative in a target _变体_基 as is
+                                    // currently active in a source _变体_基 from the source's contained value
+    _变体_基<_Types...>& _Self;
+
+    template <class _类型, size_t _Idx>
+    _CONSTEXPR20 void operator()(_带标记<_类型, _Idx> _Source) const noexcept(
+        disjunction_v<bool_constant<_Idx == 变体无位置>, is_nothrow_constructible<remove_reference_t<_类型>, _类型>>) {
+        // initialize _Idx-th item in _Self from _Source
+        _STL_INTERNAL_CHECK(_Self.因异常无值());
+        if constexpr (_Idx != 变体无位置) {
+            _就地构造(
+                _Self._存储(), integral_constant<size_t, _Idx>{}, static_cast<_类型&&>(_Source._Val));
+            _Self._置索引(_Idx);
+        }
+    }
+};
+
+template <class _Target, class... _Types>
+constexpr bool _Variant_should_directly_construct_v =
+    disjunction_v<is_nothrow_constructible<_Target, _Types...>, negation<is_nothrow_move_constructible<_Target>>>;
+
+template <class... _Types>
+struct _变体_赋值访问器 { // visitor that implements assignment for variants with non-trivial alternatives
+    _变体_基<_Types...>& _Self;
+
+    template <class _类型, size_t _Idx>
+    _CONSTEXPR20 void operator()(_带标记<_类型, _Idx> _Source) const
+        noexcept(disjunction_v<bool_constant<_Idx == 变体无位置>,
+            conjunction<is_nothrow_assignable<_Remove_cvref_t<_类型>&, _类型>,
+                is_nothrow_constructible<_Remove_cvref_t<_类型>, _类型>>>) {
+        // assign the _Idx-th alternative of _Self from _Source
+        if constexpr (_Idx == 变体无位置) { // assign from valueless _Source
+            _Self._重置();
+        } else {
+            if (_Self._Which == _Idx) { // same alternative: assign directly
+                auto& _Target = _Variant_raw_get<_Idx>(_Self._存储());
+                _Target       = static_cast<_类型&&>(_Source._Val);
+            } else { // different alternative
+                if constexpr (is_lvalue_reference_v<_类型>) { // RHS is an lvalue: copy
+                    if constexpr (_Variant_should_directly_construct_v<_Remove_cvref_t<_类型>, _类型>) {
+                        // copy is nothrow or move throws; construct in place
+                        _Self._重置();
+                        _就地构造(_Self._存储(), integral_constant<size_t, _Idx>{}, _Source._Val);
+                    } else { // copy throws and move does not; move from a temporary copy
+                        auto _Temp = _Source._Val;
+                        _Self._重置();
+                        _就地构造(_Self._存储(), integral_constant<size_t, _Idx>{}, _STD move(_Temp));
+                    }
+                } else { // RHS is an rvalue: move
+                    _Self._重置();
+                    _就地构造(
+                        _Self._存储(), integral_constant<size_t, _Idx>{}, static_cast<_类型&&>(_Source._Val));
+                }
+
+                _Self._置索引(_Idx);
+            }
+        }
+    }
+};
+
+template <class... _Types> // Associate an integral discriminator with a _变体_存储
+class _变体_基 : private _变体_存储<_Types...> {
+public:
+    using _索引类型                       = _变体_索引类型<sizeof...(_Types)>;
+    static constexpr auto _Invalid_index = static_cast<_索引类型>(-1);
+    _索引类型 _Which;
+
+    using _存储类型 = _变体_存储<_Types...>;
+    _NODISCARD constexpr _存储类型& _存储() & noexcept { // access this 变体实现's storage
+        return *this;
+    }
+    _NODISCARD constexpr const _存储类型& _存储() const& noexcept { // access this 变体实现's storage
+        return *this;
+    }
+    _NODISCARD constexpr _存储类型&& _存储() && noexcept { // access this 变体实现's storage
+        return _STD move(*this);
+    }
+    _NODISCARD constexpr const _存储类型&& _存储() const&& noexcept { // access this 变体实现's storage
+        return _STD move(*this);
+    }
+
+    // initialize to the value-less state
+    _CONSTEXPR20 _变体_基() noexcept : _存储类型{}, _Which{_Invalid_index} {}
+
+    template <size_t _Idx, class... _UTypes,
+        enable_if_t<is_constructible_v<_元_取位常量<变体实现<_Types...>, _Idx>, _UTypes...>, int> = 0>
+    constexpr explicit _变体_基(in_place_index_t<_Idx>, _UTypes&&... _Args)
+        noexcept(is_nothrow_constructible_v<_元_取位常量<变体实现<_Types...>, _Idx>, _UTypes...>)
+        : _存储类型(integral_constant<size_t, _Idx>{}, static_cast<_UTypes&&>(_Args)...),
+          _Which{static_cast<_索引类型>(_Idx)} { // initialize alternative _Idx from _Args...
+    }
+
+    // For the trivially destructible case, we can't add a destructor for _MSVC_STL_DESTRUCTOR_TOMBSTONES, due to
+    // N5001 [变体实现.dtor]/2: "Remarks: If is_trivially_destructible_v<Ti> is true for all Ti,
+    // then this destructor is trivial."
+
+    _NODISCARD constexpr bool 因异常无值() const noexcept { // does this 变体实现 NOT hold a value?
+        return _Which < 0;
+    }
+    _NODISCARD constexpr size_t 索引() const noexcept {
+        // 索引 of the contained alternative or 变体无位置 if 因异常无值
+        return static_cast<size_t>(_Which);
+    }
+    _CONSTEXPR20 void _置索引(const size_t _Idx) noexcept {
+        // record _Idx as the active alternative
+        // pre: the active alternative of *this is _Idx
+        _Which = static_cast<_索引类型>(_Idx);
+    }
+
+    template <size_t _Idx>
+    _CONSTEXPR20 void _析构() noexcept {
+        // destroy the contained value
+        // pre: _Idx == 索引()
+        using _带索引值类型 = remove_cv_t<_元_取位常量<变体实现<_Types...>, _Idx>>;
+        if constexpr (_Idx != 变体无位置 && !is_trivially_destructible_v<_带索引值类型>) {
+            _Variant_raw_get<_Idx>(_存储()).~_带索引值类型();
+        }
+    }
+
+    _CONSTEXPR20 void _析构() noexcept { // destroy the contained value, if any
+        if constexpr (!conjunction_v<is_trivially_destructible<_Types>...>) {
+            _变体_裸访问(索引(), _存储(), [](auto _Ref) noexcept {
+                if constexpr (decltype(_Ref)::_Idx != 变体无位置) {
+                    using _带索引值类型 = _Remove_cvref_t<decltype(_Ref._Val)>;
+                    _Ref._Val.~_带索引值类型();
+                }
+            });
+        }
+    }
+
+    _CONSTEXPR20 void _重置() noexcept { // transition to the 因异常无值 state
+        _析构();
+        _置索引(变体无位置);
+    }
+
+    template <size_t _Idx>
+    _CONSTEXPR20 void _重置() noexcept {
+        // transition to the 因异常无值 state
+        // pre: _Idx == 索引()
+        if constexpr (_Idx != 变体无位置) {
+            _析构<_Idx>();
+            _置索引(变体无位置);
+        }
+    }
+
+    _CONSTEXPR20 void _由之构造(const _变体_基& _That)
+        noexcept(conjunction_v<is_nothrow_copy_constructible<_Types>...>) {
+        // copy _That's contained value into *this
+        // pre: 因异常无值()
+        _变体_裸访问(_That.索引(), _That._存储(), _变体_构造访问器<_Types...>{*this});
+    }
+
+    _CONSTEXPR20 void _由之构造(_变体_基&& _That)
+        noexcept(conjunction_v<is_nothrow_move_constructible<_Types>...>) {
+        // move _That's contained value into *this
+        // pre: 因异常无值()
+        _变体_裸访问(
+            _That.索引(), _STD move(_That)._存储(), _变体_构造访问器<_Types...>{*this});
+    }
+
+    _CONSTEXPR20 void _由之赋值(const _变体_基& _That)
+        noexcept(conjunction_v<is_nothrow_copy_constructible<_Types>..., is_nothrow_copy_assignable<_Types>...>) {
+        // copy assign _That's contained value (if any) into *this
+        _变体_裸访问(_That.索引(), _That._存储(), _变体_赋值访问器<_Types...>{*this});
+    }
+
+    _CONSTEXPR20 void _由之赋值(_变体_基&& _That)
+        noexcept(conjunction_v<is_nothrow_move_constructible<_Types>..., is_nothrow_move_assignable<_Types>...>) {
+        // move assign _That's contained value (if any) into *this
+        _变体_裸访问(_That.索引(), _STD move(_That)._存储(), _变体_赋值访问器<_Types...>{*this});
+    }
+};
+
+template <class... _Types>
+struct _变体_析构层_ : _变体_基<_Types...> { // destruction behavior facade (non-trivial case)
+    using _变体_基<_Types...>::_变体_基;
+
+    _CONSTEXPR20 ~_变体_析构层_() noexcept { // Destroy contained value, if any
+        this->_析构();
+
+#if _MSVC_STL_DESTRUCTOR_TOMBSTONES
+        // For the non-trivially destructible case, we can set the 变体实现 to be valueless.
+        // We don't attempt to scribble over the bytes of the object's storage because that could be expensive
+        // and we don't know whether the object has an invalid representation, much less what it could be.
+        this->_置索引(变体无位置);
+#endif
+    }
+
+    _变体_析构层_()                                          = default;
+    _变体_析构层_(const _变体_析构层_&)            = default;
+    _变体_析构层_(_变体_析构层_&&)                 = default;
+    _变体_析构层_& operator=(const _变体_析构层_&) = default;
+    _变体_析构层_& operator=(_变体_析构层_&&)      = default;
+};
+
+template <class... _Types>
+using _变体_析构层 = conditional_t<conjunction_v<is_trivially_destructible<_Types>...>,
+    _变体_基<_Types...>, _变体_析构层_<_Types...>>;
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-volatile"
+#else // ^^^ Clang / not Clang vvv
+#pragma warning(push)
+#pragma warning(disable : 4242) // '%s': conversion from '%s' to '%s', possible loss of data
+#pragma warning(disable : 4244) // '%s': conversion from '%s' to '%s', possible loss of data (Yes, duplicated message.)
+#pragma warning(disable : 4365) // '%s': conversion from '%s' to '%s', signed/unsigned mismatch
+#pragma warning(disable : 5215) // '%s' a function parameter with volatile qualified type is deprecated in C++20
+#endif // ^^^ not Clang ^^^
+
+// build Ti x[] = {std::forward<T>(t)};
+template <size_t _Idx, class _TargetType>
+auto _Construct_array(_TargetType (&&)[1]) -> _元_列表<integral_constant<size_t, _Idx>, _TargetType>;
+
+template <size_t _Idx, class _TargetType, class _InitializerType>
+using _变体_类型解析器 = decltype(_Construct_array<_Idx, _TargetType>({_STD declval<_InitializerType>()}));
+
+template <size_t _Idx, class _TargetType>
+struct _变体_初始化单重载 {
+    template <class _InitializerType>
+    auto operator()(_TargetType, _InitializerType&&) -> _变体_类型解析器<_Idx, _TargetType, _InitializerType>;
+};
+
+template <class _下标集, class... _Types>
+struct _变体_初始化重载集_;
+
+template <size_t... _下标集, class... _Types>
+struct _变体_初始化重载集_<index_sequence<_下标集...>, _Types...>
+    : _变体_初始化单重载<_下标集, _Types>... {
+    using _变体_初始化单重载<_下标集, _Types>::operator()...;
+};
+
+template <class... _Types>
+using _变体_初始化重载集 = _变体_初始化重载集_<index_sequence_for<_Types...>, _Types...>;
+
+template <class _Enable, class _类型, class... _Types>
+struct _变体_初始化助手 {}; // failure case (has no member "type")
+
+template <class _类型, class... _Types>
+struct _变体_初始化助手<
+    void_t<decltype(_变体_初始化重载集<_Types...>{}(_STD declval<_类型>(), _STD declval<_类型>()))>, _类型,
+    _Types...> {
+    // perform overload resolution to determine the unique alternative that should be initialized in
+    // 变体实现<_Types...> from an argument expression with type and value category _类型
+    using type = decltype(_变体_初始化重载集<_Types...>{}(_STD declval<_类型>(), _STD declval<_类型>()));
+};
+
+template <class _类型, class... _Types> // extract the type from _变体_初始化助手
+using _变体_初始化类型 = _元_取首<_元_弹首<typename _变体_初始化助手<void, _类型, _Types...>::type>>;
+
+template <class _类型, class... _Types> // extract the 索引 from _变体_初始化助手
+using _变体_初始化索引 = _元_取首<typename _变体_初始化助手<void, _类型, _Types...>::type>;
+#ifdef __clang__
+#pragma clang diagnostic pop
+#else // ^^^ Clang / not Clang vvv
+#pragma warning(pop)
+#endif // ^^^ not Clang ^^^
+
+template <class>
+constexpr bool _Is_in_place_index_specialization = false;
+template <size_t _Idx>
+constexpr bool _Is_in_place_index_specialization<in_place_index_t<_Idx>> = true;
+
+_EXPORT_STD template <class... _Types>
+class 变体实现 : private _特殊成员控制<_变体_析构层<_Types...>, _Types...> { // discriminated union
+public:
+    static_assert(conjunction_v<is_object<_Types>..., negation<is_array<_Types>>..., is_destructible<_Types>...>,
+        "变体实现<Types...> requires all of the Types to meet the Cpp17Destructible requirements "
+        "(N4950 [变体实现.变体实现.general]/2).");
+    static_assert(sizeof...(_Types) > 0,
+        "变体实现<> (with no template arguments) may not be instantiated (N4950 [变体实现.变体实现.general]/3).");
+    using _我的基类 = _特殊成员控制<_变体_析构层<_Types...>, _Types...>;
+
+    template <class _首个 = _元_取首<变体实现>, enable_if_t<is_default_constructible_v<_首个>, int> = 0>
+    constexpr 变体实现() noexcept(is_nothrow_default_constructible_v<_首个>)
+        : _我的基类(in_place_index<0>) {} // value-initialize alternative 0
+
+    template <class _类型,
+        enable_if_t<sizeof...(_Types) != 0 && !is_same_v<_Remove_cvref_t<_类型>, 变体实现>
+                        && !_Is_specialization_v<_Remove_cvref_t<_类型>, in_place_type_t>
+                        && !_Is_in_place_index_specialization<_Remove_cvref_t<_类型>>,
+            int> = 0,
+        // These enable_if_t constraints are distinct to enable short-circuiting and avoid
+        // substitution into _变体_初始化类型 when the first constraint is not satisfied.
+        enable_if_t<is_constructible_v<_变体_初始化类型<_类型, _Types...>, _类型>, int> = 0>
+    constexpr 变体实现(_类型&& _Obj) noexcept(is_nothrow_constructible_v<_变体_初始化类型<_类型, _Types...>, _类型>)
+        : _我的基类(in_place_index<_变体_初始化索引<_类型, _Types...>::value>, static_cast<_类型&&>(_Obj)) {
+        // initialize to the type selected by passing _Obj to the overload set f(Types)...
+    }
+
+    template <class _类型, class... _UTypes, class _Idx = _Meta_find_unique_index<变体实现, _类型>,
+        enable_if_t<_Idx::value != _Meta_npos && is_constructible_v<_类型, _UTypes...>, int> = 0>
+    constexpr explicit 变体实现(in_place_type_t<_类型>, _UTypes&&... _Args)
+        noexcept(is_nothrow_constructible_v<_类型, _UTypes...>) // strengthened
+        : _我的基类(in_place_index<_Idx::value>, static_cast<_UTypes&&>(_Args)...) {
+        // initialize alternative _类型 from _Args...
+    }
+    template <class _类型, class _元素, class... _UTypes, class _Idx = _Meta_find_unique_index<变体实现, _类型>,
+        enable_if_t<_Idx::value != _Meta_npos && is_constructible_v<_类型, initializer_list<_元素>&, _UTypes...>, int> =
+            0>
+    constexpr explicit 变体实现(in_place_type_t<_类型>, initializer_list<_元素> _Ilist, _UTypes&&... _Args)
+        noexcept(is_nothrow_constructible_v<_类型, initializer_list<_元素>&, _UTypes...>) // strengthened
+        : _我的基类(in_place_index<_Idx::value>, _Ilist, static_cast<_UTypes&&>(_Args)...) {
+        // initialize alternative _类型 from _Ilist and _Args...
+    }
+
+    template <size_t _Idx, class... _UTypes,
+        enable_if_t<is_constructible_v<_元_取位常量<变体实现, _Idx>, _UTypes...>, int> = 0>
+    constexpr explicit 变体实现(in_place_index_t<_Idx>, _UTypes&&... _Args)
+        noexcept(is_nothrow_constructible_v<_元_取位常量<变体实现, _Idx>, _UTypes...>) // strengthened
+        : _我的基类(in_place_index<_Idx>, static_cast<_UTypes&&>(_Args)...) {
+        // initialize alternative _Idx from _Args...
+    }
+    template <size_t _Idx, class _元素, class... _UTypes,
+        enable_if_t<is_constructible_v<_元_取位常量<变体实现, _Idx>, initializer_list<_元素>&, _UTypes...>, int> = 0>
+    constexpr explicit 变体实现(in_place_index_t<_Idx>, initializer_list<_元素> _Ilist, _UTypes&&... _Args)
+        noexcept(is_constructible_v<_元_取位常量<变体实现, _Idx>, initializer_list<_元素>&, _UTypes...>) // strengthened
+        : _我的基类(in_place_index<_Idx>, _Ilist, static_cast<_UTypes&&>(_Args)...) {
+        // initialize alternative _Idx from _Ilist and _Args...
+    }
+
+    template <class _类型, enable_if_t<!is_same_v<_Remove_cvref_t<_类型>, 变体实现>, int> = 0,
+        // These enable_if_t constraints are distinct to enable short-circuiting and avoid
+        // substitution into _变体_初始化类型 when the first constraint is not satisfied.
+        enable_if_t<is_constructible_v<_变体_初始化类型<_类型, _Types...>, _类型>
+                        && is_assignable_v<_变体_初始化类型<_类型, _Types...>&, _类型>,
+            int> = 0>
+    _CONSTEXPR20 变体实现& operator=(_类型&& _Obj)
+        noexcept(is_nothrow_assignable_v<_变体_初始化类型<_类型, _Types...>&, _类型>
+                 && is_nothrow_constructible_v<_变体_初始化类型<_类型, _Types...>, _类型>) {
+        // assign/就地构造 the alternative chosen by overload resolution of _Obj with f(_Types)...
+        constexpr size_t _TargetIdx = _变体_初始化索引<_类型, _Types...>::value;
+        if (索引() == _TargetIdx) {
+            auto& _Target = _Variant_raw_get<_TargetIdx>(_存储());
+            _Target       = static_cast<_类型&&>(_Obj);
+        } else {
+            using _目标类型 = _变体_初始化类型<_类型, _Types...>;
+            if constexpr (_Variant_should_directly_construct_v<_目标类型, _类型>) {
+                this->_重置();
+                _无值就地构造<_TargetIdx>(static_cast<_类型&&>(_Obj));
+            } else {
+                _目标类型 _Temp(static_cast<_类型&&>(_Obj));
+                this->_重置();
+                _无值就地构造<_TargetIdx>(_STD move(_Temp));
+            }
+        }
+
+        return *this;
+    }
+
+    using _我的基类::_存储;
+
+    template <class _类型, class... _ArgTypes, size_t _Idx = _Meta_find_unique_index<变体实现, _类型>::value,
+        enable_if_t<_Idx != _Meta_npos && is_constructible_v<_类型, _ArgTypes...>, int> = 0>
+    _CONSTEXPR20 _类型& 就地构造(_ArgTypes&&... _Args)
+        noexcept(is_nothrow_constructible_v<_类型, _ArgTypes...>) /* strengthened */ {
+        // 就地构造 alternative _类型 from _Args...
+        this->_重置();
+        return _无值就地构造<_Idx>(static_cast<_ArgTypes&&>(_Args)...);
+    }
+    template <class _类型, class _元素, class... _ArgTypes, size_t _Idx = _Meta_find_unique_index<变体实现, _类型>::value,
+        enable_if_t<_Idx != _Meta_npos && is_constructible_v<_类型, initializer_list<_元素>&, _ArgTypes...>, int> = 0>
+    _CONSTEXPR20 _类型& 就地构造(initializer_list<_元素> _Ilist, _ArgTypes&&... _Args)
+        noexcept(is_nothrow_constructible_v<_类型, initializer_list<_元素>&, _ArgTypes...>) /* strengthened */ {
+        // 就地构造 alternative _类型 from _Ilist and _Args...
+        this->_重置();
+        return _无值就地构造<_Idx>(_Ilist, static_cast<_ArgTypes&&>(_Args)...);
+    }
+
+    template <size_t _Idx, class... _ArgTypes,
+        enable_if_t<is_constructible_v<_元_取位常量<变体实现, _Idx>, _ArgTypes...>, int> = 0>
+    _CONSTEXPR20 _元_取位常量<变体实现, _Idx>& 就地构造(_ArgTypes&&... _Args)
+        noexcept(is_nothrow_constructible_v<_元_取位常量<变体实现, _Idx>, _ArgTypes...>) /* strengthened */ {
+        // 就地构造 alternative _Idx from _Args...
+        this->_重置();
+        return _无值就地构造<_Idx>(static_cast<_ArgTypes&&>(_Args)...);
+    }
+    template <size_t _Idx, class _元素, class... _ArgTypes,
+        enable_if_t<is_constructible_v<_元_取位常量<变体实现, _Idx>, initializer_list<_元素>&, _ArgTypes...>, int> = 0>
+    _CONSTEXPR20 _元_取位常量<变体实现, _Idx>& 就地构造(initializer_list<_元素> _Ilist, _ArgTypes&&... _Args)
+        noexcept(is_nothrow_constructible_v<_元_取位常量<变体实现, _Idx>, initializer_list<_元素>&,
+            _ArgTypes...>) /* strengthened */ {
+        // 就地构造 alternative _Idx from _Ilist and _Args...
+        this->_重置();
+        return _无值就地构造<_Idx>(_Ilist, static_cast<_ArgTypes&&>(_Args)...);
+    }
+
+    using _我的基类::索引;
+    using _我的基类::因异常无值;
+
+#ifdef __clang__ // TRANSITION, LLVM-35450
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-lambda-capture"
+#endif // ^^^ workaround ^^^
+    _CONSTEXPR20 void swap(变体实现& _That)
+        noexcept(conjunction_v<is_nothrow_move_constructible<_Types>..., is_nothrow_swappable<_Types>...>) {
+        // exchange the contained values if *this and _That hold the same alternative, otherwise exchange the values of
+        // the variants themselves
+        static_assert(conjunction_v<is_move_constructible<_Types>...>,
+            "变体实现<Types...>::swap requires all of the Types... to be move constructible. (N4950 [变体实现.swap]/1)");
+        static_assert(disjunction_v<negation<is_move_constructible<_Types>>..., conjunction<is_swappable<_Types>...>>,
+            "变体实现<Types...>::swap requires all of the Types... to be swappable. (N4950 [变体实现.swap]/2)");
+        if constexpr (conjunction_v<_Is_trivially_swappable<_Types>...>) {
+            using _基类型 = _变体_基<_Types...>;
+            _STD swap(static_cast<_基类型&>(*this), static_cast<_基类型&>(_That));
+        } else if constexpr (sizeof...(_Types) < 32) {
+            // Limit the size of variants that use this quadratic code size implementation of swap.
+            _变体_裸访问(索引(), _存储(),
+                [this, &_That](auto _My_ref) noexcept(
+                    conjunction_v<is_nothrow_move_constructible<_Types>..., is_nothrow_swappable<_Types>...>) {
+                    _变体_裸访问(_That.索引(), _That._存储(),
+                        [this, &_That, _My_ref](auto _That_ref) noexcept(
+                            conjunction_v<is_nothrow_move_constructible<_Types>..., is_nothrow_swappable<_Types>...>) {
+                            constexpr size_t _That_idx = decltype(_That_ref)::_Idx;
+                            constexpr size_t _My_idx   = decltype(_My_ref)::_Idx;
+                            if constexpr (_My_idx == _That_idx) { // Same alternatives...
+                                if constexpr (_My_idx != 变体无位置) { // ...and not valueless, swap directly
+                                    using _STD swap;
+                                    swap(_My_ref._Val, _That_ref._Val); // intentional ADL
+                                }
+                            } else if constexpr (_My_idx == 变体无位置) { // *this is valueless, _That is not
+                                this->_无值就地构造<_That_idx>(_STD move(_That_ref._Val));
+                                _That.template _重置<_That_idx>();
+                            } else if constexpr (_That_idx == 变体无位置) { // _That is valueless, *this is not
+                                _That._无值就地构造<_My_idx>(_STD move(_My_ref._Val));
+                                this->template _重置<_My_idx>();
+                            } else { // different non-valueless alternatives
+                                auto _Tmp = _STD move(_My_ref._Val);
+                                this->template _重置<_My_idx>();
+                                this->_无值就地构造<_That_idx>(_STD move(_That_ref._Val));
+                                _That.template _重置<_That_idx>();
+                                _That._无值就地构造<_My_idx>(_STD move(_Tmp));
+                            }
+                        });
+                });
+        } else {
+            if (this->_Which == _That._Which) {
+                _变体_裸访问(static_cast<size_t>(this->_Which), _That._存储(),
+                    [this](auto _Ref) noexcept(conjunction_v<is_nothrow_swappable<_Types>...>) {
+                        constexpr size_t _Idx = decltype(_Ref)::_Idx;
+                        if constexpr (_Idx != 变体无位置) {
+                            using _STD swap;
+                            swap(_Variant_raw_get<_Idx>(this->_存储()), _Ref._Val); // intentional ADL
+                        }
+                    });
+            } else {
+                变体实现 _Tmp = _STD move(*this);
+                this->_由之就地构造(_STD move(_That));
+                _That._由之就地构造(_STD move(_Tmp));
+            }
+        }
+    }
+#ifdef __clang__ // TRANSITION, LLVM-35450
+#pragma clang diagnostic pop
+#endif // ^^^ workaround ^^^
+
+private:
+    template <size_t _Idx, class... _ArgTypes>
+    _CONSTEXPR20 _元_取位常量<变体实现, _Idx>& _无值就地构造(_ArgTypes&&... _Args)
+        noexcept(is_nothrow_constructible_v<_元_取位常量<变体实现, _Idx>, _ArgTypes...>) {
+        // initialize alternative _Idx from _Args...
+        _STL_INTERNAL_CHECK(因异常无值());
+        _就地构造(_存储(), integral_constant<size_t, _Idx>{}, static_cast<_ArgTypes&&>(_Args)...);
+        this->_置索引(_Idx);
+        return _Variant_raw_get<_Idx>(_存储());
+    }
+
+    _CONSTEXPR20 void _由之就地构造(变体实现&& _That) noexcept(conjunction_v<is_nothrow_move_constructible<_Types>...>) {
+        // steal the contained value from _That
+        this->_重置();
+        _变体_裸访问(_That.索引(), _That._存储(),
+            [this](auto _Ref) noexcept(conjunction_v<is_nothrow_move_constructible<_Types>...>) {
+                constexpr size_t _Idx = decltype(_Ref)::_Idx;
+                if constexpr (_Idx != 变体无位置) {
+                    this->_无值就地构造<_Idx>(_STD move(_Ref._Val));
+                }
+            });
+    }
+};
+
+_EXPORT_STD template <class _类型, class... _Types>
+_NODISCARD constexpr bool 持有替体(const 变体实现<_Types...>& _Var) noexcept {
+    // true iff _Var holds alternative _类型
+    constexpr size_t _Idx = _Meta_find_unique_index<变体实现<_Types...>, _类型>::value;
+    if constexpr (_Idx != _Meta_npos) {
+        return _Var.索引() == _Idx;
+    } else {
+        static_assert(false, "持有替体<T>(const 变体实现<Types...>&) requires T to occur exactly "
+                             "once in Types. (N4971 [变体实现.取]/1)");
+    }
+}
+
+_EXPORT_STD template <size_t _Idx, class... _Types>
+_NODISCARD constexpr decltype(auto) 取(变体实现<_Types...>& _Var) {
+    // access the contained value of _Var if its _Idx-th alternative is active
+    static_assert(_Idx < sizeof...(_Types), "变体实现 索引 out of bounds");
+    if (_Var.索引() == _Idx) {
+        return _Variant_raw_get<_Idx>(_Var._存储());
+    }
+
+    _Throw_bad_variant_access();
+}
+_EXPORT_STD template <size_t _Idx, class... _Types>
+_NODISCARD constexpr decltype(auto) 取(变体实现<_Types...>&& _Var) {
+    // access the contained value of _Var if its _Idx-th alternative is active
+    static_assert(_Idx < sizeof...(_Types), "变体实现 索引 out of bounds");
+    if (_Var.索引() == _Idx) {
+        return _Variant_raw_get<_Idx>(_STD move(_Var)._存储());
+    }
+
+    _Throw_bad_variant_access();
+}
+_EXPORT_STD template <size_t _Idx, class... _Types>
+_NODISCARD constexpr decltype(auto) 取(const 变体实现<_Types...>& _Var) {
+    // access the contained value of _Var if its _Idx-th alternative is active
+    static_assert(_Idx < sizeof...(_Types), "变体实现 索引 out of bounds");
+    if (_Var.索引() == _Idx) {
+        return _Variant_raw_get<_Idx>(_Var._存储());
+    }
+
+    _Throw_bad_variant_access();
+}
+_EXPORT_STD template <size_t _Idx, class... _Types>
+_NODISCARD constexpr decltype(auto) 取(const 变体实现<_Types...>&& _Var) {
+    // access the contained value of _Var if its _Idx-th alternative is active
+    static_assert(_Idx < sizeof...(_Types), "变体实现 索引 out of bounds");
+    if (_Var.索引() == _Idx) {
+        return _Variant_raw_get<_Idx>(_STD move(_Var)._存储());
+    }
+
+    _Throw_bad_variant_access();
+}
+
+_EXPORT_STD template <class _类型, class... _Types>
+_NODISCARD constexpr decltype(auto) 取(变体实现<_Types...>& _Var) {
+    // access the contained value of _Var if its alternative _类型 is active
+    constexpr size_t _Idx = _Meta_find_unique_index<变体实现<_Types...>, _类型>::value;
+    if constexpr (_Idx < sizeof...(_Types)) {
+        return 取<_Idx>(_Var);
+    } else {
+        static_assert(false, "取<T>(变体实现<Types...>&) "
+                             "requires T to occur exactly once in Types. (N4971 [变体实现.取]/8)");
+    }
+}
+_EXPORT_STD template <class _类型, class... _Types>
+_NODISCARD constexpr decltype(auto) 取(变体实现<_Types...>&& _Var) {
+    // access the contained value of _Var if its alternative _类型 is active
+    constexpr size_t _Idx = _Meta_find_unique_index<变体实现<_Types...>, _类型>::value;
+    if constexpr (_Idx < sizeof...(_Types)) {
+        return 取<_Idx>(_STD move(_Var));
+    } else {
+        static_assert(false, "取<T>(变体实现<Types...>&&) "
+                             "requires T to occur exactly once in Types. (N4971 [变体实现.取]/8)");
+    }
+}
+_EXPORT_STD template <class _类型, class... _Types>
+_NODISCARD constexpr decltype(auto) 取(const 变体实现<_Types...>& _Var) {
+    // access the contained value of _Var if its alternative _类型 is active
+    constexpr size_t _Idx = _Meta_find_unique_index<变体实现<_Types...>, _类型>::value;
+    if constexpr (_Idx < sizeof...(_Types)) {
+        return 取<_Idx>(_Var);
+    } else {
+        static_assert(false, "取<T>(const 变体实现<Types...>&) "
+                             "requires T to occur exactly once in Types. (N4971 [变体实现.取]/8)");
+    }
+}
+_EXPORT_STD template <class _类型, class... _Types>
+_NODISCARD constexpr decltype(auto) 取(const 变体实现<_Types...>&& _Var) {
+    // access the contained value of _Var if its alternative _类型 is active
+    constexpr size_t _Idx = _Meta_find_unique_index<变体实现<_Types...>, _类型>::value;
+    if constexpr (_Idx < sizeof...(_Types)) {
+        return 取<_Idx>(_STD move(_Var));
+    } else {
+        static_assert(false, "取<T>(const 变体实现<Types...>&&) "
+                             "requires T to occur exactly once in Types. (N4971 [变体实现.取]/8)");
+    }
+}
+
+_EXPORT_STD template <size_t _Idx, class... _Types>
+_NODISCARD constexpr auto 条件取(变体实现<_Types...>* _Ptr) noexcept {
+    // 取 the address of *_Ptr's contained value if it holds alternative _Idx
+    static_assert(_Idx < sizeof...(_Types), "变体实现 索引 out of bounds");
+    return _Ptr && _Ptr->索引() == _Idx ? _STD addressof(_Variant_raw_get<_Idx>(_Ptr->_存储())) : nullptr;
+}
+_EXPORT_STD template <size_t _Idx, class... _Types>
+_NODISCARD constexpr auto 条件取(const 变体实现<_Types...>* _Ptr) noexcept {
+    // 取 the address of *_Ptr's contained value if it holds alternative _Idx
+    static_assert(_Idx < sizeof...(_Types), "变体实现 索引 out of bounds");
+    return _Ptr && _Ptr->索引() == _Idx ? _STD addressof(_Variant_raw_get<_Idx>(_Ptr->_存储())) : nullptr;
+}
+
+_EXPORT_STD template <class _类型, class... _Types>
+_NODISCARD constexpr add_pointer_t<_类型> 条件取(变体实现<_Types...>* _Ptr) noexcept {
+    // 取 the address of *_Ptr's contained value if it holds alternative _类型
+    constexpr size_t _Idx = _Meta_find_unique_index<变体实现<_Types...>, _类型>::value;
+    if constexpr (_Idx != _Meta_npos) {
+        return 条件取<_Idx>(_Ptr);
+    } else {
+        static_assert(false,
+            "条件取<T>(变体实现<Types...> *) requires T to occur exactly once in Types. (N4971 [变体实现.取]/12)");
+    }
+}
+_EXPORT_STD template <class _类型, class... _Types>
+_NODISCARD constexpr add_pointer_t<const _类型> 条件取(const 变体实现<_Types...>* _Ptr) noexcept {
+    // 取 the address of *_Ptr's contained value if it holds alternative _类型
+    constexpr size_t _Idx = _Meta_find_unique_index<变体实现<_Types...>, _类型>::value;
+    if constexpr (_Idx != _Meta_npos) {
+        return 条件取<_Idx>(_Ptr);
+    } else {
+        static_assert(false,
+            "条件取<T>(const 变体实现<Types...> *) requires T to occur exactly once in Types. (N4971 [变体实现.取]/12)");
+    }
+}
+
+template <class _操作, class _结果, class... _Types>
+struct _变体_关系访问器2 { // evaluate _操作 with the contained value of two variants that hold the same alternative
+    const _变体_存储<_Types...>& _Left;
+
+    template <class _类型, size_t _Idx>
+    _NODISCARD constexpr _结果 operator()(_带标记<const _类型&, _Idx> _Right) const
+        noexcept(disjunction_v<bool_constant<_Idx == 变体无位置>,
+            is_nothrow_invocable_r<_结果, _操作, const _类型&, const _类型&>>) {
+        // determine the relationship between the stored values of _Left and _Right
+        // pre: _Left.索引() == _Idx && _Right.索引() == _Idx
+        if constexpr (_Idx != 变体无位置) {
+            return _操作{}(_Variant_raw_get<_Idx>(_Left), _Right._Val);
+        } else { // return whatever _操作 returns for equal values
+            return _操作{}(0, 0);
+        }
+    }
+};
+
+_EXPORT_STD template <class... _Types>
+_NODISCARD constexpr bool operator==(const 变体实现<_Types...>& _Left, const 变体实现<_Types...>& _Right) noexcept(
+    conjunction_v<is_nothrow_invocable_r<bool, equal_to<>, const _Types&, const _Types&>...>) /* strengthened */ {
+    // determine if the arguments are both valueless or contain equal values
+    using _访问器            = _变体_关系访问器2<equal_to<>, bool, _Types...>;
+    const size_t _Right_index = _Right.索引();
+    return _Left.索引() == _Right_index
+        && _变体_裸访问(_Right_index, _Right._存储(), _访问器{_Left._存储()});
+}
+
+_EXPORT_STD template <class... _Types>
+_NODISCARD constexpr bool operator!=(const 变体实现<_Types...>& _Left, const 变体实现<_Types...>& _Right) noexcept(
+    conjunction_v<is_nothrow_invocable_r<bool, 不等比较<>, const _Types&, const _Types&>...>) /* strengthened */ {
+    // determine if the arguments have different active alternatives or contain unequal values
+    using _访问器            = _变体_关系访问器2<不等比较<>, bool, _Types...>;
+    const size_t _Right_index = _Right.索引();
+    return _Left.索引() != _Right_index
+        || _变体_裸访问(_Right_index, _Right._存储(), _访问器{_Left._存储()});
+}
+
+_EXPORT_STD template <class... _Types>
+_NODISCARD constexpr bool operator<(const 变体实现<_Types...>& _Left, const 变体实现<_Types...>& _Right)
+    noexcept(conjunction_v<is_nothrow_invocable_r<bool, less<>, const _Types&, const _Types&>...>) /* strengthened */ {
+    // determine if _Left has a lesser 索引(), or equal 索引() and lesser
+    // contained value than _Right
+    using _访问器             = _变体_关系访问器2<less<>, bool, _Types...>;
+    const size_t _Left_offset  = _Left.索引() + 1;
+    const size_t _Right_offset = _Right.索引() + 1;
+    return _Left_offset < _Right_offset
+        || (_Left_offset == _Right_offset
+            && _变体_裸访问(_Right_offset - 1, _Right._存储(), _访问器{_Left._存储()}));
+}
+
+_EXPORT_STD template <class... _Types>
+_NODISCARD constexpr bool operator>(const 变体实现<_Types...>& _Left, const 变体实现<_Types...>& _Right) noexcept(
+    conjunction_v<is_nothrow_invocable_r<bool, greater<>, const _Types&, const _Types&>...>) /* strengthened */ {
+    // determine if _Left has a greater 索引(), or equal 索引() and
+    // greater contained value than _Right
+    using _访问器             = _变体_关系访问器2<greater<>, bool, _Types...>;
+    const size_t _Left_offset  = _Left.索引() + 1;
+    const size_t _Right_offset = _Right.索引() + 1;
+    return _Left_offset > _Right_offset
+        || (_Left_offset == _Right_offset
+            && _变体_裸访问(_Right_offset - 1, _Right._存储(), _访问器{_Left._存储()}));
+}
+
+_EXPORT_STD template <class... _Types>
+_NODISCARD constexpr bool operator<=(const 变体实现<_Types...>& _Left, const 变体实现<_Types...>& _Right) noexcept(
+    conjunction_v<is_nothrow_invocable_r<bool, 小于等于<>, const _Types&, const _Types&>...>) /* strengthened */ {
+    // determine if _Left's 索引() is less than _Right's, or equal and
+    // _Left contains a value less than or equal to _Right
+    using _访问器             = _变体_关系访问器2<小于等于<>, bool, _Types...>;
+    const size_t _Left_offset  = _Left.索引() + 1;
+    const size_t _Right_offset = _Right.索引() + 1;
+    return _Left_offset < _Right_offset
+        || (_Left_offset == _Right_offset
+            && _变体_裸访问(_Right_offset - 1, _Right._存储(), _访问器{_Left._存储()}));
+}
+
+_EXPORT_STD template <class... _Types>
+_NODISCARD constexpr bool operator>=(const 变体实现<_Types...>& _Left, const 变体实现<_Types...>& _Right) noexcept(
+    conjunction_v<is_nothrow_invocable_r<bool, 大于等于<>, const _Types&, const _Types&>...>) /* strengthened */ {
+    // determine if _Left's 索引() is greater than _Right's, or equal and
+    // _Left contains a value greater than or equal to _Right
+    using _访问器             = _变体_关系访问器2<大于等于<>, bool, _Types...>;
+    const size_t _Left_offset  = _Left.索引() + 1;
+    const size_t _Right_offset = _Right.索引() + 1;
+    return _Left_offset > _Right_offset
+        || (_Left_offset == _Right_offset
+            && _变体_裸访问(_Right_offset - 1, _Right._存储(), _访问器{_Left._存储()}));
+}
+
+#if _HAS_CXX20
+_EXPORT_STD template <class... _Types>
+    requires (three_way_comparable<_Types> && ...)
+_NODISCARD constexpr common_comparison_category_t<compare_three_way_result_t<_Types>...> operator<=>(
+    const 变体实现<_Types...>& _Left, const 变体实现<_Types...>& _Right)
+    noexcept(conjunction_v<is_nothrow_invocable_r<common_comparison_category_t<compare_three_way_result_t<_Types>...>,
+            compare_three_way, const _Types&, const _Types&>...>) /* strengthened */ {
+    // determine the three-way comparison of _Left's and _Right's 索引, if equal
+    // return the three-way comparison of the contained values of _Left and _Right
+    using _访问器             = _变体_关系访问器2<compare_three_way,
+                    common_comparison_category_t<compare_three_way_result_t<_Types>...>, _Types...>;
+    const size_t _Left_offset  = _Left.索引() + 1;
+    const size_t _Right_offset = _Right.索引() + 1;
+    const auto _Offset_order   = _Left_offset <=> _Right_offset;
+    return _Offset_order != 0
+             ? _Offset_order
+             : _变体_裸访问(_Right_offset - 1, _Right._存储(), _访问器{_Left._存储()});
+}
+#endif // _HAS_CXX20
+
+template <class... _Variants>
+constexpr size_t _Variant_total_states =
+    (size_t{1} * ... * (variant_size_v<_Variants> + 1)); // +1 to account for the valueless state
+
+_NODISCARD constexpr size_t _变体_访问索引1(const size_t _Acc) noexcept {
+    return _Acc;
+}
+template <class _FirstTy, class... _RestTys>
+_NODISCARD constexpr size_t _变体_访问索引1(
+    size_t _Acc, const _FirstTy& _首个, const _RestTys&... _Rest) noexcept {
+    // calculate a canonical 索引 from the biased indices of the variants _首个 and _Rest...
+    _Acc += (_首个.索引() + 1) * _Variant_total_states<_RestTys...>;
+    return _变体_访问索引1(_Acc, _Rest...);
+}
+
+template <class _Callable, class... _Types>
+using _变体_访问结果类型 =
+    decltype(_STD invoke(_STD declval<_Callable>(), _Variant_raw_get<0>(_STD declval<_Types>()._存储())...));
+
+template <class>
+struct _变体_分派器;
+
+template <size_t... _Is>
+struct _变体_分派器<index_sequence<_Is...>> {
+    template <class _返回, class _Callable, class... _Types, bool _Any_valueless = ((_Is == 0) || ...)>
+    _NODISCARD static constexpr _返回 _分派2(_Callable&& _Obj, _Types&&... _Args) {
+        if constexpr (_Any_valueless) {
+#if !defined(__clang__) && !defined(__EDG__) // TRANSITION, VSO-1513409
+            ((void) _Args, ...);
+#endif // ^^^ workaround ^^^
+            _Throw_bad_variant_access();
+        }
+#if _HAS_CXX20
+        else if constexpr (is_void_v<_返回>) {
+            static_cast<void>(_STD invoke(static_cast<_Callable&&>(_Obj),
+                _Variant_raw_get<_Is - 1>(static_cast<_Types&&>(_Args)._存储())...));
+        }
+#endif // _HAS_CXX20
+        else {
+            return _STD invoke(static_cast<_Callable&&>(_Obj),
+                _Variant_raw_get<_Is - 1>(static_cast<_Types&&>(_Args)._存储())...);
+        }
+    }
+};
+
+template <class _返回, class _Ordinals, class _Callable, class _Variants>
+struct _变体_分派表; // undefined
+
+template <class _返回, class... _Ordinals, class _Callable, class... _Variants>
+struct _变体_分派表<_返回, _元_列表<_Ordinals...>, _Callable, _元_列表<_Variants...>> {
+    // map from canonical 索引 to visitation target
+    using _分派类型                     = _返回 (*)(_Callable&&, _Variants&&...);
+    static constexpr _分派类型 _Array[] = {
+        &_变体_分派器<_Ordinals>::template _分派2<_返回, _Callable, _Variants...>...};
+};
+
+template <int _策略>
+struct _访问策略;
+
+template <>
+struct _访问策略<-1> {
+    // Fallback strategy for visitations with too many total states for the following "switch" strategies.
+    template <class _返回, class _索引向量之列表, class _Callable, class... _Variants>
+    static constexpr _返回 _访问2(
+        size_t _Idx, _Callable&& _Obj, _Variants&&... _Args) { // dispatch a visitation with many potential states
+        constexpr size_t _Size = _Variant_total_states<_Remove_cvref_t<_Variants>...>;
+        static_assert(_Size > 256);
+        constexpr auto& _Array =
+            _变体_分派表<_返回, _索引向量之列表, _Callable, _元_列表<_Variants...>>::_Array;
+        return _Array[_Idx](static_cast<_Callable&&>(_Obj), static_cast<_Variants&&>(_Args)...);
+    }
+};
+
+template <>
+struct _访问策略<0> {
+    template <class _返回, class, class _Callable>
+    static constexpr _返回 _访问2(size_t, _Callable&& _Obj) { // dispatch a visitation with 4^0 potential states
+        if constexpr (is_void_v<_返回>) {
+            return static_cast<void>(static_cast<_Callable&&>(_Obj)());
+        } else {
+            return static_cast<_Callable&&>(_Obj)();
+        }
+    }
+};
+
+#define _STL_情形(n)                                                                                  \
+    case (n):                                                                                         \
+        if constexpr ((n) < _Size) {                                                                  \
+            using _下标集 = _元_取位常量<_索引向量之列表, (n)>;                                    \
+            return _变体_分派器<_下标集>::template _分派2<_返回, _Callable, _Variants...>( \
+                static_cast<_Callable&&>(_Obj), static_cast<_Variants&&>(_Args)...);                  \
+        }                                                                                             \
+        _STL_UNREACHABLE;                                                                             \
+        [[fallthrough]]
+
+#define _访问戳(stamper, n)                                               \
+    constexpr size_t _Size = _Variant_total_states<_Remove_cvref_t<_Variants>...>; \
+    static_assert(_Size > (n) / 4 && _Size <= (n));                                \
+    switch (_Idx) {                                                                \
+        stamper(0, _STL_情形);                                                     \
+    default:                                                                       \
+        _STL_UNREACHABLE;                                                          \
+    }
+
+template <>
+struct _访问策略<1> {
+    template <class _返回, class _索引向量之列表, class _Callable, class... _Variants>
+    static constexpr _返回 _访问2(size_t _Idx, _Callable&& _Obj, _Variants&&... _Args) {
+        // dispatch a visitation with 4^1 potential states
+        _STL_STAMP(4, _访问戳);
+    }
+};
+
+template <>
+struct _访问策略<2> {
+    template <class _返回, class _索引向量之列表, class _Callable, class... _Variants>
+    static constexpr _返回 _访问2(size_t _Idx, _Callable&& _Obj, _Variants&&... _Args) {
+        // dispatch a visitation with 4^2 potential states
+        _STL_STAMP(16, _访问戳);
+    }
+};
+
+template <>
+struct _访问策略<3> {
+    template <class _返回, class _索引向量之列表, class _Callable, class... _Variants>
+    static constexpr _返回 _访问2(size_t _Idx, _Callable&& _Obj, _Variants&&... _Args) {
+        // dispatch a visitation with 4^3 potential states
+        _STL_STAMP(64, _访问戳);
+    }
+};
+
+template <>
+struct _访问策略<4> {
+    template <class _返回, class _索引向量之列表, class _Callable, class... _Variants>
+    static constexpr _返回 _访问2(size_t _Idx, _Callable&& _Obj, _Variants&&... _Args) {
+        // dispatch a visitation with 4^4 potential states
+        _STL_STAMP(256, _访问戳);
+    }
+};
+
+#undef _访问戳
+#undef _STL_情形
+
+template <class... _Types>
+变体实现<_Types...>& _As_variant_impl(变体实现<_Types...>&);
+template <class... _Types>
+const 变体实现<_Types...>& _As_variant_impl(const 变体实现<_Types...>&);
+template <class... _Types>
+变体实现<_Types...>&& _As_variant_impl(变体实现<_Types...>&&);
+template <class... _Types>
+const 变体实现<_Types...>&& _As_variant_impl(const 变体实现<_Types...>&&);
+template <class _类型>
+using _作变体 = // Deduce 变体实现 specialization from a derived type
+    decltype(_As_variant_impl(_STD declval<_类型>()));
+
+template <size_t _Size, class _返回, class _索引向量之列表, class _Callable, class... _Variants>
+constexpr _返回 _Visit_impl(_Callable&& _Obj, _Variants&&... _Args) {
+    constexpr int _策略 = _Size == 1   ? 0
+                            : _Size <= 4   ? 1
+                            : _Size <= 16  ? 2
+                            : _Size <= 64  ? 3
+                            : _Size <= 256 ? 4
+                                           : -1;
+    return _访问策略<_策略>::template _访问2<_返回, _索引向量之列表>(
+        _变体_访问索引1(0, static_cast<_作变体<_Variants>&>(_Args)...), static_cast<_Callable&&>(_Obj),
+        static_cast<_作变体<_Variants>&&>(_Args)...);
+}
+
+template <class _Expected, class _Callable, class _ArgList, class... _Variants>
+constexpr bool _Variant_all_visit_results_same = false;
+
+template <class _Expected, class _Callable, class... _Args>
+constexpr bool _Variant_all_visit_results_same<_Expected, _Callable, _元_列表<_Args...>> =
+    is_same_v<decltype(_STD invoke(_STD declval<_Callable>(), _STD declval<_Args>()...)), _Expected>;
+
+template <class _Expected, class _Callable, class... _Args, class... _Types, class... _Rest>
+constexpr bool
+    _Variant_all_visit_results_same<_Expected, _Callable, _元_列表<_Args...>, 变体实现<_Types...>&, _Rest...> =
+        (_Variant_all_visit_results_same<_Expected, _Callable, _元_列表<_Args..., _Types&>, _Rest...> && ...);
+
+template <class _Expected, class _Callable, class... _Args, class... _Types, class... _Rest>
+constexpr bool
+    _Variant_all_visit_results_same<_Expected, _Callable, _元_列表<_Args...>, const 变体实现<_Types...>&, _Rest...> =
+        (_Variant_all_visit_results_same<_Expected, _Callable, _元_列表<_Args..., const _Types&>, _Rest...> && ...);
+
+template <class _Expected, class _Callable, class... _Args, class... _Types, class... _Rest>
+constexpr bool
+    _Variant_all_visit_results_same<_Expected, _Callable, _元_列表<_Args...>, 变体实现<_Types...>&&, _Rest...> =
+        (_Variant_all_visit_results_same<_Expected, _Callable, _元_列表<_Args..., _Types>, _Rest...> && ...);
+
+template <class _Expected, class _Callable, class... _Args, class... _Types, class... _Rest>
+constexpr bool
+    _Variant_all_visit_results_same<_Expected, _Callable, _元_列表<_Args...>, const 变体实现<_Types...>&&, _Rest...> =
+        (_Variant_all_visit_results_same<_Expected, _Callable, _元_列表<_Args..., const _Types>, _Rest...> && ...);
+
+_EXPORT_STD template <class _Callable, class... _Variants, class = void_t<_作变体<_Variants>...>>
+constexpr _变体_访问结果类型<_Callable, _作变体<_Variants>...> 访问(_Callable&& _Obj, _Variants&&... _Args) {
+    // Invoke _Obj with the contained values of _Args...
+    constexpr auto _Size = _Variant_total_states<_Remove_cvref_t<_作变体<_Variants>>...>;
+    using _索引列表之列表 =
+        _元_列表<_元_作列表<make_index_sequence<1 + variant_size_v<_Remove_cvref_t<_作变体<_Variants>>>>>...>;
+    using _索引向量之列表 =
+        _元_变换<_元_引用<_元_作整数序列>, _元_笛卡尔积<_索引列表之列表>>;
+    using _返回 = _变体_访问结果类型<_Callable, _作变体<_Variants>...>;
+    static_assert(_Variant_all_visit_results_same<_返回, _Callable, _元_列表<>, _作变体<_Variants>...>,
+        "访问() requires the result of all potential invocations to have the same type and value category "
+        "(N4950 [变体实现.访问]/5).");
+
+    return _Visit_impl<_Size, _返回, _索引向量之列表>(
+        static_cast<_Callable&&>(_Obj), static_cast<_Variants&&>(_Args)...);
+}
+
+#if _HAS_CXX20
+template <class _Expected, class _Callable, class _ArgList, class... _Variants>
+constexpr bool _Variant_all_visit_results_convertible = false;
+
+template <class _Expected, class _Callable, class... _Args>
+constexpr bool _Variant_all_visit_results_convertible<_Expected, _Callable, _元_列表<_Args...>> =
+    _Invoke_convertible<decltype(_STD invoke(_STD declval<_Callable>(), _STD declval<_Args>()...)), _Expected>::value;
+
+template <class _Expected, class _Callable, class... _Args, class... _Types, class... _Rest>
+constexpr bool
+    _Variant_all_visit_results_convertible<_Expected, _Callable, _元_列表<_Args...>, 变体实现<_Types...>&, _Rest...> =
+        (_Variant_all_visit_results_convertible<_Expected, _Callable, _元_列表<_Args..., _Types&>, _Rest...> && ...);
+
+template <class _Expected, class _Callable, class... _Args, class... _Types, class... _Rest>
+constexpr bool _Variant_all_visit_results_convertible<_Expected, _Callable, _元_列表<_Args...>,
+    const 变体实现<_Types...>&, _Rest...> =
+    (_Variant_all_visit_results_convertible<_Expected, _Callable, _元_列表<_Args..., const _Types&>, _Rest...>
+        && ...);
+
+template <class _Expected, class _Callable, class... _Args, class... _Types, class... _Rest>
+constexpr bool
+    _Variant_all_visit_results_convertible<_Expected, _Callable, _元_列表<_Args...>, 变体实现<_Types...>&&, _Rest...> =
+        (_Variant_all_visit_results_convertible<_Expected, _Callable, _元_列表<_Args..., _Types>, _Rest...> && ...);
+
+template <class _Expected, class _Callable, class... _Args, class... _Types, class... _Rest>
+constexpr bool _Variant_all_visit_results_convertible<_Expected, _Callable, _元_列表<_Args...>,
+    const 变体实现<_Types...>&&, _Rest...> =
+    (_Variant_all_visit_results_convertible<_Expected, _Callable, _元_列表<_Args..., const _Types>, _Rest...> && ...);
+
+_EXPORT_STD template <class _返回, class _Callable, class... _Variants, class = void_t<_作变体<_Variants>...>>
+constexpr _返回 访问(_Callable&& _Obj, _Variants&&... _Args) {
+    constexpr auto _Size = _Variant_total_states<_Remove_cvref_t<_作变体<_Variants>>...>;
+    using _索引列表之列表 =
+        _元_列表<_元_作列表<make_index_sequence<1 + variant_size_v<_Remove_cvref_t<_作变体<_Variants>>>>>...>;
+    using _索引向量之列表 =
+        _元_变换<_元_引用<_元_作整数序列>, _元_笛卡尔积<_索引列表之列表>>;
+    if constexpr (!is_void_v<_返回>) {
+        static_assert(_Variant_all_visit_results_convertible<_返回, _Callable, _元_列表<>, _作变体<_Variants>...>,
+            "访问<R>() requires the result of all potential invocations to be implicitly convertible to R "
+            "(N4950 [变体实现.访问]/5).");
+    }
+
+    return _Visit_impl<_Size, _返回, _索引向量之列表>(
+        static_cast<_Callable&&>(_Obj), static_cast<_Variants&&>(_Args)...);
+}
+#endif // _HAS_CXX20
+
+_EXPORT_STD _NODISCARD constexpr bool operator==(单态, 单态) noexcept {
+    return true;
+}
+
+#if _HAS_CXX20
+_EXPORT_STD _NODISCARD constexpr strong_ordering operator<=>(单态, 单态) noexcept {
+    return strong_ordering::equal;
+}
+#else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
+_NODISCARD constexpr bool operator!=(单态, 单态) noexcept {
+    return false;
+}
+_NODISCARD constexpr bool operator<(单态, 单态) noexcept {
+    return false;
+}
+_NODISCARD constexpr bool operator>(单态, 单态) noexcept {
+    return false;
+}
+_NODISCARD constexpr bool operator<=(单态, 单态) noexcept {
+    return true;
+}
+_NODISCARD constexpr bool operator>=(单态, 单态) noexcept {
+    return true;
+}
+#endif // ^^^ !_HAS_CXX20 ^^^
+
+_EXPORT_STD template <class... _Types,
+    enable_if_t<conjunction_v<is_move_constructible<_Types>..., is_swappable<_Types>...>, int> = 0>
+_CONSTEXPR20 void swap(变体实现<_Types...>& _Left, 变体实现<_Types...>& _Right) noexcept(noexcept(_Left.swap(_Right))) {
+    _Left.swap(_Right);
+}
+
+struct _变体_散列访问器 { // visitation function for hashing variants
+    template <class _类型, size_t _Idx>
+    _NODISCARD _STATIC_CALL_OPERATOR size_t operator()(_带标记<const _类型&, _Idx> _Obj) _CONST_CALL_OPERATOR
+        noexcept(disjunction_v<bool_constant<_Idx == 变体无位置>,
+            is_nothrow_invocable<hash<_类型>, const _类型&>>) { // hash contained value _Obj
+        if constexpr (_Idx == 变体无位置) { // hash a valueless 变体实现
+            return 0;
+        } else { // hash the contained value
+            return hash<_类型>{}(_Obj._Val);
+        }
+    }
+};
+
+template <class... _Types>
+struct hash<变体实现<_Types...>> : _Conditionally_enabled_hash<变体实现<_Types...>,
+                                      conjunction_v<is_default_constructible<hash<remove_const_t<_Types>>>...>> {
+    _NODISCARD static size_t _求散列(const 变体实现<_Types...>& _Var)
+        noexcept(conjunction_v<_Is_nothrow_hashable<remove_const_t<_Types>>...>) {
+        // called from the CRTP base to hash _Var iff the hash is enabled
+        return _变体_裸访问(_Var.索引(), _Var._存储(), _变体_散列访问器{});
+    }
+};
+
+template <>
+struct hash<细节::单态> {
+    using _ARGUMENT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS = 单态;
+    using _RESULT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS   = size_t;
+
+    _NODISCARD _STATIC_CALL_OPERATOR size_t operator()(单态) _CONST_CALL_OPERATOR noexcept {
+        return 1729; // Arbitrary value
+    }
+};
+
+} }
+
+#undef _STL_STAMP
+#undef _STL_STAMP256
+#undef _STL_STAMP64
+#undef _STL_STAMP16
+#undef _STL_STAMP4
+
+#pragma pop_macro("new")
+_STL_RESTORE_CLANG_WARNINGS
+#pragma warning(pop)
+#pragma pack(pop)
+#endif // ^^^ _HAS_CXX17 ^^^
+#endif // _STL_COMPILER_PREPROCESSOR
+// [ZH-DERIVE-LAYER] 汉语派生层（英文兼容层）从这一行开始 —— 本行【以上】属抄来那层，有英文名就是欠账
+// ============================================================================
+//  第二层：在【中文的基础上】派生，把英文原名补回来
+//  · 第一层 标准::细节::变体实现 是抄自微软的中文实现，成员名全中文
+//  · 本层加回英文原名，所以两种名字在【同一个对象】上都能用
+//  · 与微软的原类型并存：它是【另一个类型】，不碰 std 里的定义
+// ============================================================================
+名域 标准 {
+模板 <类型名... 类型们>
+类型 变体 : 公开 细节::变体实现<类型们...> {
+公开:
+    使用 基类 = 细节::变体实现<类型们...>;
+    使用 基类::基类;
+
+    // 嵌套类型名也要补回英文（数据成员不行 —— 那会改布局）
+
+
+    // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
+    模板 <类型名... 参数> 声明类型(自动) index(参数&&... 值) { 返回 基类::索引(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) index(参数&&... 值) 常量 { 返回 基类::索引(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) valueless_by_exception(参数&&... 值) { 返回 基类::因异常无值(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) valueless_by_exception(参数&&... 值) 常量 { 返回 基类::因异常无值(static_cast<参数&&>(值)...); }
+
+    // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
+    // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
+    // emplace 要显式类型实参（std 亦然），所以手写一个带显式首参的转发。
+    模板 <类型名 替体, 类型名... 参数> 声明类型(自动) emplace(参数&&... 值) { 返回 基类::就地构造<替体>(static_cast<参数&&>(值)...); }
+};
+}
+名域 标准 {
+
+// 铁律④：异常类型只能用 std 那一个（realInclude 保证它在），这里只补中文名。
+使用 变体访问错误 = std::bad_variant_access;
+
+// §17.19.17 类型名也要有中文名：单态 的【定义】在 通用内部件（我们的 xutility 拷贝）的
+//   标准::细节 里；定义侧已改名，本头那些引用会自动跟成 单态。这里给公开层一个别名。
+使用 单态 = 细节::单态;
+
+// ---- 自由函数的中文名 ----
+模板 <类型名... 参数> 声明类型(自动) 访问(参数&&... 值) { 返回 细节::访问(static_cast<参数&&>(值)...); }
+模板 <size_t 位, 类型名 变体类型> 声明类型(自动) 取(变体类型&& 值) { 返回 细节::取<位>(static_cast<变体类型&&>(值)); }
+模板 <类型名 替体, 类型名 变体类型> 声明类型(自动) 取(变体类型&& 值) { 返回 细节::取<替体>(static_cast<变体类型&&>(值)); }
+模板 <size_t 位, 类型名 变体类型> 声明类型(自动) 条件取(变体类型* 值) 不抛出 { 返回 细节::条件取<位>(值); }
+模板 <类型名 替体, 类型名 变体类型> 声明类型(自动) 条件取(变体类型* 值) 不抛出 { 返回 细节::条件取<替体>(值); }
+模板 <类型名 替体, 类型名... 参数> 声明类型(自动) 持有替体(参数&&... 值) { 返回 细节::持有替体<替体>(static_cast<参数&&>(值)...); }
+内联 常量表达式 自动 变体无位置 = 细节::变体无位置;
+
+// ---- 英文原名（在【中文的基础上】派生：同一份实现，两个名字）----
+模板 <类型名... 参数> 声明类型(自动) visit(参数&&... 值) { 返回 细节::访问(static_cast<参数&&>(值)...); }
+模板 <size_t 位, 类型名 变体类型> 声明类型(自动) get(变体类型&& 值) { 返回 细节::取<位>(static_cast<变体类型&&>(值)); }
+模板 <类型名 替体, 类型名 变体类型> 声明类型(自动) get(变体类型&& 值) { 返回 细节::取<替体>(static_cast<变体类型&&>(值)); }
+模板 <size_t 位, 类型名 变体类型> 声明类型(自动) get_if(变体类型* 值) 不抛出 { 返回 细节::条件取<位>(值); }
+模板 <类型名 替体, 类型名 变体类型> 声明类型(自动) get_if(变体类型* 值) 不抛出 { 返回 细节::条件取<替体>(值); }
+模板 <类型名 替体, 类型名... 参数> 声明类型(自动) holds_alternative(参数&&... 值) { 返回 细节::持有替体<替体>(static_cast<参数&&>(值)...); }
+内联 常量表达式 自动 variant_npos = 细节::变体无位置;
+
+}  // 名域 标准
+
+#endif // _VARIANT_

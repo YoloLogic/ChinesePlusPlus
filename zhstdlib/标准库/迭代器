@@ -1,0 +1,1910 @@
+#include <iterator>
+// iterator standard header
+
+// Copyright (c) Microsoft Corporation.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#ifndef _ZH_ITERATOR_
+#define _ZH_ITERATOR_
+#include <yvals_core.h>
+#if _STL_COMPILER_PREPROCESSOR
+#include <iosfwd>
+#include <xutility>
+
+#pragma pack(push, _CRT_PACKING)
+#pragma warning(push, _STL_WARNING_LEVEL)
+#pragma warning(disable : _STL_DISABLED_WARNINGS)
+_STL_DISABLE_CLANG_WARNINGS
+#pragma push_macro("new")
+#undef new
+
+名域 标准 { 名域 细节 {
+使用 名域 std;
+_EXPORT_STD template <class _Container>
+class 后插迭代器实现 { // wrap pushes to back of container as output iterator
+public:
+    using iterator_category = output_iterator_tag;
+    using value_type        = void;
+    using pointer           = void;
+    using reference         = void;
+
+    using 容器类型 = _Container;
+
+#if _HAS_CXX20
+    using difference_type = ptrdiff_t;
+#else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
+    using difference_type = void;
+#endif // ^^^ !_HAS_CXX20 ^^^
+
+    _CONSTEXPR20 explicit 后插迭代器实现(_Container& _Cont) noexcept /* strengthened */
+        : container(_STD addressof(_Cont)) {}
+
+    _CONSTEXPR20 后插迭代器实现& operator=(const typename _Container::value_type& _Val) {
+        container->push_back(_Val);
+        return *this;
+    }
+
+    _CONSTEXPR20 后插迭代器实现& operator=(typename _Container::value_type&& _Val) {
+        container->push_back(_STD move(_Val));
+        return *this;
+    }
+
+    _NODISCARD _CONSTEXPR20 后插迭代器实现& operator*() noexcept /* strengthened */ {
+        return *this;
+    }
+
+    _CONSTEXPR20 后插迭代器实现& operator++() noexcept /* strengthened */ {
+        return *this;
+    }
+
+    _CONSTEXPR20 后插迭代器实现 operator++(int) noexcept /* strengthened */ {
+        return *this;
+    }
+
+protected:
+    _Container* container;
+};
+
+_EXPORT_STD template <class _Container>
+_NODISCARD _CONSTEXPR20 后插迭代器实现<_Container> 后插器(_Container& _Cont) noexcept /* strengthened */ {
+    // return a 后插迭代器实现
+    return 后插迭代器实现<_Container>(_Cont);
+}
+
+_EXPORT_STD template <class _Container>
+class 前插迭代器实现 { // wrap pushes to front of container as output iterator
+public:
+    using iterator_category = output_iterator_tag;
+    using value_type        = void;
+    using pointer           = void;
+    using reference         = void;
+
+    using 容器类型 = _Container;
+
+#if _HAS_CXX20
+    using difference_type = ptrdiff_t;
+#else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
+    using difference_type = void;
+#endif // ^^^ !_HAS_CXX20 ^^^
+
+    _CONSTEXPR20 explicit 前插迭代器实现(_Container& _Cont) : container(_STD addressof(_Cont)) {}
+
+    _CONSTEXPR20 前插迭代器实现& operator=(const typename _Container::value_type& _Val) {
+        // push value into container
+        container->push_front(_Val);
+        return *this;
+    }
+
+    _CONSTEXPR20 前插迭代器实现& operator=(typename _Container::value_type&& _Val) { // push value into container
+        container->push_front(_STD move(_Val));
+        return *this;
+    }
+
+    _NODISCARD _CONSTEXPR20 前插迭代器实现& operator*() { // pretend to return designated value
+        return *this;
+    }
+
+    _CONSTEXPR20 前插迭代器实现& operator++() { // pretend to preincrement
+        return *this;
+    }
+
+    _CONSTEXPR20 前插迭代器实现 operator++(int) { // pretend to postincrement
+        return *this;
+    }
+
+protected:
+    _Container* container;
+};
+
+_EXPORT_STD template <class _Container>
+_NODISCARD _CONSTEXPR20 前插迭代器实现<_Container> 前插器(_Container& _Cont) {
+    return 前插迭代器实现<_Container>(_Cont);
+}
+
+_EXPORT_STD template <class _Container>
+class 插入迭代器实现 { // wrap inserts into container as output iterator
+public:
+    using iterator_category = output_iterator_tag;
+    using value_type        = void;
+    using pointer           = void;
+    using reference         = void;
+
+    using 容器类型 = _Container;
+#if _HAS_CXX20
+    using difference_type = ptrdiff_t;
+    using _包装迭代器   = ranges::iterator_t<_Container>;
+#else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
+    using difference_type = void;
+    using _包装迭代器   = typename _Container::iterator;
+#endif // ^^^ !_HAS_CXX20 ^^^
+
+    _CONSTEXPR20 插入迭代器实现(_Container& _Cont, _包装迭代器 _Where)
+        : container(_STD addressof(_Cont)), iter(_STD move(_Where)) {}
+
+    _CONSTEXPR20 插入迭代器实现& operator=(const typename _Container::value_type& _Val) {
+        // insert into container and increment stored iterator
+        iter = container->insert(iter, _Val);
+        ++iter;
+        return *this;
+    }
+
+    _CONSTEXPR20 插入迭代器实现& operator=(typename _Container::value_type&& _Val) { // push value into container
+        iter = container->insert(iter, _STD move(_Val));
+        ++iter;
+        return *this;
+    }
+
+    _NODISCARD _CONSTEXPR20 插入迭代器实现& operator*() { // pretend to return designated value
+        return *this;
+    }
+
+    _CONSTEXPR20 插入迭代器实现& operator++() { // pretend to preincrement
+        return *this;
+    }
+
+    _CONSTEXPR20 插入迭代器实现& operator++(int) { // pretend to postincrement
+        return *this;
+    }
+
+protected:
+    _Container* container;
+    _包装迭代器 iter;
+};
+
+#if !_HAS_CXX20
+template <class _Container>
+_NODISCARD _CONSTEXPR20 插入迭代器实现<_Container> 插入器(_Container& _Cont, typename _Container::iterator _Where) {
+    return 插入迭代器实现<_Container>(_Cont, _Where);
+}
+#else // ^^^ !_HAS_CXX20 / _HAS_CXX20 vvv
+_EXPORT_STD template <class _Container>
+_NODISCARD constexpr 插入迭代器实现<_Container> 插入器(_Container& _Cont, _RANGES iterator_t<_Container> _Where) {
+    return 插入迭代器实现<_Container>(_Cont, _Where);
+}
+
+_EXPORT_STD template <semiregular _Se>
+class 移动哨兵实现 {
+public:
+    constexpr 移动哨兵实现() = default;
+
+    constexpr explicit 移动哨兵实现(_Se _Val) noexcept(is_nothrow_move_constructible_v<_Se>) // strengthened
+        : _Last(_STD move(_Val)) {}
+
+    template <class _Se2>
+        requires convertible_to<const _Se2&, _Se>
+    constexpr 移动哨兵实现(const 移动哨兵实现<_Se2>& _Val)
+        noexcept(is_nothrow_constructible_v<_Se, const _Se2&>) // strengthened
+        : _Last(_Val._取末()) {}
+
+    template <class _Se2>
+        requires assignable_from<_Se&, const _Se2&>
+    constexpr 移动哨兵实现& operator=(const 移动哨兵实现<_Se2>& _Val)
+        noexcept(is_nothrow_assignable_v<_Se&, const _Se2&>) /* strengthened */ {
+        _Last = _Val._取末();
+        return *this;
+    }
+
+    _NODISCARD constexpr _Se base() const noexcept(is_nothrow_copy_constructible_v<_Se>) /* strengthened */ {
+        return _Last;
+    }
+
+    _NODISCARD constexpr const _Se& _取末() const noexcept {
+        return _Last;
+    }
+
+    using _阻止继承解包 = 移动哨兵实现;
+
+    _NODISCARD constexpr 移动哨兵实现<_Unwrapped_t<const _Se&>> _解包() const& noexcept(
+        noexcept(移动哨兵实现<_Unwrapped_t<const _Se&>>{_Last._解包()}))
+        requires (_RANGES _Weakly_unwrappable_sentinel<_Se>)
+    {
+        return 移动哨兵实现<_Unwrapped_t<const _Se&>>{_Last._解包()};
+    }
+    _NODISCARD constexpr 移动哨兵实现<_Unwrapped_t<_Se>> _解包() && noexcept(
+        noexcept(移动哨兵实现<_Unwrapped_t<_Se>>{_STD move(_Last)._解包()}))
+        requires (_RANGES _Weakly_unwrappable_sentinel<_Se>)
+    {
+        return 移动哨兵实现<_Unwrapped_t<_Se>>{_STD move(_Last)._解包()};
+    }
+
+private:
+    _Se _Last{};
+};
+#endif // ^^^ _HAS_CXX20 ^^^
+
+_EXPORT_STD template <class _Ty, class _Elem = char, class _Traits = char_traits<_Elem>, class _Diff = ptrdiff_t>
+class 输入流迭代器实现 {
+public:
+    using iterator_category = input_iterator_tag;
+    using value_type        = _Ty;
+    using difference_type   = _Diff;
+    using pointer           = const _Ty*;
+    using reference         = const _Ty&;
+    using char_type         = _Elem;
+    using traits_type       = _Traits;
+    using 输入流类型      = basic_istream<_Elem, _Traits>;
+
+    static_assert(conjunction_v<is_default_constructible<_Ty>, is_copy_constructible<_Ty>, is_copy_assignable<_Ty>>,
+        "输入流迭代器实现<T> requires T to be default constructible, copy constructible, and copy assignable. "
+        "(N4950 [istream.iterator]/2)");
+
+    constexpr 输入流迭代器实现() noexcept(is_nothrow_default_constructible_v<_Ty>) /* strengthened */ {}
+
+#if _HAS_CXX20
+    constexpr 输入流迭代器实现(default_sentinel_t)
+        noexcept(is_nothrow_default_constructible_v<_Ty>) /* strengthened */ {}
+#endif // _HAS_CXX20
+
+    输入流迭代器实现(输入流类型& _Istr) : _Myistr(_STD addressof(_Istr)) {
+        _取原值();
+    }
+
+    _NODISCARD const _Ty& operator*() const noexcept /* strengthened */ {
+        _STL_ASSERT(_Myistr, "The stored stream pointer in_stream must be non-null");
+        return _Myval;
+    }
+
+    _NODISCARD const _Ty* operator->() const noexcept /* strengthened */ {
+        _STL_ASSERT(_Myistr, "The stored stream pointer in_stream must be non-null");
+        return _STD addressof(_Myval);
+    }
+
+    输入流迭代器实现& operator++() {
+        _取原值();
+        return *this;
+    }
+
+    输入流迭代器实现 operator++(int) {
+        输入流迭代器实现 _Tmp = *this;
+        _取原值();
+        return _Tmp;
+    }
+
+    _NODISCARD bool _相等(const 输入流迭代器实现& _Right) const noexcept {
+        return _Myistr == _Right._Myistr;
+    }
+
+#if _HAS_CXX20
+    _NODISCARD friend bool operator==(const 输入流迭代器实现& _Left, default_sentinel_t) noexcept /* strengthened */ {
+        return !_Left._Myistr;
+    }
+#endif // _HAS_CXX20
+
+private:
+    void _取原值() { // get a _Ty value if possible
+        _STL_ASSERT(_Myistr, "The stored stream pointer in_stream must be non-null");
+        if (!(*_Myistr >> _Myval)) {
+            _Myistr = nullptr;
+        }
+    }
+
+    输入流类型* _Myistr{nullptr}; // pointer to input stream
+    _Ty _Myval{}; // lookahead value (valid if _Myistr is not null)
+};
+
+_EXPORT_STD template <class _Ty, class _Elem, class _Traits, class _Diff>
+_NODISCARD bool operator==(const 输入流迭代器实现<_Ty, _Elem, _Traits, _Diff>& _Left,
+    const 输入流迭代器实现<_Ty, _Elem, _Traits, _Diff>& _Right) noexcept /* strengthened */ {
+    return _Left._相等(_Right);
+}
+
+#if !_HAS_CXX20
+template <class _Ty, class _Elem, class _Traits, class _Diff>
+_NODISCARD bool operator!=(const 输入流迭代器实现<_Ty, _Elem, _Traits, _Diff>& _Left,
+    const 输入流迭代器实现<_Ty, _Elem, _Traits, _Diff>& _Right) noexcept /* strengthened */ {
+    return !(_Left == _Right);
+}
+#endif // !_HAS_CXX20
+
+_EXPORT_STD template <class _Ty, class _Elem = char, class _Traits = char_traits<_Elem>>
+class 输出流迭代器实现 {
+public:
+    using iterator_category = output_iterator_tag;
+    using value_type        = void;
+#if _HAS_CXX20
+    using difference_type = ptrdiff_t;
+#else
+    using difference_type = void;
+#endif
+    using pointer      = void;
+    using reference    = void;
+    using char_type    = _Elem;
+    using traits_type  = _Traits;
+    using 输出流类型 = basic_ostream<_Elem, _Traits>;
+
+    输出流迭代器实现(输出流类型& _Ostr, const _Elem* const _Delim = nullptr) noexcept /* strengthened */
+        : _Mydelim(_Delim), _Myostr(_STD addressof(_Ostr)) {}
+
+    输出流迭代器实现& operator=(const _Ty& _Val) { // insert value into output stream, followed by delimiter
+        *_Myostr << _Val;
+        if (_Mydelim) {
+            *_Myostr << _Mydelim;
+        }
+
+        return *this;
+    }
+
+    _NODISCARD 输出流迭代器实现& operator*() noexcept /* strengthened */ {
+        return *this;
+    }
+
+    输出流迭代器实现& operator++() noexcept /* strengthened */ {
+        return *this;
+    }
+
+    输出流迭代器实现& operator++(int) noexcept /* strengthened */ {
+        return *this;
+    }
+
+private:
+    const _Elem* _Mydelim; // pointer to delimiter string (NB: not freed)
+    输出流类型* _Myostr; // pointer to output stream
+};
+
+_EXPORT_STD template <class _Elem, class _Traits>
+class 输入流缓冲迭代器实现 {
+public:
+    using iterator_category = input_iterator_tag;
+    using value_type        = _Elem;
+    using difference_type   = typename _Traits::off_type;
+    using pointer           = const _Elem*;
+    using reference         = _Elem;
+    using char_type         = _Elem;
+    using traits_type       = _Traits;
+    using int_type          = typename traits_type::int_type;
+    using 流缓冲类型    = basic_streambuf<_Elem, _Traits>;
+    using 输入流类型      = basic_istream<_Elem, _Traits>;
+
+    constexpr 输入流缓冲迭代器实现() noexcept : _Strbuf(nullptr), _Got(true), _Val() {}
+#if _HAS_CXX20
+    constexpr 输入流缓冲迭代器实现(default_sentinel_t) noexcept : _Strbuf(nullptr), _Got(true), _Val() {}
+#endif // _HAS_CXX20
+
+    输入流缓冲迭代器实现(输入流类型& _Istr) noexcept : _Strbuf(_Istr.rdbuf()), _Got(!_Strbuf), _Val() {}
+
+    输入流缓冲迭代器实现(流缓冲类型* _Sb) noexcept : _Strbuf(_Sb), _Got(!_Sb), _Val() {}
+
+private:
+    class _输入流缓冲代理 {
+    public:
+        _NODISCARD _Elem operator*() const noexcept(is_nothrow_copy_constructible_v<_Elem>) /* strengthened */ {
+            return _Keep;
+        }
+
+    private:
+        friend 输入流缓冲迭代器实现;
+        _输入流缓冲代理(流缓冲类型* _Strbuf_, _Elem _Keep_)
+            noexcept(is_nothrow_copy_constructible_v<_Elem>) // strengthened
+            : _Strbuf(_Strbuf_), _Keep(_Keep_) {}
+
+        流缓冲类型* _Strbuf;
+        _Elem _Keep;
+    };
+
+public:
+    输入流缓冲迭代器实现(const _输入流缓冲代理& _Px) noexcept : _Strbuf(_Px._Strbuf), _Got(!_Strbuf), _Val() {}
+
+    _NODISCARD _Elem operator*() const {
+        if (!_Got) {
+            _窥视();
+        }
+
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(_Strbuf, "输入流缓冲迭代器实现 is not dereferenceable");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+        return _Val;
+    }
+
+    输入流缓冲迭代器实现& operator++() {
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(_Strbuf, "输入流缓冲迭代器实现 is not incrementable");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+        _递增();
+        return *this;
+    }
+
+    _输入流缓冲代理 operator++(int) {
+        if (!_Got) {
+            _窥视();
+        }
+
+        _输入流缓冲代理 _Tmp{_Strbuf, _Val};
+        ++*this;
+        return _Tmp;
+    }
+
+    _NODISCARD bool equal(const 输入流缓冲迭代器实现& _Right) const {
+        if (!_Got) {
+            _窥视();
+        }
+
+        if (!_Right._Got) {
+            _Right._窥视();
+        }
+
+        return (!_Strbuf && !_Right._Strbuf) || (_Strbuf && _Right._Strbuf);
+    }
+
+#if _HAS_CXX20
+    _NODISCARD friend bool operator==(const 输入流缓冲迭代器实现& _Left, default_sentinel_t) {
+        if (!_Left._Got) {
+            _Left._窥视();
+        }
+
+        return !_Left._Strbuf;
+    }
+#endif // _HAS_CXX20
+
+private:
+    void _递增() { // skip to next input element
+        if (!_Strbuf || traits_type::eq_int_type(traits_type::eof(), _Strbuf->sbumpc())) {
+            _Strbuf = nullptr;
+            _Got    = true;
+        } else {
+            _Got = false;
+        }
+    }
+
+    _Elem _窥视() const { // peek at next input element
+        int_type _Meta;
+        if (!_Strbuf || traits_type::eq_int_type(traits_type::eof(), _Meta = _Strbuf->sgetc())) {
+            _Strbuf = nullptr;
+        } else {
+            _Val = traits_type::to_char_type(_Meta);
+        }
+
+        _Got = true;
+        return _Val;
+    }
+
+    mutable 流缓冲类型* _Strbuf; // the wrapped stream buffer
+    mutable bool _Got; // true if _Val is valid
+    mutable _Elem _Val; // next element to deliver
+};
+
+_EXPORT_STD template <class _Elem, class _Traits>
+_NODISCARD bool operator==(
+    const 输入流缓冲迭代器实现<_Elem, _Traits>& _Left, const 输入流缓冲迭代器实现<_Elem, _Traits>& _Right) {
+    return _Left.equal(_Right);
+}
+
+#if !_HAS_CXX20
+template <class _Elem, class _Traits>
+_NODISCARD bool operator!=(
+    const 输入流缓冲迭代器实现<_Elem, _Traits>& _Left, const 输入流缓冲迭代器实现<_Elem, _Traits>& _Right) {
+    return !(_Left == _Right);
+}
+#endif // !_HAS_CXX20
+
+#if _HAS_CXX20 && !defined(__clang__) && !defined(__EDG__) // TRANSITION, /permissive, avoid checking constraints
+template <class _Elem, class _Traits>
+constexpr bool _Iterator_is_contiguous<输入流缓冲迭代器实现<_Elem, _Traits>> = false;
+#endif // ^^^ workaround ^^^
+
+_EXPORT_STD template <class _Elem, class _Traits>
+class 输出流缓冲迭代器实现 {
+public:
+    using iterator_category = output_iterator_tag;
+    using value_type        = void;
+#if _HAS_CXX20
+    using difference_type = ptrdiff_t;
+#else
+    using difference_type = void;
+#endif
+    using pointer        = void;
+    using reference      = void;
+    using char_type      = _Elem;
+    using traits_type    = _Traits;
+    using 流缓冲类型 = basic_streambuf<_Elem, _Traits>;
+    using 输出流类型   = basic_ostream<_Elem, _Traits>;
+
+    输出流缓冲迭代器实现(流缓冲类型* _Sb) noexcept : _Strbuf(_Sb) {}
+
+    输出流缓冲迭代器实现(输出流类型& _Ostr) noexcept : _Strbuf(_Ostr.rdbuf()) {}
+
+    输出流缓冲迭代器实现& operator=(_Elem _Right) { // store element and increment
+        if (!_Strbuf || traits_type::eq_int_type(_Traits::eof(), _Strbuf->sputc(_Right))) {
+            _Failed = true;
+        }
+
+        return *this;
+    }
+
+    _NODISCARD 输出流缓冲迭代器实现& operator*() noexcept /* strengthened */ {
+        return *this;
+    }
+
+    输出流缓冲迭代器实现& operator++() noexcept /* strengthened */ {
+        return *this;
+    }
+
+    输出流缓冲迭代器实现& operator++(int) noexcept /* strengthened */ {
+        return *this;
+    }
+
+    _NODISCARD bool 失败() const noexcept {
+        return _Failed;
+    }
+
+private:
+    bool _Failed = false; // true if any stores have 失败
+    流缓冲类型* _Strbuf;
+};
+
+#if _HAS_CXX20 && !defined(__clang__) && !defined(__EDG__) // TRANSITION, /permissive, avoid checking constraints
+template <class _Elem, class _Traits>
+constexpr bool _Iterator_is_contiguous<输出流缓冲迭代器实现<_Elem, _Traits>> = false;
+#endif // ^^^ workaround ^^^
+
+#if _HAS_CXX20
+enum class _类变体状态 : unsigned char { _Nothing, _Holds_first, _Holds_second };
+
+struct _类变体空标记 {
+    explicit _类变体空标记() = default;
+};
+
+template <class _Ty1, class _Ty2>
+class _类变体 {
+public:
+    constexpr explicit _类变体(_类变体空标记) noexcept : _Contains{_类变体状态::_Nothing} {}
+
+    constexpr _类变体() noexcept(is_nothrow_default_constructible_v<_Ty1>)
+        requires default_initializable<_Ty1>
+        : _First{}, _Contains{_类变体状态::_Holds_first} {}
+
+    template <class... _Types>
+    constexpr explicit _类变体(in_place_type_t<_Ty1>, _Types&&... _Args)
+        noexcept(is_nothrow_constructible_v<_Ty1, _Types...>)
+        : _First(_STD forward<_Types>(_Args)...), _Contains{_类变体状态::_Holds_first} {}
+
+    template <class... _Types>
+        requires _Different_from<_Ty1, _Ty2>
+    constexpr explicit _类变体(in_place_type_t<_Ty2>, _Types&&... _Args)
+        noexcept(is_nothrow_constructible_v<_Ty2, _Types...>)
+        : _Second(_STD forward<_Types>(_Args)...), _Contains{_类变体状态::_Holds_second} {}
+
+    template <class _Uty1, class _Uty2>
+        requires _Different_from<_类变体<_Uty1, _Uty2>, _类变体>
+    constexpr _类变体(const _类变体<_Uty1, _Uty2>& _That)
+        noexcept(is_nothrow_constructible_v<_Ty1, const _Uty1&> && is_nothrow_constructible_v<_Ty2, const _Uty2&>)
+        : _Contains{_That._Contains} {
+        switch (_That._Contains) {
+        case _类变体状态::_Holds_first:
+            _Construct_in_place(_First, _That._取第一());
+            break;
+        case _类变体状态::_Holds_second:
+            _Construct_in_place(_Second, _That._取次());
+            break;
+        case _类变体状态::_Nothing:
+            break;
+        }
+    }
+
+    constexpr _类变体(const _类变体&)
+        requires is_trivially_copy_constructible_v<_Ty1> && is_trivially_copy_constructible_v<_Ty2>
+    = default;
+
+    constexpr _类变体(const _类变体& _That)
+        noexcept(is_nothrow_copy_constructible_v<_Ty1> && is_nothrow_copy_constructible_v<_Ty2>)
+        : _Contains{_That._Contains} {
+        switch (_Contains) {
+        case _类变体状态::_Holds_first:
+            _Construct_in_place(_First, _That._取第一());
+            break;
+        case _类变体状态::_Holds_second:
+            _Construct_in_place(_Second, _That._取次());
+            break;
+        case _类变体状态::_Nothing:
+            break;
+        }
+    }
+
+    constexpr _类变体(_类变体&&)
+        requires is_trivially_move_constructible_v<_Ty1> && is_trivially_move_constructible_v<_Ty2>
+    = default;
+
+    constexpr _类变体(_类变体&& _That)
+        noexcept(is_nothrow_move_constructible_v<_Ty1> && is_nothrow_move_constructible_v<_Ty2>)
+        : _Contains{_That._Contains} {
+        switch (_Contains) {
+        case _类变体状态::_Holds_first:
+            _Construct_in_place(_First, _STD move(_That._取第一()));
+            break;
+        case _类变体状态::_Holds_second:
+            _Construct_in_place(_Second, _STD move(_That._取次()));
+            break;
+        case _类变体状态::_Nothing:
+            break;
+        }
+    }
+
+    constexpr ~_类变体() {
+        _裸清空();
+    }
+
+    constexpr ~_类变体()
+        requires is_trivially_destructible_v<_Ty1> && is_trivially_destructible_v<_Ty2>
+    = default;
+
+    constexpr _类变体& operator=(const _类变体&)
+        requires is_trivially_destructible_v<_Ty1> && is_trivially_destructible_v<_Ty2>
+                  && is_trivially_copy_constructible_v<_Ty1> && is_trivially_copy_constructible_v<_Ty2>
+                  && is_trivially_copy_assignable_v<_Ty1> && is_trivially_copy_assignable_v<_Ty2>
+    = default;
+
+    constexpr _类变体& operator=(const _类变体& _That)
+        noexcept(is_nothrow_copy_constructible_v<_Ty1> && is_nothrow_copy_constructible_v<_Ty2>
+                 && is_nothrow_copy_assignable_v<_Ty1> && is_nothrow_copy_assignable_v<_Ty2>) {
+        if (_Contains == _That._Contains) {
+            switch (_Contains) {
+            case _类变体状态::_Holds_first:
+                _取第一() = _That._取第一();
+                break;
+            case _类变体状态::_Holds_second:
+                _取次() = _That._取次();
+                break;
+            case _类变体状态::_Nothing:
+                break;
+            }
+
+            return *this;
+        }
+
+        _清空();
+
+        switch (_That._Contains) {
+        case _类变体状态::_Holds_first:
+            _Construct_in_place(_First, _That._取第一());
+            break;
+        case _类变体状态::_Holds_second:
+            _Construct_in_place(_Second, _That._取次());
+            break;
+        case _类变体状态::_Nothing:
+            break;
+        }
+
+        _Contains = _That._Contains;
+
+        return *this;
+    }
+
+    constexpr _类变体& operator=(_类变体&&)
+        requires is_trivially_destructible_v<_Ty1> && is_trivially_destructible_v<_Ty2>
+                  && is_trivially_move_constructible_v<_Ty1> && is_trivially_move_constructible_v<_Ty2>
+                  && is_trivially_move_assignable_v<_Ty1> && is_trivially_move_assignable_v<_Ty2>
+    = default;
+
+    constexpr _类变体& operator=(_类变体&& _That)
+        noexcept(is_nothrow_move_constructible_v<_Ty1> && is_nothrow_move_constructible_v<_Ty2>
+                 && is_nothrow_move_assignable_v<_Ty1> && is_nothrow_move_assignable_v<_Ty2>) {
+        if (_Contains == _That._Contains) {
+            switch (_Contains) {
+            case _类变体状态::_Holds_first:
+                _取第一() = _STD move(_That._取第一());
+                break;
+            case _类变体状态::_Holds_second:
+                _取次() = _STD move(_That._取次());
+                break;
+            case _类变体状态::_Nothing:
+                break;
+            }
+
+            return *this;
+        }
+
+        _清空();
+
+        switch (_That._Contains) {
+        case _类变体状态::_Holds_first:
+            _Construct_in_place(_First, _STD move(_That._取第一()));
+            break;
+        case _类变体状态::_Holds_second:
+            _Construct_in_place(_Second, _STD move(_That._取次()));
+            break;
+        case _类变体状态::_Nothing:
+            break;
+        }
+
+        _Contains = _That._Contains;
+
+        return *this;
+    }
+
+    template <class _Uty1, class _Uty2>
+        requires _Different_from<_类变体<_Uty1, _Uty2>, _类变体>
+    constexpr _类变体& operator=(const _类变体<_Uty1, _Uty2>& _That)
+        noexcept(is_nothrow_constructible_v<_Ty1, const _Uty1&> && is_nothrow_constructible_v<_Ty2, const _Uty2&>
+                 && is_nothrow_assignable_v<_Ty1&, const _Uty1&> && is_nothrow_assignable_v<_Ty2&, const _Uty2&>) {
+        if (_Contains == _That._Contains) {
+            switch (_Contains) {
+            case _类变体状态::_Holds_first:
+                _取第一() = _That._取第一();
+                break;
+            case _类变体状态::_Holds_second:
+                _取次() = _That._取次();
+                break;
+            case _类变体状态::_Nothing:
+                break;
+            }
+
+            return *this;
+        }
+
+        _清空();
+
+        switch (_That._Contains) {
+        case _类变体状态::_Holds_first:
+            _Construct_in_place(_First, _That._取第一());
+            break;
+        case _类变体状态::_Holds_second:
+            _Construct_in_place(_Second, _That._取次());
+            break;
+        case _类变体状态::_Nothing:
+            break;
+        }
+
+        _Contains = _That._Contains;
+
+        return *this;
+    }
+
+    friend constexpr void swap(_类变体& _Left, _类变体& _Right)
+        noexcept(is_nothrow_move_constructible_v<_Ty1> && is_nothrow_move_constructible_v<_Ty2>
+                 && is_nothrow_swappable_v<_Ty1> && is_nothrow_swappable_v<_Ty2>)
+        requires (!_Is_trivially_swappable_v<_Ty1> || !_Is_trivially_swappable_v<_Ty2>)
+    {
+        if (_Left._Contains == _Right._Contains) {
+            switch (_Left._Contains) {
+            case _类变体状态::_Holds_first:
+                _RANGES swap(_Left._取第一(), _Right._取第一());
+                break;
+            case _类变体状态::_Holds_second:
+                _RANGES swap(_Left._取次(), _Right._取次());
+                break;
+            case _类变体状态::_Nothing:
+                break;
+            }
+
+            return;
+        }
+
+        auto _Tmp = _STD move(_Left);
+        _Left     = _STD move(_Right);
+        _Right    = _STD move(_Tmp);
+    }
+
+    constexpr void _裸清空() noexcept {
+        switch (_Contains) {
+        case _类变体状态::_Holds_first:
+            _First.~_Ty1();
+            break;
+        case _类变体状态::_Holds_second:
+            _Second.~_Ty2();
+            break;
+        case _类变体状态::_Nothing:
+            break;
+        }
+    }
+
+    _NODISCARD constexpr _Ty1& _取第一() noexcept {
+        return _First;
+    }
+    _NODISCARD constexpr const _Ty1& _取第一() const noexcept {
+        return _First;
+    }
+
+    _NODISCARD constexpr _Ty2& _取次() noexcept {
+        return _Second;
+    }
+    _NODISCARD constexpr const _Ty2& _取次() const noexcept {
+        return _Second;
+    }
+
+    constexpr void _清空() noexcept {
+        _裸清空();
+        _Contains = _类变体状态::_Nothing;
+    }
+
+    template <class... _Types>
+    constexpr void _就地构造首(_Types&&... _Args) noexcept(is_nothrow_constructible_v<_Ty1, _Types...>) {
+        _清空();
+
+        _Construct_in_place(_First, _STD forward<_Types>(_Args)...);
+        _Contains = _类变体状态::_Holds_first;
+    }
+
+    template <class... _Types>
+    constexpr void _就地构造次(_Types&&... _Args) noexcept(is_nothrow_constructible_v<_Ty2, _Types...>) {
+        _清空();
+
+        _Construct_in_place(_Second, _STD forward<_Types>(_Args)...);
+        _Contains = _类变体状态::_Holds_second;
+    }
+
+    union {
+        remove_cv_t<_Ty1> _First;
+        remove_cv_t<_Ty2> _Second;
+    };
+
+    _类变体状态 _Contains;
+};
+
+template <class _Iter>
+concept _Use_postfix_proxy =
+    !requires(_Iter& __it) {
+        { *__it++ } -> _Can_reference;
+    } && indirectly_readable<_Iter> && constructible_from<iter_value_t<_Iter>, iter_reference_t<_Iter>>
+    && move_constructible<iter_value_t<_Iter>>;
+
+_EXPORT_STD template <input_or_output_iterator _Iter, sentinel_for<_Iter> _Se>
+    requires (!same_as<_Iter, _Se> && copyable<_Iter>)
+class 公共迭代器实现 {
+private:
+    struct _代理基 {
+        iter_value_t<_Iter> _Keep;
+
+        constexpr explicit _代理基(iter_reference_t<_Iter>&& _Right)
+            noexcept(is_nothrow_constructible_v<iter_value_t<_Iter>, iter_reference_t<_Iter>>) // strengthened
+            : _Keep(_STD forward<iter_reference_t<_Iter>>(_Right)) {}
+    };
+
+public:
+    constexpr 公共迭代器实现()
+        requires default_initializable<_Iter>
+    = default;
+
+    constexpr 公共迭代器实现(_Iter _Right) noexcept(is_nothrow_move_constructible_v<_Iter>) // strengthened
+        : _Val{in_place_type<_Iter>, _STD move(_Right)} {}
+
+    constexpr 公共迭代器实现(_Se _Right) noexcept(is_nothrow_move_constructible_v<_Se>) // strengthened
+        : _Val{in_place_type<_Se>, _STD move(_Right)} {}
+
+    constexpr explicit 公共迭代器实现(_类变体空标记 _Tag) noexcept : _Val{_Tag} {}
+
+    template <class _OIter, class _OSe>
+        requires convertible_to<const _OIter&, _Iter> && convertible_to<const _OSe&, _Se>
+    constexpr 公共迭代器实现(const 公共迭代器实现<_OIter, _OSe>& _Right)
+        noexcept(is_nothrow_constructible_v<_Iter, const _OIter&>
+                 && is_nothrow_constructible_v<_Se, const _OSe&>) // strengthened
+        : _Val{_Right._取本值()} {}
+
+    template <class _OIter, class _OSe>
+        requires convertible_to<const _OIter&, _Iter> && convertible_to<const _OSe&, _Se>
+              && assignable_from<_Iter&, const _OIter&> && assignable_from<_Se&, const _OSe&>
+    constexpr 公共迭代器实现& operator=(const 公共迭代器实现<_OIter, _OSe>& _Right)
+        noexcept(is_nothrow_constructible_v<_Iter, const _OIter&> && is_nothrow_constructible_v<_Se, const _OSe&>
+                 && is_nothrow_assignable_v<_Iter&, const _OIter&>
+                 && is_nothrow_assignable_v<_Se&, const _OSe&>) /* strengthened */ {
+        _Val = _Right._取本值();
+        return *this;
+    }
+
+    _NODISCARD constexpr decltype(auto) operator*() {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Val._Contains == _类变体状态::_Holds_first,
+            "公共迭代器实现 can only be dereferenced if it holds an iterator");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        return *_Val._取第一();
+    }
+
+    _NODISCARD constexpr decltype(auto) operator*() const
+        requires _Dereferenceable<const _Iter>
+    {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Val._Contains == _类变体状态::_Holds_first,
+            "公共迭代器实现 can only be dereferenced if it holds an iterator");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        return *_Val._取第一();
+    }
+
+    _NODISCARD constexpr auto operator->() const
+        requires indirectly_readable<const _Iter>
+              && (_Has_member_arrow<const _Iter&> || is_reference_v<iter_reference_t<_Iter>>
+                  || constructible_from<iter_value_t<_Iter>, iter_reference_t<_Iter>>)
+    {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Val._Contains == _类变体状态::_Holds_first,
+            "公共迭代器实现 can only be dereferenced if it holds an iterator");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        if constexpr (_Has_member_arrow<const _Iter&> || is_pointer_v<_Iter>) {
+            return _Val._取第一();
+        } else if constexpr (is_reference_v<iter_reference_t<_Iter>>) {
+            auto&& _Tmp = *_Val._取第一();
+            return _STD addressof(_Tmp);
+        } else {
+            class _箭头代理 : private _代理基 {
+            public:
+                friend 公共迭代器实现;
+
+                using _代理基::_代理基;
+
+                _NODISCARD constexpr const iter_value_t<_Iter>* operator->() const noexcept {
+                    return _STD addressof(this->_Keep);
+                }
+            };
+
+            return _箭头代理{*_Val._取第一()};
+        }
+    }
+
+    constexpr 公共迭代器实现& operator++() {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Val._Contains == _类变体状态::_Holds_first,
+            "公共迭代器实现 can only be incremented if it holds an iterator");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        ++_Val._取第一();
+        return *this;
+    }
+
+    constexpr decltype(auto) operator++(int) {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Val._Contains == _类变体状态::_Holds_first,
+            "公共迭代器实现 can only be incremented if it holds an iterator");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        if constexpr (forward_iterator<_Iter>) {
+            公共迭代器实现 _Tmp = *this;
+            ++_Val._取第一();
+            return _Tmp;
+        } else if constexpr (_Use_postfix_proxy<_Iter>) {
+            class _后缀代理 : private _代理基 {
+            public:
+                friend 公共迭代器实现;
+
+                using _代理基::_代理基;
+
+                _NODISCARD constexpr const iter_value_t<_Iter>& operator*() const noexcept {
+                    return this->_Keep;
+                }
+            };
+
+            _后缀代理 _Tmp{*_Val._取第一()};
+            ++_Val._取第一();
+            return _Tmp;
+        } else {
+            return _Val._取第一()++;
+        }
+    }
+
+    template <class _OIter, sentinel_for<_Iter> _OSe>
+        requires sentinel_for<_Se, _OIter>
+    _NODISCARD friend constexpr bool operator==(
+        const 公共迭代器实现& _Left, const 公共迭代器实现<_OIter, _OSe>& _Right) {
+        auto& _Right_val = _Right._取本值();
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(
+            _Left._Val._Contains != _类变体状态::_Nothing && _Right_val._Contains != _类变体状态::_Nothing,
+            "common_iterators can only be compared if both hold a value");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+
+        if (_Left._Val._Contains == _类变体状态::_Holds_first) {
+            if (_Right_val._Contains == _类变体状态::_Holds_first) {
+                if constexpr (equality_comparable_with<_Iter, _OIter>) {
+                    return _Left._Val._取第一() == _Right_val._取第一();
+                } else {
+                    return true;
+                }
+            } else {
+                return _Left._Val._取第一() == _Right_val._取次();
+            }
+        } else {
+            if (_Right_val._Contains == _类变体状态::_Holds_first) {
+                return _Left._Val._取次() == _Right_val._取第一();
+            } else {
+                return true;
+            }
+        }
+    }
+
+    template <sized_sentinel_for<_Iter> _OIter, sized_sentinel_for<_Iter> _OSe>
+        requires sized_sentinel_for<_Se, _OIter>
+    _NODISCARD friend constexpr iter_difference_t<_OIter> operator-(
+        const 公共迭代器实现& _Left, const 公共迭代器实现<_OIter, _OSe>& _Right) {
+        auto& _Right_val = _Right._取本值();
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(
+            _Left._Val._Contains != _类变体状态::_Nothing && _Right_val._Contains != _类变体状态::_Nothing,
+            "Cannot take difference of valueless common_iterators");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+
+        if (_Left._Val._Contains == _类变体状态::_Holds_first) {
+            if (_Right_val._Contains == _类变体状态::_Holds_first) {
+                return _Left._Val._取第一() - _Right_val._取第一();
+            } else {
+                return _Left._Val._取第一() - _Right_val._取次();
+            }
+        } else {
+            if (_Right_val._Contains == _类变体状态::_Holds_first) {
+                return _Left._Val._取次() - _Right_val._取第一();
+            } else {
+                return 0;
+            }
+        }
+    }
+
+    _NODISCARD friend constexpr decltype(auto) iter_move(const 公共迭代器实现& _Right)
+        noexcept(noexcept(_RANGES iter_move(_Right._Val._取第一())))
+        requires input_iterator<_Iter>
+    {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Right._Val._Contains == _类变体状态::_Holds_first,
+            "can only iter_move from 公共迭代器实现 if it holds an iterator");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        return _RANGES iter_move(_Right._Val._取第一());
+    }
+
+    template <indirectly_swappable<_Iter> _OIter, class _OSe>
+    friend constexpr void iter_swap(const 公共迭代器实现& _Left, const 公共迭代器实现<_OIter, _OSe>& _Right)
+        noexcept(noexcept(_RANGES iter_swap(_Left._Val._取第一(), _Right._取本值()._取第一()))) {
+        auto& _Right_val = _Right._取本值();
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Left._Val._Contains == _类变体状态::_Holds_first
+                        && _Right_val._Contains == _类变体状态::_Holds_first,
+            "can only iter_swap common_iterators if both hold iterators");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        return _RANGES iter_swap(_Left._Val._取第一(), _Right_val._取第一());
+    }
+
+    _NODISCARD constexpr _类变体<_Iter, _Se>& _取本值() noexcept {
+        return _Val;
+    }
+    _NODISCARD constexpr const _类变体<_Iter, _Se>& _取本值() const noexcept {
+        return _Val;
+    }
+
+private:
+    _类变体<_Iter, _Se> _Val;
+};
+
+template <class _Iter, class _Se>
+struct incrementable_traits<公共迭代器实现<_Iter, _Se>> {
+    using difference_type = iter_difference_t<_Iter>;
+};
+
+template <class, class>
+struct _公共迭代器指针类型 {
+    using pointer = void;
+};
+
+template <class _Iter, class _Se>
+    requires _Has_member_arrow<const 公共迭代器实现<_Iter, _Se>&>
+struct _公共迭代器指针类型<_Iter, _Se> {
+    using pointer = decltype(_STD declval<const 公共迭代器实现<_Iter, _Se>&>().operator->());
+};
+
+template <class _Iter>
+concept _Has_forward_category = requires {
+    typename _Iter_cat_t<_Iter>;
+    requires derived_from<_Iter_cat_t<_Iter>, forward_iterator_tag>;
+};
+
+template <class _Iter>
+struct _公共迭代器类别基 {};
+
+template <class _Iter>
+    requires is_integral_v<iter_difference_t<_Iter>>
+struct _公共迭代器类别基<_Iter> {
+    using iterator_category = conditional_t<_Has_forward_category<_Iter>, forward_iterator_tag, input_iterator_tag>;
+};
+
+template <input_iterator _Iter, class _Se>
+struct iterator_traits<公共迭代器实现<_Iter, _Se>> : _公共迭代器类别基<_Iter> {
+    using iterator_concept = conditional_t<forward_iterator<_Iter>, forward_iterator_tag, input_iterator_tag>;
+    using value_type       = iter_value_t<_Iter>;
+    using difference_type  = iter_difference_t<_Iter>;
+    using pointer          = _公共迭代器指针类型<_Iter, _Se>::pointer;
+    using reference        = iter_reference_t<_Iter>;
+};
+
+template <class _Iter>
+struct _计数迭代器值类型基 {};
+
+template <indirectly_readable _Iter>
+struct _计数迭代器值类型基<_Iter> {
+    using value_type = iter_value_t<_Iter>;
+};
+
+template <class _Iter>
+struct _计数迭代器类别基 : _计数迭代器值类型基<_Iter> {};
+
+template <_Has_member_iterator_category _Iter>
+struct _计数迭代器类别基<_Iter> : _计数迭代器值类型基<_Iter> {
+    using iterator_category = _Iter::iterator_category;
+};
+
+template <class _Iter>
+struct _计数迭代器概念基 : _计数迭代器类别基<_Iter> {};
+
+template <_Has_member_iterator_concept _Iter>
+struct _计数迭代器概念基<_Iter> : _计数迭代器类别基<_Iter> {
+    using iterator_concept = _Iter::iterator_concept;
+};
+
+_EXPORT_STD template <input_or_output_iterator _Iter>
+class 计数迭代器实现 : public _计数迭代器概念基<_Iter> {
+public:
+    using 底层迭代器类型   = _Iter;
+    using difference_type = iter_difference_t<_Iter>;
+
+    // [counted.iter.const]
+    constexpr 计数迭代器实现()
+        requires default_initializable<_Iter>
+    = default;
+
+    constexpr 计数迭代器实现(_Iter _Right, const iter_difference_t<_Iter> _Diff)
+        noexcept(is_nothrow_move_constructible_v<_Iter>) // strengthened
+        : _Current(_STD move(_Right)), _Length(_Diff) {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Diff >= 0, "计数迭代器实现 requires non-negative length n");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+    }
+
+    template <class _Other>
+        requires convertible_to<const _Other&, _Iter>
+    constexpr 计数迭代器实现(const 计数迭代器实现<_Other>& _Right)
+        noexcept(is_nothrow_constructible_v<_Iter, const _Other&>) // strengthened
+        : _Current(_Right.base()), _Length(_Right.count()) {}
+
+    template <class _Other>
+        requires assignable_from<_Iter&, const _Other&>
+    constexpr 计数迭代器实现& operator=(const 计数迭代器实现<_Other>& _Right)
+        noexcept(is_nothrow_assignable_v<_Iter&, const _Other&>) /* strengthened */ {
+        _Current = _Right.base();
+        _Length  = _Right.count();
+        return *this;
+    }
+
+    // [counted.iter.access]
+    _NODISCARD constexpr const _Iter& base() const& noexcept {
+        return _Current;
+    }
+
+    _NODISCARD constexpr _Iter base() && noexcept(is_nothrow_move_constructible_v<_Iter>) /* strengthened */ {
+        return _STD move(_Current);
+    }
+
+    _NODISCARD constexpr iter_difference_t<_Iter> count() const noexcept {
+        return _Length;
+    }
+
+    // [counted.iter.elem]
+    _NODISCARD constexpr decltype(auto) operator*() noexcept(noexcept(*_Current)) /* strengthened */ {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Length > 0, "计数迭代器实现 dereference beyond end of range");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        return *_Current;
+    }
+
+    _NODISCARD constexpr decltype(auto) operator*() const noexcept(noexcept(*_Current)) /* strengthened */
+        requires _Dereferenceable<const _Iter>
+    {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Length > 0, "计数迭代器实现 dereference beyond end of range");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        return *_Current;
+    }
+
+    _NODISCARD constexpr auto operator->() const noexcept
+        requires contiguous_iterator<_Iter>
+    {
+        return _STD to_address(_Current);
+    }
+
+    _NODISCARD constexpr decltype(auto) operator[](const iter_difference_t<_Iter> _Diff) const
+        requires random_access_iterator<_Iter>
+    {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Diff < _Length, "计数迭代器实现 index out of range");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        return _Current[_Diff];
+    }
+
+    // [counted.iter.nav]
+    constexpr 计数迭代器实现& operator++() {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Length > 0, "计数迭代器实现 increment beyond end of range");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        ++_Current;
+        --_Length;
+        return *this;
+    }
+
+    constexpr decltype(auto) operator++(int) {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Length > 0, "计数迭代器实现 increment beyond end of range");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        --_Length;
+        _TRY_BEGIN
+        return _Current++;
+
+        _CATCH_ALL
+        ++_Length;
+
+        _RERAISE;
+        _CATCH_END
+    }
+
+    constexpr 计数迭代器实现 operator++(int)
+        requires forward_iterator<_Iter>
+    {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Length > 0, "计数迭代器实现 increment beyond end of range");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        计数迭代器实现 _Tmp = *this;
+        ++_Current;
+        --_Length;
+        return _Tmp;
+    }
+
+    constexpr 计数迭代器实现& operator--()
+        requires bidirectional_iterator<_Iter>
+    {
+        --_Current;
+        ++_Length;
+        return *this;
+    }
+
+    constexpr 计数迭代器实现 operator--(int)
+        requires bidirectional_iterator<_Iter>
+    {
+        计数迭代器实现 _Tmp = *this;
+        --_Current;
+        ++_Length;
+        return _Tmp;
+    }
+
+    _NODISCARD constexpr 计数迭代器实现 operator+(const iter_difference_t<_Iter> _Diff) const
+        requires random_access_iterator<_Iter>
+    {
+        return 计数迭代器实现{_Current + _Diff, static_cast<iter_difference_t<_Iter>>(_Length - _Diff)};
+    }
+
+    _NODISCARD friend constexpr 计数迭代器实现 operator+(
+        const iter_difference_t<_Iter> _Diff, const 计数迭代器实现& _Right)
+        requires random_access_iterator<_Iter>
+    {
+        return 计数迭代器实现{_Right._Current + _Diff, static_cast<iter_difference_t<_Iter>>(_Right._Length - _Diff)};
+    }
+
+    constexpr 计数迭代器实现& operator+=(const iter_difference_t<_Iter> _Diff)
+        requires random_access_iterator<_Iter>
+    {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Diff <= _Length, "计数迭代器实现 seek beyond end of range");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        _Current += _Diff;
+        _Length -= _Diff;
+        return *this;
+    }
+
+    _NODISCARD constexpr 计数迭代器实现 operator-(const iter_difference_t<_Iter> _Diff) const
+        requires random_access_iterator<_Iter>
+    {
+        return 计数迭代器实现{_Current - _Diff, static_cast<iter_difference_t<_Iter>>(_Length + _Diff)};
+    }
+
+    template <common_with<_Iter> _Other>
+    _NODISCARD friend constexpr iter_difference_t<_Other> operator-(
+        const 计数迭代器实现& _Left, const 计数迭代器实现<_Other>& _Right) noexcept /* strengthened */ {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _同序列(_Left, _Right);
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        return _Right.count() - _Left._Length;
+    }
+
+    _NODISCARD friend constexpr iter_difference_t<_Iter> operator-(
+        const 计数迭代器实现& _Left, default_sentinel_t) noexcept /* strengthened */ {
+        return -_Left._Length;
+    }
+
+    _NODISCARD friend constexpr iter_difference_t<_Iter> operator-(
+        default_sentinel_t, const 计数迭代器实现& _Right) noexcept /* strengthened */ {
+        return _Right._Length;
+    }
+
+    constexpr 计数迭代器实现& operator-=(const iter_difference_t<_Iter> _Diff)
+        requires random_access_iterator<_Iter>
+    {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(-_Diff <= _Length, "计数迭代器实现 decrement beyond end of range");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        _Current -= _Diff;
+        _Length += _Diff;
+        return *this;
+    }
+
+    // [counted.iter.cmp]
+    template <common_with<_Iter> _Other>
+    _NODISCARD friend constexpr bool operator==(
+        const 计数迭代器实现& _Left, const 计数迭代器实现<_Other>& _Right) noexcept /* strengthened */ {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _同序列(_Left, _Right);
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        return _Left._Length == _Right.count();
+    }
+
+    _NODISCARD friend constexpr bool operator==(const 计数迭代器实现& _Left, default_sentinel_t) noexcept
+    /* strengthened */ {
+        return _Left._Length == 0;
+    }
+
+    template <common_with<_Iter> _Other>
+    _NODISCARD friend constexpr strong_ordering operator<=>(
+        const 计数迭代器实现& _Left, const 计数迭代器实现<_Other>& _Right) noexcept /* strengthened */ {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _同序列(_Left, _Right);
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        return _Right.count() <=> _Left._Length;
+    }
+
+    // [counted.iter.cust]
+    _NODISCARD friend constexpr decltype(auto) iter_move(const 计数迭代器实现& _Right)
+        noexcept(noexcept(_RANGES iter_move(_Right._Current)))
+        requires input_iterator<_Iter>
+    {
+        return _RANGES iter_move(_Right._Current);
+    }
+
+    template <indirectly_swappable<_Iter> _Other>
+    friend constexpr void iter_swap(const 计数迭代器实现& _Left, const 计数迭代器实现<_Other>& _Right)
+        noexcept(noexcept(_RANGES iter_swap(_Left._Current, _Right.base()))) {
+        _RANGES iter_swap(_Left._Current, _Right.base());
+    }
+
+#if _ITERATOR_DEBUG_LEVEL != 0
+    template <common_with<_Iter> _Other>
+    friend constexpr void _同序列(
+        const 计数迭代器实现& _Left, const 计数迭代器实现<_Other>& _Right) noexcept {
+#ifdef _M_CEE // TRANSITION, VSO-1665606
+        (void) _Left;
+        (void) _Right;
+#else // ^^^ workaround / no workaround vvv
+
+        // Per N4950 [counted.iterator]/3, two counted_iterators x and y refer to elements of the same sequence iff
+        // for some integer n, next(x.base(), x.count() + n) and next(y.base(), y.count() + n)
+        // "refer to the same (possibly past-the-end) element".
+        // Iterator equality is a fair proxy for the vaguely-defined "refer to the same element".
+        if constexpr (forward_iterator<_Iter> && forward_iterator<_Other>) {
+            using _常量迭代器 = common_type_t<_Iter, _Other>;
+            using _常量差类型 = common_type_t<iter_difference_t<_Iter>, iter_difference_t<_Other>>;
+
+            const _常量差类型 _Diff = static_cast<_常量差类型>(_Left._Length) - static_cast<_常量差类型>(_Right.count());
+            if (_Diff < 0) {
+                _STL_VERIFY(
+                    static_cast<_常量迭代器>(_Left._Current) == _RANGES next(static_cast<_常量迭代器>(_Right.base()), -_Diff),
+                    "counted_iterators are from different ranges");
+            } else {
+                _STL_VERIFY(
+                    _RANGES next(static_cast<_常量迭代器>(_Left._Current), _Diff) == static_cast<_常量迭代器>(_Right.base()),
+                    "counted_iterators are from different ranges");
+            }
+        }
+#endif // ^^^ no workaround ^^^
+    }
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+
+    template <common_with<_Iter> _Other>
+    friend constexpr void _校验范围(const 计数迭代器实现& _Left, const 计数迭代器实现<_Other>& _Right) {
+        if constexpr (_Range_verifiable_v<_Iter, _Other>) {
+            _校验范围(_Left._Current, _Right.base());
+        }
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _同序列(_Left, _Right);
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+    }
+
+    constexpr void _校验偏移(const iter_difference_t<_Iter> _Off) const {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Off <= _Length, "Offset larger than 计数迭代器实现 length");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        if constexpr (_Offset_verifiable_v<_Iter>) {
+            _Current._校验偏移(_Off);
+        }
+    }
+
+    using _阻止继承解包 = 计数迭代器实现;
+
+    _NODISCARD constexpr 计数迭代器实现<_Unwrapped_t<const _Iter&>> _解包() const& noexcept(
+        noexcept(计数迭代器实现<_Unwrapped_t<const _Iter&>>{_Current._解包(), _Length}))
+        requires _Unwrappable_v<const _Iter&>
+    {
+        return 计数迭代器实现<_Unwrapped_t<const _Iter&>>{_Current._解包(), _Length};
+    }
+
+    _NODISCARD constexpr 计数迭代器实现<_Unwrapped_t<_Iter>> _解包() && noexcept(
+        noexcept(计数迭代器实现<_Unwrapped_t<_Iter>>{_STD move(_Current)._解包(), _Length}))
+        requires _Unwrappable_v<_Iter>
+    {
+        return 计数迭代器实现<_Unwrapped_t<_Iter>>{_STD move(_Current)._解包(), _Length};
+    }
+
+    static constexpr bool _Unwrap_when_unverified = _Do_unwrap_when_unverified_v<_Iter>;
+
+    template <class _Other>
+        requires _Wrapped_seekable_v<_Iter, const _Other&>
+    constexpr void _定位到(const 计数迭代器实现<_Other>& _It) {
+        _Current._定位到(_It.base());
+        _Length = _It.count();
+    }
+
+    template <class _Other>
+        requires _Wrapped_seekable_v<_Iter, _Other>
+    constexpr void _定位到(计数迭代器实现<_Other>&& _It) {
+        _Current._定位到(_STD move(_It).base());
+        _Length = _It.count();
+    }
+
+private:
+    _Iter _Current{};
+    iter_difference_t<_Iter> _Length = 0;
+};
+
+template <input_iterator _Iter>
+    requires (!_Is_from_primary<iterator_traits<_Iter>>)
+struct iterator_traits<计数迭代器实现<_Iter>> : iterator_traits<_Iter> {
+    using pointer = conditional_t<contiguous_iterator<_Iter>, add_pointer_t<iter_reference_t<_Iter>>, void>;
+};
+#endif // _HAS_CXX20
+
+} }
+
+#pragma push_macro("stdext")
+#pragma push_macro("检查数组迭代器")
+#pragma push_macro("make_checked_array_iterator")
+#pragma push_macro("make_unchecked_array_iterator")
+#pragma push_macro("未检查数组迭代器")
+#undef stdext
+#undef 检查数组迭代器
+#undef make_checked_array_iterator
+#undef make_unchecked_array_iterator
+#undef 未检查数组迭代器
+
+名域 细节stdext {
+template <class _Ptr>
+class _DEPRECATE_STDEXT_ARR_ITERS 检查数组迭代器 { // wrap a pointer with checking
+private:
+    using _所指类型 = _STD remove_pointer_t<_Ptr>;
+    static_assert(_STD is_pointer_v<_Ptr> && _STD is_object_v<_所指类型>,
+        "检查数组迭代器 requires pointers to objects");
+
+public:
+    using iterator_category = _STD random_access_iterator_tag;
+    using value_type        = _STD remove_cv_t<_所指类型>;
+    using difference_type   = _STD ptrdiff_t;
+    using pointer           = _Ptr;
+    using reference         = _所指类型&;
+#if _HAS_CXX20
+    using iterator_concept = _STD contiguous_iterator_tag;
+#endif // _HAS_CXX20
+
+    constexpr 检查数组迭代器() = default;
+
+    constexpr 检查数组迭代器(const _Ptr _Array, const size_t _Size, const size_t _Index = 0) noexcept
+        : _Myarray(_Array), _Mysize(_Size), _Myindex(_Index) {
+        _STL_VERIFY(_Index <= _Size, "检查数组迭代器 construction index out of range");
+    }
+
+    _STL_DISABLE_DEPRECATED_WARNING
+    template <class _Ty = _所指类型, _STD enable_if_t<!_STD is_const_v<_Ty>, int> = 0>
+    constexpr operator 检查数组迭代器<const _Ty*>() const noexcept {
+        return 检查数组迭代器<const _Ty*>{_Myarray, _Mysize, _Myindex};
+    }
+    _STL_RESTORE_DEPRECATED_WARNING
+
+    _NODISCARD constexpr _Ptr base() const noexcept {
+        return _Myarray + _Myindex;
+    }
+
+    _NODISCARD constexpr reference operator*() const noexcept {
+        return *operator->();
+    }
+
+    _NODISCARD constexpr pointer operator->() const noexcept {
+        _STL_VERIFY(_Myarray, "cannot dereference value-initialized or null 检查数组迭代器");
+        _STL_VERIFY(_Myindex < _Mysize, "cannot dereference end 检查数组迭代器");
+        return _Myarray + _Myindex;
+    }
+
+    constexpr 检查数组迭代器& operator++() noexcept {
+        _STL_VERIFY(_Myarray, "cannot increment value-initialized or null 检查数组迭代器");
+        _STL_VERIFY(_Myindex < _Mysize, "cannot increment 检查数组迭代器 past end");
+        ++_Myindex;
+        return *this;
+    }
+
+    constexpr 检查数组迭代器 operator++(int) noexcept {
+        检查数组迭代器 _Tmp = *this;
+        ++*this;
+        return _Tmp;
+    }
+
+    constexpr 检查数组迭代器& operator--() noexcept {
+        _STL_VERIFY(_Myarray, "cannot decrement value-initialized or null 检查数组迭代器");
+        _STL_VERIFY(_Myindex != 0, "cannot decrement 检查数组迭代器 before begin");
+        --_Myindex;
+        return *this;
+    }
+
+    constexpr 检查数组迭代器 operator--(int) noexcept {
+        检查数组迭代器 _Tmp = *this;
+        --*this;
+        return _Tmp;
+    }
+
+    constexpr 检查数组迭代器& operator+=(const difference_type _Off) noexcept {
+        if (_Off != 0) {
+            _STL_VERIFY(_Myarray, "cannot seek value-initialized or null 检查数组迭代器");
+        }
+
+        if (_Off < 0) {
+            _STL_VERIFY(
+                _Myindex >= size_t{0} - static_cast<size_t>(_Off), "cannot seek 检查数组迭代器 before begin");
+        }
+
+        if (_Off > 0) {
+            _STL_VERIFY(
+                _Mysize - _Myindex >= static_cast<size_t>(_Off), "cannot seek 检查数组迭代器 after end");
+        }
+
+        _Myindex += _Off;
+        return *this;
+    }
+
+    _NODISCARD constexpr 检查数组迭代器 operator+(const difference_type _Off) const noexcept {
+        检查数组迭代器 _Tmp = *this;
+        _Tmp += _Off;
+        return _Tmp;
+    }
+
+    _NODISCARD friend constexpr 检查数组迭代器 operator+(
+        const difference_type _Off, const 检查数组迭代器<_Ptr>& _Next) noexcept {
+        return _Next + _Off;
+    }
+
+    constexpr 检查数组迭代器& operator-=(const difference_type _Off) noexcept {
+        if (_Off != 0) {
+            _STL_VERIFY(_Myarray, "cannot seek value-initialized or null 检查数组迭代器");
+        }
+
+        if (_Off > 0) {
+            _STL_VERIFY(_Myindex >= static_cast<size_t>(_Off), "cannot seek 检查数组迭代器 before begin");
+        }
+
+        if (_Off < 0) {
+            _STL_VERIFY(_Mysize - _Myindex >= size_t{0} - static_cast<size_t>(_Off),
+                "cannot seek 检查数组迭代器 after end");
+        }
+
+        _Myindex -= _Off;
+        return *this;
+    }
+
+    _NODISCARD constexpr 检查数组迭代器 operator-(const difference_type _Off) const noexcept {
+        检查数组迭代器 _Tmp = *this;
+        _Tmp -= _Off;
+        return _Tmp;
+    }
+
+    _NODISCARD constexpr difference_type operator-(const 检查数组迭代器& _Right) const noexcept {
+        _STL_VERIFY(_Myarray == _Right._Myarray && _Mysize == _Right._Mysize,
+            "cannot subtract incompatible checked_array_iterators");
+        return static_cast<difference_type>(_Myindex - _Right._Myindex);
+    }
+
+    _NODISCARD constexpr reference operator[](const difference_type _Off) const noexcept {
+        return *(*this + _Off);
+    }
+
+    _NODISCARD constexpr bool operator==(const 检查数组迭代器& _Right) const noexcept {
+        _STL_VERIFY(_Myarray == _Right._Myarray && _Mysize == _Right._Mysize,
+            "cannot compare incompatible checked_array_iterators for equality");
+        return _Myindex == _Right._Myindex;
+    }
+
+#if _HAS_CXX20
+    _NODISCARD constexpr _STD strong_ordering operator<=>(const 检查数组迭代器& _Right) const noexcept {
+        _STL_VERIFY(_Myarray == _Right._Myarray && _Mysize == _Right._Mysize,
+            "cannot compare incompatible checked_array_iterators");
+        return _Myindex <=> _Right._Myindex;
+    }
+#else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
+    _NODISCARD constexpr bool operator!=(const 检查数组迭代器& _Right) const noexcept {
+        return !(*this == _Right);
+    }
+
+    _NODISCARD constexpr bool operator<(const 检查数组迭代器& _Right) const noexcept {
+        _STL_VERIFY(_Myarray == _Right._Myarray && _Mysize == _Right._Mysize,
+            "cannot compare incompatible checked_array_iterators");
+        return _Myindex < _Right._Myindex;
+    }
+
+    _NODISCARD constexpr bool operator>(const 检查数组迭代器& _Right) const noexcept {
+        return _Right < *this;
+    }
+
+    _NODISCARD constexpr bool operator<=(const 检查数组迭代器& _Right) const noexcept {
+        return !(_Right < *this);
+    }
+
+    _NODISCARD constexpr bool operator>=(const 检查数组迭代器& _Right) const noexcept {
+        return !(*this < _Right);
+    }
+#endif // ^^^ !_HAS_CXX20 ^^^
+
+    friend constexpr void _校验范围(
+        const 检查数组迭代器& _First, const 检查数组迭代器& _Last) noexcept {
+        _STL_VERIFY(_First._Myarray == _Last._Myarray && _First._Mysize == _Last._Mysize,
+            "mismatching checked_array_iterators");
+        _STL_VERIFY(_First._Myindex <= _Last._Myindex, "transposed 检查数组迭代器 range");
+    }
+
+    constexpr void _校验偏移(const difference_type _Off) const noexcept {
+        if (_Off < 0) {
+            _STL_VERIFY(_Myindex >= size_t{0} - static_cast<size_t>(_Off),
+                "cannot seek 检查数组迭代器 iterator before begin");
+        }
+
+        if (_Off > 0) {
+            _STL_VERIFY(_Mysize - _Myindex >= static_cast<size_t>(_Off),
+                "cannot seek 检查数组迭代器 iterator after end");
+        }
+    }
+
+    using _阻止继承解包 = 检查数组迭代器;
+
+    _NODISCARD constexpr _Ptr _解包() const noexcept {
+        return _Myarray + _Myindex;
+    }
+
+    constexpr void _定位到(_Ptr _It) noexcept {
+        _Myindex = static_cast<size_t>(_It - _Myarray);
+    }
+
+private:
+    _Ptr _Myarray   = nullptr; // beginning of array
+    size_t _Mysize  = 0; // size of array
+    size_t _Myindex = 0; // offset into array
+};
+
+_STL_DISABLE_DEPRECATED_WARNING
+template <class _Ptr>
+_DEPRECATE_STDEXT_ARR_ITERS _NODISCARD constexpr 检查数组迭代器<_Ptr> make_checked_array_iterator(
+    const _Ptr _Array, const size_t _Size, const size_t _Index = 0) noexcept {
+    return 检查数组迭代器<_Ptr>(_Array, _Size, _Index);
+}
+_STL_RESTORE_DEPRECATED_WARNING
+
+template <class _Ptr>
+class _DEPRECATE_STDEXT_ARR_ITERS 未检查数组迭代器 { // wrap a pointer without checking, to silence warnings
+private:
+    using _所指类型 = _STD remove_pointer_t<_Ptr>;
+    static_assert(_STD is_pointer_v<_Ptr> && _STD is_object_v<_所指类型>,
+        "未检查数组迭代器 requires pointers to objects");
+
+public:
+    using iterator_category = _STD random_access_iterator_tag;
+    using value_type        = _STD remove_cv_t<_所指类型>;
+    using difference_type   = _STD ptrdiff_t;
+    using pointer           = _Ptr;
+    using reference         = _所指类型&;
+#if _HAS_CXX20
+    using iterator_concept = _STD contiguous_iterator_tag;
+#endif // _HAS_CXX20
+
+    constexpr 未检查数组迭代器() = default;
+
+    constexpr explicit 未检查数组迭代器(const _Ptr _Src) noexcept : _Myptr(_Src) {}
+
+    _STL_DISABLE_DEPRECATED_WARNING
+    template <class _Ty = _所指类型, _STD enable_if_t<!_STD is_const_v<_Ty>, int> = 0>
+    constexpr operator 未检查数组迭代器<const _Ty*>() const noexcept {
+        return 未检查数组迭代器<const _Ty*>{_Myptr};
+    }
+    _STL_RESTORE_DEPRECATED_WARNING
+
+    _NODISCARD constexpr _Ptr base() const noexcept {
+        return _Myptr;
+    }
+
+    _NODISCARD constexpr reference operator*() const noexcept {
+        return *_Myptr;
+    }
+
+    _NODISCARD constexpr pointer operator->() const noexcept {
+        return _Myptr;
+    }
+
+    constexpr 未检查数组迭代器& operator++() noexcept {
+        ++_Myptr;
+        return *this;
+    }
+
+    constexpr 未检查数组迭代器 operator++(int) noexcept {
+        未检查数组迭代器 _Tmp = *this;
+        ++_Myptr;
+        return _Tmp;
+    }
+
+    constexpr 未检查数组迭代器& operator--() noexcept {
+        --_Myptr;
+        return *this;
+    }
+
+    constexpr 未检查数组迭代器 operator--(int) noexcept {
+        未检查数组迭代器 _Tmp = *this;
+        --_Myptr;
+        return _Tmp;
+    }
+
+    constexpr 未检查数组迭代器& operator+=(const difference_type _Off) noexcept {
+        _Myptr += _Off;
+        return *this;
+    }
+
+    _NODISCARD constexpr 未检查数组迭代器 operator+(const difference_type _Off) const noexcept {
+        未检查数组迭代器 _Tmp = *this;
+        _Tmp += _Off;
+        return _Tmp;
+    }
+
+    _NODISCARD friend constexpr 未检查数组迭代器 operator+(
+        const difference_type _Off, const 未检查数组迭代器& _Next) noexcept {
+        return _Next + _Off;
+    }
+
+    constexpr 未检查数组迭代器& operator-=(const difference_type _Off) noexcept {
+        return *this += -_Off;
+    }
+
+    _NODISCARD constexpr 未检查数组迭代器 operator-(const difference_type _Off) const noexcept {
+        未检查数组迭代器 _Tmp = *this;
+        _Tmp -= _Off;
+        return _Tmp;
+    }
+
+    _NODISCARD constexpr difference_type operator-(const 未检查数组迭代器& _Right) const noexcept {
+        return _Myptr - _Right._Myptr;
+    }
+
+    _NODISCARD constexpr reference operator[](const difference_type _Off) const noexcept {
+        return *(*this + _Off);
+    }
+
+    _NODISCARD constexpr bool operator==(const 未检查数组迭代器& _Right) const noexcept {
+        return _Myptr == _Right._Myptr;
+    }
+
+#if _HAS_CXX20
+    _NODISCARD constexpr _STD strong_ordering operator<=>(const 未检查数组迭代器& _Right) const noexcept {
+        return _Myptr <=> _Right._Myptr;
+    }
+#else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
+    _NODISCARD constexpr bool operator!=(const 未检查数组迭代器& _Right) const noexcept {
+        return !(*this == _Right);
+    }
+
+    _NODISCARD constexpr bool operator<(const 未检查数组迭代器& _Right) const noexcept {
+        return _Myptr < _Right._Myptr;
+    }
+
+    _NODISCARD constexpr bool operator>(const 未检查数组迭代器& _Right) const noexcept {
+        return _Right < *this;
+    }
+
+    _NODISCARD constexpr bool operator<=(const 未检查数组迭代器& _Right) const noexcept {
+        return !(_Right < *this);
+    }
+
+    _NODISCARD constexpr bool operator>=(const 未检查数组迭代器& _Right) const noexcept {
+        return !(*this < _Right);
+    }
+#endif // ^^^ !_HAS_CXX20 ^^^
+
+#if _ITERATOR_DEBUG_LEVEL != 0
+    friend constexpr void _校验范围(
+        const 未检查数组迭代器 _First, const 未检查数组迭代器 _Last) noexcept {
+        _校验范围(_First._Myptr, _Last._Myptr);
+    }
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+
+    using _阻止继承解包 = 未检查数组迭代器;
+
+    static constexpr bool _Unwrap_when_unverified = true;
+
+    _NODISCARD constexpr _Ptr _解包() const noexcept {
+        return _Myptr;
+    }
+
+    constexpr void _定位到(_Ptr _It) noexcept {
+        _Myptr = _It;
+    }
+
+private:
+    _Ptr _Myptr = nullptr; // underlying pointer
+};
+
+_STL_DISABLE_DEPRECATED_WARNING
+template <class _Ptr>
+_DEPRECATE_STDEXT_ARR_ITERS _NODISCARD 未检查数组迭代器<_Ptr> make_unchecked_array_iterator(
+    const _Ptr _It) noexcept {
+    return 未检查数组迭代器<_Ptr>(_It);
+}
+_STL_RESTORE_DEPRECATED_WARNING
+}
+
+#if _HAS_CXX20
+名域 标准 { 名域 细节 {
+使用 名域 std;
+_STL_DISABLE_DEPRECATED_WARNING
+template <class _Ty>
+struct pointer_traits<细节stdext::检查数组迭代器<_Ty*>> {
+    using pointer         = 细节stdext::检查数组迭代器<_Ty*>;
+    using element_type    = _Ty;
+    using difference_type = ptrdiff_t;
+
+    _NODISCARD static constexpr element_type* to_address(const pointer _Iter) noexcept {
+        return _Iter._解包();
+    }
+};
+_STL_RESTORE_DEPRECATED_WARNING
+} }
+#endif // _HAS_CXX20
+
+#pragma pop_macro("未检查数组迭代器")
+#pragma pop_macro("make_unchecked_array_iterator")
+#pragma pop_macro("make_checked_array_iterator")
+#pragma pop_macro("检查数组迭代器")
+#pragma pop_macro("stdext")
+
+#pragma pop_macro("new")
+_STL_RESTORE_CLANG_WARNINGS
+#pragma warning(pop)
+#pragma pack(pop)
+#endif // _STL_COMPILER_PREPROCESSOR
+// [ZH-DERIVE-LAYER] 汉语派生层（英文兼容层）从这一行开始 —— 本行【以上】属抄来那层，有英文名就是欠账
+名域 标准 {
+
+// ---- 公开类型的中文名（模板类按 <元素...> 转发；英文原名由 forwarder 补回）----
+模板 <类型名 容器> 使用 后插迭代器 = 细节::后插迭代器实现<容器>;
+模板 <类型名 容器> 使用 前插迭代器 = 细节::前插迭代器实现<容器>;
+模板 <类型名 容器> 使用 插入迭代器 = 细节::插入迭代器实现<容器>;
+模板 <类型名 哨兵> 使用 移动哨兵 = 细节::移动哨兵实现<哨兵>;
+模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>> 使用 输入流迭代器 = 细节::输入流迭代器实现<元素, 特征>;
+模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>> 使用 输出流迭代器 = 细节::输出流迭代器实现<元素, 特征>;
+模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>> 使用 输入流缓冲迭代器 = 细节::输入流缓冲迭代器实现<元素, 特征>;
+模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>> 使用 输出流缓冲迭代器 = 细节::输出流缓冲迭代器实现<元素, 特征>;
+模板 <类型名 迭代器类型, 类型名 哨兵类型> 使用 公共迭代器 = 细节::公共迭代器实现<迭代器类型, 哨兵类型>;
+模板 <类型名 迭代器类型> 使用 计数迭代器 = 细节::计数迭代器实现<迭代器类型>;
+
+// ---- 自由函数：中文名 + 英文原名，都指向同一份 细节:: 实现 ----
+模板 <类型名 容器> 声明类型(自动) 后插器(容器& 甲) { 返回 细节::后插器(甲); }
+模板 <类型名 容器> 声明类型(自动) back_inserter(容器& 甲) { 返回 细节::后插器(甲); }
+模板 <类型名 容器> 声明类型(自动) 前插器(容器& 甲) { 返回 细节::前插器(甲); }
+模板 <类型名 容器> 声明类型(自动) front_inserter(容器& 甲) { 返回 细节::前插器(甲); }
+模板 <类型名 容器, 类型名 位置类型> 声明类型(自动) 插入器(容器& 甲, 位置类型 位置) { 返回 细节::插入器(甲, 位置); }
+模板 <类型名 容器, 类型名 位置类型> 声明类型(自动) inserter(容器& 甲, 位置类型 位置) { 返回 细节::插入器(甲, 位置); }
+
+}  // 名域 标准
+
+#endif // _ITERATOR_

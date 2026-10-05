@@ -1,0 +1,52 @@
+// <随机> —— random 的中文别名层
+//
+// 为什么是别名而不是抄一份（方案铁律 4）：
+//   铁律③：引擎/分布类型参与语义（按类型重载、模板实参推导、分布要求 ResultType 精确匹配）。
+//   这类头一旦抄一份，就会和 std 里那份成为两套互不相认的东西。
+//
+// 英文原名照旧可用：这里只是【多一个名字】，原头一个字节没动。
+// 变体（英文里带 _v 的变量模板形式）暂未提供中文名，属"必须的妥协"，见方案 §六。
+#pragma once
+#include <random>
+
+名域 标准 {
+    使用 最小标准随机0 = std::minstd_rand0;
+    使用 最小标准随机 = std::minstd_rand;
+    使用 梅森旋转19937 = std::mt19937;
+    使用 梅森旋转19937_64 = std::mt19937_64;
+    使用 兰勒克斯24基 = std::ranlux24_base;
+    使用 兰勒克斯48基 = std::ranlux48_base;
+    使用 兰勒克斯24 = std::ranlux24;
+    使用 兰勒克斯48 = std::ranlux48;
+    使用 克努特乙 = std::knuth_b;
+    使用 默认随机引擎 = std::default_random_engine;
+    使用 随机设备 = std::random_device;
+    使用 种子序列 = std::seed_seq;
+    模板 <类型名 结果类型, 结果类型 甲, 结果类型 乙, 结果类型 丙> 使用 线性同余引擎 = std::linear_congruential_engine<结果类型, 甲, 乙, 丙>;
+    模板 <类型名 结果类型, std::size_t 甲, std::size_t 乙, std::size_t 丙, std::size_t 丁, 结果类型 戊, std::size_t 己, 结果类型 庚, std::size_t 辛, 结果类型 壬, std::size_t 癸, 结果类型 子, std::size_t 丑, 结果类型 寅> 使用 梅森旋转引擎 = std::mersenne_twister_engine<结果类型, 甲, 乙, 丙, 丁, 戊, 己, 庚, 辛, 壬, 癸, 子, 丑, 寅>;
+    模板 <类型名 结果类型, std::size_t 甲, std::size_t 乙, std::size_t 丙> 使用 带进位减法引擎 = std::subtract_with_carry_engine<结果类型, 甲, 乙, 丙>;
+    模板 <类型名 引擎, std::size_t 甲, std::size_t 乙> 使用 丢弃块引擎 = std::discard_block_engine<引擎, 甲, 乙>;
+    模板 <类型名 引擎, std::size_t 甲, 类型名 结果类型> 使用 独立位引擎 = std::independent_bits_engine<引擎, 甲, 结果类型>;
+    模板 <类型名 引擎, std::size_t 甲> 使用 乱序引擎 = std::shuffle_order_engine<引擎, 甲>;
+    模板 <类型名 整数类型 = 整数> 使用 均匀整数分布 = std::uniform_int_distribution<整数类型>;
+    模板 <类型名 实数类型 = 双精度> 使用 均匀实数分布 = std::uniform_real_distribution<实数类型>;
+    模板 <类型名 整数类型 = 整数> 使用 伯努利分布 = std::bernoulli_distribution;
+    模板 <类型名 整数类型 = 整数> 使用 二项分布 = std::binomial_distribution<整数类型>;
+    模板 <类型名 整数类型 = 整数> 使用 几何分布 = std::geometric_distribution<整数类型>;
+    模板 <类型名 整数类型 = 整数> 使用 负二项分布 = std::negative_binomial_distribution<整数类型>;
+    模板 <类型名 整数类型 = 整数> 使用 泊松分布 = std::poisson_distribution<整数类型>;
+    模板 <类型名 实数类型 = 双精度> 使用 指数分布 = std::exponential_distribution<实数类型>;
+    模板 <类型名 实数类型 = 双精度> 使用 伽马分布 = std::gamma_distribution<实数类型>;
+    模板 <类型名 实数类型 = 双精度> 使用 韦布尔分布 = std::weibull_distribution<实数类型>;
+    模板 <类型名 实数类型 = 双精度> 使用 极值分布 = std::extreme_value_distribution<实数类型>;
+    模板 <类型名 实数类型 = 双精度> 使用 正态分布 = std::normal_distribution<实数类型>;
+    模板 <类型名 实数类型 = 双精度> 使用 对数正态分布 = std::lognormal_distribution<实数类型>;
+    模板 <类型名 实数类型 = 双精度> 使用 卡方分布 = std::chi_squared_distribution<实数类型>;
+    模板 <类型名 实数类型 = 双精度> 使用 柯西分布 = std::cauchy_distribution<实数类型>;
+    模板 <类型名 实数类型 = 双精度> 使用 费歇尔F分布 = std::fisher_f_distribution<实数类型>;
+    模板 <类型名 实数类型 = 双精度> 使用 学生t分布 = std::student_t_distribution<实数类型>;
+    模板 <类型名 整数类型 = 整数> 使用 离散分布 = std::discrete_distribution<整数类型>;
+    模板 <类型名 实数类型 = 双精度> 使用 分段常数分布 = std::piecewise_constant_distribution<实数类型>;
+    模板 <类型名 实数类型 = 双精度> 使用 分段线性分布 = std::piecewise_linear_distribution<实数类型>;
+    模板 <类型名 实数类型, std::size_t 位数, 类型名 引擎> 声明类型(自动) 生成规范数(引擎& 甲) { 返回 std::generate_canonical<实数类型, 位数>(甲); }
+}

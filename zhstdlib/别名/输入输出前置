@@ -1,0 +1,31 @@
+// <输入输出前置> —— iosfwd 的中文别名层
+//
+// 为什么是别名而不是抄一份（方案铁律 4）：
+//   铁律③：这里只有前置声明，类型必须就是 std 那一个（用户拿它当形参、与 std 流互操作）；抄一份改名会让同一类型出现两个身份。
+//   这类头一旦抄一份，就会和 std 里那份成为两套互不相认的东西。
+//
+// 英文原名照旧可用：这里只是【多一个名字】，原头一个字节没动。
+// 变体（英文里带 _v 的变量模板形式）暂未提供中文名，属"必须的妥协"，见方案 §六。
+#pragma once
+#include <iosfwd>
+
+名域 标准 {
+    #ifndef _ZH_流类型名
+    #define _ZH_流类型名
+    模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>> 使用 基础输入流 = std::basic_istream<元素, 特征>;
+    模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>> 使用 基础输出流 = std::basic_ostream<元素, 特征>;
+    模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>> 使用 基础输入输出流 = std::basic_iostream<元素, 特征>;
+    模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>> 使用 基础流缓冲 = std::basic_streambuf<元素, 特征>;
+    模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>> 使用 基础流状态 = std::basic_ios<元素, 特征>;
+    模板 <类型名 状态类型> 使用 文件位置 = std::fpos<状态类型>;
+    使用 流位置 = std::streampos;
+    使用 流偏移 = std::streamoff;
+    使用 流尺寸 = std::streamsize;
+    使用 宽流位置 = std::wstreampos;
+    使用 输入流 = std::istream;
+    使用 输出流 = std::ostream;
+    使用 输入输出流 = std::iostream;
+    使用 流缓冲 = std::streambuf;
+    使用 输入输出状态 = std::ios;
+    #endif // _ZH_流类型名
+}

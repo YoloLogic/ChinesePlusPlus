@@ -1,0 +1,133 @@
+#include <latch>
+// 门闩实现 standard header
+
+// Copyright (c) Microsoft Corporation.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#ifndef _ZH_LATCH_
+#define _ZH_LATCH_
+#include <yvals.h>
+#if _STL_COMPILER_PREPROCESSOR
+
+#ifdef _M_CEE_PURE
+#error <门闩实现> is not supported when compiling with /clr:pure.
+#endif // defined(_M_CEE_PURE)
+
+#if !_HAS_CXX20
+_EMIT_STL_WARNING(STL4038, "The contents of <门闩实现> are available only with C++20 or later.");
+#else // ^^^ !_HAS_CXX20 / _HAS_CXX20 vvv
+
+#include <atomic>
+#include <climits>
+
+#pragma pack(push, _CRT_PACKING)
+#pragma warning(push, _STL_WARNING_LEVEL)
+#pragma warning(disable : _STL_DISABLED_WARNINGS)
+_STL_DISABLE_CLANG_WARNINGS
+#pragma push_macro("new")
+#undef new
+
+名域 标准 { 名域 细节 {
+使用 名域 std;
+
+_EXPORT_STD class 门闩实现 {
+public:
+    _NODISCARD static constexpr ptrdiff_t(max)() noexcept {
+        return PTRDIFF_MAX;
+    }
+
+    constexpr explicit 门闩实现(const ptrdiff_t _Expected) noexcept /* strengthened */ : _Counter{_Expected} {
+        _STL_VERIFY(_Expected >= 0, "Precondition: expected >= 0 (N4950 [thread.门闩实现.class]/4)");
+    }
+
+    门闩实现(const 门闩实现&)            = delete;
+    门闩实现& operator=(const 门闩实现&) = delete;
+
+    void 递减(const ptrdiff_t _Update = 1) noexcept /* strengthened */ {
+        _STL_VERIFY(_Update >= 0, "Precondition: update >= 0 (N4950 [thread.门闩实现.class]/7)");
+        // TRANSITION, GH-1133: should be memory_order_release
+        const ptrdiff_t _Current = _Counter.fetch_sub(_Update) - _Update;
+        if (_Current == 0) {
+            _Counter.notify_all();
+        } else {
+            _STL_VERIFY(_Current >= 0, "Precondition: update <= counter (N4950 [thread.门闩实现.class]/7)");
+        }
+    }
+
+    _NODISCARD_TRY_WAIT bool 尝试等待() const noexcept {
+        // TRANSITION, GH-1133: should be memory_order_acquire
+        return _Counter.load() == 0;
+    }
+
+    void wait() const noexcept /* strengthened */ {
+        for (;;) {
+            // TRANSITION, GH-1133: should be memory_order_acquire
+            const ptrdiff_t _Current = _Counter.load();
+            if (_Current == 0) {
+                return;
+            } else {
+                _STL_VERIFY(_Current > 0, "Invariant counter >= 0, possibly caused by preconditions violation "
+                                          "(N4950 [thread.门闩实现.class]/7)");
+            }
+            _Counter.wait(_Current, memory_order_relaxed);
+        }
+    }
+
+    void 到达并等待(const ptrdiff_t _Update = 1) noexcept /* strengthened */ {
+        _STL_VERIFY(_Update >= 0, "Precondition: update >= 0 (N4950 [thread.门闩实现.class]/7)");
+        // TRANSITION, GH-1133: should be memory_order_acq_rel
+        const ptrdiff_t _Current = _Counter.fetch_sub(_Update) - _Update;
+        if (_Current == 0) {
+            _Counter.notify_all();
+        } else {
+            _STL_VERIFY(_Current > 0, "Precondition: update <= counter (N4950 [thread.门闩实现.class]/7)");
+            _Counter.wait(_Current, memory_order_relaxed);
+            wait();
+        }
+    }
+
+private:
+    atomic<ptrdiff_t> _Counter;
+};
+
+} }
+
+#pragma pop_macro("new")
+_STL_RESTORE_CLANG_WARNINGS
+#pragma warning(pop)
+#pragma pack(pop)
+#endif // ^^^ _HAS_CXX20 ^^^
+
+#endif // _STL_COMPILER_PREPROCESSOR
+// [ZH-DERIVE-LAYER] 汉语派生层（英文兼容层）从这一行开始 —— 本行【以上】属抄来那层，有英文名就是欠账
+// ============================================================================
+//  第二层：在【中文的基础上】派生，把英文原名补回来
+//  · 第一层 标准::细节::门闩实现 是抄自微软的中文实现，成员名全中文
+//  · 本层加回英文原名，所以两种名字在【同一个对象】上都能用
+//  · 与微软的原类型并存：它是【另一个类型】，不碰 std 里的定义
+// ============================================================================
+名域 标准 {
+
+类型 门闩 : 公开 细节::门闩实现 {
+公开:
+    使用 基类 = 细节::门闩实现;
+    使用 基类::基类;
+
+    // 嵌套类型名也要补回英文（数据成员不行 —— 那会改布局）
+
+
+    // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
+    模板 <类型名... 参数> 声明类型(自动) count_down(参数&&... 值) { 返回 基类::递减(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) count_down(参数&&... 值) 常量 { 返回 基类::递减(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) try_wait(参数&&... 值) { 返回 基类::尝试等待(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) try_wait(参数&&... 值) 常量 { 返回 基类::尝试等待(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) arrive_and_wait(参数&&... 值) { 返回 基类::到达并等待(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) arrive_and_wait(参数&&... 值) 常量 { 返回 基类::到达并等待(static_cast<参数&&>(值)...); }
+
+    // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
+    // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
+    模板 <类型名... 参数> 声明类型(自动) 等待(参数&&... 值) 常量 { 返回 基类::wait(static_cast<参数&&>(值)...); }
+};
+}
+
+#endif // _LATCH_

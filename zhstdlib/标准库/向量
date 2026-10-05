@@ -1,0 +1,4065 @@
+#include <vector>
+// 向量实现 standard header
+
+// Copyright (c) Microsoft Corporation.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#ifndef _ZH_VECTOR_
+#define _ZH_VECTOR_
+#include <yvals_core.h>
+#if _STL_COMPILER_PREPROCESSOR
+#include <__msvc_bit_utils.hpp>
+#include <__msvc_sanitizer_annotate_container.hpp>
+#include <内存内部件>
+
+#if _HAS_CXX17
+#include <xpolymorphic_allocator.h>
+#endif // _HAS_CXX17
+
+#if _HAS_CXX23
+#include <__msvc_formatter.hpp>
+#endif // _HAS_CXX23
+
+#pragma pack(push, _CRT_PACKING)
+#pragma warning(push, _STL_WARNING_LEVEL)
+#pragma warning(disable : _STL_DISABLED_WARNINGS)
+_STL_DISABLE_CLANG_WARNINGS
+#pragma push_macro("new")
+#undef new
+
+名域 标准 { 名域 细节 {
+使用 名域 std;
+template <class _我的向量>
+class _向量常量迭代器 : public _迭代器基类 {
+public:
+#if _HAS_CXX20
+    using iterator_concept = contiguous_iterator_tag;
+#endif // _HAS_CXX20
+    using iterator_category = random_access_iterator_tag;
+    using value_type        = typename _我的向量::value_type;
+    using difference_type   = typename _我的向量::difference_type;
+    using pointer           = typename _我的向量::const_pointer;
+    using reference         = const value_type&;
+
+    using _类型指针 = typename _我的向量::pointer;
+
+    _CONSTEXPR20 _向量常量迭代器() noexcept : _Ptr() {}
+
+    _CONSTEXPR20 _向量常量迭代器(_类型指针 _Parg, const _容器基类* _Pvector) noexcept : _Ptr(_Parg) {
+        this->_收养(_Pvector);
+    }
+
+    _NODISCARD _CONSTEXPR20 reference operator*() const noexcept {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        const auto _我的容器 = static_cast<const _我的向量*>(this->_取容器());
+        _STL_VERIFY(_Ptr, "can't dereference value-initialized 向量实现 iterator");
+        _STL_VERIFY(_我的容器, "can't dereference invalidated 向量实现 iterator");
+        _STL_VERIFY(
+            _我的容器->_Myfirst <= _Ptr && _Ptr < _我的容器->_Mylast, "can't dereference out of range 向量实现 iterator");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+
+        return *_Ptr;
+    }
+
+    _NODISCARD _CONSTEXPR20 pointer operator->() const noexcept {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        const auto _我的容器 = static_cast<const _我的向量*>(this->_取容器());
+        _STL_VERIFY(_Ptr, "can't dereference value-initialized 向量实现 iterator");
+        _STL_VERIFY(_我的容器, "can't dereference invalidated 向量实现 iterator");
+        _STL_VERIFY(
+            _我的容器->_Myfirst <= _Ptr && _Ptr < _我的容器->_Mylast, "can't dereference out of range 向量实现 iterator");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+
+        return _Ptr;
+    }
+
+    _CONSTEXPR20 _向量常量迭代器& operator++() noexcept {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        const auto _我的容器 = static_cast<const _我的向量*>(this->_取容器());
+        _STL_VERIFY(_Ptr, "can't increment value-initialized 向量实现 iterator");
+        _STL_VERIFY(_我的容器, "can't increment invalidated 向量实现 iterator");
+        _STL_VERIFY(_Ptr < _我的容器->_Mylast, "can't increment 向量实现 iterator past 结束");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+
+        ++_Ptr;
+        return *this;
+    }
+
+    _CONSTEXPR20 _向量常量迭代器 operator++(int) noexcept {
+        _向量常量迭代器 _临时 = *this;
+        ++*this;
+        return _临时;
+    }
+
+    _CONSTEXPR20 _向量常量迭代器& operator--() noexcept {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        const auto _我的容器 = static_cast<const _我的向量*>(this->_取容器());
+        _STL_VERIFY(_Ptr, "can't decrement value-initialized 向量实现 iterator");
+        _STL_VERIFY(_我的容器, "can't decrement invalidated 向量实现 iterator");
+        _STL_VERIFY(_我的容器->_Myfirst < _Ptr, "can't decrement 向量实现 iterator before 开始");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+
+        --_Ptr;
+        return *this;
+    }
+
+    _CONSTEXPR20 _向量常量迭代器 operator--(int) noexcept {
+        _向量常量迭代器 _临时 = *this;
+        --*this;
+        return _临时;
+    }
+
+    _CONSTEXPR20 void _校验偏移(const difference_type _Off) const noexcept {
+#if _ITERATOR_DEBUG_LEVEL == 0
+        (void) _Off;
+#else // ^^^ _ITERATOR_DEBUG_LEVEL == 0 / _ITERATOR_DEBUG_LEVEL != 0 vvv
+        const auto _我的容器 = static_cast<const _我的向量*>(this->_取容器());
+        _STL_VERIFY(_Off == 0 || _Ptr, "cannot seek value-initialized 向量实现 iterator");
+        _STL_VERIFY(_Off == 0 || _我的容器, "cannot seek invalidated 向量实现 iterator");
+        if (_Off < 0) {
+            _STL_VERIFY(_Off >= _我的容器->_Myfirst - _Ptr, "cannot seek 向量实现 iterator before 开始");
+        }
+
+        if (_Off > 0) {
+            _STL_VERIFY(_Off <= _我的容器->_Mylast - _Ptr, "cannot seek 向量实现 iterator after 结束");
+        }
+#endif // ^^^ _ITERATOR_DEBUG_LEVEL != 0 ^^^
+    }
+
+    _CONSTEXPR20 _向量常量迭代器& operator+=(const difference_type _Off) noexcept {
+        _校验偏移(_Off);
+        _Ptr += _Off;
+        return *this;
+    }
+
+    _NODISCARD _CONSTEXPR20 _向量常量迭代器 operator+(const difference_type _Off) const noexcept {
+        _向量常量迭代器 _临时 = *this;
+        _临时 += _Off;
+        return _临时;
+    }
+
+    _NODISCARD friend _CONSTEXPR20 _向量常量迭代器 operator+(
+        const difference_type _Off, _向量常量迭代器 _Next) noexcept {
+        _Next += _Off;
+        return _Next;
+    }
+
+    _CONSTEXPR20 _向量常量迭代器& operator-=(const difference_type _Off) noexcept {
+        return *this += -_Off;
+    }
+
+    _NODISCARD _CONSTEXPR20 _向量常量迭代器 operator-(const difference_type _Off) const noexcept {
+        _向量常量迭代器 _临时 = *this;
+        _临时 -= _Off;
+        return _临时;
+    }
+
+    _NODISCARD _CONSTEXPR20 difference_type operator-(const _向量常量迭代器& _Right) const noexcept {
+        _兼容(_Right);
+        return static_cast<difference_type>(_Ptr - _Right._Ptr);
+    }
+
+    _NODISCARD _CONSTEXPR20 reference operator[](const difference_type _Off) const noexcept {
+        return *(*this + _Off);
+    }
+
+    _NODISCARD _CONSTEXPR20 bool operator==(const _向量常量迭代器& _Right) const noexcept {
+        _兼容(_Right);
+        return _Ptr == _Right._Ptr;
+    }
+
+#if _HAS_CXX20
+    _NODISCARD constexpr strong_ordering operator<=>(const _向量常量迭代器& _Right) const noexcept {
+        _兼容(_Right);
+        return _去花式可空(_Ptr) <=> _去花式可空(_Right._Ptr);
+    }
+#else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
+    _NODISCARD bool operator!=(const _向量常量迭代器& _Right) const noexcept {
+        return !(*this == _Right);
+    }
+
+    _NODISCARD bool operator<(const _向量常量迭代器& _Right) const noexcept {
+        _兼容(_Right);
+        return _Ptr < _Right._Ptr;
+    }
+
+    _NODISCARD bool operator>(const _向量常量迭代器& _Right) const noexcept {
+        return _Right < *this;
+    }
+
+    _NODISCARD bool operator<=(const _向量常量迭代器& _Right) const noexcept {
+        return !(_Right < *this);
+    }
+
+    _NODISCARD bool operator>=(const _向量常量迭代器& _Right) const noexcept {
+        return !(*this < _Right);
+    }
+#endif // ^^^ !_HAS_CXX20 ^^^
+
+    _CONSTEXPR20 void _兼容(const _向量常量迭代器& _Right) const noexcept {
+        // test for compatible iterator pair
+#if _ITERATOR_DEBUG_LEVEL == 0
+        (void) _Right;
+#else // ^^^ _ITERATOR_DEBUG_LEVEL == 0 / _ITERATOR_DEBUG_LEVEL != 0 vvv
+        _STL_VERIFY(this->_取容器() == _Right._取容器(), "向量实现 iterators incompatible");
+#endif // ^^^ _ITERATOR_DEBUG_LEVEL != 0 ^^^
+    }
+
+#if _ITERATOR_DEBUG_LEVEL != 0
+    friend _CONSTEXPR20 void _校验范围(
+        const _向量常量迭代器& _首个, const _向量常量迭代器& _最后) noexcept {
+        _STL_VERIFY(_首个._取容器() == _最后._取容器(), "向量实现 iterators in range are from different containers");
+        _STL_VERIFY(_首个._Ptr <= _最后._Ptr, "向量实现 iterator range transposed");
+    }
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+
+    using _阻止继承解包 = _向量常量迭代器;
+
+    _NODISCARD _CONSTEXPR20 const value_type* _解包() const noexcept {
+        return _去花式可空(_Ptr);
+    }
+
+    _CONSTEXPR20 void _定位到(const value_type* _It) noexcept {
+        _Ptr = _STD _Refancy_maybe_null<_类型指针>(const_cast<value_type*>(_It));
+    }
+
+    _类型指针 _Ptr; // pointer to element in 向量实现
+};
+
+#if _HAS_CXX20
+template <class _我的向量>
+struct pointer_traits<_向量常量迭代器<_我的向量>> {
+    using pointer         = _向量常量迭代器<_我的向量>;
+    using element_type    = const pointer::value_type;
+    using difference_type = pointer::difference_type;
+
+    _NODISCARD static constexpr element_type* to_address(const pointer _Iter) noexcept {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        // A value-initialized iterator is in the domain of to_address. An invalidated 结束 iterator for a 向量实现 with
+        // 容量() of 0 is not. This function cannot distinguish those two cases, so it incorrectly does not diagnose
+        // the latter. In practice, this isn't a significant problem since to_address returns nullptr for such an
+        // iterator.
+        const auto _我的容器 = static_cast<const _我的向量*>(_Iter._取容器());
+        if (_我的容器) {
+            _STL_VERIFY(_我的容器->_Myfirst <= _Iter._Ptr && _Iter._Ptr <= _我的容器->_Mylast,
+                "can't convert out-of-range 向量实现 iterator to pointer");
+        } else {
+            _STL_VERIFY(!_Iter._Ptr, "can't convert invalid 向量实现 iterator to pointer");
+        }
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+
+        return _STD to_address(_Iter._Ptr);
+    }
+};
+#endif // _HAS_CXX20
+
+template <class _我的向量>
+class _向量迭代器 : public _向量常量迭代器<_我的向量> {
+public:
+    using _我的基类 = _向量常量迭代器<_我的向量>;
+
+#if _HAS_CXX20
+    using iterator_concept = contiguous_iterator_tag;
+#endif // _HAS_CXX20
+    using iterator_category = random_access_iterator_tag;
+    using value_type        = typename _我的向量::value_type;
+    using difference_type   = typename _我的向量::difference_type;
+    using pointer           = typename _我的向量::pointer;
+    using reference         = value_type&;
+
+    using _我的基类::_我的基类;
+
+    _NODISCARD _CONSTEXPR20 reference operator*() const noexcept {
+        return const_cast<reference>(_我的基类::operator*());
+    }
+
+    _NODISCARD _CONSTEXPR20 pointer operator->() const noexcept {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        const auto _我的容器 = static_cast<const _我的向量*>(this->_取容器());
+        _STL_VERIFY(this->_Ptr, "can't dereference value-initialized 向量实现 iterator");
+        _STL_VERIFY(_我的容器, "can't dereference invalidated 向量实现 iterator");
+        _STL_VERIFY(_我的容器->_Myfirst <= this->_Ptr && this->_Ptr < _我的容器->_Mylast,
+            "can't dereference out of range 向量实现 iterator");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+
+        return this->_Ptr;
+    }
+
+    _CONSTEXPR20 _向量迭代器& operator++() noexcept {
+        _我的基类::operator++();
+        return *this;
+    }
+
+    _CONSTEXPR20 _向量迭代器 operator++(int) noexcept {
+        _向量迭代器 _临时 = *this;
+        _我的基类::operator++();
+        return _临时;
+    }
+
+    _CONSTEXPR20 _向量迭代器& operator--() noexcept {
+        _我的基类::operator--();
+        return *this;
+    }
+
+    _CONSTEXPR20 _向量迭代器 operator--(int) noexcept {
+        _向量迭代器 _临时 = *this;
+        _我的基类::operator--();
+        return _临时;
+    }
+
+    _CONSTEXPR20 _向量迭代器& operator+=(const difference_type _Off) noexcept {
+        _我的基类::operator+=(_Off);
+        return *this;
+    }
+
+    _NODISCARD _CONSTEXPR20 _向量迭代器 operator+(const difference_type _Off) const noexcept {
+        _向量迭代器 _临时 = *this;
+        _临时 += _Off;
+        return _临时;
+    }
+
+    _NODISCARD friend _CONSTEXPR20 _向量迭代器 operator+(
+        const difference_type _Off, _向量迭代器 _Next) noexcept {
+        _Next += _Off;
+        return _Next;
+    }
+
+    _CONSTEXPR20 _向量迭代器& operator-=(const difference_type _Off) noexcept {
+        _我的基类::operator-=(_Off);
+        return *this;
+    }
+
+    using _我的基类::operator-;
+
+    _NODISCARD _CONSTEXPR20 _向量迭代器 operator-(const difference_type _Off) const noexcept {
+        _向量迭代器 _临时 = *this;
+        _临时 -= _Off;
+        return _临时;
+    }
+
+    _NODISCARD _CONSTEXPR20 reference operator[](const difference_type _Off) const noexcept {
+        return const_cast<reference>(_我的基类::operator[](_Off));
+    }
+
+    using _阻止继承解包 = _向量迭代器;
+
+    _NODISCARD _CONSTEXPR20 value_type* _解包() const noexcept {
+        return _去花式可空(this->_Ptr);
+    }
+};
+
+#if _HAS_CXX20
+template <class _我的向量>
+struct pointer_traits<_向量迭代器<_我的向量>> {
+    using pointer         = _向量迭代器<_我的向量>;
+    using element_type    = pointer::value_type;
+    using difference_type = pointer::difference_type;
+
+    _NODISCARD static constexpr element_type* to_address(const pointer _Iter) noexcept {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        // A value-initialized iterator is in the domain of to_address. An invalidated 结束 iterator for a 向量实现 with
+        // 容量() of 0 is not. This function cannot distinguish those two cases, so it incorrectly does not diagnose
+        // the latter. In practice, this isn't a significant problem since to_address returns nullptr for such an
+        // iterator.
+        const auto _我的容器 = static_cast<const _我的向量*>(_Iter._取容器());
+        if (_我的容器) {
+            _STL_VERIFY(_我的容器->_Myfirst <= _Iter._Ptr && _Iter._Ptr <= _我的容器->_Mylast,
+                "can't convert out-of-range 向量实现 iterator to pointer");
+        } else {
+            _STL_VERIFY(!_Iter._Ptr, "can't convert invalid 向量实现 iterator to pointer");
+        }
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+
+        return _STD to_address(_Iter._Ptr);
+    }
+};
+#endif // _HAS_CXX20
+
+template <class _Value_type, class _尺寸类型, class _差异类型, class _Pointer, class _Const_pointer>
+struct _向量迭代类型集 {
+    using value_type      = _Value_type;
+    using size_type       = _尺寸类型;
+    using difference_type = _差异类型;
+    using pointer         = _Pointer;
+    using const_pointer   = _Const_pointer;
+};
+
+struct _值初始化标记 { // tag to request value-initialization
+    explicit _值初始化标记() = default;
+};
+
+template <class _值类型集>
+class _向量值 : public _容器基类 {
+public:
+    using value_type      = typename _值类型集::value_type;
+    using size_type       = typename _值类型集::size_type;
+    using difference_type = typename _值类型集::difference_type;
+    using pointer         = typename _值类型集::pointer;
+    using const_pointer   = typename _值类型集::const_pointer;
+    using reference       = value_type&;
+    using const_reference = const value_type&;
+
+    _CONSTEXPR20 _向量值() noexcept : _Myfirst(), _Mylast(), _Myend() {}
+
+    _CONSTEXPR20 _向量值(pointer _首个, pointer _最后, pointer _End) noexcept
+        : _Myfirst(_首个), _Mylast(_最后), _Myend(_End) {}
+
+#if _MSVC_STL_DESTRUCTOR_TOMBSTONES
+    _CONSTEXPR20 ~_向量值() noexcept {
+        if constexpr (is_pointer_v<pointer>) {
+            if (!_Is_constant_evaluated()) {
+                const auto _Tombstone{reinterpret_cast<pointer>(_MSVC_STL_UINTPTR_TOMBSTONE_VALUE)};
+                _Myfirst = _Tombstone;
+                _Mylast  = _Tombstone;
+                _Myend   = _Tombstone;
+            }
+        }
+    }
+#endif // _MSVC_STL_DESTRUCTOR_TOMBSTONES
+
+    _CONSTEXPR20 void _交换值(_向量值& _Right) noexcept {
+        this->_交换代理与迭代器(_Right);
+        swap(_Myfirst, _Right._Myfirst); // intentional ADL
+        swap(_Mylast, _Right._Mylast); // intentional ADL
+        swap(_Myend, _Right._Myend); // intentional ADL
+    }
+
+    _CONSTEXPR20 void _接管内容(_向量值& _Right) noexcept {
+        this->_交换代理与迭代器(_Right);
+        _Myfirst = _Right._Myfirst;
+        _Mylast  = _Right._Mylast;
+        _Myend   = _Right._Myend;
+
+        _Right._Myfirst = nullptr;
+        _Right._Mylast  = nullptr;
+        _Right._Myend   = nullptr;
+    }
+
+    pointer _Myfirst; // pointer to beginning of array
+    pointer _Mylast; // pointer to current 结束 of sequence
+    pointer _Myend; // pointer to 结束 of array
+};
+
+_EXPORT_STD template <class _类型, class _分配器 = allocator<_类型>>
+class 向量实现 { // varying 尺寸 array of values
+private:
+    template <class>
+    friend class _位向量值;
+    friend _清理守卫<向量实现>;
+
+    using _分配器类型        = _重绑定分配器类型<_分配器, _类型>;
+    using _分配器特征 = allocator_traits<_分配器类型>;
+
+public:
+    static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<_类型, typename _分配器::value_type>,
+        _MISMATCHED_ALLOCATOR_MESSAGE("向量实现<T, Allocator>", "T"));
+    static_assert(is_object_v<_类型>, "The C++ Standard forbids containers of non-object types "
+                                    "because of [container.requirements].");
+
+    using value_type      = _类型;
+    using allocator_type  = _分配器;
+    using pointer         = typename _分配器特征::pointer;
+    using const_pointer   = typename _分配器特征::const_pointer;
+    using reference       = _类型&;
+    using const_reference = const _类型&;
+    using size_type       = typename _分配器特征::size_type;
+    using difference_type = typename _分配器特征::difference_type;
+
+private:
+#ifdef _INSERT_VECTOR_ANNOTATION
+    _CONSTEXPR20 void _创建标注() const noexcept {
+        // Annotates the shadow memory of the valid range
+        auto& _My_data = _Mypair._Myval2;
+        _应用标注(_My_data._Myfirst, _My_data._Myend, _My_data._Myend, _My_data._Mylast);
+    }
+
+    _CONSTEXPR20 void _移除标注() const noexcept {
+        // Removes the shadow memory annotation of the range
+        auto& _My_data = _Mypair._Myval2;
+        _应用标注(_My_data._Myfirst, _My_data._Myend, _My_data._Mylast, _My_data._Myend);
+    }
+
+    _CONSTEXPR20 void _修改标注(const difference_type _Count) const noexcept {
+        // Extends/shrinks the annotated range by _Count
+        if (_Count == 0) { // nothing to do
+            // This also avoids calling _应用标注() with null pointers
+            // when the 向量实现 has zero 容量, see GH-2464.
+            return;
+        }
+
+        auto& _My_data = _Mypair._Myval2;
+        _应用标注(_My_data._Myfirst, _My_data._Myend, _My_data._Mylast, _My_data._Mylast + _Count);
+    }
+
+    static _CONSTEXPR20 void _应用标注(
+        pointer _First_, pointer _End_, pointer _Old_last_, pointer _New_last_) noexcept {
+        _STL_INTERNAL_CHECK(_First_ != nullptr);
+        _STL_INTERNAL_CHECK(_End_ != nullptr);
+        _STL_INTERNAL_CHECK(_Old_last_ != nullptr);
+        _STL_INTERNAL_CHECK(_New_last_ != nullptr);
+
+        if constexpr (!_Disable_ASan_container_annotations_for_allocator<allocator_type>) {
+#if _HAS_CXX20
+            if (_STD is_constant_evaluated()) {
+                return;
+            }
+#endif // _HAS_CXX20
+
+            if (!_Asan_vector_should_annotate) {
+                return;
+            }
+
+            const void* const _首个    = _去花式(_First_);
+            const void* const _End      = _去花式(_End_);
+            const void* const _Old_last = _去花式(_Old_last_);
+            const void* const _New_last = _去花式(_New_last_);
+            if constexpr ((_Container_allocation_minimum_asan_alignment<向量实现>) >= _Asan_granularity) {
+                // old state:
+                //   [_首个, _Old_last) valid
+                //   [_Old_last, _End) poison
+                // new state:
+                //   [_首个, _New_last) valid
+                //   [_New_last, asan_aligned_after(_End)) poison
+                _CSTD __sanitizer_annotate_contiguous_container(
+                    _首个, _Get_asan_aligned_after(_End), _Old_last, _New_last);
+            } else {
+                const auto _Aligned = _Get_asan_aligned_first_end(_首个, _End);
+                if (_Aligned._首个 == _Aligned._End) {
+                    // The buffer does not 结束 取值 least one shadow memory section; nothing to do.
+                    return;
+                }
+
+                const void* const _Old_fixed = _Aligned._夹取至末尾(_Old_last);
+                const void* const _New_fixed = _Aligned._夹取至末尾(_New_last);
+
+                // old state:
+                //   [_Aligned._首个, _Old_fixed) valid
+                //   [_Old_fixed, _Aligned._End) poison
+                //   [_Aligned._End, _End) valid
+                // new state:
+                //   [_Aligned._首个, _New_fixed) valid
+                //   [_New_fixed, _Aligned._End) poison
+                //   [_Aligned._End, _End) valid
+                _CSTD __sanitizer_annotate_contiguous_container(_Aligned._首个, _Aligned._End, _Old_fixed, _New_fixed);
+            }
+        }
+    }
+
+    class _NODISCARD _地址消毒延长守卫 {
+    public:
+        _地址消毒延长守卫(const _地址消毒延长守卫&)            = delete;
+        _地址消毒延长守卫& operator=(const _地址消毒延长守卫&) = delete;
+
+        constexpr explicit _地址消毒延长守卫(向量实现* _Myvec_, size_type _Target_size_) noexcept
+            : _我的向量(_Myvec_), _Target_size(_Target_size_) {
+            _STL_INTERNAL_CHECK(_我的向量 != nullptr);
+            auto& _My_data = _我的向量->_Mypair._Myval2;
+            _应用标注(_My_data._Myfirst, _My_data._Myend, _My_data._Mylast, _My_data._Myfirst + _Target_size);
+        }
+
+        _CONSTEXPR20 ~_地址消毒延长守卫() {
+            if (!_我的向量) { // Operation succeeded, no modification to the shadow memory required.
+                return;
+            }
+
+            // Shrinks the shadow memory to the current 尺寸 of the 向量实现.
+            auto& _My_data = _我的向量->_Mypair._Myval2;
+            _应用标注(_My_data._Myfirst, _My_data._Myend, _My_data._Myfirst + _Target_size, _My_data._Mylast);
+        }
+
+        _CONSTEXPR20 void _释放() noexcept {
+            _我的向量 = nullptr;
+        }
+
+    private:
+        向量实现* _我的向量;
+        size_type _Target_size;
+    };
+
+    class _NODISCARD _地址消毒创建守卫 {
+    public:
+        _地址消毒创建守卫(const _地址消毒创建守卫&)            = delete;
+        _地址消毒创建守卫& operator=(const _地址消毒创建守卫&) = delete;
+
+        constexpr explicit _地址消毒创建守卫(const 向量实现& _Myvec_) noexcept : _我的向量(_Myvec_) {}
+
+        _CONSTEXPR20 ~_地址消毒创建守卫() {
+            _我的向量._创建标注();
+        }
+
+    private:
+        const 向量实现& _我的向量;
+    };
+
+#define _ASAN_向量修改(n)       _修改标注((n))
+#define _ASAN_向量移除          _移除标注()
+#define _ASAN_向量创建          _创建标注()
+#define _地址消毒向量创建守卫    _地址消毒创建守卫 _Annotator(*this)
+#define _地址消毒向量延长守卫(n) _地址消毒延长守卫 _Annotator(this, (n))
+#define _ASAN_向量释放守卫   _Annotator._释放()
+#else // ^^^ _INSERT_VECTOR_ANNOTATION / !_INSERT_VECTOR_ANNOTATION vvv
+#define _ASAN_向量修改(n)
+#define _ASAN_向量移除
+#define _ASAN_向量创建
+#define _地址消毒向量创建守卫
+#define _地址消毒向量延长守卫(n)
+#define _ASAN_向量释放守卫
+#endif // ^^^ !_INSERT_VECTOR_ANNOTATION ^^^
+
+    using _迭代器检查值 = _向量值<conditional_t<_Is_simple_alloc_v<_分配器类型>, _简单类型集<_类型>,
+        _向量迭代类型集<_类型, size_type, difference_type, pointer, const_pointer>>>;
+
+    struct _NODISCARD _重分配守卫 {
+        _分配器& _Al;
+        pointer _New_begin;
+        size_type _New_capacity;
+        pointer _Constructed_first;
+        pointer _Constructed_last;
+
+        _重分配守卫& operator=(const _重分配守卫&) = delete;
+        _重分配守卫& operator=(_重分配守卫&&)      = delete;
+
+        _CONSTEXPR20 ~_重分配守卫() noexcept {
+            if (_New_begin != nullptr) {
+                _析构范围(_Constructed_first, _Constructed_last, _Al);
+                _Al.deallocate(_New_begin, _New_capacity);
+            }
+        }
+    };
+
+    struct _NODISCARD _简单重分配守卫 {
+        _分配器& _Al;
+        pointer _New_begin;
+        size_type _New_capacity;
+
+        _简单重分配守卫& operator=(const _简单重分配守卫&) = delete;
+        _简单重分配守卫& operator=(_简单重分配守卫&&)      = delete;
+
+        _CONSTEXPR20 ~_简单重分配守卫() noexcept {
+            if (_New_begin != nullptr) {
+                _Al.deallocate(_New_begin, _New_capacity);
+            }
+        }
+    };
+
+    struct _NODISCARD _蒸发守卫 { // vaporize the detached piece
+        向量实现* _Target;
+        pointer _Vaporized_first;
+        pointer _Vaporized_last;
+        pointer _Destroyed_first;
+
+        _蒸发守卫& operator=(const _蒸发守卫&) = delete;
+        _蒸发守卫& operator=(_蒸发守卫&&)      = delete;
+
+        ~_蒸发守卫() noexcept {
+            if (_Target != nullptr) {
+                auto& _Al     = _Target->_取分配器();
+                auto& _Mylast = _Target->_Mypair._Myval2._Mylast;
+
+                _Target->_孤儿化范围(_Vaporized_first, _Vaporized_last);
+                _析构范围(_Destroyed_first, _Mylast, _Al);
+                _Mylast = _Vaporized_first;
+            }
+        }
+    };
+
+public:
+    using iterator               = _向量迭代器<_迭代器检查值>;
+    using const_iterator         = _向量常量迭代器<_迭代器检查值>;
+    using reverse_iterator       = _STD reverse_iterator<iterator>;
+    using const_reverse_iterator = _STD reverse_iterator<const_iterator>;
+
+    _CONSTEXPR20 向量实现() noexcept(is_nothrow_default_constructible_v<_分配器类型>) : _Mypair(_先零后变参实参{}) {
+        _Mypair._Myval2._分配代理(_取代理分配器(_分配器类型, _取分配器()));
+    }
+
+    _CONSTEXPR20 explicit 向量实现(const _分配器& _Al) noexcept : _Mypair(_先一后变参实参{}, _Al) {
+        _Mypair._Myval2._分配代理(_取代理分配器(_分配器类型, _取分配器()));
+    }
+
+    _CONSTEXPR20 explicit 向量实现(_CRT_GUARDOVERFLOW const size_type _Count, const _分配器& _Al = _分配器())
+        : _Mypair(_先一后变参实参{}, _Al) {
+        _构造n个(_Count);
+    }
+
+#if _HAS_CXX17
+    template <class _Alloc2 = _分配器, enable_if_t<_Is_allocator<_Alloc2>::value, int> = 0>
+#endif // _HAS_CXX17
+    _CONSTEXPR20 向量实现(_CRT_GUARDOVERFLOW const size_type _Count, const _类型& _Val, const _分配器& _Al = _分配器())
+        : _Mypair(_先一后变参实参{}, _Al) {
+        _构造n个(_Count, _Val);
+    }
+
+    template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
+    _CONSTEXPR20 向量实现(_Iter _首个, _Iter _最后, const _分配器& _Al = _分配器())
+        : _Mypair(_先一后变参实参{}, _Al) {
+        _ADL校验范围(_首个, _最后);
+        auto _UFirst = _取解包(_首个);
+        auto _ULast  = _取解包(_最后);
+        if constexpr (_Is_cpp17_fwd_iter_v<_Iter>) {
+            const auto _Length = static_cast<size_t>(_STD distance(_UFirst, _ULast));
+            const auto _Count  = _STD _Convert_size<size_type>(_Length);
+            _构造n个(_Count, _STD move(_UFirst), _STD move(_ULast));
+#if _HAS_CXX20
+        } else if constexpr (forward_iterator<_Iter>) {
+            const auto _Length = _转为无符号同型(_RANGES distance(_UFirst, _ULast));
+            const auto _Count  = _STD _Convert_size<size_type>(_Length);
+            _构造n个(_Count, _STD move(_UFirst), _STD move(_ULast));
+#endif // _HAS_CXX20
+        } else {
+            auto&& _Alproxy = _取代理分配器(_分配器类型, _取分配器());
+            _容器代理指针<_分配器类型> _代理(_Alproxy, _Mypair._Myval2);
+            _清理守卫<向量实现> _Guard{this};
+
+            _追加非计数范围(_STD move(_UFirst), _STD move(_ULast));
+
+            _Guard._Target = nullptr;
+            _代理._释放();
+        }
+    }
+
+    _CONSTEXPR20 向量实现(initializer_list<_类型> _Ilist, const _分配器& _Al = _分配器())
+        : _Mypair(_先一后变参实参{}, _Al) {
+        _构造n个(_Convert_size<size_type>(_Ilist.size()), _Ilist.begin(), _Ilist.end());
+    }
+
+#if _HAS_CXX23
+    template <_Container_compatible_range<_类型> _Rng>
+    constexpr 向量实现(from_range_t, _Rng&& _Range, const _分配器& _Al = _分配器())
+        : _Mypair(_先一后变参实参{}, _Al) {
+        if constexpr (_RANGES sized_range<_Rng> || _RANGES forward_range<_Rng>) {
+            const auto _Length = _转为无符号同型(_RANGES distance(_Range));
+            const auto _Count  = _Convert_size<size_type>(_Length);
+            _构造n个(_Count, _解包首(_Range), _解包尾(_Range));
+        } else {
+            auto&& _Alproxy = _取代理分配器(_分配器类型, _取分配器());
+            _容器代理指针<_分配器类型> _代理(_Alproxy, _Mypair._Myval2);
+            _清理守卫<向量实现> _Guard{this};
+
+            _追加非计数范围(_解包首(_Range), _解包尾(_Range));
+
+            _Guard._Target = nullptr;
+            _代理._释放();
+        }
+    }
+#endif // _HAS_CXX23
+
+    _CONSTEXPR20 向量实现(const 向量实现& _Right)
+        : _Mypair(_先一后变参实参{}, _分配器特征::select_on_container_copy_construction(_Right._取分配器())) {
+        const auto& _Right_data = _Right._Mypair._Myval2;
+        const auto _Count       = static_cast<size_type>(_Right_data._Mylast - _Right_data._Myfirst);
+        _构造n个(_Count, _Right_data._Myfirst, _Right_data._Mylast);
+    }
+
+    _CONSTEXPR20 向量实现(const 向量实现& _Right, const _Identity_t<_分配器>& _Al)
+        : _Mypair(_先一后变参实参{}, _Al) {
+        const auto& _Right_data = _Right._Mypair._Myval2;
+        const auto _Count       = static_cast<size_type>(_Right_data._Mylast - _Right_data._Myfirst);
+        _构造n个(_Count, _Right_data._Myfirst, _Right_data._Mylast);
+    }
+
+    _CONSTEXPR20 向量实现(向量实现&& _Right) noexcept
+        : _Mypair(_先一后变参实参{}, _STD move(_Right._取分配器()),
+              _STD exchange(_Right._Mypair._Myval2._Myfirst, nullptr),
+              _STD exchange(_Right._Mypair._Myval2._Mylast, nullptr),
+              _STD exchange(_Right._Mypair._Myval2._Myend, nullptr)) {
+        _Mypair._Myval2._分配代理(_取代理分配器(_分配器类型, _取分配器()));
+        _Mypair._Myval2._交换代理与迭代器(_Right._Mypair._Myval2);
+    }
+
+    _CONSTEXPR20 向量实现(向量实现&& _Right, const _Identity_t<_分配器>& _Al_)
+        noexcept(_分配器特征::is_always_equal::value) // strengthened
+        : _Mypair(_先一后变参实参{}, _Al_) {
+        _分配器类型& _Al        = _取分配器();
+        auto&& _Alproxy   = _取代理分配器(_分配器类型, _Al);
+        auto& _My_data    = _Mypair._Myval2;
+        auto& _Right_data = _Right._Mypair._Myval2;
+        _容器代理指针<_分配器类型> _代理(_Alproxy, _My_data);
+
+        if constexpr (!_分配器特征::is_always_equal::value) {
+            if (_Al != _Right._取分配器()) {
+                const auto _Count = static_cast<size_type>(_Right_data._Mylast - _Right_data._Myfirst);
+                if (_Count != 0) {
+                    _分配原生(_Count);
+                    _清理守卫<向量实现> _Guard{this};
+                    _My_data._Mylast =
+                        _未初始化移动(_Right_data._Myfirst, _Right_data._Mylast, _My_data._Myfirst, _Al);
+
+                    _ASAN_向量创建;
+                    _Guard._Target = nullptr;
+                }
+                _代理._释放();
+                return;
+            }
+        }
+
+        _My_data._接管内容(_Right_data);
+        _代理._释放();
+    }
+
+    _CONSTEXPR20 向量实现& operator=(向量实现&& _Right)
+        noexcept(_Choose_pocma_v<_分配器类型> != _传播复制移动赋值取值::_No_propagate_allocators) {
+        if (this == _STD addressof(_Right)) {
+            return *this;
+        }
+
+        _分配器类型& _Al                = _取分配器();
+        _分配器类型& _Right_al          = _Right._取分配器();
+        constexpr auto _Pocma_val = _Choose_pocma_v<_分配器类型>;
+        if constexpr (_Pocma_val == _传播复制移动赋值取值::_No_propagate_allocators) {
+            if (_Al != _Right_al) {
+                _移动赋值不等分配器(_Right);
+                return *this;
+            }
+        }
+
+        _清理();
+#if _ITERATOR_DEBUG_LEVEL != 0
+        if constexpr (_Pocma_val == _传播复制移动赋值取值::_Propagate_allocators) {
+            if (_Al != _Right_al) {
+                // intentionally slams into noexcept on OOM, TRANSITION, VSO-466800
+                _Mypair._Myval2._重载代理(_取代理分配器(_分配器类型, _Al), _取代理分配器(_分配器类型, _Right_al));
+            }
+        }
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+
+        _传播移动赋值(_Al, _Right_al);
+        _Mypair._Myval2._接管内容(_Right._Mypair._Myval2);
+        return *this;
+    }
+
+    _CONSTEXPR20 ~向量实现() noexcept {
+        _清理();
+#if _ITERATOR_DEBUG_LEVEL != 0
+        auto&& _Alproxy = _取代理分配器(_分配器类型, _取分配器());
+        _删除原生内部(_Alproxy, _STD exchange(_Mypair._Myval2._Myproxy, nullptr));
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+    }
+
+private:
+    template <class... _值参数类型>
+    _CONSTEXPR20 _类型& _尾部就地构造一个(_值参数类型&&... _Val) {
+        // 插入 by perfectly forwarding into element 取值 结束, provide strong guarantee
+        auto& _My_data   = _Mypair._Myval2;
+        pointer& _Mylast = _My_data._Mylast;
+
+        if (_Mylast != _My_data._Myend) {
+            return _用未用容量尾部就地构造(_STD forward<_值参数类型>(_Val)...);
+        }
+
+        return *_就地构造并重新分配(_Mylast, _STD forward<_值参数类型>(_Val)...);
+    }
+
+    template <class... _值参数类型>
+    _CONSTEXPR20 _类型& _用未用容量尾部就地构造(_值参数类型&&... _Val) {
+        // 插入 by perfectly forwarding into element 取值 结束, provide strong guarantee
+        auto& _My_data   = _Mypair._Myval2;
+        pointer& _Mylast = _My_data._Mylast;
+        _STL_INTERNAL_CHECK(_Mylast != _My_data._Myend); // check that we have unused 容量
+        if constexpr (conjunction_v<is_nothrow_constructible<_类型, _值参数类型...>,
+                          _用默认构造<_分配器, _类型*, _值参数类型...>>) {
+            _ASAN_向量修改(1);
+            _就地构造(*_Mylast, _STD forward<_值参数类型>(_Val)...);
+        } else {
+            _地址消毒向量延长守卫(static_cast<size_type>(_Mylast - _My_data._Myfirst) + 1);
+            _分配器特征::construct(_取分配器(), _去花式(_Mylast), _STD forward<_值参数类型>(_Val)...);
+            _ASAN_向量释放守卫;
+        }
+
+        _孤儿化范围(_Mylast, _Mylast);
+        _类型& _结果 = *_Mylast;
+        ++_Mylast;
+
+        return _结果;
+    }
+
+    template <class... _值参数类型>
+    _CONSTEXPR20 pointer _就地构造并重新分配(const pointer _Whereptr, _值参数类型&&... _Val) {
+        // reallocate and 插入 by perfectly forwarding _Val 取值 _Whereptr
+        _分配器类型& _Al        = _取分配器();
+        auto& _My_data    = _Mypair._Myval2;
+        pointer& _Myfirst = _My_data._Myfirst;
+        pointer& _Mylast  = _My_data._Mylast;
+
+        _STL_INTERNAL_CHECK(_Mylast == _My_data._Myend); // check that we have no unused 容量
+
+        const auto _Whereoff = static_cast<size_type>(_Whereptr - _Myfirst);
+        const auto _Oldsize  = static_cast<size_type>(_Mylast - _Myfirst);
+
+        if (_Oldsize == max_size()) {
+            _抛长度错();
+        }
+
+        const size_type _Newsize = _Oldsize + 1;
+        size_type _Newcapacity   = _计算增长(_Newsize);
+
+        const pointer _Newvec           = _分配至少助手(_Al, _Newcapacity);
+        const pointer _Constructed_last = _Newvec + _Whereoff + 1;
+
+        _重分配守卫 _Guard{_Al, _Newvec, _Newcapacity, _Constructed_last, _Constructed_last};
+        auto& _Constructed_first = _Guard._Constructed_first;
+
+        _分配器特征::construct(_Al, _去花式(_Newvec + _Whereoff), _STD forward<_值参数类型>(_Val)...);
+        _Constructed_first = _Newvec + _Whereoff;
+
+        if (_Whereptr == _Mylast) { // 取值 后, provide strong guarantee
+            if constexpr (is_nothrow_move_constructible_v<_类型> || !is_copy_constructible_v<_类型>) {
+                _未初始化移动(_Myfirst, _Mylast, _Newvec, _Al);
+            } else {
+                _未初始化复制(_Myfirst, _Mylast, _Newvec, _Al);
+            }
+        } else { // provide basic guarantee
+            _未初始化移动(_Myfirst, _Whereptr, _Newvec, _Al);
+            _Constructed_first = _Newvec;
+            _未初始化移动(_Whereptr, _Mylast, _Newvec + _Whereoff + 1, _Al);
+        }
+
+        _Guard._New_begin = nullptr;
+        _更换数组(_Newvec, _Newsize, _Newcapacity);
+        return _Newvec + _Whereoff;
+    }
+
+public:
+    template <class... _值参数类型>
+    _CONSTEXPR20 _CONTAINER_EMPLACE_RETURN 尾部就地构造(_值参数类型&&... _Val) {
+        // 插入 by perfectly forwarding into element 取值 结束, provide strong guarantee
+        _类型& _结果 = _尾部就地构造一个(_STD forward<_值参数类型>(_Val)...);
+#if _HAS_CXX17
+        return _结果;
+#else // ^^^ _HAS_CXX17 / !_HAS_CXX17 vvv
+        (void) _结果;
+#endif // ^^^ !_HAS_CXX17 ^^^
+    }
+
+    _CONSTEXPR20 void 尾插(const _类型& _Val) { // 插入 element 取值 结束, provide strong guarantee
+        _尾部就地构造一个(_Val);
+    }
+
+    _CONSTEXPR20 void 尾插(_类型&& _Val) {
+        // 插入 by moving into element 取值 结束, provide strong guarantee
+        _尾部就地构造一个(_STD move(_Val));
+    }
+
+private:
+    template <class _Iter, class _Sent>
+    _CONSTEXPR20 void _追加非计数范围(_Iter _首个, const _Sent _最后) {
+        // 插入 range [_首个, _最后) 取值 结束
+
+        // For one-取值-后, provide strong guarantee.
+        // Otherwise, provide basic guarantee (despite N4950 [向量实现.modifiers]/2).
+        // Performance note: except for one-取值-后, _尾部就地构造一个()'s strong guarantee is unnecessary here.
+
+        for (; _首个 != _最后; ++_首个) {
+            _尾部就地构造一个(*_首个);
+        }
+    }
+
+#if _HAS_CXX23
+    template <class _Iter>
+    _CONSTEXPR20 void _追加计数范围(_Iter _首个, const size_type _Count) {
+        // 插入 counted range _首个 + [0, _Count) 取值 结束
+        auto& _Al        = _取分配器();
+        auto& _My_data   = _Mypair._Myval2;
+        pointer& _Mylast = _My_data._Mylast;
+
+        const pointer _Oldfirst     = _My_data._Myfirst;
+        const pointer _Oldlast      = _Mylast;
+        const auto _Unused_capacity = static_cast<size_type>(_My_data._Myend - _Oldlast);
+
+        if (_Count == 0) { // nothing to do, avoid invalidating iterators
+        } else if (_Count > _Unused_capacity) { // reallocate
+            const auto _Oldsize = static_cast<size_type>(_Oldlast - _Oldfirst);
+
+            if (_Count > max_size() - _Oldsize) {
+                _抛长度错();
+            }
+
+            const size_type _Newsize = _Oldsize + _Count;
+            size_type _Newcapacity   = _计算增长(_Newsize);
+
+            const pointer _Newvec           = _分配至少助手(_Al, _Newcapacity);
+            const pointer _Constructed_last = _Newvec + _Oldsize + _Count;
+
+            _重分配守卫 _Guard{_Al, _Newvec, _Newcapacity, _Constructed_last, _Constructed_last};
+            auto& _Constructed_first = _Guard._Constructed_first;
+
+            _Uninitialized_copy_n(_STD move(_首个), _Count, _Newvec + _Oldsize, _Al);
+            _Constructed_first = _Newvec + _Oldsize;
+
+            if (_Count == 1) { // one 取值 后, provide strong guarantee
+                if constexpr (is_nothrow_move_constructible_v<_类型> || !is_copy_constructible_v<_类型>) {
+                    _未初始化移动(_Oldfirst, _Oldlast, _Newvec, _Al);
+                } else {
+                    _未初始化复制(_Oldfirst, _Oldlast, _Newvec, _Al);
+                }
+            } else { // provide basic guarantee
+                _未初始化移动(_Oldfirst, _Oldlast, _Newvec, _Al);
+            }
+
+            _Guard._New_begin = nullptr;
+            _更换数组(_Newvec, _Newsize, _Newcapacity);
+        } else { // Provide the strong guarantee.
+                 // Performance note: except for one-取值-后, the strong guarantee is unnecessary here.
+
+            _地址消毒向量延长守卫(static_cast<size_type>(_Oldlast - _Oldfirst) + _Count);
+            _Mylast = _Uninitialized_copy_n(_STD move(_首个), _Count, _Oldlast, _Al);
+            _ASAN_向量释放守卫;
+
+            _孤儿化范围(_Oldlast, _Oldlast);
+        }
+    }
+#endif // _HAS_CXX23
+
+public:
+#if _HAS_CXX23
+    template <_Container_compatible_range<_类型> _Rng>
+    constexpr void 追加范围(_Rng&& _Range) {
+        if constexpr (_RANGES forward_range<_Rng> || _RANGES sized_range<_Rng>) {
+            const auto _Length = _转为无符号同型(_RANGES distance(_Range));
+            const auto _Count  = _Convert_size<size_type>(_Length);
+            _追加计数范围(_解包首(_Range), _Count);
+        } else {
+            _追加非计数范围(_解包首(_Range), _解包尾(_Range));
+        }
+    }
+#endif // _HAS_CXX23
+
+    template <class... _值参数类型>
+    _CONSTEXPR20 iterator 就地构造(const_iterator _Where, _值参数类型&&... _Val) {
+        // 插入 by perfectly forwarding _Val 取值 _Where
+        const pointer _Whereptr = _Where._Ptr;
+        auto& _My_data          = _Mypair._Myval2;
+        const pointer _Oldlast  = _My_data._Mylast;
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(
+            _Where._取容器() == _STD addressof(_My_data) && _Whereptr >= _My_data._Myfirst && _Oldlast >= _Whereptr,
+            "向量实现 就地构造 iterator outside range");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+        if (_Oldlast != _My_data._Myend) {
+            if (_Whereptr == _Oldlast) { // 取值 后, provide strong guarantee
+                _用未用容量尾部就地构造(_STD forward<_值参数类型>(_Val)...);
+            } else {
+                auto& _Al = _取分配器();
+                _分配器临时对象2<_分配器类型> _Obj(_Al, _STD forward<_值参数类型>(_Val)...); // handle aliasing
+                // after constructing _Obj, provide basic guarantee
+                _孤儿化范围(_Whereptr, _Oldlast);
+                _地址消毒向量延长守卫(static_cast<size_type>(_Oldlast - _My_data._Myfirst) + 1);
+                _分配器特征::construct(_Al, _去花式(_Oldlast), _STD move(_Oldlast[-1]));
+                _ASAN_向量释放守卫;
+                ++_My_data._Mylast;
+                _向后移动非检查(_Whereptr, _Oldlast - 1, _Oldlast);
+                *_Whereptr = _STD move(_Obj._取值());
+            }
+
+            return _造迭代器(_Whereptr);
+        }
+
+        return _造迭代器(_就地构造并重新分配(_Whereptr, _STD forward<_值参数类型>(_Val)...));
+    }
+
+    _CONSTEXPR20 iterator 插入(const_iterator _Where, const _类型& _Val) { // 插入 _Val 取值 _Where
+        return 就地构造(_Where, _Val);
+    }
+
+    _CONSTEXPR20 iterator 插入(const_iterator _Where, _类型&& _Val) { // 插入 by moving _Val 取值 _Where
+        return 就地构造(_Where, _STD move(_Val));
+    }
+
+    _CONSTEXPR20 iterator 插入(const_iterator _Where, _CRT_GUARDOVERFLOW const size_type _Count, const _类型& _Val) {
+        // 插入 _Count * _Val 取值 _Where
+        const pointer _Whereptr = _Where._Ptr;
+
+        auto& _Al        = _取分配器();
+        auto& _My_data   = _Mypair._Myval2;
+        pointer& _Mylast = _My_data._Mylast;
+
+        const pointer _Oldfirst = _My_data._Myfirst;
+        const pointer _Oldlast  = _Mylast;
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(_Where._取容器() == _STD addressof(_My_data) && _Whereptr >= _Oldfirst && _Oldlast >= _Whereptr,
+            "向量实现 插入 iterator outside range");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+        const auto _Whereoff        = static_cast<size_type>(_Whereptr - _Oldfirst);
+        const auto _Unused_capacity = static_cast<size_type>(_My_data._Myend - _Oldlast);
+        const bool _One_at_back     = _Count == 1 && _Whereptr == _Oldlast;
+        if (_Count == 0) { // nothing to do, avoid invalidating iterators
+        } else if (_Count > _Unused_capacity) { // reallocate
+            const auto _Oldsize = static_cast<size_type>(_Oldlast - _Oldfirst);
+
+            if (_Count > max_size() - _Oldsize) {
+                _抛长度错();
+            }
+
+            const size_type _Newsize = _Oldsize + _Count;
+            size_type _Newcapacity   = _计算增长(_Newsize);
+
+            const pointer _Newvec           = _分配至少助手(_Al, _Newcapacity);
+            const pointer _Constructed_last = _Newvec + _Whereoff + _Count;
+
+            _重分配守卫 _Guard{_Al, _Newvec, _Newcapacity, _Constructed_last, _Constructed_last};
+            auto& _Constructed_first = _Guard._Constructed_first;
+
+            _未初始化填充若干(_Newvec + _Whereoff, _Count, _Val, _Al);
+            _Constructed_first = _Newvec + _Whereoff;
+
+            if (_One_at_back) { // provide strong guarantee
+                if constexpr (is_nothrow_move_constructible_v<_类型> || !is_copy_constructible_v<_类型>) {
+                    _未初始化移动(_Oldfirst, _Oldlast, _Newvec, _Al);
+                } else {
+                    _未初始化复制(_Oldfirst, _Oldlast, _Newvec, _Al);
+                }
+            } else { // provide basic guarantee
+                _未初始化移动(_Oldfirst, _Whereptr, _Newvec, _Al);
+                _Constructed_first = _Newvec;
+                _未初始化移动(_Whereptr, _Oldlast, _Newvec + _Whereoff + _Count, _Al);
+            }
+
+            _Guard._New_begin = nullptr;
+            _更换数组(_Newvec, _Newsize, _Newcapacity);
+        } else if (_One_at_back) { // provide strong guarantee
+            _用未用容量尾部就地构造(_Val);
+        } else { // provide basic guarantee
+            const _分配器临时对象2<_分配器类型> _Tmp_storage(_Al, _Val); // handle aliasing
+            const auto& _临时              = _Tmp_storage._取值();
+            const auto _Affected_elements = static_cast<size_type>(_Oldlast - _Whereptr);
+            _孤儿化范围(_Whereptr, _Oldlast);
+
+            _地址消毒向量延长守卫(static_cast<size_type>(_Oldlast - _My_data._Myfirst) + _Count);
+            if (_Count > _Affected_elements) { // new stuff spills off 结束
+                _Mylast = _未初始化填充若干(_Oldlast, _Count - _Affected_elements, _临时, _Al);
+                _Mylast = _未初始化移动(_Whereptr, _Oldlast, _Mylast, _Al);
+                _STD fill(_Whereptr, _Oldlast, _临时);
+            } else { // new stuff can all be assigned
+                _Mylast = _未初始化移动(_Oldlast - _Count, _Oldlast, _Oldlast, _Al);
+                _向后移动非检查(_Whereptr, _Oldlast - _Count, _Oldlast);
+                _STD fill_n(_Whereptr, _Count, _临时);
+            }
+            _ASAN_向量释放守卫;
+        }
+
+        return _造迭代器偏移(_Whereoff);
+    }
+
+private:
+    template <class _Iter, class _Sent>
+    _CONSTEXPR20 void _插入非计数范围(const_iterator _Where, _Iter _首个, _Sent _最后) {
+        // 插入 range [_首个, _最后) 取值 _Where
+        if (_首个 == _最后) {
+            return; // nothing to do, avoid invalidating iterators
+        }
+
+        auto& _My_data       = _Mypair._Myval2;
+        pointer& _Myfirst    = _My_data._Myfirst;
+        pointer& _Mylast     = _My_data._Mylast;
+        const auto _Whereoff = static_cast<size_type>(_Where._Ptr - _Myfirst);
+        const auto _Oldsize  = static_cast<size_type>(_Mylast - _Myfirst);
+
+        _追加非计数范围(_STD move(_首个), _STD move(_最后));
+
+        _孤儿化范围(_Myfirst + _Whereoff, _Myfirst + _Oldsize);
+
+        _STD rotate(_Myfirst + _Whereoff, _Myfirst + _Oldsize, _Mylast);
+    }
+
+    template <class _Iter>
+    _CONSTEXPR20 void _插入计数范围(const_iterator _Where, _Iter _首个, const size_type _Count) {
+        // 插入 counted range _首个 + [0, _Count) 取值 _Where
+        const pointer _Whereptr = _Where._Ptr;
+
+        auto& _Al        = _取分配器();
+        auto& _My_data   = _Mypair._Myval2;
+        pointer& _Mylast = _My_data._Mylast;
+
+        const pointer _Oldfirst     = _My_data._Myfirst;
+        const pointer _Oldlast      = _Mylast;
+        const auto _Unused_capacity = static_cast<size_type>(_My_data._Myend - _Oldlast);
+
+        if (_Count == 0) { // nothing to do, avoid invalidating iterators
+        } else if (_Count > _Unused_capacity) { // reallocate
+            const auto _Oldsize = static_cast<size_type>(_Oldlast - _Oldfirst);
+
+            if (_Count > max_size() - _Oldsize) {
+                _抛长度错();
+            }
+
+            const size_type _Newsize = _Oldsize + _Count;
+            size_type _Newcapacity   = _计算增长(_Newsize);
+
+            const pointer _Newvec           = _分配至少助手(_Al, _Newcapacity);
+            const auto _Whereoff            = static_cast<size_type>(_Whereptr - _Oldfirst);
+            const pointer _Constructed_last = _Newvec + _Whereoff + _Count;
+
+            _重分配守卫 _Guard{_Al, _Newvec, _Newcapacity, _Constructed_last, _Constructed_last};
+            auto& _Constructed_first = _Guard._Constructed_first;
+
+            _Uninitialized_copy_n(_STD move(_首个), _Count, _Newvec + _Whereoff, _Al);
+            _Constructed_first = _Newvec + _Whereoff;
+
+            if (_Count == 1 && _Whereptr == _Oldlast) { // one 取值 后, provide strong guarantee
+                if constexpr (is_nothrow_move_constructible_v<_类型> || !is_copy_constructible_v<_类型>) {
+                    _未初始化移动(_Oldfirst, _Oldlast, _Newvec, _Al);
+                } else {
+                    _未初始化复制(_Oldfirst, _Oldlast, _Newvec, _Al);
+                }
+            } else { // provide basic guarantee
+                _未初始化移动(_Oldfirst, _Whereptr, _Newvec, _Al);
+                _Constructed_first = _Newvec;
+                _未初始化移动(_Whereptr, _Oldlast, _Newvec + _Whereoff + _Count, _Al);
+            }
+
+            _Guard._New_begin = nullptr;
+            _更换数组(_Newvec, _Newsize, _Newcapacity);
+        } else { // Attempt to provide the strong guarantee for EmplaceConstructible failure.
+                 // If we encounter copy/move construction/assignment failure, provide the basic guarantee.
+                 // (For one-取值-后, this provides the strong guarantee.)
+
+            const auto _Affected_elements = static_cast<size_type>(_Oldlast - _Whereptr);
+
+            _地址消毒向量延长守卫(static_cast<size_type>(_Oldlast - _Oldfirst) + _Count);
+            if (_Count < _Affected_elements) { // some affected elements must be assigned
+                _Mylast = _未初始化移动(_Oldlast - _Count, _Oldlast, _Oldlast, _Al);
+                _向后移动非检查(_Whereptr, _Oldlast - _Count, _Oldlast);
+                _析构范围(_Whereptr, _Whereptr + _Count, _Al);
+
+                _TRY_BEGIN
+                _Uninitialized_copy_n(_STD move(_首个), _Count, _Whereptr, _Al);
+                _CATCH_ALL
+                // glue the broken pieces 后 together
+
+                _蒸发守卫 _Guard{this, _Whereptr, _Oldlast, _Whereptr + _Count};
+                _未初始化移动(_Whereptr + _Count, _Whereptr + 2 * _Count, _Whereptr, _Al);
+                _Guard._Target = nullptr;
+
+                _移动非检查(_Whereptr + 2 * _Count, _Mylast, _Whereptr + _Count);
+                _析构范围(_Oldlast, _Mylast, _Al);
+                _Mylast = _Oldlast;
+                _RERAISE;
+                _CATCH_END
+            } else { // affected elements don't overlap before/after
+                const pointer _Relocated = _Whereptr + _Count;
+                _Mylast                  = _未初始化移动(_Whereptr, _Oldlast, _Relocated, _Al);
+                _析构范围(_Whereptr, _Oldlast, _Al);
+
+                _TRY_BEGIN
+                _Uninitialized_copy_n(_STD move(_首个), _Count, _Whereptr, _Al);
+                _CATCH_ALL
+                // glue the broken pieces 后 together
+
+                _蒸发守卫 _Guard{this, _Whereptr, _Oldlast, _Relocated};
+                _未初始化移动(_Relocated, _Mylast, _Whereptr, _Al);
+                _Guard._Target = nullptr;
+
+                _析构范围(_Relocated, _Mylast, _Al);
+                _Mylast = _Oldlast;
+                _RERAISE;
+                _CATCH_END
+            }
+
+            _孤儿化范围(_Whereptr, _Oldlast);
+            _ASAN_向量释放守卫;
+        }
+    }
+
+public:
+    template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
+    _CONSTEXPR20 iterator 插入(const_iterator _Where, _Iter _首个, _Iter _最后) {
+        const pointer _Whereptr = _Where._Ptr;
+        auto& _My_data          = _Mypair._Myval2;
+        const pointer _Oldfirst = _My_data._Myfirst;
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(
+            _Where._取容器() == _STD addressof(_My_data) && _Whereptr >= _Oldfirst && _My_data._Mylast >= _Whereptr,
+            "向量实现 插入 iterator outside range");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+        _ADL校验范围(_首个, _最后);
+        auto _UFirst         = _取解包(_首个);
+        auto _ULast          = _取解包(_最后);
+        const auto _Whereoff = static_cast<size_type>(_Whereptr - _Oldfirst);
+        if constexpr (_Is_cpp17_fwd_iter_v<_Iter>) {
+            const auto _Length = static_cast<size_t>(_STD distance(_UFirst, _ULast));
+            const auto _Count  = _STD _Convert_size<size_type>(_Length);
+            _插入计数范围(_Where, _UFirst, _Count);
+#if _HAS_CXX20
+        } else if constexpr (forward_iterator<_Iter>) {
+            const auto _Length = _转为无符号同型(_RANGES distance(_UFirst, _ULast));
+            const auto _Count  = _Convert_size<size_type>(_Length);
+            _插入计数范围(_Where, _UFirst, _Count);
+#endif // _HAS_CXX20
+        } else {
+            _插入非计数范围(_Where, _UFirst, _ULast);
+        }
+        return _造迭代器偏移(_Whereoff);
+    }
+
+#if _HAS_CXX23
+    template <_Container_compatible_range<_类型> _Rng>
+    constexpr iterator 范围插入(const_iterator _Where, _Rng&& _Range) {
+        const pointer _Whereptr = _Where._Ptr;
+        auto& _My_data          = _Mypair._Myval2;
+        const pointer _Oldfirst = _My_data._Myfirst;
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(
+            _Where._取容器() == _STD addressof(_My_data) && _Whereptr >= _Oldfirst && _My_data._Mylast >= _Whereptr,
+            "向量实现 范围插入 iterator out-of-range");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+        const auto _Whereoff = static_cast<size_type>(_Whereptr - _Oldfirst);
+
+        if constexpr (_RANGES forward_range<_Rng> || _RANGES sized_range<_Rng>) {
+            const auto _Length = _转为无符号同型(_RANGES distance(_Range));
+            const auto _Count  = _Convert_size<size_type>(_Length);
+            _插入计数范围(_Where, _解包首(_Range), _Count);
+        } else {
+            _插入非计数范围(_Where, _解包首(_Range), _解包尾(_Range));
+        }
+        return _造迭代器偏移(_Whereoff);
+    }
+#endif // _HAS_CXX23
+
+    _CONSTEXPR20 iterator 插入(const_iterator _Where, initializer_list<_类型> _Ilist) {
+        const pointer _Whereptr = _Where._Ptr;
+        auto& _My_data          = _Mypair._Myval2;
+        const pointer _Oldfirst = _My_data._Myfirst;
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(
+            _Where._取容器() == _STD addressof(_My_data) && _Whereptr >= _Oldfirst && _My_data._Mylast >= _Whereptr,
+            "向量实现 插入 iterator out-of-range");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+        const auto _Whereoff = static_cast<size_type>(_Whereptr - _Oldfirst);
+
+        const auto _Count = _Convert_size<size_type>(_Ilist.size());
+        _插入计数范围(_Where, _Ilist.begin(), _Count);
+        return _造迭代器偏移(_Whereoff);
+    }
+
+    _CONSTEXPR20 void 赋值(_CRT_GUARDOVERFLOW const size_type _Newsize, const _类型& _Val) {
+        // 赋值 _Newsize * _Val
+        auto& _Al         = _取分配器();
+        auto& _My_data    = _Mypair._Myval2;
+        pointer& _Myfirst = _My_data._Myfirst;
+        pointer& _Mylast  = _My_data._Mylast;
+
+#if _ITERATOR_DEBUG_LEVEL == 2
+#if _HAS_CXX20
+        if (!_STD is_constant_evaluated())
+#endif // _HAS_CXX20
+        {
+            const auto _Valptr = _STD addressof(_Val);
+            _STL_VERIFY(!(_去花式(_Myfirst) <= _Valptr && _Valptr < _去花式(_Mylast)),
+                "assignment value cannot be a reference into the container");
+        }
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+        constexpr bool _Nothrow_construct =
+            conjunction_v<is_nothrow_copy_constructible<_类型>, _用默认构造<_分配器, _类型*, const _类型&>>;
+
+        _My_data._孤儿化全部();
+        const auto _Oldcapacity = static_cast<size_type>(_My_data._Myend - _Myfirst);
+        if (_Newsize > _Oldcapacity) { // reallocate
+            _清空并按几何预留(_Newsize);
+            if constexpr (_Nothrow_construct) {
+                _Mylast = _未初始化填充若干(_Myfirst, _Newsize, _Val, _Al);
+                _ASAN_向量创建;
+            } else {
+                _地址消毒向量创建守卫;
+                _Mylast = _未初始化填充若干(_Myfirst, _Newsize, _Val, _Al);
+            }
+
+            return;
+        }
+
+        const auto _Oldsize = static_cast<size_type>(_Mylast - _Myfirst);
+        if (_Newsize > _Oldsize) {
+            _STD fill(_Myfirst, _Mylast, _Val);
+            if constexpr (_Nothrow_construct) {
+                _ASAN_向量修改(static_cast<difference_type>(_Newsize - _Oldsize));
+                _Mylast = _未初始化填充若干(_Mylast, _Newsize - _Oldsize, _Val, _Al);
+            } else {
+                _地址消毒向量延长守卫(_Newsize);
+                _Mylast = _未初始化填充若干(_Mylast, _Newsize - _Oldsize, _Val, _Al);
+                _ASAN_向量释放守卫;
+            }
+        } else {
+            const pointer _Newlast = _Myfirst + _Newsize;
+            _STD fill(_Myfirst, _Newlast, _Val);
+            _析构范围(_Newlast, _Mylast, _Al);
+            _ASAN_向量修改(static_cast<difference_type>(_Newsize - _Oldsize));
+            _Mylast = _Newlast;
+        }
+    }
+
+private:
+    template <class _Iter, class _Sent>
+    _CONSTEXPR20 void _赋值非计数范围(_Iter _首个, _Sent _最后) {
+        // 赋值 unknown number of elements from [_首个, _最后)
+        auto& _My_data    = _Mypair._Myval2;
+        pointer& _Myfirst = _My_data._Myfirst;
+        pointer& _Mylast  = _My_data._Mylast;
+
+        _My_data._孤儿化全部();
+
+        pointer _Next = _Myfirst;
+        for (; _首个 != _最后 && _Next != _Mylast; ++_首个, (void) ++_Next) {
+            *_Next = *_首个;
+        }
+
+        // Code 尺寸 optimization: we've exhausted only the source, only the dest, or both.
+        // If we've exhausted only the source: we Trim, then Append does nothing.
+        // If we've exhausted only the dest: Trim does nothing, then we Append.
+        // If we've exhausted both: Trim does nothing, then Append does nothing.
+
+        // Trim.
+        _析构范围(_Next, _Mylast, _取分配器());
+        _ASAN_向量修改(static_cast<difference_type>(_Next - _Mylast)); // negative when destroying elements
+        _Mylast = _Next;
+
+        _追加非计数范围(_STD move(_首个), _STD move(_最后));
+    }
+
+    template <class _Iter>
+    _CONSTEXPR20 void _赋值计数范围(_Iter _首个, const size_type _Newsize) {
+        // 赋值 elements from counted range _首个 + [0, _Newsize)
+        auto& _Al         = _取分配器();
+        auto& _My_data    = _Mypair._Myval2;
+        pointer& _Myfirst = _My_data._Myfirst;
+        pointer& _Mylast  = _My_data._Mylast;
+        pointer& _Myend   = _My_data._Myend;
+
+        constexpr bool _Nothrow_construct = conjunction_v<is_nothrow_constructible<_类型, _Iter_ref_t<_Iter>>,
+            _用默认构造<_分配器, _类型*, _Iter_ref_t<_Iter>>>;
+
+        _My_data._孤儿化全部();
+        const auto _Oldcapacity = static_cast<size_type>(_Myend - _Myfirst);
+        if (_Newsize > _Oldcapacity) {
+            _清空并按几何预留(_Newsize);
+            if constexpr (_Nothrow_construct) {
+                _Mylast = _Uninitialized_copy_n(_STD move(_首个), _Newsize, _Myfirst, _Al);
+                _ASAN_向量创建;
+            } else {
+                _地址消毒向量创建守卫;
+                _Mylast = _Uninitialized_copy_n(_STD move(_首个), _Newsize, _Myfirst, _Al);
+            }
+            return;
+        }
+
+        const auto _Oldsize = static_cast<size_type>(_Mylast - _Myfirst);
+        if (_Newsize > _Oldsize) {
+            bool _Copied = false;
+            if constexpr (_Iter_copy_cat<_Iter, pointer>::_Bitcopy_assignable) {
+#if _HAS_CXX20
+                if (!_STD is_constant_evaluated())
+#endif // _HAS_CXX20
+                {
+                    _内存复制移动计数(_首个, static_cast<size_t>(_Oldsize), _Myfirst);
+                    _首个 += _Oldsize;
+                    _Copied = true;
+                }
+            }
+
+            if (!_Copied) {
+                for (auto _Mid = _Myfirst; _Mid != _Mylast; ++_Mid, (void) ++_首个) {
+                    *_Mid = *_首个;
+                }
+            }
+
+            if constexpr (_Nothrow_construct) {
+                _ASAN_向量修改(static_cast<difference_type>(_Newsize - _Oldsize));
+                _Mylast = _Uninitialized_copy_n(_STD move(_首个), _Newsize - _Oldsize, _Mylast, _Al);
+            } else {
+                _地址消毒向量延长守卫(_Newsize);
+                _Mylast = _Uninitialized_copy_n(_STD move(_首个), _Newsize - _Oldsize, _Mylast, _Al);
+                _ASAN_向量释放守卫;
+            }
+        } else {
+            const pointer _Newlast = _Myfirst + _Newsize;
+            _复制N个非检查4(_STD move(_首个), _Newsize, _Myfirst);
+            _析构范围(_Newlast, _Mylast, _Al);
+            _ASAN_向量修改(static_cast<difference_type>(_Newsize - _Oldsize));
+            _Mylast = _Newlast;
+        }
+    }
+
+public:
+    template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
+    _CONSTEXPR20 void 赋值(_Iter _首个, _Iter _最后) {
+        _ADL校验范围(_首个, _最后);
+        auto _UFirst = _取解包(_首个);
+        auto _ULast  = _取解包(_最后);
+        if constexpr (_Is_cpp17_fwd_iter_v<_Iter>) {
+            const auto _Length = static_cast<size_t>(_STD distance(_UFirst, _ULast));
+            const auto _Count  = _STD _Convert_size<size_type>(_Length);
+            _赋值计数范围(_UFirst, _Count);
+#if _HAS_CXX20
+        } else if constexpr (forward_iterator<_Iter>) {
+            const auto _Length = _转为无符号同型(_RANGES distance(_UFirst, _ULast));
+            const auto _Count  = _STD _Convert_size<size_type>(_Length);
+            _赋值计数范围(_UFirst, _Count);
+#endif // _HAS_CXX20
+        } else {
+            _赋值非计数范围(_UFirst, _ULast);
+        }
+    }
+
+#if _HAS_CXX23
+    template <_Container_compatible_range<_类型> _Rng>
+    constexpr void 范围赋值(_Rng&& _Range) {
+        static_assert(assignable_from<_类型&, _RANGES range_reference_t<_Rng>>,
+            "Elements must be assignable from the range's reference type (N4993 [sequence.reqmts]/60).");
+        if constexpr (_RANGES sized_range<_Rng> || _RANGES forward_range<_Rng>) {
+            const auto _Length = _转为无符号同型(_RANGES distance(_Range));
+            const auto _Count  = _Convert_size<size_type>(_Length);
+            _赋值计数范围(_解包首(_Range), _Count);
+        } else {
+            _赋值非计数范围(_解包首(_Range), _解包尾(_Range));
+        }
+    }
+#endif // _HAS_CXX23
+
+    _CONSTEXPR20 void 赋值(const initializer_list<_类型> _Ilist) {
+        const auto _Count = _Convert_size<size_type>(_Ilist.size());
+        _赋值计数范围(_Ilist.begin(), _Count);
+    }
+
+    _CONSTEXPR20 向量实现& operator=(const 向量实现& _Right) {
+        if (this == _STD addressof(_Right)) {
+            return *this;
+        }
+
+        auto& _Al       = _取分配器();
+        auto& _Right_al = _Right._取分配器();
+        if constexpr (_Choose_pocca_v<_分配器类型>) {
+            if (_Al != _Right_al) {
+                _清理();
+                _Mypair._Myval2._重载代理(_取代理分配器(_分配器类型, _Al), _取代理分配器(_分配器类型, _Right_al));
+            }
+        }
+
+        _传播复制赋值(_Al, _Right_al);
+        auto& _Right_data = _Right._Mypair._Myval2;
+        _赋值计数范围(_Right_data._Myfirst, static_cast<size_type>(_Right_data._Mylast - _Right_data._Myfirst));
+
+        return *this;
+    }
+
+    _CONSTEXPR20 向量实现& operator=(initializer_list<_类型> _Ilist) {
+        const auto _Count = _Convert_size<size_type>(_Ilist.size());
+        _赋值计数范围(_Ilist.begin(), _Count);
+        return *this;
+    }
+
+private:
+    template <class _Ty2>
+    _CONSTEXPR20 void _调整尺寸并重新分配(const size_type _Newsize, const _Ty2& _Val) {
+        if (_Newsize > max_size()) {
+            _抛长度错();
+        }
+
+        auto& _Al         = _取分配器();
+        auto& _My_data    = _Mypair._Myval2;
+        pointer& _Myfirst = _My_data._Myfirst;
+        pointer& _Mylast  = _My_data._Mylast;
+
+        const auto _Oldsize    = static_cast<size_type>(_Mylast - _Myfirst);
+        size_type _Newcapacity = _计算增长(_Newsize);
+
+        const pointer _Newvec         = _分配至少助手(_Al, _Newcapacity);
+        const pointer _Appended_first = _Newvec + _Oldsize;
+
+        _重分配守卫 _Guard{_Al, _Newvec, _Newcapacity, _Appended_first, _Appended_first};
+        auto& _Appended_last = _Guard._Constructed_last;
+
+        if constexpr (is_same_v<_Ty2, _类型>) {
+            _Appended_last = _未初始化填充若干(_Appended_first, _Newsize - _Oldsize, _Val, _Al);
+        } else {
+            _STL_INTERNAL_STATIC_ASSERT(is_same_v<_Ty2, _值初始化标记>);
+            _Appended_last = _未初始化值构造若干(_Appended_first, _Newsize - _Oldsize, _Al);
+        }
+
+        if constexpr (is_nothrow_move_constructible_v<_类型> || !is_copy_constructible_v<_类型>) {
+            _未初始化移动(_Myfirst, _Mylast, _Newvec, _Al);
+        } else {
+            _未初始化复制(_Myfirst, _Mylast, _Newvec, _Al);
+        }
+
+        _Guard._New_begin = nullptr;
+        _更换数组(_Newvec, _Newsize, _Newcapacity);
+    }
+
+    template <class _Ty2>
+    _CONSTEXPR20 void _调整尺寸(const size_type _Newsize, const _Ty2& _Val) {
+        // trim or append elements, provide strong guarantee
+        auto& _Al           = _取分配器();
+        auto& _My_data      = _Mypair._Myval2;
+        pointer& _Myfirst   = _My_data._Myfirst;
+        pointer& _Mylast    = _My_data._Mylast;
+        const auto _Oldsize = static_cast<size_type>(_Mylast - _Myfirst);
+        if (_Newsize < _Oldsize) { // trim
+            const pointer _Newlast = _Myfirst + _Newsize;
+            _孤儿化范围(_Newlast, _Mylast);
+            _析构范围(_Newlast, _Mylast, _Al);
+            _ASAN_向量修改(static_cast<difference_type>(_Newsize - _Oldsize));
+            _Mylast = _Newlast;
+            return;
+        }
+
+        if (_Newsize > _Oldsize) { // append
+            const auto _Oldcapacity = static_cast<size_type>(_My_data._Myend - _Myfirst);
+            if (_Newsize > _Oldcapacity) { // reallocate
+                _调整尺寸并重新分配(_Newsize, _Val);
+                return;
+            }
+
+            _地址消毒向量延长守卫(_Newsize);
+            const pointer _Oldlast = _Mylast;
+            if constexpr (is_same_v<_Ty2, _类型>) {
+                _Mylast = _未初始化填充若干(_Oldlast, _Newsize - _Oldsize, _Val, _Al);
+            } else {
+                _STL_INTERNAL_STATIC_ASSERT(is_same_v<_Ty2, _值初始化标记>);
+                _Mylast = _未初始化值构造若干(_Oldlast, _Newsize - _Oldsize, _Al);
+            }
+            _ASAN_向量释放守卫;
+            _孤儿化范围(_Oldlast, _Oldlast);
+        }
+
+        // if _Newsize == _Oldsize, do nothing; avoid invalidating iterators
+    }
+
+public:
+    _CONSTEXPR20 void 调整尺寸(_CRT_GUARDOVERFLOW const size_type _Newsize) {
+        // trim or append value-initialized elements, provide strong guarantee
+        _调整尺寸(_Newsize, _值初始化标记{});
+    }
+
+    _CONSTEXPR20 void 调整尺寸(_CRT_GUARDOVERFLOW const size_type _Newsize, const _类型& _Val) {
+        // trim or append copies of _Val, provide strong guarantee
+        _调整尺寸(_Newsize, _Val);
+    }
+
+private:
+    enum class _重分配策略 { _At_least, _Exactly };
+
+    template <_重分配策略 _Policy>
+    _CONSTEXPR20 void _重新分配(size_type& _Newcapacity) {
+        // set 容量 to _Newcapacity (without geometric growth), provide strong guarantee
+        auto& _Al         = _取分配器();
+        auto& _My_data    = _Mypair._Myval2;
+        pointer& _Myfirst = _My_data._Myfirst;
+        pointer& _Mylast  = _My_data._Mylast;
+
+        const auto _Size = static_cast<size_type>(_Mylast - _Myfirst);
+
+        pointer _Newvec;
+        if constexpr (_Policy == _重分配策略::_At_least) {
+            _Newvec = _分配至少助手(_Al, _Newcapacity);
+        } else {
+            _STL_INTERNAL_STATIC_ASSERT(_Policy == _重分配策略::_Exactly);
+            _Newvec = _Al.allocate(_Newcapacity);
+        }
+
+        _简单重分配守卫 _Guard{_Al, _Newvec, _Newcapacity};
+
+        if constexpr (is_nothrow_move_constructible_v<_类型> || !is_copy_constructible_v<_类型>) {
+            _未初始化移动(_Myfirst, _Mylast, _Newvec, _Al);
+        } else {
+            _未初始化复制(_Myfirst, _Mylast, _Newvec, _Al);
+        }
+
+        _Guard._New_begin = nullptr;
+        _更换数组(_Newvec, _Size, _Newcapacity);
+    }
+
+#if _ITERATOR_DEBUG_LEVEL != 0 && defined(_ENABLE_STL_INTERNAL_CHECK)
+    void _检查全部孤儿化加锁() const noexcept {
+        _Lockit _加锁(_LOCK_DEBUG);
+        auto& _My_data = _Mypair._Myval2;
+        _STL_INTERNAL_CHECK(!_My_data._Myproxy->_Myfirstiter);
+    }
+
+    _CONSTEXPR20 void _检查全部孤儿化() const noexcept {
+#if _HAS_CXX20
+        if (_STD is_constant_evaluated()) {
+            auto& _My_data = _Mypair._Myval2;
+            _STL_INTERNAL_CHECK(!_My_data._Myproxy->_Myfirstiter);
+        } else
+#endif // _HAS_CXX20
+        {
+            _检查全部孤儿化加锁();
+        }
+    }
+#endif // _ITERATOR_DEBUG_LEVEL != 0 && defined(_ENABLE_STL_INTERNAL_CHECK)
+
+    _CONSTEXPR20 void _清空并按几何预留(const size_type _Newsize) {
+        auto& _Al         = _取分配器();
+        auto& _My_data    = _Mypair._Myval2;
+        pointer& _Myfirst = _My_data._Myfirst;
+        pointer& _Mylast  = _My_data._Mylast;
+        pointer& _Myend   = _My_data._Myend;
+
+#if _ITERATOR_DEBUG_LEVEL != 0 && defined(_ENABLE_STL_INTERNAL_CHECK)
+        _STL_INTERNAL_CHECK(_Newsize != 0);
+        _检查全部孤儿化();
+#endif // _ITERATOR_DEBUG_LEVEL != 0 && defined(_ENABLE_STL_INTERNAL_CHECK)
+
+        if (_Newsize > max_size()) {
+            _抛长度错();
+        }
+
+        const size_type _Newcapacity = _计算增长(_Newsize);
+
+        if (_Myfirst) { // destroy and deallocate old array
+            _析构范围(_Myfirst, _Mylast, _Al);
+            _ASAN_向量移除;
+            _Al.deallocate(_Myfirst, static_cast<size_type>(_Myend - _Myfirst));
+
+            _Myfirst = nullptr;
+            _Mylast  = nullptr;
+            _Myend   = nullptr;
+        }
+
+        _分配原生(_Newcapacity);
+    }
+
+public:
+    _CONSTEXPR20 void 预留(_CRT_GUARDOVERFLOW size_type _Newcapacity) {
+        // increase 容量 to _Newcapacity (without geometric growth), provide strong guarantee
+        if (_Newcapacity > 容量()) { // something to do (预留() never shrinks)
+            if (_Newcapacity > max_size()) {
+                _抛长度错();
+            }
+
+            _重新分配<_重分配策略::_At_least>(_Newcapacity);
+        }
+    }
+
+    _CONSTEXPR20 void 收缩至适应() { // reduce 容量 to 尺寸, provide strong guarantee
+        auto& _My_data         = _Mypair._Myval2;
+        const pointer _Oldlast = _My_data._Mylast;
+        if (_Oldlast != _My_data._Myend) { // something to do
+            const pointer _Oldfirst = _My_data._Myfirst;
+            if (_Oldfirst == _Oldlast) {
+                _清理();
+            } else {
+                size_type _Newcapacity = static_cast<size_type>(_Oldlast - _Oldfirst);
+                _重新分配<_重分配策略::_Exactly>(_Newcapacity);
+            }
+        }
+    }
+
+    _CONSTEXPR20 void 尾删() noexcept /* strengthened */ {
+        auto& _My_data   = _Mypair._Myval2;
+        pointer& _Mylast = _My_data._Mylast;
+
+#if _MSVC_STL_HARDENING_VECTOR || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_My_data._Myfirst != _Mylast, "尾删() called on 为空 向量实现");
+#endif
+
+        _孤儿化范围(_Mylast - 1, _Mylast);
+        _分配器特征::destroy(_取分配器(), _去花式(_Mylast - 1));
+        _ASAN_向量修改(-1);
+        --_Mylast;
+    }
+
+    _CONSTEXPR20 iterator 擦除(const_iterator _Where)
+        noexcept(is_nothrow_move_assignable_v<value_type>) /* strengthened */ {
+        const pointer _Whereptr = _Where._Ptr;
+        auto& _My_data          = _Mypair._Myval2;
+        pointer& _Mylast        = _My_data._Mylast;
+
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(
+            _Where._取容器() == _STD addressof(_My_data) && _Whereptr >= _My_data._Myfirst && _Mylast > _Whereptr,
+            "向量实现 擦除 iterator outside range");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+        _孤儿化范围(_Whereptr, _Mylast);
+        _移动非检查(_Whereptr + 1, _Mylast, _Whereptr);
+        _分配器特征::destroy(_取分配器(), _去花式(_Mylast - 1));
+        _ASAN_向量修改(-1);
+        --_Mylast;
+        return iterator(_Whereptr, _STD addressof(_My_data));
+    }
+
+    _CONSTEXPR20 iterator 擦除(const_iterator _首个, const_iterator _最后)
+        noexcept(is_nothrow_move_assignable_v<value_type>) /* strengthened */ {
+        const pointer _Firstptr = _首个._Ptr;
+        const pointer _Lastptr  = _最后._Ptr;
+        auto& _My_data          = _Mypair._Myval2;
+        pointer& _Mylast        = _My_data._Mylast;
+
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(_首个._取容器() == _STD addressof(_My_data) && _最后._取容器() == _STD addressof(_My_data)
+                        && _Firstptr >= _My_data._Myfirst && _Lastptr >= _Firstptr && _Mylast >= _Lastptr,
+            "向量实现 擦除 iterator outside range");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+        if (_Firstptr != _Lastptr) { // something to do, invalidate iterators
+            _孤儿化范围(_Firstptr, _Mylast);
+
+            const pointer _Newlast = _移动非检查(_Lastptr, _Mylast, _Firstptr);
+            _析构范围(_Newlast, _Mylast, _取分配器());
+            _ASAN_向量修改(static_cast<difference_type>(_Newlast - _Mylast)); // negative when destroying elements
+            _Mylast = _Newlast;
+        }
+
+        return iterator(_Firstptr, _STD addressof(_My_data));
+    }
+
+    _CONSTEXPR20 void 清空() noexcept { // 擦除 all
+        auto& _My_data    = _Mypair._Myval2;
+        pointer& _Myfirst = _My_data._Myfirst;
+        pointer& _Mylast  = _My_data._Mylast;
+
+        if (_Myfirst == _Mylast) { // already 为空, nothing to do
+            // This is an optimization for debug mode: we can avoid taking the debug lock to invalidate iterators.
+            // Note that when clearing an 为空 向量实现, this will preserve past-the-结束 iterators, which is allowed by
+            // N4950 [sequence.reqmts]/54 "a.清空() [...] may invalidate the past-the-结束 iterator".
+            return;
+        }
+
+        _My_data._孤儿化全部();
+        _析构范围(_Myfirst, _Mylast, _取分配器());
+        _ASAN_向量修改(static_cast<difference_type>(_Myfirst - _Mylast)); // negative when destroying elements
+        _Mylast = _Myfirst;
+    }
+
+    _CONSTEXPR20 void swap(向量实现& _Right) noexcept /* strengthened */ {
+        if (this != _STD addressof(_Right)) {
+            _Pocs(_取分配器(), _Right._取分配器());
+            _Mypair._Myval2._交换值(_Right._Mypair._Myval2);
+        }
+    }
+
+    _NODISCARD _CONSTEXPR20 _类型* 数据() noexcept {
+        return _去花式可空(_Mypair._Myval2._Myfirst);
+    }
+
+    _NODISCARD _CONSTEXPR20 const _类型* 数据() const noexcept {
+        return _去花式可空(_Mypair._Myval2._Myfirst);
+    }
+
+    _NODISCARD _CONSTEXPR20 iterator 开始() noexcept {
+        auto& _My_data = _Mypair._Myval2;
+        return iterator(_My_data._Myfirst, _STD addressof(_My_data));
+    }
+
+    _NODISCARD _CONSTEXPR20 const_iterator 开始() const noexcept {
+        auto& _My_data = _Mypair._Myval2;
+        return const_iterator(_My_data._Myfirst, _STD addressof(_My_data));
+    }
+
+    _NODISCARD _CONSTEXPR20 iterator 结束() noexcept {
+        auto& _My_data = _Mypair._Myval2;
+        return iterator(_My_data._Mylast, _STD addressof(_My_data));
+    }
+
+    _NODISCARD _CONSTEXPR20 const_iterator 结束() const noexcept {
+        auto& _My_data = _Mypair._Myval2;
+        return const_iterator(_My_data._Mylast, _STD addressof(_My_data));
+    }
+
+    _NODISCARD _CONSTEXPR20 reverse_iterator 反向开始() noexcept {
+        return reverse_iterator(结束());
+    }
+
+    _NODISCARD _CONSTEXPR20 const_reverse_iterator 反向开始() const noexcept {
+        return const_reverse_iterator(结束());
+    }
+
+    _NODISCARD _CONSTEXPR20 reverse_iterator 反向结束() noexcept {
+        return reverse_iterator(开始());
+    }
+
+    _NODISCARD _CONSTEXPR20 const_reverse_iterator 反向结束() const noexcept {
+        return const_reverse_iterator(开始());
+    }
+
+    _NODISCARD _CONSTEXPR20 const_iterator 常量开始() const noexcept {
+        return 开始();
+    }
+
+    _NODISCARD _CONSTEXPR20 const_iterator 常量结束() const noexcept {
+        return 结束();
+    }
+
+    _NODISCARD _CONSTEXPR20 const_reverse_iterator 常量反向开始() const noexcept {
+        return 反向开始();
+    }
+
+    _NODISCARD _CONSTEXPR20 const_reverse_iterator 常量反向结束() const noexcept {
+        return 反向结束();
+    }
+
+    _NODISCARD _CONSTEXPR20 _类型* _非检查开始() noexcept {
+        return _去花式可空(_Mypair._Myval2._Myfirst);
+    }
+
+    _NODISCARD _CONSTEXPR20 const _类型* _非检查开始() const noexcept {
+        return _去花式可空(_Mypair._Myval2._Myfirst);
+    }
+
+    _NODISCARD _CONSTEXPR20 _类型* _非检查结束() noexcept {
+        return _去花式可空(_Mypair._Myval2._Mylast);
+    }
+
+    _NODISCARD _CONSTEXPR20 const _类型* _非检查结束() const noexcept {
+        return _去花式可空(_Mypair._Myval2._Mylast);
+    }
+
+    _NODISCARD_EMPTY_MEMBER _CONSTEXPR20 bool 为空() const noexcept {
+        auto& _My_data = _Mypair._Myval2;
+        return _My_data._Myfirst == _My_data._Mylast;
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type 尺寸() const noexcept {
+        auto& _My_data = _Mypair._Myval2;
+        return static_cast<size_type>(_My_data._Mylast - _My_data._Myfirst);
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type max_size() const noexcept {
+        return (_STD min)(static_cast<size_type>(_STD _Max_limit<difference_type>()), _分配器特征::max_size(_取分配器()));
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type 容量() const noexcept {
+        auto& _My_data = _Mypair._Myval2;
+        return static_cast<size_type>(_My_data._Myend - _My_data._Myfirst);
+    }
+
+    _NODISCARD _CONSTEXPR20 _类型& operator[](const size_type _Pos) noexcept /* strengthened */ {
+        auto& _My_data = _Mypair._Myval2;
+#if _MSVC_STL_HARDENING_VECTOR || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(
+            _Pos < static_cast<size_type>(_My_data._Mylast - _My_data._Myfirst), "向量实现 subscript out of range");
+#endif
+
+        return _My_data._Myfirst[_Pos];
+    }
+
+    _NODISCARD _CONSTEXPR20 const _类型& operator[](const size_type _Pos) const noexcept /* strengthened */ {
+        auto& _My_data = _Mypair._Myval2;
+#if _MSVC_STL_HARDENING_VECTOR || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(
+            _Pos < static_cast<size_type>(_My_data._Mylast - _My_data._Myfirst), "向量实现 subscript out of range");
+#endif
+
+        return _My_data._Myfirst[_Pos];
+    }
+
+    _NODISCARD _CONSTEXPR20 _类型& 取值(const size_type _Pos) {
+        auto& _My_data = _Mypair._Myval2;
+        if (static_cast<size_type>(_My_data._Mylast - _My_data._Myfirst) <= _Pos) {
+            _抛区间错();
+        }
+
+        return _My_data._Myfirst[_Pos];
+    }
+
+    _NODISCARD _CONSTEXPR20 const _类型& 取值(const size_type _Pos) const {
+        auto& _My_data = _Mypair._Myval2;
+        if (static_cast<size_type>(_My_data._Mylast - _My_data._Myfirst) <= _Pos) {
+            _抛区间错();
+        }
+
+        return _My_data._Myfirst[_Pos];
+    }
+
+    _NODISCARD _CONSTEXPR20 _类型& 前() noexcept /* strengthened */ {
+        auto& _My_data = _Mypair._Myval2;
+#if _MSVC_STL_HARDENING_VECTOR || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_My_data._Myfirst != _My_data._Mylast, "前() called on 为空 向量实现");
+#endif
+
+        return *_My_data._Myfirst;
+    }
+
+    _NODISCARD _CONSTEXPR20 const _类型& 前() const noexcept /* strengthened */ {
+        auto& _My_data = _Mypair._Myval2;
+#if _MSVC_STL_HARDENING_VECTOR || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_My_data._Myfirst != _My_data._Mylast, "前() called on 为空 向量实现");
+#endif
+
+        return *_My_data._Myfirst;
+    }
+
+    _NODISCARD _CONSTEXPR20 _类型& 后() noexcept /* strengthened */ {
+        auto& _My_data = _Mypair._Myval2;
+#if _MSVC_STL_HARDENING_VECTOR || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_My_data._Myfirst != _My_data._Mylast, "后() called on 为空 向量实现");
+#endif
+
+        return _My_data._Mylast[-1];
+    }
+
+    _NODISCARD _CONSTEXPR20 const _类型& 后() const noexcept /* strengthened */ {
+        auto& _My_data = _Mypair._Myval2;
+#if _MSVC_STL_HARDENING_VECTOR || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_My_data._Myfirst != _My_data._Mylast, "后() called on 为空 向量实现");
+#endif
+
+        return _My_data._Mylast[-1];
+    }
+
+    _NODISCARD _CONSTEXPR20 allocator_type 取分配器() const noexcept {
+        return static_cast<allocator_type>(_取分配器());
+    }
+
+private:
+    _CONSTEXPR20 size_type _计算增长(const size_type _Newsize) const {
+        // given _Oldcapacity and _Newsize, calculate geometric growth
+        const size_type _Oldcapacity = 容量();
+        const auto _最大              = max_size();
+
+        if (_Oldcapacity > _最大 - _Oldcapacity / 2) {
+            return _最大; // geometric growth would overflow
+        }
+
+        const size_type _Geometric = _Oldcapacity + _Oldcapacity / 2;
+
+        if (_Geometric < _Newsize) {
+            return _Newsize; // geometric growth would be insufficient
+        }
+
+        return _Geometric; // geometric growth is sufficient
+    }
+
+    _CONSTEXPR20 void _分配原生(size_type _Newcapacity) {
+        // allocate array with _Newcapacity elements
+        auto& _My_data    = _Mypair._Myval2;
+        pointer& _Myfirst = _My_data._Myfirst;
+        pointer& _Mylast  = _My_data._Mylast;
+        pointer& _Myend   = _My_data._Myend;
+
+        _STL_INTERNAL_CHECK(!_Myfirst && !_Mylast && !_Myend); // check that *this is tidy
+        _STL_INTERNAL_CHECK(0 < _Newcapacity && _Newcapacity <= max_size());
+
+        const pointer _Newvec = _分配至少助手(_取分配器(), _Newcapacity);
+        _Myfirst              = _Newvec;
+        _Mylast               = _Newvec;
+        _Myend                = _Newvec + _Newcapacity;
+    }
+
+    _CONSTEXPR20 void _非零分配(const size_type _Newcapacity) {
+        // allocate array with _Newcapacity elements
+#ifdef _ENABLE_STL_INTERNAL_CHECK
+        auto& _My_data    = _Mypair._Myval2;
+        pointer& _Myfirst = _My_data._Myfirst;
+        pointer& _Mylast  = _My_data._Mylast;
+        pointer& _Myend   = _My_data._Myend;
+        _STL_INTERNAL_CHECK(!_Myfirst && !_Mylast && !_Myend); // check that *this is tidy
+        _STL_INTERNAL_CHECK(0 < _Newcapacity);
+#endif // _ENABLE_STL_INTERNAL_CHECK
+
+        if (_Newcapacity > max_size()) {
+            _抛长度错();
+        }
+
+        _分配原生(_Newcapacity);
+    }
+
+    _CONSTEXPR20 void _更换数组(
+        const pointer _Newvec, const size_type _Newsize, const size_type _Newcapacity) noexcept {
+        // orphan all iterators, discard old array, acquire new array
+        auto& _Al         = _取分配器();
+        auto& _My_data    = _Mypair._Myval2;
+        pointer& _Myfirst = _My_data._Myfirst;
+        pointer& _Mylast  = _My_data._Mylast;
+        pointer& _Myend   = _My_data._Myend;
+
+        _My_data._孤儿化全部();
+
+        if (_Myfirst) { // destroy and deallocate old array
+            _析构范围(_Myfirst, _Mylast, _Al);
+            _ASAN_向量移除;
+            _Al.deallocate(_Myfirst, static_cast<size_type>(_Myend - _Myfirst));
+        }
+
+        _Myfirst = _Newvec;
+        _Mylast  = _Newvec + _Newsize;
+        _Myend   = _Newvec + _Newcapacity;
+        _ASAN_向量创建;
+    }
+
+    _CONSTEXPR20 void _清理() noexcept { // free all storage
+        auto& _Al         = _取分配器();
+        auto& _My_data    = _Mypair._Myval2;
+        pointer& _Myfirst = _My_data._Myfirst;
+        pointer& _Mylast  = _My_data._Mylast;
+        pointer& _Myend   = _My_data._Myend;
+
+        _My_data._孤儿化全部();
+
+        if (_Myfirst) { // destroy and deallocate old array
+            _析构范围(_Myfirst, _Mylast, _Al);
+            _ASAN_向量移除;
+            _Al.deallocate(_Myfirst, static_cast<size_type>(_Myend - _Myfirst));
+
+            _Myfirst = nullptr;
+            _Mylast  = nullptr;
+            _Myend   = nullptr;
+        }
+    }
+
+    template <class... _值参数类型>
+    _CONSTEXPR20 void _构造n个(_CRT_GUARDOVERFLOW const size_type _Count, _值参数类型&&... _Val) {
+        // Dispatches between the three sized constructions.
+        // 1-arg -> value-construction, e.g. 向量实现(5)
+        // 2-arg -> fill, e.g. 向量实现(5, "meow")
+        // 3-arg -> sized range construction, e.g. 向量实现{"Hello", "Fluffy", "World"}
+        auto& _Al       = _取分配器();
+        auto&& _Alproxy = _取代理分配器(_分配器类型, _Al);
+        auto& _My_data  = _Mypair._Myval2;
+        _容器代理指针<_分配器类型> _代理(_Alproxy, _My_data);
+        if (_Count != 0) {
+            _非零分配(_Count);
+            _清理守卫<向量实现> _Guard{this};
+            if constexpr (sizeof...(_Val) == 0) {
+                _My_data._Mylast = _未初始化值构造若干(_My_data._Myfirst, _Count, _Al);
+            } else if constexpr (sizeof...(_Val) == 1) {
+                _STL_INTERNAL_STATIC_ASSERT(is_same_v<_值参数类型..., const _类型&>);
+                _My_data._Mylast = _未初始化填充若干(_My_data._Myfirst, _Count, _Val..., _Al);
+            } else if constexpr (sizeof...(_Val) == 2) {
+                _My_data._Mylast = _未初始化复制(_STD forward<_值参数类型>(_Val)..., _My_data._Myfirst, _Al);
+            } else {
+                _STL_INTERNAL_STATIC_ASSERT(false); // unexpected number of arguments
+            }
+            _ASAN_向量创建;
+            _Guard._Target = nullptr;
+        }
+
+        _代理._释放();
+    }
+
+    _CONSTEXPR20 void _移动赋值不等分配器(向量实现& _Right) {
+        auto& _Al         = _取分配器();
+        auto& _My_data    = _Mypair._Myval2;
+        auto& _Right_data = _Right._Mypair._Myval2;
+
+        const pointer _首个 = _Right_data._Myfirst;
+        const pointer _最后  = _Right_data._Mylast;
+        const auto _Newsize  = static_cast<size_type>(_最后 - _首个);
+
+        pointer& _Myfirst = _My_data._Myfirst;
+        pointer& _Mylast  = _My_data._Mylast;
+
+        constexpr bool _Nothrow_construct =
+            conjunction_v<is_nothrow_move_constructible<_类型>, _用默认构造<_分配器, _类型*, _类型>>;
+
+        _My_data._孤儿化全部();
+        const auto _Oldcapacity = static_cast<size_type>(_My_data._Myend - _Myfirst);
+        if (_Newsize > _Oldcapacity) {
+            _清空并按几何预留(_Newsize);
+            if constexpr (_Nothrow_construct) {
+                _Mylast = _未初始化移动(_首个, _最后, _Myfirst, _Al);
+                _ASAN_向量创建;
+            } else {
+                _地址消毒向量创建守卫;
+                _Mylast = _未初始化移动(_首个, _最后, _Myfirst, _Al);
+            }
+
+            return;
+        }
+
+        const auto _Oldsize = static_cast<size_type>(_Mylast - _Myfirst);
+        if (_Newsize > _Oldsize) {
+            const pointer _Mid = _首个 + _Oldsize;
+            _移动非检查(_首个, _Mid, _Myfirst);
+
+            if constexpr (_Nothrow_construct) {
+                _ASAN_向量修改(static_cast<difference_type>(_Newsize - _Oldsize));
+                _Mylast = _未初始化移动(_Mid, _最后, _Mylast, _Al);
+            } else {
+                _地址消毒向量延长守卫(_Newsize);
+                _Mylast = _未初始化移动(_Mid, _最后, _Mylast, _Al);
+                _ASAN_向量释放守卫;
+            }
+        } else {
+            const pointer _Newlast = _Myfirst + _Newsize;
+            _移动非检查(_首个, _最后, _Myfirst);
+            _析构范围(_Newlast, _Mylast, _Al);
+            _ASAN_向量修改(static_cast<difference_type>(_Newsize - _Oldsize));
+            _Mylast = _Newlast;
+        }
+    }
+
+    [[noreturn]] static void _抛长度错() {
+        _Xlength_error("向量实现 too long");
+    }
+
+    [[noreturn]] static void _抛区间错() {
+        _Xout_of_range("invalid 向量实现 subscript");
+    }
+
+#if _ITERATOR_DEBUG_LEVEL == 2
+    _CONSTEXPR20 void _孤儿化范围不加锁(pointer _首个, pointer _最后) const {
+        _迭代器基类12** _Pnext = &_Mypair._Myval2._Myproxy->_Myfirstiter;
+        while (*_Pnext) {
+            const auto _Pnextptr = static_cast<const_iterator&>(**_Pnext)._Ptr;
+            const auto _Temp     = *_Pnext;
+            if (_Pnextptr < _首个 || _最后 < _Pnextptr) { // skip the iterator
+                _Pnext = &_Temp->_Mynextiter;
+            } else { // orphan the iterator
+                _Temp->_Myproxy = nullptr;
+                *_Pnext         = _Temp->_Mynextiter;
+            }
+        }
+    }
+
+    void _孤儿化范围加锁(pointer _首个, pointer _最后) const {
+        _Lockit _加锁(_LOCK_DEBUG);
+        _孤儿化范围不加锁(_首个, _最后);
+    }
+
+    _CONSTEXPR20 void _孤儿化范围(pointer _首个, pointer _最后) const {
+        // orphan iterators within specified (inclusive) range
+#if _HAS_CXX20
+        if (_STD is_constant_evaluated()) {
+            _孤儿化范围不加锁(_首个, _最后);
+        } else
+#endif // _HAS_CXX20
+        {
+            _孤儿化范围加锁(_首个, _最后);
+        }
+    }
+#else // ^^^ _ITERATOR_DEBUG_LEVEL == 2 / _ITERATOR_DEBUG_LEVEL != 2 vvv
+    _CONSTEXPR20 void _孤儿化范围(pointer, pointer) const {}
+#endif // ^^^ _ITERATOR_DEBUG_LEVEL != 2 ^^^
+
+    _NODISCARD _CONSTEXPR20 _分配器类型& _取分配器() noexcept {
+        return _Mypair._取第一();
+    }
+
+    _NODISCARD _CONSTEXPR20 const _分配器类型& _取分配器() const noexcept {
+        return _Mypair._取第一();
+    }
+
+    _NODISCARD _CONSTEXPR20 iterator _造迭代器(const pointer _Ptr) noexcept {
+        return iterator(_Ptr, _STD addressof(_Mypair._Myval2));
+    }
+
+    _NODISCARD _CONSTEXPR20 iterator _造迭代器偏移(const size_type _Offset) noexcept {
+        // return the iterator 开始() + _Offset without a debugging check
+        auto& _My_data = _Mypair._Myval2;
+        return iterator(_My_data._Myfirst + _Offset, _STD addressof(_My_data));
+    }
+
+    _压缩对<_分配器类型, _迭代器检查值> _Mypair;
+};
+
+#if _HAS_CXX17
+template <class _Iter, class _分配器 = allocator<_Iter_value_t<_Iter>>,
+    enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_allocator<_分配器>>, int> = 0>
+向量实现(_Iter, _Iter, _分配器 = _分配器()) -> 向量实现<_Iter_value_t<_Iter>, _分配器>;
+#endif // _HAS_CXX17
+
+#if _HAS_CXX23
+template <_RANGES input_range _Rng, _Allocator_for_container _分配器 = allocator<_RANGES range_value_t<_Rng>>>
+向量实现(from_range_t, _Rng&&, _分配器 = _分配器()) -> 向量实现<_RANGES range_value_t<_Rng>, _分配器>;
+#endif // _HAS_CXX23
+
+template <class _分配器>
+class 向量实现<bool, _分配器>;
+
+using _位基 = unsigned int; // word type for 向量实现<bool> representation
+
+_INLINE_VAR constexpr int _VBITS = 8 * sizeof(_位基); // 取值 least CHAR_BITS bits per word
+
+_EXPORT_STD template <class _类型, class _分配器>
+_NODISCARD _CONSTEXPR20 bool operator==(const 向量实现<_类型, _分配器>& _Left, const 向量实现<_类型, _分配器>& _Right) {
+    if (_Left.尺寸() != _Right.尺寸()) {
+        return false;
+    }
+
+    if constexpr (is_same_v<_类型, bool>) {
+        return _STD equal(
+            _Left._我的向量._非检查开始(), _Left._我的向量._非检查结束(), _Right._我的向量._非检查开始());
+    } else {
+        return _STD equal(_Left._非检查开始(), _Left._非检查结束(), _Right._非检查开始());
+    }
+}
+
+#if !_HAS_CXX20
+template <class _类型, class _分配器>
+_NODISCARD bool operator!=(const 向量实现<_类型, _分配器>& _Left, const 向量实现<_类型, _分配器>& _Right) {
+    return !(_Left == _Right);
+}
+#endif // !_HAS_CXX20
+
+// Optimize 向量实现<bool> lexicographical comparisons.
+
+// There are several endianness/ordering issues to consider here.
+// * Machine endianness is irrelevant. (That affects how an unsigned int is stored
+//   as a sequence of bytes. While all of our supported architectures are little-endian,
+//   that's irrelevant as long as we avoid reinterpreting unsigned int as a sequence of bytes.)
+// * Appending bits to 向量实现<bool> eventually appends words to its underlying storage.
+//   For example, vb[10] is stored within vb._我的向量[0], while vb[100] is stored within vb._我的向量[3].
+//   This allows us to translate lexicographical comparisons from theoretical bits to physical words.
+// * Unsigned integers are written and compared as big-endian (most significant bit first).
+//   For example, 0x10u > 0x07u.
+// * However, 向量实现<bool> packs bits into words as little-endian (least significant bit first).
+//   For example, 向量实现<bool>{false, true, true, true} stores 0b0000'0000'0000'0000'0000'0000'0000'1110u.
+// We could bit-reverse words before comparing, but we just need to find the least significant bit that differs.
+
+template <class _Ret>
+struct _位基三路比较 {
+    _NODISCARD _STATIC_CALL_OPERATOR constexpr _Ret operator()(
+        const _位基 _Left, const _位基 _Right) _CONST_CALL_OPERATOR noexcept {
+        const _位基 _Differing_bits = _Left ^ _Right;
+
+        if (_Differing_bits == 0) { // improves _Countr_zero codegen below
+#if _HAS_CXX20
+            return strong_ordering::equal;
+#else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
+            return 0;
+#endif // ^^^ !_HAS_CXX20 ^^^
+        }
+
+        const int _Bit_index = _Countr_zero(_Differing_bits); // number of least significant bits that match
+        _STL_INTERNAL_CHECK(_Bit_index < _VBITS); // because we return early for equality
+
+        const _位基 _掩码 = _位基{1} << _Bit_index; // selects the least significant bit that differs
+
+        // Instead of comparing (_Left & _掩码) to (_Right & _掩码), we know that exactly one side will be zero.
+#if _HAS_CXX20
+        return (_Left & _掩码) == 0 ? strong_ordering::less : strong_ordering::greater;
+#else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
+        return (_Left & _掩码) == 0 ? -1 : 1;
+#endif // ^^^ !_HAS_CXX20 ^^^
+    }
+};
+
+#if _HAS_CXX20
+_EXPORT_STD template <class _类型, class _分配器>
+_NODISCARD constexpr _Synth_three_way_result<_类型> operator<=>(
+    const 向量实现<_类型, _分配器>& _Left, const 向量实现<_类型, _分配器>& _Right) {
+    if constexpr (is_same_v<_类型, bool>) {
+        // This optimization works because 向量实现<bool> "trims" its underlying storage by zeroing out unused bits.
+        const auto _Min_word_size = (_STD min)(_Left._我的向量.尺寸(), _Right._我的向量.尺寸());
+        const auto _Left_words    = _Left._我的向量._非检查开始();
+        const auto _Right_words   = _Right._我的向量._非检查开始();
+
+        using _比较器 = _位基三路比较<strong_ordering>;
+
+        const strong_ordering _Word_comparison = _STD lexicographical_compare_three_way(
+            _Left_words, _Left_words + _Min_word_size, _Right_words, _Right_words + _Min_word_size, _比较器{});
+
+        if (_Word_comparison != 0) {
+            return _Word_comparison;
+        }
+
+        return _Left.尺寸() <=> _Right.尺寸();
+    } else {
+        return _STD lexicographical_compare_three_way(_Left._非检查开始(), _Left._非检查结束(),
+            _Right._非检查开始(), _Right._非检查结束(), _Synth_three_way{});
+    }
+}
+#else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
+template <class _类型, class _分配器>
+_NODISCARD _CONSTEXPR20 bool operator<(const 向量实现<_类型, _分配器>& _Left, const 向量实现<_类型, _分配器>& _Right) {
+    if constexpr (is_same_v<_类型, bool>) {
+        // This optimization works because 向量实现<bool> "trims" its underlying storage by zeroing out unused bits.
+        auto _首个 = _Left._我的向量._非检查开始();
+        auto _Other = _Right._我的向量._非检查开始();
+
+        const auto _最后 = _首个 + (_STD min)(_Left._我的向量.尺寸(), _Right._我的向量.尺寸());
+
+        for (; _首个 != _最后; ++_首个, (void) ++_Other) {
+            using _比较器        = _位基三路比较<signed char>;
+            const auto _结果 = _比较器{}(*_首个, *_Other);
+
+            if (_结果 < 0) {
+                return true;
+            } else if (_结果 > 0) {
+                return false;
+            }
+        }
+
+        return _Left.尺寸() < _Right.尺寸();
+    } else {
+        return _STD lexicographical_compare(
+            _Left._非检查开始(), _Left._非检查结束(), _Right._非检查开始(), _Right._非检查结束());
+    }
+}
+
+template <class _类型, class _分配器>
+_NODISCARD _CONSTEXPR20 bool operator>(const 向量实现<_类型, _分配器>& _Left, const 向量实现<_类型, _分配器>& _Right) {
+    return _Right < _Left;
+}
+
+template <class _类型, class _分配器>
+_NODISCARD _CONSTEXPR20 bool operator<=(const 向量实现<_类型, _分配器>& _Left, const 向量实现<_类型, _分配器>& _Right) {
+    return !(_Right < _Left);
+}
+
+template <class _类型, class _分配器>
+_NODISCARD _CONSTEXPR20 bool operator>=(const 向量实现<_类型, _分配器>& _Left, const 向量实现<_类型, _分配器>& _Right) {
+    return !(_Left < _Right);
+}
+#endif // ^^^ !_HAS_CXX20 ^^^
+
+_EXPORT_STD template <class _类型, class _分配器>
+_CONSTEXPR20 void swap(向量实现<_类型, _分配器>& _Left, 向量实现<_类型, _分配器>& _Right) noexcept /* strengthened */ {
+    _Left.swap(_Right);
+}
+
+#if _HAS_CXX20
+_EXPORT_STD template <class _类型, class _分配器, class _结果类型>
+constexpr 向量实现<_类型, _分配器>::size_type 擦除(向量实现<_类型, _分配器>& _Cont, const _结果类型& _Val) {
+    return _擦除并移除(_Cont, _Val);
+}
+
+_EXPORT_STD template <class _类型, class _分配器, class _Pr>
+constexpr 向量实现<_类型, _分配器>::size_type erase_if(向量实现<_类型, _分配器>& _Cont, _Pr _Pred) {
+    return _按条件擦除并移除(_Cont, _传递函数(_Pred));
+}
+#endif // _HAS_CXX20
+
+template <class _Alloc0>
+struct _包装分配器 { // TRANSITION, ABI compat, preserves symbol names of 向量实现<bool>::iterator
+    using _分配器 = _Alloc0;
+};
+
+template <class _位向量基分配器包装>
+class _位向量迭代基类 : public _迭代器基类 {
+    // store information common to reference and iterators
+public:
+    using _位向量基分配器         = typename _位向量基分配器包装::_分配器;
+    using _尺寸类型       = typename allocator_traits<_位向量基分配器>::size_type;
+    using _差异类型 = typename allocator_traits<_位向量基分配器>::difference_type;
+    using _我的容器          = 向量实现<bool, _重绑定分配器类型<_位向量基分配器, bool>>;
+
+    static constexpr _差异类型 _VBITS_DIFF = _VBITS;
+
+    _CONSTEXPR20 _位向量迭代基类() = default;
+
+    _CONSTEXPR20 _位向量迭代基类(const _位基* _Ptr, _尺寸类型 _Off, const _容器基类* _Mypvbool) noexcept
+        : _我的指针(_Ptr), _Myoff(_Off) {
+        this->_收养(_Mypvbool);
+    }
+
+    _CONSTEXPR20 void _前进(_尺寸类型 _Off) noexcept {
+        _Myoff += _Off;
+        _我的指针 += _Myoff / _VBITS;
+        _Myoff %= _VBITS;
+    }
+
+#if _ITERATOR_DEBUG_LEVEL != 0
+    _CONSTEXPR20 _差异类型 _总偏移(const _我的容器* _Cont) const noexcept {
+        return static_cast<_差异类型>(_VBITS_DIFF * (_我的指针 - _Cont->_我的向量.数据()) + _Myoff);
+    }
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+
+    const _位基* _我的指针 = nullptr;
+    _尺寸类型 _Myoff    = 0;
+};
+
+template <class _位向量基分配器包装>
+class _位引用 : public _位向量迭代基类<_位向量基分配器包装> {
+    // reference to a bit within a base word
+private:
+    using _我的基类          = _位向量迭代基类<_位向量基分配器包装>;
+    using _我的容器          = typename _我的基类::_我的容器;
+    using _差异类型 = typename _我的基类::_差异类型;
+
+public:
+    _CONSTEXPR20 _位引用(const _位引用&) = default;
+
+    _CONSTEXPR20 _位引用(const _我的基类& _Right) noexcept
+        : _我的基类(_Right._我的指针, _Right._Myoff, _Right._取容器()) {}
+
+    _CONSTEXPR20 _位引用& operator=(const _位引用& _Right) noexcept {
+        return *this = static_cast<bool>(_Right);
+    }
+
+    _CONSTEXPR20 _位引用& operator=(bool _Val) noexcept {
+        if (_Val) {
+            *const_cast<_位基*>(_取指针()) |= _掩码();
+        } else {
+            *const_cast<_位基*>(_取指针()) &= ~_掩码();
+        }
+
+        return *this;
+    }
+
+#if _HAS_CXX23
+    constexpr const _位引用& operator=(bool _Val) const noexcept {
+        if (_Val) {
+            *const_cast<_位基*>(_取指针()) |= _掩码();
+        } else {
+            *const_cast<_位基*>(_取指针()) &= ~_掩码();
+        }
+
+        return *this;
+    }
+#endif // _HAS_CXX23
+
+    _CONSTEXPR20 void flip() noexcept {
+        *const_cast<_位基*>(_取指针()) ^= _掩码();
+    }
+
+    _CONSTEXPR20 operator bool() const noexcept {
+        return (*_取指针() & _掩码()) != 0;
+    }
+
+    _CONSTEXPR20 const _位基* _取指针() const noexcept {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        const auto _Cont = static_cast<const _我的容器*>(this->_取容器());
+        _STL_VERIFY(_Cont, "cannot dereference value-initialized 向量实现<bool> iterator");
+        _STL_VERIFY(this->_总偏移(_Cont) <= static_cast<_差异类型>(_Cont->_我的尺寸),
+            "向量实现<bool> iterator not dereferenceable");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+
+        return this->_我的指针;
+    }
+
+    friend _CONSTEXPR20 void swap(_位引用 _Left, _位引用 _Right) noexcept {
+        bool _Val = _Left; // NOT _STD swap
+        _Left     = _Right;
+        _Right    = _Val;
+    }
+
+protected:
+    _CONSTEXPR20 _位基 _掩码() const noexcept {
+        return static_cast<_位基>(1) << this->_Myoff;
+    }
+};
+
+template <class _位向量基分配器包装>
+class _位向量常量迭代器 : public _位向量迭代基类<_位向量基分配器包装> {
+public:
+    using _我的基类         = _位向量迭代基类<_位向量基分配器包装>;
+    using _我的容器         = typename _我的基类::_我的容器;
+    using _尺寸类型      = typename _我的基类::_尺寸类型;
+    using _引用类型           = _位引用<_位向量基分配器包装>;
+    using const_reference = bool;
+
+    using iterator_category = random_access_iterator_tag;
+    using value_type        = bool;
+    using difference_type   = typename _我的基类::_差异类型;
+    using pointer           = const_reference*;
+    using reference         = const_reference;
+
+    _CONSTEXPR20 _位向量常量迭代器() = default;
+
+    _CONSTEXPR20 _位向量常量迭代器(const _位基* _Ptr, const _容器基类* _Mypvbool) noexcept
+        : _我的基类(_Ptr, 0, _Mypvbool) {}
+
+    _NODISCARD _CONSTEXPR20 const_reference operator*() const noexcept {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        const auto _Cont = static_cast<const _我的容器*>(this->_取容器());
+        _STL_VERIFY(_Cont, "cannot dereference value-initialized 向量实现<bool> iterator");
+        _STL_VERIFY(this->_总偏移(_Cont) < static_cast<difference_type>(_Cont->_我的尺寸),
+            "向量实现<bool> iterator not dereferenceable");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+
+        return _引用类型(*this);
+    }
+
+    _CONSTEXPR20 _位向量常量迭代器& operator++() noexcept {
+        _递增();
+        return *this;
+    }
+
+    _CONSTEXPR20 _位向量常量迭代器 operator++(int) noexcept {
+        _位向量常量迭代器 _临时 = *this;
+        _递增();
+        return _临时;
+    }
+
+    _CONSTEXPR20 _位向量常量迭代器& operator--() noexcept {
+        _递减();
+        return *this;
+    }
+
+    _CONSTEXPR20 _位向量常量迭代器 operator--(int) noexcept {
+        _位向量常量迭代器 _临时 = *this;
+        _递减();
+        return _临时;
+    }
+
+    _CONSTEXPR20 _位向量常量迭代器& operator+=(const difference_type _Off) noexcept {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        if (_Off != 0) {
+            const auto _Cont = static_cast<const _我的容器*>(this->_取容器());
+            _STL_VERIFY(_Cont, "cannot seek value-initialized 向量实现<bool> iterator");
+            const auto _Start_offset = this->_总偏移(_Cont);
+            if (_Off < 0) {
+                _STL_VERIFY(-_Start_offset <= _Off, "cannot seek 向量实现<bool> iterator before 开始");
+            } else if (0 < _Off) {
+                _STL_VERIFY(_Off <= static_cast<difference_type>(_Cont->_我的尺寸 - _Start_offset),
+                    "cannot seek 向量实现<bool> iterator after 结束");
+            }
+        }
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+
+        if (_Off < 0 && this->_Myoff < 0 - static_cast<_尺寸类型>(_Off)) { // add negative increment
+            this->_Myoff += static_cast<_尺寸类型>(_Off);
+            this->_我的指针 -= 1 + (static_cast<_尺寸类型>(-1) - this->_Myoff) / _VBITS;
+            this->_Myoff %= _VBITS;
+        } else { // add non-negative increment
+            this->_Myoff += static_cast<_尺寸类型>(_Off);
+            this->_我的指针 += this->_Myoff / _VBITS;
+            this->_Myoff %= _VBITS;
+        }
+        return *this;
+    }
+
+    _NODISCARD _CONSTEXPR20 _位向量常量迭代器 operator+(const difference_type _Off) const noexcept {
+        _位向量常量迭代器 _临时 = *this;
+        _临时 += _Off;
+        return _临时;
+    }
+
+    _NODISCARD friend _CONSTEXPR20 _位向量常量迭代器 operator+(
+        const difference_type _Off, _位向量常量迭代器 _Right) noexcept {
+        _Right += _Off;
+        return _Right;
+    }
+
+    _CONSTEXPR20 _位向量常量迭代器& operator-=(const difference_type _Off) noexcept {
+        return *this += -_Off;
+    }
+
+    _NODISCARD _CONSTEXPR20 _位向量常量迭代器 operator-(const difference_type _Off) const noexcept {
+        _位向量常量迭代器 _临时 = *this;
+        _临时 -= _Off;
+        return _临时;
+    }
+
+    _NODISCARD _CONSTEXPR20 difference_type operator-(const _位向量常量迭代器& _Right) const noexcept {
+        _兼容(_Right);
+        return static_cast<difference_type>(_我的基类::_VBITS_DIFF * (this->_我的指针 - _Right._我的指针))
+             + static_cast<difference_type>(this->_Myoff) - static_cast<difference_type>(_Right._Myoff);
+    }
+
+    _NODISCARD _CONSTEXPR20 const_reference operator[](const difference_type _Off) const noexcept {
+        return *(*this + _Off);
+    }
+
+    _NODISCARD _CONSTEXPR20 bool operator==(const _位向量常量迭代器& _Right) const noexcept {
+        _兼容(_Right);
+        return this->_我的指针 == _Right._我的指针 && this->_Myoff == _Right._Myoff;
+    }
+
+#if _HAS_CXX20
+    _NODISCARD constexpr strong_ordering operator<=>(const _位向量常量迭代器& _Right) const noexcept {
+        _兼容(_Right);
+        if (const auto _CmpResult = this->_我的指针 <=> _Right._我的指针; _CmpResult != 0) {
+            return _CmpResult;
+        }
+        return this->_Myoff <=> _Right._Myoff;
+    }
+#else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
+    _NODISCARD bool operator!=(const _位向量常量迭代器& _Right) const noexcept {
+        return !(*this == _Right);
+    }
+
+    _NODISCARD bool operator<(const _位向量常量迭代器& _Right) const noexcept {
+        _兼容(_Right);
+        return this->_我的指针 < _Right._我的指针 || (this->_我的指针 == _Right._我的指针 && this->_Myoff < _Right._Myoff);
+    }
+
+    _NODISCARD bool operator>(const _位向量常量迭代器& _Right) const noexcept {
+        return _Right < *this;
+    }
+
+    _NODISCARD bool operator<=(const _位向量常量迭代器& _Right) const noexcept {
+        return !(_Right < *this);
+    }
+
+    _NODISCARD bool operator>=(const _位向量常量迭代器& _Right) const noexcept {
+        return !(*this < _Right);
+    }
+#endif // ^^^ !_HAS_CXX20 ^^^
+
+    _CONSTEXPR20 void _兼容(const _位向量常量迭代器& _Right) const noexcept {
+        // test for compatible iterator pair
+#if _ITERATOR_DEBUG_LEVEL == 0
+        (void) _Right;
+#else
+        _STL_VERIFY(this->_取容器() == _Right._取容器(), "向量实现<bool> iterators incompatible");
+#endif
+    }
+
+#if _ITERATOR_DEBUG_LEVEL != 0
+    using _阻止继承解包 = _位向量常量迭代器;
+
+    friend _CONSTEXPR20 void _校验范围(const _位向量常量迭代器& _首个, const _位向量常量迭代器& _最后) noexcept {
+        // note _兼容 check inside <=
+        _STL_VERIFY(_首个 <= _最后, "向量实现<bool> iterator range transposed");
+    }
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+
+    _CONSTEXPR20 void _递减() noexcept { // decrement bit position
+#if _ITERATOR_DEBUG_LEVEL != 0
+        const auto _Cont = static_cast<const _我的容器*>(this->_取容器());
+        _STL_VERIFY(_Cont, "cannot decrement value-initialized 向量实现<bool> iterator");
+        _STL_VERIFY(this->_总偏移(_Cont) > 0, "cannot decrement 向量实现<bool> 开始 iterator");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+
+        if (this->_Myoff != 0) {
+            --this->_Myoff;
+        } else { // move to previous word
+            this->_Myoff = _VBITS - 1;
+            --this->_我的指针;
+        }
+    }
+
+    _CONSTEXPR20 void _递增() noexcept { // increment bit position
+#if _ITERATOR_DEBUG_LEVEL != 0
+        const auto _Cont = static_cast<const _我的容器*>(this->_取容器());
+        _STL_VERIFY(_Cont, "cannot increment value-initialized 向量实现<bool> iterator");
+        _STL_VERIFY(this->_总偏移(_Cont) < static_cast<difference_type>(_Cont->_我的尺寸),
+            "cannot increment 向量实现<bool> 结束 iterator");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+
+        if (this->_Myoff < _VBITS - 1) {
+            ++this->_Myoff;
+        } else { // move to next word
+            this->_Myoff = 0;
+            ++this->_我的指针;
+        }
+    }
+};
+
+template <class _位向量基分配器包装>
+class _位向量迭代器 : public _位向量常量迭代器<_位向量基分配器包装> {
+public:
+    using _我的基类 = _位向量常量迭代器<_位向量基分配器包装>;
+    using _我的容器 = typename _我的基类::_我的容器;
+
+    using _引用类型           = _位引用<_位向量基分配器包装>;
+    using const_reference = bool;
+
+    using iterator_category = random_access_iterator_tag;
+    using value_type        = bool;
+    using difference_type   = typename _我的基类::difference_type;
+    using pointer           = _引用类型*;
+    using reference         = _引用类型;
+
+    using _我的基类::_我的基类;
+
+    _NODISCARD _CONSTEXPR20 reference operator*() const noexcept {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        const auto _Cont = static_cast<const _我的容器*>(this->_取容器());
+        _STL_VERIFY(_Cont, "cannot dereference value-initialized 向量实现<bool> iterator");
+        _STL_VERIFY(this->_总偏移(_Cont) < static_cast<difference_type>(_Cont->_我的尺寸),
+            "向量实现<bool> iterator not dereferenceable");
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+
+        return _引用类型(*this);
+    }
+
+    _CONSTEXPR20 _位向量迭代器& operator++() noexcept {
+        _我的基类::operator++();
+        return *this;
+    }
+
+    _CONSTEXPR20 _位向量迭代器 operator++(int) noexcept {
+        _位向量迭代器 _临时 = *this;
+        _我的基类::operator++();
+        return _临时;
+    }
+
+    _CONSTEXPR20 _位向量迭代器& operator--() noexcept {
+        _我的基类::operator--();
+        return *this;
+    }
+
+    _CONSTEXPR20 _位向量迭代器 operator--(int) noexcept {
+        _位向量迭代器 _临时 = *this;
+        _我的基类::operator--();
+        return _临时;
+    }
+
+    _CONSTEXPR20 _位向量迭代器& operator+=(const difference_type _Off) noexcept {
+        _我的基类::operator+=(_Off);
+        return *this;
+    }
+
+    _NODISCARD _CONSTEXPR20 _位向量迭代器 operator+(const difference_type _Off) const noexcept {
+        _位向量迭代器 _临时 = *this;
+        _临时 += _Off;
+        return _临时;
+    }
+
+    _NODISCARD friend _CONSTEXPR20 _位向量迭代器 operator+(const difference_type _Off, _位向量迭代器 _Right) noexcept {
+        _Right += _Off;
+        return _Right;
+    }
+
+    _CONSTEXPR20 _位向量迭代器& operator-=(const difference_type _Off) noexcept {
+        _我的基类::operator-=(_Off);
+        return *this;
+    }
+
+    using _我的基类::operator-;
+
+    _NODISCARD _CONSTEXPR20 _位向量迭代器 operator-(const difference_type _Off) const noexcept {
+        _位向量迭代器 _临时 = *this;
+        _临时 -= _Off;
+        return _临时;
+    }
+
+    _NODISCARD _CONSTEXPR20 reference operator[](const difference_type _Off) const noexcept {
+        return *(*this + _Off);
+    }
+
+    using _阻止继承解包 = _位向量迭代器;
+};
+
+template <class _分配器>
+class _位向量值 : public _容器基类 {
+public:
+    using _位向量基分配器         = _重绑定分配器类型<_分配器, _位基>;
+    using _位向量基分配器特征  = allocator_traits<_位向量基分配器>;
+    using _向量类型         = 向量实现<_位基, _位向量基分配器>;
+    using _位向量基分配器包装 = _包装分配器<_位向量基分配器>;
+    using size_type        = typename _位向量基分配器特征::size_type;
+
+    _CONSTEXPR20 _位向量值() noexcept(is_nothrow_default_constructible_v<_向量类型>) : _我的向量(), _我的尺寸(0) {
+        this->_分配代理(_取代理分配器(_位向量基分配器, _取分配器()));
+    }
+
+    _CONSTEXPR20 _位向量值(const _分配器& _Al) noexcept : _我的向量(static_cast<_位向量基分配器>(_Al)), _我的尺寸(0) {
+        this->_分配代理(_取代理分配器(_位向量基分配器, _取分配器()));
+    }
+
+    _CONSTEXPR20 _位向量值(size_type _Count, const bool& _Val)
+        : _我的向量(_新建原生(_Count), static_cast<_位基>(_Val ? -1 : 0)), _我的尺寸(0) {
+        this->_分配代理(_取代理分配器(_位向量基分配器, _取分配器()));
+    }
+
+    _CONSTEXPR20 _位向量值(size_type _Count, const bool& _Val, const _分配器& _Al)
+        : _我的向量(_新建原生(_Count), static_cast<_位基>(_Val ? -1 : 0), static_cast<_位向量基分配器>(_Al)), _我的尺寸(0) {
+        this->_分配代理(_取代理分配器(_位向量基分配器, _取分配器()));
+    }
+
+    _CONSTEXPR20 _位向量值(const _位向量值& _Right) : _我的向量(_Right._我的向量), _我的尺寸(_Right._我的尺寸) {
+        this->_分配代理(_取代理分配器(_位向量基分配器, _取分配器()));
+    }
+
+    _CONSTEXPR20 _位向量值(const _位向量值& _Right, const _分配器& _Al)
+        : _我的向量(_Right._我的向量, static_cast<_位向量基分配器>(_Al)), _我的尺寸(_Right._我的尺寸) {
+        this->_分配代理(_取代理分配器(_位向量基分配器, _取分配器()));
+    }
+
+    _CONSTEXPR20 _位向量值(_位向量值&& _Right) noexcept(is_nothrow_move_constructible_v<_向量类型>)
+        : _我的向量(_STD move(_Right._我的向量)), _我的尺寸(_STD exchange(_Right._我的尺寸, size_type{0})) {
+        this->_分配代理(_取代理分配器(_位向量基分配器, _取分配器()));
+    }
+
+    _CONSTEXPR20 _位向量值(_位向量值&& _Right, const _分配器& _Al)
+        noexcept(is_nothrow_constructible_v<_向量类型, _向量类型, _位向量基分配器>)
+        : _我的向量(_STD move(_Right._我的向量), static_cast<_位向量基分配器>(_Al)), _我的尺寸(_Right._我的尺寸) {
+        if (_Right._我的向量.为空()) {
+            // we took _Right's buffer, so zero out 尺寸
+            _Right._我的尺寸 = 0;
+        }
+
+        this->_分配代理(_取代理分配器(_位向量基分配器, _取分配器()));
+    }
+
+    _CONSTEXPR20 ~_位向量值() noexcept {
+#if _ITERATOR_DEBUG_LEVEL != 0
+        this->_孤儿化全部();
+        auto&& _Alproxy = _取代理分配器(_位向量基分配器, this->_取分配器());
+        _删除原生内部(_Alproxy, _STD exchange(this->_Myproxy, nullptr));
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+
+#if _MSVC_STL_DESTRUCTOR_TOMBSTONES
+        // Destroying _我的向量 will store tombstones in its pointers, setting its apparent 尺寸 to 0.
+        // We should also set our _我的尺寸 to 0 for consistency, allowing precondition hardening to detect UB earlier.
+        _我的尺寸 = 0;
+#endif
+    }
+
+    _CONSTEXPR20 _位向量基分配器& _取分配器() noexcept {
+        return _我的向量._取分配器();
+    }
+
+    _CONSTEXPR20 const _位向量基分配器& _取分配器() const noexcept {
+        return _我的向量._取分配器();
+    }
+
+    static _CONSTEXPR20 size_type _新建原生(size_type _Count) noexcept {
+        return (_Count + _VBITS - 1) / _VBITS;
+    }
+
+    _CONSTEXPR20 void _尾部就地构造非检查(const _位基 _Val) noexcept {
+        _STL_INTERNAL_CHECK(_我的向量.尺寸() < _我的向量.容量());
+        _我的向量._用未用容量尾部就地构造(_Val);
+    }
+
+    _向量类型 _我的向量; // base 向量实现 of words
+    size_type _我的尺寸; // current length of sequence
+};
+
+template <class _分配器>
+class 向量实现<bool, _分配器> : public _位向量值<_分配器> {
+public:
+    static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<bool, typename _分配器::value_type>,
+        _MISMATCHED_ALLOCATOR_MESSAGE("向量实现<bool, Allocator>", "bool"));
+
+    using _我的基类          = _位向量值<_分配器>;
+    using _位向量基分配器包装 = typename _我的基类::_位向量基分配器包装;
+    using _位向量基分配器         = typename _我的基类::_位向量基分配器;
+    using _位向量基分配器特征  = typename _我的基类::_位向量基分配器特征;
+
+    using size_type       = typename _位向量基分配器特征::size_type;
+    using difference_type = typename _位向量基分配器特征::difference_type;
+    using allocator_type  = _分配器;
+
+    using reference       = _位引用<_位向量基分配器包装>;
+    using const_reference = bool;
+    using value_type      = bool;
+
+    using _引用类型          = reference;
+    using iterator       = _位向量迭代器<_位向量基分配器包装>;
+    using const_iterator = _位向量常量迭代器<_位向量基分配器包装>;
+
+    using pointer                = iterator;
+    using const_pointer          = const_iterator;
+    using reverse_iterator       = _STD reverse_iterator<iterator>;
+    using const_reverse_iterator = _STD reverse_iterator<const_iterator>;
+
+    enum { _EEN_VBITS = _VBITS }; // helper for expression evaluator
+
+    _CONSTEXPR20 向量实现() noexcept(is_nothrow_default_constructible_v<_分配器>) : _我的基类(_分配器()) {}
+
+    _CONSTEXPR20 explicit 向量实现(const _分配器& _Al) noexcept : _我的基类(_Al) {}
+
+    _CONSTEXPR20 explicit 向量实现(_CRT_GUARDOVERFLOW size_type _Count, const _分配器& _Al = _分配器())
+        : _我的基类(_Count, false, _Al) {
+        _修剪(_Count);
+    }
+
+    _CONSTEXPR20 向量实现(_CRT_GUARDOVERFLOW size_type _Count, const bool& _Val, const _分配器& _Al = _分配器())
+        : _我的基类(_Count, _Val, _Al) {
+        _修剪(_Count);
+    }
+
+    _CONSTEXPR20 向量实现(const 向量实现& _Right) : _我的基类(_Right) {}
+
+    _CONSTEXPR20 向量实现(const 向量实现& _Right, const _Identity_t<_分配器>& _Al) : _我的基类(_Right, _Al) {}
+
+    template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
+    _CONSTEXPR20 向量实现(_Iter _首个, _Iter _最后, const _分配器& _Al = _分配器()) : _我的基类(_Al) {
+        插入(开始(), _首个, _最后);
+    }
+
+#if _HAS_CXX23
+    template <_Container_compatible_range<bool> _Rng>
+    constexpr 向量实现(from_range_t, _Rng&& _Range, const _分配器& _Al = _分配器()) : _我的基类(_Al) {
+        if constexpr (_RANGES forward_range<_Rng> || _RANGES sized_range<_Rng>) {
+            const auto _Length = _转为无符号同型(_RANGES distance(_Range));
+            const auto _Count  = _Convert_size<size_type>(_Length);
+            _赋值计数范围(_解包首(_Range), _Count);
+        } else {
+            _赋值非计数范围(_解包首(_Range), _解包尾(_Range));
+        }
+    }
+#endif // _HAS_CXX23
+
+    _CONSTEXPR20 向量实现(向量实现&& _Right) noexcept : _我的基类(_STD move(_Right)) {
+        this->_交换代理与迭代器(_Right);
+    }
+
+    _CONSTEXPR20 向量实现(向量实现&& _Right, const _Identity_t<_分配器>& _Al)
+        noexcept(is_nothrow_constructible_v<_我的基类, _我的基类, const _分配器&>) // strengthened
+        : _我的基类(_STD move(_Right), _Al) {
+        if constexpr (!_位向量基分配器特征::is_always_equal::value) {
+            if (this->_取分配器() != _Right._取分配器()) {
+                return;
+            }
+        }
+
+        this->_交换代理与迭代器(_Right);
+    }
+
+    _CONSTEXPR20 向量实现& operator=(向量实现&& _Right)
+        noexcept(_Choose_pocma_v<_位向量基分配器> != _传播复制移动赋值取值::_No_propagate_allocators) {
+        if (this == _STD addressof(_Right)) {
+            return *this;
+        }
+
+#if _ITERATOR_DEBUG_LEVEL == 0
+        this->_我的向量  = _STD move(_Right._我的向量);
+        this->_我的尺寸 = _STD exchange(_Right._我的尺寸, size_type{0});
+#else // ^^^ _ITERATOR_DEBUG_LEVEL == 0 / _ITERATOR_DEBUG_LEVEL != 0 vvv
+        this->_孤儿化全部();
+        auto& _Al                 = this->_取分配器();
+        auto& _Right_al           = _Right._取分配器();
+        constexpr auto _Pocma_val = _Choose_pocma_v<_位向量基分配器>;
+        if constexpr (_Pocma_val == _传播复制移动赋值取值::_Propagate_allocators) {
+            using _代理分配器类型 = _重绑定分配器类型<_位向量基分配器, _容器代理>;
+            if (_Al != _Right_al) { // reload proxy
+                // intentionally slams into noexcept on OOM, TRANSITION, VSO-466800
+                _代理分配器类型 _Oldal(_Al);
+                _代理分配器类型 _Right_proxy_al(_Right_al);
+                _容器代理指针<_位向量基分配器> _代理(_Right_proxy_al, _离开代理未绑定{});
+                this->_我的向量  = _STD move(_Right._我的向量);
+                this->_我的尺寸 = _STD exchange(_Right._我的尺寸, size_type{0});
+                _代理._绑定(_Oldal, this);
+                this->_交换代理与迭代器(_Right);
+                return *this;
+            }
+        } else if constexpr (_Pocma_val == _传播复制移动赋值取值::_No_propagate_allocators) {
+            this->_我的向量  = _STD move(_Right._我的向量);
+            this->_我的尺寸 = _Right._我的尺寸;
+            if (_Right._我的向量.为空()) {
+                // we took _Right's buffer, so zero out 尺寸
+                _Right._我的尺寸 = 0;
+            }
+
+            if (_Al == _Right_al) {
+                this->_交换代理与迭代器(_Right);
+            }
+            return *this;
+        }
+
+        this->_我的向量  = _STD move(_Right._我的向量);
+        this->_我的尺寸 = _STD exchange(_Right._我的尺寸, size_type{0});
+        this->_交换代理与迭代器(_Right);
+
+#endif // ^^^ _ITERATOR_DEBUG_LEVEL != 0 ^^^
+        return *this;
+    }
+
+    template <class... _值参数类型>
+    _CONSTEXPR20 _CONTAINER_EMPLACE_RETURN 尾部就地构造(_值参数类型&&... _Val) {
+        bool _临时(_STD forward<_值参数类型>(_Val)...);
+        尾插(_临时);
+
+#if _HAS_CXX17
+        return 后();
+#endif // _HAS_CXX17
+    }
+
+    template <class... _值参数类型>
+    _CONSTEXPR20 iterator 就地构造(const_iterator _Where, _值参数类型&&... _Val) {
+        bool _临时(_STD forward<_值参数类型>(_Val)...);
+        return 插入(_Where, _临时);
+    }
+
+    _CONSTEXPR20 向量实现(initializer_list<bool> _Ilist, const _分配器& _Al = allocator_type()) : _我的基类(0, false, _Al) {
+        插入(开始(), _Ilist.begin(), _Ilist.end());
+    }
+
+    _CONSTEXPR20 向量实现& operator=(initializer_list<bool> _Ilist) {
+        赋值(_Ilist.begin(), _Ilist.end());
+        return *this;
+    }
+
+    _CONSTEXPR20 void 赋值(initializer_list<bool> _Ilist) {
+        赋值(_Ilist.begin(), _Ilist.end());
+    }
+
+    _CONSTEXPR20 iterator 插入(const_iterator _Where, initializer_list<bool> _Ilist) {
+        return 插入(_Where, _Ilist.begin(), _Ilist.end());
+    }
+
+    _CONSTEXPR20 ~向量实现() noexcept {}
+
+    _CONSTEXPR20 向量实现& operator=(const 向量实现& _Right) {
+        if (this == _STD addressof(_Right)) {
+            return *this;
+        }
+
+#if _ITERATOR_DEBUG_LEVEL == 0
+        this->_我的向量  = _Right._我的向量;
+        this->_我的尺寸 = _Right._我的尺寸;
+#else // ^^^ _ITERATOR_DEBUG_LEVEL == 0 / _ITERATOR_DEBUG_LEVEL != 0 vvv
+        this->_孤儿化全部();
+        auto& _Al       = this->_取分配器();
+        auto& _Right_al = _Right._取分配器();
+        if constexpr (_Choose_pocca_v<_位向量基分配器>) {
+            if (_Al != _Right_al) {
+                // reload proxy
+                using _代理分配器类型 = _重绑定分配器类型<_位向量基分配器, _容器代理>;
+                _代理分配器类型 _Oldal(_Al);
+                _代理分配器类型 _Right_proxy_al(_Right_al);
+                _容器代理指针<_位向量基分配器> _代理(_Right_proxy_al, _离开代理未绑定{});
+                this->_我的向量  = _Right._我的向量;
+                this->_我的尺寸 = _Right._我的尺寸;
+                _代理._绑定(_Oldal, this);
+                return *this;
+            }
+        }
+
+        this->_我的向量  = _Right._我的向量;
+        this->_我的尺寸 = _Right._我的尺寸;
+#endif // ^^^ _ITERATOR_DEBUG_LEVEL != 0 ^^^
+
+        return *this;
+    }
+
+    _CONSTEXPR20 void 预留(_CRT_GUARDOVERFLOW size_type _Count) {
+        this->_我的向量.预留(this->_新建原生(_Count));
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type 容量() const noexcept {
+        return this->_我的向量.容量() * _VBITS;
+    }
+
+    _NODISCARD _CONSTEXPR20 iterator 开始() noexcept {
+        return iterator(this->_我的向量.数据(), this);
+    }
+
+    _NODISCARD _CONSTEXPR20 const_iterator 开始() const noexcept {
+        return const_iterator(this->_我的向量.数据(), this);
+    }
+
+    _NODISCARD _CONSTEXPR20 iterator 结束() noexcept {
+        return 开始() + static_cast<difference_type>(this->_我的尺寸);
+    }
+
+    _NODISCARD _CONSTEXPR20 const_iterator 结束() const noexcept {
+        return 开始() + static_cast<difference_type>(this->_我的尺寸);
+    }
+
+    _NODISCARD _CONSTEXPR20 const_iterator 常量开始() const noexcept {
+        return 开始();
+    }
+
+    _NODISCARD _CONSTEXPR20 const_iterator 常量结束() const noexcept {
+        return 结束();
+    }
+
+    _NODISCARD _CONSTEXPR20 const_reverse_iterator 常量反向开始() const noexcept {
+        return 反向开始();
+    }
+
+    _NODISCARD _CONSTEXPR20 const_reverse_iterator 常量反向结束() const noexcept {
+        return 反向结束();
+    }
+
+    _NODISCARD _CONSTEXPR20 iterator _非检查开始() noexcept {
+        return iterator(this->_我的向量.数据(), this);
+    }
+
+    _NODISCARD _CONSTEXPR20 const_iterator _非检查开始() const noexcept {
+        return const_iterator(this->_我的向量.数据(), this);
+    }
+
+    _NODISCARD _CONSTEXPR20 iterator _非检查结束() noexcept {
+        return _非检查开始() + static_cast<difference_type>(this->_我的尺寸);
+    }
+
+    _NODISCARD _CONSTEXPR20 const_iterator _非检查结束() const noexcept {
+        return _非检查开始() + static_cast<difference_type>(this->_我的尺寸);
+    }
+
+    _CONSTEXPR20 void 收缩至适应() {
+        if (this->_我的向量.容量() != this->_我的向量.尺寸()) {
+            this->_孤儿化全部();
+            this->_我的向量.收缩至适应();
+        }
+    }
+
+    _CONSTEXPR20 iterator _造迭代器(const_iterator _Where) noexcept {
+        iterator _临时 = 开始();
+        if (0 < this->_我的尺寸) {
+            _临时 += _Where - 开始();
+        }
+
+        return _临时;
+    }
+
+    _NODISCARD _CONSTEXPR20 reverse_iterator 反向开始() noexcept {
+        return reverse_iterator(结束());
+    }
+
+    _NODISCARD _CONSTEXPR20 const_reverse_iterator 反向开始() const noexcept {
+        return const_reverse_iterator(结束());
+    }
+
+    _NODISCARD _CONSTEXPR20 reverse_iterator 反向结束() noexcept {
+        return reverse_iterator(开始());
+    }
+
+    _NODISCARD _CONSTEXPR20 const_reverse_iterator 反向结束() const noexcept {
+        return const_reverse_iterator(开始());
+    }
+
+    _CONSTEXPR20 void 调整尺寸(_CRT_GUARDOVERFLOW size_type _Newsize, bool _Val = false) {
+        if (尺寸() < _Newsize) {
+            _插入n个(结束(), _Newsize - 尺寸(), _Val);
+        } else if (_Newsize < 尺寸()) {
+            擦除(开始() + static_cast<difference_type>(_Newsize), 结束());
+        }
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type 尺寸() const noexcept {
+        return this->_我的尺寸;
+    }
+
+    _NODISCARD _CONSTEXPR20 size_type max_size() const noexcept {
+        constexpr auto _Diff_max  = static_cast<size_type>(_STD _Max_limit<difference_type>());
+        const size_type _Ints_max = this->_我的向量.max_size();
+        if (_Ints_max > _Diff_max / _VBITS) { // max_size bound by difference_type limits
+            return _Diff_max;
+        }
+
+        // max_size bound by underlying storage limits
+        return _Ints_max * _VBITS;
+    }
+
+    _NODISCARD_EMPTY_MEMBER _CONSTEXPR20 bool 为空() const noexcept {
+        return this->_我的尺寸 == 0;
+    }
+
+    _NODISCARD _CONSTEXPR20 allocator_type 取分配器() const noexcept {
+        return static_cast<allocator_type>(this->_我的向量.取分配器());
+    }
+
+    _NODISCARD _CONSTEXPR20 const_reference 取值(size_type _Off) const {
+        if (尺寸() <= _Off) {
+            _抛范围错();
+        }
+
+        return (*this)[_Off];
+    }
+
+    _NODISCARD _CONSTEXPR20 reference 取值(size_type _Off) {
+        if (尺寸() <= _Off) {
+            _抛范围错();
+        }
+
+        return (*this)[_Off];
+    }
+
+    _NODISCARD _CONSTEXPR20 const_reference operator[](size_type _Off) const noexcept /* strengthened */ {
+#if _MSVC_STL_HARDENING_VECTOR || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Off < this->_我的尺寸, "向量实现<bool> subscript out of range");
+#endif
+
+        const_iterator _It = 开始();
+        _It._前进(_Off);
+        return *_It;
+    }
+
+    _NODISCARD _CONSTEXPR20 reference operator[](size_type _Off) noexcept /* strengthened */ {
+#if _MSVC_STL_HARDENING_VECTOR || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Off < this->_我的尺寸, "向量实现<bool> subscript out of range");
+#endif
+
+        iterator _It = 开始();
+        _It._前进(_Off);
+        return *_It;
+    }
+
+    _NODISCARD _CONSTEXPR20 reference 前() noexcept /* strengthened */ {
+#if _MSVC_STL_HARDENING_VECTOR || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(this->_我的尺寸 != 0, "前() called on 为空 向量实现<bool>");
+#endif
+
+        return *开始();
+    }
+
+    _NODISCARD _CONSTEXPR20 const_reference 前() const noexcept /* strengthened */ {
+#if _MSVC_STL_HARDENING_VECTOR || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(this->_我的尺寸 != 0, "前() called on 为空 向量实现<bool>");
+#endif
+
+        return *开始();
+    }
+
+    _NODISCARD _CONSTEXPR20 reference 后() noexcept /* strengthened */ {
+#if _MSVC_STL_HARDENING_VECTOR || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(this->_我的尺寸 != 0, "后() called on 为空 向量实现<bool>");
+#endif
+
+        return *(结束() - 1);
+    }
+
+    _NODISCARD _CONSTEXPR20 const_reference 后() const noexcept /* strengthened */ {
+#if _MSVC_STL_HARDENING_VECTOR || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(this->_我的尺寸 != 0, "后() called on 为空 向量实现<bool>");
+#endif
+
+        return *(结束() - 1);
+    }
+
+    _CONSTEXPR20 void 尾插(const bool& _Val) {
+        插入(结束(), _Val);
+    }
+
+#if _HAS_CXX23
+    template <_Container_compatible_range<bool> _Rng>
+    constexpr void 追加范围(_Rng&& _Range) {
+        范围插入(结束(), _STD forward<_Rng>(_Range));
+    }
+#endif // _HAS_CXX23
+
+    _CONSTEXPR20 void 尾删() noexcept /* strengthened */ {
+#if _MSVC_STL_HARDENING_VECTOR || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(this->_我的尺寸 != 0, "尾删() called on 为空 向量实现<bool>");
+#endif
+
+        擦除(结束() - 1);
+    }
+
+    template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
+    _CONSTEXPR20 void 赋值(_Iter _首个, _Iter _最后) {
+        清空();
+        插入(开始(), _首个, _最后);
+    }
+
+#if _HAS_CXX23
+    template <class _Iter>
+    constexpr void _赋值计数范围(_Iter _首个, const size_type _Count) {
+        _STL_INTERNAL_CHECK(this->_我的向量.为空());
+        this->_我的向量.预留(this->_新建原生(_Count));
+        _位基 _Accum = 0;
+        _位基 _掩码  = 1;
+        for (size_type _Idx = 0; _Idx < _Count; ++_Idx) {
+            const bool _临时 = *_首个;
+            ++_首个;
+            _Accum |= _临时 ? _掩码 : _位基{0};
+            if ((_掩码 <<= 1) == 0) {
+                this->_尾部就地构造非检查(_Accum);
+                _Accum = 0;
+                _掩码  = 1;
+            }
+        }
+
+        if (_Count % _VBITS != 0) {
+            this->_尾部就地构造非检查(_Accum);
+        }
+        this->_我的尺寸 = _Count;
+    }
+
+    template <class _Iter, class _Sent>
+    constexpr void _赋值非计数范围(_Iter _首个, const _Sent _最后) {
+        _STL_INTERNAL_CHECK(this->_我的向量.为空());
+        size_type _Count = 0;
+        _位基 _Accum    = 0;
+        _位基 _掩码     = 1;
+        for (; _首个 != _最后; ++_Count) {
+            const bool _临时 = *_首个;
+            ++_首个;
+            _Accum |= _临时 ? _掩码 : _位基{0};
+            if ((_掩码 <<= 1) == 0) {
+                this->_我的向量.尾插(_Accum);
+                _Accum = 0;
+                _掩码  = 1;
+            }
+        }
+
+        if (_Count % _VBITS != 0) {
+            this->_我的向量.尾插(_Accum);
+        }
+        this->_我的尺寸 = _Count;
+    }
+
+    template <_Container_compatible_range<bool> _Rng>
+    constexpr void 范围赋值(_Rng&& _Range) {
+        static_assert(assignable_from<bool&, _RANGES range_reference_t<_Rng>>,
+            "Elements must be assignable from the range's reference type (N4993 [sequence.reqmts]/60).");
+        清空();
+        if constexpr (_RANGES forward_range<_Rng> || _RANGES sized_range<_Rng>) {
+            const auto _Length = _转为无符号同型(_RANGES distance(_Range));
+            const auto _Count  = _Convert_size<size_type>(_Length);
+            _赋值计数范围(_解包首(_Range), _Count);
+        } else {
+            _赋值非计数范围(_解包首(_Range), _解包尾(_Range));
+        }
+    }
+#endif // _HAS_CXX23
+
+    _CONSTEXPR20 void 赋值(_CRT_GUARDOVERFLOW size_type _Count, const bool& _Val) {
+        清空();
+        _插入n个(开始(), _Count, _Val);
+    }
+
+    _CONSTEXPR20 iterator 插入(const_iterator _Where, const bool& _Val) {
+        return _插入n个(_Where, size_type{1}, _Val);
+    }
+
+    _CONSTEXPR20 iterator 插入(const_iterator _Where, _CRT_GUARDOVERFLOW size_type _Count, const bool& _Val) {
+        return _插入n个(_Where, _Count, _Val);
+    }
+
+    template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
+    _CONSTEXPR20 iterator 插入(const_iterator _Where, _Iter _首个, _Iter _最后) {
+        const difference_type _Saved_offset = _Where - 开始();
+        _ADL校验范围(_首个, _最后);
+        auto _UFirst      = _取解包(_首个);
+        const auto _ULast = _取解包(_最后);
+
+        if constexpr (_Is_cpp17_fwd_iter_v<_Iter>) {
+            const auto _Length = static_cast<size_t>(_STD distance(_UFirst, _ULast));
+            const auto _Count  = _STD _Convert_size<size_type>(_Length);
+            const auto _Off    = static_cast<difference_type>(_插入若干(_Where, _Count));
+            _复制非检查(_UFirst, _ULast, 开始() + _Off);
+#if _HAS_CXX20
+        } else if constexpr (forward_iterator<_Iter>) {
+            const auto _Length = _转为无符号同型(_RANGES distance(_UFirst, _ULast));
+            const auto _Count  = _STD _Convert_size<size_type>(_Length);
+            const auto _Off    = static_cast<difference_type>(_插入若干(_Where, _Count));
+            _复制非检查(_UFirst, _ULast, 开始() + _Off);
+#endif // _HAS_CXX20
+        } else {
+            const auto _Old_size = this->_我的尺寸;
+            for (; _UFirst != _ULast; ++_UFirst) {
+                尾部就地构造(*_UFirst);
+            }
+#if _ITERATOR_DEBUG_LEVEL == 2
+            _孤儿化范围(static_cast<size_type>(_Saved_offset), _Old_size);
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+            _STD rotate(开始() + _Saved_offset, 开始() + static_cast<difference_type>(_Old_size), 结束());
+        }
+
+        return 开始() + _Saved_offset;
+    }
+
+#if _HAS_CXX23
+    template <_Container_compatible_range<bool> _Rng>
+    constexpr iterator 范围插入(const_iterator _Where, _Rng&& _Range) {
+        const difference_type _Old_off = _Where - 开始();
+
+        if constexpr (_RANGES forward_range<_Rng> || _RANGES sized_range<_Rng>) {
+            const auto _Length = _转为无符号同型(_RANGES distance(_Range));
+            const auto _Count  = _Convert_size<size_type>(_Length);
+            const auto _Off    = static_cast<difference_type>(_插入若干(_Where, _Count));
+            _复制N个非检查4(_解包首(_Range), _Count, 开始() + _Off);
+        } else {
+            auto _UFirst         = _解包首(_Range);
+            const auto _ULast    = _解包尾(_Range);
+            const auto _Old_size = this->_我的尺寸;
+            for (; _UFirst != _ULast; ++_UFirst) {
+                尾部就地构造(*_UFirst);
+            }
+#if _ITERATOR_DEBUG_LEVEL == 2
+            _孤儿化范围(static_cast<size_type>(_Old_off), _Old_size);
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+            _STD rotate(开始() + _Old_off, 开始() + static_cast<difference_type>(_Old_size), 结束());
+        }
+
+        return 开始() + _Old_off;
+    }
+#endif // _HAS_CXX23
+
+    _CONSTEXPR20 iterator 擦除(const_iterator _Where_arg) noexcept /* strengthened */ {
+        iterator _Where      = _造迭代器(_Where_arg);
+        difference_type _Off = _Where - 开始();
+
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(结束() > _Where, "向量实现<bool> 擦除 iterator outside range");
+#endif
+
+        _STD copy(_下一迭代器(_Where), 结束(), _Where);
+
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _孤儿化范围(static_cast<size_type>(_Off), this->_我的尺寸);
+#endif
+
+        _修剪(this->_我的尺寸 - 1);
+        return 开始() + _Off;
+    }
+
+    _CONSTEXPR20 iterator 擦除(const_iterator _First_arg, const_iterator _Last_arg) noexcept
+    /* strengthened */ {
+        iterator _首个      = _造迭代器(_First_arg);
+        iterator _最后       = _造迭代器(_Last_arg);
+        difference_type _Off = _首个 - 开始();
+
+        if (_首个 != _最后) { // worth doing, copy down over hole
+#if _ITERATOR_DEBUG_LEVEL == 2
+            _STL_VERIFY(_最后 >= _首个 && 结束() >= _最后, "向量实现<bool> 擦除 iterator outside range");
+#endif
+
+            iterator _Next      = _STD copy(_最后, 结束(), _首个);
+            const auto _Newsize = static_cast<size_type>(_Next - 开始());
+
+#if _ITERATOR_DEBUG_LEVEL == 2
+            _孤儿化范围(_Newsize, this->_我的尺寸);
+#endif
+
+            _修剪(_Newsize);
+        }
+        return 开始() + _Off;
+    }
+
+    _CONSTEXPR20 void 清空() noexcept {
+        this->_孤儿化全部();
+        this->_我的向量.清空();
+        this->_我的尺寸 = 0;
+    }
+
+    _CONSTEXPR20 void flip() noexcept { // toggle all elements
+        for (auto& _元素 : this->_我的向量) {
+            _元素 = ~_元素;
+        }
+
+        _修剪(this->_我的尺寸);
+    }
+
+    _CONSTEXPR20 void swap(向量实现& _Right) noexcept /* strengthened */ {
+        if (this != _STD addressof(_Right)) {
+            this->_交换代理与迭代器(_Right);
+            this->_我的向量.swap(_Right._我的向量);
+            _STD swap(this->_我的尺寸, _Right._我的尺寸);
+        }
+    }
+
+    static _CONSTEXPR20 void swap(reference _Left, reference _Right) noexcept {
+        bool _Val = _Left; // NOT _STD swap
+        _Left     = _Right;
+        _Right    = _Val;
+    }
+
+    friend hash<向量实现<bool, _分配器>>;
+
+    _CONSTEXPR20 iterator _插入n个(const_iterator _Where, size_type _Count, const bool& _Val) {
+        size_type _Off     = _插入若干(_Where, _Count);
+        const auto _结果 = 开始() + static_cast<difference_type>(_Off);
+        _STD fill_n(_结果, _Count, _Val);
+        return _结果;
+    }
+
+    _CONSTEXPR20 size_type _插入若干(const_iterator _Where, size_type _Count) {
+        const difference_type _Off = _Where - 开始();
+
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(结束() >= _Where, "向量实现<bool> 插入 iterator outside range");
+        const bool _Realloc = 容量() - 尺寸() < _Count;
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+        if (_Count != 0) {
+            if (max_size() - 尺寸() < _Count) {
+                _长度参数(); // result too long
+            }
+
+#if _ITERATOR_DEBUG_LEVEL == 2
+            _孤儿化范围(static_cast<size_type>(_Realloc ? 0 : _Off), this->_我的尺寸);
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+            this->_我的向量.调整尺寸(this->_新建原生(尺寸() + _Count), 0);
+            if (为空()) {
+                this->_我的尺寸 += _Count;
+            } else { // make room and copy down suffix
+                iterator _Oldend = 结束();
+                this->_我的尺寸 += _Count;
+                _STD copy_backward(开始() + _Off, _Oldend, 结束());
+            }
+        }
+
+        return static_cast<size_type>(_Off);
+    }
+
+#if _ITERATOR_DEBUG_LEVEL == 2
+    _CONSTEXPR20 void _孤儿化范围不加锁(size_type _Offlo, size_type _Offhi) const {
+        const auto _Base = this->_我的向量.数据();
+
+        _迭代器基类12** _Pnext = &this->_Myproxy->_Myfirstiter;
+        while (*_Pnext) { // test offset from beginning of 向量实现
+            const auto& _Pnextiter = static_cast<typename const_iterator::_我的基类&>(**_Pnext);
+            const auto _Temp       = *_Pnext;
+            if (!_Pnextiter._我的指针) { // orphan the iterator
+                _Temp->_Myproxy = nullptr;
+                *_Pnext         = _Temp->_Mynextiter;
+                continue;
+            }
+            const auto _Off =
+                static_cast<size_type>(const_iterator::_VBITS_DIFF * (_Pnextiter._我的指针 - _Base)) + _Pnextiter._Myoff;
+            if (_Off < _Offlo || _Offhi < _Off) {
+                _Pnext = &_Temp->_Mynextiter;
+            } else { // orphan the iterator
+                _Temp->_Myproxy = nullptr;
+                *_Pnext         = _Temp->_Mynextiter;
+            }
+        }
+    }
+
+    void _孤儿化范围加锁(size_type _Offlo, size_type _Offhi) const {
+        _Lockit _加锁(_LOCK_DEBUG);
+        _孤儿化范围不加锁(_Offlo, _Offhi);
+    }
+
+    _CONSTEXPR20 void _孤儿化范围(size_type _Offlo, size_type _Offhi) const {
+#if _HAS_CXX20
+        if (_STD is_constant_evaluated()) {
+            _孤儿化范围不加锁(_Offlo, _Offhi);
+        } else
+#endif // _HAS_CXX20
+        {
+            _孤儿化范围加锁(_Offlo, _Offhi);
+        }
+    }
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+    _CONSTEXPR20 void _修剪(size_type _Size) {
+        if (max_size() < _Size) {
+            _长度参数(); // result too long
+        }
+
+        const size_type _Words = this->_新建原生(_Size);
+        if (_Words < this->_我的向量.尺寸()) {
+            this->_我的向量.擦除(this->_我的向量.开始() + static_cast<difference_type>(_Words), this->_我的向量.结束());
+        }
+
+        this->_我的尺寸 = _Size;
+        _Size %= _VBITS;
+        if (0 < _Size) {
+            this->_我的向量[_Words - 1] &= (static_cast<_位基>(1) << _Size) - 1;
+        }
+    }
+
+    [[noreturn]] static void _长度参数() {
+        _Xlength_error("向量实现<bool> too long");
+    }
+
+    [[noreturn]] static void _抛范围错() {
+        _Xout_of_range("invalid 向量实现<bool> subscript");
+    }
+};
+
+template <class _分配器>
+struct hash<向量实现<bool, _分配器>> {
+    using _ARGUMENT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS = 向量实现<bool, _分配器>;
+    using _RESULT_TYPE_NAME _CXX17_DEPRECATE_ADAPTOR_TYPEDEFS   = size_t;
+
+    _NODISCARD _STATIC_CALL_OPERATOR size_t operator()(
+        const 向量实现<bool, _分配器>& _Keyval) _CONST_CALL_OPERATOR noexcept {
+        return _散列数组表示(_Keyval._我的向量.数据(), _Keyval._我的向量.尺寸());
+    }
+};
+
+#if _HAS_CXX17
+namespace pmr {
+    使用 名域 std::pmr;   // 嵌套名域暂不翻，但里面的名字要靠它找到（步 2b）
+    _EXPORT_STD template <class _类型>
+    using 向量实现 = 向量实现<_类型, polymorphic_allocator<_类型>>;
+} // namespace pmr
+#endif // _HAS_CXX17
+
+#if _HAS_CXX23
+// Per LWG-3997, `_CharT` in library-provided `formatter` specializations is
+// constrained to character types supported by `format`.
+template <class _类型, _Format_supported_charT _CharT>
+    requires _Is_specialization_v<_类型, _位引用>
+struct formatter<_类型, _CharT> {
+private:
+    formatter<bool, _CharT> _Underlying;
+
+public:
+    template <class _ParseContext>
+    constexpr _ParseContext::iterator parse(_ParseContext& _Ctx) {
+        return _Underlying.parse(_Ctx);
+    }
+
+    template <class _FormatContext>
+    _FormatContext::iterator format(const _类型& _Ref, _FormatContext& _Ctx) const {
+        return _Underlying.format(_Ref, _Ctx);
+    }
+};
+
+template <class _类型>
+    requires _Is_specialization_v<_类型, _位引用>
+constexpr bool enable_nonlocking_formatter_optimization<_类型> = true;
+#endif // _HAS_CXX23
+
+template <class _分配器, bool _RequiresMutable>
+constexpr bool _Is_vb_iterator<_位向量迭代器<_分配器>, _RequiresMutable> = true;
+
+template <class _分配器>
+constexpr bool _Is_vb_iterator<_位向量常量迭代器<_分配器>, false> = true;
+
+template <class _VbIt>
+_CONSTEXPR20 void _Fill_vbool(_VbIt _首个, const _VbIt _最后, const bool _Val) noexcept {
+    // Set [_首个, _最后) to _Val
+    if (_首个 == _最后) {
+        return;
+    }
+
+    _位基* _VbFirst      = const_cast<_位基*>(_首个._我的指针);
+    _位基* const _VbLast = const_cast<_位基*>(_最后._我的指针);
+
+    const auto _FirstSourceMask = static_cast<_位基>(-1) << _首个._Myoff;
+    const auto _FirstDestMask   = ~_FirstSourceMask;
+    const auto _FillVal         = static_cast<_位基>(_Val ? -1 : 0);
+
+    if (_VbFirst == _VbLast) {
+        // We already excluded _首个 == _最后, so here _最后._Myoff > 0 and the shift is safe
+        const auto _LastSourceMask = static_cast<_位基>(-1) >> (_VBITS - _最后._Myoff);
+        const auto _LastDestMask   = ~_LastSourceMask;
+        const auto _SourceMask     = _FirstSourceMask & _LastSourceMask;
+        const auto _DestMask       = _FirstDestMask | _LastDestMask;
+        *_VbFirst                  = (*_VbFirst & _DestMask) | (_FillVal & _SourceMask);
+        return;
+    }
+
+    *_VbFirst = (*_VbFirst & _FirstDestMask) | (_FillVal & _FirstSourceMask);
+    ++_VbFirst;
+
+#if _HAS_CXX20
+    if (_STD is_constant_evaluated()) {
+        for (; _VbFirst != _VbLast; ++_VbFirst) {
+            *_VbFirst = _FillVal;
+        }
+    } else
+#endif // _HAS_CXX20
+    {
+        const auto _VbFirst_ch = reinterpret_cast<const char*>(_VbFirst);
+        const auto _VbLast_ch  = reinterpret_cast<const char*>(_VbLast);
+        const auto _Count_ch   = static_cast<size_t>(_VbLast_ch - _VbFirst_ch);
+        const auto _ValChar    = static_cast<unsigned char>(_Val ? -1 : 0);
+        _CSTD memset(_VbFirst, _ValChar, _Count_ch);
+        _VbFirst = _VbLast;
+    }
+
+    if (_最后._Myoff != 0) {
+        const auto _LastSourceMask = static_cast<_位基>(-1) >> (_VBITS - _最后._Myoff);
+        const auto _LastDestMask   = ~_LastSourceMask;
+        *_VbFirst                  = (*_VbFirst & _LastDestMask) | (_FillVal & _LastSourceMask);
+    }
+}
+
+template <class _VbIt>
+_NODISCARD _CONSTEXPR20 _VbIt _Find_vbool(_VbIt _首个, const _VbIt _最后, const bool _Val) noexcept {
+    // Find _Val in [_首个, _最后)
+    if (_首个 == _最后) {
+        return _首个;
+    }
+
+    const _位基* _VbFirst      = _首个._我的指针;
+    const _位基* const _VbLast = _最后._我的指针;
+
+    const auto _FirstSourceMask = static_cast<_位基>(-1) << _首个._Myoff;
+
+    if (_VbFirst == _VbLast) {
+        // We already excluded _首个 == _最后, so here _最后._Myoff > 0 and the shift is safe
+        const auto _LastSourceMask = static_cast<_位基>(-1) >> (_VBITS - _最后._Myoff);
+        const auto _SourceMask     = _FirstSourceMask & _LastSourceMask;
+        const auto _SelectVal      = (_Val ? *_VbFirst : ~*_VbFirst) & _SourceMask;
+        const auto _Count          = _Countr_zero(_SelectVal);
+        return _Count == _VBITS ? _最后 : _首个 + static_cast<ptrdiff_t>(_Count - _首个._Myoff);
+    }
+
+    const auto _FirstVal   = (_Val ? *_VbFirst : ~*_VbFirst) & _FirstSourceMask;
+    const auto _FirstCount = _Countr_zero(_FirstVal);
+    if (_FirstCount != _VBITS) {
+        return _首个 + static_cast<ptrdiff_t>(_FirstCount - _首个._Myoff);
+    }
+    ++_VbFirst;
+
+    _Iter_diff_t<_VbIt> _TotalCount = static_cast<ptrdiff_t>(_VBITS - _首个._Myoff);
+    for (; _VbFirst != _VbLast; ++_VbFirst, _TotalCount += _VBITS) {
+        const auto _SelectVal = _Val ? *_VbFirst : ~*_VbFirst;
+        const auto _Count     = _Countr_zero(_SelectVal);
+        if (_Count != _VBITS) {
+            return _首个 + (_TotalCount + _Count);
+        }
+    }
+
+    if (_最后._Myoff != 0) {
+        const auto _LastSourceMask = static_cast<_位基>(-1) >> (_VBITS - _最后._Myoff);
+        const auto _LastVal        = (_Val ? *_VbFirst : ~*_VbFirst) & _LastSourceMask;
+        const auto _Count          = _Countr_zero(_LastVal);
+        if (_Count != _VBITS) {
+            return _首个 + (_TotalCount + _Count);
+        }
+    }
+
+    return _最后;
+}
+
+template <class _VbIt>
+_NODISCARD _CONSTEXPR20 _Iter_diff_t<_VbIt> _Count_vbool(_VbIt _首个, const _VbIt _最后, const bool _Val) noexcept {
+    if (_首个 == _最后) {
+        return 0;
+    }
+
+    const _位基* _VbFirst      = _首个._我的指针;
+    const _位基* const _VbLast = _最后._我的指针;
+
+    const auto _FirstSourceMask = static_cast<_位基>(-1) << _首个._Myoff;
+
+    if (_VbFirst == _VbLast) {
+        // We already excluded _首个 == _最后, so here _最后._Myoff > 0 and the shift is safe
+        const auto _LastSourceMask = static_cast<_位基>(-1) >> (_VBITS - _最后._Myoff);
+        const auto _SourceMask     = _FirstSourceMask & _LastSourceMask;
+        const auto _SelectVal      = (_Val ? *_VbFirst : ~*_VbFirst) & _SourceMask;
+        return _位计数(_SelectVal);
+    }
+
+    return _Select_popcount_impl<_位基>(
+        [_最后, _Val, _VbFirst, _VbLast, _FirstSourceMask](auto _Popcount_impl) mutable noexcept {
+            const auto _FirstVal       = (_Val ? *_VbFirst : ~*_VbFirst) & _FirstSourceMask;
+            _Iter_diff_t<_VbIt> _Count = _Popcount_impl(_FirstVal);
+            ++_VbFirst;
+
+            for (; _VbFirst != _VbLast; ++_VbFirst) {
+                const auto _SelectVal = _Val ? *_VbFirst : ~*_VbFirst;
+                _Count += _Popcount_impl(_SelectVal);
+            }
+
+            if (_最后._Myoff != 0) {
+                const auto _LastSourceMask = static_cast<_位基>(-1) >> (_VBITS - _最后._Myoff);
+                const auto _LastVal        = (_Val ? *_VbFirst : ~*_VbFirst) & _LastSourceMask;
+                _Count += _Popcount_impl(_LastVal);
+            }
+
+            return _Count;
+        });
+}
+
+template <class _VbIt, class _OutIt>
+_CONSTEXPR20 _OutIt _Copy_vbool(_VbIt _首个, _VbIt _最后, _OutIt _目标) {
+    // copy [_首个, _最后) to [_目标, ...)
+    if (_首个 == _最后) {
+        return _目标;
+    }
+
+    auto _VbFirst       = _首个._我的指针;
+    const auto _VbLast  = _最后._我的指针;
+    auto _VbDest        = const_cast<_位基*>(_目标._我的指针);
+    const auto _DestEnd = _目标 + (_最后 - _首个);
+
+    const auto _FirstSourceMask = static_cast<_位基>(-1) << _首个._Myoff;
+    const auto _FirstDestMask   = _目标._Myoff == 0 ? 0 : (static_cast<_位基>(-1) >> (_VBITS - _目标._Myoff));
+    const auto _LastSourceMask  = static_cast<_位基>(-1) >> (_VBITS - _最后._Myoff);
+    const auto _LastDestMask    = static_cast<_位基>(-1) << _DestEnd._Myoff;
+
+    const bool _IsSingleBlockSource = _VbFirst == _VbLast;
+    const bool _IsSingleBlockDest   = _VbDest == _DestEnd._我的指针 - (_DestEnd._Myoff == 0 ? 1 : 0);
+    const bool _IsRightShift        = _目标._Myoff < _首个._Myoff;
+    if (_IsSingleBlockSource) {
+        // We already excluded _首个 == _最后, so here _最后._Myoff > 0 and the shift is safe
+        const auto _SourceMask  = _FirstSourceMask & _LastSourceMask;
+        const auto _SourceShift = _IsRightShift ? _首个._Myoff - _目标._Myoff : _目标._Myoff - _首个._Myoff;
+        const auto _SourceVal   = _IsRightShift ? (*_VbFirst & _SourceMask) >> _SourceShift //
+                                                : (*_VbFirst & _SourceMask) << _SourceShift;
+        if (_IsSingleBlockDest) {
+            const auto _DestMask = _FirstDestMask | (_DestEnd._Myoff == 0 ? 0 : _LastDestMask);
+            *_VbDest             = (*_VbDest & _DestMask) | _SourceVal;
+        } else {
+            *_VbDest = (*_VbDest & _FirstDestMask) | _SourceVal;
+            ++_VbDest;
+
+            const auto _LastShift     = _最后._Myoff - _DestEnd._Myoff;
+            const auto _LastSourceVal = (*_VbFirst & _SourceMask) >> _LastShift;
+            *_VbDest                  = (*_VbDest & _LastDestMask) | _LastSourceVal;
+        }
+
+        return _DestEnd;
+    } else if (_IsSingleBlockDest) {
+        const auto _SourceShift = _IsRightShift ? _首个._Myoff - _目标._Myoff : _目标._Myoff - _首个._Myoff;
+        const auto _SourceVal   = _IsRightShift ? (*_VbFirst & _FirstSourceMask) >> _SourceShift //
+                                                : (*_VbFirst & _FirstSourceMask) << _SourceShift;
+
+        const auto _DestMask = _FirstDestMask | (_DestEnd._Myoff == 0 ? 0 : _LastDestMask);
+        if (_最后._Myoff != 0) {
+            const auto _LastShift     = _DestEnd._Myoff - _最后._Myoff;
+            const auto _LastSourceVal = (*_VbLast & _LastSourceMask) << _LastShift;
+            *_VbDest                  = (*_VbDest & _DestMask) | _SourceVal | _LastSourceVal;
+        } else {
+            *_VbDest = (*_VbDest & _DestMask) | _SourceVal;
+        }
+
+        return _DestEnd;
+    }
+
+#if _HAS_CXX20
+    if (!_STD is_constant_evaluated())
+#endif
+    {
+        // If _首个 and _目标 have matching char alignment, use memmove
+        const auto _UnalignedFirstBits = _首个._Myoff & _位基{7};
+        const auto _UnalignedDestBits  = _目标._Myoff & _位基{7};
+        if (_UnalignedFirstBits == _UnalignedDestBits) {
+            const auto _UnalignedLastBits = _最后._Myoff & _位基{7};
+
+            auto _VbFirst_ch      = reinterpret_cast<const char*>(_VbFirst) + (_首个._Myoff - _UnalignedFirstBits) / 8;
+            const auto _VbLast_ch = reinterpret_cast<const char*>(_VbLast) + (_最后._Myoff - _UnalignedLastBits) / 8;
+            auto _VbDest_ch       = reinterpret_cast<char*>(_VbDest) + (_目标._Myoff - _UnalignedDestBits) / 8;
+
+            // Copy bits until the next char alignment
+            if (_UnalignedFirstBits != 0) {
+                const auto _SourceBitMask = static_cast<char>(UCHAR_MAX << _UnalignedFirstBits);
+                const auto _DestBitMask   = static_cast<char>(UCHAR_MAX >> (8 - _UnalignedFirstBits));
+                *_VbDest_ch               = (*_VbDest_ch & _DestBitMask) | (*_VbFirst_ch & _SourceBitMask);
+                ++_VbFirst_ch;
+                ++_VbDest_ch;
+            }
+
+            _VbDest_ch = _复制非检查(_VbFirst_ch, _VbLast_ch, _VbDest_ch);
+
+            // Copy remaining last bits
+            if (_UnalignedLastBits != 0) {
+                const auto _SourceBitMask = static_cast<char>(UCHAR_MAX >> (8 - _UnalignedLastBits));
+                const auto _DestBitMask   = static_cast<char>(UCHAR_MAX << _UnalignedLastBits);
+                *_VbDest_ch               = (*_VbDest_ch & _DestBitMask) | (*_VbLast_ch & _SourceBitMask);
+            }
+
+            return _DestEnd;
+        }
+    }
+
+    // Unaligned _VbFirst and _VbLast require a two step copy with carry
+    if (_IsRightShift) {
+        const auto _SourceShift = _首个._Myoff - _目标._Myoff;
+        const auto _CarryShift  = _VBITS - _SourceShift;
+        const auto _CarryMask   = static_cast<_位基>(-1) >> _SourceShift;
+        const auto _DestMask    = ~_CarryMask;
+
+        const auto _FirstSourceVal = (*_VbFirst & _FirstSourceMask) >> _SourceShift;
+        *_VbDest                   = (*_VbDest & _FirstDestMask) | _FirstSourceVal;
+
+        ++_VbFirst;
+        for (; _VbFirst != _VbLast; ++_VbFirst) {
+            const auto _CarryVal = *_VbFirst << _CarryShift;
+            *_VbDest             = (*_VbDest & _CarryMask) | _CarryVal;
+
+            ++_VbDest;
+            const auto _SourceVal = *_VbFirst >> _SourceShift;
+            *_VbDest              = (*_VbDest & _DestMask) | _SourceVal;
+        }
+
+        if (_最后._Myoff != 0) {
+            const auto _CarryVal = (*_VbFirst & _LastSourceMask) << _CarryShift;
+            if (_最后._Myoff >= _SourceShift) {
+                *_VbDest = (*_VbDest & _CarryMask) | _CarryVal;
+
+                // We have more bits remaining than the final block has left
+                if (_最后._Myoff != _SourceShift) {
+                    ++_VbDest;
+                    const auto _SourceVal = (*_VbFirst & _LastSourceMask) >> _SourceShift;
+                    *_VbDest              = (*_VbDest & _LastDestMask) | _SourceVal;
+                }
+            } else {
+                // There are not enough bits to fill the final block so we need to mask both ends
+                const auto _FinalMask = _CarryMask | _LastDestMask;
+                *_VbDest              = (*_VbDest & _FinalMask) | _CarryVal;
+            }
+        }
+    } else {
+        const auto _SourceShift = _目标._Myoff - _首个._Myoff;
+        const auto _CarryShift  = _VBITS - _SourceShift;
+
+        const auto _FirstSourceVal = (*_VbFirst & _FirstSourceMask) << _SourceShift;
+        *_VbDest                   = (*_VbDest & _FirstDestMask) | _FirstSourceVal;
+        auto _CarryVal             = *_VbFirst >> _CarryShift;
+
+        ++_VbFirst;
+        ++_VbDest;
+        for (; _VbFirst != _VbLast; ++_VbFirst, ++_VbDest) {
+            const auto _SourceVal = *_VbFirst << _SourceShift;
+            *_VbDest              = _CarryVal | _SourceVal;
+            _CarryVal             = *_VbFirst >> _CarryShift;
+        }
+
+        if (_最后._Myoff >= _CarryShift) {
+            const auto _SourceVal = *_VbFirst << _SourceShift;
+            *_VbDest              = _CarryVal | _SourceVal;
+            _CarryVal             = *_VbFirst >> _CarryShift;
+
+            // We have more bits remaining than the final block has left
+            if (_最后._Myoff != _CarryShift) {
+                ++_VbDest;
+                const auto _LastCarryMask = ~_LastDestMask;
+                *_VbDest                  = (*_VbDest & _LastDestMask) | (_CarryVal & _LastCarryMask);
+            }
+        } else if (_最后._Myoff != 0) {
+            // There are not enough bits to fill the final block so we need to mask both ends
+            const auto _LastSourceVal = (*_VbFirst & _LastSourceMask) << _SourceShift;
+            *_VbDest                  = (*_VbDest & _LastDestMask) | _CarryVal | _LastSourceVal;
+        } else {
+            // No new bits, just copy the carry
+            *_VbDest = (*_VbDest & _LastDestMask) | _CarryVal;
+        }
+    }
+
+    return _DestEnd;
+}
+
+#undef _ASAN_向量修改
+#undef _ASAN_向量移除
+#undef _ASAN_向量创建
+#undef _地址消毒向量创建守卫
+#undef _地址消毒向量延长守卫
+#undef _ASAN_向量释放守卫
+#undef _INSERT_VECTOR_ANNOTATION
+} }
+
+#pragma pop_macro("new")
+_STL_RESTORE_CLANG_WARNINGS
+#pragma warning(pop)
+#pragma pack(pop)
+#endif // _STL_COMPILER_PREPROCESSOR
+// [ZH-DERIVE-LAYER] 汉语派生层（英文兼容层）从这一行开始 —— 本行【以上】属抄来那层，有英文名就是欠账
+// ============================================================================
+//  第二层：在【中文的基础上】派生，把英文原名补回来
+//  · 第一层 标准::细节::向量实现 是抄自微软的中文实现，成员名全中文
+//  · 本层加回英文原名，所以两种名字在【同一个对象】上都能用
+//  · 与微软的原类型并存：它是【另一个类型】，不碰 std 里的定义
+// ============================================================================
+名域 标准 {
+模板 <类型名 元素, 类型名 分配器 = std::allocator<元素>>
+类型 向量 : 公开 细节::向量实现<元素, 分配器> {
+公开:
+    使用 基类 = 细节::向量实现<元素, 分配器>;
+    使用 基类::基类;
+
+    // 嵌套类型名也要补回英文（数据成员不行 —— 那会改布局）
+    使用 迭代器 = 基类::iterator;
+    使用 常量迭代器 = 基类::const_iterator;
+    使用 反向迭代器 = 基类::reverse_iterator;
+    使用 常量反向迭代器 = 基类::const_reverse_iterator;
+    使用 值类型 = 基类::value_type;
+    使用 尺寸类型 = 基类::size_type;
+    使用 引用 = 基类::reference;
+    使用 常量引用 = 基类::const_reference;
+
+    // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
+    模板 <类型名... 参数> 声明类型(自动) size(参数&&... 值) { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) size(参数&&... 值) 常量 { 返回 基类::尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) empty(参数&&... 值) { 返回 基类::为空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) empty(参数&&... 值) 常量 { 返回 基类::为空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) capacity(参数&&... 值) { 返回 基类::容量(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) capacity(参数&&... 值) 常量 { 返回 基类::容量(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) reserve(参数&&... 值) { 返回 基类::预留(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) reserve(参数&&... 值) 常量 { 返回 基类::预留(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) data(参数&&... 值) { 返回 基类::数据(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) data(参数&&... 值) 常量 { 返回 基类::数据(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) begin(参数&&... 值) { 返回 基类::开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) begin(参数&&... 值) 常量 { 返回 基类::开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) end(参数&&... 值) { 返回 基类::结束(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) end(参数&&... 值) 常量 { 返回 基类::结束(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) at(参数&&... 值) { 返回 基类::取值(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) at(参数&&... 值) 常量 { 返回 基类::取值(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) front(参数&&... 值) { 返回 基类::前(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) front(参数&&... 值) 常量 { 返回 基类::前(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) back(参数&&... 值) { 返回 基类::后(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) back(参数&&... 值) 常量 { 返回 基类::后(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) push_back(参数&&... 值) { 返回 基类::尾插(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) push_back(参数&&... 值) 常量 { 返回 基类::尾插(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) pop_back(参数&&... 值) { 返回 基类::尾删(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) pop_back(参数&&... 值) 常量 { 返回 基类::尾删(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) emplace(参数&&... 值) { 返回 基类::就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) emplace(参数&&... 值) 常量 { 返回 基类::就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) emplace_back(参数&&... 值) { 返回 基类::尾部就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) emplace_back(参数&&... 值) 常量 { 返回 基类::尾部就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) insert(参数&&... 值) { 返回 基类::插入(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) insert(参数&&... 值) 常量 { 返回 基类::插入(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) erase(参数&&... 值) { 返回 基类::擦除(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) erase(参数&&... 值) 常量 { 返回 基类::擦除(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) assign(参数&&... 值) { 返回 基类::赋值(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) assign(参数&&... 值) 常量 { 返回 基类::赋值(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) resize(参数&&... 值) { 返回 基类::调整尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) resize(参数&&... 值) 常量 { 返回 基类::调整尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) shrink_to_fit(参数&&... 值) { 返回 基类::收缩至适应(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) shrink_to_fit(参数&&... 值) 常量 { 返回 基类::收缩至适应(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) clear(参数&&... 值) { 返回 基类::清空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) clear(参数&&... 值) 常量 { 返回 基类::清空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) get_allocator(参数&&... 值) { 返回 基类::取分配器(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) get_allocator(参数&&... 值) 常量 { 返回 基类::取分配器(static_cast<参数&&>(值)...); }
+
+    // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
+    // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
+    模板 <类型名... 参数> 声明类型(自动) 最大尺寸(参数&&... 值) 常量 { 返回 基类::max_size(static_cast<参数&&>(值)...); }
+};
+}
+
+#endif // _VECTOR_

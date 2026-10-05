@@ -1,0 +1,22 @@
+// <多维视图> —— mdspan 的中文别名层
+//
+// 为什么是别名而不是抄一份（方案铁律 4）：
+//   铁律③：mdspan/extents 是模板，实参由用户写死并参与推导。C++23 头，整块进条件壳。
+//   这类头一旦抄一份，就会和 std 里那份成为两套互不相认的东西。
+//
+// 英文原名照旧可用：这里只是【多一个名字】，原头一个字节没动。
+// 变体（英文里带 _v 的变量模板形式）暂未提供中文名，属"必须的妥协"，见方案 §六。
+#pragma once
+#include <mdspan>
+
+名域 标准 {
+    #如果 _HAS_CXX23
+    模板 <类型名 下标类型, std::size_t... 各维> 使用 各维范围 = std::extents<下标类型, 各维...>;
+    模板 <类型名 下标类型, std::size_t 维数> 使用 动态各维范围 = std::dextents<下标类型, 维数>;
+    模板 <类型名 元素, 类型名 范围, 类型名 布局 = std::layout_right, 类型名 访问器 = std::default_accessor<元素>> 使用 多维视图 = std::mdspan<元素, 范围, 布局, 访问器>;
+    使用 左布局 = std::layout_left;
+    使用 右布局 = std::layout_right;
+    使用 跨步布局 = std::layout_stride;
+    模板 <类型名 元素> 使用 默认访问器 = std::default_accessor<元素>;
+    #结束如果
+}

@@ -1,0 +1,151 @@
+// xcall_once.h internal header
+
+// Copyright (c) Microsoft Corporation.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#ifndef _ZH_XCALL_ONCE_H_
+#define _ZH_XCALL_ONCE_H_
+#include <yvals.h>
+#if _STL_COMPILER_PREPROCESSOR
+
+#include <cstdlib>
+#include <type_traits>
+
+#pragma pack(push, _CRT_PACKING)
+#pragma warning(push, _STL_WARNING_LEVEL)
+#pragma warning(disable : _STL_DISABLED_WARNINGS)
+_STL_DISABLE_CLANG_WARNINGS
+#pragma push_macro("new")
+#undef new
+
+名域 标准 { 名域 细节 {
+使用 名域 std;
+_EXPORT_STD struct 一次标志实现 { // opaque data structure for 一次调用()
+    constexpr 一次标志实现() noexcept : _Opaque(nullptr) {}
+
+    一次标志实现(const 一次标志实现&)            = delete;
+    一次标志实现& operator=(const 一次标志实现&) = delete;
+
+    void* _Opaque;
+};
+
+template <class _类型>
+union _永不析构实现 { // constructs _类型, never destroys
+    constexpr _永不析构实现() noexcept : _Storage{} {}
+    _永不析构实现(const _永不析构实现&)            = delete;
+    _永不析构实现& operator=(const _永不析构实现&) = delete;
+    ~_永不析构实现() {
+        // do nothing
+    }
+
+    _类型 _Storage;
+};
+
+#if defined(_M_CEE) || defined(_M_ARM64EC) || defined(_M_HYBRID) \
+    || defined(__clang__) // TRANSITION, avoid /ALTERNATENAME for Clang, see GH-5224
+#define _WINDOWS_API              __stdcall
+#define _RENAME_WINDOWS_API(_Api) _Api##_clr
+#else // ^^^ use forwarders / use /ALTERNATENAME vvv
+#define _WINDOWS_API              __declspec(dllimport) __stdcall
+#define _RENAME_WINDOWS_API(_Api) _Api
+#endif // ^^^ use /ALTERNATENAME ^^^
+
+// WINBASEAPI
+// BOOL
+// WINAPI
+// InitOnceBeginInitialize(
+//     _Inout_ LPINIT_ONCE lpInitOnce,
+//     _In_ DWORD dwFlags,
+//     _Out_ PBOOL fPending,
+//     _Outptr_opt_result_maybenull_ LPVOID* lpContext
+//     );
+extern "C" _NODISCARD int _WINDOWS_API _RENAME_WINDOWS_API(__std_init_once_begin_initialize)(
+    void** _LpInitOnce, unsigned long _DwFlags, int* _FPending, void** _LpContext) noexcept;
+
+// WINBASEAPI
+// BOOL
+// WINAPI
+// InitOnceComplete(
+//     _Inout_ LPINIT_ONCE lpInitOnce,
+//     _In_ DWORD dwFlags,
+//     _In_opt_ LPVOID lpContext
+//     );
+extern "C" _NODISCARD int _WINDOWS_API _RENAME_WINDOWS_API(__std_init_once_complete)(
+    void** _LpInitOnce, unsigned long _DwFlags, void* _LpContext) noexcept;
+
+extern "C" [[noreturn]] void __stdcall __std_init_once_link_alternate_names_and_abort() noexcept;
+
+// #define RTL_RUN_ONCE_INIT_FAILED    0x00000004UL
+// #define INIT_ONCE_INIT_FAILED       RTL_RUN_ONCE_INIT_FAILED
+_INLINE_VAR constexpr unsigned long _Init_once_init_failed = 0x4UL;
+
+struct _一次初始化完成器 {
+    一次标志实现& _Once;
+    unsigned long _DwFlags;
+    ~_一次初始化完成器() {
+        if (!_RENAME_WINDOWS_API(__std_init_once_complete)(&_Once._Opaque, _DwFlags, nullptr)) {
+            __std_init_once_link_alternate_names_and_abort();
+        }
+    }
+};
+
+_EXPORT_STD template <class _Fn, class... _Args>
+void(一次调用)(一次标志实现& _Once, _Fn&& _Fx, _Args&&... _Ax)
+    noexcept(noexcept(_STD invoke(_STD forward<_Fn>(_Fx), _STD forward<_Args>(_Ax)...))) /* strengthened */ {
+    // call _Fx(_Ax...) once
+    // parentheses against common "#define 一次调用(flag,func) pthread_once(flag,func)"
+    int _Pending;
+    if (!_RENAME_WINDOWS_API(__std_init_once_begin_initialize)(&_Once._Opaque, 0, &_Pending, nullptr)) {
+        _CSTD abort();
+    }
+
+    if (_Pending != 0) {
+        _一次初始化完成器 _操作{_Once, _Init_once_init_failed};
+        _STD invoke(_STD forward<_Fn>(_Fx), _STD forward<_Args>(_Ax)...);
+        _操作._DwFlags = 0;
+    }
+}
+
+#undef _WINDOWS_API
+#undef _RENAME_WINDOWS_API
+} }
+
+#pragma pop_macro("new")
+_STL_RESTORE_CLANG_WARNINGS
+#pragma warning(pop)
+#pragma pack(pop)
+#endif // _STL_COMPILER_PREPROCESSOR
+// [ZH-DERIVE-LAYER] 汉语派生层（英文兼容层）从这一行开始 —— 本行【以上】属抄来那层，有英文名就是欠账
+// ============================================================================
+//  第二层：在【中文的基础上】派生，把英文原名补回来
+//  · 第一层 标准::细节::一次标志实现 是抄自微软的中文实现，成员名全中文
+//  · 本层加回英文原名，所以两种名字在【同一个对象】上都能用
+//  · 与微软的原类型并存：它是【另一个类型】，不碰 std 里的定义
+// ============================================================================
+名域 标准 {
+
+类型 一次标志 : 公开 细节::一次标志实现 {
+公开:
+    使用 基类 = 细节::一次标志实现;
+    使用 基类::基类;
+
+    // 嵌套类型名也要补回英文（数据成员不行 —— 那会改布局）
+
+
+    // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
+
+
+    // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
+    // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
+
+};
+}
+
+名域 标准 {
+
+// 自由函数：抄来后落在 细节::，用 using 声明引进 标准（§3.19.1）
+使用 细节::一次调用;
+
+}  // 名域 标准
+
+#endif // _XCALL_ONCE_H

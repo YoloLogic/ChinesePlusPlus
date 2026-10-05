@@ -1,0 +1,1082 @@
+#include <limits>
+// limits standard header (core)
+
+// Copyright (c) Microsoft Corporation.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#ifndef _ZH_LIMITS_
+#define _ZH_LIMITS_
+#include <yvals_core.h>
+#if _STL_COMPILER_PREPROCESSOR
+#include <cfloat>
+#include <climits>
+#include <cwchar> // TRANSITION, see GH-3631: Lots of user code assumes that <limits> drags in <cwchar>
+#include <xtr1common>
+
+#include _STL_INTRIN_HEADER
+
+#pragma pack(push, _CRT_PACKING)
+#pragma warning(push, _STL_WARNING_LEVEL)
+#pragma warning(disable : _STL_DISABLED_WARNINGS)
+_STL_DISABLE_CLANG_WARNINGS
+#pragma push_macro("new")
+#undef new
+
+名域 标准 { 名域 细节 {
+使用 名域 std;
+// constants for different IEEE float denormalization styles
+_EXPORT_STD enum _CXX23_DEPRECATE_DENORM 浮点非规格方式 {
+    非规格不确定 = -1,
+    非规格不存在        = 0,
+    非规格存在       = 1
+};
+
+_EXPORT_STD enum 浮点舍入方式 { // constants for different IEEE rounding styles
+    舍入不确定       = -1,
+    向零舍入         = 0,
+    就近舍入          = 1,
+    向正无穷舍入     = 2,
+    向负无穷舍入 = 3
+};
+
+struct _数值基类 { // base for all types, with common defaults
+    _STL_DISABLE_DEPRECATED_WARNING
+    _CXX23_DEPRECATE_DENORM static constexpr 浮点非规格方式 有非规格 = 非规格不存在;
+    _CXX23_DEPRECATE_DENORM static constexpr bool 非规格损失          = false;
+    _STL_RESTORE_DEPRECATED_WARNING
+
+    static constexpr bool 有无穷             = false;
+    static constexpr bool 有静默非数            = false;
+    static constexpr bool 有信号非数        = false;
+    static constexpr bool 有界               = false;
+    static constexpr bool 精确                 = false;
+    static constexpr bool 符合IEC559                = false;
+    static constexpr bool 整数类型               = false;
+    static constexpr bool 取模                = false;
+    static constexpr bool 带符号                = false;
+    static constexpr bool 已特化           = false;
+    static constexpr bool 先测微小          = false;
+    static constexpr bool 陷阱                    = false;
+    static constexpr 浮点舍入方式 舍入方式 = 向零舍入;
+    static constexpr int 位数                    = 0;
+    static constexpr int 十进制位数                  = 0;
+    static constexpr int 最大十进制位数              = 0;
+    static constexpr int 最大指数              = 0;
+    static constexpr int 最大十进制指数            = 0;
+    static constexpr int 最小指数              = 0;
+    static constexpr int 最小十进制指数            = 0;
+    static constexpr int 基数                     = 0;
+};
+
+_EXPORT_STD template <class _类型>
+class 数值极限实现 : public _数值基类 { // numeric limits for arbitrary type _类型 (say little or nothing)
+public:
+    _NODISCARD static constexpr _类型(最小)() noexcept {
+        return _类型();
+    }
+
+    _NODISCARD static constexpr _类型(最大)() noexcept {
+        return _类型();
+    }
+
+    _NODISCARD static constexpr _类型 最低() noexcept {
+        return _类型();
+    }
+
+    _NODISCARD static constexpr _类型 机器精度() noexcept {
+        return _类型();
+    }
+
+    _NODISCARD static constexpr _类型 舍入误差() noexcept {
+        return _类型();
+    }
+
+    _NODISCARD static constexpr _类型 非规格最小() noexcept {
+        return _类型();
+    }
+
+    _NODISCARD static constexpr _类型 无穷() noexcept {
+        return _类型();
+    }
+
+    _NODISCARD static constexpr _类型 静默非数() noexcept {
+        return _类型();
+    }
+
+    _NODISCARD static constexpr _类型 信号非数() noexcept {
+        return _类型();
+    }
+};
+
+template <class _类型>
+class 数值极限实现<const _类型> : public 数值极限实现<_类型> {}; // numeric limits for const types
+
+template <class _类型>
+class 数值极限实现<volatile _类型> : public 数值极限实现<_类型> {}; // numeric limits for volatile types
+
+template <class _类型>
+class 数值极限实现<const volatile _类型> : public 数值极限实现<_类型> {}; // numeric limits for const volatile types
+
+struct _整数数值基类 : _数值基类 { // base for integer types
+    static constexpr bool 有界     = true;
+    static constexpr bool 精确       = true;
+    static constexpr bool 整数类型     = true;
+    static constexpr bool 已特化 = true;
+    static constexpr int 基数           = 2;
+};
+
+struct _浮点数值基类 : _数值基类 { // base for floating-point types
+    _STL_DISABLE_DEPRECATED_WARNING
+    _CXX23_DEPRECATE_DENORM static constexpr 浮点非规格方式 有非规格 = 非规格存在;
+    _STL_RESTORE_DEPRECATED_WARNING
+
+    static constexpr bool 有无穷             = true;
+    static constexpr bool 有静默非数            = true;
+    static constexpr bool 有信号非数        = true;
+    static constexpr bool 有界               = true;
+    static constexpr bool 符合IEC559                = true;
+    static constexpr bool 带符号                = true;
+    static constexpr bool 已特化           = true;
+    static constexpr 浮点舍入方式 舍入方式 = 就近舍入;
+    static constexpr int 基数                     = FLT_RADIX;
+};
+
+template <>
+class 数值极限实现<bool> : public _整数数值基类 {
+public:
+    _NODISCARD static constexpr bool(最小)() noexcept {
+        return false;
+    }
+
+    _NODISCARD static constexpr bool(最大)() noexcept {
+        return true;
+    }
+
+    _NODISCARD static constexpr bool 最低() noexcept {
+        return (最小) ();
+    }
+
+    _NODISCARD static constexpr bool 机器精度() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr bool 舍入误差() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr bool 非规格最小() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr bool 无穷() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr bool 静默非数() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr bool 信号非数() noexcept {
+        return 0;
+    }
+
+    static constexpr int 位数 = 1;
+};
+
+template <>
+class 数值极限实现<char> : public _整数数值基类 {
+public:
+    _NODISCARD static constexpr char(最小)() noexcept {
+        return CHAR_MIN;
+    }
+
+    _NODISCARD static constexpr char(最大)() noexcept {
+        return CHAR_MAX;
+    }
+
+    _NODISCARD static constexpr char 最低() noexcept {
+        return (最小) ();
+    }
+
+    _NODISCARD static constexpr char 机器精度() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr char 舍入误差() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr char 非规格最小() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr char 无穷() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr char 静默非数() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr char 信号非数() noexcept {
+        return 0;
+    }
+
+    static constexpr bool 带符号 = CHAR_MIN != 0;
+    static constexpr bool 取模 = CHAR_MIN == 0;
+    static constexpr int 位数     = 8 - (CHAR_MIN != 0);
+    static constexpr int 十进制位数   = 2;
+};
+
+template <>
+class 数值极限实现<signed char> : public _整数数值基类 {
+public:
+    _NODISCARD static constexpr signed char(最小)() noexcept {
+        return SCHAR_MIN;
+    }
+
+    _NODISCARD static constexpr signed char(最大)() noexcept {
+        return SCHAR_MAX;
+    }
+
+    _NODISCARD static constexpr signed char 最低() noexcept {
+        return (最小) ();
+    }
+
+    _NODISCARD static constexpr signed char 机器精度() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr signed char 舍入误差() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr signed char 非规格最小() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr signed char 无穷() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr signed char 静默非数() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr signed char 信号非数() noexcept {
+        return 0;
+    }
+
+    static constexpr bool 带符号 = true;
+    static constexpr int 位数     = 7;
+    static constexpr int 十进制位数   = 2;
+};
+
+template <>
+class 数值极限实现<unsigned char> : public _整数数值基类 {
+public:
+    _NODISCARD static constexpr unsigned char(最小)() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned char(最大)() noexcept {
+        return UCHAR_MAX;
+    }
+
+    _NODISCARD static constexpr unsigned char 最低() noexcept {
+        return (最小) ();
+    }
+
+    _NODISCARD static constexpr unsigned char 机器精度() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned char 舍入误差() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned char 非规格最小() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned char 无穷() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned char 静默非数() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned char 信号非数() noexcept {
+        return 0;
+    }
+
+    static constexpr bool 取模 = true;
+    static constexpr int 位数     = 8;
+    static constexpr int 十进制位数   = 2;
+};
+
+#ifdef __cpp_char8_t
+template <>
+class 数值极限实现<char8_t> : public _整数数值基类 {
+public:
+    _NODISCARD static constexpr char8_t(最小)() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr char8_t(最大)() noexcept {
+        return UCHAR_MAX;
+    }
+
+    _NODISCARD static constexpr char8_t 最低() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr char8_t 机器精度() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr char8_t 舍入误差() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr char8_t 非规格最小() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr char8_t 无穷() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr char8_t 静默非数() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr char8_t 信号非数() noexcept {
+        return 0;
+    }
+
+    static constexpr bool 取模 = true;
+    static constexpr int 位数     = 8;
+    static constexpr int 十进制位数   = 2;
+};
+#endif // defined(__cpp_char8_t)
+
+template <>
+class 数值极限实现<char16_t> : public _整数数值基类 {
+public:
+    _NODISCARD static constexpr char16_t(最小)() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr char16_t(最大)() noexcept {
+        return USHRT_MAX;
+    }
+
+    _NODISCARD static constexpr char16_t 最低() noexcept {
+        return (最小) ();
+    }
+
+    _NODISCARD static constexpr char16_t 机器精度() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr char16_t 舍入误差() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr char16_t 非规格最小() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr char16_t 无穷() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr char16_t 静默非数() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr char16_t 信号非数() noexcept {
+        return 0;
+    }
+
+    static constexpr bool 取模 = true;
+    static constexpr int 位数     = 16;
+    static constexpr int 十进制位数   = 4;
+};
+
+template <>
+class 数值极限实现<char32_t> : public _整数数值基类 {
+public:
+    _NODISCARD static constexpr char32_t(最小)() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr char32_t(最大)() noexcept {
+        return UINT_MAX;
+    }
+
+    _NODISCARD static constexpr char32_t 最低() noexcept {
+        return (最小) ();
+    }
+
+    _NODISCARD static constexpr char32_t 机器精度() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr char32_t 舍入误差() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr char32_t 非规格最小() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr char32_t 无穷() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr char32_t 静默非数() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr char32_t 信号非数() noexcept {
+        return 0;
+    }
+
+    static constexpr bool 取模 = true;
+    static constexpr int 位数     = 32;
+    static constexpr int 十进制位数   = 9;
+};
+
+template <>
+class 数值极限实现<wchar_t> : public _整数数值基类 {
+public:
+    _NODISCARD static constexpr wchar_t(最小)() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr wchar_t(最大)() noexcept {
+        return 0xffff;
+    }
+
+    _NODISCARD static constexpr wchar_t 最低() noexcept {
+        return (最小) ();
+    }
+
+    _NODISCARD static constexpr wchar_t 机器精度() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr wchar_t 舍入误差() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr wchar_t 非规格最小() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr wchar_t 无穷() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr wchar_t 静默非数() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr wchar_t 信号非数() noexcept {
+        return 0;
+    }
+
+    static constexpr bool 取模 = true;
+    static constexpr int 位数     = 16;
+    static constexpr int 十进制位数   = 4;
+};
+
+template <>
+class 数值极限实现<short> : public _整数数值基类 {
+public:
+    _NODISCARD static constexpr short(最小)() noexcept {
+        return SHRT_MIN;
+    }
+
+    _NODISCARD static constexpr short(最大)() noexcept {
+        return SHRT_MAX;
+    }
+
+    _NODISCARD static constexpr short 最低() noexcept {
+        return (最小) ();
+    }
+
+    _NODISCARD static constexpr short 机器精度() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr short 舍入误差() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr short 非规格最小() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr short 无穷() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr short 静默非数() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr short 信号非数() noexcept {
+        return 0;
+    }
+
+    static constexpr bool 带符号 = true;
+    static constexpr int 位数     = 15;
+    static constexpr int 十进制位数   = 4;
+};
+
+template <>
+class 数值极限实现<int> : public _整数数值基类 {
+public:
+    _NODISCARD static constexpr int(最小)() noexcept {
+        return INT_MIN;
+    }
+
+    _NODISCARD static constexpr int(最大)() noexcept {
+        return INT_MAX;
+    }
+
+    _NODISCARD static constexpr int 最低() noexcept {
+        return (最小) ();
+    }
+
+    _NODISCARD static constexpr int 机器精度() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr int 舍入误差() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr int 非规格最小() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr int 无穷() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr int 静默非数() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr int 信号非数() noexcept {
+        return 0;
+    }
+
+    static constexpr bool 带符号 = true;
+    static constexpr int 位数     = 31;
+    static constexpr int 十进制位数   = 9;
+};
+
+template <>
+class 数值极限实现<long> : public _整数数值基类 {
+public:
+    _NODISCARD static constexpr long(最小)() noexcept {
+        return LONG_MIN;
+    }
+
+    _NODISCARD static constexpr long(最大)() noexcept {
+        return LONG_MAX;
+    }
+
+    _NODISCARD static constexpr long 最低() noexcept {
+        return (最小) ();
+    }
+
+    _NODISCARD static constexpr long 机器精度() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr long 舍入误差() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr long 非规格最小() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr long 无穷() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr long 静默非数() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr long 信号非数() noexcept {
+        return 0;
+    }
+
+    static_assert(sizeof(int) == sizeof(long), "LLP64 assumption");
+    static constexpr bool 带符号 = true;
+    static constexpr int 位数     = 31;
+    static constexpr int 十进制位数   = 9;
+};
+
+template <>
+class 数值极限实现<long long> : public _整数数值基类 {
+public:
+    _NODISCARD static constexpr long long(最小)() noexcept {
+        return LLONG_MIN;
+    }
+
+    _NODISCARD static constexpr long long(最大)() noexcept {
+        return LLONG_MAX;
+    }
+
+    _NODISCARD static constexpr long long 最低() noexcept {
+        return (最小) ();
+    }
+
+    _NODISCARD static constexpr long long 机器精度() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr long long 舍入误差() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr long long 非规格最小() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr long long 无穷() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr long long 静默非数() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr long long 信号非数() noexcept {
+        return 0;
+    }
+
+    static constexpr bool 带符号 = true;
+    static constexpr int 位数     = 63;
+    static constexpr int 十进制位数   = 18;
+};
+
+#ifdef _NATIVE_WCHAR_T_DEFINED
+template <>
+class 数值极限实现<unsigned short> : public _整数数值基类 {
+public:
+    _NODISCARD static constexpr unsigned short(最小)() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned short(最大)() noexcept {
+        return USHRT_MAX;
+    }
+
+    _NODISCARD static constexpr unsigned short 最低() noexcept {
+        return (最小) ();
+    }
+
+    _NODISCARD static constexpr unsigned short 机器精度() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned short 舍入误差() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned short 非规格最小() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned short 无穷() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned short 静默非数() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned short 信号非数() noexcept {
+        return 0;
+    }
+
+    static constexpr bool 取模 = true;
+    static constexpr int 位数     = 16;
+    static constexpr int 十进制位数   = 4;
+};
+#endif // _NATIVE_WCHAR_T_DEFINED
+
+template <>
+class 数值极限实现<unsigned int> : public _整数数值基类 {
+public:
+    _NODISCARD static constexpr unsigned int(最小)() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned int(最大)() noexcept {
+        return UINT_MAX;
+    }
+
+    _NODISCARD static constexpr unsigned int 最低() noexcept {
+        return (最小) ();
+    }
+
+    _NODISCARD static constexpr unsigned int 机器精度() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned int 舍入误差() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned int 非规格最小() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned int 无穷() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned int 静默非数() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned int 信号非数() noexcept {
+        return 0;
+    }
+
+    static constexpr bool 取模 = true;
+    static constexpr int 位数     = 32;
+    static constexpr int 十进制位数   = 9;
+};
+
+template <>
+class 数值极限实现<unsigned long> : public _整数数值基类 {
+public:
+    _NODISCARD static constexpr unsigned long(最小)() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned long(最大)() noexcept {
+        return ULONG_MAX;
+    }
+
+    _NODISCARD static constexpr unsigned long 最低() noexcept {
+        return (最小) ();
+    }
+
+    _NODISCARD static constexpr unsigned long 机器精度() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned long 舍入误差() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned long 非规格最小() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned long 无穷() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned long 静默非数() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned long 信号非数() noexcept {
+        return 0;
+    }
+
+    static_assert(sizeof(unsigned int) == sizeof(unsigned long), "LLP64 assumption");
+    static constexpr bool 取模 = true;
+    static constexpr int 位数     = 32;
+    static constexpr int 十进制位数   = 9;
+};
+
+template <>
+class 数值极限实现<unsigned long long> : public _整数数值基类 {
+public:
+    _NODISCARD static constexpr unsigned long long(最小)() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned long long(最大)() noexcept {
+        return ULLONG_MAX;
+    }
+
+    _NODISCARD static constexpr unsigned long long 最低() noexcept {
+        return (最小) ();
+    }
+
+    _NODISCARD static constexpr unsigned long long 机器精度() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned long long 舍入误差() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned long long 非规格最小() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned long long 无穷() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned long long 静默非数() noexcept {
+        return 0;
+    }
+
+    _NODISCARD static constexpr unsigned long long 信号非数() noexcept {
+        return 0;
+    }
+
+    static constexpr bool 取模 = true;
+    static constexpr int 位数     = 64;
+    static constexpr int 十进制位数   = 19;
+};
+
+template <>
+class 数值极限实现<float> : public _浮点数值基类 {
+public:
+    _NODISCARD static constexpr float(最小)() noexcept {
+        return FLT_MIN;
+    }
+
+    _NODISCARD static constexpr float(最大)() noexcept {
+        return FLT_MAX;
+    }
+
+    _NODISCARD static constexpr float 最低() noexcept {
+        return -(最大) ();
+    }
+
+    _NODISCARD static constexpr float 机器精度() noexcept {
+        return FLT_EPSILON;
+    }
+
+    _NODISCARD static constexpr float 舍入误差() noexcept {
+        return 0.5F;
+    }
+
+    _NODISCARD static constexpr float 非规格最小() noexcept {
+        return FLT_TRUE_MIN;
+    }
+
+    _STL_DISABLE_CLANG_WARNING_NAN_INF_DISABLED
+    _NODISCARD static constexpr float 无穷() noexcept {
+        return __builtin_huge_valf();
+    }
+
+    _NODISCARD static constexpr float 静默非数() noexcept {
+        return __builtin_nanf("0");
+    }
+
+    _NODISCARD static constexpr float 信号非数() noexcept {
+        return __builtin_nansf("1");
+    }
+    _STL_RESTORE_CLANG_WARNING_NAN_INF_DISABLED
+
+    static constexpr int 位数         = FLT_MANT_DIG;
+    static constexpr int 十进制位数       = FLT_DIG;
+    static constexpr int 最大十进制位数   = 9;
+    static constexpr int 最大指数   = FLT_MAX_EXP;
+    static constexpr int 最大十进制指数 = FLT_MAX_10_EXP;
+    static constexpr int 最小指数   = FLT_MIN_EXP;
+    static constexpr int 最小十进制指数 = FLT_MIN_10_EXP;
+};
+
+template <>
+class 数值极限实现<double> : public _浮点数值基类 {
+public:
+    _NODISCARD static constexpr double(最小)() noexcept {
+        return DBL_MIN;
+    }
+
+    _NODISCARD static constexpr double(最大)() noexcept {
+        return DBL_MAX;
+    }
+
+    _NODISCARD static constexpr double 最低() noexcept {
+        return -(最大) ();
+    }
+
+    _NODISCARD static constexpr double 机器精度() noexcept {
+        return DBL_EPSILON;
+    }
+
+    _NODISCARD static constexpr double 舍入误差() noexcept {
+        return 0.5;
+    }
+
+    _NODISCARD static constexpr double 非规格最小() noexcept {
+        return DBL_TRUE_MIN;
+    }
+
+    _STL_DISABLE_CLANG_WARNING_NAN_INF_DISABLED
+    _NODISCARD static constexpr double 无穷() noexcept {
+        return __builtin_huge_val();
+    }
+
+    _NODISCARD static constexpr double 静默非数() noexcept {
+        return __builtin_nan("0");
+    }
+
+    _NODISCARD static constexpr double 信号非数() noexcept {
+        return __builtin_nans("1");
+    }
+    _STL_RESTORE_CLANG_WARNING_NAN_INF_DISABLED
+
+    static constexpr int 位数         = DBL_MANT_DIG;
+    static constexpr int 十进制位数       = DBL_DIG;
+    static constexpr int 最大十进制位数   = 17;
+    static constexpr int 最大指数   = DBL_MAX_EXP;
+    static constexpr int 最大十进制指数 = DBL_MAX_10_EXP;
+    static constexpr int 最小指数   = DBL_MIN_EXP;
+    static constexpr int 最小十进制指数 = DBL_MIN_10_EXP;
+};
+
+template <>
+class 数值极限实现<long double> : public _浮点数值基类 {
+public:
+    _NODISCARD static constexpr long double(最小)() noexcept {
+        return LDBL_MIN;
+    }
+
+    _NODISCARD static constexpr long double(最大)() noexcept {
+        return LDBL_MAX;
+    }
+
+    _NODISCARD static constexpr long double 最低() noexcept {
+        return -(最大) ();
+    }
+
+    _NODISCARD static constexpr long double 机器精度() noexcept {
+        return LDBL_EPSILON;
+    }
+
+    _NODISCARD static constexpr long double 舍入误差() noexcept {
+        return 0.5L;
+    }
+
+    _NODISCARD static constexpr long double 非规格最小() noexcept {
+        return LDBL_TRUE_MIN;
+    }
+
+    _STL_DISABLE_CLANG_WARNING_NAN_INF_DISABLED
+    _NODISCARD static constexpr long double 无穷() noexcept {
+        return __builtin_huge_val();
+    }
+
+    _NODISCARD static constexpr long double 静默非数() noexcept {
+        return __builtin_nan("0");
+    }
+
+    _NODISCARD static constexpr long double 信号非数() noexcept {
+        return __builtin_nans("1");
+    }
+    _STL_RESTORE_CLANG_WARNING_NAN_INF_DISABLED
+
+    static constexpr int 位数         = LDBL_MANT_DIG;
+    static constexpr int 十进制位数       = LDBL_DIG;
+    static constexpr int 最大十进制位数   = 2 + LDBL_MANT_DIG * 301L / 1000;
+    static constexpr int 最大指数   = LDBL_MAX_EXP;
+    static constexpr int 最大十进制指数 = LDBL_MAX_10_EXP;
+    static constexpr int 最小指数   = LDBL_MIN_EXP;
+    static constexpr int 最小十进制指数 = LDBL_MIN_10_EXP;
+};
+
+} }
+#pragma pop_macro("new")
+_STL_RESTORE_CLANG_WARNINGS
+#pragma warning(pop)
+#pragma pack(pop)
+#endif // _STL_COMPILER_PREPROCESSOR
+// [ZH-DERIVE-LAYER] 汉语派生层（英文兼容层）从这一行开始 —— 本行【以上】属抄来那层，有英文名就是欠账
+// ============================================================================
+//  第二层：在【中文的基础上】派生，把英文原名补回来
+//  · 第一层 标准::细节::数值极限实现 是抄自微软的中文实现，成员名全中文
+//  · 本层加回英文原名，所以两种名字在【同一个对象】上都能用
+//  · 与微软的原类型并存：它是【另一个类型】，不碰 std 里的定义
+// ============================================================================
+名域 标准 {
+模板 <类型名 元素>
+类型 数值极限 : 公开 细节::数值极限实现<元素> {
+公开:
+    使用 基类 = 细节::数值极限实现<元素>;
+    使用 基类::基类;
+
+    // 嵌套类型名也要补回英文（数据成员不行 —— 那会改布局）
+
+
+    // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
+
+
+    // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
+    // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
+    // 变量成员的英文名（通用转发会把变量变成函数，所以逐个手写；auto 免去写被改名的枚举类型名）。
+    static constexpr auto is_specialized    = 基类::已特化;
+    static constexpr auto is_signed         = 基类::带符号;
+    static constexpr auto is_integer        = 基类::整数类型;
+    static constexpr auto is_exact          = 基类::精确;
+    static constexpr auto is_iec559         = 基类::符合IEC559;
+    static constexpr auto is_bounded        = 基类::有界;
+    static constexpr auto is_modulo         = 基类::取模;
+    static constexpr auto has_infinity      = 基类::有无穷;
+    static constexpr auto has_quiet_NaN     = 基类::有静默非数;
+    static constexpr auto has_signaling_NaN = 基类::有信号非数;
+    static constexpr auto has_denorm        = 基类::有非规格;
+    static constexpr auto has_denorm_loss   = 基类::非规格损失;
+    static constexpr auto traps             = 基类::陷阱;
+    static constexpr auto tinyness_before   = 基类::先测微小;
+    static constexpr auto round_style       = 基类::舍入方式;
+
+    // 静态【函数】成员：同样手写（带括号，语义与 std 一致）。
+    static constexpr auto min() { 返回 基类::最小(); }
+    static constexpr auto max() { 返回 基类::最大(); }
+    static constexpr auto lowest() { 返回 基类::最低(); }
+    static constexpr auto epsilon() { 返回 基类::机器精度(); }
+    static constexpr auto round_error() { 返回 基类::舍入误差(); }
+    static constexpr auto infinity() { 返回 基类::无穷(); }
+    static constexpr auto quiet_NaN() { 返回 基类::静默非数(); }
+    static constexpr auto signaling_NaN() { 返回 基类::信号非数(); }
+    static constexpr auto denorm_min() { 返回 基类::非规格最小(); }
+    static constexpr auto digits() { 返回 基类::位数(); }
+    static constexpr auto digits10() { 返回 基类::十进制位数(); }
+    static constexpr auto max_digits10() { 返回 基类::最大十进制位数(); }
+    static constexpr auto radix() { 返回 基类::基数(); }
+    static constexpr auto min_exponent() { 返回 基类::最小指数(); }
+    static constexpr auto min_exponent10() { 返回 基类::最小十进制指数(); }
+    static constexpr auto max_exponent() { 返回 基类::最大指数(); }
+    static constexpr auto max_exponent10() { 返回 基类::最大十进制指数(); }
+};
+}
+名域 标准 {
+
+// 两个枚举与它们的枚举值：抄来层在 细节::，公开层补别名/引入（枚举值用 using 引入名域作用域）。
+使用 浮点舍入方式   = 细节::浮点舍入方式;
+使用 浮点非规格方式 = 细节::浮点非规格方式;
+// 英文原名也要能用（否则"标准::float_round_style"这种写法就没了）。
+使用 float_round_style  = 细节::浮点舍入方式;
+使用 float_denorm_style = 细节::浮点非规格方式;
+使用 细节::舍入不确定; 使用 细节::向零舍入; 使用 细节::就近舍入;
+使用 细节::向正无穷舍入; 使用 细节::向负无穷舍入;
+使用 细节::非规格不确定; 使用 细节::非规格不存在; 使用 细节::非规格存在;
+
+}  // 名域 标准
+
+#endif // _LIMITS_

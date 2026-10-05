@@ -1,0 +1,196 @@
+// xsmf_control.h internal header
+
+// Copyright (c) Microsoft Corporation.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#ifndef _ZH_XSMF_CONTROL_H_
+#define _ZH_XSMF_CONTROL_H_
+#include <yvals_core.h>
+#if _STL_COMPILER_PREPROCESSOR
+
+#include <type_traits>
+
+#pragma pack(push, _CRT_PACKING)
+#pragma warning(push, _STL_WARNING_LEVEL)
+#pragma warning(disable : _STL_DISABLED_WARNINGS)
+_STL_DISABLE_CLANG_WARNINGS
+#pragma push_macro("new")
+#undef new
+
+名域 标准 { 名域 细节 {
+使用 名域 std;
+
+template <class _Base>
+struct _非平凡复制 : _Base { // non-trivial copy construction facade
+    using _Base::_Base;
+
+    _非平凡复制() = default;
+    _CONSTEXPR20 _非平凡复制(const _非平凡复制& _That)
+        noexcept(noexcept(_Base::_由之构造(static_cast<const _Base&>(_That)))) {
+        _Base::_由之构造(static_cast<const _Base&>(_That));
+    }
+    _非平凡复制(_非平凡复制&&)                 = default;
+    _非平凡复制& operator=(const _非平凡复制&) = default;
+    _非平凡复制& operator=(_非平凡复制&&)      = default;
+};
+
+template <class _Base>
+struct _删除复制 : _Base { // deleted copy construction facade
+    using _Base::_Base;
+
+    _删除复制()                                = default;
+    _删除复制(const _删除复制&)            = delete;
+    _删除复制(_删除复制&&)                 = default;
+    _删除复制& operator=(const _删除复制&) = default;
+    _删除复制& operator=(_删除复制&&)      = default;
+};
+
+template <class _Base, class... _Types>
+using _特殊成员控制复制 = conditional_t<conjunction_v<is_trivially_copy_constructible<_Types>...>, _Base,
+    conditional_t<conjunction_v<is_copy_constructible<_Types>...>, _非平凡复制<_Base>, _删除复制<_Base>>>;
+
+template <class _Base, class... _Types>
+struct _非平凡移动 : _特殊成员控制复制<_Base, _Types...> { // non-trivial move construction facade
+    using _我的基类 = _特殊成员控制复制<_Base, _Types...>;
+    using _我的基类::_我的基类;
+
+    _非平凡移动()                         = default;
+    _非平凡移动(const _非平凡移动&) = default;
+    _CONSTEXPR20 _非平凡移动(_非平凡移动&& _That)
+        noexcept(noexcept(_我的基类::_由之构造(static_cast<_Base&&>(_That)))) {
+        _我的基类::_由之构造(static_cast<_Base&&>(_That));
+    }
+    _非平凡移动& operator=(const _非平凡移动&) = default;
+    _非平凡移动& operator=(_非平凡移动&&)      = default;
+};
+
+template <class _Base, class... _Types>
+struct _删除移动 : _特殊成员控制复制<_Base, _Types...> { // deleted move construction facade
+    using _我的基类 = _特殊成员控制复制<_Base, _Types...>;
+    using _我的基类::_我的基类;
+
+    _删除移动()                                = default;
+    _删除移动(const _删除移动&)            = default;
+    _删除移动(_删除移动&&)                 = delete;
+    _删除移动& operator=(const _删除移动&) = default;
+    _删除移动& operator=(_删除移动&&)      = default;
+};
+
+template <class _Base, class... _Types>
+using _特殊成员控制移动 =
+    conditional_t<conjunction_v<is_trivially_move_constructible<_Types>...>, _特殊成员控制复制<_Base, _Types...>,
+        conditional_t<conjunction_v<is_move_constructible<_Types>...>, _非平凡移动<_Base, _Types...>,
+            _删除移动<_Base, _Types...>>>;
+
+template <class _Base, class... _Types>
+struct _非平凡复制赋值 : _特殊成员控制移动<_Base, _Types...> { // non-trivial copy assignment facade
+    using _我的基类 = _特殊成员控制移动<_Base, _Types...>;
+    using _我的基类::_我的基类;
+
+    _非平凡复制赋值()                                = default;
+    _非平凡复制赋值(const _非平凡复制赋值&) = default;
+    _非平凡复制赋值(_非平凡复制赋值&&)      = default;
+
+    _CONSTEXPR20 _非平凡复制赋值& operator=(const _非平凡复制赋值& _That)
+        noexcept(noexcept(_我的基类::_由之赋值(static_cast<const _Base&>(_That)))) {
+        _我的基类::_由之赋值(static_cast<const _Base&>(_That));
+        return *this;
+    }
+    _非平凡复制赋值& operator=(_非平凡复制赋值&&) = default;
+};
+
+template <class _Base, class... _Types>
+struct _删除复制赋值 : _特殊成员控制移动<_Base, _Types...> { // deleted copy assignment facade
+    using _我的基类 = _特殊成员控制移动<_Base, _Types...>;
+    using _我的基类::_我的基类;
+
+    _删除复制赋值()                                       = default;
+    _删除复制赋值(const _删除复制赋值&)            = default;
+    _删除复制赋值(_删除复制赋值&&)                 = default;
+    _删除复制赋值& operator=(const _删除复制赋值&) = delete;
+    _删除复制赋值& operator=(_删除复制赋值&&)      = default;
+};
+
+template <class _Base, class... _Types>
+using _特殊成员控制复制赋值 =
+    conditional_t<conjunction_v<is_trivially_destructible<_Types>..., is_trivially_copy_constructible<_Types>...,
+                      is_trivially_copy_assignable<_Types>...>,
+        _特殊成员控制移动<_Base, _Types...>,
+        conditional_t<conjunction_v<is_copy_constructible<_Types>..., is_copy_assignable<_Types>...>,
+            _非平凡复制赋值<_Base, _Types...>, _删除复制赋值<_Base, _Types...>>>;
+
+template <class _Base, class... _Types>
+struct _非平凡移动赋值 : _特殊成员控制复制赋值<_Base, _Types...> { // non-trivial move assignment facade
+    using _我的基类 = _特殊成员控制复制赋值<_Base, _Types...>;
+    using _我的基类::_我的基类;
+
+    _非平凡移动赋值()                                           = default;
+    _非平凡移动赋值(const _非平凡移动赋值&)            = default;
+    _非平凡移动赋值(_非平凡移动赋值&&)                 = default;
+    _非平凡移动赋值& operator=(const _非平凡移动赋值&) = default;
+
+    _CONSTEXPR20 _非平凡移动赋值& operator=(_非平凡移动赋值&& _That)
+        noexcept(noexcept(_我的基类::_由之赋值(static_cast<_Base&&>(_That)))) {
+        _我的基类::_由之赋值(static_cast<_Base&&>(_That));
+        return *this;
+    }
+};
+
+template <class _Base, class... _Types>
+struct _删除移动赋值 : _特殊成员控制复制赋值<_Base, _Types...> { // deleted move assignment facade
+    using _我的基类 = _特殊成员控制复制赋值<_Base, _Types...>;
+    using _我的基类::_我的基类;
+
+    _删除移动赋值()                                       = default;
+    _删除移动赋值(const _删除移动赋值&)            = default;
+    _删除移动赋值(_删除移动赋值&&)                 = default;
+    _删除移动赋值& operator=(const _删除移动赋值&) = default;
+    _删除移动赋值& operator=(_删除移动赋值&&)      = delete;
+};
+
+template <class _Base, class... _Types>
+using _特殊成员控制移动赋值 =
+    conditional_t<conjunction_v<is_trivially_destructible<_Types>..., is_trivially_move_constructible<_Types>...,
+                      is_trivially_move_assignable<_Types>...>,
+        _特殊成员控制复制赋值<_Base, _Types...>,
+        conditional_t<conjunction_v<is_move_constructible<_Types>..., is_move_assignable<_Types>...>,
+            _非平凡移动赋值<_Base, _Types...>, _删除移动赋值<_Base, _Types...>>>;
+
+template <class _Base, class... _Types>
+using _特殊成员控制 = _特殊成员控制移动赋值<_Base, _Types...>;
+
+} }
+
+#pragma pop_macro("new")
+_STL_RESTORE_CLANG_WARNINGS
+#pragma warning(pop)
+#pragma pack(pop)
+
+#endif // _STL_COMPILER_PREPROCESSOR
+// [ZH-DERIVE-LAYER] 汉语派生层（英文兼容层）从这一行开始 —— 本行【以上】属抄来那层，有英文名就是欠账
+// ============================================================================
+//  第二层：在【中文的基础上】派生，把英文原名补回来
+//  · 第一层 标准::细节::_特殊成员控制 是抄自微软的中文实现，成员名全中文
+//  · 本层加回英文原名，所以两种名字在【同一个对象】上都能用
+//  · 与微软的原类型并存：它是【另一个类型】，不碰 std 里的定义
+// ============================================================================
+名域 标准 {
+模板 <类型名 基类参数, 类型名... 类型集>
+类型 _特殊成员控制 : 公开 细节::_特殊成员控制<基类参数, 类型集...> {
+公开:
+    使用 基类 = 细节::_特殊成员控制<基类参数, 类型集...>;
+    使用 基类::基类;
+
+    // 嵌套类型名也要补回英文（数据成员不行 —— 那会改布局）
+
+
+    // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
+
+
+    // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
+    // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
+
+};
+}
+
+#endif // _XSMF_CONTROL_H

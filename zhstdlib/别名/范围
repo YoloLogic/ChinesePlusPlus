@@ -1,0 +1,78 @@
+// <范围> —— ranges 的中文别名层
+//
+// 为什么是别名而不是抄一份（方案铁律 4）：
+//   铁律③：视图类型参与语义（用户按视图类型重载与组合）；概念本身是约束的组成部分，也只能别名。
+//   这类头一旦抄一份，就会和 std 里那份成为两套互不相认的东西。
+//
+// 英文原名照旧可用：这里只是【多一个名字】，原头一个字节没动。
+// 变体（英文里带 _v 的变量模板形式）暂未提供中文名，属"必须的妥协"，见方案 §六。
+#pragma once
+#include <ranges>
+
+名域 标准 {
+    模板 <类型名 值类型> 概念 是范围 = std::ranges::range<值类型>;
+    模板 <类型名 值类型> 概念 是输入范围 = std::ranges::input_range<值类型>;
+    模板 <类型名 值类型> 概念 是前向范围 = std::ranges::forward_range<值类型>;
+    模板 <类型名 值类型> 概念 是双向范围 = std::ranges::bidirectional_range<值类型>;
+    模板 <类型名 值类型> 概念 是随机访问范围 = std::ranges::random_access_range<值类型>;
+    模板 <类型名 值类型> 概念 是连续范围 = std::ranges::contiguous_range<值类型>;
+    模板 <类型名 值类型> 概念 是有大小范围 = std::ranges::sized_range<值类型>;
+    模板 <类型名 值类型> 概念 是视图 = std::ranges::view<值类型>;
+    模板 <类型名 值类型> 概念 可借范围 = std::ranges::borrowed_range<值类型>;
+    模板 <类型名 值类型> 概念 是公共范围 = std::ranges::common_range<值类型>;
+    模板 <类型名 值类型> 概念 可作视图 = std::ranges::viewable_range<值类型>;
+    模板 <类型名 迭代, 类型名 哨兵 = 迭代> 使用 子范围 = std::ranges::subrange<迭代, 哨兵>;
+    模板 <类型名 派生> 使用 视图接口 = std::ranges::view_interface<派生>;
+    模板 <类型名 值类型> 使用 空视图 = std::ranges::empty_view<值类型>;
+    模板 <类型名 值类型> 使用 单元素视图 = std::ranges::single_view<值类型>;
+    模板 <类型名 值类型, 类型名 边界 = std::unreachable_sentinel_t> 使用 序列视图 = std::ranges::iota_view<值类型, 边界>;
+    模板 <类型名 范围类型> 使用 引用视图 = std::ranges::ref_view<范围类型>;
+    模板 <类型名 范围类型> 使用 拥有视图 = std::ranges::owning_view<范围类型>;
+    模板 <类型名 视图类型, 类型名 谓词> 使用 过滤视图 = std::ranges::filter_view<视图类型, 谓词>;
+    模板 <类型名 视图类型, 类型名 函数> 使用 变换视图 = std::ranges::transform_view<视图类型, 函数>;
+    模板 <类型名 视图类型> 使用 取前视图 = std::ranges::take_view<视图类型>;
+    模板 <类型名 视图类型, 类型名 谓词> 使用 取前若视图 = std::ranges::take_while_view<视图类型, 谓词>;
+    模板 <类型名 视图类型> 使用 丢弃前视图 = std::ranges::drop_view<视图类型>;
+    模板 <类型名 视图类型, 类型名 谓词> 使用 丢弃前若视图 = std::ranges::drop_while_view<视图类型, 谓词>;
+    模板 <类型名 视图类型> 使用 连接视图 = std::ranges::join_view<视图类型>;
+    模板 <类型名 视图类型, 类型名 模式> 使用 切分视图 = std::ranges::split_view<视图类型, 模式>;
+    模板 <类型名 视图类型, 类型名 模式> 使用 惰性切分视图 = std::ranges::lazy_split_view<视图类型, 模式>;
+    模板 <类型名 视图类型> 使用 公共视图 = std::ranges::common_view<视图类型>;
+    模板 <类型名 视图类型> 使用 反转视图 = std::ranges::reverse_view<视图类型>;
+    模板 <类型名 视图类型, std::size_t 下标> 使用 元素视图 = std::ranges::elements_view<视图类型, 下标>;
+    模板 <类型名 视图类型> 使用 键视图 = std::ranges::keys_view<视图类型>;
+    模板 <类型名 视图类型> 使用 值视图 = std::ranges::values_view<视图类型>;
+    模板 <类型名 值类型, 类型名 字符类型, 类型名 特征 = std::char_traits<字符类型>> 使用 基本输入流视图 = std::ranges::basic_istream_view<值类型, 字符类型, 特征>;
+    模板 <类型名 值类型> 使用 输入流视图 = std::ranges::istream_view<值类型>;
+    模板 <类型名 范围类型> 声明类型(自动) 范围开始(范围类型&& 甲) { 返回 std::ranges::begin(甲); }
+    模板 <类型名 范围类型> 声明类型(自动) 范围结束(范围类型&& 甲) { 返回 std::ranges::end(甲); }
+    模板 <类型名 范围类型> 声明类型(自动) 范围长度(范围类型&& 甲) { 返回 std::ranges::size(甲); }
+    模板 <类型名 范围类型> 布尔 范围空否(范围类型&& 甲) { 返回 std::ranges::empty(甲); }
+    模板 <类型名 范围类型> 声明类型(自动) 范围数据(范围类型&& 甲) { 返回 std::ranges::data(甲); }
+    模板 <类型名 迭代, 类型名 哨兵> 声明类型(自动) 范围距离(迭代 甲, 哨兵 乙) { 返回 std::ranges::distance(甲, 乙); }
+    模板 <类型名 迭代, 类型名 距离类型> 空型 范围前进(迭代& 甲, 距离类型 乙) { std::ranges::advance(甲, 乙); }
+    模板 <类型名 迭代> 声明类型(自动) 范围下一个(迭代 甲) { 返回 std::ranges::next(甲); }
+    模板 <类型名 迭代> 声明类型(自动) 范围上一个(迭代 甲) { 返回 std::ranges::prev(甲); }
+    名域 范围视图 {
+      模板 <类型名 范围类型> 声明类型(自动) 全部(范围类型&& 甲) { 返回 std::views::all(static_cast<范围类型&&>(甲)); }
+      模板 <类型名 范围类型, 类型名 函数> 声明类型(自动) 过滤(范围类型&& 甲, 函数&& 乙) { 返回 std::views::filter(static_cast<范围类型&&>(甲), static_cast<函数&&>(乙)); }
+      模板 <类型名 范围类型, 类型名 函数> 声明类型(自动) 变换(范围类型&& 甲, 函数&& 乙) { 返回 std::views::transform(static_cast<范围类型&&>(甲), static_cast<函数&&>(乙)); }
+      模板 <类型名 范围类型> 声明类型(自动) 取前(范围类型&& 甲, std::size_t 个数) { 返回 std::views::take(static_cast<范围类型&&>(甲), 个数); }
+      模板 <类型名 范围类型, 类型名 谓词> 声明类型(自动) 取前若(范围类型&& 甲, 谓词&& 乙) { 返回 std::views::take_while(static_cast<范围类型&&>(甲), static_cast<谓词&&>(乙)); }
+      模板 <类型名 范围类型> 声明类型(自动) 丢弃前(范围类型&& 甲, std::size_t 个数) { 返回 std::views::drop(static_cast<范围类型&&>(甲), 个数); }
+      模板 <类型名 范围类型, 类型名 谓词> 声明类型(自动) 丢弃前若(范围类型&& 甲, 谓词&& 乙) { 返回 std::views::drop_while(static_cast<范围类型&&>(甲), static_cast<谓词&&>(乙)); }
+      模板 <类型名 范围类型> 声明类型(自动) 连接(范围类型&& 甲) { 返回 std::views::join(static_cast<范围类型&&>(甲)); }
+      模板 <类型名 范围类型, 类型名 模式> 声明类型(自动) 切分(范围类型&& 甲, 模式&& 乙) { 返回 std::views::split(static_cast<范围类型&&>(甲), static_cast<模式&&>(乙)); }
+      模板 <类型名 范围类型, 类型名 模式> 声明类型(自动) 惰性切分(范围类型&& 甲, 模式&& 乙) { 返回 std::views::lazy_split(static_cast<范围类型&&>(甲), static_cast<模式&&>(乙)); }
+      模板 <类型名 范围类型> 声明类型(自动) 公共(范围类型&& 甲) { 返回 std::views::common(static_cast<范围类型&&>(甲)); }
+      模板 <类型名 范围类型> 声明类型(自动) 反转(范围类型&& 甲) { 返回 std::views::reverse(static_cast<范围类型&&>(甲)); }
+      模板 <类型名 范围类型> 声明类型(自动) 元素(范围类型&& 甲) { 返回 std::views::elements<0>(static_cast<范围类型&&>(甲)); }
+      模板 <类型名 范围类型> 声明类型(自动) 键(范围类型&& 甲) { 返回 std::views::keys(static_cast<范围类型&&>(甲)); }
+      模板 <类型名 范围类型> 声明类型(自动) 值(范围类型&& 甲) { 返回 std::views::values(static_cast<范围类型&&>(甲)); }
+      模板 <类型名 值类型> 声明类型(自动) 序列(值类型 起, 值类型 止) { 返回 std::views::iota(起, 止); }
+      模板 <类型名 值类型> 声明类型(自动) 单元素(值类型&& 甲) { 返回 std::views::single(static_cast<值类型&&>(甲)); }
+      模板 <类型名 值类型> 声明类型(自动) 空(值类型&&) 不抛出 { 返回 std::views::empty<值类型>; }
+      模板 <类型名 范围类型> 声明类型(自动) 计数(范围类型 甲, std::ptrdiff_t 个数) { 返回 std::views::counted(甲, 个数); }
+      模板 <类型名 值类型, 类型名 流类型> 声明类型(自动) 输入流(流类型& 甲) { 返回 std::views::istream<值类型>(甲); }
+    }
+}

@@ -1,0 +1,327 @@
+#include <scoped_allocator>
+// scoped_allocator standard header
+
+// Copyright (c) Microsoft Corporation.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#ifndef _ZH_SCOPED_ALLOCATOR_
+#define _ZH_SCOPED_ALLOCATOR_
+#include <yvals_core.h>
+#if _STL_COMPILER_PREPROCESSOR
+#include <xpolymorphic_allocator.h>
+
+#pragma pack(push, _CRT_PACKING)
+#pragma warning(push, _STL_WARNING_LEVEL)
+#pragma warning(disable : _STL_DISABLED_WARNINGS)
+_STL_DISABLE_CLANG_WARNINGS
+#pragma push_macro("new")
+#undef new
+
+名域 标准 { 名域 细节 {
+使用 名域 std;
+template <class _分配器, class = void>
+struct _作用域最外层助手 { // gets the outermost allocator
+    static decltype(auto) _Fn(_分配器& _Al) { // gets the outermost allocator
+        return _Al;
+    }
+};
+
+template <class _分配器>
+struct _作用域最外层助手<_分配器,
+    void_t<decltype(_STD declval<_分配器&>().外层分配器())>> { // gets the outermost allocator
+    using _外层分配器 = decltype(_STD declval<_分配器&>().外层分配器());
+
+    static decltype(auto) _Fn(_分配器& _Al) { // gets the outermost allocator
+        return _作用域最外层助手<_外层分配器>::_Fn(_Al.外层分配器());
+    }
+};
+
+template <class _分配器>
+decltype(auto) _作用域最外层(_分配器& _Al) { // gets the outermost allocator
+    return _作用域最外层助手<_分配器>::_Fn(_Al);
+}
+
+template <class _分配器>
+using _作用域最外层类型 = remove_reference_t<decltype(_作用域最外层(_STD declval<_分配器&>()))>;
+
+template <class _分配器>
+using _作用域最外层特征 = allocator_traits<_作用域最外层类型<_分配器>>;
+
+_EXPORT_STD template <class _Outer, class... _Inner>
+class 作用域分配器适配器实现;
+
+template <class _Outer, class... _Inner>
+struct _作用域基类;
+
+struct _作用域构造内部标号 {
+    explicit _作用域构造内部标号() = default;
+};
+
+template <class _Outer, class _Inner0, class... _Inner>
+struct _作用域基类<_Outer, _Inner0, _Inner...> : _Outer { // nest of allocators, arbitrary depth
+    using _我的适配器           = 作用域分配器适配器实现<_Outer, _Inner0, _Inner...>;
+    using 内层分配器类型 = 作用域分配器适配器实现<_Inner0, _Inner...>;
+
+    内层分配器类型 _Inner_obj;
+
+    内层分配器类型& _取内层对象(_我的适配器&) {
+        return _Inner_obj;
+    }
+
+    const 内层分配器类型& _取内层对象(const _我的适配器&) const {
+        return _Inner_obj;
+    }
+
+    _作用域基类() : _Outer(), _Inner_obj() {} // value-initialize Outer and Inner
+
+    template <class _Other1, class... _Other2,
+        enable_if_t<sizeof...(_Other2) != 0 || !is_base_of_v<_作用域基类, decay_t<_Other1>>, int> = 0>
+    _作用域基类(_Other1&& _Outer_arg, _Other2&&... _Inner_args)
+        : _Outer(_STD forward<_Other1>(_Outer_arg)), _Inner_obj(_STD forward<_Other2>(_Inner_args)...) {
+        // also handles rebinding
+    }
+
+    _作用域基类(const _作用域基类&)            = default;
+    _作用域基类(_作用域基类&&)                 = default;
+    _作用域基类& operator=(const _作用域基类&) = default;
+    _作用域基类& operator=(_作用域基类&&)      = default;
+
+    _NODISCARD _我的适配器 复制时选择() const { // make new adaptor
+        return _我的适配器(_作用域构造内部标号{},
+            allocator_traits<_Outer>::复制时选择(static_cast<const _Outer&>(*this)),
+            _Inner_obj.复制时选择());
+    }
+};
+
+template <class _Outer>
+struct _作用域基类<_Outer> : _Outer { // nest of allocators, one deep
+    using _我的适配器           = 作用域分配器适配器实现<_Outer>;
+    using 内层分配器类型 = 作用域分配器适配器实现<_Outer>;
+
+    内层分配器类型& _取内层对象(_我的适配器& _Self) {
+        return _Self;
+    }
+
+    const 内层分配器类型& _取内层对象(const _我的适配器& _Self) const {
+        return _Self;
+    }
+
+    _作用域基类() : _Outer() {} // value-initialize
+
+    template <class _Other1, enable_if_t<!is_base_of_v<_作用域基类, decay_t<_Other1>>, int> = 0>
+    _作用域基类(_Other1&& _Outer_arg) : _Outer(_STD forward<_Other1>(_Outer_arg)) {} // also handles rebinding
+
+    _作用域基类(const _作用域基类&)            = default;
+    _作用域基类(_作用域基类&&)                 = default;
+    _作用域基类& operator=(const _作用域基类&) = default;
+    _作用域基类& operator=(_作用域基类&&)      = default;
+
+    _NODISCARD _我的适配器 复制时选择() const { // make new adaptor
+        return _我的适配器(
+            allocator_traits<_Outer>::复制时选择(static_cast<const _Outer&>(*this)));
+    }
+};
+
+_EXPORT_STD template <class _Outer, class... _Inner>
+class 作用域分配器适配器实现 : public _作用域基类<_Outer, _Inner...> { // nest of allocators
+private:
+    using _我的基类       = _作用域基类<_Outer, _Inner...>;
+    using _外层特征 = allocator_traits<_Outer>;
+
+public:
+    using 外层分配器类型 = _Outer;
+    using 内层分配器类型 = typename _我的基类::内层分配器类型;
+
+    using value_type         = typename _外层特征::value_type;
+    using pointer            = typename _外层特征::pointer;
+    using const_pointer      = typename _外层特征::const_pointer;
+    using void_pointer       = typename _外层特征::void_pointer;
+    using const_void_pointer = typename _外层特征::const_void_pointer;
+
+    using size_type       = typename _外层特征::size_type;
+    using difference_type = typename _外层特征::difference_type;
+
+    template <class _Other>
+    struct rebind { // converts X<value_type> to X<_Other>
+        using _另一分配器 = typename _Get_rebind_type<_Outer, _Other>::type;
+        using other        = 作用域分配器适配器实现<_另一分配器, _Inner...>;
+    };
+
+    using propagate_on_container_copy_assignment =
+        bool_constant<disjunction_v<typename allocator_traits<_Outer>::propagate_on_container_copy_assignment,
+            typename allocator_traits<_Inner>::propagate_on_container_copy_assignment...>>;
+
+    using propagate_on_container_move_assignment =
+        bool_constant<disjunction_v<typename allocator_traits<_Outer>::propagate_on_container_move_assignment,
+            typename allocator_traits<_Inner>::propagate_on_container_move_assignment...>>;
+
+    using propagate_on_container_swap =
+        bool_constant<disjunction_v<typename allocator_traits<_Outer>::propagate_on_container_swap,
+            typename allocator_traits<_Inner>::propagate_on_container_swap...>>;
+
+    using is_always_equal = bool_constant<conjunction_v<typename allocator_traits<_Outer>::is_always_equal,
+        typename allocator_traits<_Inner>::is_always_equal...>>;
+
+    作用域分配器适配器实现() = default; // value-init handled in _作用域基类
+
+    template <class _Other, enable_if_t<is_constructible_v<_Outer, _Other>, int> = 0>
+    作用域分配器适配器实现(_Other&& _Other_arg, const _Inner&... _Inner_args) noexcept
+        : _我的基类(_STD forward<_Other>(_Other_arg), _Inner_args...) {
+        // also handles rebinding construction when sizeof...(_Inner) == 0
+    }
+
+    作用域分配器适配器实现(const 作用域分配器适配器实现& _Right) noexcept : _我的基类(_Right) {}
+
+    作用域分配器适配器实现(作用域分配器适配器实现&& _Right) noexcept : _我的基类(_STD move(_Right)) {}
+
+    template <class _Other, bool _Enabled = sizeof...(_Inner) != 0 && is_constructible_v<_Outer, const _Other&>,
+        enable_if_t<_Enabled, int> = 0>
+    作用域分配器适配器实现(const 作用域分配器适配器实现<_Other, _Inner...>& _Right) noexcept
+        : _我的基类(_Right.外层分配器(), _Right.内层分配器()) {}
+
+    template <class _Other, bool _Enabled = sizeof...(_Inner) != 0 && is_constructible_v<_Outer, _Other>,
+        enable_if_t<_Enabled, int> = 0>
+    作用域分配器适配器实现(作用域分配器适配器实现<_Other, _Inner...>&& _Right) noexcept
+        : _我的基类(_STD move(_Right.外层分配器()), _STD move(_Right.内层分配器())) {}
+
+    作用域分配器适配器实现(_作用域构造内部标号, const 外层分配器类型& _Outer_arg,
+        const 内层分配器类型& _Inner_arg) noexcept
+        : _我的基类(_Outer_arg, _Inner_arg) {}
+
+    作用域分配器适配器实现& operator=(const 作用域分配器适配器实现&) = default;
+    作用域分配器适配器实现& operator=(作用域分配器适配器实现&&)      = default;
+
+    _NODISCARD 内层分配器类型& 内层分配器() noexcept { // get reference to inner allocator
+        return this->_取内层对象(*this);
+    }
+
+    _NODISCARD const 内层分配器类型& 内层分配器() const noexcept { // get reference to inner allocator
+        return this->_取内层对象(*this);
+    }
+
+    _NODISCARD 外层分配器类型& 外层分配器() noexcept { // get reference to outer allocator
+        return static_cast<_Outer&>(*this);
+    }
+
+    _NODISCARD const 外层分配器类型& 外层分配器() const noexcept { // get reference to outer allocator
+        return static_cast<const _Outer&>(*this);
+    }
+
+    _NODISCARD_RAW_PTR_ALLOC __declspec(allocator) pointer 分配(_CRT_GUARDOVERFLOW size_type _Count) {
+        // 分配 array of _Count elements, ignore hint
+        return _外层特征::分配(外层分配器(), _Count);
+    }
+
+    _NODISCARD_RAW_PTR_ALLOC __declspec(allocator) pointer 分配(
+        _CRT_GUARDOVERFLOW size_type _Count, const_void_pointer _Hint) { // 分配 array of _Count elements, with hint
+        return _外层特征::分配(外层分配器(), _Count, _Hint);
+    }
+
+    void 释放(pointer _Ptr, size_type _Count) { // 释放 object at _Ptr, with size
+        return _外层特征::释放(外层分配器(), _Ptr, _Count);
+    }
+
+    _NODISCARD size_type 最大尺寸() const { // estimate maximum array size
+        return _外层特征::最大尺寸(外层分配器());
+    }
+
+    template <class _类型, class... _Types>
+    void 构造(_类型* _Ptr, _Types&&... _Args) { // 构造 with varying allocator styles
+#if _HAS_CXX20
+        _STD apply(
+            [_Ptr, this](auto&&... _New_args) {
+                _作用域最外层特征<作用域分配器适配器实现>::构造(
+                    _作用域最外层(*this), _Ptr, _STD forward<decltype(_New_args)>(_New_args)...);
+            },
+            _STD uses_allocator_construction_args<_类型>(内层分配器(), _STD forward<_Types>(_Args)...));
+#else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
+        if constexpr (_Is_cv_pair<_类型>) {
+            _Uses_alloc_construct_pair(
+                _Ptr, _作用域最外层(*this), 内层分配器(), _STD forward<_Types>(_Args)...);
+        } else {
+            _Uses_alloc_construct_non_pair(
+                _Ptr, _作用域最外层(*this), 内层分配器(), _STD forward<_Types>(_Args)...);
+        }
+#endif // ^^^ !_HAS_CXX20 ^^^
+    }
+
+    template <class _类型>
+    void 析构(_类型* _Ptr) { // 析构 object at _Ptr
+        _作用域最外层特征<作用域分配器适配器实现>::析构(_作用域最外层(*this), _Ptr);
+    }
+
+    // 复制时选择 comes from _作用域基类
+};
+
+#if _HAS_CXX17
+template <class _Outer, class... _Inner>
+作用域分配器适配器实现(_Outer, _Inner...) -> 作用域分配器适配器实现<_Outer, _Inner...>;
+#endif // _HAS_CXX17
+
+_EXPORT_STD template <class _Outer1, class _Outer2, class... _Inner>
+_NODISCARD bool operator==(const 作用域分配器适配器实现<_Outer1, _Inner...>& _Left,
+    const 作用域分配器适配器实现<_Outer2, _Inner...>& _Right) noexcept {
+    if constexpr (sizeof...(_Inner) == 0) {
+        return _Left.外层分配器() == _Right.外层分配器();
+    } else {
+        return _Left.外层分配器() == _Right.外层分配器()
+            && _Left.内层分配器() == _Right.内层分配器();
+    }
+}
+
+#if !_HAS_CXX20
+template <class _Outer1, class _Outer2, class... _Inner>
+_NODISCARD bool operator!=(const 作用域分配器适配器实现<_Outer1, _Inner...>& _Left,
+    const 作用域分配器适配器实现<_Outer2, _Inner...>& _Right) noexcept {
+    return !(_Left == _Right);
+}
+#endif // !_HAS_CXX20
+
+} }
+#pragma pop_macro("new")
+_STL_RESTORE_CLANG_WARNINGS
+#pragma warning(pop)
+#pragma pack(pop)
+#endif // _STL_COMPILER_PREPROCESSOR
+// [ZH-DERIVE-LAYER] 汉语派生层（英文兼容层）从这一行开始 —— 本行【以上】属抄来那层，有英文名就是欠账
+// ============================================================================
+//  第二层：在【中文的基础上】派生，把英文原名补回来
+//  · 第一层 标准::细节::作用域分配器适配器实现 是抄自微软的中文实现，成员名全中文
+//  · 本层加回英文原名，所以两种名字在【同一个对象】上都能用
+//  · 与微软的原类型并存：它是【另一个类型】，不碰 std 里的定义
+// ============================================================================
+名域 标准 {
+模板 <类型名 外层, 类型名... 内层>
+类型 作用域分配器 : 公开 细节::作用域分配器适配器实现<外层, 内层...> {
+公开:
+    使用 基类 = 细节::作用域分配器适配器实现<外层, 内层...>;
+    使用 基类::基类;
+
+    // 嵌套类型名也要补回英文（数据成员不行 —— 那会改布局）
+
+
+    // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
+    模板 <类型名... 参数> 声明类型(自动) inner_allocator(参数&&... 值) { 返回 基类::内层分配器(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) inner_allocator(参数&&... 值) 常量 { 返回 基类::内层分配器(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) outer_allocator(参数&&... 值) { 返回 基类::外层分配器(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) outer_allocator(参数&&... 值) 常量 { 返回 基类::外层分配器(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) select_on_container_copy_construction(参数&&... 值) { 返回 基类::复制时选择(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) select_on_container_copy_construction(参数&&... 值) 常量 { 返回 基类::复制时选择(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) construct(参数&&... 值) { 返回 基类::构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) construct(参数&&... 值) 常量 { 返回 基类::构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) destroy(参数&&... 值) { 返回 基类::析构(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) destroy(参数&&... 值) 常量 { 返回 基类::析构(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) max_size(参数&&... 值) { 返回 基类::最大尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) max_size(参数&&... 值) 常量 { 返回 基类::最大尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) allocate(参数&&... 值) { 返回 基类::分配(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) allocate(参数&&... 值) 常量 { 返回 基类::分配(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) deallocate(参数&&... 值) { 返回 基类::释放(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) deallocate(参数&&... 值) 常量 { 返回 基类::释放(static_cast<参数&&>(值)...); }
+
+    // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
+    // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
+
+};
+}
+
+#endif // _SCOPED_ALLOCATOR_

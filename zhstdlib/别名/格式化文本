@@ -1,0 +1,22 @@
+// <格式化文本> —— format 的中文别名层
+//
+// 为什么是别名而不是抄一份（方案铁律 4）：
+//   铁律③：formatter 是用户扩展点（用户特化 std::formatter<T>），身份必须与 std 同一。
+//   这类头一旦抄一份，就会和 std 里那份成为两套互不相认的东西。
+//
+// 英文原名照旧可用：这里只是【多一个名字】，原头一个字节没动。
+// 变体（英文里带 _v 的变量模板形式）暂未提供中文名，属"必须的妥协"，见方案 §六。
+#pragma once
+#include <format>
+
+名域 标准 {
+    模板 <类型名 值类型, 类型名 字符类型 = 字符> 使用 格式化器 = std::formatter<值类型, 字符类型>;
+    使用 格式化异常 = std::format_error;
+    模板 <类型名 输出迭代器, 类型名 字符类型 = 字符> 使用 格式上下文 = std::basic_format_context<输出迭代器, 字符类型>;
+    模板 <类型名 字符类型> 使用 格式解析上下文 = std::basic_format_parse_context<字符类型>;
+    使用 格式参数 = std::format_args;
+    模板 <类型名... 参数> 声明类型(自动) 格式(std::format_string<参数...> 甲, 参数&&... 乙) { 返回 std::format(甲, static_cast<参数&&>(乙)...); }
+    模板 <类型名 输出迭代器, 类型名... 参数> 声明类型(自动) 格式化到(输出迭代器 甲, std::format_string<参数...> 乙, 参数&&... 丙) { 返回 std::format_to(甲, 乙, static_cast<参数&&>(丙)...); }
+    模板 <类型名... 参数> 声明类型(自动) 格式化尺寸(std::format_string<参数...> 甲, 参数&&... 乙) { 返回 std::formatted_size(甲, static_cast<参数&&>(乙)...); }
+    内联 声明类型(自动) 格式化参数版(std::string_view 甲, std::format_args 乙) { 返回 std::vformat(甲, 乙); }
+}

@@ -1,0 +1,1052 @@
+#include <sstream>
+// sstream standard header
+
+// Copyright (c) Microsoft Corporation.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#ifndef _ZH_SSTREAM_
+#define _ZH_SSTREAM_
+#include <yvals_core.h>
+#if _STL_COMPILER_PREPROCESSOR
+#include <istream>
+#include <字符串>
+
+#pragma pack(push, _CRT_PACKING)
+#pragma warning(push, _STL_WARNING_LEVEL)
+#pragma warning(disable : _STL_DISABLED_WARNINGS)
+_STL_DISABLE_CLANG_WARNINGS
+#pragma push_macro("new")
+#undef new
+名域 标准 { 名域 细节 {
+使用 名域 std;
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+class 基础字符串缓冲
+    : public basic_streambuf<_元素, _特征> { // stream buffer maintaining an allocated character array
+public:
+    using allocator_type = _分配器;
+    using _我的流缓冲          = basic_streambuf<_元素, _特征>;
+    using _我的字符串         = 基础字符串实现<_元素, _特征, _分配器>;
+    using _我的大小类型   = typename _我的字符串::size_type;
+
+#if _HAS_CXX20
+    using _我的串视图 = 基础字符串视图<_元素, _特征>;
+#endif // _HAS_CXX20
+
+    基础字符串缓冲() : _Seekhigh(nullptr), _Mystate(_取状态(ios_base::in | ios_base::out)), _Al() {}
+
+    explicit 基础字符串缓冲(ios_base::openmode _Mode) : _Seekhigh(nullptr), _Mystate(_取状态(_Mode)), _Al() {}
+
+    explicit 基础字符串缓冲(const _我的字符串& _Str, ios_base::openmode _Mode = ios_base::in | ios_base::out)
+        : _Al(_Str.取分配器()) {
+        _初始化(_Str.c_str(), _Str.size(), _取状态(_Mode));
+    }
+
+#if _HAS_CXX20
+    explicit 基础字符串缓冲(const _分配器& _Al_) : 基础字符串缓冲(ios_base::in | ios_base::out, _Al_) {}
+
+    基础字符串缓冲(ios_base::openmode _Mode, const _分配器& _Al_)
+        : _Seekhigh(nullptr), _Mystate(_取状态(_Mode)), _Al(_Al_) {}
+
+    explicit 基础字符串缓冲(_我的字符串&& _Str, ios_base::openmode _Mode = ios_base::in | ios_base::out)
+        : _Al(_STD move(_Str._取分配器())) {
+        _就地初始化串(_STD move(_Str), _取状态(_Mode));
+    }
+
+    template <class _Alloc2>
+    基础字符串缓冲(const 基础字符串实现<_元素, _特征, _Alloc2>& _Str, ios_base::openmode _Mode, const _分配器& _Al_)
+        : _Al(_Al_) {
+        _初始化(_Str.c_str(), _Convert_size<_我的大小类型>(_Str.size()), _取状态(_Mode));
+    }
+
+    template <class _Alloc2>
+    基础字符串缓冲(const 基础字符串实现<_元素, _特征, _Alloc2>& _Str, const _分配器& _Al_)
+        : 基础字符串缓冲(_Str, ios_base::in | ios_base::out, _Al_) {}
+
+    template <class _Alloc2>
+        requires (!is_same_v<_Alloc2, _分配器>)
+    explicit 基础字符串缓冲(
+        const 基础字符串实现<_元素, _特征, _Alloc2>& _Str, ios_base::openmode _Mode = ios_base::in | ios_base::out)
+        : 基础字符串缓冲(_Str, _Mode, _分配器{}) {}
+
+    基础字符串缓冲(基础字符串缓冲&& _Right, const _分配器& _Al_) : _Seekhigh(nullptr), _Mystate(0), _Al(_Al_) {
+        if constexpr (!allocator_traits<_分配器>::is_always_equal::value) {
+            if (_Al != _Right._Al) {
+                _自拷贝并整理(_STD move(_Right));
+                return;
+            }
+        }
+
+        _接管内容(_STD move(_Right));
+    }
+#endif // _HAS_CXX20
+
+    基础字符串缓冲(基础字符串缓冲&& _Right)
+        : _Seekhigh(_STD exchange(_Right._Seekhigh, nullptr)), _Mystate(_STD exchange(_Right._Mystate, 0)),
+          _Al(_Right._Al) {
+        _我的流缓冲::swap(_Right);
+    }
+
+    基础字符串缓冲& operator=(基础字符串缓冲&& _Right)
+        noexcept(_Choose_pocma_v<_分配器> != _传播复制移动赋值取值::_No_propagate_allocators) /* strengthened */ {
+        if (this != _STD addressof(_Right)) {
+            _无别名移动赋值(_STD move(_Right));
+        }
+        return *this;
+    }
+
+    void _接管内容(基础字符串缓冲&& _Right) noexcept {
+        // pre: *this holds no dynamic buffer and _Al == _Right._Al
+        _Seekhigh = _STD exchange(_Right._Seekhigh, nullptr);
+        _Mystate  = _STD exchange(_Right._Mystate, 0);
+        _我的流缓冲::swap(_Right);
+    }
+
+    void _自拷贝并整理(基础字符串缓冲&& _Right) {
+        // pre: *this holds no dynamic buffer and _Al != _Right._Al
+        if ((_Right._Mystate & _Allocated) == 0) {
+            return;
+        }
+
+        const auto _Right_data     = _Right._我的流缓冲::eback();
+        const auto _Right_capacity = static_cast<typename allocator_traits<_分配器>::size_type>(
+            (_Right._我的流缓冲::pptr() ? _Right._我的流缓冲::epptr() : _Right._我的流缓冲::egptr()) - _Right_data);
+
+        auto _New_capacity   = _Right_capacity;
+        const auto _New_data = _去花式(_分配至少助手(_Al, _New_capacity));
+
+        _我的流缓冲::setg(_New_data, _New_data + (_Right._我的流缓冲::gptr() - _Right_data),
+            _New_data + (_Right._我的流缓冲::egptr() - _Right_data));
+        if (_Right._我的流缓冲::pbase() != nullptr) {
+            const auto _Pbase_diff = _Right._我的流缓冲::pbase() - _Right_data;
+            const auto _Pptr_diff  = _Right._我的流缓冲::pptr() - _Right_data;
+            const auto _Epptr_diff = _Right._我的流缓冲::epptr() - _Right_data;
+            _我的流缓冲::setp(_New_data + _Pbase_diff, _New_data + _Pptr_diff, _New_data + _Epptr_diff);
+        } else {
+            _我的流缓冲::setp(nullptr, nullptr, nullptr);
+        }
+
+        const auto _Right_view = _Right._取缓冲视图();
+        if (_Right_view._Ptr != nullptr) {
+            _特征::copy(_New_data + (_Right_view._Ptr - _Right_data), _Right_view._Ptr, _Right_view._Size);
+        }
+
+        _Seekhigh = _New_data + _New_capacity;
+        _Mystate  = _Right._Mystate;
+
+        _Right._清理();
+    }
+
+    void _无别名移动赋值(基础字符串缓冲&& _Right)
+        noexcept(_Choose_pocma_v<_分配器> != _传播复制移动赋值取值::_No_propagate_allocators) {
+        // pre: this != std::addressof(_Right)
+        _清理();
+        if constexpr (_Choose_pocma_v<_分配器> == _传播复制移动赋值取值::_No_propagate_allocators) {
+            if (_Al == _Right._Al) {
+                _接管内容(_STD move(_Right));
+            } else {
+                _自拷贝并整理(_STD move(_Right));
+            }
+        } else {
+            _Pocma(_Al, _Right._Al);
+            _接管内容(_STD move(_Right));
+        }
+    }
+
+    void swap(基础字符串缓冲& _Right) noexcept /* strengthened */ {
+        if (this != _STD addressof(_Right)) {
+            if constexpr (!allocator_traits<_分配器>::propagate_on_container_swap::value) {
+                _STL_ASSERT(
+                    _Al == _Right._Al, "The allocators of 基础字符串缓冲 should propagate or be equal on swap.");
+            }
+
+            _我的流缓冲::swap(_Right);
+            _STD swap(_Seekhigh, _Right._Seekhigh);
+            _STD swap(_Mystate, _Right._Mystate);
+            // The same as 基础字符串实现::swap
+            _Pocs(_Al, _Right._Al);
+        }
+    }
+
+    基础字符串缓冲(const 基础字符串缓冲&)            = delete;
+    基础字符串缓冲& operator=(const 基础字符串缓冲&) = delete;
+
+    ~基础字符串缓冲() noexcept override {
+        _清理();
+    }
+
+    enum { // constants for bits in stream state
+        _Allocated   = 1, // set if character array storage has been allocated, eback() points to allocated storage
+        _Constant    = 2, // set if character array nonmutable
+        _Noread      = 4, // set if character array cannot be read
+        _Append      = 8, // set if all writes are appends
+        _Atend       = 16, // set if initial writes are appends
+        _From_rvalue = 32 // set if character array is released from an rvalue of 基础字符串实现
+    };
+
+    using int_type = typename _特征::int_type;
+    using pos_type = typename _特征::pos_type;
+    using off_type = typename _特征::off_type;
+
+    struct _缓冲视图 {
+        _元素* _Ptr;
+        _我的大小类型 _Size;
+        _我的大小类型 _Res;
+    };
+
+    _NODISCARD _缓冲视图 _取缓冲视图() const noexcept {
+        _缓冲视图 _结果{};
+        if ((!(_Mystate & _Constant) || (_Mystate & _From_rvalue)) && _我的流缓冲::pptr()) {
+            // writable, make string 视图 from write buffer
+            const auto _Base = _我的流缓冲::pbase();
+            _结果._Ptr     = _Base;
+            _结果._Size    = static_cast<_我的大小类型>((_STD max)(_我的流缓冲::pptr(), _Seekhigh) - _Base);
+            _结果._Res     = static_cast<_我的大小类型>(_我的流缓冲::epptr() - _Base);
+        } else if (!(_Mystate & _Noread) && _我的流缓冲::gptr()) {
+            // readable, make string 视图 from read buffer
+            const auto _Base = _我的流缓冲::eback();
+            _结果._Ptr     = _Base;
+            _结果._Size    = static_cast<_我的大小类型>(_我的流缓冲::egptr() - _Base);
+            _结果._Res     = _结果._Size;
+        }
+        return _结果;
+    }
+
+#if _HAS_CXX20
+    _NODISCARD _我的字符串 字符串() const&
+#else
+    _NODISCARD _我的字符串 字符串() const
+#endif
+    {
+        _我的字符串 _结果(_Al);
+        const auto _View = _取缓冲视图();
+        if (_View._Ptr) {
+            _结果.assign(_View._Ptr, _View._Size);
+        }
+        return _结果;
+    }
+
+    void 字符串(const _我的字符串& _Newstr) { // replace character array from string
+        _清理();
+        _初始化(_Newstr.c_str(), _Newstr.size(), _Mystate);
+    }
+
+#if _HAS_CXX20
+    template <_Allocator_for_container _Alloc2>
+    _NODISCARD 基础字符串实现<_元素, _特征, _Alloc2> 字符串(const _Alloc2& _Al) const {
+        return 基础字符串实现<_元素, _特征, _Alloc2>{视图(), _Al};
+    }
+
+    // The buffer cannot be moved to a string directly, because
+    // the buffer may already be full, and the terminating char is not '\0'.
+    // In that case, copy the string as usual.
+    _NODISCARD _我的字符串 字符串() && {
+        _我的字符串 _结果{_Al};
+        const auto _View = _取缓冲视图();
+        // _Size cannot be larger than _Res, but it could be equal,
+        // because 基础字符串缓冲 doesn't allocate for the terminating '\0'.
+        if (_View._Size == _View._Res) {
+            // the buffer is full
+            _结果.assign(_View._Ptr, _View._Size);
+        } else {
+            if (_结果._由缓冲移动赋值(_View._Ptr, _View._Size, _View._Res)) {
+                _Mystate &= ~_Allocated;
+            }
+        }
+
+        _清理();
+        return _结果;
+    }
+
+    _NODISCARD _我的串视图 视图() const noexcept {
+        const auto _View = _取缓冲视图();
+        return _我的串视图{_View._Ptr, _View._Size};
+    }
+
+    template <class _Alloc2>
+        requires (!is_same_v<_Alloc2, _分配器>)
+    void 字符串(const 基础字符串实现<_元素, _特征, _Alloc2>& _Newstr) {
+        _清理();
+        _初始化(_Newstr.c_str(), _Newstr.size(), _Mystate);
+    }
+
+    void 字符串(_我的字符串&& _Newstr) {
+        auto& _Newstr_al          = _Newstr._取分配器();
+        constexpr auto _Pocma_val = _Choose_pocma_v<_分配器>;
+        if constexpr (_Pocma_val == _传播复制移动赋值取值::_No_propagate_allocators) {
+            if (_Al != _Newstr_al) {
+                _清理();
+                _初始化(_Newstr.c_str(), _Newstr.size(), _Mystate);
+                return;
+            }
+        }
+
+        _清理();
+        _Pocma(_Al, _Newstr_al);
+        _就地初始化串(_STD move(_Newstr), _Mystate);
+    }
+
+    _NODISCARD allocator_type 取分配器() const noexcept {
+        return _Al;
+    }
+#endif // _HAS_CXX20
+
+protected:
+    int_type overflow(int_type _Meta = _特征::eof()) override { // put an element to stream
+        if (_Mystate & _Constant) {
+            return _特征::eof(); // array nonmutable, fail
+        }
+
+        if (_特征::eq_int_type(_特征::eof(), _Meta)) {
+            return _特征::not_eof(_Meta); // EOF, return success code
+        }
+
+        const auto _Pptr  = _我的流缓冲::pptr();
+        const auto _Epptr = _我的流缓冲::epptr();
+        if (_Pptr && _Pptr < _Epptr) { // room in buffer, store it
+            *_我的流缓冲::_Pninc() = _特征::to_char_type(_Meta);
+            _Seekhigh        = _Pptr + 1;
+            return _Meta;
+        }
+
+        // grow buffer and store element
+        _我的大小类型 _Oldsize = 0;
+        const auto _Oldptr    = _我的流缓冲::eback();
+        if (_Pptr) {
+            _Oldsize = static_cast<_我的大小类型>(_Epptr - _Oldptr);
+        }
+
+        _我的大小类型 _Newsize;
+        if (_Oldsize < _MINSIZE) {
+            _Newsize = _MINSIZE;
+        } else if (_Oldsize < INT_MAX / 2) { // grow by 50 percent
+            _Newsize = _Oldsize << 1;
+        } else if (_Oldsize < INT_MAX) {
+            _Newsize = INT_MAX;
+        } else { // buffer can't grow, fail
+            return _特征::eof();
+        }
+
+        const auto _Newptr = _去花式(_分配至少助手(_Al, _Newsize));
+        _特征::copy(_Newptr, _Oldptr, _Oldsize);
+
+        const auto _New_pnext = _Newptr + _Oldsize;
+        _Seekhigh             = _New_pnext + 1; // to include _Meta
+
+        _我的流缓冲::setp(_Newptr, _New_pnext, _Newptr + _Newsize);
+        if (_Mystate & _Noread) { // maintain eback() == allocated pointer invariant
+            _我的流缓冲::setg(_Newptr, _Newptr, _Newptr);
+        } else { // if readable, set the get area to initialized region
+            _我的流缓冲::setg(_Newptr, _Newptr + (_我的流缓冲::gptr() - _Oldptr), _Seekhigh);
+        }
+
+        if (_Mystate & _Allocated) {
+            _Al.deallocate(_指针特征::pointer_to(*_Oldptr), _Oldsize);
+        }
+
+        _Mystate |= _Allocated;
+        *_我的流缓冲::_Pninc() = _特征::to_char_type(_Meta);
+        return _Meta;
+    }
+
+    int_type pbackfail(int_type _Meta = _特征::eof()) override { // put an element back to stream
+        const auto _Gptr = _我的流缓冲::gptr();
+        if (!_Gptr || _Gptr <= _我的流缓冲::eback()
+            || (!_特征::eq_int_type(_特征::eof(), _Meta) && !_特征::eq(_特征::to_char_type(_Meta), _Gptr[-1])
+                && (_Mystate & _Constant))) { // can't put back, fail
+            return _特征::eof();
+        }
+
+        // back up one position and store put-back character
+        _我的流缓冲::gbump(-1);
+        if (!_特征::eq_int_type(_特征::eof(), _Meta)) {
+            *_我的流缓冲::gptr() = _特征::to_char_type(_Meta);
+        }
+
+        return _特征::not_eof(_Meta);
+    }
+
+    int_type underflow() override { // get an element from stream, but don't point past it
+        const auto _Gptr = _我的流缓冲::gptr();
+        if (!_Gptr) { // no character buffer, fail
+            return _特征::eof();
+        }
+
+        if (_Gptr < _我的流缓冲::egptr()) {
+            return _特征::to_int_type(*_Gptr);
+        }
+
+        // try to add initialized characters from the put area into the get area
+        const auto _Pptr = _我的流缓冲::pptr();
+        if (!_Pptr || (_Mystate & _Noread)) { // no put area or read disallowed
+            return _特征::eof();
+        }
+
+        const auto _Local_highwater = (_STD max)(_Seekhigh, _Pptr);
+        if (_Local_highwater <= _Gptr) { // nothing in the put area to take
+            return _特征::eof();
+        }
+
+        _Seekhigh = _Local_highwater;
+        _我的流缓冲::setg(_我的流缓冲::eback(), _我的流缓冲::gptr(), _Local_highwater);
+        return _特征::to_int_type(*_我的流缓冲::gptr());
+    }
+
+    pos_type seekoff(
+        off_type _Off, ios_base::seekdir _Way, ios_base::openmode _Mode = ios_base::in | ios_base::out) override {
+        const bool _Need_read_but_cannot  = (_Mode & ios_base::in) != 0 && (_Mystate & _Noread) != 0;
+        const bool _Need_write_but_cannot = (_Mode & ios_base::out) != 0 && (_Mystate & _Constant) != 0;
+        if (_Need_read_but_cannot || _Need_write_but_cannot) {
+            return pos_type{off_type{-1}};
+        }
+
+        // change position by _Off, according to _Way, _Mode
+        const auto _Gptr_old = _我的流缓冲::gptr();
+        const auto _Pptr_old = (_Mystate & _Constant) ? nullptr : _我的流缓冲::pptr();
+        if (_Pptr_old && _Seekhigh < _Pptr_old) { // update high-water pointer
+            _Seekhigh = _Pptr_old;
+        }
+
+        const auto _Seeklow  = _我的流缓冲::eback();
+        const auto _Seekdist = _Seekhigh - _Seeklow;
+        off_type _Newoff;
+        switch (_Way) {
+        case ios_base::beg:
+            _Newoff = 0;
+            break;
+        case ios_base::end:
+            _Newoff = _Seekdist;
+            break;
+        case ios_base::cur:
+            {
+                constexpr auto _Both = ios_base::in | ios_base::out;
+                if ((_Mode & _Both) != _Both) { // prohibited by N4950 [tab:stringbuf.seekoff.pos]
+                    if (_Mode & ios_base::in) {
+                        if (_Gptr_old || !_Seeklow) {
+                            _Newoff = _Gptr_old - _Seeklow;
+                            break;
+                        }
+                    } else if ((_Mode & ios_base::out) && (_Pptr_old || !_Seeklow)) {
+                        _Newoff = _Pptr_old - _Seeklow;
+                        break;
+                    }
+                }
+            }
+
+            _FALLTHROUGH;
+        default:
+            return pos_type{off_type{-1}};
+        }
+
+        if (static_cast<unsigned long long>(_Off) + _Newoff > static_cast<unsigned long long>(_Seekdist)) {
+            return pos_type{off_type{-1}};
+        }
+
+        _Off += _Newoff;
+        if (_Off != 0 && (((_Mode & ios_base::in) && !_Gptr_old) || ((_Mode & ios_base::out) && !_Pptr_old))) {
+            return pos_type{off_type{-1}};
+        }
+
+        const auto _Newptr = _Seeklow + _Off; // may perform nullptr + 0
+        if ((_Mode & ios_base::in) && _Gptr_old) {
+            _我的流缓冲::setg(_Seeklow, _Newptr, _Seekhigh);
+        }
+
+        if ((_Mode & ios_base::out) && _Pptr_old) {
+            _我的流缓冲::setp(_Seeklow, _Newptr, _我的流缓冲::epptr());
+        }
+
+        return pos_type{_Off};
+    }
+
+    pos_type seekpos(pos_type _Pos, ios_base::openmode _Mode = ios_base::in | ios_base::out) override {
+        const bool _Need_read_but_cannot  = (_Mode & ios_base::in) != 0 && (_Mystate & _Noread) != 0;
+        const bool _Need_write_but_cannot = (_Mode & ios_base::out) != 0 && (_Mystate & _Constant) != 0;
+        if (_Need_read_but_cannot || _Need_write_but_cannot) {
+            return pos_type{off_type{-1}};
+        }
+
+        // change position to _Pos, according to _Mode
+        const auto _Off      = static_cast<streamoff>(_Pos);
+        const auto _Gptr_old = _我的流缓冲::gptr();
+        const auto _Pptr_old = (_Mystate & _Constant) ? nullptr : _我的流缓冲::pptr();
+        if (_Pptr_old && _Seekhigh < _Pptr_old) { // update high-water pointer
+            _Seekhigh = _Pptr_old;
+        }
+
+        const auto _Seeklow  = _我的流缓冲::eback();
+        const auto _Seekdist = _Seekhigh - _Seeklow;
+        if (static_cast<unsigned long long>(_Off) > static_cast<unsigned long long>(_Seekdist)) {
+            return pos_type{off_type{-1}};
+        }
+
+        if (_Off != 0 && (((_Mode & ios_base::in) && !_Gptr_old) || ((_Mode & ios_base::out) && !_Pptr_old))) {
+            return pos_type{off_type{-1}};
+        }
+
+        const auto _Newptr = _Seeklow + _Off; // may perform nullptr + 0
+        if ((_Mode & ios_base::in) && _Gptr_old) {
+            _我的流缓冲::setg(_Seeklow, _Newptr, _Seekhigh);
+        }
+
+        if ((_Mode & ios_base::out) && _Pptr_old) {
+            _我的流缓冲::setp(_Seeklow, _Newptr, _我的流缓冲::epptr());
+        }
+
+        return pos_type{_Off};
+    }
+
+    void _初始化(const _元素* _Ptr, const _我的大小类型 _Count, int _State) {
+        // initialize buffer to [_Ptr, _Ptr + _Count), set state
+        _State &= ~_From_rvalue;
+
+        if (_Count > INT_MAX) { // TRANSITION, VSO-485517
+            _Xbad_alloc();
+        }
+
+        if (_Count != 0 && (_State & (_Noread | _Constant)) != (_Noread | _Constant)) {
+            // finite buffer that can be read or written, set it up
+            _我的大小类型 _Newsize = _Count;
+            const auto _Pnew      = _去花式(_分配至少助手(_Al, _Newsize));
+            _特征::copy(_Pnew, _Ptr, _Count);
+            _Seekhigh = _Pnew + _Newsize;
+
+            if (!(_State & _Noread)) {
+                _我的流缓冲::setg(_Pnew, _Pnew, _Seekhigh); // setup read buffer
+            }
+
+            if (!(_State & _Constant)) { // setup write buffer, and maybe read buffer
+                _我的流缓冲::setp(_Pnew, (_State & (_Atend | _Append)) ? _Seekhigh : _Pnew, _Seekhigh);
+
+                if (_State & _Noread) { // maintain "_Allocated == eback() points to buffer base" invariant
+                    _我的流缓冲::setg(_Pnew, _Pnew, _Pnew);
+                }
+            }
+
+            _State |= _Allocated;
+        } else {
+            _Seekhigh = nullptr;
+        }
+
+        _Mystate = _State;
+    }
+
+#if _HAS_CXX20
+    void _就地初始化串(_我的字符串&& _Str, int _State) {
+        if ((_State & _Noread) && (_State & _Constant)) { // Cannot read / write buffer, do nothing
+            _Seekhigh = nullptr;
+            _Mystate  = _State | _From_rvalue;
+            return;
+        }
+
+        // finite buffer that can be read or written, set it up
+        auto [_Ptr, _Size, _Actual_allocation_size] = _Str._释放至缓冲(_Al);
+        _元素* const _Pnew                          = _去花式(_Ptr);
+        _Seekhigh                                   = _Pnew + _Size;
+        auto _Next                                  = (_State & (_Atend | _Append)) ? _Seekhigh : _Pnew;
+        auto _End_buffer                            = _Pnew + _Actual_allocation_size;
+
+        _我的流缓冲::setp(_Pnew, _Next, _End_buffer);
+        if (_State & _Noread) { // maintain "_Allocated == eback() points to buffer base" invariant
+            _我的流缓冲::setg(_Pnew, _Pnew, _Pnew);
+        } else {
+            _我的流缓冲::setg(_Pnew, _Pnew, _Seekhigh);
+        }
+
+        _Mystate = _State | _Allocated | _From_rvalue;
+    }
+#endif // _HAS_CXX20
+
+    void _清理() noexcept { // discard any allocated buffer and clear pointers
+        if (_Mystate & _Allocated) {
+            _Al.deallocate(_指针特征::pointer_to(*_我的流缓冲::eback()),
+                static_cast<typename allocator_traits<allocator_type>::size_type>(
+                    (_我的流缓冲::pptr() ? _我的流缓冲::epptr() : _我的流缓冲::egptr()) - _我的流缓冲::eback()));
+        }
+
+        _我的流缓冲::setg(nullptr, nullptr, nullptr);
+        _我的流缓冲::setp(nullptr, nullptr);
+        _Seekhigh = nullptr;
+        _Mystate &= ~_Allocated;
+    }
+
+private:
+    using _指针特征 = pointer_traits<typename allocator_traits<allocator_type>::pointer>;
+
+    enum { // constant for minimum buffer size
+        _MINSIZE = 32
+    };
+
+    static int _取状态(ios_base::openmode _Mode) noexcept { // convert open mode to stream state bits
+        int _State = 0;
+        if (!(_Mode & ios_base::in)) {
+            _State |= _Noread;
+        }
+
+        if (!(_Mode & ios_base::out)) {
+            _State |= _Constant;
+        }
+
+        if (_Mode & ios_base::app) {
+            _State |= _Append;
+        }
+
+        if (_Mode & ios_base::ate) {
+            _State |= _Atend;
+        }
+
+        return _State;
+    }
+
+    // TRANSITION, ABI, see GH-938
+    _元素* _Seekhigh; // the high-water pointer in character array
+    int _Mystate; // the stream state
+    allocator_type _Al; // the allocator object
+};
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+void swap(基础字符串缓冲<_元素, _特征, _分配器>& _Left, 基础字符串缓冲<_元素, _特征, _分配器>& _Right) noexcept
+/* strengthened */ {
+    _Left.swap(_Right);
+}
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+class 基础输入字符串流 : public basic_istream<_元素, _特征> { // input stream associated with a character array
+public:
+    using _我的基类        = basic_istream<_元素, _特征>;
+    using allocator_type = _分配器;
+    using _我的流缓冲          = 基础字符串缓冲<_元素, _特征, _分配器>;
+    using _我的字符串         = 基础字符串实现<_元素, _特征, _分配器>;
+
+#if _HAS_CXX20
+    using _我的串视图 = 基础字符串视图<_元素, _特征>;
+#endif // _HAS_CXX20
+
+    基础输入字符串流() : _我的基类(_STD addressof(_Stringbuffer)), _Stringbuffer(ios_base::in) {}
+
+    explicit 基础输入字符串流(ios_base::openmode _Mode)
+        : _我的基类(_STD addressof(_Stringbuffer)), _Stringbuffer(_Mode | ios_base::in) {}
+
+    explicit 基础输入字符串流(const _我的字符串& _Str, ios_base::openmode _Mode = ios_base::in)
+        : _我的基类(_STD addressof(_Stringbuffer)), _Stringbuffer(_Str, _Mode | ios_base::in) {}
+
+#if _HAS_CXX20
+    基础输入字符串流(ios_base::openmode _Mode, const _分配器& _Al)
+        : _我的基类(_STD addressof(_Stringbuffer)), _Stringbuffer(_Mode | ios_base::in, _Al) {}
+
+    explicit 基础输入字符串流(_我的字符串&& _Str, ios_base::openmode _Mode = ios_base::in)
+        : _我的基类(_STD addressof(_Stringbuffer)), _Stringbuffer(_STD move(_Str), _Mode | ios_base::in) {}
+
+    template <class _Alloc2>
+    基础输入字符串流(const 基础字符串实现<_元素, _特征, _Alloc2>& _Str, const _分配器& _Al)
+        : _我的基类(_STD addressof(_Stringbuffer)), _Stringbuffer(_Str, ios_base::in, _Al) {}
+
+    template <class _Alloc2>
+    基础输入字符串流(const 基础字符串实现<_元素, _特征, _Alloc2>& _Str, ios_base::openmode _Mode, const _分配器& _Al)
+        : _我的基类(_STD addressof(_Stringbuffer)), _Stringbuffer(_Str, _Mode | ios_base::in, _Al) {}
+
+    template <class _Alloc2>
+        requires (!is_same_v<_Alloc2, _分配器>)
+    explicit 基础输入字符串流(
+        const 基础字符串实现<_元素, _特征, _Alloc2>& _Str, ios_base::openmode _Mode = ios_base::in)
+        : _我的基类(_STD addressof(_Stringbuffer)), _Stringbuffer(_Str, _Mode | ios_base::in) {}
+#endif // _HAS_CXX20
+
+    基础输入字符串流(基础输入字符串流&& _Right)
+        : _我的基类(_STD addressof(_Stringbuffer)),
+          _Stringbuffer((_我的基类::swap(_Right), _STD move(_Right._Stringbuffer))) {}
+
+    基础输入字符串流& operator=(基础输入字符串流&& _Right)
+        noexcept(_Choose_pocma_v<_分配器> != _传播复制移动赋值取值::_No_propagate_allocators) /* strengthened */ {
+        if (this != _STD addressof(_Right)) {
+            _我的基类::swap(_Right);
+            _Stringbuffer._无别名移动赋值(_STD move(_Right._Stringbuffer));
+        }
+        return *this;
+    }
+
+    void swap(基础输入字符串流& _Right) noexcept /* strengthened */ {
+        if (this != _STD addressof(_Right)) {
+            _我的基类::swap(_Right);
+            _Stringbuffer.swap(_Right._Stringbuffer);
+        }
+    }
+
+    基础输入字符串流(const 基础输入字符串流&)            = delete;
+    基础输入字符串流& operator=(const 基础输入字符串流&) = delete;
+
+    ~基础输入字符串流() noexcept override {}
+
+    _NODISCARD _我的流缓冲* 缓冲() const noexcept /* strengthened */ {
+        return const_cast<_我的流缓冲*>(_STD addressof(_Stringbuffer));
+    }
+
+#if _HAS_CXX20
+    _NODISCARD _我的字符串 字符串() const&
+#else
+    _NODISCARD _我的字符串 字符串() const
+#endif
+    {
+        return _Stringbuffer.字符串();
+    }
+
+    void 字符串(const _我的字符串& _Newstr) { // replace character array from string
+        _Stringbuffer.字符串(_Newstr);
+    }
+
+#if _HAS_CXX20
+    template <_Allocator_for_container _Alloc2>
+    _NODISCARD 基础字符串实现<_元素, _特征, _Alloc2> 字符串(const _Alloc2& _Al) const {
+        return _Stringbuffer.字符串(_Al);
+    }
+
+    _NODISCARD _我的字符串 字符串() && {
+        return _STD move(_Stringbuffer).字符串();
+    }
+
+    _NODISCARD _我的串视图 视图() const noexcept {
+        return _Stringbuffer.视图();
+    }
+
+    template <class _Alloc2>
+        requires (!is_same_v<_Alloc2, _分配器>)
+    void 字符串(const 基础字符串实现<_元素, _特征, _Alloc2>& _Newstr) {
+        _Stringbuffer.字符串(_Newstr);
+    }
+
+    void 字符串(_我的字符串&& _Newstr) {
+        _Stringbuffer.字符串(_STD move(_Newstr));
+    }
+#endif // _HAS_CXX20
+
+private:
+    _我的流缓冲 _Stringbuffer;
+};
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+void swap(基础输入字符串流<_元素, _特征, _分配器>& _Left,
+    基础输入字符串流<_元素, _特征, _分配器>& _Right) noexcept /* strengthened */ {
+    _Left.swap(_Right);
+}
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+class 基础输出字符串流 : public basic_ostream<_元素, _特征> { // output stream associated with a character array
+public:
+    using _我的基类        = basic_ostream<_元素, _特征>;
+    using allocator_type = _分配器;
+    using _我的流缓冲          = 基础字符串缓冲<_元素, _特征, _分配器>;
+    using _我的字符串         = 基础字符串实现<_元素, _特征, _分配器>;
+
+#if _HAS_CXX20
+    using _我的串视图 = 基础字符串视图<_元素, _特征>;
+#endif // _HAS_CXX20
+
+    基础输出字符串流() : _我的基类(_STD addressof(_Stringbuffer)), _Stringbuffer(ios_base::out) {}
+
+    explicit 基础输出字符串流(ios_base::openmode _Mode)
+        : _我的基类(_STD addressof(_Stringbuffer)), _Stringbuffer(_Mode | ios_base::out) {}
+
+    explicit 基础输出字符串流(const _我的字符串& _Str, ios_base::openmode _Mode = ios_base::out)
+        : _我的基类(_STD addressof(_Stringbuffer)), _Stringbuffer(_Str, _Mode | ios_base::out) {}
+
+#if _HAS_CXX20
+    基础输出字符串流(ios_base::openmode _Mode, const _分配器& _Al)
+        : _我的基类(_STD addressof(_Stringbuffer)), _Stringbuffer(_Mode | ios_base::out, _Al) {}
+
+    explicit 基础输出字符串流(_我的字符串&& _Str, ios_base::openmode _Mode = ios_base::out)
+        : _我的基类(_STD addressof(_Stringbuffer)), _Stringbuffer(_STD move(_Str), _Mode | ios_base::out) {}
+
+    template <class _Alloc2>
+    基础输出字符串流(const 基础字符串实现<_元素, _特征, _Alloc2>& _Str, const _分配器& _Al)
+        : _我的基类(_STD addressof(_Stringbuffer)), _Stringbuffer(_Str, ios_base::out, _Al) {}
+
+    template <class _Alloc2>
+    基础输出字符串流(const 基础字符串实现<_元素, _特征, _Alloc2>& _Str, ios_base::openmode _Mode, const _分配器& _Al)
+        : _我的基类(_STD addressof(_Stringbuffer)), _Stringbuffer(_Str, _Mode | ios_base::out, _Al) {}
+
+    template <class _Alloc2>
+        requires (!is_same_v<_Alloc2, _分配器>)
+    explicit 基础输出字符串流(
+        const 基础字符串实现<_元素, _特征, _Alloc2>& _Str, ios_base::openmode _Mode = ios_base::out)
+        : _我的基类(_STD addressof(_Stringbuffer)), _Stringbuffer(_Str, _Mode | ios_base::out) {}
+#endif // _HAS_CXX20
+
+    基础输出字符串流(基础输出字符串流&& _Right)
+        : _我的基类(_STD addressof(_Stringbuffer)),
+          _Stringbuffer((_我的基类::swap(_Right), _STD move(_Right._Stringbuffer))) {}
+
+    基础输出字符串流& operator=(基础输出字符串流&& _Right)
+        noexcept(_Choose_pocma_v<_分配器> != _传播复制移动赋值取值::_No_propagate_allocators) /* strengthened */ {
+        if (this != _STD addressof(_Right)) {
+            _我的基类::swap(_Right);
+            _Stringbuffer._无别名移动赋值(_STD move(_Right._Stringbuffer));
+        }
+        return *this;
+    }
+
+    void swap(基础输出字符串流& _Right) noexcept /* strengthened */ {
+        if (this != _STD addressof(_Right)) {
+            _我的基类::swap(_Right);
+            _Stringbuffer.swap(_Right._Stringbuffer);
+        }
+    }
+
+    基础输出字符串流(const 基础输出字符串流&)            = delete;
+    基础输出字符串流& operator=(const 基础输出字符串流&) = delete;
+
+    ~基础输出字符串流() noexcept override {}
+
+    _NODISCARD _我的流缓冲* 缓冲() const noexcept /* strengthened */ {
+        return const_cast<_我的流缓冲*>(_STD addressof(_Stringbuffer));
+    }
+
+#if _HAS_CXX20
+    _NODISCARD _我的字符串 字符串() const&
+#else
+    _NODISCARD _我的字符串 字符串() const
+#endif
+    {
+        return _Stringbuffer.字符串();
+    }
+
+    void 字符串(const _我的字符串& _Newstr) { // replace character array from string
+        _Stringbuffer.字符串(_Newstr);
+    }
+
+#if _HAS_CXX20
+    template <_Allocator_for_container _Alloc2>
+    _NODISCARD 基础字符串实现<_元素, _特征, _Alloc2> 字符串(const _Alloc2& _Al) const {
+        return _Stringbuffer.字符串(_Al);
+    }
+
+    _NODISCARD _我的字符串 字符串() && {
+        return _STD move(_Stringbuffer).字符串();
+    }
+
+    _NODISCARD _我的串视图 视图() const noexcept {
+        return _Stringbuffer.视图();
+    }
+
+    template <class _Alloc2>
+        requires (!is_same_v<_Alloc2, _分配器>)
+    void 字符串(const 基础字符串实现<_元素, _特征, _Alloc2>& _Newstr) {
+        _Stringbuffer.字符串(_Newstr);
+    }
+
+    void 字符串(_我的字符串&& _Newstr) {
+        _Stringbuffer.字符串(_STD move(_Newstr));
+    }
+#endif // _HAS_CXX20
+
+private:
+    _我的流缓冲 _Stringbuffer;
+};
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+void swap(基础输出字符串流<_元素, _特征, _分配器>& _Left,
+    基础输出字符串流<_元素, _特征, _分配器>& _Right) noexcept /* strengthened */ {
+    _Left.swap(_Right);
+}
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+class 基础字符串流
+    : public basic_iostream<_元素, _特征> { // input/output stream associated with a character array
+public:
+    using _我的基类        = basic_iostream<_元素, _特征>;
+    using char_type      = _元素;
+    using traits_type    = _特征;
+    using allocator_type = _分配器;
+    using int_type       = typename _特征::int_type;
+    using pos_type       = typename _特征::pos_type;
+    using off_type       = typename _特征::off_type;
+    using _我的流缓冲          = 基础字符串缓冲<_元素, _特征, _分配器>;
+    using _我的字符串         = 基础字符串实现<_元素, _特征, _分配器>;
+
+#if _HAS_CXX20
+    using _我的串视图 = 基础字符串视图<_元素, _特征>;
+#endif // _HAS_CXX20
+
+    基础字符串流() : _我的基类(_STD addressof(_Stringbuffer)), _Stringbuffer(ios_base::in | ios_base::out) {}
+
+    explicit 基础字符串流(ios_base::openmode _Mode)
+        : _我的基类(_STD addressof(_Stringbuffer)), _Stringbuffer(_Mode) {}
+
+    explicit 基础字符串流(const _我的字符串& _Str, ios_base::openmode _Mode = ios_base::in | ios_base::out)
+        : _我的基类(_STD addressof(_Stringbuffer)), _Stringbuffer(_Str, _Mode) {}
+
+#if _HAS_CXX20
+    基础字符串流(ios_base::openmode _Mode, const _分配器& _Al)
+        : _我的基类(_STD addressof(_Stringbuffer)), _Stringbuffer(_Mode, _Al) {}
+
+    explicit 基础字符串流(_我的字符串&& _Str, ios_base::openmode _Mode = ios_base::in | ios_base::out)
+        : _我的基类(_STD addressof(_Stringbuffer)), _Stringbuffer(_STD move(_Str), _Mode) {}
+
+    template <class _Alloc2>
+    基础字符串流(const 基础字符串实现<_元素, _特征, _Alloc2>& _Str, const _分配器& _Al)
+        : _我的基类(_STD addressof(_Stringbuffer)), _Stringbuffer(_Str, ios_base::in | ios_base::out, _Al) {}
+
+    template <class _Alloc2>
+    基础字符串流(const 基础字符串实现<_元素, _特征, _Alloc2>& _Str, ios_base::openmode _Mode, const _分配器& _Al)
+        : _我的基类(_STD addressof(_Stringbuffer)), _Stringbuffer(_Str, _Mode, _Al) {}
+
+    template <class _Alloc2>
+        requires (!is_same_v<_Alloc2, _分配器>)
+    explicit 基础字符串流(
+        const 基础字符串实现<_元素, _特征, _Alloc2>& _Str, ios_base::openmode _Mode = ios_base::in | ios_base::out)
+        : _我的基类(_STD addressof(_Stringbuffer)), _Stringbuffer(_Str, _Mode) {}
+#endif // _HAS_CXX20
+
+    基础字符串流(基础字符串流&& _Right)
+        : _我的基类(_STD addressof(_Stringbuffer)),
+          _Stringbuffer((_我的基类::swap(_Right), _STD move(_Right._Stringbuffer))) {}
+
+    基础字符串流& operator=(基础字符串流&& _Right)
+        noexcept(_Choose_pocma_v<_分配器> != _传播复制移动赋值取值::_No_propagate_allocators) /* strengthened */ {
+        if (this != _STD addressof(_Right)) {
+            _我的基类::swap(_Right);
+            _Stringbuffer._无别名移动赋值(_STD move(_Right._Stringbuffer));
+        }
+        return *this;
+    }
+
+    void swap(基础字符串流& _Right) noexcept /* strengthened */ {
+        if (this != _STD addressof(_Right)) {
+            _我的基类::swap(_Right);
+            _Stringbuffer.swap(_Right._Stringbuffer);
+        }
+    }
+
+    基础字符串流(const 基础字符串流&)            = delete;
+    基础字符串流& operator=(const 基础字符串流&) = delete;
+
+    ~基础字符串流() noexcept override {}
+
+    _NODISCARD _我的流缓冲* 缓冲() const noexcept /* strengthened */ {
+        return const_cast<_我的流缓冲*>(_STD addressof(_Stringbuffer));
+    }
+
+#if _HAS_CXX20
+    _NODISCARD _我的字符串 字符串() const&
+#else
+    _NODISCARD _我的字符串 字符串() const
+#endif
+    {
+        return _Stringbuffer.字符串();
+    }
+
+    void 字符串(const _我的字符串& _Newstr) { // replace character array from string
+        _Stringbuffer.字符串(_Newstr);
+    }
+
+#if _HAS_CXX20
+    template <_Allocator_for_container _Alloc2>
+    _NODISCARD 基础字符串实现<_元素, _特征, _Alloc2> 字符串(const _Alloc2& _Al) const {
+        return _Stringbuffer.字符串(_Al);
+    }
+
+    _NODISCARD _我的字符串 字符串() && {
+        return _STD move(_Stringbuffer).字符串();
+    }
+
+    _NODISCARD _我的串视图 视图() const noexcept {
+        return _Stringbuffer.视图();
+    }
+
+    template <class _Alloc2>
+        requires (!is_same_v<_Alloc2, _分配器>)
+    void 字符串(const 基础字符串实现<_元素, _特征, _Alloc2>& _Newstr) {
+        _Stringbuffer.字符串(_Newstr);
+    }
+
+    void 字符串(_我的字符串&& _Newstr) {
+        _Stringbuffer.字符串(_STD move(_Newstr));
+    }
+#endif // _HAS_CXX20
+
+private:
+    _我的流缓冲 _Stringbuffer;
+};
+
+_EXPORT_STD template <class _元素, class _特征, class _分配器>
+void swap(基础字符串流<_元素, _特征, _分配器>& _Left,
+    基础字符串流<_元素, _特征, _分配器>& _Right) noexcept /* strengthened */ {
+    _Left.swap(_Right);
+}
+} }
+#pragma pop_macro("new")
+_STL_RESTORE_CLANG_WARNINGS
+#pragma warning(pop)
+#pragma pack(pop)
+#endif // _STL_COMPILER_PREPROCESSOR
+// [ZH-DERIVE-LAYER] 汉语派生层（英文兼容层）从这一行开始 —— 本行【以上】属抄来那层，有英文名就是欠账
+// ============================================================================
+//  第二层：在【中文的基础上】派生，把英文原名补回来
+//  · 第一层 标准::细节::基础字符串实现 是抄自微软的中文实现，成员名全中文
+//  · 本层加回英文原名，所以两种名字在【同一个对象】上都能用
+//  · 与微软的原类型并存：它是【另一个类型】，不碰 std 里的定义
+// ============================================================================
+名域 标准 {
+模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>, 类型名 分配器 = std::allocator<元素>>
+类型 基础字符串缓冲 : 公开 细节::基础字符串实现<元素, 特征, 分配器> {
+公开:
+    使用 基类 = 细节::基础字符串实现<元素, 特征, 分配器>;
+    使用 基类::基类;
+
+    // 嵌套类型名也要补回英文（数据成员不行 —— 那会改布局）
+
+
+    // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
+    模板 <类型名... 参数> 声明类型(自动) str(参数&&... 值) { 返回 基类::字符串(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) str(参数&&... 值) 常量 { 返回 基类::字符串(static_cast<参数&&>(值)...); }
+
+    // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
+    // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
+
+};
+}
+名域 标准 {
+
+// 另外三个流类：手写派生层（与 <互斥量>/<数值数组> 的多类写法同）——派生层只负责补回英文原名。
+模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>, 类型名 分配器 = std::allocator<元素>>
+类型 基础输入字符串流 : 公开 细节::基础输入字符串流<元素, 特征, 分配器> {
+公开:
+    使用 基类 = 细节::基础输入字符串流<元素, 特征, 分配器>;
+    使用 基类::基类;
+    模板 <类型名... 参数> 声明类型(自动) str(参数&&... 值) { 返回 基类::字符串(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) rdbuf(参数&&... 值) { 返回 基类::缓冲(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) view(参数&&... 值) { 返回 基类::视图(static_cast<参数&&>(值)...); }
+};
+
+模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>, 类型名 分配器 = std::allocator<元素>>
+类型 基础输出字符串流 : 公开 细节::基础输出字符串流<元素, 特征, 分配器> {
+公开:
+    使用 基类 = 细节::基础输出字符串流<元素, 特征, 分配器>;
+    使用 基类::基类;
+    模板 <类型名... 参数> 声明类型(自动) str(参数&&... 值) { 返回 基类::字符串(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) rdbuf(参数&&... 值) { 返回 基类::缓冲(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) view(参数&&... 值) { 返回 基类::视图(static_cast<参数&&>(值)...); }
+};
+
+模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>, 类型名 分配器 = std::allocator<元素>>
+类型 基础字符串流 : 公开 细节::基础字符串流<元素, 特征, 分配器> {
+公开:
+    使用 基类 = 细节::基础字符串流<元素, 特征, 分配器>;
+    使用 基类::基类;
+    模板 <类型名... 参数> 声明类型(自动) str(参数&&... 值) { 返回 基类::字符串(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) rdbuf(参数&&... 值) { 返回 基类::缓冲(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) view(参数&&... 值) { 返回 基类::视图(static_cast<参数&&>(值)...); }
+};
+
+// 常用别名（对应 std::stringbuf / istringstream / ostringstream / stringstream）
+使用 字符串缓冲     = 基础字符串缓冲<字符>;
+使用 输入字符串流   = 基础输入字符串流<字符>;
+使用 输出字符串流   = 基础输出字符串流<字符>;
+使用 字符串流       = 基础字符串流<字符>;
+使用 宽字符串缓冲   = 基础字符串缓冲<宽字符>;
+使用 宽输入字符串流 = 基础输入字符串流<宽字符>;
+使用 宽输出字符串流 = 基础输出字符串流<宽字符>;
+使用 宽字符串流     = 基础字符串流<宽字符>;
+
+}  // 名域 标准
+
+#endif // _SSTREAM_

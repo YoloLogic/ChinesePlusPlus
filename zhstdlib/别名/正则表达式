@@ -1,0 +1,47 @@
+// <正则表达式> —— regex 的中文别名层
+//
+// 为什么是别名而不是抄一份（方案铁律 4）：
+//   铁律③：正则与匹配结果类型参与语义（用户按类型重载、迭代器类型写死在签名里）。
+//   这类头一旦抄一份，就会和 std 里那份成为两套互不相认的东西。
+//
+// 英文原名照旧可用：这里只是【多一个名字】，原头一个字节没动。
+// 变体（英文里带 _v 的变量模板形式）暂未提供中文名，属"必须的妥协"，见方案 §六。
+#pragma once
+#include <regex>
+
+名域 标准 {
+    模板 <类型名 字符类型, 类型名 特征 = std::regex_traits<字符类型>> 使用 基本正则 = std::basic_regex<字符类型, 特征>;
+    使用 正则 = std::regex;
+    使用 宽正则 = std::wregex;
+    模板 <类型名 字符类型> 使用 正则特征 = std::regex_traits<字符类型>;
+    使用 正则异常 = std::regex_error;
+    模板 <类型名 双向迭代器> 使用 子匹配 = std::sub_match<双向迭代器>;
+    模板 <类型名 双向迭代器, 类型名 分配器 = std::allocator<std::sub_match<双向迭代器>>> 使用 匹配结果 = std::match_results<双向迭代器, 分配器>;
+    使用 字符匹配结果 = std::cmatch;
+    使用 宽字符匹配结果 = std::wcmatch;
+    使用 串匹配结果 = std::smatch;
+    使用 宽串匹配结果 = std::wsmatch;
+    模板 <类型名 双向迭代器, 类型名 字符类型, 类型名 特征 = std::regex_traits<字符类型>> 使用 正则迭代器 = std::regex_iterator<双向迭代器, 字符类型, 特征>;
+    使用 字符正则迭代器 = std::cregex_iterator;
+    使用 串正则迭代器 = std::sregex_iterator;
+    模板 <类型名 双向迭代器, 类型名 字符类型, 类型名 特征 = std::regex_traits<字符类型>> 使用 正则词元迭代器 = std::regex_token_iterator<双向迭代器, 字符类型, 特征>;
+    使用 字符正则词元迭代器 = std::cregex_token_iterator;
+    使用 串正则词元迭代器 = std::sregex_token_iterator;
+    模板 <类型名 字符类型, 类型名 字符串特征, 类型名 正则特征> 布尔 正则匹配(const std::basic_string<字符类型, 字符串特征>& 甲, const std::basic_regex<字符类型, 正则特征>& 乙, std::regex_constants::match_flag_type 丙 = std::regex_constants::match_default) { 返回 std::regex_match(甲, 乙, 丙); }
+    模板 <类型名 字符类型, 类型名 字符串特征, 类型名 正则特征, 类型名 结果, 类型名 结果分配器> 布尔 正则匹配(const std::basic_string<字符类型, 字符串特征>& 甲, std::match_results<结果, 结果分配器>& 乙, const std::basic_regex<字符类型, 正则特征>& 丙, std::regex_constants::match_flag_type 丁 = std::regex_constants::match_default) { 返回 std::regex_match(甲, 乙, 丙, 丁); }
+    模板 <类型名 字符类型, 类型名 字符串特征, 类型名 正则特征> 布尔 正则查找(const std::basic_string<字符类型, 字符串特征>& 甲, const std::basic_regex<字符类型, 正则特征>& 乙, std::regex_constants::match_flag_type 丙 = std::regex_constants::match_default) { 返回 std::regex_search(甲, 乙, 丙); }
+    模板 <类型名 字符类型, 类型名 字符串特征, 类型名 正则特征, 类型名 结果, 类型名 结果分配器> 布尔 正则查找(const std::basic_string<字符类型, 字符串特征>& 甲, std::match_results<结果, 结果分配器>& 乙, const std::basic_regex<字符类型, 正则特征>& 丙, std::regex_constants::match_flag_type 丁 = std::regex_constants::match_default) { 返回 std::regex_search(甲, 乙, 丙, 丁); }
+    模板 <类型名 字符类型, 类型名 字符串特征, 类型名 正则特征, 类型名 替换类型> 声明类型(自动) 正则替换(const std::basic_string<字符类型, 字符串特征>& 甲, const std::basic_regex<字符类型, 正则特征>& 乙, 替换类型&& 丙, std::regex_constants::match_flag_type 丁 = std::regex_constants::match_default) { 返回 std::regex_replace(甲, 乙, static_cast<替换类型&&>(丙), 丁); }
+    内联 常量 std::regex_constants::match_flag_type 匹配默认 = std::regex_constants::match_default;
+    内联 常量 std::regex_constants::match_flag_type 匹配连续 = std::regex_constants::match_continuous;
+    内联 常量 std::regex_constants::match_flag_type 匹配任一处 = std::regex_constants::match_any;
+    内联 常量 std::regex_constants::match_flag_type 格式默认 = std::regex_constants::format_default;
+    内联 常量 std::regex_constants::match_flag_type 格式不拷贝 = std::regex_constants::format_no_copy;
+    内联 常量 std::regex_constants::match_flag_type 只替换首次 = std::regex_constants::format_first_only;
+    内联 常量 std::regex_constants::syntax_option_type 忽略大小写 = std::regex_constants::icase;
+    内联 常量 std::regex_constants::syntax_option_type 不捕获 = std::regex_constants::nosubs;
+    内联 常量 std::regex_constants::syntax_option_type 优化正则 = std::regex_constants::optimize;
+    内联 常量 std::regex_constants::syntax_option_type 基本语法 = std::regex_constants::basic;
+    内联 常量 std::regex_constants::syntax_option_type 扩展语法 = std::regex_constants::extended;
+    内联 常量 std::regex_constants::syntax_option_type 脚本语法 = std::regex_constants::ECMAScript;
+}

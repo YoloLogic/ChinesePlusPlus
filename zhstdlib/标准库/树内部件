@@ -1,0 +1,2003 @@
+// xtree internal header
+
+// Copyright (c) Microsoft Corporation.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#ifndef _ZH_XTREE_
+#define _ZH_XTREE_
+#include <yvals_core.h>
+#if _STL_COMPILER_PREPROCESSOR
+#include <内存内部件>
+
+#if _HAS_CXX17
+#include <xnode_handle.h>
+#endif // _HAS_CXX17
+
+#pragma pack(push, _CRT_PACKING)
+#pragma warning(push, _STL_WARNING_LEVEL)
+#pragma warning(disable : _STL_DISABLED_WARNINGS)
+_STL_DISABLE_CLANG_WARNINGS
+#pragma push_macro("new")
+#undef new
+
+名域 标准 { 名域 细节 {
+使用 名域 std;
+template <class _Mytree, class _Base = _迭代器基类0>
+class _树非检查常量迭代器 : public _Base {
+public:
+    using iterator_category = bidirectional_iterator_tag;
+
+    using _结点指针        = typename _Mytree::_结点指针;
+    using value_type      = typename _Mytree::value_type;
+    using difference_type = typename _Mytree::difference_type;
+    using pointer         = typename _Mytree::const_pointer;
+    using reference       = const value_type&;
+
+    _树非检查常量迭代器() noexcept : _Ptr() {}
+
+    _树非检查常量迭代器(_结点指针 _Pnode, const _Mytree* _Plist) noexcept : _Ptr(_Pnode) {
+        this->_收养(_Plist);
+    }
+
+    _NODISCARD reference operator*() const noexcept {
+        return _Ptr->_Myval;
+    }
+
+    _NODISCARD pointer operator->() const noexcept {
+        return pointer_traits<pointer>::pointer_to(**this);
+    }
+
+    _树非检查常量迭代器& operator++() noexcept {
+        if (_Ptr->_Right->_Isnil) { // climb looking for right subtree
+            _结点指针 _Pnode;
+            while (!(_Pnode = _Ptr->_Parent)->_Isnil && _Ptr == _Pnode->_Right) {
+                _Ptr = _Pnode; // ==> parent while right subtree
+            }
+
+            _Ptr = _Pnode; // ==> parent (head if end())
+        } else {
+            _Ptr = _Mytree::_最小(_Ptr->_Right); // ==> smallest of right subtree
+        }
+
+        return *this;
+    }
+
+    _树非检查常量迭代器 operator++(int) noexcept {
+        _树非检查常量迭代器 _Tmp = *this;
+        ++*this;
+        return _Tmp;
+    }
+
+    _树非检查常量迭代器& operator--() noexcept {
+        if (_Ptr->_Isnil) {
+            _Ptr = _Ptr->_Right; // end() ==> rightmost
+        } else if (_Ptr->_Left->_Isnil) { // climb looking for left subtree
+            _结点指针 _Pnode;
+            while (!(_Pnode = _Ptr->_Parent)->_Isnil && _Ptr == _Pnode->_Left) {
+                _Ptr = _Pnode; // ==> parent while left subtree
+            }
+
+            if (!_Ptr->_Isnil) { // decrement non-begin()
+                _Ptr = _Pnode; // ==> parent if not head
+            }
+        } else {
+            _Ptr = _Mytree::_最大(_Ptr->_Left); // ==> largest of left subtree
+        }
+
+        return *this;
+    }
+
+    _树非检查常量迭代器 operator--(int) noexcept {
+        _树非检查常量迭代器 _Tmp = *this;
+        --*this;
+        return _Tmp;
+    }
+
+    _NODISCARD bool operator==(const _树非检查常量迭代器& _Right) const noexcept {
+        return _Ptr == _Right._Ptr;
+    }
+
+#if !_HAS_CXX20
+    _NODISCARD bool operator!=(const _树非检查常量迭代器& _Right) const noexcept {
+        return !(*this == _Right);
+    }
+#endif // !_HAS_CXX20
+
+    _NODISCARD bool operator==(_Default_sentinel) const noexcept {
+        return !!_Ptr->_Isnil; // TRANSITION, avoid warning C4800:
+                               // "Implicit conversion from 'char' to bool. Possible information loss" (/Wall)
+    }
+
+#if !_HAS_CXX20
+    _NODISCARD bool operator!=(_Default_sentinel) const noexcept {
+        return !_Ptr->_Isnil;
+    }
+#endif // !_HAS_CXX20
+
+    _结点指针 _Ptr; // pointer to node
+};
+
+template <class _Mytree>
+class _树非检查迭代器 : public _树非检查常量迭代器<_Mytree> {
+public:
+    using _我的基类           = _树非检查常量迭代器<_Mytree>;
+    using iterator_category = bidirectional_iterator_tag;
+
+    using _结点指针        = typename _Mytree::_结点指针;
+    using value_type      = typename _Mytree::value_type;
+    using difference_type = typename _Mytree::difference_type;
+    using pointer         = typename _Mytree::pointer;
+    using reference       = value_type&;
+
+    using _我的基类::_我的基类;
+
+    _NODISCARD reference operator*() const noexcept {
+        return const_cast<reference>(_我的基类::operator*());
+    }
+
+    _NODISCARD pointer operator->() const noexcept {
+        return pointer_traits<pointer>::pointer_to(**this);
+    }
+
+    _树非检查迭代器& operator++() noexcept {
+        _我的基类::operator++();
+        return *this;
+    }
+
+    _树非检查迭代器 operator++(int) noexcept {
+        _树非检查迭代器 _Tmp = *this;
+        _我的基类::operator++();
+        return _Tmp;
+    }
+
+    _树非检查迭代器& operator--() noexcept {
+        _我的基类::operator--();
+        return *this;
+    }
+
+    _树非检查迭代器 operator--(int) noexcept {
+        _树非检查迭代器 _Tmp = *this;
+        _我的基类::operator--();
+        return _Tmp;
+    }
+};
+
+template <class _Mytree>
+class _树常量迭代器 : public _树非检查常量迭代器<_Mytree, _迭代器基类> {
+public:
+    using _我的基类           = _树非检查常量迭代器<_Mytree, _迭代器基类>;
+    using iterator_category = bidirectional_iterator_tag;
+
+    using _结点指针        = typename _Mytree::_结点指针;
+    using value_type      = typename _Mytree::value_type;
+    using difference_type = typename _Mytree::difference_type;
+    using pointer         = typename _Mytree::const_pointer;
+    using reference       = const value_type&;
+
+    using _我的基类::_我的基类;
+
+    _NODISCARD reference operator*() const noexcept {
+#if _ITERATOR_DEBUG_LEVEL == 2
+        const auto _我的容器 = static_cast<const _Mytree*>(this->_取容器());
+        _STL_VERIFY(_我的容器, "cannot dereference value-initialized map/set 迭代器");
+        _STL_VERIFY(this->_Ptr != _我的容器->_Myhead, "cannot dereference end map/set 迭代器");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+        return this->_Ptr->_Myval;
+    }
+
+    _NODISCARD pointer operator->() const noexcept {
+        return pointer_traits<pointer>::pointer_to(**this);
+    }
+
+    _树常量迭代器& operator++() noexcept {
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(this->_取容器(), "cannot increment value-initialized map/set 迭代器");
+        _STL_VERIFY(!this->_Ptr->_Isnil, "cannot increment end map/set 迭代器");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+        _我的基类::operator++();
+        return *this;
+    }
+
+    _树常量迭代器 operator++(int) noexcept {
+        _树常量迭代器 _Tmp = *this;
+        ++*this;
+        return _Tmp;
+    }
+
+    _树常量迭代器& operator--() noexcept {
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(this->_取容器(), "cannot decrement value-initialized map/set 迭代器");
+        _结点指针 _Ptrsav = this->_Ptr;
+        _我的基类::operator--();
+        _STL_VERIFY(_Ptrsav != this->_Ptr, "cannot decrement begin map/set 迭代器");
+#else // ^^^ _ITERATOR_DEBUG_LEVEL == 2 / _ITERATOR_DEBUG_LEVEL != 2 vvv
+        _我的基类::operator--();
+#endif // ^^^ _ITERATOR_DEBUG_LEVEL != 2 ^^^
+
+        return *this;
+    }
+
+    _树常量迭代器 operator--(int) noexcept {
+        _树常量迭代器 _Tmp = *this;
+        --*this;
+        return _Tmp;
+    }
+
+    _NODISCARD bool operator==(const _树常量迭代器& _Right) const noexcept {
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(this->_取容器() == _Right._取容器(), "map/set iterators incompatible");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+        return this->_Ptr == _Right._Ptr;
+    }
+
+#if !_HAS_CXX20
+    _NODISCARD bool operator!=(const _树常量迭代器& _Right) const noexcept {
+        return !(*this == _Right);
+    }
+#endif // !_HAS_CXX20
+
+#if _ITERATOR_DEBUG_LEVEL == 2
+    friend void _校验范围(const _树常量迭代器& _首个, const _树常量迭代器& _最后) noexcept {
+        _STL_VERIFY(_首个._取容器() == _最后._取容器(), "map/set iterators in range are from different containers");
+    }
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+    using _阻止继承解包 = _树常量迭代器;
+
+    _NODISCARD _树非检查常量迭代器<_Mytree> _解包() const noexcept {
+        return _树非检查常量迭代器<_Mytree>(this->_Ptr, static_cast<const _Mytree*>(this->_取容器()));
+    }
+
+    void _定位到(const _树非检查常量迭代器<_Mytree> _It) noexcept {
+        this->_Ptr = _It._Ptr;
+    }
+};
+
+template <class _Mytree>
+class _树迭代器 : public _树常量迭代器<_Mytree> {
+public:
+    using _我的基类           = _树常量迭代器<_Mytree>;
+    using iterator_category = bidirectional_iterator_tag;
+
+    using _结点指针        = typename _Mytree::_结点指针;
+    using value_type      = typename _Mytree::value_type;
+    using difference_type = typename _Mytree::difference_type;
+
+    using pointer   = typename _Mytree::pointer;
+    using reference = value_type&;
+
+    using _我的基类::_我的基类;
+
+    _NODISCARD reference operator*() const noexcept {
+        return const_cast<reference>(_我的基类::operator*());
+    }
+
+    _NODISCARD pointer operator->() const noexcept {
+        return pointer_traits<pointer>::pointer_to(**this);
+    }
+
+    _树迭代器& operator++() noexcept {
+        _我的基类::operator++();
+        return *this;
+    }
+
+    _树迭代器 operator++(int) noexcept {
+        _树迭代器 _Tmp = *this;
+        _我的基类::operator++();
+        return _Tmp;
+    }
+
+    _树迭代器& operator--() noexcept {
+        _我的基类::operator--();
+        return *this;
+    }
+
+    _树迭代器 operator--(int) noexcept {
+        _树迭代器 _Tmp = *this;
+        _我的基类::operator--();
+        return _Tmp;
+    }
+
+    using _阻止继承解包 = _树迭代器;
+
+    _NODISCARD _树非检查迭代器<_Mytree> _解包() const noexcept {
+        return _树非检查迭代器<_Mytree>(this->_Ptr, static_cast<const _Mytree*>(this->_取容器()));
+    }
+};
+
+template <class _Value_type, class _尺寸类型, class _差异类型, class _Pointer, class _Const_pointer,
+    class _Nodeptr_type>
+struct _树迭代类型集 {
+    using value_type      = _Value_type;
+    using size_type       = _尺寸类型;
+    using difference_type = _差异类型;
+    using pointer         = _Pointer;
+    using const_pointer   = _Const_pointer;
+    using _结点指针        = _Nodeptr_type;
+};
+
+template <class _Value_type, class _Voidptr>
+struct _树节点 {
+    using _结点指针   = _重绑定指针类型<_Voidptr, _树节点>;
+    using value_type = _Value_type;
+    _结点指针 _Left; // left subtree, or smallest element if head
+    _结点指针 _Parent; // parent, or root of tree if head
+    _结点指针 _Right; // right subtree, or largest element if head
+    char _Color; // _红 or _黑, _黑 if head
+    char _Isnil; // true only if head (also nil) node; TRANSITION, should be bool
+    value_type _Myval = // the stored value, unused if head
+        _Returns_exactly<value_type>(); // fake a viable constructor to workaround GH-2749
+
+    enum _红黑 { // colors for link to parent
+        _红,
+        _黑
+    };
+
+    _树节点()                             = default;
+    _树节点(const _树节点&)            = delete;
+    _树节点& operator=(const _树节点&) = delete;
+
+    template <class _分配器>
+    static _结点指针 _建头节点(_分配器& _Al) {
+        static_assert(is_same_v<typename _分配器::value_type, _树节点>, "Bad _建头节点 call");
+        const auto _Pnode = _Al.allocate(1);
+        _就地构造(_Pnode->_Left, _Pnode);
+        _就地构造(_Pnode->_Parent, _Pnode);
+        _就地构造(_Pnode->_Right, _Pnode);
+        _Pnode->_Color = _黑;
+        _Pnode->_Isnil = true;
+        return _Pnode;
+    }
+
+    template <class _分配器, class... _值参数类型>
+    static _结点指针 _建节点(_分配器& _Al, _结点指针 _Myhead, _值参数类型&&... _Val) {
+        // allocate a node with defaults and set links and value
+        static_assert(is_same_v<typename _分配器::value_type, _树节点>, "Bad _建节点 call");
+        _分配器构造指针<_分配器> _新节点(_Al);
+        _新节点._分配();
+        allocator_traits<_分配器>::construct(_Al, _STD addressof(_新节点._Ptr->_Myval), _STD forward<_值参数类型>(_Val)...);
+        _就地构造(_新节点._Ptr->_Left, _Myhead);
+        _就地构造(_新节点._Ptr->_Parent, _Myhead);
+        _就地构造(_新节点._Ptr->_Right, _Myhead);
+        _新节点._Ptr->_Color = _红;
+        _新节点._Ptr->_Isnil = false;
+        return _新节点._释放();
+    }
+
+    template <class _分配器>
+    static void _Freenode0(_分配器& _Al, _结点指针 _Ptr) noexcept {
+        static_assert(is_same_v<typename _分配器::value_type, _树节点>, "Bad _Freenode0 call");
+        _就地析构(_Ptr->_Left);
+        _就地析构(_Ptr->_Parent);
+        _就地析构(_Ptr->_Right);
+        allocator_traits<_分配器>::deallocate(_Al, _Ptr, 1);
+    }
+
+    template <class _分配器>
+    static void _释放节点(_分配器& _Al, _结点指针 _Ptr) noexcept {
+        static_assert(is_same_v<typename _分配器::value_type, _树节点>, "Bad _释放节点 call");
+        allocator_traits<_分配器>::destroy(_Al, _STD addressof(_Ptr->_Myval));
+        _Freenode0(_Al, _Ptr);
+    }
+};
+
+template <class _类型>
+struct _树简单类型集 : _简单类型集<_类型> {
+    using _节点    = _树节点<_类型, void*>;
+    using _结点指针 = _节点*;
+};
+
+enum class _树子向 {
+    _Right, // perf note: compare with _Right rather than _Left where possible for comparison with zero
+    _Left,
+    _Unused // indicates that tree child should never be used for insertion
+};
+
+template <class _结点指针>
+struct _树标识 {
+    _结点指针 _Parent; // the leaf node under which a new node should be inserted
+    _树子向 _Child;
+};
+
+template <class _结点指针>
+struct _树查找结果 {
+    _树标识<_结点指针> _Location;
+    _结点指针 _Bound;
+};
+
+template <class _结点指针>
+struct _树查找提示结果 {
+    _树标识<_结点指针> _Location;
+    bool _Duplicate;
+};
+
+[[noreturn]] inline void _抛树长度错误() {
+    _Xlength_error("map/set too long");
+}
+
+template <class _值类型集>
+class _树值 : public _容器基类 {
+public:
+    using _结点指针 = typename _值类型集::_结点指针;
+
+    using value_type      = typename _值类型集::value_type;
+    using size_type       = typename _值类型集::size_type;
+    using difference_type = typename _值类型集::difference_type;
+    using pointer         = typename _值类型集::pointer;
+    using const_pointer   = typename _值类型集::const_pointer;
+    using reference       = value_type&;
+    using 常量引用 = const value_type&;
+
+    using _非检查常量迭代器 = _树非检查常量迭代器<_树值>;
+    using 常量迭代器            = _树常量迭代器<_树值>;
+
+    template <class _结点分配器>
+    struct _NODISCARD _擦树并孤立守卫 {
+        _树值* _Val_ptr;
+        _结点分配器& _Al;
+        _结点指针 _New_root;
+
+        _擦树并孤立守卫& operator=(const _擦树并孤立守卫&) = delete;
+        ~_擦树并孤立守卫() noexcept {
+            if (_Val_ptr != nullptr) {
+                _Val_ptr->_擦除树并孤立(_Al, _New_root); // subtree copy failed, bail out
+            }
+        }
+    };
+
+    _树值() noexcept : _Myhead(), _我的尺寸(0) {}
+
+#if _MSVC_STL_DESTRUCTOR_TOMBSTONES
+    ~_树值() noexcept {
+        if constexpr (is_pointer_v<_结点指针>) {
+            const auto _Tombstone{reinterpret_cast<_结点指针>(_MSVC_STL_UINTPTR_TOMBSTONE_VALUE)};
+            _Myhead = _Tombstone;
+            _我的尺寸 = 0;
+        }
+    }
+#endif // _MSVC_STL_DESTRUCTOR_TOMBSTONES
+
+    enum _红黑 { // colors for link to parent
+        _红,
+        _黑
+    };
+
+    static _结点指针 _最大(_结点指针 _Pnode) noexcept { // return rightmost node in subtree at _Pnode
+        while (!_Pnode->_Right->_Isnil) {
+            _Pnode = _Pnode->_Right;
+        }
+
+        return _Pnode;
+    }
+
+    static _结点指针 _最小(_结点指针 _Pnode) noexcept { // return leftmost node in subtree at _Pnode
+        while (!_Pnode->_Left->_Isnil) {
+            _Pnode = _Pnode->_Left;
+        }
+
+        return _Pnode;
+    }
+
+    void _左旋(_结点指针 _Wherenode) noexcept { // promote right node to root of subtree
+        _结点指针 _Pnode    = _Wherenode->_Right;
+        _Wherenode->_Right = _Pnode->_Left;
+
+        if (!_Pnode->_Left->_Isnil) {
+            _Pnode->_Left->_Parent = _Wherenode;
+        }
+
+        _Pnode->_Parent = _Wherenode->_Parent;
+
+        if (_Wherenode == _Myhead->_Parent) {
+            _Myhead->_Parent = _Pnode;
+        } else if (_Wherenode == _Wherenode->_Parent->_Left) {
+            _Wherenode->_Parent->_Left = _Pnode;
+        } else {
+            _Wherenode->_Parent->_Right = _Pnode;
+        }
+
+        _Pnode->_Left       = _Wherenode;
+        _Wherenode->_Parent = _Pnode;
+    }
+
+    void _右旋(_结点指针 _Wherenode) noexcept { // promote left node to root of subtree
+        _结点指针 _Pnode   = _Wherenode->_Left;
+        _Wherenode->_Left = _Pnode->_Right;
+
+        if (!_Pnode->_Right->_Isnil) {
+            _Pnode->_Right->_Parent = _Wherenode;
+        }
+
+        _Pnode->_Parent = _Wherenode->_Parent;
+
+        if (_Wherenode == _Myhead->_Parent) {
+            _Myhead->_Parent = _Pnode;
+        } else if (_Wherenode == _Wherenode->_Parent->_Right) {
+            _Wherenode->_Parent->_Right = _Pnode;
+        } else {
+            _Wherenode->_Parent->_Left = _Pnode;
+        }
+
+        _Pnode->_Right      = _Wherenode;
+        _Wherenode->_Parent = _Pnode;
+    }
+
+    _结点指针 _摘取(_非检查常量迭代器 _Where) noexcept {
+        _结点指针 _Erasednode = _Where._Ptr; // node to 擦除
+        ++_Where; // save successor 迭代器 for return
+
+        _结点指针 _Fixnode; // the node to recolor as needed
+        _结点指针 _Fixnodeparent; // parent of _Fixnode (which may be nil)
+        _结点指针 _Pnode = _Erasednode;
+
+        if (_Pnode->_Left->_Isnil) {
+            _Fixnode = _Pnode->_Right; // stitch up right subtree
+        } else if (_Pnode->_Right->_Isnil) {
+            _Fixnode = _Pnode->_Left; // stitch up left subtree
+        } else { // two subtrees, must lift successor node to replace erased
+            _Pnode   = _Where._Ptr; // _Pnode is successor node
+            _Fixnode = _Pnode->_Right; // _Fixnode is only subtree
+        }
+
+        if (_Pnode == _Erasednode) { // at most one subtree, relink it
+            _Fixnodeparent = _Erasednode->_Parent;
+            if (!_Fixnode->_Isnil) {
+                _Fixnode->_Parent = _Fixnodeparent; // link up
+            }
+
+            if (_Myhead->_Parent == _Erasednode) {
+                _Myhead->_Parent = _Fixnode; // link down from root
+            } else if (_Fixnodeparent->_Left == _Erasednode) {
+                _Fixnodeparent->_Left = _Fixnode; // link down to left
+            } else {
+                _Fixnodeparent->_Right = _Fixnode; // link down to right
+            }
+
+            if (_Myhead->_Left == _Erasednode) {
+                _Myhead->_Left = _Fixnode->_Isnil ? _Fixnodeparent // smallest is parent of erased node
+                                                  : _最小(_Fixnode); // smallest in relinked subtree
+            }
+
+            if (_Myhead->_Right == _Erasednode) {
+                _Myhead->_Right = _Fixnode->_Isnil ? _Fixnodeparent // largest is parent of erased node
+                                                   : _最大(_Fixnode); // largest in relinked subtree
+            }
+        } else { // erased has two subtrees, _Pnode is successor to erased
+            _Erasednode->_Left->_Parent = _Pnode; // link left up
+            _Pnode->_Left               = _Erasednode->_Left; // link successor down
+
+            if (_Pnode == _Erasednode->_Right) {
+                _Fixnodeparent = _Pnode; // successor is next to erased
+            } else { // successor further down, link in place of erased
+                _Fixnodeparent = _Pnode->_Parent; // parent is successor's
+                if (!_Fixnode->_Isnil) {
+                    _Fixnode->_Parent = _Fixnodeparent; // link fix up
+                }
+
+                _Fixnodeparent->_Left        = _Fixnode; // link fix down
+                _Pnode->_Right               = _Erasednode->_Right; // link next down
+                _Erasednode->_Right->_Parent = _Pnode; // right up
+            }
+
+            if (_Myhead->_Parent == _Erasednode) {
+                _Myhead->_Parent = _Pnode; // link down from root
+            } else if (_Erasednode->_Parent->_Left == _Erasednode) {
+                _Erasednode->_Parent->_Left = _Pnode; // link down to left
+            } else {
+                _Erasednode->_Parent->_Right = _Pnode; // link down to right
+            }
+
+            _Pnode->_Parent = _Erasednode->_Parent; // link successor up
+            _STD swap(_Pnode->_Color, _Erasednode->_Color); // recolor it
+        }
+
+        if (_Erasednode->_Color == _黑) { // erasing black link, must recolor/rebalance tree
+            for (; _Fixnode != _Myhead->_Parent && _Fixnode->_Color == _黑; _Fixnodeparent = _Fixnode->_Parent) {
+                if (_Fixnode == _Fixnodeparent->_Left) { // fixup left subtree
+                    _Pnode = _Fixnodeparent->_Right;
+                    if (_Pnode->_Color == _红) { // rotate red up from right subtree
+                        _Pnode->_Color         = _黑;
+                        _Fixnodeparent->_Color = _红;
+                        _左旋(_Fixnodeparent);
+                        _Pnode = _Fixnodeparent->_Right;
+                    }
+
+                    if (_Pnode->_Isnil) {
+                        _Fixnode = _Fixnodeparent; // shouldn't happen
+                    } else if (_Pnode->_Left->_Color == _黑
+                               && _Pnode->_Right->_Color == _黑) { // redden right subtree with black children
+                        _Pnode->_Color = _红;
+                        _Fixnode       = _Fixnodeparent;
+                    } else { // must rearrange right subtree
+                        if (_Pnode->_Right->_Color == _黑) { // rotate red up from left sub-subtree
+                            _Pnode->_Left->_Color = _黑;
+                            _Pnode->_Color        = _红;
+                            _右旋(_Pnode);
+                            _Pnode = _Fixnodeparent->_Right;
+                        }
+
+                        _Pnode->_Color         = _Fixnodeparent->_Color;
+                        _Fixnodeparent->_Color = _黑;
+                        _Pnode->_Right->_Color = _黑;
+                        _左旋(_Fixnodeparent);
+                        break; // tree now recolored/rebalanced
+                    }
+                } else { // fixup right subtree
+                    _Pnode = _Fixnodeparent->_Left;
+                    if (_Pnode->_Color == _红) { // rotate red up from left subtree
+                        _Pnode->_Color         = _黑;
+                        _Fixnodeparent->_Color = _红;
+                        _右旋(_Fixnodeparent);
+                        _Pnode = _Fixnodeparent->_Left;
+                    }
+
+                    if (_Pnode->_Isnil) {
+                        _Fixnode = _Fixnodeparent; // shouldn't happen
+                    } else if (_Pnode->_Right->_Color == _黑
+                               && _Pnode->_Left->_Color == _黑) { // redden left subtree with black children
+                        _Pnode->_Color = _红;
+                        _Fixnode       = _Fixnodeparent;
+                    } else { // must rearrange left subtree
+                        if (_Pnode->_Left->_Color == _黑) { // rotate red up from right sub-subtree
+                            _Pnode->_Right->_Color = _黑;
+                            _Pnode->_Color         = _红;
+                            _左旋(_Pnode);
+                            _Pnode = _Fixnodeparent->_Left;
+                        }
+
+                        _Pnode->_Color         = _Fixnodeparent->_Color;
+                        _Fixnodeparent->_Color = _黑;
+                        _Pnode->_Left->_Color  = _黑;
+                        _右旋(_Fixnodeparent);
+                        break; // tree now recolored/rebalanced
+                    }
+                }
+            }
+
+            _Fixnode->_Color = _黑; // stopping node is black
+        }
+
+        if (0 < _我的尺寸) {
+            --_我的尺寸;
+        }
+
+        return _Erasednode;
+    }
+
+    _结点指针 _插入节点(const _树标识<_结点指针> _Loc, const _结点指针 _新节点) noexcept {
+        ++_我的尺寸;
+        const auto _Head  = _Myhead;
+        _新节点->_Parent = _Loc._Parent;
+        if (_Loc._Parent == _Head) { // first node in tree, just set head values
+            _Head->_Left     = _新节点;
+            _Head->_Parent   = _新节点;
+            _Head->_Right    = _新节点;
+            _新节点->_Color = _黑; // the root is black
+            return _新节点;
+        }
+
+        _STL_INTERNAL_CHECK(_Loc._Child != _树子向::_Unused);
+        if (_Loc._Child == _树子向::_Right) { // add to right of _Loc._Parent
+            _STL_INTERNAL_CHECK(_Loc._Parent->_Right->_Isnil);
+            _Loc._Parent->_Right = _新节点;
+            if (_Loc._Parent == _Head->_Right) { // remember rightmost node
+                _Head->_Right = _新节点;
+            }
+        } else { // add to left of _Loc._Parent
+            _STL_INTERNAL_CHECK(_Loc._Parent->_Left->_Isnil);
+            _Loc._Parent->_Left = _新节点;
+            if (_Loc._Parent == _Head->_Left) { // remember leftmost node
+                _Head->_Left = _新节点;
+            }
+        }
+
+        for (_结点指针 _Pnode = _新节点; _Pnode->_Parent->_Color == _红;) {
+            if (_Pnode->_Parent == _Pnode->_Parent->_Parent->_Left) { // fixup red-red in left subtree
+                const auto _Parent_sibling = _Pnode->_Parent->_Parent->_Right;
+                if (_Parent_sibling->_Color == _红) { // parent's sibling has two red children, blacken both
+                    _Pnode->_Parent->_Color          = _黑;
+                    _Parent_sibling->_Color          = _黑;
+                    _Pnode->_Parent->_Parent->_Color = _红;
+                    _Pnode                           = _Pnode->_Parent->_Parent;
+                } else { // parent's sibling has red and black children
+                    if (_Pnode == _Pnode->_Parent->_Right) { // rotate right child to left
+                        _Pnode = _Pnode->_Parent;
+                        _左旋(_Pnode);
+                    }
+
+                    _Pnode->_Parent->_Color          = _黑; // propagate red up
+                    _Pnode->_Parent->_Parent->_Color = _红;
+                    _右旋(_Pnode->_Parent->_Parent);
+                }
+            } else { // fixup red-red in right subtree
+                const auto _Parent_sibling = _Pnode->_Parent->_Parent->_Left;
+                if (_Parent_sibling->_Color == _红) { // parent's sibling has two red children, blacken both
+                    _Pnode->_Parent->_Color          = _黑;
+                    _Parent_sibling->_Color          = _黑;
+                    _Pnode->_Parent->_Parent->_Color = _红;
+                    _Pnode                           = _Pnode->_Parent->_Parent;
+                } else { // parent's sibling has red and black children
+                    if (_Pnode == _Pnode->_Parent->_Left) { // rotate left child to right
+                        _Pnode = _Pnode->_Parent;
+                        _右旋(_Pnode);
+                    }
+
+                    _Pnode->_Parent->_Color          = _黑; // propagate red up
+                    _Pnode->_Parent->_Parent->_Color = _红;
+                    _左旋(_Pnode->_Parent->_Parent);
+                }
+            }
+        }
+
+        _Head->_Parent->_Color = _黑; // root is always black
+        return _新节点;
+    }
+
+    void _孤立指针(const _结点指针 _Ptr) noexcept {
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _Lockit _加锁(_LOCK_DEBUG);
+        _迭代器基类12** _Pnext = &this->_Myproxy->_Myfirstiter;
+        while (*_Pnext) {
+            const auto _Pnextptr = static_cast<常量迭代器&>(**_Pnext)._Ptr;
+            if (_Pnextptr == _Myhead || (_Ptr != nullptr && _Pnextptr != _Ptr)) {
+                _Pnext = &(*_Pnext)->_Mynextiter;
+            } else { // orphan the 迭代器
+                (*_Pnext)->_Myproxy = nullptr;
+                *_Pnext             = (*_Pnext)->_Mynextiter;
+            }
+        }
+#else // ^^^ _ITERATOR_DEBUG_LEVEL == 2 / _ITERATOR_DEBUG_LEVEL != 2 vvv
+        (void) _Ptr;
+#endif // ^^^ _ITERATOR_DEBUG_LEVEL != 2 ^^^
+    }
+
+    template <class _结点分配器>
+    void _擦除树并孤立(_结点分配器& _Al, _结点指针 _Rootnode) noexcept {
+        while (!_Rootnode->_Isnil) { // free subtrees, then node
+            _擦除树并孤立(_Al, _Rootnode->_Right);
+            auto _To_delete = _STD exchange(_Rootnode, _Rootnode->_Left);
+            _孤立指针(_To_delete);
+            _结点分配器::value_type::_释放节点(_Al, _To_delete);
+        }
+    }
+
+    template <class _结点分配器>
+    void _擦除树(_结点分配器& _Al, _结点指针 _Rootnode) noexcept {
+        while (!_Rootnode->_Isnil) { // free subtrees, then node
+            _擦除树(_Al, _Rootnode->_Right);
+            _结点分配器::value_type::_释放节点(_Al, _STD exchange(_Rootnode, _Rootnode->_Left));
+        }
+    }
+
+    template <class _结点分配器>
+    void _擦除头(_结点分配器& _Al) noexcept {
+        this->_孤儿化全部();
+        _擦除树(_Al, _Myhead->_Parent);
+        _结点分配器::value_type::_Freenode0(_Al, _Myhead);
+    }
+
+    _结点指针 _Myhead; // pointer to head node
+    size_type _我的尺寸; // number of elements
+};
+
+template <class _结点分配器, class _迭代器检查值>
+struct _树头作用域指针 { // temporary storage for allocated node pointers to ensure exception safety
+    _结点分配器& _Al;
+    _迭代器检查值* _我的容器;
+
+    _树头作用域指针(_结点分配器& _Al_, _迭代器检查值& _Mycont_) : _Al(_Al_), _我的容器(_STD addressof(_Mycont_)) {
+        _我的容器->_Myhead = _结点分配器::value_type::_建头节点(_Al);
+    }
+
+    void _释放() noexcept {
+        _我的容器 = nullptr;
+    }
+
+    ~_树头作用域指针() {
+        if (_我的容器) {
+            _我的容器->_擦除头(_Al);
+        }
+    }
+};
+
+template <class _结点分配器>
+struct _树临时节点分配器 : _分配器构造指针<_结点分配器> {
+    // EH helper for _树临时节点
+    explicit _树临时节点分配器(_结点分配器& _Al_) : _分配器构造指针<_结点分配器>(_Al_) {
+        _分配器构造指针<_结点分配器>::_分配();
+    }
+
+    _树临时节点分配器(const _树临时节点分配器&)            = delete;
+    _树临时节点分配器& operator=(const _树临时节点分配器&) = delete;
+};
+
+template <class _结点分配器>
+struct _树临时节点 : _树临时节点分配器<_结点分配器> {
+    // temporarily stores a constructed tree node
+    using _结点分配器特征 = allocator_traits<_结点分配器>;
+    using _结点指针       = typename _结点分配器特征::pointer;
+
+    enum _红黑 { // colors for link to parent
+        _红,
+        _黑
+    };
+
+    template <class... _Valtys>
+    explicit _树临时节点(_结点分配器& _Al_, _结点指针 _Myhead, _Valtys&&... _Vals)
+        : _树临时节点分配器<_结点分配器>(_Al_) {
+        _结点分配器特征::construct(this->_Al, _STD addressof(this->_Ptr->_Myval), _STD forward<_Valtys>(_Vals)...);
+        _就地构造(this->_Ptr->_Left, _Myhead);
+        _就地构造(this->_Ptr->_Parent, _Myhead);
+        _就地构造(this->_Ptr->_Right, _Myhead);
+        this->_Ptr->_Color = _红;
+        this->_Ptr->_Isnil = false;
+    }
+
+    _树临时节点(const _树临时节点&)            = delete;
+    _树临时节点& operator=(const _树临时节点&) = delete;
+
+    ~_树临时节点() {
+        if (this->_Ptr) {
+            _就地析构(this->_Ptr->_Left);
+            _就地析构(this->_Ptr->_Parent);
+            _就地析构(this->_Ptr->_Right);
+            _结点分配器特征::destroy(this->_Al, _STD addressof(this->_Ptr->_Myval));
+        }
+    }
+};
+
+template <class _特征>
+class _树 { // ordered red-black tree for map/multimap/set/multiset
+public:
+    using 键类型       = typename _特征::键类型;
+    using value_type     = typename _特征::value_type;
+    using 分配器类型 = typename _特征::分配器类型;
+
+protected:
+    using _分配器类型          = _重绑定分配器类型<分配器类型, value_type>;
+    using _分配器特征   = allocator_traits<_分配器类型>;
+    using _节点          = _树节点<value_type, typename _分配器特征::void_pointer>;
+    using _结点分配器        = _重绑定分配器类型<分配器类型, _节点>;
+    using _结点分配器特征 = allocator_traits<_结点分配器>;
+    using _结点指针       = typename _结点分配器特征::pointer;
+
+    using _迭代器检查值 = _树值<conditional_t<_Is_simple_alloc_v<_结点分配器>, _树简单类型集<value_type>,
+        _树迭代类型集<value_type, typename _分配器特征::size_type, typename _分配器特征::difference_type,
+            typename _分配器特征::pointer, typename _分配器特征::const_pointer, _结点指针>>>;
+
+    static constexpr bool _Multi  = _特征::_Multi;
+    static constexpr bool _Is_set = is_same_v<键类型, value_type>;
+
+    enum _红黑 { // colors for link to parent
+        _红,
+        _黑
+    };
+
+public:
+    using 值比较 = typename _特征::值比较;
+
+    using 键比较器 = typename _特征::键比较器;
+
+    using size_type       = typename _分配器特征::size_type;
+    using difference_type = typename _分配器特征::difference_type;
+    using pointer         = typename _分配器特征::pointer;
+    using const_pointer   = typename _分配器特征::const_pointer;
+    using reference       = value_type&;
+    using 常量引用 = const value_type&;
+
+    using 迭代器       = conditional_t<_Is_set, _树常量迭代器<_迭代器检查值>, _树迭代器<_迭代器检查值>>;
+    using 常量迭代器 = _树常量迭代器<_迭代器检查值>;
+    using _非检查迭代器 =
+        conditional_t<_Is_set, _树非检查常量迭代器<_迭代器检查值>, _树非检查迭代器<_迭代器检查值>>;
+    using _非检查常量迭代器 = _树非检查常量迭代器<_迭代器检查值>;
+
+    using reverse_iterator       = _STD reverse_iterator<迭代器>;
+    using const_reverse_iterator = _STD reverse_iterator<常量迭代器>;
+
+    enum class _策略 : bool {
+        _复制,
+        _Move,
+    };
+
+    _树(const 键比较器& _Parg) : _Mypair(_先一后变参实参{}, _Parg, _先零后变参实参{}) {
+        _分配哨兵与代理();
+    }
+
+    _树(const 键比较器& _Parg, const 分配器类型& _Al)
+        : _Mypair(_先一后变参实参{}, _Parg, _先一后变参实参{}, _Al) {
+        _分配哨兵与代理();
+    }
+
+    template <class _Any_alloc>
+    _树(const _树& _Right, _Any_alloc&& _Al)
+        : _Mypair(_先一后变参实参{}, _Right.键比较函数(), _先一后变参实参{},
+              _STD forward<_Any_alloc>(_Al)) {
+        auto&& _Alproxy   = _取代理分配器(_结点分配器, _取分配器());
+        const auto _Scary = _取检查值();
+        _容器代理指针<_分配器类型> _代理(_Alproxy, *_Scary);
+        _树头作用域指针<_结点分配器, _迭代器检查值> _哨兵(_取分配器(), *_Scary);
+        _复制<_策略::_复制>(_Right);
+        _哨兵._释放();
+        _代理._释放();
+    }
+
+    _树(_树&& _Right)
+        : _Mypair(_先一后变参实参{}, _Right.键比较函数(), // intentionally copy comparator, see LWG-2227
+              _先一后变参实参{}, _STD move(_Right._取分配器())) {
+        _分配哨兵与代理();
+        _交换值不含比较器(_Right);
+    }
+
+    _树(_树&& _Right, const 分配器类型& _Al)
+        : _Mypair(_先一后变参实参{}, _Right.键比较函数(), // intentionally copy comparator, see LWG-2227
+              _先一后变参实参{}, _Al) {
+        if constexpr (!_结点分配器特征::is_always_equal::value) {
+            if (_取分配器() != _Right._取分配器()) {
+                auto&& _Alproxy   = _取代理分配器(_结点分配器, _取分配器());
+                const auto _Scary = _取检查值();
+                _容器代理指针<_分配器类型> _代理(_Alproxy, *_Scary);
+                _树头作用域指针<_结点分配器, _迭代器检查值> _哨兵(_取分配器(), *_Scary);
+                _复制<_策略::_Move>(_Right);
+                _哨兵._释放();
+                _代理._释放();
+                return;
+            }
+        }
+
+        _分配哨兵与代理();
+        _交换值不含比较器(_Right);
+    }
+
+    _树& operator=(_树&& _Right)
+        noexcept(_结点分配器特征::is_always_equal::value && is_nothrow_move_assignable_v<键比较器>) {
+        if (this == _STD addressof(_Right)) {
+            return *this;
+        }
+
+        auto& _Al                 = _取分配器();
+        auto& _Right_al           = _Right._取分配器();
+        constexpr auto _Pocma_val = _Choose_pocma_v<_结点分配器>;
+        if constexpr (_Pocma_val == _传播复制移动赋值取值::_Propagate_allocators) {
+            if (_Al != _Right_al) {
+                清空();
+                _取比较器()            = _Right._取比较器(); // intentionally copy comparator, see LWG-2227
+                auto&& _Alproxy       = _取代理分配器(_结点分配器, _Al);
+                auto&& _Right_alproxy = _取代理分配器(_结点分配器, _Right_al);
+                _容器代理指针<_分配器类型> _代理(_Right_alproxy, _离开代理未绑定{});
+                const auto _Scary       = _取检查值();
+                const auto _Right_scary = _Right._取检查值();
+                const auto _Newhead     = _STD exchange(_Right_scary->_Myhead, _节点::_建头节点(_Right_al));
+                const auto _Newsize     = _STD exchange(_Right_scary->_我的尺寸, size_type{0});
+                _Scary->_擦除头(_Al);
+                _传播移动赋值(_Al, _Right_al);
+                _Scary->_Myhead = _Newhead;
+                _Scary->_我的尺寸 = _Newsize;
+                _代理._绑定(_Alproxy, _Scary);
+                _Scary->_交换代理与迭代器(*_Right_scary);
+                return *this;
+            }
+        } else if constexpr (_Pocma_val == _传播复制移动赋值取值::_No_propagate_allocators) {
+            if (_Al != _Right_al) {
+                清空();
+                _取比较器() = _Right._取比较器(); // intentionally copy comparator, see LWG-2227
+                _复制<_策略::_Move>(_Right);
+                return *this;
+            }
+        }
+
+        清空();
+        _取比较器() = _Right._取比较器(); // intentionally copy comparator, see LWG-2227
+        _传播移动赋值(_Al, _Right_al);
+        _交换值不含比较器(_Right);
+
+        return *this;
+    }
+
+private:
+    void _交换值不含比较器(_树& _Right) { // swap contents (except comparator) with _Right, equal allocators
+        using _STD swap;
+        const auto _Scary       = _取检查值();
+        const auto _Right_scary = _Right._取检查值();
+        _Scary->_交换代理与迭代器(*_Right_scary);
+        swap(_Scary->_Myhead, _Right_scary->_Myhead); // intentional ADL
+        _STD swap(_Scary->_我的尺寸, _Right_scary->_我的尺寸);
+    }
+
+protected:
+    template <class... _Valtys>
+    pair<_结点指针, bool> _就地安置(_Valtys&&... _Vals) {
+        using _就地键提取器 = typename _特征::template _就地键提取器<_Valtys...>;
+        const auto _Scary             = _取检查值();
+        _树查找结果<_结点指针> _Loc;
+        _结点指针 _Inserted;
+        if constexpr (!_Multi && _就地键提取器::_Extractable) {
+            const auto& _Keyval = _就地键提取器::_摘取(_Vals...);
+            _Loc                = _查找下界(_Keyval);
+            if (_下界重复项(_Loc._Bound, _Keyval)) {
+                return {_Loc._Bound, false};
+            }
+
+            _检查增一();
+            _Inserted = _树临时节点<_结点分配器>(_取分配器(), _Scary->_Myhead, _STD forward<_Valtys>(_Vals)...)._释放();
+            // nothrow hereafter
+        } else {
+            _树临时节点<_结点分配器> _新节点(_取分配器(), _Scary->_Myhead, _STD forward<_Valtys>(_Vals)...);
+            const auto& _Keyval = _特征::_取键(_新节点._Ptr->_Myval);
+            if constexpr (_Multi) { // duplicate check if unique
+                _Loc = _查找上界(_Keyval);
+            } else {
+                _Loc = _查找下界(_Keyval);
+                if (_下界重复项(_Loc._Bound, _Keyval)) {
+                    return {_Loc._Bound, false};
+                }
+            }
+
+            _检查增一();
+            // nothrow hereafter
+            _Inserted = _新节点._释放();
+        }
+
+        return {_Scary->_插入节点(_Loc._Location, _Inserted), true};
+    }
+
+public:
+    template <class... _Valtys>
+    pair<迭代器, bool> 就地构造(_Valtys&&... _Vals) {
+        const auto _结果 = _就地安置(_STD forward<_Valtys>(_Vals)...);
+        return {迭代器(_结果.first, _取检查值()), _结果.second};
+    }
+
+protected:
+    template <class... _Valtys>
+    _结点指针 _按提示就地构造(const _结点指针 _Hint, _Valtys&&... _Vals) {
+        using _就地键提取器 = typename _特征::template _就地键提取器<_Valtys...>;
+        const auto _Scary             = _取检查值();
+        _树查找提示结果<_结点指针> _Loc;
+        _结点指针 _Inserted;
+        if constexpr (!_Multi && _就地键提取器::_Extractable) {
+            _Loc = _按提示查找(_Hint, _就地键提取器::_摘取(_Vals...));
+            if (_Loc._Duplicate) {
+                return _Loc._Location._Parent;
+            }
+
+            _检查增一();
+            _Inserted = _树临时节点<_结点分配器>(_取分配器(), _Scary->_Myhead, _STD forward<_Valtys>(_Vals)...)._释放();
+            // nothrow hereafter
+        } else {
+            _树临时节点<_结点分配器> _新节点(_取分配器(), _Scary->_Myhead, _STD forward<_Valtys>(_Vals)...);
+            _Loc = _按提示查找(_Hint, _特征::_取键(_新节点._Ptr->_Myval));
+            if constexpr (!_Multi) {
+                if (_Loc._Duplicate) {
+                    return _Loc._Location._Parent;
+                }
+            }
+
+            _检查增一();
+            // nothrow hereafter
+            _Inserted = _新节点._释放();
+        }
+
+        return _Scary->_插入节点(_Loc._Location, _Inserted);
+    }
+
+public:
+    template <class... _Valtys>
+    迭代器 按提示就地构造(常量迭代器 _Where, _Valtys&&... _Vals) { // 插入 value_type(_Val...) at _Where
+        const auto _Scary = _取检查值();
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(_Where._取容器() == _Scary, "map/set 插入 迭代器 outside range");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+        return 迭代器(_按提示就地构造(_Where._Ptr, _STD forward<_Valtys>(_Vals)...), _Scary);
+    }
+
+    ~_树() noexcept {
+        const auto _Scary = _取检查值();
+        _Scary->_擦除头(_取分配器());
+#if _ITERATOR_DEBUG_LEVEL != 0 // TRANSITION, ABI
+        auto&& _Alproxy = _取代理分配器(_结点分配器, _取分配器());
+        _删除原生内部(_Alproxy, _Scary->_Myproxy);
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+    }
+
+public:
+    _树& operator=(const _树& _Right) {
+        if (this == _STD addressof(_Right)) {
+            return *this;
+        }
+
+        auto& _Al       = _取分配器();
+        auto& _Right_al = _Right._取分配器();
+        if constexpr (_Choose_pocca_v<_结点分配器>) {
+            if (_Al != _Right_al) {
+                清空();
+                const auto _Scary = _取检查值();
+                _Scary->_孤儿化全部();
+                auto&& _Alproxy       = _取代理分配器(_结点分配器, _Al);
+                auto&& _Right_alproxy = _取代理分配器(_结点分配器, _Right_al);
+                _容器代理指针<_分配器类型> _代理(_Right_alproxy, _离开代理未绑定{});
+                auto _Right_al_non_const = _Right_al;
+                auto _Newhead            = _节点::_建头节点(_Right_al_non_const);
+                _节点::_Freenode0(_Al, _Scary->_Myhead);
+                _传播复制赋值(_Al, _Right_al);
+                _Scary->_Myhead = _Newhead;
+                _代理._绑定(_Alproxy, _Scary);
+                _取比较器() = _Right._取比较器();
+                _复制<_策略::_复制>(_Right);
+                return *this;
+            }
+        }
+
+        清空();
+        _取比较器() = _Right._取比较器();
+        _传播复制赋值(_Al, _Right_al);
+        _复制<_策略::_复制>(_Right);
+
+        return *this;
+    }
+
+    _NODISCARD 迭代器 begin() noexcept {
+        const auto _Scary = _取检查值();
+        return 迭代器(_Scary->_Myhead->_Left, _Scary);
+    }
+
+    _NODISCARD 常量迭代器 begin() const noexcept {
+        const auto _Scary = _取检查值();
+        return 常量迭代器(_Scary->_Myhead->_Left, _Scary);
+    }
+
+    _NODISCARD 迭代器 end() noexcept {
+        const auto _Scary = _取检查值();
+        return 迭代器(_Scary->_Myhead, _Scary);
+    }
+
+    _NODISCARD 常量迭代器 end() const noexcept {
+        const auto _Scary = _取检查值();
+        return 常量迭代器(_Scary->_Myhead, _Scary);
+    }
+
+    _非检查迭代器 _非检查开始() noexcept {
+        return _非检查迭代器(_取检查值()->_Myhead->_Left, nullptr);
+    }
+
+    _非检查常量迭代器 _非检查开始() const noexcept {
+        return _非检查常量迭代器(_取检查值()->_Myhead->_Left, nullptr);
+    }
+
+    _Default_sentinel _非检查结束() const noexcept {
+        return {};
+    }
+
+    _非检查常量迭代器 _非检查结束迭代器() const noexcept {
+        return _非检查常量迭代器(_取检查值()->_Myhead, nullptr);
+    }
+
+    _NODISCARD reverse_iterator 反向开始() noexcept {
+        return reverse_iterator(end());
+    }
+
+    _NODISCARD const_reverse_iterator 反向开始() const noexcept {
+        return const_reverse_iterator(end());
+    }
+
+    _NODISCARD reverse_iterator 反向结束() noexcept {
+        return reverse_iterator(begin());
+    }
+
+    _NODISCARD const_reverse_iterator 反向结束() const noexcept {
+        return const_reverse_iterator(begin());
+    }
+
+    _NODISCARD 常量迭代器 cbegin() const noexcept {
+        return begin();
+    }
+
+    _NODISCARD 常量迭代器 cend() const noexcept {
+        return end();
+    }
+
+    _NODISCARD const_reverse_iterator 常量反向开始() const noexcept {
+        return 反向开始();
+    }
+
+    _NODISCARD const_reverse_iterator 常量反向结束() const noexcept {
+        return 反向结束();
+    }
+
+    _NODISCARD size_type size() const noexcept {
+        return _取检查值()->_我的尺寸;
+    }
+
+    _NODISCARD size_type max_size() const noexcept {
+        return (_STD min)(
+            static_cast<size_type>(_STD _Max_limit<difference_type>()), _结点分配器特征::max_size(_取分配器()));
+    }
+
+    _NODISCARD_EMPTY_MEMBER bool empty() const noexcept {
+        return _取检查值()->_我的尺寸 == 0;
+    }
+
+    _NODISCARD 分配器类型 取分配器() const noexcept {
+        return static_cast<分配器类型>(_取分配器());
+    }
+
+    _NODISCARD 键比较器 键比较函数() const {
+        return _取比较器();
+    }
+
+    _NODISCARD 值比较 值比较函数() const {
+        return 值比较(键比较函数());
+    }
+
+    template <bool _Multi2 = _Multi, enable_if_t<!_Multi2, int> = 0>
+    pair<迭代器, bool> 插入(const value_type& _Val) {
+        const auto _结果 = _就地安置(_Val);
+        return {迭代器(_结果.first, _取检查值()), _结果.second};
+    }
+
+    template <bool _Multi2 = _Multi, enable_if_t<_Multi2, int> = 0>
+    迭代器 插入(const value_type& _Val) {
+        return 迭代器(_就地安置(_Val).first, _取检查值());
+    }
+
+    template <bool _Multi2 = _Multi, enable_if_t<!_Multi2, int> = 0>
+    pair<迭代器, bool> 插入(value_type&& _Val) {
+        const auto _结果 = _就地安置(_STD move(_Val));
+        return {迭代器(_结果.first, _取检查值()), _结果.second};
+    }
+
+    template <bool _Multi2 = _Multi, enable_if_t<_Multi2, int> = 0>
+    迭代器 插入(value_type&& _Val) {
+        return 迭代器(_就地安置(_STD move(_Val)).first, _取检查值());
+    }
+
+    迭代器 插入(常量迭代器 _Where, const value_type& _Val) {
+        const auto _Scary = _取检查值();
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(_Where._取容器() == _Scary, "map/set 插入 迭代器 outside range");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+        return 迭代器(_按提示就地构造(_Where._Ptr, _Val), _Scary);
+    }
+
+    迭代器 插入(常量迭代器 _Where, value_type&& _Val) {
+        const auto _Scary = _取检查值();
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(_Where._取容器() == _Scary, "map/set 插入 迭代器 outside range");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+        return 迭代器(_按提示就地构造(_Where._Ptr, _STD move(_Val)), _Scary);
+    }
+
+protected:
+    template <class _Iter, class _Sent>
+    void _插入范围非检查(_Iter _首个, const _Sent _最后) {
+        const auto _Myhead = _取检查值()->_Myhead;
+        for (; _首个 != _最后; ++_首个) {
+            _按提示就地构造(_Myhead, *_首个);
+        }
+    }
+
+public:
+    template <class _Iter>
+    void 插入(_Iter _首个, _Iter _最后) {
+        _ADL校验范围(_首个, _最后);
+        _插入范围非检查(_取解包(_首个), _取解包(_最后));
+    }
+
+#if _HAS_CXX23
+    template <_Container_compatible_range<value_type> _Rng>
+    void 范围插入(_Rng&& _Range) {
+        _插入范围非检查(_解包首(_Range), _解包尾(_Range));
+    }
+#endif // _HAS_CXX23
+
+    void 插入(initializer_list<value_type> _Ilist) {
+        _插入范围非检查(_Ilist.begin(), _Ilist.end());
+    }
+
+private:
+    _结点指针 _擦除非检查(_非检查常量迭代器 _Where) noexcept {
+        const auto _Scary                    = _取检查值();
+        _非检查常量迭代器 _Successor = _Where;
+        ++_Successor; // save successor 迭代器 for return
+        _结点指针 _Erasednode = _Scary->_摘取(_Where); // node to 擦除
+        _Scary->_孤立指针(_Erasednode);
+        _节点::_释放节点(_取分配器(), _Erasednode); // delete erased node
+        return _Successor._Ptr; // return successor nodeptr
+    }
+
+    _结点指针 _擦除非检查(_非检查常量迭代器 _首个, _非检查常量迭代器 _最后) noexcept {
+        const auto _Begin = _非检查开始();
+        if (_首个 == _Begin && _最后._Ptr->_Isnil) {
+            // 擦除 all
+            清空();
+            return _最后._Ptr;
+        }
+
+        // partial 擦除, one at a time
+        while (_首个 != _最后) {
+            _擦除非检查(_首个++);
+        }
+
+        return _最后._Ptr;
+    }
+
+    size_type _擦除(const pair<_结点指针, _结点指针> _Where) noexcept {
+        const _非检查常量迭代器 _首个(_Where.first, nullptr);
+        const _非检查常量迭代器 _最后(_Where.second, nullptr);
+        const auto _Num = static_cast<size_type>(_STD distance(_首个, _最后));
+        _擦除非检查(_首个, _最后);
+        return _Num;
+    }
+
+public:
+    template <class _Iter = 迭代器, enable_if_t<!is_same_v<_Iter, 常量迭代器>, int> = 0>
+    迭代器 擦除(迭代器 _Where) noexcept /* strengthened */ {
+        const auto _Scary = _取检查值();
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(_Where._取容器() == _Scary, "map/set 擦除 迭代器 from incorrect container");
+        _STL_VERIFY(!_Where._Ptr->_Isnil, "cannot 擦除 map/set end() 迭代器");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+        return 迭代器(_擦除非检查(_Where._解包()), _Scary);
+    }
+
+    迭代器 擦除(常量迭代器 _Where) noexcept /* strengthened */ {
+        const auto _Scary = _取检查值();
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(_Where._取容器() == _Scary, "map/set 擦除 迭代器 from incorrect container");
+        _STL_VERIFY(!_Where._Ptr->_Isnil, "cannot 擦除 map/set end() 迭代器");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+        return 迭代器(_擦除非检查(_Where._解包()), _Scary);
+    }
+
+    迭代器 擦除(常量迭代器 _首个, 常量迭代器 _最后) noexcept /* strengthened */ {
+        return 迭代器(_擦除非检查(_首个._解包(), _最后._解包()), _取检查值());
+    }
+
+    size_type 擦除(const 键类型& _Keyval) noexcept(noexcept(_等值区间(_Keyval))) /* strengthened */ {
+        return _擦除(_等值区间(_Keyval));
+    }
+
+#if _HAS_CXX23
+    template <class _Kx>
+        requires _Is_transparent_v<键比较器> && (!is_convertible_v<_Kx, 常量迭代器>)
+              && (!is_convertible_v<_Kx, 迭代器>)
+    size_type 擦除(_Kx&& _Keyval) noexcept(noexcept(_等值区间(_Keyval))) /* strengthened */ {
+        return _擦除(_等值区间(_Keyval));
+    }
+#endif // _HAS_CXX23
+
+    void 清空() noexcept {
+        const auto _Scary = _取检查值();
+        _Scary->_孤立指针(nullptr);
+        auto _Head = _Scary->_Myhead;
+        _Scary->_擦除树(_取分配器(), _Head->_Parent);
+        _Head->_Parent  = _Head;
+        _Head->_Left    = _Head;
+        _Head->_Right   = _Head;
+        _Scary->_我的尺寸 = 0;
+    }
+
+private:
+    template <class _Other>
+    _NODISCARD _结点指针 _查找(const _Other& _Keyval) const {
+        const _树查找结果<_结点指针> _Loc = _查找下界(_Keyval);
+        if (_下界重复项(_Loc._Bound, _Keyval)) {
+            return _Loc._Bound;
+        }
+
+        return _取检查值()->_Myhead;
+    }
+
+public:
+    _NODISCARD 迭代器 find(const 键类型& _Keyval) {
+        return 迭代器(_查找(_Keyval), _取检查值());
+    }
+
+    _NODISCARD 常量迭代器 find(const 键类型& _Keyval) const {
+        return 常量迭代器(_查找(_Keyval), _取检查值());
+    }
+
+    template <class _Other, class _Mycomp = 键比较器, enable_if_t<_Is_transparent_v<_Mycomp>, int> = 0>
+    _NODISCARD 迭代器 find(const _Other& _Keyval) {
+        return 迭代器(_查找(_Keyval), _取检查值());
+    }
+
+    template <class _Other, class _Mycomp = 键比较器, enable_if_t<_Is_transparent_v<_Mycomp>, int> = 0>
+    _NODISCARD 常量迭代器 find(const _Other& _Keyval) const {
+        return 常量迭代器(_查找(_Keyval), _取检查值());
+    }
+
+#if _HAS_CXX20
+    _NODISCARD bool contains(const 键类型& _Keyval) const {
+        return _下界重复项(_查找下界(_Keyval)._Bound, _Keyval);
+    }
+
+    template <class _Other>
+        requires _Is_transparent_v<键比较器>
+    _NODISCARD bool contains(const _Other& _Keyval) const {
+        return _下界重复项(_查找下界(_Keyval)._Bound, _Keyval);
+    }
+#endif // _HAS_CXX20
+
+    _NODISCARD size_type 计数(const 键类型& _Keyval) const {
+        if constexpr (_Multi) {
+            const auto _Ans = _等值区间(_Keyval);
+            return static_cast<size_type>(_STD distance(
+                _非检查常量迭代器(_Ans.first, nullptr), _非检查常量迭代器(_Ans.second, nullptr)));
+        } else {
+            return _下界重复项(_查找下界(_Keyval)._Bound, _Keyval);
+        }
+    }
+
+    template <class _Other, class _Mycomp = 键比较器, enable_if_t<_Is_transparent_v<_Mycomp>, int> = 0>
+    _NODISCARD size_type 计数(const _Other& _Keyval) const {
+        const auto _Ans = _等值区间(_Keyval);
+        return static_cast<size_type>(_STD distance(
+            _非检查常量迭代器(_Ans.first, nullptr), _非检查常量迭代器(_Ans.second, nullptr)));
+    }
+
+    _NODISCARD 迭代器 lower_bound(const 键类型& _Keyval) {
+        return 迭代器(_查找下界(_Keyval)._Bound, _取检查值());
+    }
+
+    _NODISCARD 常量迭代器 lower_bound(const 键类型& _Keyval) const {
+        return 常量迭代器(_查找下界(_Keyval)._Bound, _取检查值());
+    }
+
+    template <class _Other, class _Mycomp = 键比较器, enable_if_t<_Is_transparent_v<_Mycomp>, int> = 0>
+    _NODISCARD 迭代器 lower_bound(const _Other& _Keyval) {
+        return 迭代器(_查找下界(_Keyval)._Bound, _取检查值());
+    }
+
+    template <class _Other, class _Mycomp = 键比较器, enable_if_t<_Is_transparent_v<_Mycomp>, int> = 0>
+    _NODISCARD 常量迭代器 lower_bound(const _Other& _Keyval) const {
+        return 常量迭代器(_查找下界(_Keyval)._Bound, _取检查值());
+    }
+
+    _NODISCARD 迭代器 upper_bound(const 键类型& _Keyval) {
+        return 迭代器(_查找上界(_Keyval)._Bound, _取检查值());
+    }
+
+    _NODISCARD 常量迭代器 upper_bound(const 键类型& _Keyval) const {
+        return 常量迭代器(_查找上界(_Keyval)._Bound, _取检查值());
+    }
+
+    template <class _Other, class _Mycomp = 键比较器, enable_if_t<_Is_transparent_v<_Mycomp>, int> = 0>
+    _NODISCARD 迭代器 upper_bound(const _Other& _Keyval) {
+        return 迭代器(_查找上界(_Keyval)._Bound, _取检查值());
+    }
+
+    template <class _Other, class _Mycomp = 键比较器, enable_if_t<_Is_transparent_v<_Mycomp>, int> = 0>
+    _NODISCARD 常量迭代器 upper_bound(const _Other& _Keyval) const {
+        return 常量迭代器(_查找上界(_Keyval)._Bound, _取检查值());
+    }
+
+    _NODISCARD pair<迭代器, 迭代器> 相等区间(const 键类型& _Keyval) {
+        const auto _结果 = _等值区间(_Keyval);
+        const auto _Scary  = _取检查值();
+        return {迭代器(_结果.first, _Scary), 迭代器(_结果.second, _Scary)};
+    }
+
+    _NODISCARD pair<常量迭代器, 常量迭代器> 相等区间(const 键类型& _Keyval) const {
+        const auto _结果 = _等值区间(_Keyval);
+        const auto _Scary  = _取检查值();
+        return {常量迭代器(_结果.first, _Scary), 常量迭代器(_结果.second, _Scary)};
+    }
+
+    template <class _Other, class _Mycomp = 键比较器, enable_if_t<_Is_transparent_v<_Mycomp>, int> = 0>
+    _NODISCARD pair<迭代器, 迭代器> 相等区间(const _Other& _Keyval) {
+        const auto _结果 = _等值区间(_Keyval);
+        const auto _Scary  = _取检查值();
+        return {迭代器(_结果.first, _Scary), 迭代器(_结果.second, _Scary)};
+    }
+
+    template <class _Other, class _Mycomp = 键比较器, enable_if_t<_Is_transparent_v<_Mycomp>, int> = 0>
+    _NODISCARD pair<常量迭代器, 常量迭代器> 相等区间(const _Other& _Keyval) const {
+        const auto _结果 = _等值区间(_Keyval);
+        const auto _Scary  = _取检查值();
+        return {常量迭代器(_结果.first, _Scary), 常量迭代器(_结果.second, _Scary)};
+    }
+
+    void swap(_树& _Right) noexcept(_Is_nothrow_swappable<键比较器>::value) /* strengthened */ {
+        using _STD swap;
+        if (this != _STD addressof(_Right)) {
+            _Pocs(_取分配器(), _Right._取分配器());
+            _交换值不含比较器(_Right);
+            swap(_取比较器(), _Right._取比较器()); // intentional ADL
+        }
+    }
+
+protected:
+    template <class _Keyty>
+    _树查找提示结果<_结点指针> _按提示查找(const _结点指针 _Hint, const _Keyty& _Keyval) const {
+        const auto& _比较器 = _取比较器();
+        const auto _Head  = _取检查值()->_Myhead;
+        if constexpr (_Multi) { // 插入 even if duplicate
+            if (_Hint->_Isnil) {
+                // 插入 at end if greater than or equal to last element
+                if (_Head->_Parent->_Isnil || !_DEBUG_LT_PRED(_比较器, _Keyval, _特征::_取键(_Head->_Right->_Myval))) {
+                    return {{_Head->_Right, _树子向::_Right}, false};
+                }
+
+                // _Hint is end(); it must be closer to the end of equivalents
+                return {_查找上界(_Keyval)._Location, false};
+            }
+
+            if (_Hint == _Head->_Left) {
+                // 插入 at beginning if less than or equal to first element
+                if (!_DEBUG_LT_PRED(_比较器, _特征::_取键(_Hint->_Myval), _Keyval)) {
+                    return {{_Hint, _树子向::_Left}, false};
+                }
+
+                // _Hint is begin(); it must be closer to the beginning of equivalents
+                return {_查找下界(_Keyval)._Location, false};
+            }
+
+            if (!_DEBUG_LT_PRED(_比较器, _特征::_取键(_Hint->_Myval), _Keyval)) {
+                // _Val <= *_Hint
+                const auto _Prev = (--(_非检查常量迭代器(_Hint, nullptr)))._Ptr;
+                if (!_DEBUG_LT_PRED(_比较器, _Keyval, _特征::_取键(_Prev->_Myval))) {
+                    // _Val <= *_Hint and _Val >= *prev(_Hint); 插入 here
+                    if (_Prev->_Right->_Isnil) {
+                        return {{_Prev, _树子向::_Right}, false};
+                    } else {
+                        return {{_Hint, _树子向::_Left}, false};
+                    }
+                }
+
+                // _Val goes before *_Hint; _Hint must be closer to the end of equivalents
+                return {_查找上界(_Keyval)._Location, false};
+            }
+
+            // _Val goes after *_Hint; _Hint must be closer to the beginning of equivalents
+            return {_查找下界(_Keyval)._Location, false};
+        } else { // 插入 only if unique
+            if (_Hint->_Isnil) { // 插入 at end if after last element
+                // 插入 at end if greater than last element
+                if (_Head->_Parent->_Isnil || _DEBUG_LT_PRED(_比较器, _特征::_取键(_Head->_Right->_Myval), _Keyval)) {
+                    return {{_Head->_Right, _树子向::_Right}, false};
+                }
+            } else if (_Hint == _Head->_Left) {
+                // 插入 at beginning if less than first element
+                if (_DEBUG_LT_PRED(_比较器, _Keyval, _特征::_取键(_Hint->_Myval))) {
+                    return {{_Hint, _树子向::_Left}, false};
+                }
+            } else if (_DEBUG_LT_PRED(_比较器, _Keyval, _特征::_取键(_Hint->_Myval))) {
+                // _Val < *_Hint
+                const auto _Prev = (--(_非检查常量迭代器(_Hint, nullptr)))._Ptr;
+                if (_DEBUG_LT_PRED(_比较器, _特征::_取键(_Prev->_Myval), _Keyval)) {
+                    // _Val < *_Hint and _Val > *prev(_Hint); 插入 here
+                    if (_Prev->_Right->_Isnil) {
+                        return {{_Prev, _树子向::_Right}, false};
+                    } else {
+                        return {{_Hint, _树子向::_Left}, false};
+                    }
+                }
+            } else if (_DEBUG_LT_PRED(_比较器, _特征::_取键(_Hint->_Myval), _Keyval)) {
+                // _Val > *_Hint
+                const auto _Next = (++(_非检查常量迭代器(_Hint, nullptr)))._Ptr;
+                if (_Next->_Isnil || _DEBUG_LT_PRED(_比较器, _Keyval, _特征::_取键(_Next->_Myval))) {
+                    // _Val > *_Hint and _Val < *next(_Hint); 插入 here
+                    if (_Hint->_Right->_Isnil) {
+                        return {{_Hint, _树子向::_Right}, false};
+                    }
+
+                    return {{_Next, _树子向::_Left}, false};
+                }
+            } else {
+                // _Val is equivalent to *_Hint; don't 插入
+                return {{_Hint, _树子向::_Right}, true};
+            }
+
+            const auto _Loc = _查找下界(_Keyval);
+            if (_下界重复项(_Loc._Bound, _Keyval)) {
+                return {{_Loc._Bound, _树子向::_Unused}, true};
+            }
+
+            return {_Loc._Location, false};
+        }
+    }
+
+    template <class _Keyty>
+    _树查找结果<_结点指针> _查找上界(const _Keyty& _Keyval) const {
+        const auto _Scary = _取检查值();
+        _树查找结果<_结点指针> _结果{{_Scary->_Myhead->_Parent, _树子向::_Right}, _Scary->_Myhead};
+        _结点指针 _Trynode = _结果._Location._Parent;
+        while (!_Trynode->_Isnil) {
+            _结果._Location._Parent = _Trynode;
+            if (_DEBUG_LT_PRED(_取比较器(), _Keyval, _特征::_取键(_Trynode->_Myval))) {
+                _结果._Location._Child = _树子向::_Left;
+                _结果._Bound           = _Trynode;
+                _Trynode                 = _Trynode->_Left;
+            } else {
+                _结果._Location._Child = _树子向::_Right;
+                _Trynode                 = _Trynode->_Right;
+            }
+        }
+
+        return _结果;
+    }
+
+    template <class _Keyty>
+    bool _下界重复项(const _结点指针 _Bound, const _Keyty& _Keyval) const {
+        return !_Bound->_Isnil && !_DEBUG_LT_PRED(_取比较器(), _Keyval, _特征::_取键(_Bound->_Myval));
+    }
+
+    template <class _Keyty>
+    _树查找结果<_结点指针> _查找下界(const _Keyty& _Keyval) const {
+        const auto _Scary = _取检查值();
+        _树查找结果<_结点指针> _结果{{_Scary->_Myhead->_Parent, _树子向::_Right}, _Scary->_Myhead};
+        _结点指针 _Trynode = _结果._Location._Parent;
+        while (!_Trynode->_Isnil) {
+            _结果._Location._Parent = _Trynode;
+            if (_DEBUG_LT_PRED(_取比较器(), _特征::_取键(_Trynode->_Myval), _Keyval)) {
+                _结果._Location._Child = _树子向::_Right;
+                _Trynode                 = _Trynode->_Right;
+            } else {
+                _结果._Location._Child = _树子向::_Left;
+                _结果._Bound           = _Trynode;
+                _Trynode                 = _Trynode->_Left;
+            }
+        }
+
+        return _结果;
+    }
+
+    void _检查增一() {
+        if (max_size() == _取检查值()->_我的尺寸) {
+            _抛树长度错误();
+        }
+    }
+
+    template <_策略 _Strat>
+    void _复制(const _树& _Right) { // copy or move entire tree from _Right
+        const auto _Scary        = _取检查值();
+        const auto _Right_scary  = _Right._取检查值();
+        _Scary->_Myhead->_Parent = _复制节点<_Strat>(_Right_scary->_Myhead->_Parent, _Scary->_Myhead);
+        _Scary->_我的尺寸          = _Right_scary->_我的尺寸;
+        if (!_Scary->_Myhead->_Parent->_Isnil) { // nonempty tree, look for new smallest and largest
+            _Scary->_Myhead->_Left  = _迭代器检查值::_最小(_Scary->_Myhead->_Parent);
+            _Scary->_Myhead->_Right = _迭代器检查值::_最大(_Scary->_Myhead->_Parent);
+        } else { // empty tree, just tidy head pointers
+            _Scary->_Myhead->_Left  = _Scary->_Myhead;
+            _Scary->_Myhead->_Right = _Scary->_Myhead;
+        }
+    }
+
+    template <_策略 _Strat, class _类型>
+    _结点指针 _复制或移动(_类型& _Val) {
+        if constexpr (_Strat == _策略::_复制) {
+            return _建节点(_Val);
+        } else {
+            if constexpr (_Is_set) {
+                return _建节点(_STD move(_Val));
+            } else {
+                return _建节点(_STD move(const_cast<键类型&>(_Val.first)), _STD move(_Val.second));
+            }
+        }
+    }
+
+    template <_策略 _Strat>
+    _结点指针 _复制节点(_结点指针 _Rootnode, _结点指针 _Wherenode) {
+        // copy entire subtree, recursively
+        const auto _Scary = _取检查值();
+        _结点指针 _Newroot = _Scary->_Myhead; // point at nil node
+
+        if (!_Rootnode->_Isnil) { // copy or move a node, then any subtrees
+            _Newroot          = _复制或移动<_Strat>(_Rootnode->_Myval); // memorize new root
+            _Newroot->_Parent = _Wherenode;
+            _Newroot->_Color  = _Rootnode->_Color;
+
+            typename _迭代器检查值::template _擦树并孤立守卫<_结点分配器> _Guard{_Scary, _取分配器(), _Newroot};
+
+            _Newroot->_Left  = _复制节点<_Strat>(_Rootnode->_Left, _Newroot);
+            _Newroot->_Right = _复制节点<_Strat>(_Rootnode->_Right, _Newroot);
+
+            _Guard._Val_ptr = nullptr;
+        }
+
+        return _Newroot; // return newly constructed tree
+    }
+
+    template <class _Other>
+    pair<_结点指针, _结点指针> _等值区间(const _Other& _Keyval) const
+        noexcept(_Nothrow_compare<键比较器, 键类型, _Other> && _Nothrow_compare<键比较器, _Other, 键类型>) {
+        // find range of nodes equivalent to _Keyval
+        const auto _Scary = _取检查值();
+        const auto& _比较器 = _取比较器();
+        _结点指针 _Pnode   = _Scary->_Myhead->_Parent;
+        _结点指针 _Lonode  = _Scary->_Myhead; // end() if search fails
+        _结点指针 _Hinode  = _Scary->_Myhead; // end() if search fails
+
+        while (!_Pnode->_Isnil) {
+            const auto& _Nodekey = _特征::_取键(_Pnode->_Myval);
+            if (_DEBUG_LT_PRED(_比较器, _Nodekey, _Keyval)) {
+                _Pnode = _Pnode->_Right; // descend right subtree
+            } else { // _Pnode not less than _Keyval, remember it
+                if (_Hinode->_Isnil && _DEBUG_LT_PRED(_比较器, _Keyval, _Nodekey)) {
+                    _Hinode = _Pnode; // _Pnode greater, remember it
+                }
+
+                _Lonode = _Pnode;
+                _Pnode  = _Pnode->_Left; // descend left subtree
+            }
+        }
+
+        _Pnode = _Hinode->_Isnil ? _Scary->_Myhead->_Parent : _Hinode->_Left; // continue scan for upper bound
+        while (!_Pnode->_Isnil) {
+            if (_DEBUG_LT_PRED(_取比较器(), _Keyval, _特征::_取键(_Pnode->_Myval))) {
+                // _Pnode greater than _Keyval, remember it
+                _Hinode = _Pnode;
+                _Pnode  = _Pnode->_Left; // descend left subtree
+            } else {
+                _Pnode = _Pnode->_Right; // descend right subtree
+            }
+        }
+
+        return {_Lonode, _Hinode};
+    }
+
+#if _HAS_CXX17
+public:
+    using 结点类型 = typename _特征::结点类型;
+
+    结点类型 提取(const 常量迭代器 _Where) {
+        const auto _Scary = _取检查值();
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(_Where._取容器() == _Scary && !_Where._Ptr->_Isnil, "map/set 擦除 迭代器 outside range");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+        const auto _Ptr = _Scary->_摘取(_Where._解包());
+        _Scary->_孤立指针(_Ptr);
+        return 结点类型::_Make(_Ptr, _取分配器());
+    }
+
+    结点类型 提取(const 键类型& _Keyval) {
+        const 常量迭代器 _Where = find(_Keyval);
+        if (_Where == end()) {
+            return 结点类型{};
+        }
+
+        return 提取(_Where);
+    }
+
+#if _HAS_CXX23
+    template <class _Kx>
+        requires _Is_transparent_v<键比较器> && (!is_convertible_v<_Kx, 常量迭代器>)
+              && (!is_convertible_v<_Kx, 迭代器>)
+    结点类型 提取(_Kx&& _Keyval) {
+        const 常量迭代器 _Where = find(_Keyval);
+        if (_Where == end()) {
+            return 结点类型{};
+        }
+
+        return 提取(_Where);
+    }
+#endif // _HAS_CXX23
+
+    auto 插入(结点类型&& _Handle) {
+        if (_Handle.empty()) {
+            if constexpr (_Multi) {
+                return end();
+            } else {
+                return _Insert_return_type<迭代器, 结点类型>{end(), false, {}};
+            }
+        }
+
+        _检查节点分配器(_Handle);
+        const auto _Scary        = _取检查值();
+        const auto _Attempt_node = _Handle._取指针();
+        const auto& _Keyval      = _特征::_取键(_Attempt_node->_Myval);
+        _树查找结果<_结点指针> _Loc;
+        if constexpr (_Multi) {
+            _Loc = _查找上界(_Keyval);
+        } else {
+            _Loc = _查找下界(_Keyval);
+            if (_下界重复项(_Loc._Bound, _Keyval)) {
+                return _Insert_return_type<迭代器, 结点类型>{
+                    迭代器(_Loc._Bound, _Scary), false, _STD move(_Handle)};
+            }
+        }
+
+        _检查增一();
+
+        // nothrow hereafter
+
+        _Attempt_node->_Left = _Scary->_Myhead;
+        // _Attempt_node->_Parent handled in _插入节点
+        _Attempt_node->_Right = _Scary->_Myhead;
+        _Attempt_node->_Color = _红;
+
+        const auto _Inserted = _Scary->_插入节点(_Loc._Location, _Handle._释放());
+        if constexpr (_Multi) {
+            return 迭代器(_Inserted, _Scary);
+        } else {
+            return _Insert_return_type<迭代器, 结点类型>{迭代器(_Inserted, _Scary), true, _STD move(_Handle)};
+        }
+    }
+
+    迭代器 插入(const 常量迭代器 _Hint, 结点类型&& _Handle) {
+        const auto _Scary = _取检查值();
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(_Hint._取容器() == _Scary, "map/set 插入 迭代器 outside range");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+        if (_Handle.empty()) {
+            return end();
+        }
+
+        _检查节点分配器(_Handle);
+        const auto _Attempt_node = _Handle._取指针();
+        const auto& _Keyval      = _特征::_取键(_Attempt_node->_Myval);
+        const auto _Loc          = _按提示查找(_Hint._Ptr, _Keyval);
+        if (_Loc._Duplicate) {
+            return 迭代器(_Loc._Location._Parent, _Scary);
+        }
+
+        _检查增一();
+
+        _Attempt_node->_Left = _Scary->_Myhead;
+        // _Attempt_node->_Parent handled in _插入节点
+        _Attempt_node->_Right = _Scary->_Myhead;
+        _Attempt_node->_Color = _红;
+
+        return 迭代器(_Scary->_插入节点(_Loc._Location, _Handle._释放()), _Scary);
+    }
+
+    template <class>
+    friend class _树;
+
+    template <class _Other_traits>
+    void 归并(_树<_Other_traits>& _That) {
+        static_assert(is_same_v<_结点指针, typename _树<_Other_traits>::_结点指针>,
+            "归并() requires an argument with a compatible node type.");
+
+        static_assert(is_same_v<分配器类型, typename _树<_Other_traits>::分配器类型>,
+            "归并() requires an argument with the same allocator type.");
+
+        if constexpr (is_same_v<_树, _树<_Other_traits>>) {
+            if (this == _STD addressof(_That)) {
+                return;
+            }
+        }
+
+#if _ITERATOR_DEBUG_LEVEL == 2
+        if constexpr (!_结点分配器特征::is_always_equal::value) {
+            _STL_VERIFY(_取分配器() == _That._取分配器(), "allocator incompatible for 归并");
+        }
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+        const auto _Scary      = _取检查值();
+        const auto _Head       = _Scary->_Myhead;
+        const auto _That_scary = _That._取检查值();
+        auto _首个            = _That._非检查开始();
+        while (!_首个._Ptr->_Isnil) {
+            const auto _Attempt_node = _首个._Ptr;
+            ++_首个;
+            _树查找结果<_结点指针> _Loc;
+            const auto& _Keyval = _特征::_取键(_Attempt_node->_Myval);
+            if constexpr (_Multi) {
+                _Loc = _查找上界(_Keyval);
+            } else {
+                _Loc = _查找下界(_Keyval);
+                if (_下界重复项(_Loc._Bound, _Keyval)) {
+                    continue;
+                }
+            }
+
+            _检查增一();
+
+            // nothrow hereafter for this iteration
+            const auto _Extracted = _That_scary->_摘取(_非检查常量迭代器(_Attempt_node, nullptr));
+            _Extracted->_Left     = _Head;
+            // _Extracted->_Parent handled in _插入节点
+            _Extracted->_Right = _Head;
+            _Extracted->_Color = _红;
+
+            const auto _Inserted = _Scary->_插入节点(_Loc._Location, _Extracted);
+            _重挂父指针(_Inserted, _That);
+        }
+    }
+
+    template <class _Other_traits>
+    void 归并(_树<_Other_traits>&& _That) {
+        static_assert(is_same_v<_结点指针, typename _树<_Other_traits>::_结点指针>,
+            "归并() requires an argument with a compatible node type.");
+
+        static_assert(is_same_v<分配器类型, typename _树<_Other_traits>::分配器类型>,
+            "归并() requires an argument with the same allocator type.");
+
+        归并(_That);
+    }
+
+protected:
+    template <class _Other_traits>
+    void _重挂父指针(const _结点指针 _Ptr, _树<_Other_traits>& _Old_parent) {
+        (void) _Ptr;
+        (void) _Old_parent;
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _Lockit _加锁(_LOCK_DEBUG);
+        const auto _Old_parent_scary = _Old_parent._取检查值();
+        _迭代器基类12** _Pnext    = &_Old_parent_scary->_Myproxy->_Myfirstiter;
+        _STL_VERIFY(_Pnext, "source container corrupted");
+        if (_Ptr == nullptr || _Ptr == _Old_parent_scary->_Myhead) {
+            return;
+        }
+
+        const auto _My_saved_proxy               = _取检查值()->_Myproxy;
+        _迭代器基类12** const _My_saved_first = &_My_saved_proxy->_Myfirstiter;
+
+        while (*_Pnext) {
+            _迭代器基类12** const _Next = &(*_Pnext)->_Mynextiter;
+            const auto _Iter               = static_cast<常量迭代器*>(*_Pnext);
+            if (_Iter->_Ptr == _Ptr) { // reparent the 迭代器
+                *_Pnext            = *_Next;
+                _Iter->_Myproxy    = _My_saved_proxy;
+                _Iter->_Mynextiter = *_My_saved_first;
+                *_My_saved_first   = _Iter;
+            } else { // skip the 迭代器
+                _Pnext = _Next;
+            }
+        }
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+    }
+
+    void _检查节点分配器(结点类型& _Handle) const {
+        (void) _Handle;
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(取分配器() == _Handle._取分配器(), "node handle allocator incompatible for 插入");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+    }
+#endif // _HAS_CXX17
+
+    void _分配哨兵与代理() {
+        const auto _Scary = _取检查值();
+        auto&& _Alproxy   = _取代理分配器(_结点分配器, _取分配器());
+        _容器代理指针<_结点分配器> _代理(_Alproxy, *_Scary);
+        _Scary->_Myhead = _节点::_建头节点(_取分配器());
+        _代理._释放();
+    }
+
+    template <class... _值参数类型>
+    _结点指针 _建节点(_值参数类型&&... _Val) {
+        return _节点::_建节点(_取分配器(), _取检查值()->_Myhead, _STD forward<_值参数类型>(_Val)...);
+    }
+
+    键比较器& _取比较器() noexcept {
+        return _Mypair._取第一();
+    }
+
+    const 键比较器& _取比较器() const noexcept {
+        return _Mypair._取第一();
+    }
+
+    _结点分配器& _取分配器() noexcept {
+        return _Mypair._Myval2._取第一();
+    }
+
+    const _结点分配器& _取分配器() const noexcept {
+        return _Mypair._Myval2._取第一();
+    }
+
+    _迭代器检查值* _取检查值() noexcept {
+        return _STD addressof(_Mypair._Myval2._Myval2);
+    }
+
+    const _迭代器检查值* _取检查值() const noexcept {
+        return _STD addressof(_Mypair._Myval2._Myval2);
+    }
+
+private:
+    _压缩对<键比较器, _压缩对<_结点分配器, _迭代器检查值>> _Mypair;
+};
+} }
+
+#pragma pop_macro("new")
+_STL_RESTORE_CLANG_WARNINGS
+#pragma warning(pop)
+#pragma pack(pop)
+#endif // _STL_COMPILER_PREPROCESSOR
+
+
+#endif // _XTREE_

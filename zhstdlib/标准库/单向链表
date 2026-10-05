@@ -1,0 +1,1730 @@
+#include <forward_list>
+// 单向链表实现 standard header
+
+// Copyright (c) Microsoft Corporation.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#ifndef _ZH_FORWARD_LIST_
+#define _ZH_FORWARD_LIST_
+#include <yvals_core.h>
+#if _STL_COMPILER_PREPROCESSOR
+#include <内存内部件>
+
+#if _HAS_CXX17
+#include <xpolymorphic_allocator.h>
+#endif // _HAS_CXX17
+
+#pragma pack(push, _CRT_PACKING)
+#pragma warning(push, _STL_WARNING_LEVEL)
+#pragma warning(disable : _STL_DISABLED_WARNINGS)
+_STL_DISABLE_CLANG_WARNINGS
+#pragma push_macro("new")
+#undef new
+
+名域 标准 { 名域 细节 {
+使用 名域 std;
+template <class _我的链表, class _Base = _迭代器基类0>
+class _单向链表非检查常量迭代器 : public _Base {
+public:
+    using iterator_category = forward_iterator_tag;
+
+    using _结点指针        = typename _我的链表::_结点指针;
+    using value_type      = typename _我的链表::value_type;
+    using difference_type = typename _我的链表::difference_type;
+    using pointer         = typename _我的链表::const_pointer;
+    using reference       = const value_type&;
+
+    _单向链表非检查常量迭代器() noexcept : _Ptr() {}
+
+    _单向链表非检查常量迭代器(_结点指针 _Pnode, const _我的链表* _Plist) noexcept : _Ptr(_Pnode) {
+        this->_收养(_Plist);
+    }
+
+    _NODISCARD reference operator*() const noexcept {
+        return _Ptr->_Myval;
+    }
+
+    _NODISCARD pointer operator->() const noexcept {
+        return pointer_traits<pointer>::pointer_to(**this);
+    }
+
+    _单向链表非检查常量迭代器& operator++() noexcept {
+        _Ptr = _Ptr->_Next;
+        return *this;
+    }
+
+    _单向链表非检查常量迭代器 operator++(int) noexcept {
+        _单向链表非检查常量迭代器 _Tmp = *this;
+        _Ptr                                 = _Ptr->_Next;
+        return _Tmp;
+    }
+
+    _NODISCARD bool operator==(const _单向链表非检查常量迭代器& _Right) const noexcept {
+        return _Ptr == _Right._Ptr;
+    }
+
+#if !_HAS_CXX20
+    _NODISCARD bool operator!=(const _单向链表非检查常量迭代器& _Right) const noexcept {
+        return !(*this == _Right);
+    }
+#endif // !_HAS_CXX20
+
+    _NODISCARD bool operator==(_Default_sentinel) const noexcept {
+        return _Ptr == nullptr;
+    }
+
+#if !_HAS_CXX20
+    _NODISCARD bool operator!=(_Default_sentinel) const noexcept {
+        return _Ptr != nullptr;
+    }
+#endif // !_HAS_CXX20
+
+    _结点指针 _Ptr; // pointer to node
+};
+
+template <class _我的链表>
+class _单向链表非检查迭代器 : public _单向链表非检查常量迭代器<_我的链表> {
+public:
+    using _我的基类           = _单向链表非检查常量迭代器<_我的链表>;
+    using iterator_category = forward_iterator_tag;
+
+    using _结点指针        = typename _我的链表::_结点指针;
+    using value_type      = typename _我的链表::value_type;
+    using difference_type = typename _我的链表::difference_type;
+    using pointer         = typename _我的链表::pointer;
+    using reference       = value_type&;
+
+    using _我的基类::_我的基类;
+
+    _NODISCARD reference operator*() const noexcept {
+        return const_cast<reference>(_我的基类::operator*());
+    }
+
+    _NODISCARD pointer operator->() const noexcept {
+        return pointer_traits<pointer>::pointer_to(**this);
+    }
+
+    _单向链表非检查迭代器& operator++() noexcept {
+        _我的基类::operator++();
+        return *this;
+    }
+
+    _单向链表非检查迭代器 operator++(int) noexcept {
+        _单向链表非检查迭代器 _Tmp = *this;
+        _我的基类::operator++();
+        return _Tmp;
+    }
+};
+
+template <class _我的链表>
+class _单向链表常量迭代器 : public _单向链表非检查常量迭代器<_我的链表, _迭代器基类> {
+public:
+    using _我的基类           = _单向链表非检查常量迭代器<_我的链表, _迭代器基类>;
+    using iterator_category = forward_iterator_tag;
+
+    using _结点指针        = typename _我的链表::_结点指针;
+    using value_type      = typename _我的链表::value_type;
+    using difference_type = typename _我的链表::difference_type;
+    using pointer         = typename _我的链表::const_pointer;
+    using reference       = const value_type&;
+
+    using _我的基类::_我的基类;
+
+    _NODISCARD reference operator*() const noexcept {
+#if _ITERATOR_DEBUG_LEVEL == 2
+        const auto _我的容器 = static_cast<const _我的链表*>(this->_取容器());
+        _STL_VERIFY(_我的容器, "cannot dereference value-initialized 单向链表实现 iterator");
+        _STL_VERIFY(this->_Ptr != _我的容器->_头之前(), "cannot dereference 单向链表实现 首前");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+        return this->_Ptr->_Myval;
+    }
+
+    _单向链表常量迭代器& operator++() noexcept {
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(this->_取容器(), "单向链表实现 iterator not incrementable");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+        this->_Ptr = this->_Ptr->_Next;
+        return *this;
+    }
+
+    _单向链表常量迭代器 operator++(int) noexcept {
+        _单向链表常量迭代器 _Tmp = *this;
+        this->_Ptr                 = this->_Ptr->_Next;
+        return _Tmp;
+    }
+
+    _NODISCARD bool operator==(const _单向链表常量迭代器& _Right) const noexcept {
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(this->_取容器() == _Right._取容器(), "单向链表实现 iterators incompatible");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+        return this->_Ptr == _Right._Ptr;
+    }
+
+#if !_HAS_CXX20
+    _NODISCARD bool operator!=(const _单向链表常量迭代器& _Right) const noexcept {
+        return !(*this == _Right);
+    }
+#endif // !_HAS_CXX20
+
+#if _ITERATOR_DEBUG_LEVEL == 2
+    friend void _校验范围(const _单向链表常量迭代器& _首个, const _单向链表常量迭代器& _最后) noexcept {
+        _STL_VERIFY(
+            _首个._取容器() == _最后._取容器(), "单向链表实现 iterators in range are from different containers");
+    }
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+    using _阻止继承解包 = _单向链表常量迭代器;
+
+    _NODISCARD _单向链表非检查常量迭代器<_我的链表> _解包() const noexcept {
+        return _单向链表非检查常量迭代器<_我的链表>(this->_Ptr, static_cast<const _我的链表*>(this->_取容器()));
+    }
+
+    void _定位到(const _单向链表非检查常量迭代器<_我的链表> _It) noexcept {
+        this->_Ptr = _It._Ptr;
+    }
+};
+
+template <class _我的链表>
+class _单向链表迭代器 : public _单向链表常量迭代器<_我的链表> {
+public:
+    using _我的基类           = _单向链表常量迭代器<_我的链表>;
+    using iterator_category = forward_iterator_tag;
+
+    using _结点指针        = typename _我的链表::_结点指针;
+    using value_type      = typename _我的链表::value_type;
+    using difference_type = typename _我的链表::difference_type;
+    using pointer         = typename _我的链表::pointer;
+    using reference       = value_type&;
+
+    using _我的基类::_我的基类;
+
+    _NODISCARD reference operator*() const noexcept {
+        return const_cast<reference>(_我的基类::operator*());
+    }
+
+    _NODISCARD pointer operator->() const noexcept {
+        return pointer_traits<pointer>::pointer_to(**this);
+    }
+
+    _单向链表迭代器& operator++() noexcept {
+        _我的基类::operator++();
+        return *this;
+    }
+
+    _单向链表迭代器 operator++(int) noexcept {
+        _单向链表迭代器 _Tmp = *this;
+        _我的基类::operator++();
+        return _Tmp;
+    }
+
+    using _阻止继承解包 = _单向链表迭代器;
+
+    _NODISCARD _单向链表非检查迭代器<_我的链表> _解包() const noexcept {
+        return _单向链表非检查迭代器<_我的链表>(this->_Ptr, static_cast<const _我的链表*>(this->_取容器()));
+    }
+};
+
+template <class _Value_type, class _尺寸类型, class _差异类型, class _Pointer, class _Const_pointer,
+    class _Nodeptr_type>
+struct _单向链表迭代类型集 {
+    using value_type      = _Value_type;
+    using size_type       = _尺寸类型;
+    using difference_type = _差异类型;
+    using pointer         = _Pointer;
+    using const_pointer   = _Const_pointer;
+    using _结点指针        = _Nodeptr_type;
+};
+
+template <class _Value_type, class _Voidptr>
+struct _单向链表节点 { // 单向链表实现 node
+    using _结点指针 = _重绑定指针类型<_Voidptr, _单向链表节点>;
+
+    _结点指针 _Next;
+    _Value_type _Myval = _Returns_exactly<_Value_type>(); // fake a viable constructor to workaround GH-2749
+
+    _单向链表节点()                              = default;
+    _单向链表节点(const _单向链表节点&)            = delete;
+    _单向链表节点& operator=(const _单向链表节点&) = delete;
+
+    template <class _结点分配器>
+    static void _释放节点(_结点分配器& _Al, _结点指针 _Pnode) noexcept {
+        _就地析构(_Pnode->_Next);
+        allocator_traits<_结点分配器>::destroy(_Al, _STD addressof(_Pnode->_Myval));
+        _Al.deallocate(_Pnode, 1);
+    }
+};
+
+template <class _类型>
+struct _单向链表简单类型集 : _简单类型集<_类型> {
+    using _节点    = _单向链表节点<_类型, void*>;
+    using _结点指针 = _节点*;
+};
+
+template <class _值类型集>
+class _单向链表值 : public _容器基类 {
+public:
+    using _结点指针 = typename _值类型集::_结点指针;
+    using _节点    = typename pointer_traits<_结点指针>::element_type;
+
+    using value_type      = typename _值类型集::value_type;
+    using size_type       = typename _值类型集::size_type;
+    using difference_type = typename _值类型集::difference_type;
+    using pointer         = typename _值类型集::pointer;
+    using const_pointer   = typename _值类型集::const_pointer;
+    using reference       = value_type&;
+    using const_reference = const value_type&;
+
+    _单向链表值() noexcept : _Myhead() {} // initialize data
+
+#if _MSVC_STL_DESTRUCTOR_TOMBSTONES
+    ~_单向链表值() noexcept {
+        if constexpr (is_pointer_v<_结点指针>) {
+            const auto _Tombstone{reinterpret_cast<_结点指针>(_MSVC_STL_UINTPTR_TOMBSTONE_VALUE)};
+            _Myhead = _Tombstone;
+        }
+    }
+#endif // _MSVC_STL_DESTRUCTOR_TOMBSTONES
+
+    _结点指针 _头之前() const noexcept { // return pointer to the "before 开始" pseudo node
+        return pointer_traits<_结点指针>::pointer_to(reinterpret_cast<_节点&>(const_cast<_结点指针&>(_Myhead)));
+    }
+
+#if _ITERATOR_DEBUG_LEVEL == 2
+    void _孤立指针(_结点指针 _Ptr) noexcept { // orphan iterators with specified node pointers
+        const auto _BHead = _头之前();
+        _Lockit _加锁(_LOCK_DEBUG);
+        _迭代器基类12** _Pnext = &this->_Myproxy->_Myfirstiter;
+        while (*_Pnext) {
+            const auto _Pnextptr = static_cast<_单向链表常量迭代器<_单向链表值>&>(**_Pnext)._Ptr;
+            if (_Pnextptr == _BHead || (_Ptr != nullptr && _Pnextptr != _Ptr)) {
+                _Pnext = &(*_Pnext)->_Mynextiter;
+            } else { // orphan the iterator
+                (*_Pnext)->_Myproxy = nullptr;
+                *_Pnext             = (*_Pnext)->_Mynextiter;
+            }
+        }
+    }
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+    template <class _Pr2>
+    static _结点指针 _就地归并(_结点指针 _BFirst1, const _结点指针 _BMid, const _结点指针 _BLast, _Pr2 _Pred) {
+        // Merge the sorted ranges (_BFirst1, _BMid] and (_BMid, _BLast)
+        // Returns one before the new logical 结束 of the range.
+        auto _First2 = _BMid->_Next;
+        for (;;) { // process 1 splice
+            _结点指针 _First1;
+            for (;;) { // advance _BFirst1 over elements already in position
+                if (_BFirst1 == _BMid) {
+                    return _BLast;
+                }
+
+                _First1 = _BFirst1->_Next;
+                if (_DEBUG_LT_PRED(_Pred, _First2->_Myval, _First1->_Myval)) {
+                    // _First2->_Myval is out of order
+                    break;
+                }
+
+                // _First1->_Myval is already in position; advance
+                _BFirst1 = _First1;
+            }
+
+            // find the 结束 of the "run" of elements less than _First1->_Myval in the 2nd range
+            auto _BRun_end = _First2;
+            _结点指针 _Run_end;
+            for (;;) {
+                _Run_end = _BRun_end->_Next;
+                if (_BRun_end == _BLast) {
+                    break;
+                }
+
+                if (!_DEBUG_LT_PRED(_Pred, _Run_end->_Myval, _First1->_Myval)) {
+                    // _Run_end is the first element in (_BMid->_Myval, _BLast->_Myval) that shouldn't precede
+                    // _First1->_Myval.
+                    // After the splice _First1->_Myval will be in position and must not be compared again.
+                    break;
+                }
+
+                _BRun_end = _Run_end;
+            }
+
+            _BMid->_Next     = _Run_end; // snip out the run from its old position
+            _BFirst1->_Next  = _First2; // insert into new position
+            _BRun_end->_Next = _First1;
+            if (_BRun_end == _BLast) {
+                return _BMid;
+            }
+
+            _BFirst1 = _First1;
+            _First2  = _Run_end;
+        }
+    }
+
+    template <class _Pr2>
+    static _结点指针 _排序2(const _结点指针 _BFirst, _Pr2 _Pred) {
+        // Sort (_BFirst, _BFirst + 2], unless nullptr is encountered.
+        // Returns a pointer one before the 结束 of the sorted region.
+        const auto _First1 = _BFirst->_Next;
+        if (!_First1) {
+            return _BFirst;
+        }
+
+        auto _First2 = _First1->_Next;
+        if (!_First2 || !_DEBUG_LT_PRED(_Pred, _First2->_Myval, _First1->_Myval)) {
+            return _First1;
+        }
+
+        // swap _First2 and _First1
+        _First1->_Next = _First2->_Next; // snip out *_First2
+        _BFirst->_Next = _First2; // insert *_First2 before *_First1
+        _First2->_Next = _First1;
+        return _First2;
+    }
+
+    template <class _Pr2>
+    static _结点指针 _排序(const _结点指针 _BFirst, size_type _Bound, _Pr2 _Pred) {
+        // Sort (_BFirst, _BFirst + _Bound), unless nullptr is encountered.
+        // Returns a pointer one before the 结束 of the sorted region.
+        if (_Bound <= 2) {
+            return _排序2(_BFirst, _Pred);
+        }
+
+        const auto _Half_bound = _Bound / 2;
+        const auto _BMid       = _排序(_BFirst, _Half_bound, _Pred);
+        if (!_BMid->_Next) {
+            return _BMid;
+        }
+
+        const auto _BLast = _排序(_BMid, _Half_bound, _Pred);
+        return _就地归并(_BFirst, _BMid, _BLast, _Pred);
+    }
+
+    template <class _Pr2>
+    static void _排序(_结点指针 _BFirst, _Pr2 _Pred) {
+        auto _BMid       = _排序2(_BFirst, _Pred);
+        size_type _Bound = 2;
+        do {
+            if (!_BMid->_Next) {
+                return;
+            }
+
+            const auto _BLast = _排序(_BMid, _Bound, _Pred);
+            _BMid             = _就地归并(_BFirst, _BMid, _BLast, _Pred);
+            _Bound <<= 1;
+        } while (_Bound != 0);
+    }
+
+    _结点指针 _Myhead; // pointer to head node
+};
+
+template <class _结点分配器>
+struct _单向链表后插操作2 {
+    // 单向链表实现 insert-after operation which maintains exception safety
+    using _结点分配器特征 = allocator_traits<_结点分配器>;
+    using pointer        = typename _结点分配器特征::pointer;
+    using value_type     = typename _结点分配器特征::value_type;
+
+    explicit _单向链表后插操作2(_结点分配器& _Al_) : _Al(_Al_), _Tail() {}
+
+    _单向链表后插操作2(const _单向链表后插操作2&)            = delete;
+    _单向链表后插操作2& operator=(const _单向链表后插操作2&) = delete;
+
+    template <class... _CArgT>
+    void _追加n(typename _结点分配器特征::size_type _Count, const _CArgT&... _Carg) {
+        // Append _Count elements, constructed from _Carg
+        if (_Count <= 0) {
+            return;
+        }
+
+        _分配器构造指针<_结点分配器> _新节点(_Al);
+        if (_Tail == pointer{}) {
+            _新节点._分配(); // throws
+            _结点分配器特征::construct(_Al, _STD addressof(_新节点._Ptr->_Myval), _Carg...); // throws
+            _Head = _新节点._Ptr;
+            _Tail = _新节点._Ptr;
+            --_Count;
+        }
+
+        for (; 0 < _Count; --_Count) {
+            _新节点._分配(); // throws
+            _结点分配器特征::construct(_Al, _STD addressof(_新节点._Ptr->_Myval), _Carg...); // throws
+            _就地构造(_Tail->_Next, _新节点._Ptr);
+            _Tail = _新节点._Ptr;
+        }
+
+        (void) _新节点._释放();
+    }
+
+    template <class _InIt, class _哨兵>
+    void _追加范围非检查(_InIt _首个, const _哨兵 _最后) {
+        // Append the values in [_首个, _最后)
+        if (_首个 == _最后) { // throws
+            return;
+        }
+
+        _分配器构造指针<_结点分配器> _新节点(_Al);
+        if (_Tail == pointer{}) {
+            _新节点._分配(); // throws
+            _结点分配器特征::construct(_Al, _STD addressof(_新节点._Ptr->_Myval), *_首个); // throws
+            const auto _Newhead = _新节点._释放();
+            _Head               = _Newhead;
+            _Tail               = _Newhead;
+            ++_首个; // throws
+        }
+
+        while (_首个 != _最后) { // throws
+            _新节点._分配(); // throws
+            _结点分配器特征::construct(_Al, _STD addressof(_新节点._Ptr->_Myval), *_首个); // throws
+            const auto _Newtail = _新节点._释放();
+            _就地构造(_Tail->_Next, _Newtail);
+            _Tail = _Newtail;
+            ++_首个; // throws
+        }
+    }
+
+    pointer _接在其后(pointer _After) noexcept {
+        // Attaches the elements in *this after _After, and resets *this to the default-initialized state
+        const auto _Local_tail = _Tail;
+        if (_Local_tail == pointer{}) {
+            return _After;
+        }
+
+        _就地构造(_Local_tail->_Next, _After->_Next);
+        _After->_Next = _Head;
+        _Tail         = pointer{};
+
+        return _Local_tail;
+    }
+
+    ~_单向链表后插操作2() {
+        if (_Tail == pointer{}) {
+            return;
+        }
+
+        _就地构造(_Tail->_Next, pointer{});
+        pointer _Subject = _Head;
+        while (_Subject) {
+            value_type::_释放节点(_Al, _STD exchange(_Subject, _Subject->_Next));
+        }
+    }
+
+private:
+    _结点分配器& _Al;
+    pointer _Tail; // Points to the most recently constructed node. If pointer{}, the value of _Head is indeterminate.
+                   // _Tail->_Next is not constructed.
+    pointer _Head; // Points at the first constructed node.
+};
+
+_EXPORT_STD template <class _类型, class _分配器 = allocator<_类型>>
+class 单向链表实现 { // singly linked list
+private:
+    using _分配器类型          = _重绑定分配器类型<_分配器, _类型>;
+    using _分配器特征   = allocator_traits<_分配器类型>;
+    using _节点          = _单向链表节点<_类型, typename _分配器特征::void_pointer>;
+    using _结点分配器        = _重绑定分配器类型<_分配器, _节点>;
+    using _结点分配器特征 = allocator_traits<_结点分配器>;
+    using _结点指针       = typename _结点分配器特征::pointer;
+
+    static_assert(!_ENFORCE_MATCHING_ALLOCATORS || is_same_v<_类型, typename _分配器::value_type>,
+        _MISMATCHED_ALLOCATOR_MESSAGE("单向链表实现<T, Allocator>", "T"));
+    static_assert(is_object_v<_类型>, "The C++ Standard forbids containers of non-object types "
+                                    "because of [container.requirements].");
+
+    using _迭代器检查值 = _单向链表值<conditional_t<_Is_simple_alloc_v<_结点分配器>, _单向链表简单类型集<_类型>,
+        _单向链表迭代类型集<_类型, typename _分配器特征::size_type, typename _分配器特征::difference_type,
+            typename _分配器特征::pointer, typename _分配器特征::const_pointer, _结点指针>>>;
+
+public:
+    using value_type      = _类型;
+    using allocator_type  = _分配器;
+    using size_type       = typename _分配器特征::size_type;
+    using difference_type = typename _分配器特征::difference_type;
+    using pointer         = typename _分配器特征::pointer;
+    using const_pointer   = typename _分配器特征::const_pointer;
+    using reference       = value_type&;
+    using const_reference = const value_type&;
+
+    using iterator                  = _单向链表迭代器<_迭代器检查值>;
+    using const_iterator            = _单向链表常量迭代器<_迭代器检查值>;
+    using _非检查迭代器       = _单向链表非检查迭代器<_迭代器检查值>;
+    using _非检查常量迭代器 = _单向链表非检查常量迭代器<_迭代器检查值>;
+
+    单向链表实现() noexcept(is_nothrow_default_constructible_v<_结点分配器>) // strengthened
+        : _Mypair(_先零后变参实参{}) {
+        _分配代理();
+    }
+
+    explicit 单向链表实现(_CRT_GUARDOVERFLOW size_type _Count, const _分配器& _Al = _分配器())
+        : _Mypair(_先一后变参实参{}, _Al) { // construct list from _Count * _类型(), optional allocator
+        _单向链表后插操作2<_结点分配器> _插入操作(_取分配器());
+        _插入操作._追加n(_Count);
+        _分配代理();
+        _插入操作._接在其后(_Mypair._Myval2._头之前());
+    }
+
+    单向链表实现(_CRT_GUARDOVERFLOW size_type _Count, const _类型& _Val)
+        : _Mypair(_先零后变参实参{}) { // construct list from _Count * _Val
+        _单向链表后插操作2<_结点分配器> _插入操作(_取分配器());
+        _插入操作._追加n(_Count, _Val);
+        _分配代理();
+        _插入操作._接在其后(_Mypair._Myval2._头之前());
+    }
+
+#if _HAS_CXX17
+    template <class _Alloc2 = _分配器, enable_if_t<_Is_allocator<_Alloc2>::value, int> = 0>
+#endif // _HAS_CXX17
+    单向链表实现(_CRT_GUARDOVERFLOW size_type _Count, const _类型& _Val, const _分配器& _Al)
+        : _Mypair(_先一后变参实参{}, _Al) { // construct list from _Count * _Val, allocator
+        _单向链表后插操作2<_结点分配器> _插入操作(_取分配器());
+        _插入操作._追加n(_Count, _Val);
+        _分配代理();
+        _插入操作._接在其后(_Mypair._Myval2._头之前());
+    }
+
+    explicit 单向链表实现(const _分配器& _Al) noexcept // strengthened
+        : _Mypair(_先一后变参实参{}, _Al) {
+        _分配代理();
+    }
+
+    单向链表实现(const 单向链表实现& _Right)
+        : _Mypair(_先一后变参实参{}, _结点分配器特征::select_on_container_copy_construction(_Right._取分配器())) {
+        _单向链表后插操作2<_结点分配器> _插入操作(_取分配器());
+        _插入操作._追加范围非检查(_Right._非检查开始(), _Right._非检查结束());
+        _分配代理();
+        _插入操作._接在其后(_Mypair._Myval2._头之前());
+    }
+
+    单向链表实现(const 单向链表实现& _Right, const _Identity_t<_分配器>& _Al)
+        : _Mypair(_先一后变参实参{}, _Al) {
+        _单向链表后插操作2<_结点分配器> _插入操作(_取分配器());
+        _插入操作._追加范围非检查(_Right._非检查开始(), _Right._非检查结束());
+        _分配代理();
+        _插入操作._接在其后(_Mypair._Myval2._头之前());
+    }
+
+    template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
+    单向链表实现(_Iter _首个, _Iter _最后) : _Mypair(_先零后变参实参{}) {
+        _ADL校验范围(_首个, _最后);
+        _单向链表后插操作2<_结点分配器> _插入操作(_取分配器());
+        _插入操作._追加范围非检查(_取解包(_首个), _取解包(_最后));
+        _分配代理();
+        _插入操作._接在其后(_Mypair._Myval2._头之前());
+    }
+
+    template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
+    单向链表实现(_Iter _首个, _Iter _最后, const _分配器& _Al) : _Mypair(_先一后变参实参{}, _Al) {
+        _ADL校验范围(_首个, _最后);
+        _单向链表后插操作2<_结点分配器> _插入操作(_取分配器());
+        _插入操作._追加范围非检查(_取解包(_首个), _取解包(_最后));
+        _分配代理();
+        _插入操作._接在其后(_Mypair._Myval2._头之前());
+    }
+
+#if _HAS_CXX23
+    template <_Container_compatible_range<_类型> _Rng>
+    单向链表实现(from_range_t, _Rng&& _Range) : _Mypair(_先零后变参实参{}) {
+        _单向链表后插操作2<_结点分配器> _插入操作(_取分配器());
+        _插入操作._追加范围非检查(_解包首(_Range), _解包尾(_Range));
+        _分配代理();
+        _插入操作._接在其后(_Mypair._Myval2._头之前());
+    }
+
+    template <_Container_compatible_range<_类型> _Rng>
+    单向链表实现(from_range_t, _Rng&& _Range, const _分配器& _Al) : _Mypair(_先一后变参实参{}, _Al) {
+        _单向链表后插操作2<_结点分配器> _插入操作(_取分配器());
+        _插入操作._追加范围非检查(_解包首(_Range), _解包尾(_Range));
+        _分配代理();
+        _插入操作._接在其后(_Mypair._Myval2._头之前());
+    }
+#endif // _HAS_CXX23
+
+    单向链表实现(单向链表实现&& _Right) noexcept // strengthened
+        : _Mypair(_先一后变参实参{}, _STD move(_Right._取分配器())) {
+        _分配代理();
+        _取走头部(_Right);
+    }
+
+    单向链表实现(单向链表实现&& _Right, const _Identity_t<_分配器>& _Al)
+        noexcept(_结点分配器特征::is_always_equal::value) // strengthened
+        : _Mypair(_先一后变参实参{}, _Al) {
+        if constexpr (!_分配器特征::is_always_equal::value) {
+            if (_取分配器() != _Right._取分配器()) {
+                _单向链表后插操作2<_结点分配器> _插入操作(_取分配器());
+                _插入操作._追加范围非检查(
+                    _STD make_move_iterator(_Right._非检查开始()), _Default_sentinel{});
+                _分配代理();
+                _插入操作._接在其后(_Mypair._Myval2._头之前());
+                return;
+            }
+        }
+
+        _分配代理();
+        _取走头部(_Right);
+    }
+
+    单向链表实现& operator=(单向链表实现&& _Right)
+        noexcept(_Choose_pocma_v<_结点分配器> != _传播复制移动赋值取值::_No_propagate_allocators) /* strengthened */ {
+        if (this == _STD addressof(_Right)) {
+            return *this;
+        }
+
+        auto& _Al                 = _取分配器();
+        auto& _Right_al           = _Right._取分配器();
+        constexpr auto _Pocma_val = _Choose_pocma_v<_结点分配器>;
+        if constexpr (_Pocma_val == _传播复制移动赋值取值::_Propagate_allocators) {
+            if (_Al != _Right_al) {
+                _Mypair._Myval2._孤儿化全部();
+                清空();
+                _Mypair._Myval2._重载代理(_取代理分配器(_分配器类型, _Al), _取代理分配器(_分配器类型, _Right_al));
+                _传播移动赋值(_Al, _Right_al);
+                _取走头部(_Right);
+                return *this;
+            }
+        } else if constexpr (_Pocma_val == _传播复制移动赋值取值::_No_propagate_allocators) {
+            if (_Al != _Right_al) {
+                _赋值非检查(_STD make_move_iterator(_Right._非检查开始()), _Right._非检查结束());
+                return *this;
+            }
+        }
+
+        清空();
+        _传播移动赋值(_Al, _Right_al);
+        _取走头部(_Right);
+        return *this;
+    }
+
+private:
+    void _取走头部(单向链表实现& _Right) noexcept { // take contents from _Right, same allocator
+        _交换代理与迭代器(_Right);
+        _Mypair._Myval2._Myhead = _STD exchange(_Right._Mypair._Myval2._Myhead, nullptr);
+    }
+
+public:
+    void 头插(_类型&& _Val) { // insert element at beginning
+        _插入其后(_Mypair._Myval2._头之前(), _STD move(_Val));
+    }
+
+    iterator 后插(const_iterator _Where, _类型&& _Val) { // insert _Val after _Where
+        return 后就地构造(_Where, _STD move(_Val));
+    }
+
+    template <class... _值参数类型>
+    _CONTAINER_EMPLACE_RETURN 头部就地构造(_值参数类型&&... _Val) { // insert element at beginning
+        _插入其后(_Mypair._Myval2._头之前(), _STD forward<_值参数类型>(_Val)...);
+
+#if _HAS_CXX17
+        return 前();
+#endif // _HAS_CXX17
+    }
+
+    template <class... _值参数类型>
+    iterator 后就地构造(const_iterator _Where, _值参数类型&&... _Val) { // insert element after _Where
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(
+            _Where._取容器() == _STD addressof(_Mypair._Myval2), "单向链表实现 后就地构造 iterator outside range");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+        _插入其后(_Where._Ptr, _STD forward<_值参数类型>(_Val)...);
+        return _造迭代器(_Where._Ptr->_Next);
+    }
+
+private:
+    template <class... _值参数类型>
+    void _插入其后(_结点指针 _Pnode, _值参数类型&&... _Val) { // insert element after _Where
+        _分配器构造指针<_结点分配器> _新节点(_取分配器());
+        _新节点._分配(); // throws
+        _结点分配器特征::construct(
+            _新节点._Al, _STD addressof(_新节点._Ptr->_Myval), _STD forward<_值参数类型>(_Val)...); // throws
+        _就地构造(_新节点._Ptr->_Next, _Pnode->_Next);
+        _Pnode->_Next = _新节点._释放();
+    }
+
+public:
+    单向链表实现(initializer_list<_类型> _Ilist, const _分配器& _Al = allocator_type())
+        : _Mypair(_先一后变参实参{}, _Al) {
+        auto&& _Alproxy = _取代理分配器(_结点分配器, _取分配器());
+        _容器代理指针<_分配器类型> _代理(_Alproxy, _Mypair._Myval2);
+        后插(首前(), _Ilist.begin(), _Ilist.end());
+        _代理._释放();
+    }
+
+    单向链表实现& operator=(initializer_list<_类型> _Ilist) {
+        赋值(_Ilist.begin(), _Ilist.end());
+        return *this;
+    }
+
+    void 赋值(initializer_list<_类型> _Ilist) {
+        赋值(_Ilist.begin(), _Ilist.end());
+    }
+
+    iterator 后插(const_iterator _Where,
+        initializer_list<_类型> _Ilist) { // insert initializer_list
+        return 后插(_Where, _Ilist.begin(), _Ilist.end());
+    }
+
+    ~单向链表实现() noexcept {
+        清空();
+#if _ITERATOR_DEBUG_LEVEL != 0 // TRANSITION, ABI
+        auto&& _Alproxy = _取代理分配器(_分配器类型, _取分配器());
+        _删除原生内部(_Alproxy, _Mypair._Myval2._Myproxy);
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+    }
+
+    单向链表实现& operator=(const 单向链表实现& _Right) {
+        if (this == _STD addressof(_Right)) {
+            return *this;
+        }
+
+        auto& _Al       = _取分配器();
+        auto& _Right_al = _Right._取分配器();
+        if constexpr (_Choose_pocca_v<_结点分配器>) {
+            if (_Al != _Right_al) {
+                _Mypair._Myval2._孤儿化全部();
+                清空();
+                _Mypair._Myval2._重载代理(
+                    _取代理分配器(_结点分配器, _Al), _取代理分配器(_结点分配器, _Right_al));
+            }
+        }
+
+        _传播复制赋值(_Al, _Right_al);
+        _赋值非检查(_Right._非检查开始(), _Right._非检查结束());
+
+        return *this;
+    }
+
+    _NODISCARD iterator 首前() noexcept {
+        return iterator(_Mypair._Myval2._头之前(), _STD addressof(_Mypair._Myval2));
+    }
+
+    _NODISCARD const_iterator 首前() const noexcept {
+        return const_iterator(_Mypair._Myval2._头之前(), _STD addressof(_Mypair._Myval2));
+    }
+
+    _NODISCARD const_iterator 常量首前() const noexcept {
+        return 首前();
+    }
+
+    _NODISCARD iterator 开始() noexcept {
+        return iterator(_Mypair._Myval2._Myhead, _STD addressof(_Mypair._Myval2));
+    }
+
+    _NODISCARD const_iterator 开始() const noexcept {
+        return const_iterator(_Mypair._Myval2._Myhead, _STD addressof(_Mypair._Myval2));
+    }
+
+    _NODISCARD iterator 结束() noexcept {
+        return iterator(nullptr, _STD addressof(_Mypair._Myval2));
+    }
+
+    _NODISCARD const_iterator 结束() const noexcept {
+        return const_iterator(nullptr, _STD addressof(_Mypair._Myval2));
+    }
+
+    _非检查迭代器 _非检查首前() noexcept {
+        return _非检查迭代器(_Mypair._Myval2._头之前(), nullptr);
+    }
+
+    _非检查迭代器 _非检查开始() noexcept {
+        return _非检查迭代器(_Mypair._Myval2._Myhead, nullptr);
+    }
+
+    _非检查常量迭代器 _非检查开始() const noexcept {
+        return _非检查常量迭代器(_Mypair._Myval2._Myhead, nullptr);
+    }
+
+    _Default_sentinel _非检查结束() const noexcept {
+        return {};
+    }
+
+    _非检查常量迭代器 _非检查结束迭代器() const noexcept {
+        return _非检查常量迭代器(nullptr, nullptr);
+    }
+
+    iterator _造迭代器(_结点指针 _Where) const noexcept {
+        return iterator(_Where, _STD addressof(_Mypair._Myval2));
+    }
+
+    _NODISCARD const_iterator 常量开始() const noexcept {
+        return 开始();
+    }
+
+    _NODISCARD const_iterator 常量结束() const noexcept {
+        return 结束();
+    }
+
+private:
+    template <class... _Args>
+    void _调整尺寸(_CRT_GUARDOVERFLOW size_type _Newsize, const _Args&... _Vals) {
+        auto& _Al = _取分配器();
+        auto _Ptr = _Mypair._Myval2._头之前();
+        for (;;) {
+            auto _Next = _Ptr->_Next;
+            if (!_Next) {
+                // list too short, insert remaining _Newsize objects initialized from _Vals...
+                _单向链表后插操作2<_结点分配器> _插入操作(_Al);
+                _插入操作._追加n(_Newsize, _Vals...);
+                _插入操作._接在其后(_Ptr);
+                return;
+            }
+
+            if (_Newsize == 0) {
+                // list is too long, erase the _Next and after
+                _Ptr->_Next = nullptr;
+                do {
+                    const auto _Nextafter = _Next->_Next;
+#if _ITERATOR_DEBUG_LEVEL == 2
+                    _Mypair._Myval2._孤立指针(_Next);
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+                    _节点::_释放节点(_Al, _Next);
+                    _Next = _Nextafter;
+                } while (_Next);
+
+                return;
+            }
+
+            _Ptr = _Next;
+            --_Newsize;
+        }
+    }
+
+public:
+    void 调整尺寸(_CRT_GUARDOVERFLOW size_type _Newsize) {
+        _调整尺寸(_Newsize);
+    }
+
+    void 调整尺寸(_CRT_GUARDOVERFLOW size_type _Newsize, const _类型& _Val) {
+        _调整尺寸(_Newsize, _Val);
+    }
+
+    _NODISCARD size_type 最大尺寸() const noexcept {
+        return (_STD min)(
+            static_cast<size_type>(_STD _Max_limit<difference_type>()), _结点分配器特征::最大尺寸(_取分配器()));
+    }
+
+    _NODISCARD_EMPTY_MEMBER bool 为空() const noexcept {
+        return _Mypair._Myval2._Myhead == nullptr;
+    }
+
+    _NODISCARD allocator_type 取分配器() const noexcept {
+        return static_cast<allocator_type>(_取分配器());
+    }
+
+    _NODISCARD reference 前() noexcept /* strengthened */ {
+#if _MSVC_STL_HARDENING_FORWARD_LIST || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Mypair._Myval2._Myhead != nullptr, "前() called on 为空 单向链表实现");
+#endif
+
+        return _Mypair._Myval2._Myhead->_Myval;
+    }
+
+    _NODISCARD const_reference 前() const noexcept /* strengthened */ {
+#if _MSVC_STL_HARDENING_FORWARD_LIST || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Mypair._Myval2._Myhead != nullptr, "前() called on 为空 单向链表实现");
+#endif
+
+        return _Mypair._Myval2._Myhead->_Myval;
+    }
+
+    void 头插(const _类型& _Val) {
+        _插入其后(_Mypair._Myval2._头之前(), _Val);
+    }
+
+#if _HAS_CXX23
+    template <_Container_compatible_range<_类型> _Rng>
+    void 前置范围(_Rng&& _Range) {
+        _插入范围其后(_Mypair._Myval2._头之前(), _解包首(_Range), _解包尾(_Range));
+    }
+#endif // _HAS_CXX23
+
+    void 头删() noexcept /* strengthened */ {
+#if _MSVC_STL_HARDENING_FORWARD_LIST || _ITERATOR_DEBUG_LEVEL != 0
+        _STL_VERIFY(_Mypair._Myval2._Myhead != nullptr, "头删() called on 为空 单向链表实现");
+#endif
+
+        _擦除其后(_Mypair._Myval2._头之前());
+    }
+
+private:
+    template <class _UIter, class _哨兵>
+    void _赋值非检查(_UIter _UFirst, const _哨兵 _ULast) {
+        auto _Myfirst = _Mypair._Myval2._头之前();
+        for (; _UFirst != _ULast; ++_UFirst) {
+            const auto _Next = _Myfirst->_Next;
+            if (!_Next) {
+                _单向链表后插操作2<_结点分配器> _插入操作(_取分配器());
+                _插入操作._追加范围非检查(_STD move(_UFirst), _ULast);
+                _插入操作._接在其后(_Myfirst);
+                return;
+            }
+
+            _Next->_Myval = *_UFirst;
+            _Myfirst      = _Next;
+        }
+
+        for (auto _To_delete = _STD exchange(_Myfirst->_Next, nullptr); _To_delete;) {
+            const auto _Next = _To_delete->_Next;
+#if _ITERATOR_DEBUG_LEVEL == 2
+            _Mypair._Myval2._孤立指针(_To_delete);
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+            _节点::_释放节点(_取分配器(), _To_delete);
+            _To_delete = _Next;
+        }
+    }
+
+public:
+    template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
+    void 赋值(_Iter _首个, _Iter _最后) {
+        _ADL校验范围(_首个, _最后);
+        _赋值非检查(_取解包(_首个), _取解包(_最后));
+    }
+
+#if _HAS_CXX23
+    template <_Container_compatible_range<_类型> _Rng>
+    void 范围赋值(_Rng&& _Range) {
+        static_assert(assignable_from<_类型&, _RANGES range_reference_t<_Rng>>,
+            "Elements must be assignable from the range's reference type (N4993 [sequence.reqmts]/60).");
+        _赋值非检查(_解包首(_Range), _解包尾(_Range));
+    }
+#endif // _HAS_CXX23
+
+    void 赋值(_CRT_GUARDOVERFLOW size_type _Count, const _类型& _Val) {
+        清空();
+        后插(首前(), _Count, _Val);
+    }
+
+    iterator 后插(const_iterator _Where, const _类型& _Val) { // insert _Val after _Where
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(
+            _Where._取容器() == _STD addressof(_Mypair._Myval2), "单向链表实现 后插 location incompatible");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+        _插入其后(_Where._Ptr, _Val);
+        return _造迭代器(_Where._Ptr->_Next);
+    }
+
+    iterator 后插(const_iterator _Where, _CRT_GUARDOVERFLOW size_type _Count, const _类型& _Val) {
+        // insert _Count * _Val after _Where
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(
+            _Where._取容器() == _STD addressof(_Mypair._Myval2), "单向链表实现 后插 location incompatible");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+        if (_Count != 0) {
+            _单向链表后插操作2<_结点分配器> _插入操作(_取分配器());
+            _插入操作._追加n(_Count, _Val);
+            _Where._Ptr = _插入操作._接在其后(_Where._Ptr);
+        }
+
+        return _造迭代器(_Where._Ptr);
+    }
+
+private:
+    template <class _Iter, class _Sent>
+    iterator _插入范围其后(_结点指针 _Pnode, _Iter _首个, const _Sent _最后) {
+        // insert [_首个, _最后) after _Pnode
+        if (_首个 == _最后) {
+            return _造迭代器(_Pnode);
+        }
+
+        _单向链表后插操作2<_结点分配器> _插入操作(_取分配器());
+        _插入操作._追加范围非检查(_STD move(_首个), _最后);
+        return _造迭代器(_插入操作._接在其后(_Pnode));
+    }
+
+public:
+    template <class _Iter, enable_if_t<_Is_iterator_v<_Iter>, int> = 0>
+    iterator 后插(const_iterator _Where, _Iter _首个, _Iter _最后) {
+        // insert [_首个, _最后) after _Where
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(
+            _Where._取容器() == _STD addressof(_Mypair._Myval2), "单向链表实现 后插 location incompatible");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+        _ADL校验范围(_首个, _最后);
+        return _插入范围其后(_Where._Ptr, _取解包(_首个), _取解包(_最后));
+    }
+
+#if _HAS_CXX23
+    template <_Container_compatible_range<_类型> _Rng>
+    iterator 范围后插(const_iterator _Where, _Rng&& _Range) {
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(_Where._取容器() == _STD addressof(_Mypair._Myval2),
+            "单向链表实现 范围后插 location incompatible");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+        return _插入范围其后(_Where._Ptr, _解包首(_Range), _解包尾(_Range));
+    }
+#endif // _HAS_CXX23
+
+private:
+    void _擦除其后(_结点指针 _Pnode) noexcept { // erase element after _Pnode
+        auto _Subject = _Pnode->_Next;
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _Mypair._Myval2._孤立指针(_Subject);
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+        _Pnode->_Next = _Subject->_Next;
+        _节点::_释放节点(_取分配器(), _Subject);
+    }
+
+public:
+    iterator 后擦除(const_iterator _Where) noexcept /* strengthened */ {
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(
+            _Where._取容器() == _STD addressof(_Mypair._Myval2), "单向链表实现 后擦除 iterator outside range");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+        _擦除其后(_Where._Ptr);
+        return _造迭代器(_Where._Ptr->_Next);
+    }
+
+    iterator 后擦除(const_iterator _首个, const_iterator _最后) noexcept /* strengthened */ {
+#if _ITERATOR_DEBUG_LEVEL == 2
+        const auto _我的容器 = _STD addressof(_Mypair._Myval2);
+        _STL_VERIFY(_首个._取容器() == _我的容器 && _最后._取容器() == _我的容器,
+            "单向链表实现 后擦除 iterator range from incorrect container");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+        auto _Before = _首个._Ptr;
+        if (_Before != _最后._Ptr) {
+            auto& _Al = _取分配器();
+            for (;;) {
+                const auto _Subject = _Before->_Next;
+                if (_Subject == _最后._Ptr) {
+                    break;
+                }
+
+#if _ITERATOR_DEBUG_LEVEL == 2
+                _Mypair._Myval2._孤立指针(_Subject);
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+                _Before->_Next = _Subject->_Next;
+                _节点::_释放节点(_Al, _Subject);
+            }
+        }
+
+        return _造迭代器(_最后._Ptr);
+    }
+
+    void 清空() noexcept { // erase all
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _Mypair._Myval2._孤立指针(nullptr);
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+        _结点指针 _Pnext;
+        _结点指针 _Pnode = _STD exchange(_Mypair._Myval2._Myhead, nullptr);
+
+        auto& _Al = _取分配器();
+        for (; _Pnode; _Pnode = _Pnext) { // delete an element
+            _Pnext = _Pnode->_Next;
+            _节点::_释放节点(_Al, _Pnode);
+        }
+    }
+
+    void swap(单向链表实现& _Right) noexcept /* strengthened */ {
+        using _STD swap;
+        if (this != _STD addressof(_Right)) {
+            _Pocs(_取分配器(), _Right._取分配器());
+            _交换代理与迭代器(_Right);
+            swap(_Mypair._Myval2._Myhead, _Right._Mypair._Myval2._Myhead); // intentional ADL
+        }
+    }
+
+    void 后接合(const_iterator _Where, 单向链表实现& _Right) noexcept /* strengthened */ {
+        // splice all of _Right after _Where
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(
+            _Where._取容器() == _STD addressof(_Mypair._Myval2), "单向链表实现 后接合 iterator outside range");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+        if (this != _STD addressof(_Right) && !_Right.为空()) { // worth splicing, do it
+            _接合其后(_Where._解包(), _Right, _Right._非检查首前(), _Default_sentinel{});
+        }
+    }
+
+    void 后接合(const_iterator _Where, 单向链表实现&& _Right) noexcept /* strengthened */ {
+        // splice all of _Right after _Where
+        后接合(_Where, _Right);
+    }
+
+    void 后接合(const_iterator _Where, 单向链表实现& _Right, const_iterator _首个) noexcept /* strengthened */ {
+        // splice _Right (_首个, _首个 + 2) after _Where
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(
+            _Where._取容器() == _STD addressof(_Mypair._Myval2), "单向链表实现 后接合 iterator outside range");
+        _STL_VERIFY(_首个._取容器() == _STD addressof(_Right._Mypair._Myval2),
+            "单向链表实现 后接合 iterator outside range");
+        _STL_VERIFY(_首个._Ptr->_Next != nullptr, "单向链表实现 后接合 iterator outside range");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+        _接合其后(_Where._Ptr, _Right, _首个._Ptr);
+    }
+
+    void 后接合(const_iterator _Where, 单向链表实现&& _Right, const_iterator _首个) noexcept /* strengthened */ {
+        // splice _Right (_首个, _首个 + 2) after _Where
+        后接合(_Where, _Right, _首个);
+    }
+
+    void 后接合(const_iterator _Where, 单向链表实现& _Right, const_iterator _首个, const_iterator _最后) noexcept
+    /* strengthened */ {
+        // splice _Right (_首个, _最后) after _Where
+#if _ITERATOR_DEBUG_LEVEL == 2
+        _STL_VERIFY(
+            _Where._取容器() == _STD addressof(_Mypair._Myval2), "单向链表实现 后接合 iterator outside range");
+        const auto _Rightcont = _STD addressof(_Right._Mypair._Myval2);
+        _STL_VERIFY(_首个._取容器() == _Rightcont && _最后._取容器() == _Rightcont,
+            "单向链表实现 后接合 range outside right");
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+        _接合其后(_Where._解包(), _Right, _首个._解包(), _最后._解包());
+    }
+
+    void 后接合(const_iterator _Where, 单向链表实现&& _Right, const_iterator _首个,
+        const_iterator _最后) noexcept /* strengthened */ {
+        // splice _Right [_首个, _最后) after _Where
+        后接合(_Where, _Right, _首个, _最后);
+    }
+
+    struct _单向链表节点删除操作 {
+        // tracks nodes pending removal in a 移除 operation, so that program-defined predicates may reference those
+        // elements until the removal is complete.
+
+        explicit _单向链表节点删除操作(单向链表实现& _List_) noexcept
+            : _List(_List_), _Head(), _Tail(_STD addressof(_Head)) {}
+
+        _单向链表节点删除操作(const _单向链表节点删除操作&)            = delete;
+        _单向链表节点删除操作& operator=(const _单向链表节点删除操作&) = delete;
+
+        _结点指针 _转移至末尾(const _结点指针 _Predecessor) noexcept {
+            // extract _Predecessor->_Next from the container, and add it to the singly-linked list of nodes to destroy
+            // returns the successor of the removed node
+
+            // snip the node out
+            const auto _Removed = _Predecessor->_Next;
+            const auto _Next    = _Removed->_Next;
+            _Removed->_Next     = nullptr;
+            _Predecessor->_Next = _Next;
+
+            *_Tail = _Removed;
+            _Tail  = _STD addressof(_Removed->_Next);
+
+            return _Next;
+        }
+
+        ~_单向链表节点删除操作() {
+            auto& _Al    = _List._取分配器();
+            auto _Target = _Head;
+            while (_Target) {
+                auto _Next = _Target->_Next;
+#if _ITERATOR_DEBUG_LEVEL == 2
+                _List._Mypair._Myval2._孤立指针(_Target);
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+                _结点分配器特征::destroy(_Al, _STD addressof(_Target->_Next));
+                _结点分配器特征::destroy(_Al, _STD addressof(_Target->_Myval));
+                _Al.deallocate(_Target, 1);
+                _Target = _Next;
+            }
+        }
+
+        单向链表实现& _List;
+        _结点指针 _Head;
+        _结点指针* _Tail;
+    };
+
+    _LIST_REMOVE_RETURN 移除(const _类型& _Val) { // erase each element matching _Val
+        return 按条件移除([&](const _类型& _Other) -> bool { return _Other == _Val; });
+    }
+
+    template <class _Pr1>
+    _LIST_REMOVE_RETURN 按条件移除(_Pr1 _Pred) { // erase each element satisfying _Pr1
+        _单向链表节点删除操作 _操作(*this);
+        auto _Firstb       = _非检查首前();
+        size_type _Removed = 0;
+
+        for (auto _首个 = _非检查开始(); _首个._Ptr;) {
+            if (_Pred(*_首个)) {
+                _首个._Ptr = _操作._转移至末尾(_Firstb._Ptr);
+                ++_Removed;
+            } else { // advance iterators
+                _Firstb = _首个;
+                ++_首个;
+            }
+        }
+
+#if _HAS_CXX20
+        return _Removed;
+#else
+        (void) _Removed;
+#endif
+    }
+
+    _LIST_REMOVE_RETURN 去重() { // erase each element matching previous
+        return 去重(equal_to<>{});
+    }
+
+    template <class _Pr2>
+    _LIST_REMOVE_RETURN 去重(_Pr2 _Pred) { // erase each element satisfying _Pred with previous
+        _单向链表节点删除操作 _操作(*this);
+        auto _首个        = _非检查开始();
+        size_type _Removed = 0;
+        if (_首个._Ptr) { // worth doing
+            auto _After = _首个;
+            ++_After;
+            while (_After._Ptr) {
+                if (_Pred(*_首个, *_After)) {
+                    _After._Ptr = _操作._转移至末尾(_首个._Ptr);
+                    ++_Removed;
+                } else {
+                    _首个 = _After;
+                    ++_After;
+                }
+            }
+        }
+
+#if _HAS_CXX20
+        return _Removed;
+#else
+        (void) _Removed;
+#endif
+    }
+
+    void 归并(单向链表实现& _Right) { // 归并 in elements from _Right, both ordered by operator<
+        _归并1(_Right, less<>{});
+    }
+
+    void 归并(单向链表实现&& _Right) { // 归并 in elements from _Right, both ordered by operator<
+        _归并1(_Right, less<>{});
+    }
+
+    template <class _Pr2>
+    void 归并(单向链表实现& _Right, _Pr2 _Pred) { // 归并 in elements from _Right, both ordered by _Pred
+        _归并1(_Right, _传递函数(_Pred));
+    }
+
+    template <class _Pr2>
+    void 归并(单向链表实现&& _Right, _Pr2 _Pred) { // 归并 in elements from _Right, both ordered by _Pred
+        _归并1(_Right, _传递函数(_Pred));
+    }
+
+private:
+    template <class _Pr2>
+    void _归并1(单向链表实现& _Right, _Pr2 _Pred) { // 归并 in elements from _Right, both ordered by _Pred
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _DEBUG_ORDER_UNWRAPPED(_非检查开始(), _Default_sentinel{}, _Pred);
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+        if (this == _STD addressof(_Right)) {
+            return;
+        }
+
+        auto& _My_data    = _Mypair._Myval2;
+        auto& _Right_data = _Right._Mypair._Myval2;
+#if _ITERATOR_DEBUG_LEVEL != 0
+        _DEBUG_ORDER_UNWRAPPED(_Right._非检查开始(), _Default_sentinel{}, _Pred);
+        if constexpr (!_结点分配器特征::is_always_equal::value) {
+            _STL_VERIFY(_取分配器() == _Right._取分配器(), "单向链表实现 allocators incompatible for 归并");
+        }
+#endif // _ITERATOR_DEBUG_LEVEL != 0
+
+        if (!_My_data._Myhead) {
+            // *this is 为空; take all elements of _Right with no comparisons
+#if _ITERATOR_DEBUG_LEVEL == 2
+            {
+                _Lockit _加锁(_LOCK_DEBUG);
+                _转移非首前所有权(_Right);
+            } // unlock
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+            _My_data._Myhead    = _Right_data._Myhead;
+            _Right_data._Myhead = nullptr;
+            return;
+        }
+
+#if _ITERATOR_DEBUG_LEVEL == 2
+        constexpr bool _Noexcept =
+            noexcept(_DEBUG_LT_PRED(_Pred, _My_data._Myhead->_Myval, _Right_data._Myhead->_Myval));
+        if constexpr (_Noexcept) {
+            // if the comparison is noexcept, we can take all the iterators in one go and avoid quadratic updates of
+            // the iterator chain
+            _Lockit _加锁(_LOCK_DEBUG);
+            _转移非首前所有权(_Right);
+        } // unlock
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+        if (!_Right_data._Myhead) {
+            return;
+        }
+
+        auto _BFirst1 = _My_data._头之前();
+        auto _First2  = _Right_data._Myhead;
+        for (;;) { // process 1 splice
+            _结点指针 _First1;
+            for (;;) { // advance _BFirst1 over elements already in position
+                _First1 = _BFirst1->_Next;
+                if (!_First1) { // all elements in _Right are greater than elements in *this, splice them all
+                    _BFirst1->_Next     = _First2;
+                    _Right_data._Myhead = nullptr;
+                    return;
+                }
+
+                if (_DEBUG_LT_PRED(_Pred, _First2->_Myval, _First1->_Myval)) {
+                    // _First2->_Myval is out of order
+                    break;
+                }
+
+                // _First1->_Myval is already in position; advance
+                _BFirst1 = _First1;
+            }
+
+            // find the 结束 of the "run" of elements less than _First1->_Myval in _Right
+            auto _BRun_end = _First2;
+            _结点指针 _Run_end;
+            for (;;) {
+                _Run_end = _BRun_end->_Next;
+                if (!_Run_end) {
+                    break;
+                }
+
+                if (!_DEBUG_LT_PRED(_Pred, _Run_end->_Myval, _First1->_Myval)) {
+                    // _Run_end is the first element in _Right that shouldn't precede _First1->_Myval.
+                    // After the splice _First1->_Myval will be in position and must not be compared again.
+                    break;
+                }
+
+                _BRun_end = _Run_end;
+            }
+
+#if _ITERATOR_DEBUG_LEVEL == 2
+            if constexpr (!_Noexcept) {
+                _Lockit _加锁(_LOCK_DEBUG);
+                for (auto _Next = _First2; _Next != _Run_end; _Next = _Next->_Next) {
+                    _转移所有权(_Right, _Next);
+                }
+            } // unlock
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+            _Right_data._Myhead = _Run_end; // snip out the run from its old position
+            _BFirst1->_Next     = _First2; // insert into new position
+            _BRun_end->_Next    = _First1;
+            if (!_Run_end) {
+                return;
+            }
+
+            _BFirst1 = _First1;
+            _First2  = _Run_end;
+        }
+    }
+
+public:
+    void 排序() { // order sequence
+        _迭代器检查值::_排序(_Mypair._Myval2._头之前(), less<>{});
+    }
+
+    template <class _Pr2>
+    void 排序(_Pr2 _Pred) { // order sequence
+        _迭代器检查值::_排序(_Mypair._Myval2._头之前(), _传递函数(_Pred));
+    }
+
+    void 反转() noexcept { // 反转 sequence
+        auto _Current = _Mypair._Myval2._Myhead;
+        if (!_Current) {
+            // 为空 单向链表实现
+            return;
+        }
+
+        _结点指针 _Prev{};
+        for (;;) {
+            const auto _Next = _Current->_Next;
+            _Current->_Next  = _Prev;
+            if (!_Next) {
+                _Mypair._Myval2._Myhead = _Current;
+                return;
+            }
+
+            _Prev    = _Current;
+            _Current = _Next;
+        }
+    }
+
+private:
+#if _ITERATOR_DEBUG_LEVEL == 2
+    void _转移非首前所有权(单向链表实现& _Right) noexcept {
+        // requires holding the debug lock
+        const auto _我的容器            = _STD addressof(_Mypair._Myval2);
+        const auto _Myproxy           = _我的容器->_Myproxy;
+        const auto _Right_before_head = _Right._Mypair._Myval2._头之前();
+        _迭代器基类12** _Pnext     = &_Right._Mypair._Myval2._Myproxy->_Myfirstiter;
+        while (*_Pnext) {
+            const auto _Pnextptr = static_cast<const_iterator&>(**_Pnext)._Ptr;
+            if (_Pnextptr == _Right_before_head) {
+                _Pnext = &(*_Pnext)->_Mynextiter;
+            } else { // take the iterator
+                const auto _Extracted   = *_Pnext;
+                *_Pnext                 = (*_Pnext)->_Mynextiter;
+                _Extracted->_Myproxy    = _Myproxy;
+                _Extracted->_Mynextiter = _Myproxy->_Myfirstiter;
+                _Myproxy->_Myfirstiter  = _Extracted;
+            }
+        }
+    }
+
+    void _转移所有权(单向链表实现& _Right, _结点指针 _Target) noexcept {
+        // requires holding the debug lock
+        const auto _我的容器        = _STD addressof(_Mypair._Myval2);
+        const auto _Myproxy       = _我的容器->_Myproxy;
+        _迭代器基类12** _Pnext = &_Right._Mypair._Myval2._Myproxy->_Myfirstiter;
+        while (*_Pnext) {
+            const auto _Pnextptr = static_cast<const_iterator&>(**_Pnext)._Ptr;
+            if (_Pnextptr != _Target) {
+                _Pnext = &(*_Pnext)->_Mynextiter;
+            } else { // take the iterator
+                const auto _Extracted   = *_Pnext;
+                *_Pnext                 = (*_Pnext)->_Mynextiter;
+                _Extracted->_Myproxy    = _Myproxy;
+                _Extracted->_Mynextiter = _Myproxy->_Myfirstiter;
+                _Myproxy->_Myfirstiter  = _Extracted;
+            }
+        }
+    }
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+    void _接合其后(_结点指针 _Where, 单向链表实现& _Right, _结点指针 _Prev) noexcept {
+        // splice _Right (_Prev, _Prev + 2) after _Where
+#if _ITERATOR_DEBUG_LEVEL == 0
+        (void) _Right;
+#else // ^^^ _ITERATOR_DEBUG_LEVEL == 0 / _ITERATOR_DEBUG_LEVEL != 0 vvv
+        if constexpr (!_结点分配器特征::is_always_equal::value) {
+            _STL_VERIFY(_取分配器() == _Right._取分配器(), "单向链表实现 containers incompatible for 后接合");
+        }
+#endif // ^^^ _ITERATOR_DEBUG_LEVEL != 0 ^^^
+
+#if _ITERATOR_DEBUG_LEVEL == 2
+        if (this != _STD addressof(_Right)) {
+            _Lockit _加锁(_LOCK_DEBUG);
+            _转移所有权(_Right, _Prev->_Next);
+        }
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+        if (_Where != _Prev) {
+            const auto _首个 = _Prev->_Next;
+            if (_Where != _首个) {
+                _Prev->_Next  = _首个->_Next;
+                _首个->_Next = _Where->_Next;
+                _Where->_Next = _首个;
+            }
+        }
+    }
+
+    template <class _哨兵>
+    void _接合其后(_非检查常量迭代器 _Where, 单向链表实现& _Right, _非检查常量迭代器 _首个,
+        _哨兵 _最后) noexcept {
+        // splice _Right (_首个, _最后) just after _Where
+#if _ITERATOR_DEBUG_LEVEL == 0
+        (void) _Right;
+#else // ^^^ _ITERATOR_DEBUG_LEVEL == 0 / _ITERATOR_DEBUG_LEVEL != 0 vvv
+        if constexpr (!_结点分配器特征::is_always_equal::value) {
+            _STL_VERIFY(_取分配器() == _Right._取分配器(), "单向链表实现 containers incompatible for 后接合");
+        }
+#endif // ^^^ _ITERATOR_DEBUG_LEVEL != 0 ^^^
+
+        if (_首个 == _最后) {
+            return;
+        }
+
+#if _ITERATOR_DEBUG_LEVEL == 2
+        if (this != _STD addressof(_Right)) { // transfer ownership of (_首个, _最后)
+            _Lockit _加锁(_LOCK_DEBUG);
+            _非检查常量迭代器 _Next = _首个;
+            while (++_Next != _最后) { // transfer ownership
+                _转移所有权(_Right, _Next._Ptr);
+            }
+        }
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+
+        // find prev(_最后)
+        _非检查常量迭代器 _After = _首个;
+        ++_After;
+        if (_After == _最后) {
+            return;
+        }
+
+        _非检查常量迭代器 _Prev_last = _首个;
+        do {
+            _Prev_last = _After;
+            ++_After;
+        } while (_After != _最后);
+
+        const auto _Extracted_head = _首个._Ptr->_Next;
+        _首个._Ptr->_Next         = _After._Ptr;
+        _Prev_last._Ptr->_Next     = _Where._Ptr->_Next;
+        _Where._Ptr->_Next         = _Extracted_head;
+    }
+
+    void _分配代理() {
+        _Mypair._Myval2._分配代理(_取代理分配器(_结点分配器, _取分配器()));
+    }
+
+    void _交换代理与迭代器(单向链表实现& _Right) noexcept {
+        _Mypair._Myval2._交换代理与迭代器(_Right._Mypair._Myval2);
+    }
+
+    _结点分配器& _取分配器() noexcept {
+        return _Mypair._取第一();
+    }
+
+    const _结点分配器& _取分配器() const noexcept {
+        return _Mypair._取第一();
+    }
+
+    _压缩对<_结点分配器, _迭代器检查值> _Mypair;
+};
+
+#if _HAS_CXX17
+template <class _Iter, class _分配器 = allocator<_Iter_value_t<_Iter>>,
+    enable_if_t<conjunction_v<_Is_iterator<_Iter>, _Is_allocator<_分配器>>, int> = 0>
+单向链表实现(_Iter, _Iter, _分配器 = _分配器()) -> 单向链表实现<_Iter_value_t<_Iter>, _分配器>;
+#endif // _HAS_CXX17
+
+#if _HAS_CXX23
+template <_RANGES input_range _Rng, _Allocator_for_container _分配器 = allocator<_RANGES range_value_t<_Rng>>>
+单向链表实现(from_range_t, _Rng&&, _分配器 = _分配器()) -> 单向链表实现<_RANGES range_value_t<_Rng>, _分配器>;
+#endif // _HAS_CXX23
+
+_EXPORT_STD template <class _类型, class _分配器>
+void swap(单向链表实现<_类型, _分配器>& _Left, 单向链表实现<_类型, _分配器>& _Right) noexcept /* strengthened */ {
+    _Left.swap(_Right);
+}
+
+_EXPORT_STD template <class _类型, class _分配器>
+_NODISCARD bool operator==(const 单向链表实现<_类型, _分配器>& _Left, const 单向链表实现<_类型, _分配器>& _Right) {
+    return _STD equal(
+        _Left._非检查开始(), _Left._非检查结束迭代器(), _Right._非检查开始(), _Right._非检查结束迭代器());
+}
+
+#if _HAS_CXX20
+_EXPORT_STD template <class _类型, class _分配器>
+_NODISCARD _Synth_three_way_result<_类型> operator<=>(
+    const 单向链表实现<_类型, _分配器>& _Left, const 单向链表实现<_类型, _分配器>& _Right) {
+    return _STD lexicographical_compare_three_way(_Left._非检查开始(), _Left._非检查结束迭代器(),
+        _Right._非检查开始(), _Right._非检查结束迭代器(), _Synth_three_way{});
+}
+#else // ^^^ _HAS_CXX20 / !_HAS_CXX20 vvv
+template <class _类型, class _分配器>
+_NODISCARD bool operator!=(const 单向链表实现<_类型, _分配器>& _Left, const 单向链表实现<_类型, _分配器>& _Right) {
+    return !(_Left == _Right);
+}
+
+template <class _类型, class _分配器>
+_NODISCARD bool operator<(const 单向链表实现<_类型, _分配器>& _Left, const 单向链表实现<_类型, _分配器>& _Right) {
+    return _STD lexicographical_compare(
+        _Left._非检查开始(), _Left._非检查结束迭代器(), _Right._非检查开始(), _Right._非检查结束迭代器());
+}
+
+template <class _类型, class _分配器>
+_NODISCARD bool operator>(const 单向链表实现<_类型, _分配器>& _Left, const 单向链表实现<_类型, _分配器>& _Right) {
+    return _Right < _Left;
+}
+
+template <class _类型, class _分配器>
+_NODISCARD bool operator<=(const 单向链表实现<_类型, _分配器>& _Left, const 单向链表实现<_类型, _分配器>& _Right) {
+    return !(_Right < _Left);
+}
+
+template <class _类型, class _分配器>
+_NODISCARD bool operator>=(const 单向链表实现<_类型, _分配器>& _Left, const 单向链表实现<_类型, _分配器>& _Right) {
+    return !(_Left < _Right);
+}
+#endif // ^^^ !_HAS_CXX20 ^^^
+
+#if _HAS_CXX20
+_EXPORT_STD template <class _类型, class _分配器, class _结果类型>
+单向链表实现<_类型, _分配器>::size_type erase(单向链表实现<_类型, _分配器>& _Cont, const _结果类型& _Val) {
+    return _Cont.按条件移除([&](const _类型& _元素) -> bool { return _元素 == _Val; });
+}
+
+_EXPORT_STD template <class _类型, class _分配器, class _Pr>
+单向链表实现<_类型, _分配器>::size_type erase_if(单向链表实现<_类型, _分配器>& _Cont, _Pr _Pred) {
+    return _Cont.按条件移除(_传递函数(_Pred));
+}
+#endif // _HAS_CXX20
+
+#if _HAS_CXX17
+namespace pmr {
+    使用 名域 std::pmr;   // 嵌套名域暂不翻，但里面的名字要靠它找到（步 2b）
+    _EXPORT_STD template <class _类型>
+    using 单向链表实现 = 单向链表实现<_类型, polymorphic_allocator<_类型>>;
+} // namespace pmr
+#endif // _HAS_CXX17
+} }
+#pragma pop_macro("new")
+_STL_RESTORE_CLANG_WARNINGS
+#pragma warning(pop)
+#pragma pack(pop)
+#endif // _STL_COMPILER_PREPROCESSOR
+// [ZH-DERIVE-LAYER] 汉语派生层（英文兼容层）从这一行开始 —— 本行【以上】属抄来那层，有英文名就是欠账
+// ============================================================================
+//  第二层：在【中文的基础上】派生，把英文原名补回来
+//  · 第一层 标准::细节::单向链表实现 是抄自微软的中文实现，成员名全中文
+//  · 本层加回英文原名，所以两种名字在【同一个对象】上都能用
+//  · 与微软的原类型并存：它是【另一个类型】，不碰 std 里的定义
+// ============================================================================
+名域 标准 {
+模板 <类型名 元素, 类型名 分配器 = std::allocator<元素>>
+类型 单向链表 : 公开 细节::单向链表实现<元素, 分配器> {
+公开:
+    使用 基类 = 细节::单向链表实现<元素, 分配器>;
+    使用 基类::基类;
+
+    // 嵌套类型名也要补回英文（数据成员不行 —— 那会改布局）
+    使用 迭代器 = 基类::iterator;
+    使用 常量迭代器 = 基类::const_iterator;
+    使用 值类型 = 基类::value_type;
+    使用 尺寸类型 = 基类::size_type;
+
+    // 英文原名，一模板转发回中文名（不需要写签名，重载也自动跟过去）
+    模板 <类型名... 参数> 声明类型(自动) empty(参数&&... 值) { 返回 基类::为空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) empty(参数&&... 值) 常量 { 返回 基类::为空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) max_size(参数&&... 值) { 返回 基类::最大尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) max_size(参数&&... 值) 常量 { 返回 基类::最大尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) before_begin(参数&&... 值) { 返回 基类::首前(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) before_begin(参数&&... 值) 常量 { 返回 基类::首前(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) begin(参数&&... 值) { 返回 基类::开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) begin(参数&&... 值) 常量 { 返回 基类::开始(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) end(参数&&... 值) { 返回 基类::结束(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) end(参数&&... 值) 常量 { 返回 基类::结束(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) front(参数&&... 值) { 返回 基类::前(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) front(参数&&... 值) 常量 { 返回 基类::前(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) push_front(参数&&... 值) { 返回 基类::头插(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) push_front(参数&&... 值) 常量 { 返回 基类::头插(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) pop_front(参数&&... 值) { 返回 基类::头删(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) pop_front(参数&&... 值) 常量 { 返回 基类::头删(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) emplace_front(参数&&... 值) { 返回 基类::头部就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) emplace_front(参数&&... 值) 常量 { 返回 基类::头部就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) insert_after(参数&&... 值) { 返回 基类::后插(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) insert_after(参数&&... 值) 常量 { 返回 基类::后插(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) emplace_after(参数&&... 值) { 返回 基类::后就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) emplace_after(参数&&... 值) 常量 { 返回 基类::后就地构造(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) erase_after(参数&&... 值) { 返回 基类::后擦除(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) erase_after(参数&&... 值) 常量 { 返回 基类::后擦除(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) assign(参数&&... 值) { 返回 基类::赋值(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) assign(参数&&... 值) 常量 { 返回 基类::赋值(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) resize(参数&&... 值) { 返回 基类::调整尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) resize(参数&&... 值) 常量 { 返回 基类::调整尺寸(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) clear(参数&&... 值) { 返回 基类::清空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) clear(参数&&... 值) 常量 { 返回 基类::清空(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) get_allocator(参数&&... 值) { 返回 基类::取分配器(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) get_allocator(参数&&... 值) 常量 { 返回 基类::取分配器(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) sort(参数&&... 值) { 返回 基类::排序(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) sort(参数&&... 值) 常量 { 返回 基类::排序(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) merge(参数&&... 值) { 返回 基类::归并(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) merge(参数&&... 值) 常量 { 返回 基类::归并(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) splice_after(参数&&... 值) { 返回 基类::后接合(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) splice_after(参数&&... 值) 常量 { 返回 基类::后接合(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) remove(参数&&... 值) { 返回 基类::移除(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) remove(参数&&... 值) 常量 { 返回 基类::移除(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) remove_if(参数&&... 值) { 返回 基类::按条件移除(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) remove_if(参数&&... 值) 常量 { 返回 基类::按条件移除(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) unique(参数&&... 值) { 返回 基类::去重(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) unique(参数&&... 值) 常量 { 返回 基类::去重(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) reverse(参数&&... 值) { 返回 基类::反转(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) reverse(参数&&... 值) 常量 { 返回 基类::反转(static_cast<参数&&>(值)...); }
+
+    // 表里给的额外成员（deriveExtra）—— 【中文】转发，用来给"继承自借用基类"的
+    // API 补中文名（那些名字不在本文件里，members 表改不到，见方案 §3.16）
+
+};
+}
+
+#endif // _FORWARD_LIST_

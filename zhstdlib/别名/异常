@@ -1,0 +1,28 @@
+// <异常> —— exception 的中文别名层
+//
+// 为什么是别名而不是抄一份（方案铁律 4）：
+//   本头里的东西，类型身份参与语义（换一份就成了两套互不相认的东西）。
+//   这类头一旦抄一份，就会和 std 里那份成为两套互不相认的东西。
+//
+// 英文原名照旧可用：这里只是【多一个名字】，原头一个字节没动。
+// 变体（英文里带 _v 的变量模板形式）暂未提供中文名，属"必须的妥协"，见方案 §六。
+#pragma once
+#include <exception>
+
+名域 标准 {
+    使用 异常 = std::exception;
+    使用 坏异常 = std::bad_exception;
+    使用 变体访问失败 = std::bad_variant_access;
+    使用 异常指针 = std::exception_ptr;
+    使用 嵌套异常 = std::nested_exception;
+    使用 终止处理 = std::terminate_handler;
+    模板 <类型名... 参数> 声明类型(自动) 当前异常(参数&&... 值) { 返回 std::current_exception(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 造异常指针(参数&&... 值) { 返回 std::make_exception_ptr(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 重抛异常(参数&&... 值) { 返回 std::rethrow_exception(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 抛出并嵌套(参数&&... 值) { 返回 std::throw_with_nested(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 若有嵌套则重抛(参数&&... 值) { 返回 std::rethrow_if_nested(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 终止(参数&&... 值) { 返回 std::terminate(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取终止函数(参数&&... 值) { 返回 std::get_terminate(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 设置终止函数(参数&&... 值) { 返回 std::set_terminate(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 未捕获异常数(参数&&... 值) { 返回 std::uncaught_exceptions(static_cast<参数&&>(值)...); }
+}

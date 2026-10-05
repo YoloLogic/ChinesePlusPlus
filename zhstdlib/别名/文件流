@@ -1,0 +1,40 @@
+// <文件流> —— fstream 的中文别名层
+//
+// 为什么是别名而不是抄一份（方案铁律 4）：
+//   铁律③：basic_filebuf/basic_ifstream 等身份参与语义（与 std 流互操作）；正文是成员函数。
+//   这类头一旦抄一份，就会和 std 里那份成为两套互不相认的东西。
+//
+// 英文原名照旧可用：这里只是【多一个名字】，原头一个字节没动。
+// 变体（英文里带 _v 的变量模板形式）暂未提供中文名，属"必须的妥协"，见方案 §六。
+#pragma once
+#include <fstream>
+
+名域 标准 {
+    #ifndef _ZH_流类型名
+    #define _ZH_流类型名
+    模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>> 使用 基础输入流 = std::basic_istream<元素, 特征>;
+    模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>> 使用 基础输出流 = std::basic_ostream<元素, 特征>;
+    模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>> 使用 基础流缓冲 = std::basic_streambuf<元素, 特征>;
+    使用 输入流 = std::istream;
+    使用 输出流 = std::ostream;
+    使用 流缓冲 = std::streambuf;
+    模板 <类型名 元素, 类型名 特征> 基础输出流<元素, 特征>& 行尾流冲刷(基础输出流<元素, 特征>& 甲) { 返回 std::endl(甲); }
+    模板 <类型名 元素, 类型名 特征> 基础输出流<元素, 特征>& 加终止符(基础输出流<元素, 特征>& 甲) { 返回 std::ends(甲); }
+    模板 <类型名 元素, 类型名 特征> 基础输出流<元素, 特征>& 流冲刷(基础输出流<元素, 特征>& 甲) { 返回 std::flush(甲); }
+    #endif // _ZH_流类型名
+    #ifndef _ZH_文件流名字
+    #define _ZH_文件流名字
+    模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>> 使用 基础文件缓冲 = std::basic_filebuf<元素, 特征>;
+    模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>> 使用 基础输入文件流 = std::basic_ifstream<元素, 特征>;
+    模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>> 使用 基础输出文件流 = std::basic_ofstream<元素, 特征>;
+    模板 <类型名 元素, 类型名 特征 = std::char_traits<元素>> 使用 基础输入输出文件流 = std::basic_fstream<元素, 特征>;
+    使用 文件缓冲 = std::filebuf;
+    使用 输入文件流 = std::ifstream;
+    使用 输出文件流 = std::ofstream;
+    使用 输入输出文件流 = std::fstream;
+    使用 宽文件缓冲 = std::wfilebuf;
+    使用 宽输入文件流 = std::wifstream;
+    使用 宽输出文件流 = std::wofstream;
+    使用 宽输入输出文件流 = std::wfstream;
+    #endif // _ZH_文件流名字
+}

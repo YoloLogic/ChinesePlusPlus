@@ -1,0 +1,22 @@
+// <标准异常> —— stdexcept 的中文别名层
+//
+// 为什么是别名而不是抄一份（方案铁律 4）：
+//   本头里的东西，类型身份参与语义（换一份就成了两套互不相认的东西）。
+//   这类头一旦抄一份，就会和 std 里那份成为两套互不相认的东西。
+//
+// 英文原名照旧可用：这里只是【多一个名字】，原头一个字节没动。
+// 变体（英文里带 _v 的变量模板形式）暂未提供中文名，属"必须的妥协"，见方案 §六。
+#pragma once
+#include <stdexcept>
+
+名域 标准 {
+    使用 逻辑错误 = std::logic_error;
+    使用 定义域错误 = std::domain_error;
+    使用 无效实参 = std::invalid_argument;
+    使用 长度错误 = std::length_error;
+    使用 越界错误 = std::out_of_range;
+    使用 运行时错误 = std::runtime_error;
+    使用 上溢错误 = std::overflow_error;
+    使用 下溢错误 = std::underflow_error;
+    使用 范围错误 = std::range_error;
+}

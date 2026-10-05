@@ -1,0 +1,37 @@
+// <概念> —— concepts 的中文别名层
+//
+// 为什么是别名而不是抄一份（方案铁律 4）：
+//   本头里的东西，类型身份参与语义（换一份就成了两套互不相认的东西）。
+//   这类头一旦抄一份，就会和 std 里那份成为两套互不相认的东西。
+//
+// 英文原名照旧可用：这里只是【多一个名字】，原头一个字节没动。
+// 变体（英文里带 _v 的变量模板形式）暂未提供中文名，属"必须的妥协"，见方案 §六。
+#pragma once
+#include <concepts>
+
+名域 标准 {
+    模板 <类型名 甲, 类型名 乙> 概念 相同于 = std::same_as<甲, 乙>;
+    模板 <类型名 派生, 类型名 基> 概念 派生自 = std::derived_from<派生, 基>;
+    模板 <类型名 从, 类型名 到> 概念 可转换到 = std::convertible_to<从, 到>;
+    模板 <类型名 甲, 类型名 乙> 概念 公共于 = std::common_with<甲, 乙>;
+    模板 <类型名 某类型> 概念 整数型 = std::integral<某类型>;
+    模板 <类型名 某类型> 概念 有符号整数型 = std::signed_integral<某类型>;
+    模板 <类型名 某类型> 概念 无符号整数型 = std::unsigned_integral<某类型>;
+    模板 <类型名 某类型> 概念 浮点型 = std::floating_point<某类型>;
+    模板 <类型名 某类型, 类型名 从> 概念 可赋值自 = std::assignable_from<某类型, 从>;
+    模板 <类型名 某类型> 概念 可交换 = std::swappable<某类型>;
+    模板 <类型名 甲, 类型名 乙> 概念 可与交换 = std::swappable_with<甲, 乙>;
+    模板 <类型名 某类型> 概念 可析构 = std::destructible<某类型>;
+    模板 <类型名 某类型, 类型名... 参数> 概念 可构造自 = std::constructible_from<某类型, 参数...>;
+    模板 <类型名 某类型> 概念 可默认初始化 = std::default_initializable<某类型>;
+    模板 <类型名 某类型> 概念 可移动构造 = std::move_constructible<某类型>;
+    模板 <类型名 某类型> 概念 可复制构造 = std::copy_constructible<某类型>;
+    模板 <类型名 某类型> 概念 可相等比较 = std::equality_comparable<某类型>;
+    模板 <类型名 某类型> 概念 全序 = std::totally_ordered<某类型>;
+    模板 <类型名 函数, 类型名... 参数> 概念 可调用 = std::invocable<函数, 参数...>;
+    模板 <类型名 函数, 类型名... 参数> 概念 谓词 = std::predicate<函数, 参数...>;
+    模板 <类型名 某类型> 概念 正规 = std::regular<某类型>;
+    模板 <类型名 某类型> 概念 半正规 = std::semiregular<某类型>;
+    模板 <类型名 某类型> 概念 可移动 = std::movable<某类型>;
+    模板 <类型名 某类型> 概念 可复制 = std::copyable<某类型>;
+}

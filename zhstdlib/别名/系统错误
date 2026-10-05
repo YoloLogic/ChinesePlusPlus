@@ -1,0 +1,24 @@
+// <系统错误> —— system_error 的中文别名层
+//
+// 为什么是别名而不是抄一份（方案铁律 4）：
+//   本头里的东西，类型身份参与语义（换一份就成了两套互不相认的东西）。
+//   这类头一旦抄一份，就会和 std 里那份成为两套互不相认的东西。
+//
+// 英文原名照旧可用：这里只是【多一个名字】，原头一个字节没动。
+// 变体（英文里带 _v 的变量模板形式）暂未提供中文名，属"必须的妥协"，见方案 §六。
+#pragma once
+#include <system_error>
+
+名域 标准 {
+    使用 错误类别 = std::error_category;
+    使用 错误码 = std::error_code;
+    使用 错误条件 = std::error_condition;
+    使用 系统错误 = std::system_error;
+    使用 错误码值 = std::errc;
+    使用 输入输出错误码 = std::io_errc;
+    模板 <类型名... 参数> 声明类型(自动) 造错误码(参数&&... 值) { 返回 std::make_error_code(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 造错误条件(参数&&... 值) { 返回 std::make_error_condition(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 通用类别(参数&&... 值) { 返回 std::generic_category(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 系统类别(参数&&... 值) { 返回 std::system_category(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 输入输出类别(参数&&... 值) { 返回 std::iostream_category(static_cast<参数&&>(值)...); }
+}
