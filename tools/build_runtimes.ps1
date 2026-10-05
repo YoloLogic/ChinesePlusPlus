@@ -7,6 +7,16 @@
 #   clang_rt.profile*   --coverage / -fprofile-instr-generate
 #   (clang_rt.builtins* only if the target needs them; the MSVC target does not)
 #
+# AND WHERE THEY GO (added 2026-10-05)
+#   This script now also INSTALLS them where the driver looks for them --
+#   <resource-dir>\lib\windows\ (+ the ignorelists in <resource-dir>\share\),
+#   with the resource dir taken from `chinese++.exe --print-resource-dir`.
+#   Before that, this script only printed the artifacts, so the 2026-09-26 copy
+#   was placed BY HAND -- i.e. repackaging depended on someone remembering, and
+#   make_package.ps1 throws when the folder is missing. It also self-checks that
+#   the 6 runtime libraries packaging\verify.ps1 demands are really there.
+#   Expected: 12 clang_rt.* files / ~8.3 MB.  See docs\打包\打包方案.md 7.11.
+#
 # WHY THIS IS A SEPARATE SCRIPT
 #   tools\rebuild_clang.ps1 does NOT build compiler-rt. LLVM_ENABLE_RUNTIMES is a
 #   different configure, and the runtimes are compiled BY THE FRESHLY BUILT
@@ -88,6 +98,78 @@ if (-not (Test-Path $rcExe)) { throw "rc.exe not found at $rcExe" }
 if (-not (Test-Path $mtExe)) { throw "mt.exe not found at $mtExe" }
 Write-Host "  Windows SDK tools: $($sdkVer.Name)"
 
+# ---------------------------------------------------------------------------
+# CMAKE_AR must be an MSVC-compatible archiver. (Observed 2026-10-05.)
+#
+# SYMPTOM: a fresh Ninja configure outside a "Developer Command Prompt" leaves
+#   CMAKE_AR-NOTFOUND, and then EVERY static library target dies at the archive
+#   step with:
+#       C:\windows\system32\cmd.exe /C "... CMAKE_AR-NOTFOUND /nologo /machine:x64
+#            /IGNORE:4221 /out:compiler-rt\lib\windows\clang_rt.builtins-x86_64.lib @..."
+#       'CMAKE_AR-NOTFOUND' is not recognized as an internal or external command
+#   Measured: 2 targets FAILED (clang_rt.builtins-x86_64.lib,
+#   clang_rt.stats-x86_64.lib) and ninja stopped at 463/505 with ZERO
+#   clang_rt.* artifacts produced -- i.e. the sanitizer runtime the package
+#   needs was silently absent. In a VS prompt lib.exe is on PATH, which is why
+#   this was never seen before.
+#
+# WHY lib.exe AND NOT llvm-ar.exe: CMake's Windows-clang platform module writes
+#   MSVC-style archive command lines (`/nologo /machine:x64 /IGNORE:4221
+#   /out:...`). MSVC's lib.exe is exactly that tool. llvm-ar.exe only behaves
+#   that way when it is INVOKED as `llvm-lib` (name-based dispatch), and the
+#   build tree has no llvm-lib.exe -- so llvm-ar.exe under its own name would be
+#   given MSVC flags it does not accept. We therefore look for MSVC's lib.exe in
+#   the usual Visual Studio roots (short list, no full-tree recursion), newest
+#   toolset first; if none is found we fall back to creating the llvm-lib.exe
+#   alias next to our own llvm-ar.exe, which the packaged install does too.
+# ---------------------------------------------------------------------------
+$arExe = $null
+$vsRoots = @(
+    'C:\Program Files\Microsoft Visual Studio\2022\Community',
+    'C:\Program Files\Microsoft Visual Studio\2022\BuildTools',
+    'C:\Program Files\Microsoft Visual Studio\2022\Professional',
+    'C:\Program Files\Microsoft Visual Studio\2022\Enterprise',
+    'C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools',
+    'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community'
+)
+foreach ($vs in $vsRoots) {
+    $msvcDirs = Join-Path $vs 'VC\Tools\MSVC'
+    if (-not (Test-Path $msvcDirs)) { continue }
+    $toolset = Get-ChildItem $msvcDirs -Directory -ErrorAction SilentlyContinue |
+               Sort-Object Name -Descending | Select-Object -First 1
+    if (-not $toolset) { continue }
+    $cand = Join-Path $toolset.FullName 'bin\Hostx64\x64\lib.exe'
+    if (Test-Path $cand) { $arExe = $cand; break }
+}
+if (-not $arExe) {
+    $libAlias = Join-Path $bin 'llvm-lib.exe'
+    if (-not (Test-Path $libAlias)) {
+        try { New-Item -ItemType HardLink -Path $libAlias -Target (Join-Path $bin 'llvm-ar.exe') -ErrorAction Stop | Out-Null }
+        catch { Copy-Item (Join-Path $bin 'llvm-ar.exe') $libAlias -Force }
+    }
+    $arExe = $libAlias
+    Write-Host "  archiver: fell back to $libAlias (no MSVC lib.exe found)" -ForegroundColor Yellow
+} else {
+    Write-Host "  archiver: $arExe"
+}
+
+# AND put its directory on PATH -- measured 2026-10-05, this is the part that
+# actually fixes it:
+#   `-DCMAKE_AR=<lib.exe>` alone is NOT enough. The log says
+#       "-- Performing standalone runtimes build."
+#   i.e. compiler-rt is configured by a SECOND, nested cmake invocation, and that
+#   nested configure does not inherit the outer cache's CMAKE_AR -- every static
+#   library target still came out as `CMAKE_AR-NOTFOUND`. With lib.exe's own
+#   directory on PATH, CMake finds it by itself (find_program), for BOTH the
+#   outer and the nested configure. That is precisely what a "Developer Command
+#   Prompt" provides, which is why this never happened upstream or on 2026-09-26.
+#   (Keeping -DCMAKE_AR as well is harmless and helps the outer configure.)
+$arDir = Split-Path -Parent $arExe
+if ($env:PATH -notlike "*$arDir*") {
+    $env:PATH = "$arDir;$env:PATH"
+    Write-Host "  archiver dir on PATH: $arDir"
+}
+
 # The documented standalone-runtimes entry point is <llvm-project>\runtimes.
 $runtimesSrc = Join-Path $root 'LLVM-main\runtimes'
 if (-not (Test-Path (Join-Path $runtimesSrc 'CMakeLists.txt'))) {
@@ -135,6 +217,7 @@ function ToCmakePath([string]$p) { return ($p -replace '\\', '/') }
     "-DCMAKE_ASM_COMPILER=$(ToCmakePath $crt)" `
     "-DCMAKE_RC_COMPILER=$(ToCmakePath $rcExe)" `
     "-DCMAKE_MT=$(ToCmakePath $mtExe)" `
+    "-DCMAKE_AR=$(ToCmakePath $arExe)" `
     "-DLLVM_ENABLE_RUNTIMES=compiler-rt" `
     "-DLLVM_TARGETS_TO_BUILD=X86" `
     "-DCOMPILER_RT_INCLUDE_TESTS=OFF" `
@@ -158,3 +241,61 @@ Get-ChildItem $out -Recurse -File -ErrorAction SilentlyContinue |
     Where-Object { $_.Name -match '^clang_rt\.' -and $_.Extension -in '.lib', '.dll', '.a', '.exe' } |
     Sort-Object Name |
     ForEach-Object { "  {0,-52} {1,8} KB" -f $_.Name, [int]($_.Length / 1KB) }
+
+# ---------------------------------------------------------------------------
+# === install into the resource dir ===  (added 2026-10-05)
+#
+# WHY THIS STEP EXISTS AT ALL: compiler-rt does NOT install itself where the
+#   driver looks for it. This script used to stop after printing the artifacts,
+#   so the 2026-09-26 copy under build\Release\lib\clang\24\lib\windows was
+#   placed BY HAND -- i.e. "repackaging" depended on someone remembering, and
+#   make_package.ps1 throws when that folder is missing (measured 2026-10-05:
+#   the folder did not exist at all, so no package could be assembled).
+#
+# WHERE: never guessed. The driver reports its own resource dir:
+#       chinese++.exe --print-resource-dir   ->  ...\build\Release\lib\clang\24
+#   and packaging\verify.ps1 checks exactly:
+#       <resource-dir>\lib\windows\clang_rt.*        (the runtime libraries)
+#       <resource-dir>\share\{asan,cfi}_ignorelist.txt (clang passes these to
+#                                                      the driver; shipped too)
+#
+# JUDGED, not assumed: the 6 files verify.ps1 requires must exist afterwards,
+#   otherwise this script fails loudly instead of leaving a half-installed tree.
+# ---------------------------------------------------------------------------
+Write-Host "=== install into the resource dir ===" -ForegroundColor Cyan
+$resDir = (& (Join-Path $bin 'chinese++.exe') --print-resource-dir | Select-Object -First 1)
+if ($resDir) { $resDir = $resDir.Trim() }
+if (-not $resDir -or -not (Test-Path $resDir)) { throw "cannot determine the resource dir (got '$resDir')" }
+$dstWin   = Join-Path $resDir 'lib\windows'
+$dstShare = Join-Path $resDir 'share'
+New-Item -ItemType Directory -Force $dstWin, $dstShare | Out-Null
+
+$nRt = 0
+Get-ChildItem $out -Recurse -File -ErrorAction SilentlyContinue |
+    Where-Object { $_.Name -match '^clang_rt\.' -and $_.Extension -in '.lib', '.dll' } |
+    ForEach-Object { Copy-Item $_.FullName (Join-Path $dstWin $_.Name) -Force; $nRt++ }
+
+$ignoreSrc = Join-Path $root 'LLVM-main\compiler-rt\lib\sanitizer_ignorelists'
+$nIgn = 0
+foreach ($n in @('asan_ignorelist.txt', 'cfi_ignorelist.txt', 'hwasan_ignorelist.txt', 'msan_ignorelist.txt')) {
+    $s = Join-Path $ignoreSrc $n
+    if (Test-Path $s) { Copy-Item $s (Join-Path $dstShare $n) -Force; $nIgn++ }
+}
+Write-Host ("  {0} runtime files -> {1}" -f $nRt, $dstWin)
+Write-Host ("  {0} ignorelists  -> {1}" -f $nIgn, $dstShare)
+
+# The same 6 names packaging\verify.ps1 demands -- keep the two lists in sync.
+$must = @(
+    'clang_rt.asan_dynamic-x86_64.dll',
+    'clang_rt.asan_dynamic-x86_64.lib',
+    'clang_rt.asan_dynamic_runtime_thunk-x86_64.lib',
+    'clang_rt.asan_static_runtime_thunk-x86_64.lib',
+    'clang_rt.profile-x86_64.lib',
+    'clang_rt.ubsan_standalone-x86_64.lib'
+)
+$miss = @($must | Where-Object { -not (Test-Path (Join-Path $dstWin $_)) })
+if ($miss.Count) { throw ("install incomplete -- still missing: " + ($miss -join ', ')) }
+foreach ($n in @('asan_ignorelist.txt', 'cfi_ignorelist.txt')) {
+    if (-not (Test-Path (Join-Path $dstShare $n))) { throw "install incomplete -- share\$n missing" }
+}
+Write-Host "  all 6 required runtime libraries + both ignorelists are in place" -ForegroundColor Green
