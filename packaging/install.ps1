@@ -71,6 +71,53 @@ foreach ($real in $families.Keys) {
 Write-Host ("  created {0} hardlinks, {1} copies; {2} already present" -f $linked, $copied, $kept)
 
 # ---------------------------------------------------------------------------
+# 1b. bin\<driver>.cfg -- where the Chinese headers live (2026-10-05, D-22)
+#
+#     WHY: `#include <...>` for our headers must work with NO -I/-isystem on the
+#     command line, and clangd (the editor's language server) asks the driver
+#     for its search paths. Without this file every Chinese include is reported
+#     as "file not found" -- on the command line AND, worse, underlined in red
+#     in the editor. Measured on the build tree before it existed:
+#         chinese++.exe -std=c++20 x.cpp   ->  cannot find file 'vector-cn'
+#         clangd --check x.cpp             ->  pp_file_not_found
+#     After: both clean, with the same file.
+#
+#     The path LIST is not written here: it comes from tools\zh_includes.ps1
+#     (single source of truth), which ships in tools\. Naming the four Chinese
+#     sub-folders here is impossible anyway -- this file is pure ASCII on
+#     purpose (PowerShell 5.1 reads a BOM-less file as GBK).
+#
+#     MEASURED TRAPS (handled inside make_zhcfg.ps1):
+#       * in a cfg a backslash is an ESCAPE -> the paths must use forward slashes
+#       * a cfg line is split on whitespace  -> paths with spaces must be quoted
+#       * a RELATIVE path resolves against the CURRENT WORKING DIRECTORY, not
+#         against the cfg -> only absolute paths work.
+#     Consequence, exactly like .vscode\ and env.cmd: MOVE OR RENAME THE PACKAGE
+#     -> RUN THIS INSTALLER AGAIN.
+#     clang.cfg is written too: clangd's fallback driver is the `clang` next to
+#     it, so without clang.cfg the editor stays red even though chinese++.cfg
+#     exists (measured).
+#
+#     Invoked through `powershell` rather than `pwsh`: the user's machine is not
+#     guaranteed to have PowerShell 7, and the two scripts use nothing newer.
+# ---------------------------------------------------------------------------
+Write-Host ''
+Write-Host '--- 1b) <driver>.cfg (Chinese include paths)'
+$zhcfg = Join-Path $here 'tools\make_zhcfg.ps1'
+if (Test-Path $zhcfg) {
+    & powershell -NoProfile -ExecutionPolicy Bypass -File $zhcfg -BinDir $bin -ZhRoot $here
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host '  [warn] could not write <driver>.cfg -- Chinese headers will not be found' -ForegroundColor Yellow
+        Write-Host '         (the package folder is probably read-only)' -ForegroundColor Yellow
+    }
+} else {
+    Write-Host '  [warn] tools\make_zhcfg.ps1 is missing from this package copy.' -ForegroundColor Yellow
+    Write-Host '         The Chinese library (zhstdlib\) will not be found: the search' -ForegroundColor Yellow
+    Write-Host '         paths live in tools\zh_includes.ps1 and are written into' -ForegroundColor Yellow
+    Write-Host '         bin\<driver>.cfg by that script.' -ForegroundColor Yellow
+}
+
+# ---------------------------------------------------------------------------
 # 2. env.cmd -- session-scoped PATH, nothing global
 # ---------------------------------------------------------------------------
 Write-Host ''

@@ -177,6 +177,46 @@ Get-ChildItem $packSrc -File | Where-Object { $_.Extension -in @('.md', '.txt') 
     }
 
 # ---------------------------------------------------------------------------
+# 5a. the Chinese standard library itself, and the two scripts that tell the
+#     compiler where it is (2026-10-05, decision D-22).
+#
+#     WHY IT MUST SHIP: `#include <...>` for our headers is not magic -- the
+#     compiler only knows where to look because of a `<driver>.cfg` sitting next
+#     to it, and that cfg points at THIS package's zhstdlib. Without zhstdlib in
+#     the package a user cannot compile a single Chinese include, and nothing in
+#     the package said so (measured 2026-10-05: make_package.ps1 had no mention
+#     of zhstdlib at all, and dist\Chinese++-0.1-win64\ had no such folder).
+#
+#     WHY THE CFG IS NOT WRITTEN HERE: it holds ABSOLUTE paths, and the package
+#     has no final location until the user unzips it. install.ps1 writes it.
+#
+#     ASCII NOTE: zhstdlib\'s four sub-folders have CHINESE names. This file
+#     stays pure ASCII, so those names are never spelled here -- they live in
+#     tools\zh_includes.ps1 (single source of truth), which ships in tools\.
+#     Size measured 2026-10-05: 2.7 MB / 118 headers (the zip is ~178 MB, so
+#     this is noise). `_来源\` is NOT included: it holds source manifests and
+#     copies, takes no part in `#include`, and shipping it could shadow a real
+#     Microsoft header.
+# ---------------------------------------------------------------------------
+$zhSrc = Join-Path $root 'zhstdlib'
+if (-not (Test-Path $zhSrc)) {
+    throw "no Chinese library at $zhSrc -- run tools\regen_zhstdlib.ps1 before packaging"
+}
+Copy-Item $zhSrc (Join-Path $pkg 'zhstdlib') -Recurse -Force
+$zhFiles = @(Get-ChildItem (Join-Path $pkg 'zhstdlib') -Recurse -File)
+$zhKB = [int](($zhFiles | Measure-Object Length -Sum).Sum / 1KB)
+Write-Host ("  zhstdlib: {0} headers, {1} KB" -f $zhFiles.Count, $zhKB)
+
+$pkgTools = Join-Path $pkg 'tools'
+New-Item -ItemType Directory -Force $pkgTools | Out-Null
+foreach ($n in @('zh_includes.ps1', 'make_zhcfg.ps1')) {
+    $s = Join-Path $root "tools\$n"
+    if (-not (Test-Path $s)) { throw "missing tools\$n (needed to write the include-path cfg)" }
+    Copy-Item $s (Join-Path $pkgTools $n) -Force
+}
+Write-Host '  tools\zh_includes.ps1 + tools\make_zhcfg.ps1 copied'
+
+# ---------------------------------------------------------------------------
 # 5b. bundled portable editor (VSCodium)
 #
 #     WHY VSCODIUM AND NOT VS CODE
