@@ -315,6 +315,30 @@ $T = [ordered]@{
       @('函数','取性能频率','QueryPerformanceFrequency'),
       @('函数','取开机毫秒数','GetTickCount64'),
       @('函数','取本机时间','GetLocalTime'), @('函数','取世界时间','GetSystemTime')) }
+
+  # ---------------------------------------------------------------------------
+  #  §18.28 第四轨道（GUI）：**复制体 + 包装** —— 用户已定方向：绝不改微软的头。
+  #  ⚠ 源头仍是 `windows.h`（用 `inc` 字段指定）：实测 `#包含 <winuser.h>` **单独引编不过**
+  #    （winnt.h 报 "No Target Architecture"，它假定 windows.h 已把目标架构定好）；
+  #    而 `'windows.h'` 这个键已被 `<Windows系统>` 占用 ⇒ 本条**用中文键**（regen 的扫描支持中文键）。
+  #  ⚠ 结构体是**我们自己的复制体**（不是 SDK 那个类型）：成员用匿名联合体给"中文 + 英文"两个名字，
+  #    布局由 **13 条 static_assert**（sizeof + 每成员 offsetof）钉住 —— SDK 一升级就当场编译报错。
+  #    代价（登记在方案 §3.4.2 边界）：与原生 Win32 代码混用要显式转换（同 `标准::向量` vs `std::vector`）。
+  #  ⚠ 包装函数用 `原文` 条目原样发出（与别名轨的 `'原样'` 同思路）：强转只出现一次、集中在库里。
+  #  ---------------------------------------------------------------------------
+  '窗口' = @{ zh='窗口'; kind='系统头'; inc='Windows系统'; a=@(
+      @('结构复制','窗口类','WNDCLASSEXW',@(
+          @('cbSize','cbSize','无符号 整数'), @('style','style','无符号 整数'),
+          @('窗口过程','lpfnWndProc','WNDPROC'),
+          @('cbClsExtra','cbClsExtra','int'), @('cbWndExtra','cbWndExtra','int'),
+          @('hInstance','hInstance','HINSTANCE'), @('hIcon','hIcon','HICON'),
+          @('hCursor','hCursor','HCURSOR'), @('hbrBackground','hbrBackground','HBRUSH'),
+          @('lpszMenuName','lpszMenuName','LPCWSTR'), @('lpszClassName','lpszClassName','LPCWSTR'),
+          @('hIconSm','hIconSm','HICON'))),
+      @('原文','    内联 整数 注册窗口类(常量 窗口类& 类){ 返回 RegisterClassExW((常量 WNDCLASSEXW*)&类); }'),
+      @('原文','    内联 标准::窗口句柄 创建消息窗口(常量 宽字符* 类名, 常量 宽字符* 标题){ 返回 CreateWindowExW(0, 类名, 标题, 0, 0,0,0,0, HWND_MESSAGE, 空指针, 空指针, 空指针); }'),
+      @('原文','    内联 整数 取消息(MSG& 消){ 返回 GetMessageW(&消, 空指针, 0, 0); }'),
+      @('原文','    内联 整数 派发消息(常量 MSG& 消){ 返回 (整数)DispatchMessageW(&消); }')) }
 }
 # §18.21：kind 字段进 JSON（供 tools\make_zh_usage.ps1 把"系统头"单独列一节，不与"C 包装头"混）。
 foreach ($k in @($T.Keys)) { if (-not $T[$k].ContainsKey('kind')) { $T[$k]['kind'] = 'C包装头' } }
@@ -748,6 +772,38 @@ $TESTS = [ordered]@{
     返回 0;
 }
 '@
+    # §18.28 第四轨道（GUI）：**message-only window** 真跑一遍（不弹窗、不阻塞）。
+    #   · 中文成员名与英文成员名**都写一次**（同一存储）——这条读不出来的话说明联合体没接对；
+    #   · `注册窗口类` 收的是**我们自己的 `窗口类`**（库里强转一次），`创建消息窗口` 直接给 message-only；
+    #   · `user32.lib` 必须链（GUI 函数在 user32.dll）；
+    #   · 退出码 0 的条件：队列里取到过消息 **且** 窗口过程被调到过（"跑 0 条不算通过"）。
+    '窗口' = @'
+#包含 <窗口>
+#包含 <C标准整数>
+#pragma comment(lib, "user32.lib")
+整数 收到消息数 = 0;
+标准::指针整数 我的窗口过程(标准::窗口句柄 窗, 无符号 整数 消息, 标准::无符号指针整数 甲, 标准::指针整数 乙){
+    收到消息数++;
+    如果 (消息 == WM_DESTROY) { PostQuitMessage(0); 返回 0; }
+    返回 DefWindowProcW(窗, 消息, 甲, 乙);
+}
+整数 主函数(){
+    标准::窗口类 类 = {0};
+    类.cbSize = sizeof(标准::窗口类);
+    类.窗口过程 = 我的窗口过程;                  // ← 中文成员名
+    类.lpfnWndProc = 我的窗口过程;                // ← 英文成员名（同一个存储，两行都对）
+    类.hInstance = GetModuleHandleW(空指针);
+    类.lpszClassName = L"探针窗口类";
+    如果 (!标准::注册窗口类(类)) { 返回 1; }
+    标准::窗口句柄 窗 = 标准::创建消息窗口(L"探针窗口类", L"探针");
+    如果 (窗 == 空指针) { 返回 2; }
+    PostMessageW(窗, WM_CLOSE, 0, 0);
+    MSG 消; 整数 条数 = 0;
+    每当 (标准::取消息(消) > 0) { TranslateMessage(&消); 标准::派发消息(消); 条数++; }
+    UnregisterClassW(L"探针窗口类", 类.hInstance);
+    返回 (条数 >= 1 && 收到消息数 >= 1) ? 0 : 3;
+}
+'@
     'C时间' = @'
 #包含 <C时间>
 整数 主函数(){
@@ -806,6 +862,9 @@ if ($ExportJson) { $T | ConvertTo-Json -Depth 8; exit 0 }
 
 foreach ($h in $T.Keys) {
     $zh = $T[$h].zh
+    #  §18.28：源头头可用 `inc` 字段指定 —— `<窗口>`（GUI 复制体）的源头必须是 windows.h，
+    #  但它不能再用 `'windows.h'` 这个键（已被 `<Windows系统>` 占了）⇒ 键用中文名、源头写在 inc 里。
+    $inc = if ($T[$h].inc) { $T[$h].inc } else { $h }
     $body = @()
     foreach ($e in $T[$h].a) {
         $line = $null
@@ -820,6 +879,26 @@ foreach ($h in $T.Keys) {
             #   ⚠ 宏名**不在** `标准` 名域里（预处理器不认名域），用的时候直接写
             #     `开始可变参数表(表, 格式)`，不要加 `标准::`。
             '函数式宏' { $line = ("#定义 {0} {1}" -f $e[1], $e[2]); $cnt['函数式宏']++ }
+            # §18.28 第四轨道：结构体**复制体** —— 中英名不同的成员用**匿名联合体**给两个名字
+            #   （同一存储、布局不变），并紧跟**布局断言表**（sizeof + 每成员 __builtin_offsetof 对拍）。
+            #   ⚠ 断言用 `__builtin_offsetof` 而不是 `offsetof`：后者要引 <cstddef>（我们的 <C标准定义>），
+            #     实测产品头不引时 `offsetof(...)` 会报「意外的类型名…期望的是表达式」。
+            '结构复制' {
+                $zn = $e[1]; $en = $e[2]; $mems = $e[3]
+                $ls = @(('    结构 {0} {{' -f $zn))
+                foreach ($m in $mems) {
+                    if ($m[0] -eq $m[1]) { $ls += ('        {0} {1};' -f $m[2], $m[1]) }
+                    else { $ls += ('        union {{ {0} {1}; {0} {2}; }};' -f $m[2], $m[1], $m[0]) }
+                }
+                $ls += '    };'
+                $ls += ('    static_assert(sizeof({0}) == sizeof({1}), "布局漂移：sizeof");' -f $zn, $en)
+                foreach ($m in $mems) {
+                    $ls += ('    static_assert(__builtin_offsetof({0}, {1}) == __builtin_offsetof({2}, {3}), "布局漂移：{3}");' -f $zn, $m[1], $en, $m[1])
+                }
+                $line = ($ls -join "`n"); $cnt['结构复制']++
+            }
+            # §18.28：原样发出几行 —— 给**包装函数**用（库里转换一次，DLL 只在库内部出现）
+            '原文' { $line = $e[1]; $cnt['原文']++ }
         }
         if ($null -eq $line) { continue }
         if ($SENTINEL.ContainsKey($e[1])) {
@@ -861,7 +940,7 @@ foreach ($h in $T.Keys) {
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
-#include <$h>
+#include <$inc>
 
 名域 标准 {
 $($body -join "`n")
@@ -885,7 +964,7 @@ $($body -join "`n")
 // 变参函数（printf/scanf 一家）**也能转发** —— 用的就是上面那条变参模板，
 // §18.19 实测改正了原先"变参无法转发"的错误结论。真正转发不了的只剩**宏**：$variadicNote。
 #pragma once
-#include <$h>
+#include <$inc>
 
 名域 标准 {
 $($body -join "`n")
@@ -904,7 +983,7 @@ Write-Host ("  生成 {0} 个中文头（其中系统头 {5} 个）：类型 {1}
 
 # 删掉抄坏的副本（它们在 shadow 真正的 <cstddef> 等）
 $victims = 0
-foreach ($h in $T.Keys) { foreach ($pd in (Get-ZhProductDirs $root)) { $p = Join-Path $pd $h; if (Test-Path $p) { Remove-Item $p -Force; $victims++ } } }
+foreach ($h in $T.Keys) { if ($h -notmatch '^[A-Za-z_]') { continue }; foreach ($pd in (Get-ZhProductDirs $root)) { $p = Join-Path $pd $h; if (Test-Path $p) { Remove-Item $p -Force; $victims++ } } }
 Write-Host ("  已删除抄坏的副本 {0} 个" -f $victims) -ForegroundColor Yellow
 
 # ---------------------------------------------------------------------------

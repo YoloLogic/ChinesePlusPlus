@@ -769,7 +769,7 @@ $ctext = [System.IO.File]::ReadAllText((Join-Path $root 'tools\make_zhc.ps1'))
 #    而盘上明明有 117 个产物、1222 个名字。**漏扫的"全量"不是全量**（§15.3 的同一类病）。
 #    改法：允许 `zh=…` 与 `a=@(` 之间还有其他 `键=值;` 字段（限制在同一个 `@{…}` 内，用 `[^{}]`）。
 #    分组编号保持不变：1=英文键 2=中文头名 3=条正文。
-foreach ($em in [regex]::Matches($ctext, "(?ms)^\s*'([a-z_][a-z0-9_.]*)'\s*=\s*@\{(?:[^{}]*?)zh\s*=\s*'([^']+)'(?:[^{}]*?)a\s*=\s*@\((.*?)\)\s*\}")) {
+foreach ($em in [regex]::Matches($ctext, "(?ms)^\s*'([A-Za-z_\u4e00-\u9fff][A-Za-z0-9_.\u4e00-\u9fff]*)'\s*=\s*@\{(?:[^{}]*?)zh\s*=\s*'([^']+)'(?:[^{}]*?)a\s*=\s*@\((.*?)\)\s*\}")) {
     $names = @()
     #  ⚠ §18.21 同一条判据（正则必须匹配**所有合法形态**）：原式的第三条是
     #    `@\('(\S+?)','([^']+)','([^']*)'\)` —— **只认三元条目**，于是
@@ -779,6 +779,11 @@ foreach ($em in [regex]::Matches($ctext, "(?ms)^\s*'([a-z_][a-z0-9_.]*)'\s*=\s*@
     #      宏 / 变量 都是 `内联 常量 …` ⇒ 读一次（'常量'），不是"合成调用模板函数"；
     #      函数式宏是 `#定义 名 原名`，**名字不在 `标准` 名域里**，没法取地址也没法合成调用
     #      ⇒ 记 '全局宏名'（不生成探针），只能靠条目用例覆盖（§17.19.58）。
+    #  §18.28：结构复制 的第四元是【成员数组】而不是引号串，通用名字正则匹配不到它 —— 单独提取
+    foreach ($sm in [regex]::Matches($em.Groups[3].Value, "@\('结构复制','([^']+)'")) {
+        $sn = $sm.Groups[1].Value
+        if (Test-ZhName $sn) { $names += [pscustomobject]@{ Name = $sn; Kind = '类型'; Template = '' } }
+    }
     foreach ($nm in [regex]::Matches($em.Groups[3].Value, "@\('(\S+?)','([^']+)','([^']*)'(?:,'[^']*')?\)")) {
         $kind = $nm.Groups[1].Value; $nm2 = $nm.Groups[2].Value
         if (-not (Test-ZhName $nm2)) { continue }
@@ -788,6 +793,9 @@ foreach ($em in [regex]::Matches($ctext, "(?ms)^\s*'([a-z_][a-z0-9_.]*)'\s*=\s*@
             '宏'       { $names += [pscustomobject]@{ Name = $nm2; Kind = '常量'; Template = '' } }
             '变量'     { $names += [pscustomobject]@{ Name = $nm2; Kind = '常量'; Template = '' } }
             '函数式宏' { $names += [pscustomobject]@{ Name = $nm2; Kind = '全局宏名'; Template = '' } }
+            #  §18.28 第四轨道：结构体**复制体** —— 名字是 标准:: 下的类型；原文 是原样代码，不是名字
+            '结构复制' { $names += [pscustomobject]@{ Name = $nm2; Kind = '类型'; Template = '' } }
+            '原文'     { }
             default    { $names += [pscustomobject]@{ Name = $nm2; Kind = '模板函数'; Template = '' } }
         }
     }
