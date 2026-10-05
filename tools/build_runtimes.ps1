@@ -284,6 +284,39 @@ foreach ($n in @('asan_ignorelist.txt', 'cfi_ignorelist.txt', 'hwasan_ignorelist
 Write-Host ("  {0} runtime files -> {1}" -f $nRt, $dstWin)
 Write-Host ("  {0} ignorelists  -> {1}" -f $nIgn, $dstShare)
 
+# ---------------------------------------------------------------------------
+# AND the runtime INTERFACE HEADERS (`<sanitizer/asan_interface.h>` and friends).
+#
+# WHY (found 2026-10-06, while publishing): those headers are part of what
+#   compiler-rt installs, and the previous published package carried 26 of them
+#   under lib\clang\<ver>\include\{sanitizer,profile,fuzzer,orc_rt,xray}. Without
+#   this step they were simply ABSENT from the new package (syncing it into the
+#   release repo showed all 26 as deletions), so a user could not
+#   `#include <sanitizer/asan_interface.h>` even though the ASan runtime IS
+#   shipped -- the interface and the implementation would disagree.
+#
+# NAMED EXCEPTION, not a silent gap: `orc_rt\c_api.h` and the three `xray\*.h`
+#   do NOT come back, because this configure sets COMPILER_RT_BUILD_ORC=OFF and
+#   COMPILER_RT_BUILD_XRAY=OFF -- we do not ship those runtimes, so their headers
+#   must not be there either. (Recorded in the ledger; not a regression.)
+# ---------------------------------------------------------------------------
+$incSrc = Join-Path $out 'compiler-rt\include'
+$dstInc = Join-Path $resDir 'include'
+$nHdr = 0
+if (Test-Path $incSrc) {
+    New-Item -ItemType Directory -Force $dstInc | Out-Null
+    Get-ChildItem $incSrc -Recurse -File |
+        Where-Object { $_.Name -ne 'cmake_install.cmake' } |
+        ForEach-Object {
+            $rel = $_.FullName.Substring($incSrc.Length + 1)
+            $dst = Join-Path $dstInc $rel
+            New-Item -ItemType Directory -Force (Split-Path -Parent $dst) | Out-Null
+            Copy-Item $_.FullName $dst -Force
+            $nHdr++
+        }
+}
+Write-Host ("  {0} interface headers -> {1}" -f $nHdr, $dstInc)
+
 # The same 6 names packaging\verify.ps1 demands -- keep the two lists in sync.
 $must = @(
     'clang_rt.asan_dynamic-x86_64.dll',
@@ -297,5 +330,8 @@ $miss = @($must | Where-Object { -not (Test-Path (Join-Path $dstWin $_)) })
 if ($miss.Count) { throw ("install incomplete -- still missing: " + ($miss -join ', ')) }
 foreach ($n in @('asan_ignorelist.txt', 'cfi_ignorelist.txt')) {
     if (-not (Test-Path (Join-Path $dstShare $n))) { throw "install incomplete -- share\$n missing" }
+}
+foreach ($h in @('sanitizer\asan_interface.h', 'sanitizer\common_interface_defs.h', 'profile\instr_prof_interface.h')) {
+    if (-not (Test-Path (Join-Path $dstInc $h))) { throw "install incomplete -- include\$h missing (interface headers)" }
 }
 Write-Host "  all 6 required runtime libraries + both ignorelists are in place" -ForegroundColor Green
