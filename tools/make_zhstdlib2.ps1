@@ -23,6 +23,10 @@ $root  = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
 $cxx   = Join-Path $root 'build\Release\bin\chinese++.exe'
 $vsInc = 'C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include'
 $out   = Join-Path $root 'zhstdlib'
+. (Join-Path $root 'tools\zh_includes.ps1')
+$outStd = Join-Path $out '标准库'     # 本轨（抄+派生）的写出目录（§18.26 方案②）
+New-Item -ItemType Directory -Force $outStd | Out-Null
+$zhIncArgs = Get-ZhIncludeArgs $root
 $utf8  = New-Object System.Text.UTF8Encoding($false)
 
 # ---------------------------------------------------------------------------
@@ -7075,7 +7079,7 @@ if ($isShell) {
     if (-not $spec.shellHost)     { throw "薄壳条目必须写 shellHost（内部件产物名）" }
     if (-not $spec.shellGuard)    { throw "薄壳条目必须写 shellGuard（包含守卫宏名）" }
     if (-not $spec.shellIncludes) { throw "薄壳条目必须写 shellIncludes（要包含的内部件，有序）" }
-    $srcPath = Join-Path $out ([string]$spec.shellHost)
+    $srcPath = Find-ZhProduct ([string]$spec.shellHost) $root
     if (-not (Test-Path $srcPath)) { throw "薄壳的内部件产物不存在：$srcPath（先做内部件）" }
     $incl = (@($spec.shellIncludes) | ForEach-Object { "#include <$_>" }) -join "`r`n"
     $shellText = @"
@@ -7716,7 +7720,7 @@ $($spec.deriveExtra)
 "@
 #$text = $text + $layer    # ← 派生层改到"编译器校对之后"再追加，见下
 New-Item -ItemType Directory -Force $out | Out-Null
-$outPath = Join-Path $out $spec.zh
+$outPath = Join-Path $outStd $spec.zh
 
 # ---------------------------------------------------------------------------
 #  守卫：宏泄漏检查（§16.24，由组合探针抓到的一次真实失败逼出来）
@@ -7823,7 +7827,7 @@ for ($round = 1; $round -le $maxRounds; $round++) {
     #    是**闸门**（全量验证/实例化/汉化标尺同时报红）抓到的。教训：
     #    "改一个对机器可见的数字的默认值"会打到自己的工具链上；
     #    消费方要显式声明自己按哪个口径读。
-    $raw = & cmd /c "`"$cxx`" -std=c++20 -fdiagnostics-column-unit=byte -isystem`"$out`" -ferror-limit=0 -fsyntax-only `"$probe`" 2>&1"
+    $raw = & cmd /c "`"$cxx`" -std=c++20 -fdiagnostics-column-unit=byte $zhIncArgs -ferror-limit=0 -fsyntax-only `"$probe`" 2>&1"
     $hits = @()
     foreach ($l in @($raw)) {
         if ([string]$l -match "$($spec.zh)`:(\d+):(\d+): error: .*?(?:没有名为（成员名）|没有名为（名字）|未知的类型名（类型名）) '([^']+)'") {
@@ -8018,7 +8022,7 @@ if ($spec.realInclude) {
     if ($riChecked -gt 0) {
         $lines2 += "整数 主函数(){ 返回 0; }"
         [System.IO.File]::WriteAllText($probe2, ($lines2 -join "`n") + "`n", $utf8)
-        $raw2 = & cmd /c "`"$cxx`" -std=c++20 -isystem`"$out`" -fsyntax-only `"$probe2`" 2>&1"
+        $raw2 = & cmd /c "`"$cxx`" -std=c++20 $zhIncArgs -fsyntax-only `"$probe2`" 2>&1"
         if ($LASTEXITCODE -ne 0) {
             Remove-Item $probe2 -Force -ErrorAction SilentlyContinue
             Write-Host ("  ❌ 顺带引真头探针 FAIL（只写 <{0}> 时真头没进来）:" -f $spec.zh) -ForegroundColor Red
@@ -8049,7 +8053,7 @@ foreach ($c in $cases) {
     #   实测：这正是本条修复的原因。用 [char]96 + 'n' 拼出那两个字面字符。
     [System.IO.File]::WriteAllText($src, $c[1].Replace([char]96 + 'n', "`n") + "`n", $utf8)
     $exeRun = Join-Path $env:TEMP ('zh2run_' + [guid]::NewGuid().ToString('N') + '.exe')
-    & cmd /c "`"$cxx`" -std=c++20 -isystem`"$out`" `"$src`" -o `"$exeRun`" > `"$t\o.txt`" 2>&1"
+    & cmd /c "`"$cxx`" -std=c++20 $zhIncArgs `"$src`" -o `"$exeRun`" > `"$t\o.txt`" 2>&1"
     $ccRc  = $LASTEXITCODE
     $runRc = -1
     if ($ccRc -eq 0) {

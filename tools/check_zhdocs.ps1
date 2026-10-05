@@ -20,6 +20,8 @@ param([switch] $Check, [switch] $Quiet, [switch] $SelfTest)
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
+. (Join-Path $root 'tools\zh_includes.ps1')
+$zhInc = Get-ZhIncludeArgs $root
 $docs = @('README.md', 'docs\README.md', 'docs\使用说明.md', 'docs\汉字第一公民-路线图.md',
           'third_party\README.md', 'docs\宣传\介绍-面向投资者与合作方.md', 'docs\宣传\介绍-面向非技术读者.md',
           'packaging\常见问题.md', 'packaging\中文对照表.md')
@@ -109,7 +111,7 @@ foreach ($d in $docs) {
         if ($d -ne 'README.md' -and $m.Groups[2].Value -notmatch '主函数') { $blkSkip++; continue }
         $f = Join-Path $outDir ("blk_{0}_{1}.cpp" -f ($d -replace '[\\/\.]', '_'), $i)
         [System.IO.File]::WriteAllText($f, $m.Groups[2].Value, (New-Object System.Text.UTF8Encoding($false)))
-        & cmd /c "`"$cxx`" -std=c++20 -isystem`"$root\zhstdlib`" -I`"$root\examples`" -fsyntax-only `"$f`" > `"$outDir\o.txt`" 2>&1"
+        & cmd /c "`"$cxx`" -std=c++20 $zhInc -I`"$root\examples`" -fsyntax-only `"$f`" > `"$outDir\o.txt`" 2>&1"
         if ($LASTEXITCODE -eq 0) { $blkOK++ }
         else {
             $err = (Get-Content "$outDir\o.txt" -ErrorAction SilentlyContinue | Where-Object { $_ -match 'error:' } | Select-Object -First 1)

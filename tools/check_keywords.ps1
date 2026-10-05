@@ -70,6 +70,10 @@ $tkDef  = Join-Path $Root 'LLVM-main\clang\include\clang\Basic\TokenKinds.def'
 $idInfo = Join-Path $Root 'LLVM-main\clang\include\clang\Basic\IdentifierTable.h'   # IdentifierInfo 的声明在这里（不在 Lex 下）
 $exe    = Join-Path $Root $Cxx
 $work   = Join-Path $Root $WorkDir
+#  §18.26 方案②：汉化库搜索路径的单一事实来源在 tools\zh_includes.ps1（产品按来源分文件夹后，
+#  这里不再是"-isystem zhstdlib"一条，而是根 + 4 个来源目录）。
+. (Join-Path $Root 'tools\zh_includes.ps1')
+$incArgs = @(); foreach ($d in (Get-ZhIncludeDirs $Root)) { $incArgs += @('-isystem', $d) }
 foreach ($p in @($kwDef, $tkDef, $idInfo, $exe)) {
     if (-not (Test-Path $p)) { Write-Host "❌ 缺文件：$p" -ForegroundColor Red; exit 2 }
 }
@@ -511,8 +515,8 @@ if (@($Only) -contains 'D') {
         [System.IO.File]::WriteAllText($p中, ($协程前 + "任务 甲() { " + $c[1] + " }" + $尾), (New-Object System.Text.UTF8Encoding($false)))
         [System.IO.File]::WriteAllText($p英, ($协程前 + "任务 甲() { " + $c[2] + " }" + $尾), (New-Object System.Text.UTF8Encoding($false)))
         $e中 = Join-Path $work ('co_' + $c[0] + '_.exe'); $e英 = Join-Path $work ('co_' + $c[0] + '_en.exe')
-        $o中 = (& $exe '-std=c++20' '-isystem' (Join-Path $Root 'zhstdlib') -ferror-limit=0 -o $e中 $p中 2>&1 | Out-String)
-        $o英 = (& $exe '-std=c++20' '-isystem' (Join-Path $Root 'zhstdlib') -ferror-limit=0 -o $e英 $p英 2>&1 | Out-String)
+        $o中 = (& $exe '-std=c++20' @incArgs -ferror-limit=0 -o $e中 $p中 2>&1 | Out-String)
+        $o英 = (& $exe '-std=c++20' @incArgs -ferror-limit=0 -o $e英 $p英 2>&1 | Out-String)
         if ($o中 -match '(?m)error') { 错 ("{0}（中文版编不过）：{1}" -f $c[0], (($o中 -split "`n" | Where-Object { $_ -match 'error' } | Select-Object -First 1))) ; continue }
         if ($o英 -match '(?m)error') { 错 ("{0}（英文版 {1} 编不过）：{2}" -f $c[0], $c[2], (($o英 -split "`n" | Where-Object { $_ -match 'error' } | Select-Object -First 1))); continue }
         $null = & $e中; $k中 = $LASTEXITCODE; $null = & $e英; $k英 = $LASTEXITCODE

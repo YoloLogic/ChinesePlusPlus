@@ -21,6 +21,7 @@ param([switch] $Quiet, [switch] $SelfTest, [string] $Dir)
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
+. (Join-Path $root 'tools\zh_includes.ps1')
 $Name = '[\u4e00-\u9fff][\w\u4e00-\u9fff]*'   # 名字里至少要有一个汉字（且以汉字开头）
 
 # §17.19.37 圆括号内不算命名空间作用域：算某一位次处的圆括号深度（base 为行首之前的累计深度）。
@@ -33,7 +34,9 @@ function Get-ParenDepthAt([string] $s, [int] $idx, [int] $base) {
 }
 function Get-ZhNames([string] $dir) {
     $out = @()
-    foreach ($f in (Get-ChildItem $dir -File | Sort-Object Name)) {
+    $zhProducts = @(Get-ChildItem (Get-ZhIncludeDirs $root) -File -ErrorAction SilentlyContinue)
+if ($zhProducts.Count -eq 0) { Write-Host "❌ 一个产物都没扫到 —— 跑 0 条的通过不是通过（§15.3）" -ForegroundColor Red; exit 1 }
+foreach ($f in ($zhProducts | Sort-Object Name)) {
         $stack = New-Object System.Collections.ArrayList   # 花括号种类栈
         $cond  = 0
         $paren = 0                                          # 圆括号深度（跨行累计，§17.19.37）

@@ -30,6 +30,8 @@ param([switch] $Detail, [switch] $Check, [switch] $Quiet, [string[]] $Chain)
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
+. (Join-Path $root 'tools\zh_includes.ps1')
+$zhInc = Get-ZhIncludeArgs $root
 $inc  = 'C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include'
 $mark = '[ZH-DERIVE-LAYER]'
 
@@ -332,7 +334,7 @@ foreach ($e2 in $entries) {
     #   为什么必须补它：<字符转换> 的 3 个名字在真头里只有【调用点】，
     #   进口声明是生成器 `prologue` 写进产物的（§17.52 实测改名 ⇒ 编不过 ⇒ 整份撤回），
     #   只扫真头抓不到 ⇒ 它们一直挂在真欠账里 ✗。产物的进口声明本身就是"X 定义在别处"的证据 ✓。
-    $p3 = Join-Path $root "zhstdlib\$($e2.Zh)"
+    $p3 = Find-ZhProduct ([string]$e2.Zh) $root   # §18.26：产品按来源分文件夹，按名字找
     if ($e2.Zh -and (Test-Path $p3)) {
         $t3 = [System.IO.File]::ReadAllText($p3)
         $cut3 = $t3.IndexOf('// [ZH-DERIVE-LAYER]')
@@ -573,7 +575,7 @@ function Get-NoComment([string] $t) {
 }
 foreach ($e in $entries) {
     if (-not $e.Zh) { continue }
-    $prod = Join-Path $root "zhstdlib\$($e.Zh)"
+    $prod = Find-ZhProduct ([string]$e.Zh) $root   # §18.26：产品按来源分文件夹，按名字找
     $orig = Join-Path $inc $e.H
     if (-not (Test-Path $prod) -or -not (Test-Path $orig)) { continue }
 
@@ -694,7 +696,7 @@ if ($Chain -and $Chain.Count) {
     $Chain = @($Chain | ForEach-Object { $_ -split ',' } | Where-Object { $_ })
     foreach ($cn in $Chain) {
         $hitP = @()
-        foreach ($pf in (Get-ChildItem (Join-Path $root 'zhstdlib') -File | Sort-Object Name)) {
+        foreach ($pf in (Get-ChildItem (Get-ZhIncludeDirs $root) -File -ErrorAction SilentlyContinue | Sort-Object Name)) {
             $pt = [System.IO.File]::ReadAllText($pf.FullName)
             $n = ([regex]::Matches($pt, ('(?<![\w])' + [regex]::Escape($cn) + '(?![\w])'))).Count
             if ($n -gt 0) { $hitP += ("{0}({1})" -f $pf.Name, $n) }

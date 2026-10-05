@@ -24,6 +24,11 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
 $cxx  = Join-Path $root 'build\Release\bin\chinese++.exe'
 $out  = Join-Path $root 'zhstdlib'
+#  §18.26 方案②：产品按来源分文件夹；搜索路径的单一事实来源在 tools\zh_includes.ps1
+. (Join-Path $root 'tools\zh_includes.ps1')
+$outC   = Join-Path $out 'C运行库'       # C 包装头 25 个
+$outSys = Join-Path $out 'windows系统'   # 系统头（Windows系统 等）
+$zhInc  = Get-ZhIncludeArgs $root
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 New-Item -ItemType Directory -Force $out | Out-Null
 
@@ -887,7 +892,9 @@ $($body -join "`n")
 }
 "@
     }
-    [System.IO.File]::WriteAllText((Join-Path $out $zh), $text, $utf8)
+    $destDir = if ($T[$h].kind -eq '系统头') { $outSys } else { $outC }
+    New-Item -ItemType Directory -Force $destDir | Out-Null
+    [System.IO.File]::WriteAllText((Join-Path $destDir $zh), $text, $utf8)
     $made += $zh; $n++
 }
 
@@ -897,7 +904,7 @@ Write-Host ("  生成 {0} 个中文头（其中系统头 {5} 个）：类型 {1}
 
 # 删掉抄坏的副本（它们在 shadow 真正的 <cstddef> 等）
 $victims = 0
-foreach ($h in $T.Keys) { $p = Join-Path $out $h; if (Test-Path $p) { Remove-Item $p -Force; $victims++ } }
+foreach ($h in $T.Keys) { foreach ($pd in (Get-ZhProductDirs $root)) { $p = Join-Path $pd $h; if (Test-Path $p) { Remove-Item $p -Force; $victims++ } } }
 Write-Host ("  已删除抄坏的副本 {0} 个" -f $victims) -ForegroundColor Yellow
 
 # ---------------------------------------------------------------------------
@@ -912,7 +919,7 @@ Write-Host ("  已删除抄坏的副本 {0} 个" -f $victims) -ForegroundColor Y
 $rawDir = Join-Path $root 'build\zhstdlib_raw'
 New-Item -ItemType Directory -Force $rawDir | Out-Null
 $moved = 0
-Get-ChildItem $out -File | Where-Object { $_.Name -match '^[A-Za-z_][A-Za-z0-9_]*$' } | ForEach-Object {
+Get-ChildItem (Get-ZhProductDirs $root) -File -ErrorAction SilentlyContinue | Where-Object { $_.Name -match '^[A-Za-z_][A-Za-z0-9_]*$' } | ForEach-Object {
     Move-Item $_.FullName (Join-Path $rawDir $_.Name) -Force; $moved++
 }
 Write-Host ("  已把 {0} 个未完成的英文名副本挪到 build\zhstdlib_raw\（它们会 shadow 真头）" -f $moved) -ForegroundColor Yellow
@@ -928,7 +935,7 @@ foreach ($h in $T.Keys) {
     $zh = $T[$h].zh
     $src = Join-Path $tmp 't.cpp'
     [System.IO.File]::WriteAllText($src, "#包含 <$zh>`n整数 主函数(){ 返回 0; }`n", $utf8)
-    & cmd /c "`"$cxx`" -std=c++20 -isystem`"$out`" -fsyntax-only `"$src`" > `"$tmp\o.txt`" 2>&1"
+    & cmd /c "`"$cxx`" -std=c++20 $zhInc -fsyntax-only `"$src`" > `"$tmp\o.txt`" 2>&1"
     if ($LASTEXITCODE -eq 0) { $ok++ }
     else {
         $first = Get-Content "$tmp\o.txt" -ErrorAction SilentlyContinue |
@@ -955,7 +962,7 @@ foreach ($h in $T.Keys) {
     if (-not $TESTS.Contains($zh)) { $caseNone += $zh; continue }
     $csrc = Join-Path $caseTmp 'r.cpp'; $cexe = Join-Path $caseTmp 'r.exe'
     [System.IO.File]::WriteAllText($csrc, $TESTS[$zh], $utf8)
-    & cmd /c "`"$cxx`" -std=c++20 -isystem`"$out`" `"$csrc`" -o `"$cexe`" > `"$caseTmp\o.txt`" 2>&1"
+    & cmd /c "`"$cxx`" -std=c++20 $zhInc `"$csrc`" -o `"$cexe`" > `"$caseTmp\o.txt`" 2>&1"
     if ($LASTEXITCODE -ne 0) {
         $first = Get-Content "$caseTmp\o.txt" -ErrorAction SilentlyContinue | Where-Object { $_ -match 'error:' } | Select-Object -First 1
         $caseBad += [pscustomobject]@{ Zh = $zh; What = '编译'; Err = ([string]$first).Trim() }

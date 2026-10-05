@@ -31,6 +31,9 @@ $vsInc = 'C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\
 if (-not (Test-Path $vsInc)) { throw "MSVC STL 不在 $vsInc —— 换 VS 版本请改脚本顶部的路径" }
 if (-not (Test-Path $cxx))   { throw "找不到编译器 $cxx" }
 if (-not $OutDir) { $OutDir = Join-Path $root 'zhstdlib' }
+#  §18.26 方案②：汉化库搜索路径的单一事实来源（产品按来源分文件夹后，不再是"-isystem zhstdlib"一条）
+. (Join-Path $root 'tools\zh_includes.ps1')
+$zhIncArgs = Get-ZhIncludeArgs $root
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 
 # ---------------------------------------------------------------------------

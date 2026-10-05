@@ -34,6 +34,7 @@ param([switch] $Quiet, [switch] $SelfTest)
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
+. (Join-Path $root 'tools\zh_includes.ps1')
 
 # ---------------------------------------------------------------------------
 #  扫描：只收【命名空间作用域】的 `模板 <...> 声明类型(自动) 名(参数表) [限定符] {`
@@ -45,7 +46,9 @@ $root = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
 # ---------------------------------------------------------------------------
 function Get-Forwarders([string] $dir) {
     $out = @()
-    foreach ($f in (Get-ChildItem $dir -File | Sort-Object Name)) {
+    $zhProducts = @(Get-ChildItem (Get-ZhIncludeDirs $root) -File -ErrorAction SilentlyContinue)
+if ($zhProducts.Count -eq 0) { Write-Host "❌ 一个产物都没扫到 —— 跑 0 条的通过不是通过（§15.3）" -ForegroundColor Red; exit 1 }
+foreach ($f in ($zhProducts | Sort-Object Name)) {
         $stack = New-Object System.Collections.ArrayList
         $cond  = 0                                          # 预处理条件深度
         $lines = [System.IO.File]::ReadAllText($f.FullName) -split "`n"

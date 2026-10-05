@@ -27,6 +27,10 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
 $cxx  = Join-Path $root 'build\Release\bin\chinese++.exe'
 $out  = Join-Path $root 'zhstdlib'
+. (Join-Path $root 'tools\zh_includes.ps1')
+$outAlias = Join-Path $out '别名'      # 本轨（别名）的写出目录（§18.26 方案②）
+New-Item -ItemType Directory -Force $outAlias | Out-Null
+$zhInc  = Get-ZhIncludeArgs $root
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 
 # 表：条目 = @('常量','中文名','std::原名','类型')
@@ -1452,7 +1456,7 @@ $($body -join "`n")
 }
 "@
 New-Item -ItemType Directory -Force $out | Out-Null
-$outPath = Join-Path $out $spec.zh
+$outPath = Join-Path $outAlias $spec.zh
 [System.IO.File]::WriteAllText($outPath, $text, $utf8)
 Write-Host "=== <$($spec.zh)> ===" -ForegroundColor Cyan
 Write-Host ("  生成 常量 {0} / 类型 {1} / 函数 {2} / 原样 {3}" -f $n['常量'], $n['类型'], $n['函数'], $n['原样'])
@@ -1490,7 +1494,7 @@ foreach ($c in $cases) {
     $stdFlag = '-std=c++20'
     $prodPath = $outPath   # 刚写出的这个产物
     if ((Test-Path $prodPath) -and ([System.IO.File]::ReadAllText($prodPath) -match '_HAS_CXX23')) { $stdFlag = '-std=c++23' }
-    & cmd /c "`"$cxx`" $stdFlag -isystem`"$out`" `"$src`" -o `"$exeRun`" > `"$t\o.txt`" 2>&1"
+    & cmd /c "`"$cxx`" $stdFlag $zhInc `"$src`" -o `"$exeRun`" > `"$t\o.txt`" 2>&1"
     $ccRc = $LASTEXITCODE
     $runRc = -1
     if ($ccRc -eq 0) { & $exeRun; $runRc = $LASTEXITCODE }

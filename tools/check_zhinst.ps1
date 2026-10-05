@@ -39,6 +39,8 @@ param([switch] $Check, [switch] $Quiet, [string[]] $Only = @(),
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
+. (Join-Path $root 'tools\zh_includes.ps1')
+$zhInc = Get-ZhIncludeArgs $root
 $cxx = Join-Path $root 'build\Release\bin\chinese++.exe'
 $out = Join-Path $root 'zhstdlib'
 $work = Join-Path $root 'build\_zhinst'
@@ -640,7 +642,7 @@ $dtab = $djson | ConvertFrom-Json
 #  「第一个命中」会抓错；而 traits 类往往声明在**容器**里（`无序映射:31 class _无序映射特征`），
 #  探针 TU 必须把那个产物也引进来才看得见。所以：多候选 + 各自带所属产物。
 $script:FileCache = @()
-Get-ChildItem $out -File -ErrorAction SilentlyContinue | ForEach-Object { $script:FileCache += ,@($_.Name, [System.IO.File]::ReadAllText($_.FullName)) }
+Get-ChildItem (Get-ZhIncludeDirs $root) -File -ErrorAction SilentlyContinue | ForEach-Object { $script:FileCache += ,@($_.Name, [System.IO.File]::ReadAllText($_.FullName)) }
 foreach ($pp in $dtab.PSObject.Properties) {
     if (-not (($pp.Value.PSObject.Properties.Name -contains 'types') -and $pp.Value.types)) { continue }
     foreach ($kk in $pp.Value.types.PSObject.Properties) {
@@ -664,7 +666,7 @@ foreach ($p in $dtab.PSObject.Properties) {
     #  产品名只有当它在产品正文里**确实被声明为类型**时才当类型探针 —— 否则会误报
     #  （`数值算法`/`版本`/`字符转换` 这类头是"只有函数/只有宏"的，`标准::数值算法` 不是类型）。
     $declaresType = $false; $pubName = $zh      # 每轮显式复位（PowerShell 的 if 不建作用域，不复位会串到下一个产物）
-    $prodFile = Join-Path $out $zh
+    $prodFile = Find-ZhProduct ([string]$zh) $root   # §18.26：产品按来源分文件夹
     $ptxt = ''
     if (Test-Path $prodFile) { $ptxt = [System.IO.File]::ReadAllText($prodFile) }
     if (Test-ZhName $zh) {
@@ -817,12 +819,24 @@ if ($products.Count -eq 0) { throw "实例化守卫：选中的产物数为 0（
 # ---------------------------------------------------------------------------
 if (-not $Only.Count) {
     $inLedger = @($products | ForEach-Object { $_.Product })
-    $onDisk = @(Get-ChildItem (Join-Path $root 'zhstdlib') -File | ForEach-Object { $_.Name })
+    $onDisk = @(Get-ChildItem (Get-ZhIncludeDirs $root) -File -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })
     $miss = @($onDisk | Where-Object { $inLedger -notcontains $_ })
     if ($miss.Count) {
         Write-Host ("❌ 实例化守卫漏扫了 {0} 个产物（盘上有、但三张生成器表的扫描没看见）：{1}" -f $miss.Count, ($miss -join ' ')) -ForegroundColor Red
         Write-Host '   修法：表的条目形态变了 ⇒ 补上本脚本的扫描正则（那条正则必须能匹配表里所有合法形态）。' -ForegroundColor Yellow
         Write-Host '   为什么这条必须红：漏扫的名字不会变成"未覆盖"，它只是"不存在" —— 台账会假装全绿。' -ForegroundColor Yellow
+        exit 1
+    }
+    #  §18.26 **反向也要查**：表里有、盘上没有 ⇒ "产物悄悄没了"。
+    #  实测这次的分文件夹迁移：旧位置 117 个删掉后只重新产出 92 个（25 个别名轨产物因为
+    #  "互相依赖 + 逐个测试"卡住），而**所有现存的守卫都是绿的** —— 因为没人查这个方向：
+    #  verify_zhstdlib 只验盘上有的；check_zhcover 拿生成器表对标准头（不看盘）；
+    #  上面那条只查"盘上 → 台账"。⇒ 这条补上，缺一个就红。
+    $gone = @($inLedger | Where-Object { $onDisk -notcontains $_ })
+    if ($gone.Count) {
+        Write-Host ("❌ 有 {0} 个产物【表里有、盘上没有】（生成没跑到，或被误删）：{1}" -f $gone.Count, ($gone -join ' ')) -ForegroundColor Red
+        Write-Host '   修法：先按名字逐个重跑对应生成器（产物之间有互相依赖 ⇒ 可能要跑两轮）；' -ForegroundColor Yellow
+        Write-Host '        再跑一次本守卫确认。**不要**只看"全量验证通过" —— 它验不到"少了一个产物"。' -ForegroundColor Yellow
         exit 1
     }
     Write-Host ("  产物集合守卫：台账 {0} 个 == 盘上 {1} 个" -f $inLedger.Count, $onDisk.Count) -ForegroundColor Gray
@@ -932,7 +946,7 @@ foreach ($p in $products) {
         #  §17.21 模板函数走「合成实参真调用」探针（自成一批，见下面的 tpl 批）
         #  §17.22 手写层里的模板函数也走同一条路（它是"名字自己是什么"的一类）
         if ($n.Raw -and ($n.Kind -eq '模板函数' -or $n.Kind -eq '手写层探针')) {
-            $tpn = New-TplProbe $n $id (Join-Path $out $p.Product)
+            $tpn = New-TplProbe $n $id (Find-ZhProduct ([string]$p.Product) $root)   # §18.26
             if ($tpn) {
                 #  手写层名字**不判真失败**：它的调用上下文是我们合成的，错不一定在库（§17.22）
                 if ($n.Kind -eq '手写层探针') { $tpn | Add-Member -NotePropertyName Soft -NotePropertyValue $true }
@@ -1105,7 +1119,7 @@ foreach ($p in $products) {
     $safe = ($p.Product -replace '[\\/:*?"<>|]', '_')
     #  §17.20 阶段(5)：**C++23 条件壳**的分支要用 C++23 编（产品里有 `#如果 _HAS_CXX23`
     #  就说明它的名字只在 C++23 下存在）—— 这正是"壳的分支只有人工探针"那条欠账的机器化。
-    $prodFile = Join-Path $out $p.Product
+    $prodFile = Find-ZhProduct ([string]$p.Product) $root   # §18.26：产品按来源分文件夹
     $stdFlag = '-std=c++20'
     if ((Test-Path $prodFile) -and ([System.IO.File]::ReadAllText($prodFile) -match '_HAS_CXX23')) { $stdFlag = '-std=c++23' }
     $extraInc = @($needInc)   #  §17.27：合成实参用到的中文头（向量/随机/复数）要引进来
@@ -1118,7 +1132,7 @@ foreach ($p in $products) {
         $inc += "结构 通用见证 { 布尔 运算符()(整数 值) 常量 { 返回 真值; } 布尔 运算符()(整数 左, 整数 右) 常量 { 返回 左 < 右; } };`n"
         $code = $inc + "整数 主函数(){`n" + ($lines -join "`n") + "`n    返回 0;`n}`n"
         [System.IO.File]::WriteAllText($src, $code, $utf8)
-        & cmd /c "`"$cxx`" $stdFlag -isystem`"$out`" `"$src`" -o `"$exe`" > `"$work\o_$safe$tag.txt`" 2>&1"
+        & cmd /c "`"$cxx`" $stdFlag $zhInc `"$src`" -o `"$exe`" > `"$work\o_$safe$tag.txt`" 2>&1"
         $cc = $LASTEXITCODE
         $rc = -1
         if ($cc -eq 0) { & $exe; $rc = $LASTEXITCODE }

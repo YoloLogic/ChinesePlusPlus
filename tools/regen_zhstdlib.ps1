@@ -22,6 +22,8 @@ param([string[]] $Exclude = @(), [switch] $SkipThirdParty)
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
+. (Join-Path $root 'tools\zh_includes.ps1')
+$zhInc = Get-ZhIncludeArgs $root
 # §16.56：真实用例守卫要用编译器（其余守卫都由各自的脚本自带）。
 $cxx  = Join-Path $root 'build\Release\bin\chinese++.exe'
 $utf8 = New-Object System.Text.UTF8Encoding($false)
@@ -195,7 +197,8 @@ $ex = 1
 if (-not (Test-Path $exSrc)) {
     Write-Host "❌ 找不到真实用例：$exSrc" -ForegroundColor Red
 } else {
-    $exOut = & cmd /c "`"$cxx`" -std=c++20 -I `"$(Join-Path $root 'zhstdlib')`" -c `"$exSrc`" -o `"$exObj`" 2>&1"
+    #  §18.26：汉化库按来源分文件夹 ⇒ 搜索路径不止 zhstdlib 一条（单一事实来源见 tools\zh_includes.ps1）
+    $exOut = & cmd /c "`"$cxx`" -std=c++20 $zhInc -c `"$exSrc`" -o `"$exObj`" 2>&1"
     $ex = $LASTEXITCODE
     if ($ex -eq 0) {
         $exSize = if (Test-Path $exObj) { (Get-Item $exObj).Length } else { 0 }
@@ -250,7 +253,7 @@ Write-Host ''
 #  本台账只报告，不作门禁（口径同 `tools\check_multiowner.ps1`）。
 # ---------------------------------------------------------------------------
 $rngNames = @{}; $rngCount = 0
-foreach ($f in (Get-ChildItem (Join-Path $root 'zhstdlib') -File)) {
+foreach ($f in (Get-ChildItem (Get-ZhIncludeDirs $root) -File -ErrorAction SilentlyContinue)) {
     $ft = [System.IO.File]::ReadAllText($f.FullName)
     foreach ($m in [regex]::Matches($ft, '(?m)_RANGES\s+(_[A-Za-z]\w*)\s*\(')) {
         $rngNames[$m.Groups[1].Value] = 1; $rngCount++
@@ -286,7 +289,7 @@ foreach ($m in [regex]::Matches($genText, "'(?<en>[A-Za-z_][A-Za-z0-9_]*)'\s*=\s
 $crossProd = 0; $crossNames = @{}; $ws = New-Object System.Collections.ArrayList
 [void]$ws.Add('# 跨条目未同步译名（§17.27.60.1）—— 判据：同一个英文名在 A 条目翻了、B 条目还是英文')
 [void]$ws.Add('# 生成的：tools\regen_zhstdlib.ps1；修法：按已有译名补登记进该条目的 members 表（不另造新译名）')
-foreach ($pf in (Get-ChildItem (Join-Path $root 'zhstdlib') -File)) {
+foreach ($pf in (Get-ChildItem (Get-ZhIncludeDirs $root) -File -ErrorAction SilentlyContinue)) {
     $ft = [System.IO.File]::ReadAllText($pf.FullName)
     $mi = $ft.IndexOf('// [ZH-DERIVE-LAYER]')
     $cp = if ($mi -ge 0) { $ft.Substring(0, $mi) } else { $ft }
@@ -333,10 +336,10 @@ foreach ($j in $jobs) {
 }
 $genText += [System.IO.File]::ReadAllText((Join-Path $root 'tools\make_zhc.ps1'))
 $orphans = @()
-foreach ($pf in (Get-ChildItem (Join-Path $root 'zhstdlib') -File)) {
+foreach ($pf in (Get-ChildItem (Get-ZhIncludeDirs $root) -File -ErrorAction SilentlyContinue)) {
     if ($genText.IndexOf("'" + $pf.Name + "'") -lt 0) { $orphans += $pf.Name }
 }
-Write-Host ("=== 孤儿产物守卫（§17.27.63.2）：{0} 个产物，孤儿 {1} 个 ===" -f (Get-ChildItem (Join-Path $root 'zhstdlib') -File).Count, $orphans.Count) -ForegroundColor Cyan
+Write-Host ("=== 孤儿产物守卫（§17.27.63.2）：{0} 个产物，孤儿 {1} 个 ===" -f (Get-ChildItem (Get-ZhIncludeDirs $root) -File -ErrorAction SilentlyContinue).Count, $orphans.Count) -ForegroundColor Cyan
 if ($orphans.Count) {
     Write-Host ("    ❌ 没有出处的产物：{0}" -f ($orphans -join ', ')) -ForegroundColor Red
     Write-Host '    修法：删掉孤儿（回退条目时必须同时删产物），或把条目补回来。' -ForegroundColor Yellow
@@ -389,6 +392,17 @@ $cv = $LASTEXITCODE
 Write-Host "=== 中文名占用守卫（§17.19.27）===" -ForegroundColor Cyan
 & pwsh -NoProfile -File (Join-Path $root 'tools\check_zhname.ps1')
 $nm = $LASTEXITCODE
+
+# ---------------------------------------------------------------------------
+#  §18.26 汉化库【搜索路径一致性】守卫（方案②：产品按来源分文件夹后，
+#  用户写法不变靠的是"子目录都上搜索路径"；这条列表出现在很多入口，少一条就找不到头）。
+#  与下面几道不同：它一失败就没有继续跑的意义（后面的编译类守卫都会连带报错），
+#  所以这里**直接红着退出**，而不是并到最后的 `-eq 0` 链里。
+# ---------------------------------------------------------------------------
+Write-Host "=== 搜索路径一致性守卫（§18.26）===" -ForegroundColor Cyan
+& pwsh -NoProfile -File (Join-Path $root 'tools\check_zhpaths.ps1')
+if ($LASTEXITCODE -ne 0) { Write-Host '❌ 汉化库搜索路径不一致 —— 停止（后面的编译都会连带失败）' -ForegroundColor Red; exit 1 }
+
 Write-Host "=== 边界台账守卫（B/D 桶）===" -ForegroundColor Cyan
 & pwsh -NoProfile -File (Join-Path $root 'tools\check_multiowner.ps1') -Quiet -Check
 $bd = $LASTEXITCODE

@@ -27,6 +27,8 @@ $root  = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
 $cxx   = Join-Path $root 'build\Release\bin\chinese++.exe'
 $vsInc = 'C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include'
 $out   = Join-Path $root 'zhstdlib'
+. (Join-Path $root 'tools\zh_includes.ps1')
+$zhIncArgs = Get-ZhIncludeArgs $root   # §18.26 搜索路径单一事实来源
 if (-not (Test-Path $vsInc)) { throw "MSVC STL 不在 $vsInc —— 换 VS 版本请改脚本顶部路径" }
 if (-not (Test-Path $cxx))   { throw "找不到编译器 $cxx" }
 $utf8 = New-Object System.Text.UTF8Encoding($false)
@@ -93,7 +95,7 @@ $okList = @(); $badList = @()
 foreach ($h in $headers) {
     $src = Join-Path $tmp 't.cpp'
     [System.IO.File]::WriteAllText($src, "#包含 <$h>`n整数 主函数(){ 返回 0; }`n", $utf8)
-    & cmd /c "`"$cxx`" -std=c++20 -isystem`"$out`" -fsyntax-only `"$src`" > `"$tmp\out.txt`" 2>&1"
+    & cmd /c "`"$cxx`" -std=c++20 $zhIncArgs -fsyntax-only `"$src`" > `"$tmp\out.txt`" 2>&1"
     if ($LASTEXITCODE -eq 0) { $okList += $h }
     else {
         $first = (Get-Content "$tmp\out.txt" -ErrorAction SilentlyContinue |

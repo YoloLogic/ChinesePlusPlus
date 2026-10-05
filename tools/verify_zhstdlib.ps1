@@ -20,6 +20,8 @@
 # ============================================================================
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
+. (Join-Path $root 'tools\zh_includes.ps1')
+$zhInc = Get-ZhIncludeArgs $root
 $cxx  = Join-Path $root 'build\Release\bin\chinese++.exe'
 $inc  = Join-Path $root 'zhstdlib'
 $d    = Join-Path $root 'build\_zfull'
@@ -29,7 +31,7 @@ if (-not (Test-Path $inc)) { throw "zhstdlib 不存在" }
 if (Test-Path $d) { Remove-Item -Recurse -Force $d }
 New-Item -ItemType Directory -Force $d | Out-Null
 
-$files = Get-ChildItem $inc -File | Sort-Object Name
+$files = Get-ChildItem (Get-ZhIncludeDirs $root) -File -ErrorAction SilentlyContinue | Sort-Object Name
 $ok = 0; $bad = @()
 foreach ($f in $files) {
     $fail = $null
@@ -41,7 +43,7 @@ foreach ($f in $files) {
     foreach ($p in $probes) {
         $src = Join-Path $d 't.cpp'
         [System.IO.File]::WriteAllText($src, $p.body + "整数 主函数(){ 返回 0; }`n", $utf8)
-        & cmd /c "`"$cxx`" -std=c++20 -isystem`"$inc`" -fsyntax-only `"$src`" > `"$d\o.txt`" 2>&1"
+        & cmd /c "`"$cxx`" -std=c++20 $zhInc -fsyntax-only `"$src`" > `"$d\o.txt`" 2>&1"
         if ($LASTEXITCODE -ne 0) {
             $first = Get-Content "$d\o.txt" -ErrorAction SilentlyContinue |
                      Where-Object { $_ -match 'error:' } | Select-Object -First 1
@@ -66,10 +68,10 @@ Remove-Item -Recurse -Force $d -ErrorAction SilentlyContinue
 # ---------------------------------------------------------------------------
 $all = Join-Path $d 'all.cpp'
 New-Item -ItemType Directory -Force $d | Out-Null   # 上面刚把 $d 删了，这里要重建
-$lines = (Get-ChildItem $inc -File | Sort-Object Name | ForEach-Object { "#包含 <$($_.Name)>" }) -join "`n"
+$lines = (Get-ChildItem (Get-ZhIncludeDirs $root) -File -ErrorAction SilentlyContinue | Sort-Object Name | ForEach-Object { "#包含 <$($_.Name)>" }) -join "`n"
 [System.IO.File]::WriteAllText($all, $lines + "`n整数 主函数(){ 返回 0; }`n", $utf8)
 $allOk = $true; $allErr = ''
-& cmd /c "`"$cxx`" -std=c++20 -isystem`"$inc`" -fsyntax-only `"$all`" > `"$d\all_o.txt`" 2>&1"
+& cmd /c "`"$cxx`" -std=c++20 $zhInc -fsyntax-only `"$all`" > `"$d\all_o.txt`" 2>&1"
 if ($LASTEXITCODE -ne 0) {
     $allOk = $false
     $allErr = ([string]((Get-Content "$d\all_o.txt" -ErrorAction SilentlyContinue |
@@ -104,7 +106,7 @@ $cfg = @()
 foreach ($lvl in @('0', '1')) {
     $src = Join-Path $d2 "all_idl$lvl.cpp"
     [System.IO.File]::WriteAllText($src, $lines + "`n整数 主函数(){ 返回 0; }`n", $utf8)
-    & cmd /c "`"$cxx`" -std=c++20 -isystem`"$inc`" -D_ITERATOR_DEBUG_LEVEL=$lvl -fsyntax-only `"$src`" > `"$d2\o$lvl.txt`" 2>&1"
+    & cmd /c "`"$cxx`" -std=c++20 $zhInc -D_ITERATOR_DEBUG_LEVEL=$lvl -fsyntax-only `"$src`" > `"$d2\o$lvl.txt`" 2>&1"
     $e = ''
     if ($LASTEXITCODE -ne 0) {
         $e = ([string]((Get-Content "$d2\o$lvl.txt" -ErrorAction SilentlyContinue |

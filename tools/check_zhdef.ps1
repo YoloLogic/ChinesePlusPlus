@@ -29,6 +29,7 @@ param([switch] $Quiet, [switch] $SelfTest, [string] $Dir)
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
+. (Join-Path $root 'tools\zh_includes.ps1')
 # ⚠ 名字里至少要有一个汉字；变量名取 $ZhRx 而不是 $Nm —— PowerShell 的变量名**大小写不敏感**，
 #   函数里用 `$nm` 装"匹配到的名字"会把脚本级的模式变量 `$Nm` 覆盖掉（实测：定义表只剩 1 个、
 #   使用 0 处，因为模式从第二个名字起就变成了固定字符串）。这个坑写在这里，别再踩。
@@ -38,7 +39,9 @@ function Get-ZhDefs([string] $dir) {
     $uses = @()
     $defReal = @{}     # struct/class/类型/枚举/共用体/类 <名字>
     $defAlias = @{}    # 使用 <名字> = <不是它自己>
-    foreach ($f in (Get-ChildItem $dir -File | Sort-Object Name)) {
+    $zhProducts = @(Get-ChildItem (Get-ZhIncludeDirs $root) -File -ErrorAction SilentlyContinue)
+if ($zhProducts.Count -eq 0) { Write-Host "❌ 一个产物都没扫到 —— 跑 0 条的通过不是通过（§15.3）" -ForegroundColor Red; exit 1 }
+foreach ($f in ($zhProducts | Sort-Object Name)) {
         $lines = [System.IO.File]::ReadAllText($f.FullName) -split "`n"
         for ($i = 0; $i -lt $lines.Count; $i++) {
             $code = ($lines[$i] -replace '//.*$', '')
