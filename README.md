@@ -256,9 +256,14 @@ winget install --id Microsoft.VisualStudio.2022.BuildTools --override "--quiet -
 
 - 重建 9 个硬链接别名（`clang.exe`、`clang-cl.exe`、`lld.exe`…）
 - 生成 `env.cmd` —— 窗口级 PATH 设置器，**不碰你的永久 PATH**
+- **写好 `bin\` 里的三个 `<驱动名>.cfg`**（`chinese++.cfg` / `clang++.cfg` / `clang.cfg`）——
+  汉化库的搜索路径就在里面。**所以你不用记任何 `-isystem`**：命令行直接 `chinese++ 你的.cpp`，
+  编辑器（clangd）读的也是同一份。
+  ⚠ 里面是**绝对路径**：**移动或改名本文件夹之后，重新双击一次一键安装**即可。
 - 检查 Visual Studio Build Tools，缺了就打印**确切**要装什么
 - 把官方 VS Code 下载到本目录的 `.\vscode\`，用**便携模式**配好（中文语言包 + clangd），**你自己装的那个 VS Code 一个字节都不动**
-- 编译并运行一个中文 hello world，**证明它真的能用**
+- 跑**包内自测**（21 项）：中文关键字、`#包含 <向量>` 不带任何 `-I` 也能编、AddressSanitizer 真报一次
+  内存错误、`--coverage` 真链上……**全过才算能用**
 
 > **需要联网**（下载 VS Code 约 320 MB）。断网了就重新双击一次，已装好的部分不会重装，中断的部分会重来，**不需要先删掉什么**。
 
@@ -283,10 +288,20 @@ bin\clangd.exe             语言服务（编辑器高亮与补全用）
 bin\lld-link.exe           Windows 链接器
 bin\llvm-ar.exe            archiver
 bin\llvm-rc.exe            Windows 资源编译器
+zhstdlib\                  ★ 汉化库：119 个中文头
+                             标准库\ 48（向量 / 字符串 / 映射 / 算法 …）
+                             别名\ 43    C运行库\ 25（C标准输入输出 / C数学 …）
+                             windows系统\ 3（Windows系统 / 窗口 / 绘图）
+tools\                     两个安装用的小脚本（搜索路径的唯一真相 + 写成 bin\*.cfg）
 lib\clang\24\include\      编译器内建头文件（stddef.h / stdint.h 等）
+                             ＋ sanitizer\ profile\ fuzzer\ —— 运行时接口头（写 `#include <sanitizer/asan_interface.h>` 用）
 lib\clang\24\lib\windows\  compiler-rt 运行时（asan / ubsan / profile）
+lib\clang\24\share\        sanitizer 的 ignorelist
 vscode-kit\                编辑器配置套件
 ```
+
+> 安装之后还会多出：`bin\*.cfg`（三个搜索路径配置，见第 2 步）、`examples\`（编辑器配置副本与示例）、
+> `env.cmd`。`vscode\` 是安装时按需下载的便携编辑器。
 
 > 上面若干 `.exe` 是**同一个程序的硬链接**。若复制或解压后硬链接丢失，会变成多份独立副本 —— 功能不受影响，只是占用变大。`install.ps1` 会用 `New-Item -ItemType HardLink` 重建。
 
@@ -297,6 +312,7 @@ vscode-kit\                编辑器配置套件
 | MSVC STL、Windows SDK、`link.exe` | 微软的东西，无权分发 | 自己装 Visual Studio Build Tools |
 | `opt` / `llc` / `lldb` / `clang-tidy` / `libclang` / `polly` | 编译用不到 | —— |
 | Visual C++ 运行库（`MSVCP140.dll`、`VCRUNTIME140.dll`） | 微软可再分发运行库 | 开发机装了 Visual Studio 即已具备 |
+| `orc_rt` / `xray` / `memprof` 的运行时与头 | 本次构建**显式关闭**了这三个运行时 | 用不上；要的话得自己按 `tools\build_runtimes.ps1` 的注释改开关重编 |
 
 ---
 
@@ -309,11 +325,26 @@ vscode-kit\                编辑器配置套件
 - **诊断信息正文** —— 报错解释是中文
 - **`主函数` ≡ `main`**
 
-**没有覆盖的是「标准库」：**
+**还覆盖了「库」这一层（中文是并列多出来的另一种拼写，英文原名照旧可用）：**
 
-`std::vector`、`.push_back()`、`printf` **保持英文原样**。
+```cpp
+#包含 <向量>                     // 头名也能用中文；<vector> 照旧
+整数 主函数(){
+    标准::向量<整数> 表;          // std::vector<int> 照旧可用
+    表.尾插(1); 表.尾插(2);       // .push_back() 照旧可用
+    返回 (整数)表.尺寸() == 2 ? 0 : 1;   // .size() 照旧可用
+}
+```
 
-这是**故意的**。改名会切断生态 —— 所有第三方库、所有教程、所有现成代码全都对不上。中文是**并列多出来的一种拼写**，不是替换英文。
+`zhstdlib\` 里是 **119 个中文头**：标准库 48（向量 / 字符串 / 映射 / 算法 / 迭代器…）＋ 别名 43 ＋
+C 运行库 25（C标准输入输出 / C数学 / C字符串…）＋ windows系统 3（**`Windows系统`**：句柄 / 文件 /
+进程 / 同步对象 / 内存 / 注册表 / 环境变量 / 动态库 / 时间；
+**`窗口`**：窗口类 / 消息 / 控件 / 菜单；**`绘图`**：GDI，画矩形 / 画线 / 输出文本…）。
+
+> **边界（说清楚，别误会）**：中文库是**我们另抄、另起名的一层**（`标准::向量`），
+> 与微软的 `std::vector` **内存布局相同、但不是同一个类型**，互相传参要显式转换；
+> **微软的头文件一个字节没动** —— 这也是为什么它既"完全是汉语书写的"、又不切断生态。
+> GDI / 窗口那部分要额外链 `gdi32.lib` / `user32.lib`（包内 `使用说明`/`常见问题` 有例子）。
 
 同理，报错前缀 `error:` / `warning:` **故意保留英文** —— 编辑器的问题面板和 CI 脚本靠这个前缀抓日志，翻成「错误:」它们就抓不到了。
 
