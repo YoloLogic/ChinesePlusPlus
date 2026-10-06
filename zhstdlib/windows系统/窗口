@@ -24,6 +24,7 @@
 #endif
 #include <Windows系统>
 #include <C标准整数>
+#include <commctrl.h>
 
 名域 标准 {
     使用 菜单句柄 = HMENU;
@@ -120,6 +121,22 @@
     内联 常量 无符号 整数 字符串项 = MF_STRING;
     内联 常量 无符号 整数 灰化项 = MF_GRAYED;
     内联 常量 无符号 整数 分隔项 = MF_SEPARATOR;
+    内联 常量 无符号 整数 组合框下拉列表 = CBS_DROPDOWNLIST;
+    内联 常量 无符号 整数 添加组合项 = CB_ADDSTRING;
+    内联 常量 无符号 整数 取组合项数 = CB_GETCOUNT;
+    内联 常量 无符号 整数 取组合选择 = CB_GETCURSEL;
+    内联 常量 无符号 整数 选择组合项 = CB_SETCURSEL;
+    内联 常量 无符号 整数 控件进度条 = ICC_PROGRESS_CLASS;
+    内联 常量 无符号 整数 设进度范围 = PBM_SETRANGE32;
+    内联 常量 无符号 整数 设进度值 = PBM_SETPOS;
+    内联 常量 无符号 整数 取进度值 = PBM_GETPOS;
+    内联 常量 整数 屏幕宽 = SM_CXSCREEN;
+    内联 常量 整数 屏幕高 = SM_CYSCREEN;
+    内联 常量 整数 标题栏高 = SM_CYCAPTION;
+    内联 常量 整数 窗口边框宽 = SM_CXBORDER;
+    内联 常量 整数 图标宽 = SM_CXICON;
+    内联 常量 整数 图标高 = SM_CYICON;
+    内联 常量 整数 显示器数 = SM_CMONITORS;
     内联 标准::菜单句柄 创建菜单(){ 返回 CreateMenu(); }
     内联 标准::菜单句柄 创建弹出菜单(){ 返回 CreatePopupMenu(); }
     内联 整数 追加菜单项(标准::菜单句柄 菜单, 无符号 整数 标志, 标准::无符号指针整数 标识, 常量 宽字符* 文本){ 返回 AppendMenuW(菜单, 标志, 标识, 文本); }
@@ -129,4 +146,7 @@
     内联 整数 取菜单项数(标准::菜单句柄 菜单){ 返回 GetMenuItemCount(菜单); }
     内联 标准::菜单句柄 取子菜单(标准::菜单句柄 菜单, 整数 位置){ 返回 GetSubMenu(菜单, 位置); }
     内联 整数 绘制菜单栏(标准::窗口句柄 窗){ 返回 DrawMenuBar(窗); }
+    内联 整数 初始化通用控件(无符号 整数 标志){ INITCOMMONCONTROLSEX 信息 = { sizeof(INITCOMMONCONTROLSEX), 标志 }; 返回 InitCommonControlsEx(&信息); }
+    内联 标准::窗口句柄 创建组合框(标准::窗口句柄 父窗, 常量 宽字符* 文本, 整数 标识, 整数 左, 整数 上, 整数 宽, 整数 高){ 返回 CreateWindowExW(0, L"COMBOBOX", 文本, 子窗口 | 可见 | 组合框下拉列表 | 制表停止, 左, 上, 宽, 高, 父窗, (HMENU)(标准::指针整数)标识, 空指针, 空指针); }
+    内联 标准::窗口句柄 创建进度条(标准::窗口句柄 父窗, 整数 标识, 整数 左, 整数 上, 整数 宽, 整数 高){ 返回 CreateWindowExW(0, PROGRESS_CLASSW, L"", 子窗口 | 可见, 左, 上, 宽, 高, 父窗, (HMENU)(标准::指针整数)标识, 空指针, 空指针); }
 }

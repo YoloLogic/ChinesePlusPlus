@@ -784,6 +784,28 @@ foreach ($em in [regex]::Matches($ctext, "(?ms)^\s*'([A-Za-z_\u4e00-\u9fff][A-Za
         $sn = $sm.Groups[1].Value
         if (Test-ZhName $sn) { $names += [pscustomobject]@{ Name = $sn; Kind = '类型'; Template = '' } }
     }
+    #  §18.42：`'原文'` 条目里的**函数名**也必须进台账 —— <窗口>/<绘图> 的公开包装函数约 30 个
+    #  （注册窗口类 / 创建消息窗口 / 取消息 / 翻译消息 / 派发消息 / 显示窗口 / 画线 / 创建按钮 / 创建菜单 …）。
+    #  以前这里是**空的**：通用名字正则要求"三元以上"，而 `@('原文','<整行源码>')` 只有两元
+    #  ⇒ **整片失配** —— 这些公开函数**从来没进过台账**（"未覆盖 0"对它们不成立）。
+    #  这正是 §18.21 那条洞的同一形状：**漏扫的名字不会变成"未覆盖"，它只是"不存在"**。
+    #  ⚠ 它们**不给自动探针**：形参是有类型的（`常量 窗口类&`、`PAINTSTRUCT*`、`HMENU`…），
+    #    自动合成的实参编不过 ⇒ Kind 记 '包装函数'（下面的 switch 没有它的分支 ⇒ 不生成探针），
+    #    只能靠**真实用例**覆盖；于是"某个包装一次都没被用例碰到"会直接落进未覆盖 ⇒ **报红**。
+    $origCount = ([regex]::Matches($em.Groups[3].Value, "@\('原文',")).Count
+    $origSeen = 0
+    foreach ($om in [regex]::Matches($em.Groups[3].Value, "@\('原文','([^']*)'\)")) {
+        $origSeen++
+        $fm = [regex]::Match($om.Groups[1].Value, '内联[^(]*?([^\s(]+)\s*\(')
+        if (-not $fm.Success) { continue }
+        $fn = $fm.Groups[1].Value
+        if (Test-ZhName $fn) { $names += [pscustomobject]@{ Name = $fn; Kind = '包装函数'; Template = '' } }
+    }
+    #  ⚠ 不许静默少扫：`@('原文',` 出现几次就必须匹配到几次。正文里一旦出现单引号就会破坏匹配，
+    #    那时要**立刻看得见**，而不是"名字少了几十个还很绿"。
+    if ($origSeen -lt $origCount) {
+        Write-Host ("  ⚠ {0}：@('原文', 出现 {1} 次，只匹配到 {2} 次 —— 有条目形态没被认出来（§18.42）" -f $em.Groups[2].Value, $origCount, $origSeen) -ForegroundColor Yellow
+    }
     foreach ($nm in [regex]::Matches($em.Groups[3].Value, "@\('(\S+?)','([^']+)','([^']*)'(?:,'[^']*')?\)")) {
         $kind = $nm.Groups[1].Value; $nm2 = $nm.Groups[2].Value
         if (-not (Test-ZhName $nm2)) { continue }
