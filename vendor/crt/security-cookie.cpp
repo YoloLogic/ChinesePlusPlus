@@ -50,28 +50,38 @@ void __cdecl __security_check_cookie(unsigned long long cookie) {
 //  %rsp. We must touch every 4 KB page on the way down so the OS grows the stack,
 //  then return with %rsp untouched (the caller does its own `sub rsp, imm`).
 //
-//  Only %rcx and %r11 are touched, and both are saved/restored; %rax is used as the
-//  count-down register, which is safe because clang emits the frame size as an
-//  immediate in the following `sub rsp, imm` (verified with -S).
+//  ⚠ MEASURED 2026-10-06 -- the FIRST version of this file was WRONG and it cost a
+//    long hunt: any function with a frame larger than 4 KB (a `std::mt19937` local
+//    is 5 KB) died with 0xC0000005 in the PROLOGUE -- before a single statement
+//    ran, so the program printed nothing at all and looked like a static-init bug.
+//    A 9 KB local array reproduces it in three lines. The lesson is in
+//    docs\交接\接手须知.md: `__chkstk` is not "an asm stub", it is ABI.
+//
+//  What went wrong there: probing started from the WRONG base and the loop tail
+//  did not match the loop's own arithmetic, so the walk could step over the guard
+//  page instead of into it. The version below is mingw-w64's canonical
+//  `chkstk.S` (public domain), copied verbatim -- see the project rule
+//  "能抄的抄，不能抄的模仿手搓": this one can be copied, so it is.
 __asm__(
     ".text\n"
     ".globl __chkstk\n"
     ".p2align 4\n"
     "__chkstk:\n"
     "    pushq %rcx\n"
-    "    pushq %r11\n"
-    "    movq  %rsp, %r11\n"
-    "1:\n"
-    "    subq  $0x1000, %r11\n"
-    "    testl %r11d, (%r11)\n"
+    "    pushq %rax\n"
     "    cmpq  $0x1000, %rax\n"
-    "    jbe   2f\n"
+    "    leaq  24(%rsp), %rcx\n"
+    "    jb    2f\n"
+    "1:\n"
+    "    subq  $0x1000, %rcx\n"
+    "    orq   $0, (%rcx)\n"
     "    subq  $0x1000, %rax\n"
-    "    jmp   1b\n"
+    "    cmpq  $0x1000, %rax\n"
+    "    ja    1b\n"
     "2:\n"
-    "    subq  %rax, %r11\n"
-    "    testl %r11d, (%r11)\n"
-    "    popq  %r11\n"
+    "    subq  %rax, %rcx\n"
+    "    orq   $0, (%rcx)\n"
+    "    popq  %rax\n"
     "    popq  %rcx\n"
     "    retq\n"
 );

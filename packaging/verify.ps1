@@ -350,7 +350,17 @@ if ($cfgMissing.Count) {
     #   #include <vector>
     #   <int-cn> <main-cn>(){ <std-cn>::<vector-cn><<int-cn>> t; t.<push_back-cn>(1);
     #               std::vector<int> u{1,2};
-    #               return (int)t.<size-cn>() + (int)u.size() - 3; }
+    #               char buf[9000]; buf[0]=1; buf[8999]=2;
+    #               return (int)t.<size-cn>() + (int)u.size() - 3
+    #                      + (buf[0]-1) + (buf[8999]-2); }
+    #
+    #  ⚠ The 9000-byte LOCAL is not decoration: a frame larger than 4 KB makes the
+    #    compiler call __chkstk, which is hand-written asm in vendor\crt\
+    #    security-cookie.cpp. MEASURED 2026-10-06: the first version of that asm
+    #    walked the guard page wrongly, so EVERY function with a >4 KB frame died
+    #    with 0xC0000005 in the prologue -- before a single statement ran, which
+    #    made it look like a static-initialization bug for a long time. This line
+    #    is what keeps that from coming back unnoticed.
     $libSrc = Join-Path $tmp 'zhlib.cpp'
     $l = -join @(
         $zhInc, ' <', [char]0x5411, [char]0x91CF, ">`n",
@@ -359,8 +369,9 @@ if ($cfgMissing.Count) {
         [char]0x6807, [char]0x51C6, '::', [char]0x5411, [char]0x91CF, '<', [char]0x6574, [char]0x6570, '> ',
         [char]0x8868, '; ', [char]0x8868, '.', [char]0x5C3E, [char]0x63D2, '(1); ',
         'std::vector<int> ', [char]0x4E59, '{1,2}; ',
+        'char buf[9000]; buf[0]=1; buf[8999]=2; ',
         [char]0x8FD4, [char]0x56DE, ' (int)', [char]0x8868, '.', [char]0x5C3A, [char]0x5BF8,
-        '() + (int)', [char]0x4E59, '.size() - 3; }'
+        '() + (int)', [char]0x4E59, '.size() - 3 + (buf[0]-1) + (buf[8999]-2); }'
     )
     $l | Set-Content -Encoding UTF8 $libSrc
     $libExe = Join-Path $tmp 'zhlib.exe'
