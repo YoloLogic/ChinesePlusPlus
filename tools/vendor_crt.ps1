@@ -152,7 +152,7 @@ $sysLibs = @{
     'advapi32' = 'libadvapi32.a'; 'uuid' = 'libuuid.a';
     # mingwex：mingw-w64 自己补的 CRT 实现（strnlen/wcsnlen/__security_cookie 一族的部分符号）。
     # MEASURED：--coverage 链 clang_rt.profile 时它提供 strnlen；/GS 的 cookie 由我们的 security-cookie.cpp 提供。
-    'mingwex' = 'libmingwex.a'
+    'mingwex' = 'libmingwex.a';
 }
 foreach ($k in $sysLibs.Keys) {
     $s = Join-Path $mw.Lib $sysLibs[$k]
@@ -160,6 +160,30 @@ foreach ($k in $sysLibs.Keys) {
     Copy-Item $s (Join-Path $dest "$k.lib") -Force
     $log += "copy: mingw x86_64-w64-mingw32\lib\$($sysLibs[$k]) -> vendor\crt\$k.lib  (public domain)"
 }
+
+#  --- 3b) mingw32.lib：只从 libmingw32.a 里取**那一个**成员 ---------------------
+#  WHY: MEASURED —— libmingwex.a 的 sqrt.o 引用 __mingw_raise_matherr，而它的**定义**
+#  在 libmingw32.a 的 usermatherr.o 里（`nm --defined-only` 实测；libmingwex.a 只有
+#  mingw_matherr.o，那个定义的是 _MINGW_INSTALL_DEBUG_MATHERR，不是它）。
+#  ⚠ 千万**不要**把整个 libmingw32.a 当库发出去再交给链接器：它里面还有 mingw 自己的
+#  启动/初始化对象，实测那样会让一个普通程序在**静态初始化阶段**就 0xC0000005 崩掉
+#  （同一个 smoke 程序：整包 0xC0000005，只取这一个成员则正常）。
+#  所以这里只解出 usermatherr.o，重新打成 1 KB 的 mingw32.lib。
+$mwAr = Join-Path (Split-Path $mw.Root -Parent) 'bin\ar.exe'
+if (-not (Test-Path $mwAr)) { $mwAr = Join-Path $mw.Root 'bin\ar.exe' }
+if (-not (Test-Path $mwAr)) { throw '找不到 mingw 的 ar.exe（解 libmingw32.a 的成员要用）' }
+$extract = Join-Path $work 'matherr'
+New-Item -ItemType Directory -Force $extract | Out-Null
+Push-Location $extract
+try {
+    & $mwAr x (Join-Path $mw.Lib 'libmingw32.a') 'lib64_libmingw32_a-usermatherr.o' 2>&1 | Out-Null
+} finally { Pop-Location }
+$uobj = Join-Path $extract 'lib64_libmingw32_a-usermatherr.o'
+if (-not (Test-Path $uobj)) { throw 'libmingw32.a 里没有 lib64_libmingw32_a-usermatherr.o' }
+Rename-Item $uobj (Join-Path $extract 'usermatherr.obj') -Force
+& $vs.LibExe /nologo "/out:$dest\mingw32.lib" (Join-Path $extract 'usermatherr.obj') 2>&1 | Out-Null
+if ($LASTEXITCODE -ne 0) { throw 'lib.exe 打 mingw32.lib 失败' }
+$log += 'ar x libmingw32.a lib64_libmingw32_a-usermatherr.o ; lib.exe /out:vendor\crt\mingw32.lib usermatherr.obj  (one member only -- see the note in tools\vendor_crt.ps1)'
 
 # --- 4) SOURCE.txt（逐文件 SHA256 + 生成命令）--------------------------------
 $rows = @()

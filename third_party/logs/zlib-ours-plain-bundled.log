@@ -1,0 +1,243 @@
+===== zlib / static / ours  (toolchain=plain) =====
+-- configure --
+-- The C compiler identification is Clang 24.0.0 with GNU-like command-line
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: E:/Chinese++/dist/Chinese++-0.2-win64/bin/clang.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Looking for sys/types.h
+-- Looking for sys/types.h - found
+-- Looking for stdint.h
+-- Looking for stdint.h - found
+-- Looking for stddef.h
+-- Looking for stddef.h - found
+-- Check size of off64_t
+-- Check size of off64_t - failed
+-- Looking for fseeko
+-- Looking for fseeko - not found
+-- Looking for stdarg.h
+-- Looking for stdarg.h - found
+-- Looking for unistd.h
+-- Looking for unistd.h - not found
+-- Performing Test HAVE___ATTR__VIS_HIDDEN
+-- Performing Test HAVE___ATTR__VIS_HIDDEN - Success
+-- Configuring done (3.6s)
+-- Generating done (0.0s)
+CMake Warning:
+  Manually-specified variables were not used by the project:
+
+    CMAKE_CXX_COMPILER
+
+
+-- Build files have been written to: E:/Chinese++/third_party/build/zlib-ours
+-- build --
+[1/41] Building C object CMakeFiles/zlib.dir/adler32.c.obj
+[2/41] Building C object CMakeFiles/zlib.dir/compress.c.obj
+[3/41] Building C object CMakeFiles/zlib.dir/crc32.c.obj
+[4/41] Building C object CMakeFiles/zlib.dir/deflate.c.obj
+[5/41] Building C object CMakeFiles/zlib.dir/gzclose.c.obj
+[6/41] Building C object CMakeFiles/zlib.dir/gzlib.c.obj
+[7/41] Building C object CMakeFiles/zlib.dir/gzread.c.obj
+[8/41] Building C object CMakeFiles/zlib.dir/gzwrite.c.obj
+[9/41] Building C object CMakeFiles/zlib.dir/infback.c.obj
+[10/41] Building C object CMakeFiles/zlib.dir/inftrees.c.obj
+[11/41] Building C object CMakeFiles/zlib.dir/inffast.c.obj
+[12/41] Building C object CMakeFiles/zlib.dir/trees.c.obj
+[13/41] Building C object CMakeFiles/zlib.dir/uncompr.c.obj
+[14/41] Building C object CMakeFiles/zlib.dir/zutil.c.obj
+[15/41] Building C object CMakeFiles/zlibstatic.dir/adler32.c.obj
+[16/41] Building C object CMakeFiles/zlibstatic.dir/compress.c.obj
+[17/41] Building C object CMakeFiles/zlibstatic.dir/crc32.c.obj
+[18/41] Building C object CMakeFiles/zlibstatic.dir/gzclose.c.obj
+[19/41] Building C object CMakeFiles/zlibstatic.dir/gzlib.c.obj
+[20/41] Building C object CMakeFiles/zlibstatic.dir/uncompr.c.obj
+[21/41] Building RC object CMakeFiles/zlib.dir/win32/zlib-cmake.rc.res
+Microsoft (R) Windows (R) Resource Compiler Version 10.0.10011.16384
+
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+
+[22/41] Building C object CMakeFiles/zlibstatic.dir/gzread.c.obj
+[23/41] Building C object CMakeFiles/zlibstatic.dir/inftrees.c.obj
+[24/41] Building C object CMakeFiles/zlibstatic.dir/gzwrite.c.obj
+[25/41] Building C object CMakeFiles/zlibstatic.dir/inffast.c.obj
+[26/41] Building C object CMakeFiles/zlibstatic.dir/zutil.c.obj
+[27/41] Building C object CMakeFiles/zlibstatic.dir/infback.c.obj
+[28/41] Building C object test/CMakeFiles/zlib_minigzip.dir/minigzip.c.obj
+[29/41] Building C object test/CMakeFiles/zlib_example.dir/example.c.obj
+[30/41] Building C object test/CMakeFiles/zlib_examplestatic.dir/example.c.obj
+[31/41] Building C object test/CMakeFiles/zlib_minigzipstatic.dir/minigzip.c.obj
+[32/41] Building C object CMakeFiles/zlib.dir/inflate.c.obj
+[33/41] Building C object CMakeFiles/zlibstatic.dir/trees.c.obj
+[34/41] Building C object CMakeFiles/zlibstatic.dir/deflate.c.obj
+[35/41] Linking C shared library z.dll
+[36/41] Building C object CMakeFiles/zlibstatic.dir/inflate.c.obj
+[37/41] Linking C executable test\zlib_example.exe
+[38/41] Linking C executable test\minigzip.exe
+[39/41] Linking C static library zs.lib
+[40/41] Linking C executable test\zlib_examplestatic.exe
+[41/41] Linking C executable test\minigzipstatic.exe
+-- ctest --
+Test project E:/Chinese++/third_party/build/zlib-ours
+      Start  1: zlib_example
+ 1/11 Test  #1: zlib_example ...................................   Passed    0.27 sec
+      Start  2: zlib_examplestatic
+ 2/11 Test  #2: zlib_examplestatic .............................   Passed    0.21 sec
+      Start  3: zlib_install
+ 3/11 Test  #3: zlib_install ...................................   Passed    0.06 sec
+      Start  4: zlib_find_package_configure
+ 4/11 Test  #4: zlib_find_package_configure ....................***Failed    0.82 sec
+-- The C compiler identification is Clang 24.0.0 with GNU-like command-line
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: E:/Chinese++/dist/Chinese++-0.2-win64/bin/clang.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+CMake Error at CMakeLists.txt:12 (find_package):
+  Found package configuration file:
+
+    E:/Chinese++/third_party/build/zlib-ours/ZLIBConfig.cmake
+
+  but it set ZLIB_FOUND to FALSE so package "ZLIB" is considered to be NOT
+  FOUND.  Reason given by package:
+
+  Component shared not found.
+
+
+
+-- Configuring incomplete, errors occurred!
+
+      Start  5: zlib_find_package_build
+Failed test dependencies: zlib_find_package_configure
+ 5/11 Test  #5: zlib_find_package_build ........................***Not Run   0.00 sec
+      Start  6: zlib_find_package_no_components_configure
+ 6/11 Test  #6: zlib_find_package_no_components_configure ......***Failed    0.82 sec
+-- The C compiler identification is Clang 24.0.0 with GNU-like command-line
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: E:/Chinese++/dist/Chinese++-0.2-win64/bin/clang.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+CMake Error at CMakeLists.txt:11 (find_package):
+  Found package configuration file:
+
+    E:/Chinese++/third_party/build/zlib-ours/ZLIBConfig.cmake
+
+  but it set ZLIB_FOUND to FALSE so package "ZLIB" is considered to be NOT
+  FOUND.  Reason given by package:
+
+  Target ZLIB::ZLIBSTATIC not created
+
+  build zlib with support for static libs or
+
+  specify COMPONENTS shared in your find_package call
+
+
+
+-- Configuring incomplete, errors occurred!
+
+      Start  7: zlib_find_package_wrong_components_configure
+ 7/11 Test  #7: zlib_find_package_wrong_components_configure ...   Passed    0.03 sec
+      Start  8: zlib_add_subdirectory_configure
+ 8/11 Test  #8: zlib_add_subdirectory_configure ................   Passed    3.13 sec
+      Start  9: zlib_add_subdirectory_build
+ 9/11 Test  #9: zlib_add_subdirectory_build ....................***Failed    0.81 sec
+[1/37] Building C object zlib/CMakeFiles/zlib.dir/adler32.c.obj
+[2/37] Building C object zlib/CMakeFiles/zlib.dir/compress.c.obj
+[3/37] Building C object zlib/CMakeFiles/zlib.dir/crc32.c.obj
+[4/37] Building C object zlib/CMakeFiles/zlib.dir/gzclose.c.obj
+[5/37] Building C object zlib/CMakeFiles/zlib.dir/gzlib.c.obj
+[6/37] Building C object zlib/CMakeFiles/zlib.dir/gzread.c.obj
+[7/37] Building C object zlib/CMakeFiles/zlib.dir/gzwrite.c.obj
+[8/37] Building C object zlib/CMakeFiles/zlib.dir/infback.c.obj
+[9/37] Building C object zlib/CMakeFiles/zlib.dir/inftrees.c.obj
+[10/37] Building C object zlib/CMakeFiles/zlib.dir/inffast.c.obj
+[11/37] Building C object zlib/CMakeFiles/zlib.dir/uncompr.c.obj
+[12/37] Building C object zlib/CMakeFiles/zlib.dir/zutil.c.obj
+[13/37] Building C object zlib/CMakeFiles/zlibstatic.dir/adler32.c.obj
+[14/37] Building C object zlib/CMakeFiles/zlibstatic.dir/compress.c.obj
+[15/37] Building C object zlib/CMakeFiles/zlibstatic.dir/crc32.c.obj
+[16/37] Building C object zlib/CMakeFiles/zlibstatic.dir/gzclose.c.obj
+[17/37] Building C object zlib/CMakeFiles/zlib.dir/deflate.c.obj
+[18/37] Building RC object zlib/CMakeFiles/zlib.dir/win32/zlib-cmake.rc.res
+FAILED: [code=1] zlib/CMakeFiles/zlib.dir/win32/zlib-cmake.rc.res 
+C:\PROGRA~2\WI3CF2~1\10\bin\100261~1.0\x64\rc.exe -DHAVE_HIDDEN -DNO_FSEEKO -DZLIB_BUILD -DZLIB_DLL -I E:/Chinese++/third_party/build/zlib-ours/test/zlib_add_subdirectory_test_build/zlib -I E:/Chinese++/third_party/src/zlib  /fo zlib/CMakeFiles/zlib.dir/win32/zlib-cmake.rc.res E:/Chinese++/third_party/src/zlib/win32/zlib-cmake.rc
+Microsoft (R) Windows (R) Resource Compiler Version 10.0.10011.16384
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+E:/Chinese++/third_party/src/zlib/win32/zlib-cmake.rc(1) : fatal error RC1015: cannot open include file 'winver.h'.
+[19/37] Building C object zlib/CMakeFiles/zlib.dir/trees.c.obj
+[20/37] Building C object zlib/CMakeFiles/zlibstatic.dir/gzlib.c.obj
+[21/37] Building C object zlib/CMakeFiles/zlibstatic.dir/uncompr.c.obj
+[22/37] Building C object zlib/CMakeFiles/zlibstatic.dir/gzwrite.c.obj
+[23/37] Building C object zlib/CMakeFiles/zlibstatic.dir/inftrees.c.obj
+[24/37] Building C object zlib/CMakeFiles/zlibstatic.dir/zutil.c.obj
+[25/37] Building C object zlib/CMakeFiles/zlibstatic.dir/gzread.c.obj
+[26/37] Building C object zlib/CMakeFiles/zlibstatic.dir/inffast.c.obj
+[27/37] Building C object zlib/CMakeFiles/zlibstatic.dir/infback.c.obj
+[28/37] Building C object CMakeFiles/test_example.dir/E_/Chinese++/third_party/src/zlib/test/example.c.obj
+[29/37] Building C object zlib/CMakeFiles/zlib.dir/inflate.c.obj
+[30/37] Building C object CMakeFiles/test_example_static.dir/E_/Chinese++/third_party/src/zlib/test/example.c.obj
+[31/37] Building C object zlib/CMakeFiles/zlibstatic.dir/deflate.c.obj
+[32/37] Building C object zlib/CMakeFiles/zlibstatic.dir/trees.c.obj
+[33/37] Building C object zlib/CMakeFiles/zlibstatic.dir/inflate.c.obj
+ninja: build stopped: subcommand failed.
+
+      Start 10: zlib_add_subdirectory_exclude_configure
+10/11 Test #10: zlib_add_subdirectory_exclude_configure ........   Passed    3.17 sec
+      Start 11: zlib_add_subdirectory_exclude_build
+11/11 Test #11: zlib_add_subdirectory_exclude_build ............***Failed    0.78 sec
+[1/37] Building C object zlib/CMakeFiles/zlib.dir/adler32.c.obj
+[2/37] Building C object zlib/CMakeFiles/zlib.dir/compress.c.obj
+[3/37] Building C object zlib/CMakeFiles/zlib.dir/crc32.c.obj
+[4/37] Building C object zlib/CMakeFiles/zlib.dir/deflate.c.obj
+[5/37] Building C object zlib/CMakeFiles/zlib.dir/gzclose.c.obj
+[6/37] Building C object zlib/CMakeFiles/zlib.dir/gzlib.c.obj
+[7/37] Building C object zlib/CMakeFiles/zlib.dir/gzread.c.obj
+[8/37] Building C object zlib/CMakeFiles/zlib.dir/gzwrite.c.obj
+[9/37] Building C object zlib/CMakeFiles/zlib.dir/infback.c.obj
+[10/37] Building C object zlib/CMakeFiles/zlib.dir/inftrees.c.obj
+[11/37] Building C object zlib/CMakeFiles/zlib.dir/inffast.c.obj
+[12/37] Building C object zlib/CMakeFiles/zlib.dir/uncompr.c.obj
+[13/37] Building C object zlib/CMakeFiles/zlib.dir/zutil.c.obj
+[14/37] Building C object zlib/CMakeFiles/zlibstatic.dir/adler32.c.obj
+[15/37] Building C object zlib/CMakeFiles/zlibstatic.dir/compress.c.obj
+[16/37] Building C object zlib/CMakeFiles/zlibstatic.dir/crc32.c.obj
+[17/37] Building C object zlib/CMakeFiles/zlibstatic.dir/gzclose.c.obj
+[18/37] Building C object zlib/CMakeFiles/zlib.dir/trees.c.obj
+[19/37] Building RC object zlib/CMakeFiles/zlib.dir/win32/zlib-cmake.rc.res
+FAILED: [code=1] zlib/CMakeFiles/zlib.dir/win32/zlib-cmake.rc.res 
+C:\PROGRA~2\WI3CF2~1\10\bin\100261~1.0\x64\rc.exe -DHAVE_HIDDEN -DNO_FSEEKO -DZLIB_BUILD -DZLIB_DLL -I E:/Chinese++/third_party/build/zlib-ours/test/zlib_add_subdirectory_exclude_test_build/zlib -I E:/Chinese++/third_party/src/zlib  /fo zlib/CMakeFiles/zlib.dir/win32/zlib-cmake.rc.res E:/Chinese++/third_party/src/zlib/win32/zlib-cmake.rc
+Microsoft (R) Windows (R) Resource Compiler Version 10.0.10011.16384
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+E:/Chinese++/third_party/src/zlib/win32/zlib-cmake.rc(1) : fatal error RC1015: cannot open include file 'winver.h'.
+[20/37] Building C object zlib/CMakeFiles/zlibstatic.dir/gzlib.c.obj
+[21/37] Building C object zlib/CMakeFiles/zlibstatic.dir/gzwrite.c.obj
+[22/37] Building C object zlib/CMakeFiles/zlibstatic.dir/uncompr.c.obj
+[23/37] Building C object zlib/CMakeFiles/zlibstatic.dir/gzread.c.obj
+[24/37] Building C object zlib/CMakeFiles/zlibstatic.dir/inftrees.c.obj
+[25/37] Building C object zlib/CMakeFiles/zlibstatic.dir/inffast.c.obj
+[26/37] Building C object zlib/CMakeFiles/zlibstatic.dir/zutil.c.obj
+[27/37] Building C object zlib/CMakeFiles/zlibstatic.dir/infback.c.obj
+[28/37] Building C object CMakeFiles/test_example_static.dir/E_/Chinese++/third_party/src/zlib/test/example.c.obj
+[29/37] Building C object CMakeFiles/test_example.dir/E_/Chinese++/third_party/src/zlib/test/example.c.obj
+[30/37] Building C object zlib/CMakeFiles/zlib.dir/inflate.c.obj
+[31/37] Building C object zlib/CMakeFiles/zlibstatic.dir/deflate.c.obj
+[32/37] Building C object zlib/CMakeFiles/zlibstatic.dir/trees.c.obj
+[33/37] Building C object zlib/CMakeFiles/zlibstatic.dir/inflate.c.obj
+ninja: build stopped: subcommand failed.
+
+
+55% tests passed, 5 tests failed out of 11
+
+Total Test time (real) =  10.11 sec
+
+The following tests FAILED:
+	  4 - zlib_find_package_configure (Failed)
+	  5 - zlib_find_package_build (Not Run)
+	  6 - zlib_find_package_no_components_configure (Failed)
+	  9 - zlib_add_subdirectory_build (Failed)
+	 11 - zlib_add_subdirectory_exclude_build (Failed)
+Errors while running CTest

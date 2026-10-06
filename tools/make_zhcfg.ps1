@@ -127,7 +127,7 @@ if ($Mode -eq 'bundled') {
         $lines += '-fuse-ld=lld'
         foreach ($lib in @('libcmt','oldnames','vcruntime140','vcruntime140_1','msvcp140','ucrt','ucrtbase',
                            'kernel32','user32','gdi32','comctl32','ole32','oleaut32','shell32','advapi32','uuid',
-                           'mingwex')) {
+                           'mingwex','mingw32')) {
             $f = Join-Path $crtDir ($lib + '.lib')
             if (Test-Path $f) { $lines += ('-Wl,' + $f.Replace('\', '/')) }
         }

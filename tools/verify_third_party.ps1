@@ -69,8 +69,23 @@ param(
     #   nolld           - MSVC link.exe but no archiver; reproduces the
     #                     CMAKE_AR-NOTFOUND packaging defect.
     [ValidateSet('plain', 'workaround', 'nolld')]
-    [string]   $Toolchain = 'plain'
+    [string]   $Toolchain = 'plain',
+    # Which directory holds OUR drivers. Default = the development build tree
+    # (the pre-18.48 behaviour, and what every earlier round used).
+    #
+    # Point it at a DISTRIBUTION package's bin\ to verify what a USER really
+    # gets -- in particular the bundled (zero-Visual-Studio) substrate:
+    #     -OursBin E:\Chinese++\dist\Chinese++-0.2-win64\bin
+    # When it is not the development default the logs get a -bundled suffix,
+    # so this round's evidence never overwrites the earlier rounds'.
+    [string]   $OursBin  = 'E:\Chinese++\build\Release\bin'
 )
+
+# Forward slashes only: CMake writes the compiler path verbatim into its cache
+# and then re-parses it, where a backslash starts an escape.
+$oursBinNorm  = ($OursBin -replace '\\', '/').TrimEnd('/')
+$substrateTag = ''
+if ($oursBinNorm -ne 'E:/Chinese++/build/Release/bin') { $substrateTag = '-bundled' }
 
 $ErrorActionPreference = 'Continue'
 
@@ -110,8 +125,8 @@ $ninjaDir = 'E:\CLion 2026.1.2\bin\ninja\win\x64'
 if ($env:PATH -notlike "*$ninjaDir*") { $env:PATH = "$ninjaDir;$env:PATH" }
 
 $sides = @(
-    @{ tag = 'ours';  cc = 'E:/Chinese++/build/Release/bin/clang.exe';
-       cxx = 'E:/Chinese++/build/Release/bin/chinese++.exe' },
+    @{ tag = 'ours';  cc = "$oursBinNorm/clang.exe";
+       cxx = "$oursBinNorm/chinese++.exe" },
     @{ tag = 'stock'; cc = 'C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/Llvm/x64/bin/clang.exe';
        cxx = 'C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/Llvm/x64/bin/clang++.exe' }
 )
@@ -224,7 +239,7 @@ foreach ($proj in $Projects) {
             $tag = $side.tag
             $bld = Join-Path $Root "build\$proj-$tag$sfx"
             $logName = "$proj-$tag$sfx"
-            if ($Toolchain -ne 'workaround') { $logName += "-$Toolchain" }
+            if ($Toolchain -ne 'workaround') { $logName += "-$Toolchain$substrateTag" }
             $log = Join-Path $Root "logs\$logName.log"
 
             if (Test-Path $bld) { Remove-Item -Recurse -Force $bld -ErrorAction SilentlyContinue }

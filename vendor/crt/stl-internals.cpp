@@ -64,3 +64,58 @@ extern "C++" void __cdecl std::_Facet_Register(std::_Facet_base* _This) {
     }
     //  Table full: the facet simply lives until the process ends. Never crash here.
 }
+
+// ----------------------------------------------------------------------------
+//  The STL's out-of-line "trivial" helpers (18.48 batch 4 supplement)
+//
+//  WHY: MSVC's <xutility> declares these as extern "C" and calls them for
+//  byte-sized element types (char / unsigned char). MEASURED 2026-10-06: they
+//  live in Microsoft's STATIC STL (msvcprt.lib) and are exported by NO DLL we
+//  may ship -- msvcp140 / _1 / _2 / _atomic_wait / _codecvt_ids, vcruntime140*,
+//  concrt140, ucrtbase all checked. Without them a bundled link dies with
+//  "undefined symbol: __std_search_1" (found by
+//  build\_review_own\batch5diag\stl_smoke.cpp).
+//
+//  They are ordinary byte algorithms, so they are hand-written here. Signatures
+//  are copied from vendor\msvc-stl\xutility (lines 75/91/101) so the ABI matches.
+//
+//  This file still includes NO STL header (see the note at the top).
+// ----------------------------------------------------------------------------
+extern "C" int __cdecl memcmp(const void*, const void*, unsigned long long);
+
+extern "C" const void* __stdcall __std_find_trivial_1(const void* _First, const void* _Last, unsigned char _Val) noexcept {
+    const unsigned char* _F = (const unsigned char*)_First;
+    const unsigned char* _L = (const unsigned char*)_Last;
+    for (; _F != _L; ++_F) {
+        if (*_F == _Val) { return _F; }
+    }
+    return _L;
+}
+
+extern "C" const void* __stdcall __std_search_1(const void* _First1, const void* _Last1,
+                                                const void* _First2, unsigned long long _Count2) noexcept {
+    const unsigned char* _F1 = (const unsigned char*)_First1;
+    const unsigned char* _L1 = (const unsigned char*)_Last1;
+    const unsigned char* _F2 = (const unsigned char*)_First2;
+    if (_Count2 == 0) { return _F1; }
+    if ((unsigned long long)(_L1 - _F1) < _Count2) { return _L1; }
+    const unsigned char* _Stop = _L1 - _Count2;
+    for (const unsigned char* _P = _F1; _P <= _Stop; ++_P) {
+        if (*_P == *_F2 && memcmp(_P, _F2, _Count2) == 0) { return _P; }
+    }
+    return _L1;
+}
+
+extern "C" void __cdecl __std_reverse_trivially_swappable_1(void* _First, void* _Last) noexcept {
+    unsigned char* _F = (unsigned char*)_First;
+    unsigned char* _L = (unsigned char*)_Last;
+    while (_F < _L) {
+        --_L;
+        if (_F != _L) {
+            const unsigned char _T = *_F;
+            *_F = *_L;
+            *_L = _T;
+        }
+        ++_F;
+    }
+}
