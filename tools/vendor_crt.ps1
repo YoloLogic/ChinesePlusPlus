@@ -106,16 +106,20 @@ foreach ($d in @((Join-Path $root 'vendor\compiler-support'), (Join-Path $root '
     $inc += @('-isystem', $d)
 }
 $objs = @()
-foreach ($f in @('crt0.c', 'newdelete.cpp', 'stl-internals.cpp')) {
+foreach ($f in @('crt0.c', 'newdelete.cpp', 'stl-internals.cpp', 'security-cookie.cpp',
+                 'startup-extra.cpp', 'typeinfo.cpp', 'asan-annotate.cpp')) {
     $o = Join-Path $work ($f -replace '\.[^.]+$', '.obj')
-    & $cxx @(@('-std=c++20', '-c') + $inc + @((Join-Path $src $f), '-o', $o)) 2>&1 | Out-Null
+    #  typeinfo.cpp 必须 -fno-rtti：见该文件头部 WHY ③ —— 一旦本模块自己发 RTTI，
+    #  clang 会先占掉 `??_7type_info@@6B@` 这个名字，真正的 vftable 被改名为 `.1`。
+    $extra = if ($f -eq 'typeinfo.cpp') { @('-fno-rtti') } else { @() }
+    & $cxx @(@('-std=c++20', '-c') + $extra + $inc + @((Join-Path $src $f), '-o', $o)) 2>&1 | Out-Null
     if ($LASTEXITCODE -ne 0 -or -not (Test-Path $o)) { throw "编译 vendor\crt\$f 失败（§18.48 批3）" }
     $objs += $o
-    $log += "compile: chinese++.exe -std=c++20 -c -nostdinc -D_UCRT ... `"vendor\crt\$f`""
+    $log += "compile: chinese++.exe -std=c++20 -c$($extra -join '') -nostdinc -D_UCRT ... `"vendor\crt\$f`""
 }
 & $vs.LibExe /nologo /out:"$dest\libcmt.lib" @objs 2>&1 | Out-Null
 if ($LASTEXITCODE -ne 0) { throw 'lib.exe 打 libcmt.lib 失败' }
-$log += 'lib: lib.exe /out:vendor\crt\libcmt.lib crt0.obj newdelete.obj stl-internals.obj'
+$log += 'lib: lib.exe /out:vendor\crt\libcmt.lib crt0.obj newdelete.obj stl-internals.obj security-cookie.obj startup-extra.obj typeinfo.obj asan-annotate.obj'
 'static int _zh_oldnames_stub; int* _zh_oldnames_ref(void){ return &_zh_oldnames_stub; }' |
     Set-Content -Encoding ASCII (Join-Path $work 'stub.c')
 & $cxx @(@('-std=c++20', '-c') + $inc + @((Join-Path $work 'stub.c'), '-o', (Join-Path $work 'stub.obj'))) 2>&1 | Out-Null
@@ -145,7 +149,10 @@ $sysLibs = @{
     'ucrt' = 'libucrt.a'; 'ucrtbase' = 'libucrtbase.a'; 'kernel32' = 'libkernel32.a';
     'user32' = 'libuser32.a'; 'gdi32' = 'libgdi32.a'; 'comctl32' = 'libcomctl32.a';
     'ole32' = 'libole32.a'; 'oleaut32' = 'liboleaut32.a'; 'shell32' = 'libshell32.a';
-    'advapi32' = 'libadvapi32.a'; 'uuid' = 'libuuid.a'
+    'advapi32' = 'libadvapi32.a'; 'uuid' = 'libuuid.a';
+    # mingwex：mingw-w64 自己补的 CRT 实现（strnlen/wcsnlen/__security_cookie 一族的部分符号）。
+    # MEASURED：--coverage 链 clang_rt.profile 时它提供 strnlen；/GS 的 cookie 由我们的 security-cookie.cpp 提供。
+    'mingwex' = 'libmingwex.a'
 }
 foreach ($k in $sysLibs.Keys) {
     $s = Join-Path $mw.Lib $sysLibs[$k]

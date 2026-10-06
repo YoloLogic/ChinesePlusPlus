@@ -47,6 +47,7 @@ __declspec(dllimport) void  __cdecl exit(int);
 
 int __cdecl main(int argc, char** argv);
 void __cdecl zh_drain_stl_facets(void);   // defined in vendor\crt\stl-internals.cpp
+void __cdecl __security_init_cookie(void); // defined in vendor\crt\security-cookie.cpp
 
 static void run_c_initializers(void) {
     _PVFV* p = __xc_a;
@@ -86,6 +87,7 @@ static int split_command_line(char* cmd, char** argv, int max) {
 void __cdecl mainCRTStartup(void) {
     char* argv[64];
     int argc = split_command_line(GetCommandLineA(), argv, 64);
+    __security_init_cookie();   // /GS: seed the stack cookie (vendor\crt\security-cookie.cpp)
     run_cpp_initializers();
     run_c_initializers();
     int _Code = main(argc, argv);

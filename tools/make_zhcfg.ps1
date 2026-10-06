@@ -116,21 +116,35 @@ if ($Mode -eq 'bundled') {
         $lines += '-isystem'
         $lines += ('"' + ($p.Replace('\', '/')) + '"')
     }
-    #  §18.48 批3：链接层。用**我们随包的 lld-link**、去掉 clang 自动加的 Microsoft 默认库，
-    #  并把我们的 CRT + 导入库**逐个按绝对路径**交给链接器（实测：只靠 -L/搜索顺序
-    #  会让 VS 的同名库先被读到 —— 那是"假成功"）。`-Wl,` 在 -c 编译时只报一条
+    #  §18.48 批3/批4：链接层。用**我们随包的 lld-link**、**逐个按绝对路径**把我们的 CRT +
+    #  导入库交给链接器（实测：只靠 -L/搜索顺序会让 VS 的同名库先被读到 —— 那是"假成功"）。
+    #  批4 把 `-nostdlib` 改成四个 /nodefaultlib: —— 实测 `-nostdlib` 会连带掐掉 clang 自动
+    #  加的 `-defaultlib:clang_rt.*`，于是 -fsanitize / --coverage 链不上；四个开关只顶掉
+    #  Microsoft 的默认库，保留 clang 自己的运行库。`-Wl,` 在 -c 编译时只报一条
     #  unused-command-line-argument 警告，实测不会报错。
     $crtDir = Join-Path $ZhRoot 'lib\crt'
     if (Test-Path $crtDir) {
         $lines += '-fuse-ld=lld'
-        $lines += '-nostdlib'
         foreach ($lib in @('libcmt','oldnames','vcruntime140','vcruntime140_1','msvcp140','ucrt','ucrtbase',
-                           'kernel32','user32','gdi32','comctl32','ole32','oleaut32','shell32','advapi32','uuid')) {
+                           'kernel32','user32','gdi32','comctl32','ole32','oleaut32','shell32','advapi32','uuid',
+                           'mingwex')) {
             $f = Join-Path $crtDir ($lib + '.lib')
             if (Test-Path $f) { $lines += ('-Wl,' + $f.Replace('\', '/')) }
         }
-        $lines += '-Wl,/nodefaultlib:libcpmt'
-        $lines += '-Wl,/nodefaultlib:msvcprt'
+        foreach ($nd in @('libcmt','oldnames','libcpmt','msvcprt')) {
+            $lines += ('-Wl,/nodefaultlib:' + $nd)
+        }
+        #  批4 实测：MSVC 的 <vector>/<string> 在 ASan 下会发 `/DEFAULTLIB:stl_asan`，
+        #  链接器就按 clang 给的 -libpath: 去 **VS 安装目录**读它 —— 那是 bundled 地基
+        #  唯一漏向 VS 的链接依赖。顶掉它；它里面只有两个注解开关，我们自己在
+        #  vendor\crt\asan-annotate.cpp 里发（值 true，与它一致）。
+        $lines += '-Wl,/nodefaultlib:stl_asan'
+        #  批4 实测的**静态库顺序坑**：我们把 libcmt.lib 写在最前面，而
+        #  `??_7type_info@@6B@`（type_info 的 vftable，见 vendor\crt\typeinfo.cpp）
+        #  的**引用**来自 clang 自己后加的 clang_rt.* ⇒ 扫到 libcmt.lib 时它还"没有未定义"，
+        #  成员就没被拉进来，链接报 undefined symbol。微软的做法是目标文件里写
+        #  `/include:` 指令；这里等价地显式加一条：让它在扫任何库之前就是未定义。
+        $lines += '-Wl,/include:??_7type_info@@6B@'
     } else {
         Write-Host '  [warn] lib\crt 不在 ⇒ bundled 模式只能编译、不能链接（§18.48 批3）' -ForegroundColor Yellow
     }

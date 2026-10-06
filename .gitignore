@@ -55,3 +55,7 @@ desktop.ini
 
 # --- 发行包产物（约 185 MB，绝不能进 git；由 tools\make_package.ps1 生成）---
 dist/
+
+# --- §18.48 批3：链接层地基（我们自己造的 CRT 与导入库）必须入库 ---
+#     （上面的 *.lib 规则是为了挡构建产物；这一处是我们随包发的地基，例外）
+!vendor/crt/*.lib

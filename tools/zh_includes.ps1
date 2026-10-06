@@ -21,7 +21,7 @@
 #    这样它天然不会 shadow 微软真头（`#include <winuser.h>` 命不中它）。
 # ============================================================================
 
-$script:ZhRoot = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
+$script:ZhIncludeRoot = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
 
 # 各来源目录（顺序即搜索顺序；中文名全局唯一由第 10 道守卫保证 ⇒ 不会出现同名歧义）
 #
@@ -56,7 +56,7 @@ $script:ZhSubstrateCandidates = @(
 
 function Get-ZhSubstrateDirs {
     <#  返回**实际存在的**地基目录（仓库布局或发行包布局都认） #>
-    param([string] $Root = $script:ZhRoot)
+    param([string] $Root = $script:ZhIncludeRoot)
     $list = @()
     foreach ($d in $script:ZhSubstrateCandidates) {
         $p = Join-Path $Root $d
@@ -67,7 +67,7 @@ function Get-ZhSubstrateDirs {
 
 function Get-ZhIncludeDirs {
     <#  返回**实际存在的**搜索目录（含根），给需要逐个处理路径的地方用 #>
-    param([string] $Root = $script:ZhRoot)
+    param([string] $Root = $script:ZhIncludeRoot)
     $list = @((Join-Path $Root 'zhstdlib'))
     foreach ($d in $script:ZhDirs) { $list += (Join-Path (Join-Path $Root 'zhstdlib') $d) }
     return $list
@@ -80,7 +80,7 @@ function Get-ZhIncludeArgs {
         为什么不在守卫里也带上地基：守卫/生成器的编译是"仓库自检"，地基还没搬完之前带上它
         会把仓库自检搞红（实测：文档代码块守卫因为地基里 `_Mbstatet`/intrinsic 的未解交互而失败）。
         等批2/批3 全绿再考虑在开发树也默认走地基。 #>
-    param([string] $Root = $script:ZhRoot)
+    param([string] $Root = $script:ZhIncludeRoot)
     $args = @()
     foreach ($p in (Get-ZhIncludeDirs $Root)) { $args += "-isystem`"$p`"" }
     return ($args -join ' ')
@@ -88,7 +88,7 @@ function Get-ZhIncludeArgs {
 
 function Get-ZhProductDirs {
     <#  只返回**产品所在**的子目录（根目录在迁移完成后不再放产品）—— 扫描产物时用 #>
-    param([string] $Root = $script:ZhRoot)
+    param([string] $Root = $script:ZhIncludeRoot)
     $list = @()
     foreach ($d in $script:ZhDirs) { $list += (Join-Path (Join-Path $Root 'zhstdlib') $d) }
     return $list
@@ -100,7 +100,7 @@ function Find-ZhProduct {
           Windows 路径**大小写不敏感**，产物 `Windows系统` 与来源目录 `windows系统` 在根目录下
           是"同一个名字"⇒ `Test-Path 'zhstdlib\Windows系统'` 命中的是**目录**，
           于是本函数会把目录当产物文件返回，调用方 ReadAllText(目录) 报「Access denied」（实测踩过）。 #>
-    param([Parameter(Mandatory = $true)][string] $Name, [string] $Root = $script:ZhRoot)
+    param([Parameter(Mandatory = $true)][string] $Name, [string] $Root = $script:ZhIncludeRoot)
     foreach ($d in (@((Join-Path $Root 'zhstdlib')) + (Get-ZhProductDirs $Root))) {
         $p = Join-Path $d $Name
         if ([System.IO.File]::Exists($p)) { return $p }

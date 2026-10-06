@@ -138,7 +138,13 @@ $tcBody = @(
     '# Chinese++ toolchain mode (written by install.ps1)',
     '# bundled = the substrate inside this package (no Visual Studio needed)',
     '# system  = the Visual Studio / Windows SDK installed on this machine',
-    'mode = ' + $Toolchain
+    #  NOTE the parentheses: inside an array literal PowerShell's comma binds
+    #  TIGHTER than '+', so `'mode = ' + $Toolchain` would produce the two
+    #  elements 'mode = ' and $Toolchain -- i.e. a `mode = ` line with nothing
+    #  after it, and the mode on a line of its own.  Measured 2026-10-06: that is
+    #  exactly what shipped, and every reader of this file silently fell back to
+    #  "unknown mode".  Parenthesize it.
+    ('mode = ' + $Toolchain)
 ) -join "`r`n"
 try {
     [System.IO.File]::WriteAllText($tcTxt, $tcBody + "`r`n", (New-Object System.Text.UTF8Encoding($false)))
@@ -199,13 +205,19 @@ if ($AddToUserPath) {
 }
 
 # ---------------------------------------------------------------------------
-# 3. Visual Studio Build Tools
+# 3. Visual Studio Build Tools -- **OPTIONAL** since 18.48
 #
-#    The toolchain needs the MSVC STL headers, the Windows SDK and link.exe.
-#    None of them are in this package (see NOTICE.txt section 4).
+#    bundled (default): the package carries its own substitute for everything
+#    VS used to provide (MSVC STL headers, UCRT/Win32 headers, our own CRT +
+#    import libraries + lld-link).  Visual Studio is then NOT required, and this
+#    section is informational only.
+#
+#    system: the pre-0.2 behaviour -- the toolchain reads the MSVC STL headers,
+#    the Windows SDK and link.exe out of the machine's Visual Studio install.
+#    Then VS really is required, and the section says so.
 # ---------------------------------------------------------------------------
 Write-Host ''
-Write-Host '--- 3) Visual Studio Build Tools'
+Write-Host ("--- 3) Visual Studio Build Tools  [{0} mode]" -f $Toolchain)
 
 function Find-VS {
     $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
@@ -225,11 +237,24 @@ if ($vs) {
     $ucrt = Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10\Include'
     if (Test-Path $ucrt) { Write-Host ("  Windows SDK includes: " + (Get-ChildItem $ucrt -Directory | Sort-Object Name -Descending | Select-Object -First 1).Name) }
     else { Write-Host '  [warn] Windows SDK include dir not found under Program Files (x86)\Windows Kits\10' -ForegroundColor Yellow }
+    if ($Toolchain -eq 'bundled') {
+        Write-Host '  (bundled mode does not use it: headers/CRT/import libs and lld-link all come from this package)'
+    }
+} elseif ($Toolchain -eq 'bundled') {
+    Write-Host '  not installed -- and that is fine in bundled mode.' -ForegroundColor Green
+    Write-Host '  The compiler takes the C++ standard library headers, the C runtime and' -ForegroundColor DarkGray
+    Write-Host '  the Windows headers from lib\stl / lib\compiler / lib\mingw in this' -ForegroundColor DarkGray
+    Write-Host '  package, and links with the bundled lld-link.  Nothing gets read from' -ForegroundColor DarkGray
+    Write-Host '  Program Files.' -ForegroundColor DarkGray
+    Write-Host '  (Pass -Toolchain system to use a machine-wide Visual Studio instead.)' -ForegroundColor DarkGray
 } else {
     Write-Host '  [missing] Visual Studio C++ build tools were not found.' -ForegroundColor Yellow
     Write-Host ''
-    Write-Host '  This toolchain uses the MSVC standard library and the Windows SDK,' -ForegroundColor Yellow
-    Write-Host '  which are NOT bundled. Install them with either:' -ForegroundColor Yellow
+    Write-Host '  You asked for -Toolchain system, which reads the MSVC standard library' -ForegroundColor Yellow
+    Write-Host '  and the Windows SDK out of a local Visual Studio install.  Install it,' -ForegroundColor Yellow
+    Write-Host '  or re-run with -Toolchain bundled (the default) to need nothing.' -ForegroundColor Yellow
+    Write-Host ''
+    Write-Host '  Install with:'
     Write-Host ''
     Write-Host '    winget install --id Microsoft.VisualStudio.2022.BuildTools ^'
     Write-Host '      --override "--quiet --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"'

@@ -52,7 +52,7 @@ function Bad ($m) { Write-Host ("  [FAIL] " + $m) -ForegroundColor Red;    $scri
 #  Add or remove a check -> this assertion tells you to bump the number.
 #  18.48 batch 1 added three (toolchain mode / runtime DLLs / <vector> provenance);
 #  18.48 batch 2 added one more (Windows + Chinese header with no Microsoft path).
-$expectedChecks = 25
+$expectedChecks = 26
 
 Write-Host ""
 Write-Host "=== Chinese++ package self-test ===" -ForegroundColor Cyan
@@ -249,10 +249,14 @@ $exeA = Join-Path $tmp 'asan.exe'
 
 & $cxx -fsanitize=address -o $exeA $srcA 2>&1 | Out-Null
 if ($LASTEXITCODE -eq 0) { Ok '-fsanitize=address compiles and links' }
-else { if ($tcMode -eq 'bundled') { Ok 'bundled mode: -fsanitize=address LINKING is a documented batch-4 boundary (runtimes are present; system mode links and runs it)' } else { Bad '-fsanitize=address failed to compile or link' } }
+else { Bad '-fsanitize=address failed to compile or link' }
 
 # (b) it must REPORT -- this is the DLL half, and it fails silently without it
-if ((Test-Path $exeA) -and $rtDir -and (Test-Path $rtDir)) {
+if (-not (Test-Path $exeA)) {
+    Bad 'AddressSanitizer executable was not produced'
+} elseif (-not $rtDir -or -not (Test-Path $rtDir)) {
+    Bad 'AddressSanitizer runtime directory is missing (lib\clang\<ver>\lib\windows)'
+} else {
     $savedPath = $env:PATH
     $env:PATH = "$rtDir;$env:PATH"
     $t6 = Join-Path $tmp 'asan.txt'
@@ -261,8 +265,6 @@ if ((Test-Path $exeA) -and $rtDir -and (Test-Path $rtDir)) {
     $aTxt = [System.IO.File]::ReadAllText($t6)
     if ($aTxt -match 'AddressSanitizer') { Ok 'AddressSanitizer reports a real use-after-free' }
     else { Bad 'AddressSanitizer produced no report (is the runtime DLL reachable?)' }
-} elseif ($tcMode -eq 'bundled') {
-    Ok 'bundled mode: AddressSanitizer REPORTING is part of the same batch-4 boundary'
 }
 
 $srcC = Join-Path $tmp 'cov.cpp'
@@ -271,8 +273,21 @@ $srcC = Join-Path $tmp 'cov.cpp'
 $exeC = Join-Path $tmp 'cov.exe'
 
 & $cxx --coverage -o $exeC $srcC 2>&1 | Out-Null
-if ($LASTEXITCODE -eq 0) { Ok '--coverage compiles and links' }
-else { if ($tcMode -eq 'bundled') { Ok 'bundled mode: --coverage LINKING is a documented batch-4 boundary (same reason)' } else { Bad '--coverage failed to compile or link' } }
+$covLinked = ($LASTEXITCODE -eq 0)
+$covGcda = $false
+if ($covLinked -and $rtDir -and (Test-Path $rtDir)) {
+    # 真跑：--coverage 的 .gcda 是在**退出时**由 clang_rt.profile 落盘的，
+    # 它靠 atexit 注册 —— 这正是 bundled 地基里我们手搓的那条链
+    # （vendor\crt\startup-extra.cpp + crt0 调 ucrtbase 的 exit），所以必须真跑才算数。
+    $savedPath3 = $env:PATH
+    $env:PATH = "$rtDir;$env:PATH"
+    & cmd /c "`"$exeC`" > `"$(Join-Path $tmp 'cov.txt')`" 2>&1" | Out-Null
+    $env:PATH = $savedPath3
+    $covGcda = [bool](Get-ChildItem $tmp -Filter '*cov.gcda' -ErrorAction SilentlyContinue)
+}
+if ($covLinked -and $covGcda) { Ok '--coverage compiles, links, runs and writes its .gcda' }
+elseif ($covLinked) { Bad '--coverage linked but wrote no .gcda after running' }
+else { Bad '--coverage failed to compile or link' }
 
 # UBSan CANNOT be linked on its own here. The package FAQ section 9 records the
 # evidence: the __coe_win interface it needs is implemented in neither this
@@ -285,7 +300,7 @@ $srcU = Join-Path $tmp 'ub.cpp'
 $exeU = Join-Path $tmp 'ub.exe'
 & $cxx '-fsanitize=address,undefined' -o $exeU $srcU 2>&1 | Out-Null
 if ($LASTEXITCODE -ne 0) {
-    if ($tcMode -eq 'bundled') { Ok 'bundled mode: -fsanitize=address,undefined LINKING is a documented batch-4 boundary' } else { Bad '-fsanitize=address,undefined failed to compile or link' }
+    Bad '-fsanitize=address,undefined failed to compile or link'
 } else {
     $savedPath2 = $env:PATH
     $env:PATH = "$rtDir;$env:PATH"
@@ -350,36 +365,22 @@ if ($cfgMissing.Count) {
     $l | Set-Content -Encoding UTF8 $libSrc
     $libExe = Join-Path $tmp 'zhlib.exe'
     # NOTE: deliberately NO -I and NO -isystem -- that is the whole point here.
-    # 18.48: in bundled mode the SUBSTRATE layer is complete (headers all come from
-    # this package) but the LINK layer is not -- there are no import libraries or CRT
-    # startup objects yet, so linking reports LNK1120 "unresolved external". That is
-    # the documented boundary between batch 2 and batch 3, so the bundled branch
-    # compiles to an .obj and says so, instead of pretending the package links.
-    if ($tcMode -eq 'bundled') {
-        $libObj = Join-Path $tmp 'zhlib.obj'
-        $outLib = & $cxx -std=c++20 -c $libSrc -o $libObj 2>&1
-        if ($LASTEXITCODE -ne 0 -or -not (Test-Path $libObj)) {
-            Bad 'bundled mode: compiling a Chinese include with no flags failed'
-            $outLib | Select-Object -First 6 | ForEach-Object { Write-Host "         $_" }
-        } else {
-            Ok 'compiles a Chinese include + std::vector with no flags (bundled mode)'
-            $objLen = (Get-Item $libObj).Length
-            if ($objLen -gt 1000) { Ok ("the object file is real (" + $objLen + " bytes); linking arrives with the link layer (18.48 batch 3)") }
-            else { Bad ("the object file looks empty (" + $objLen + " bytes)") }
-        }
-    } else {
-        $outLib = & $cxx -std=c++20 -o $libExe $libSrc 2>&1
-        if ($LASTEXITCODE -ne 0) {
-            Bad 'compiling a Chinese standard-library include with no include flags failed:'
-            $outLib | Select-Object -First 6 | ForEach-Object { Write-Host "         $_" }
+    # 18.48 batch 3 closed the last gap: BOTH modes now link and run, so this is a
+    # single unified assertion.  (It used to compile-to-.obj only in bundled mode,
+    # because the link layer did not exist yet.)
+    $outLib = & $cxx -std=c++20 -o $libExe $libSrc 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Bad ("compiling a Chinese standard-library include with no include flags failed ({0} mode):" -f $tcMode)
+        $outLib | Select-Object -First 6 | ForEach-Object { Write-Host "         $_" }
+        if ($tcMode -eq 'system') {
             Write-Host '         most likely cause: the package folder was moved or renamed' -ForegroundColor Yellow
             Write-Host '         after setup -- re-run install.ps1 (the cfg holds absolute paths).' -ForegroundColor Yellow
-        } else {
-            Ok 'compiles a Chinese include + std::vector in one file, with no flags'
-            & cmd /c "`"$libExe`" > `"$tmp\zhlib.txt`" 2>&1"
-            if ($LASTEXITCODE -eq 0) { Ok 'the Chinese-library program runs (exit 0)' }
-            else { Bad ("the Chinese-library program exited " + $LASTEXITCODE) }
         }
+    } else {
+        Ok ("compiles a Chinese include + std::vector in one file, with no flags ({0} mode)" -f $tcMode)
+        & cmd /c "`"$libExe`" > `"$tmp\zhlib.txt`" 2>&1"
+        if ($LASTEXITCODE -eq 0) { Ok ("the Chinese-library program links and runs (exit 0, {0} mode)" -f $tcMode) }
+        else { Bad ("the Chinese-library program exited " + $LASTEXITCODE) }
     }
 }
 
@@ -480,6 +481,36 @@ if ($winCode -ne 0) {
     Ok ("<windows.h> + a Chinese header resolve with NO Microsoft path anywhere (" + $winLines.Count + " includes traced)")
 } else {
     Ok 'system mode: <windows.h> + a Chinese header compile against the machine''s Visual Studio'
+}
+
+# --- LINK-layer provenance (18.48 batch 3): with -Wl,/verbose we can see every
+#     library lld-link actually READ. In bundled mode none of them may come from
+#     Program Files -- that is the difference between "zero VS" as a fact and
+#     "happened not to need it". Search paths (clang still passes the VS -libpath:
+#     entries) are NOT reads, so only "Reading" lines count.
+if ($tcMode -eq 'bundled') {
+    $lnkSrc = Join-Path $tmp 'linkprov.cpp'
+    "#include <vector>`nint main(){ std::vector<int> v{1}; return (int)v.size()-1; }`n" |
+        Set-Content -Encoding ASCII $lnkSrc
+    $lnkExe = Join-Path $tmp 'linkprov.exe'
+    #  NOTE: '-Wl,/verbose' MUST stay quoted -- unquoted, PowerShell's parser chokes
+    #  on the comma ("missing argument in parameter list"), measured 2026-10-06.
+    $lnkOut = & $cxx -std=c++20 '-Wl,/verbose' -o $lnkExe $lnkSrc 2>&1
+    $lnkCode = $LASTEXITCODE
+    $lnkLines = @($lnkOut | ForEach-Object { [string]$_ })
+    $readLibs = @($lnkLines | Where-Object { $_ -match 'lld-link: Reading' })
+    $msLibs   = @($readLibs | Where-Object { $_ -match 'Program Files' })
+    if ($lnkCode -ne 0) {
+        Bad 'bundled mode: a real link of a <vector> program failed'
+        $lnkLines | Where-Object { $_ -match 'error|错误' } | Select-Object -First 4 |
+            ForEach-Object { Write-Host "         $_" }
+    } elseif ($msLibs.Count -gt 0) {
+        Bad ("bundled mode, but the link READ " + $msLibs.Count + " librar(y|ies) from Program Files, e.g.: " + $msLibs[0].Trim())
+    } else {
+        Ok ("bundled mode: the link read " + $readLibs.Count + " libraries, none from Program Files")
+    }
+} else {
+    Ok 'system mode: the link reads the machine''s Visual Studio / SDK libraries (as designed)'
 }
 
 # ---------------------------------------------------------------------------
