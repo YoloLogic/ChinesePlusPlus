@@ -19,6 +19,7 @@
 | 要**独立复核**（人或 AI） | 一条命令即可：`powershell -File E:\Chinese++\tools\acceptance.ps1`；细节见 [`诊断汉化/诊断汉化-独立复核.md`](诊断汉化/诊断汉化-独立复核.md) |
 | 想知道**凭什么说"别人的代码也编得过"** | [`..\third_party\README.md`](../third_party/README.md) —— 拿 **8 个真实开源项目**（tinyxml2 / pugixml / fmt / googletest / cJSON / zlib / libuv / lz4）与官方 clang 逐项对照，一条命令可复跑。**其中 `pugixml,cJSON,lz4,fmt` 四项已进总判据**（`tools\regen_zhstdlib.ps1` 第 14 道守卫，每次提交都跑） |
 | 想**发给别人用** | [`打包/打包方案.md`](打包/打包方案.md) —— **§7.5～§7.8 是落地与实测记录**（发行包已产出：`dist\Chinese++-0.2-win64.zip`，80.8 MB）。推荐的第一个动作仍是[`打包/一键配置-VSCode.md`](打包/一键配置-VSCode.md) |
+| 想看**网页那一角（第四条产品线）** | [`ChineseTypeScript/ChineseTypeScript-说明.md`](ChineseTypeScript/ChineseTypeScript-说明.md) —— 把 Go 版 TypeScript 汉化：汉语关键字与英文**同一个 token**，`.chts` 源编译出的 js **仍是标准英文关键字**、能被 node 直接跑 |
 
 ---
 
@@ -39,6 +40,7 @@
 | [`打包/打包方案.md`](打包/打包方案.md) | 分发这件事的本质：编译器依赖哪些**别人的**东西、四个阶段怎么取舍、体积与许可。**§7.5～§7.8 是落地与实测记录** | 打包脚本、包体积、编辑器方案变了 |
 | [`交接/接手须知.md`](交接/接手须知.md) | **想继续往下做就读它**：一次改动的完整工序（改 → 重建 → 重生成 → 守卫 → 闸门 → 留证）、四本台账谁是谁的唯一真相、踩过的坑。**"现在到哪了"看路线图第〇节**，这里只放不会漂移的东西 | 工序、守卫/台账清单、坑有增减时 |
 | [`打包/一键配置-VSCode.md`](打包/一键配置-VSCode.md) | **推荐的第一个动作**：双击一下就把 VS Code 配好（中文可编、报错中文、关键字不标红），且可一键还原。**已实施**（`packaging\attach-to-vscode.ps1`） | 那套 `.vscode` 模板或 clangd 参数变了 |
+| [`ChineseTypeScript/ChineseTypeScript-说明.md`](ChineseTypeScript/ChineseTypeScript-说明.md) | **第四条产品线（网页那一角）**：底本、`.chts` 扩展名的裁定与证据、上游源码的**五处**改动、词表与生成器、**四套判定**（含跑上游全集与基线逐行对照）、判据自己踩过的坑、已知局限。工作副本在 `E:\ChineseTypeScript`（独立 git 仓） | 动了 ChineseTypeScript 的补丁 / 词表 / 判定脚本时 |
 
 > ✅ `docs\打包\` 里的两份**过去是设计稿，现在都已实施**（2026-09-26 更新）：
 > `tools\make_package.ps1` 产出 `dist\Chinese++-0.2-win64\`（未压缩 **206 MB** / **661** 个文件，

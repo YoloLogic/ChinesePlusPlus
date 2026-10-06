@@ -18,6 +18,17 @@
 }
 ```
 
+## 第四条产品线：ChineseTypeScript（网页那一角）
+
+三角定位「最快的（C++）/ 最全面的（Python）/ 最适合浏览器页面的（JS 或 TS 魔改）」
+里的**网页那一角** —— 把 Go 版 TypeScript（也就是今天 `tsc` 的本体）汉化：
+汉语关键字与英文落成**同一个 token**；`.chts` 源文件编译产出的 js
+**仍是标准英文关键字**，能被 node 直接运行；英文 `.ts` 的产物与上游**逐字节一致**。
+
+* 工作副本：`E:\ChineseTypeScript`（底本 `microsoft/typescript-go`，Apache-2.0）
+* 文件扩展名 `.chts`（`.cts` 已被上游占为 CommonJS 版 TS）
+* 说明与证据：[`docs\ChineseTypeScript\ChineseTypeScript-说明.md`](docs/ChineseTypeScript/ChineseTypeScript-说明.md)
+
 ## 文档都在 `docs\`
 
 **从 [`docs\README.md`](docs/README.md) 进** —— 那里有文档地图与阅读顺序。
