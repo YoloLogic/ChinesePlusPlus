@@ -30,7 +30,7 @@
 # ============================================================================
 
 param(
-    [string] $Version = '0.1',
+    [string] $Version = '0.2',
     [switch] $NoZip,
     # Include a portable editor IN the zip (offline variant, ~322 MB zip).
     # Default is OFF: the official VS Code may not be redistributed (its license

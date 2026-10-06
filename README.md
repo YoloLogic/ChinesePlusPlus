@@ -5,9 +5,9 @@
 
 编译器：`build\Release\bin\chinese++.exe`
 
-**发行包**：Chinese++ **0.1**（win64）—— `dist\Chinese++-0.1-win64.zip`（77.8 MB）→ 解压 → 双击 `一键安装.cmd`
+**发行包**：Chinese++ **0.2**（win64）—— `dist\Chinese++-0.2-win64.zip`（80.8 MB）→ 解压 → 双击 `一键安装.cmd`
 
-**汉语标准库**：`zhstdlib\` 已覆盖 **103 / 103 个标准头**（产物 116 个）—— `#包含 <向量>` 直接可用，`标准::向量<整数>`、中文成员名都有，英文原名照旧可用。总判据 `tools\regen_zhstdlib.ps1`（**14 道守卫**，含 `pugixml/cJSON/lz4/fmt` 四个真实开源项目的 ours-vs-原生对照）每次提交都跑；账本见 `docs\标准库汉化\`。
+**汉语标准库**：`zhstdlib\` 已覆盖 **103 / 103 个标准头**（产物 **119** 个）—— `#包含 <向量>` 直接可用，`标准::向量<整数>`、中文成员名都有，英文原名照旧可用。总判据 `tools\regen_zhstdlib.ps1`（**16 道守卫**，含 `pugixml/cJSON/lz4/fmt` 四个真实开源项目的 ours-vs-原生对照）每次提交都跑；账本见 `docs\标准库汉化\`。
 
 ```cpp
 #包含 <输入输出流>
@@ -39,10 +39,10 @@ powershell -File E:\Chinese++\tools\acceptance.ps1
 powershell -File E:\Chinese++\tools\make_package.ps1
 ```
 
-产出 `dist\Chinese++-0.1-win64\`（未压缩 194.2 MB / 361 个文件）与同名 `.zip`（77.8 MB）。
+产出 `dist\Chinese++-0.2-win64\`（未压缩 197 MB / 476 个文件）与同名 `.zip`（80.8 MB）。
 对方解压后双击 `一键安装.cmd`：自动建 9 个别名、**只给会话级 PATH**、
 检测 VS Build Tools、按需下载便携 VS Code（中文界面 ＋ 能认中文关键字的 clangd）、
-跑包内自测 `verify.ps1`（**17 项**）。另外三个：
+跑包内自测 `verify.ps1`（**21 项**）。另外三个：
 
 | 脚本 | 干什么 |
 |---|---|

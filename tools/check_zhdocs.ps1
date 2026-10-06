@@ -12,7 +12,19 @@
 #    ① `NN / 103`（标准头覆盖）           → 覆盖台账的分子
 #    ② `NN 个汉语头`（旧口径）             → 覆盖台账的分子
 #    ③ `顶层 A/B`、`嵌套 A/B`、`成员 A/B`  → 汉化标尺台账的分子/分母
+#    ④ `产物 N 个`、`N 个头`、`N 个中文头`  → 生成的用法台账（`共 N 个中文头`）+ 实际文件数
+#    ⑤ `N 道守卫`（**不带"第"**；"第 14 道"是具体道号，不判）→ 闸门声明的 `$守卫道数`
+#    ⑥ `N 项自测`、`verify.ps1 … N 项`      → `packaging\verify.ps1` 里的 $expectedChecks
+#    ⑦ `第 N 道` 里的 N 必须 ≤ 最大道号（26）→ 防"引用了不存在的道号"
 #  允许清单之外的文档（尤其 `标准库汉化方案.md`：它**故意**保留历史数字）不检查。
+#
+#  为什么加 ④⑤⑥⑦（2026-10-06，§18.47）：
+#    v0.2 重打包时暴露出**一整类没人守的数字** —— `产物 116 个`（实际 119）、
+#    `26 道守卫`（实际 16 道，把最大道号当成了道数）、`verify.ps1 17 项`（实际 21 项）、
+#    `windows系统\ 2`（实际 3）。老守卫只管覆盖数与标尺，这类"库存数字"全靠人记得。
+#    三条新规则各有**真来源**：④ 生成的用法台账 + `zhstdlib\` 实际文件数；
+#    ⑤ 闸门自己声明的 `$守卫道数`（**道数 16 ≠ 最大道号 26**，口径写在那行注释里）；
+#    ⑥ `packaging\verify.ps1` 的 `$expectedChecks`（它跑完自证）。⇒ 不是又抄一遍数字。
 #
 #  自测：pwsh -File tools\check_zhdocs.ps1 -SelfTest
 # ============================================================================
@@ -60,23 +72,100 @@ function Find-DocMismatch($text, $N) {
     return $bad
 }
 
+function Get-InventoryNumbers {
+    # ④ 产物数：以**生成的**用法台账为准，再与实际文件数对拍（两者不一致本身就判红）
+    $usage = [System.IO.File]::ReadAllText((Join-Path $root 'docs\标准库汉化\汉语标准库-用法.md'))
+    $m = [regex]::Match($usage, '共\s*(\d+)\s*个中文头')
+    if (-not $m.Success) { throw '用法台账格式变了：取不到「共 N 个中文头」（守卫要先校准，见 §18.47）' }
+    $ledger = [int]$m.Groups[1].Value
+    $actual = @(Get-ChildItem (Join-Path $root 'zhstdlib') -Recurse -File -ErrorAction SilentlyContinue).Count
+    if ($actual -ne $ledger) {
+        throw ("产物台账与实际不符：用法台账写 {0} 个，`zhstdlib\` 里实际 {1} 个（先重生成台账）" -f $ledger, $actual)
+    }
+    # ⑤ 守卫道数：**唯一事实来源** = 闸门自己声明的 `$守卫道数`（在 regen_zhstdlib.ps1 里，紧挨着本守卫的调用处）。
+    #    为什么不自动数：本仓的"道" = **带道号的编号守卫**（9、10、13、14–26 共 16 个；11/12 已并号），
+    #    而闸门完整环节有 22 个（含用法对照表 / 边界台账 / 孤儿产物 / 公开层转发 … 它们**没有道号**）。
+    #    自动数"调用行"会把 `-SelfTest` 那一行也数进去；自动数"道号"又会漏掉只在别处标号的 9/10/13。
+    #    ⇒ 让闸门声明一个数、守卫盯住"声明与文档一致"，比自动猜更准（口径就写在那一行注释里）。
+    $regen = [System.IO.File]::ReadAllText((Join-Path $root 'tools\regen_zhstdlib.ps1'))
+    $g = [regex]::Match($regen, '\$守卫道数\s*=\s*(\d+)')
+    if (-not $g.Success) { throw '取不到 $守卫道数（闸门的道数声明没了？见 §18.47）' }
+    $guards = [int]$g.Groups[1].Value
+    if ($guards -le 0) { throw '闸门声明的道数不是正数（见 §18.47）' }
+    # ⑦ 道号上限：**道数 ≠ 最大道号**（本仓 16 道、道号一直编到 26：第 9/10/13 道另在别处标号）
+    $nums = [regex]::Matches($regen, '第\s*(\d+)\s*道') | ForEach-Object { [int]$_.Groups[1].Value }
+    if (-not $nums) { throw '取不到道号（regen 里的「第 N 道」都掉了？见 §18.47）' }
+    $maxNo = ($nums | Measure-Object -Maximum).Maximum
+    if ($maxNo -lt $guards) { throw ("道号上限 {0} 小于道数 {1}：编号乱了（见 §18.47）" -f $maxNo, $guards) }
+    # ⑥ 自测项数：verify.ps1 自己声明并在跑完时自证
+    $ver = [System.IO.File]::ReadAllText((Join-Path $root 'packaging\verify.ps1'))
+    $v = [regex]::Match($ver, '\$expectedChecks\s*=\s*(\d+)')
+    if (-not $v.Success) { throw '取不到 $expectedChecks（verify.ps1 的写法变了，见 §18.47）' }
+    return [pscustomobject]@{ 产物 = $ledger; 守卫 = $guards; 道号上限 = $maxNo; 自测 = [int]$v.Groups[1].Value }
+}
+
+function Find-InventoryMismatch($text, $inv) {
+    $bad = @()
+    # ④ 产物数（三种写法）
+    foreach ($mm in [regex]::Matches($text, '产物\s*\*{0,2}(\d+)\*{0,2}\s*个')) {
+        if ([int]$mm.Groups[1].Value -ne $inv.产物) { $bad += ("写了'产物 {0} 个'，实际产物 {1} 个" -f $mm.Groups[1].Value, $inv.产物) }
+    }
+    foreach ($mm in [regex]::Matches($text, '(?<!\d)(\d+)\s*个头(?![文件])')) {
+        if ([int]$mm.Groups[1].Value -ne $inv.产物) { $bad += ("写了'{0} 个头'，实际产物 {1} 个" -f $mm.Groups[1].Value, $inv.产物) }
+    }
+    foreach ($mm in [regex]::Matches($text, '(?<!\d)(\d+)\s*个中文头')) {
+        if ([int]$mm.Groups[1].Value -ne $inv.产物) { $bad += ("写了'{0} 个中文头'，实际产物 {1} 个" -f $mm.Groups[1].Value, $inv.产物) }
+    }
+    # ⑤ 守卫道数（带"第"的是具体道号，交给 ⑦）
+    foreach ($mm in [regex]::Matches($text, '(?<!\d)(?<!第 )(\d+)\s*道守卫')) {
+        if ([int]$mm.Groups[1].Value -ne $inv.守卫) { $bad += ("写了'{0} 道守卫'，闸门实际 {1} 道" -f $mm.Groups[1].Value, $inv.守卫) }
+    }
+    # ⑥ 自测项数
+    foreach ($mm in [regex]::Matches($text, '(?<!\d)(\d+)\s*项自测')) {
+        if ([int]$mm.Groups[1].Value -ne $inv.自测) { $bad += ("写了'{0} 项自测'，verify.ps1 是 {1} 项" -f $mm.Groups[1].Value, $inv.自测) }
+    }
+    foreach ($mm in [regex]::Matches($text, 'verify\.ps1[^\r\n]{0,30}?(\d+)\s*项')) {
+        if ([int]$mm.Groups[1].Value -ne $inv.自测) { $bad += ("写了'verify.ps1 … {0} 项'，verify.ps1 是 {1} 项" -f $mm.Groups[1].Value, $inv.自测) }
+    }
+    # ⑦ 具体道号不许超过最大道号（防"引用了不存在的道号"）
+    foreach ($mm in [regex]::Matches($text, '第\s*(\d+)\s*道')) {
+        if ([int]$mm.Groups[1].Value -gt $inv.道号上限) { $bad += ("写了'第 {0} 道'，但道号最大只到 {1}" -f $mm.Groups[1].Value, $inv.道号上限) }
+    }
+    return $bad
+}
+
 if ($SelfTest) {
     $fake = [pscustomobject]@{ 覆盖=103; 覆盖总=103; 顶层=@(388,422); 嵌套=@(363,419); 成员=@(1028,1196) }
-    $pass = 0; $total = 4
+    $inv = [pscustomobject]@{ 产物=119; 守卫=16; 道号上限=26; 自测=21 }
+    $pass = 0; $total = 12
     if ((Find-DocMismatch '标准头 103 / 103 全覆盖' $fake).Count -eq 0) { $pass++ } else { Write-Host '  ❌ 自检1 正确数字被误报' -ForegroundColor Red }
     if ((Find-DocMismatch '已有 67 个汉语头' $fake).Count -eq 1) { $pass++ } else { Write-Host '  ❌ 自检2 漏报旧口径' -ForegroundColor Red }
     if ((Find-DocMismatch '顶层 269/444 = 60.6%' $fake).Count -eq 1) { $pass++ } else { Write-Host '  ❌ 自检3 漏报旧标尺' -ForegroundColor Red }
     if ((Find-DocMismatch 'cases=8  pass=2  same=6  fail=0' $fake).Count -eq 0) { $pass++ } else { Write-Host '  ❌ 自检4 误报第三方 cases=8' -ForegroundColor Red }
+    # ---- §18.47 库存数字（④⑤⑥⑦）：每条都要有"对的不误报 + 错的必须报" ----
+    if ((Find-InventoryMismatch '产物 **119** 个' $inv).Count -eq 0) { $pass++ } else { Write-Host '  ❌ 自检5 正确产物数被误报' -ForegroundColor Red }
+    if ((Find-InventoryMismatch '（产物 116 个）' $inv).Count -eq 1) { $pass++ } else { Write-Host '  ❌ 自检6 漏报过期产物数' -ForegroundColor Red }
+    if ((Find-InventoryMismatch '总判据（**16 道守卫**）每次提交都跑' $inv).Count -eq 0) { $pass++ } else { Write-Host '  ❌ 自检7 正确守卫道数被误报' -ForegroundColor Red }
+    if ((Find-InventoryMismatch '四轨生成器 + 14 道守卫' $inv).Count -eq 1) { $pass++ } else { Write-Host '  ❌ 自检8 漏报过期守卫道数' -ForegroundColor Red }
+    if ((Find-InventoryMismatch '第 14 道守卫每次提交跑' $inv).Count -eq 0) { $pass++ } else { Write-Host '  ❌ 自检9 把具体道号「第 14 道」误当成道数' -ForegroundColor Red }
+    if (((Find-InventoryMismatch '第 26 道守卫' $inv).Count -eq 0) -and ((Find-InventoryMismatch '第 30 道' $inv).Count -eq 1)) { $pass++ } else { Write-Host '  ❌ 自检10 道号上限没判对' -ForegroundColor Red }
+    if (((Find-InventoryMismatch '21 项自测全过' $inv).Count -eq 0) -and ((Find-InventoryMismatch '17 项自测' $inv).Count -eq 1) -and
+        ((Find-InventoryMismatch 'verify.ps1`（**21 项**）' $inv).Count -eq 0) -and ((Find-InventoryMismatch 'verify.ps1`（**17 项**）' $inv).Count -eq 1)) { $pass++ } else { Write-Host '  ❌ 自检11 自测项数没判对' -ForegroundColor Red }
+    if (((Find-InventoryMismatch '（119 个头，2.7 MB）' $inv).Count -eq 0) -and ((Find-InventoryMismatch '（118 个头）' $inv).Count -eq 1) -and
+        ((Find-InventoryMismatch '包里有 12 个头文件' $inv).Count -eq 0)) { $pass++ } else { Write-Host '  ❌ 自检12 头数口径没判对（个头 / 个头文件 / 个中文头）' -ForegroundColor Red }
     Write-Host ("自检：{0}/{1}" -f $pass, $total) -ForegroundColor $(if ($pass -eq $total) { 'Green' } else { 'Red' })
     exit $(if ($pass -eq $total) { 0 } else { 1 })
 }
 
 $N = Get-LedgerNumbers
+$inv = Get-InventoryNumbers
 $bad = @()
 foreach ($d in $docs) {
     $p = Join-Path $root $d
     if (-not (Test-Path $p)) { continue }
-    foreach ($b in (Find-DocMismatch ([System.IO.File]::ReadAllText($p)) $N)) { $bad += ("  [{0}] {1}" -f $d, $b) }
+    $txt = [System.IO.File]::ReadAllText($p)
+    foreach ($b in (Find-DocMismatch $txt $N)) { $bad += ("  [{0}] {1}" -f $d, $b) }
+    foreach ($b in (Find-InventoryMismatch $txt $inv)) { $bad += ("  [{0}] {1}" -f $d, $b) }
 }
 if ($bad.Count) {
     Write-Host '❌ 手写文档数字与台账不一致（§17.19.55）：' -ForegroundColor Red
@@ -109,9 +198,9 @@ foreach ($d in $docs) {
         # 校准（§17.19.60）：只查 README（门面，一律查）与【含 主函数】的完整程序；
         #   文档里大量"语法片段"（只有几行、或故意展示旧写法）不该被要求能编译 —— 假报会逼人加噪声标注。
         if ($d -ne 'README.md' -and $m.Groups[2].Value -notmatch '主函数') { $blkSkip++; continue }
-        $f = Join-Path $outDir ("blk_{0}_{1}.cpp" -f ($d -replace '[\\/\.]', '_'), $i)
-        [System.IO.File]::WriteAllText($f, $m.Groups[2].Value, (New-Object System.Text.UTF8Encoding($false)))
-        & cmd /c "`"$cxx`" -std=c++20 $zhInc -I`"$root\examples`" -fsyntax-only `"$f`" > `"$outDir\o.txt`" 2>&1"
+        $blkFile = Join-Path $outDir ("blk_{0}_{1}.cpp" -f ($d -replace '[\\/\.]', '_'), $i)
+        [System.IO.File]::WriteAllText($blkFile, $m.Groups[2].Value, (New-Object System.Text.UTF8Encoding($false)))
+        & cmd /c "`"$cxx`" -std=c++20 $zhInc -I`"$root\examples`" -fsyntax-only `"$blkFile`" > `"$outDir\o.txt`" 2>&1"
         if ($LASTEXITCODE -eq 0) { $blkOK++ }
         else {
             $err = (Get-Content "$outDir\o.txt" -ErrorAction SilentlyContinue | Where-Object { $_ -match 'error:' } | Select-Object -First 1)
@@ -126,5 +215,5 @@ if ($blkBad.Count) {
     exit 1
 }
 if (-not $Quiet) { Write-Host ("  文档代码块编译守卫：通过（编过 {0} 块，跳过 {1} 块）" -f $blkOK, $blkSkip) -ForegroundColor Green }
-if (-not $Quiet) { Write-Host ("  手写文档数字守卫：通过（覆盖 {0}/{1}、顶层 {2}/{3}、嵌套 {4}/{5}、成员 {6}/{7}；检查 {8} 个文档）" -f $N.覆盖, $N.覆盖总, $N.顶层[0], $N.顶层[1], $N.嵌套[0], $N.嵌套[1], $N.成员[0], $N.成员[1], $docs.Count) -ForegroundColor Green }
+if (-not $Quiet) { Write-Host ("  手写文档数字守卫：通过（覆盖 {0}/{1}、顶层 {2}/{3}、嵌套 {4}/{5}、成员 {6}/{7}；产物 {8} 个、守卫 {9} 道（道号到 {10}）、自测 {11} 项；检查 {12} 个文档）" -f $N.覆盖, $N.覆盖总, $N.顶层[0], $N.顶层[1], $N.嵌套[0], $N.嵌套[1], $N.成员[0], $N.成员[1], $inv.产物, $inv.守卫, $inv.道号上限, $inv.自测, $docs.Count) -ForegroundColor Green }
 exit 0
