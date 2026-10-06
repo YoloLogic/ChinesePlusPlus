@@ -59,9 +59,19 @@ void __cdecl __security_check_cookie(unsigned long long cookie) {
 //
 //  What went wrong there: probing started from the WRONG base and the loop tail
 //  did not match the loop's own arithmetic, so the walk could step over the guard
-//  page instead of into it. The version below is mingw-w64's canonical
-//  `chkstk.S` (public domain), copied verbatim -- see the project rule
-//  "能抄的抄，不能抄的模仿手搓": this one can be copied, so it is.
+//  page instead of into it.
+//
+//  ⚠ CORRECTION (18.49 supplement, measured 2026-10-06): an earlier version of
+//    this comment claimed the code below was "mingw-w64's canonical chkstk.S
+//    (public domain), copied verbatim". That claim could NOT be backed up:
+//    this machine has no mingw-w64 SOURCE tree to point at, and
+//    `nm --defined-only` over mingw's five libraries (libmingwex / libmingw32 /
+//    libmsvcrt / libucrt / libucrtbase) finds NO definition of __chkstk -- nor is
+//    it in libgcc*.a -- while the compiler-rt libraries we ship only REFERENCE
+//    it. What is true, and is what this file is: the canonical implementation of
+//    the documented MS x64 stack-probe routine (%rax = size on entry, every page
+//    touched on the way down, %rsp untouched on return).
+//    Reproducible evidence: tools\check_handwritten_alternatives.ps1
 __asm__(
     ".text\n"
     ".globl __chkstk\n"
