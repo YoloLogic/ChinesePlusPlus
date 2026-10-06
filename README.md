@@ -220,7 +220,7 @@ chinese++ 你的文件.cpp -fno-chinese-diagnostics
 ## 快速开始
 
 **下载：** [最新发布版](https://github.com/YoloLogic/ChinesePlusPlus/releases/latest) ·
-直接下 [Chinese++-0.1-win64.zip](https://github.com/YoloLogic/ChinesePlusPlus/releases/latest/download/Chinese++-0.1-win64.zip)
+直接下 [Chinese++-0.2-win64.zip](https://github.com/YoloLogic/ChinesePlusPlus/releases/latest/download/Chinese++-0.2-win64.zip)
 
 > 在 Releases 页面找 **Assets** 区块 —— 它**可能是折叠的，点一下展开**才能看到附件。
 
