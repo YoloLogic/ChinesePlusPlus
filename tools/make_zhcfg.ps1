@@ -116,6 +116,24 @@ if ($Mode -eq 'bundled') {
         $lines += '-isystem'
         $lines += ('"' + ($p.Replace('\', '/')) + '"')
     }
+    #  §18.48 批3：链接层。用**我们随包的 lld-link**、去掉 clang 自动加的 Microsoft 默认库，
+    #  并把我们的 CRT + 导入库**逐个按绝对路径**交给链接器（实测：只靠 -L/搜索顺序
+    #  会让 VS 的同名库先被读到 —— 那是"假成功"）。`-Wl,` 在 -c 编译时只报一条
+    #  unused-command-line-argument 警告，实测不会报错。
+    $crtDir = Join-Path $ZhRoot 'lib\crt'
+    if (Test-Path $crtDir) {
+        $lines += '-fuse-ld=lld'
+        $lines += '-nostdlib'
+        foreach ($lib in @('libcmt','oldnames','vcruntime140','vcruntime140_1','msvcp140','ucrt','ucrtbase',
+                           'kernel32','user32','gdi32','comctl32','ole32','oleaut32','shell32','advapi32','uuid')) {
+            $f = Join-Path $crtDir ($lib + '.lib')
+            if (Test-Path $f) { $lines += ('-Wl,' + $f.Replace('\', '/')) }
+        }
+        $lines += '-Wl,/nodefaultlib:libcpmt'
+        $lines += '-Wl,/nodefaultlib:msvcprt'
+    } else {
+        Write-Host '  [warn] lib\crt 不在 ⇒ bundled 模式只能编译、不能链接（§18.48 批3）' -ForegroundColor Yellow
+    }
 }
 $text = ($lines -join "`n") + "`n"
 

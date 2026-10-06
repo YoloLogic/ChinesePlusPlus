@@ -273,7 +273,8 @@ Write-Host ("  lib\stl: {0} files, {1} KB (open-source MSVC STL headers)" -f $st
 #   using the Chinese headers <窗口>/<绘图>/<输入输出流>, both compile to .obj with
 #   ZERO "Program Files" entries in -H (scripts: build\_review_own\batch2_judge*.ps1).
 # ---------------------------------------------------------------------------
-foreach ($sub in @(@{ Src = 'vendor\mingw'; Dst = 'lib\mingw'; What = 'mingw-w64 UCRT + Win32 headers (public domain)' },
+foreach ($sub in @(@{ Src = 'vendor\crt'; Dst = 'lib\crt'; What = 'our CRT + import libraries (18.48 batch 3)' },
+                   @{ Src = 'vendor\mingw'; Dst = 'lib\mingw'; What = 'mingw-w64 UCRT + Win32 headers (public domain)' },
                    @{ Src = 'vendor\compiler-support'; Dst = 'lib\compiler'; What = 'hand-written compiler support headers' })) {
     $s = Join-Path $root $sub.Src
     if (-not (Test-Path $s)) { throw "no substrate at $s -- run the vendor script for batch 2 of 18.48 first" }

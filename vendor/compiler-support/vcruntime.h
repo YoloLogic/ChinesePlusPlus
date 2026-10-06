@@ -214,3 +214,28 @@
 #ifndef _Deref_post_opt_valid_
 #define _Deref_post_opt_valid_
 #endif
+
+// --- import-decoration family used by the STL's data declarations ----------
+//  MEASURED (18.48 batch 3): Microsoft's own msvcprt.lib defines only
+//  `__imp_?cout@std@@...` for data, never a plain name -- so a reference must be
+//  emitted as `__imp_...`, i.e. the declaration must carry dllimport. The STL
+//  reaches that decoration through _CRTIMP2 / _CRTIMP2_IMPORT / _CRTIMP2_PURE,
+//  which Microsoft defines in its vcruntime.h; ours must define them too.
+#ifndef _CRTIMP2
+#define _CRTIMP2 __declspec(dllimport)
+#endif
+#ifndef _CRTIMP2_IMPORT
+#define _CRTIMP2_IMPORT __declspec(dllimport)
+#endif
+#ifndef _CRTIMP2_PURE
+#define _CRTIMP2_PURE __declspec(dllimport)
+#endif
+//  MEASURED TRAP: with these defined, any TU that also includes the STL's <cstddef>
+//  fails: it writes `using std::max_align_t;` at global scope while clang's own
+//  <stddef.h> has already declared max_align_t there. Our hand-written runtime files
+//  (vendor\crt\*.cpp) are therefore deliberately header-free.
+//  NOTE: do NOT define _CRTDATA2_IMPORT here. The STL's own yvals.h defines it (as
+//  _CRTIMP2_IMPORT), and defining it earlier made <cstddef> declare max_align_t a
+//  second time ("using-declaration conflicts with an existing declaration",
+//  measured). _CRTIMP2 / _CRTIMP2_IMPORT / _CRTIMP2_PURE are what the data
+//  declarations actually need.

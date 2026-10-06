@@ -39,7 +39,7 @@ powershell -File E:\Chinese++\tools\acceptance.ps1
 powershell -File E:\Chinese++\tools\make_package.ps1
 ```
 
-产出 `dist\Chinese++-0.2-win64\`（未压缩 **270 MB** / **2700+** 个文件——含 §18.48 起随包的**整套地基**：`lib\stl\` 开源 MSVC STL 头、`lib\mingw\` 2037 个 mingw-w64 头（public domain）、`lib\compiler\` 11 个**手搓**的编译器支撑头、`bin\` 10 个 VC++ 运行库 DLL）与同名 `.zip`（**91 MB**）。
+产出 `dist\Chinese++-0.2-win64\`（未压缩 **270 MB** / **2700+** 个文件——含 §18.48 起随包的**整套地基**：`lib\stl\` 开源 MSVC STL 头、`lib\mingw\` 2037 个 mingw-w64 头（public domain）、`lib\compiler\` 11 个**手搓**的编译器支撑头、`bin\` 10 个 VC++ 运行库 DLL）与同名 `.zip`（**92 MB**）。
 对方解压后双击 `一键安装.cmd`：自动建 9 个别名、**只给会话级 PATH**、
 检测 VS Build Tools、按需下载便携 VS Code（中文界面 ＋ 能认中文关键字的 clangd）、
 跑包内自测 `verify.ps1`（**25 项**）。另外三个：

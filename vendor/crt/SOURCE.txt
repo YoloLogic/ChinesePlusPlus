@@ -1,0 +1,34 @@
+# 链接层地基（§18.48 批3）—— 我们自己的 CRT + 导入库
+#
+# 合规口径：Windows SDK 与 MSVC CRT 的**二进制**不许随包。这里发的是：
+#   (a) 我们自己写的启动对象与运行时胶水（vendor\crt\*.c/*.cpp，源码同目录）；
+#   (b) 从**我们随包的 DLL**（msvcp140/vcruntime140/vcruntime140_1）导出表生成的导入库；
+#   (c) mingw-w64 的导入库（public domain）。
+#   导入库 = 【DLL 导出名 + 跳转桩】（事实性接口信息）。
+#
+# 生成命令（构建机：我们的编译器 + mingw 的 gendef + VS 的 lib.exe）：
+System.Object[]
+#
+# 下面每行：<SHA256>  <文件名>   （-Check 逐个核对）
+fb2fb215f864ef133c5589797174bfea49b8fbdc9b7c885167f1d0232d50a4b0  advapi32.lib
+1916712e7dc914d4ccb2f23643b5816eac3b47683c6ea034caab90c6df827af3  comctl32.lib
+53be30aa9e43dc8a3aa95261b73f71bc8c92cd7332b75ad5e1db137837dc67db  crt0.c
+f57ba5fb13b5e5a545da615a8a388276995fa1214fd3a6b5724b9bc562197886  gdi32.lib
+1965abe6e6645bf6d78f99f0080fc0fc640fb91e8a4ce28e333ca16c23f825db  kernel32.lib
+736bfc7f9d24ed24f73197466bcd84594f3c2315f1a94b6c36acbdbad5bbda7d  libcmt.lib
+e9b1576cf6c113b6b7339602de67cd738281ea0fc6ec8d4a22add122e98fd82c  msvcp140.exp
+dd3ace212b8a7dde1e46a567b082dc25e8c06c443218744b50abea60ae1baf23  msvcp140.lib
+b76c18c2b58aa729c90533f6689526790fde160bdc0004d003bec7301346b4a1  newdelete.cpp
+287f504aabb9c5317bf26a84dc9cbce8b8a368361ba4c14b08f122043e63689b  oldnames.lib
+c0e8e1581e7cbaebcbc3eb59cefa2fd3b6c4cf1b6a082a4d3751f32c57cf268b  ole32.lib
+2b05bf7e94a4c2a610c1a520a099ac87bc1dcae73558279766ef1f40d7760a78  oleaut32.lib
+ab0cd9ab33322d2ee383028de741cda90a0f701035c7b31926fef4537d1ce817  shell32.lib
+8ed7f07dd78d99146ab10cb34cdec3c5a69f2531c44a1df6027c27219ea3abf6  stl-internals.cpp
+b3bfb2a3a08a6e407fe049312dcd4e632c7f7b5bc5249f74d78aa16d86fd8f92  ucrt.lib
+8e4534f1de2b5470fafc8cdb950a4315827c2df4528693ce239412a68d0d73e2  ucrtbase.lib
+27bf37917ed3979927e44181c06d94fc5243f83649e4750429188faa045533a6  user32.lib
+cbbdeeb889d20ef0d2140bc4b2ab9b1b0e874f76f1d8e07273c20b5ea9ef59c8  uuid.lib
+aab10733ac6988ca2266ec3a6e3f44babb0494d5440c6ec78c8b57d407a324de  vcruntime140_1.exp
+f5ebbca9c762668d8b52719958854617cb730512f2945bf6651a4731b642cb4f  vcruntime140_1.lib
+b7eea75dc822da493a553c61a7b312232d05cd565f24f1f27de5af5000a61859  vcruntime140.exp
+19cdf5c8bf42fb842aae92cc02b77dd05b7998e65456989d0d397ae491bf1a8d  vcruntime140.lib
