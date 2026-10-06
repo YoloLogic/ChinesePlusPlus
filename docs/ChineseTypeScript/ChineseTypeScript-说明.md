@@ -38,7 +38,7 @@ Chinese++ 的三角定位是「最快的（C++）/ 最全面的（Python）/
 | 基线 commit | `e26b8d24bee09bf66d59941912166c5aa7975d20` |
 | 许可 | **Apache-2.0**（可修改、可再发行；需保留声明） |
 | 上游原样副本 | `E:\TypeScript源代码`（**不要改**，是比对基准） |
-| 本地提交 | `c2589b3d`、`d4b9c841`、`60b94c0d`（三个提交，均未 push） |
+| 本地提交 | `c2589b3d`、`d4b9c841`、`60b94c0d`、`51e5f5d8`（四个提交，均未 push） |
 
 选 TS 7（Go 版）而不是经典 TS 5.x/6.x 的理由：**它就是今天 `tsc` 的本体**
 （npm `typescript@7.x` 只是个去找原生二进制的薄壳），且**关键字表就在一处**。
@@ -132,9 +132,10 @@ TypeScript 里 `class` 与 `type` 并存，故 `class`→`类型`（沿用 Chine
 ```
 judge_chts.ps1    9/9
 judge_proj.ps1   15/15
-judge_oss.ps1    语料 = 上游官方 conformance 目录里真实 .ts/.tsx，共 5894 个
-                 抽样 600 个：【诊断输出 + 退出码】600/600 逐字节相同
-                 抽样  60 个：产物【逐字节】60/60 相同
+judge_oss.ps1    语料 = 上游官方 conformance 目录里【全部】5894 个 .ts/.tsx（排除 .d.ts）
+                 全量跑：【诊断输出 + 退出码】5894/5894 逐字节相同（一个不落）
+                 另抽 300 个：产物【逐字节】300/300 相同
+                 （-Sample N 抽样、-Sample 0 全量；抽样 600 时同样是 600/600 与 60/60）
 judge_gotest.ps1  4/4（上游自带 Go 测试全集，跑两遍：基线 vs 工作副本）
                  基线失败包 = astnav（缺 node_modules/typescript）、
                               fswatch（非管理员无建符号链接特权）—— 环境问题
@@ -181,6 +182,9 @@ judge_gotest.ps1  4/4（上游自带 Go 测试全集，跑两遍：基线 vs 工
 3. **语言服务尚未把汉语关键字加入补全建议**（`GetViableKeywordSuggestions` 仍只给英文）。
 4. **诊断信息未汉化**（Chinese++ 侧已汉化 7344 条；ChineseTypeScript 侧未做）。
 5. **未打包、未发布**：没有面向用户的发行包，也没有 `chtsc` 之类的独立命令名。
+
+上面每一条的「怎么接着做」（落点文件、注意事项、会踩什么坑）都写在
+工作副本的 `E:\ChineseTypeScript\下一步.md` 里，连同「已经踩过、别再踩的坑」一张表。
 
 ## 九、环境（供复核者）
 
