@@ -38,7 +38,7 @@ Chinese++ 的三角定位是「最快的（C++）/ 最全面的（Python）/
 | 基线 commit | `e26b8d24bee09bf66d59941912166c5aa7975d20` |
 | 许可 | **Apache-2.0**（可修改、可再发行；需保留声明） |
 | 上游原样副本 | `E:\TypeScript源代码`（**不要改**，是比对基准） |
-| 本地提交 | `c2589b3d`、`d4b9c841`、`60b94c0d`、`51e5f5d8`（四个提交，均未 push） |
+| 本地提交 | `c2589b3d`、`d4b9c841`、`60b94c0d`、`51e5f5d8`、`9ef62083`（五个提交，均未 push） |
 
 选 TS 7（Go 版）而不是经典 TS 5.x/6.x 的理由：**它就是今天 `tsc` 的本体**
 （npm `typescript@7.x` 只是个去找原生二进制的薄壳），且**关键字表就在一处**。
@@ -130,7 +130,7 @@ TypeScript 里 `class` 与 `type` 并存，故 `class`→`类型`（沿用 Chine
 ## 六、判定证据（四套，全绿；每套都能被任何人重跑）
 
 ```
-judge_chts.ps1    9/9
+judge_chts.ps1   11/11（第 8 节单独钉 `--strict`：同样编译通过、产物 node 真跑通过）
 judge_proj.ps1   15/15
 judge_oss.ps1    语料 = 上游官方 conformance 目录里【全部】5894 个 .ts/.tsx（排除 .d.ts）
                  全量跑：【诊断输出 + 退出码】5894/5894 逐字节相同（一个不落）
