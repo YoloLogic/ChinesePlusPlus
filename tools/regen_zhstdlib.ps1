@@ -644,9 +644,37 @@ Write-Host "=== 中文打印「语句与声明」守卫（§18.12：大检查 P-
 & pwsh -NoProfile -File (Join-Path $root 'tools\check_zhstmt.ps1')
 $zst = $LASTEXITCODE
 
-if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0 -and $bd -eq 0 -and $orph -eq 0 -and $fw -eq 0 -and $zd -eq 0 -and $cv -eq 0 -and $nm -eq 0 -and $hb -eq 0 -and $tp -eq 0 -and $dc -eq 0 -and $zi -eq 0 -and $kwg -eq 0 -and $zdl -eq 0 -and $zkn -eq 0 -and $zcu -eq 0 -and $zpa -eq 0 -and $zex -eq 0 -and $zpt -eq 0 -and $zst -eq 0) {
-    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 边界台账 + 孤儿产物 + 公开层转发 + 中文类型名定义 + 标准头覆盖 + 中文名占用 + 汉化标尺 + 第三方开源项目 + 手写文档数字 + 实例化 + 关键字 + 英文残留 + 关键字措辞 + 列号口径 + 诊断对称 + 表达式打印 + 补丁一致 + 语句声明打印 + 铁律①：全部通过" -ForegroundColor Green
+# ---------------------------------------------------------------------------
+#  §18.49 Linux x86_64 目标 —— **只做离线那一半**（2026-10-06）
+#
+#  ⚠ 闸门**绝不**依赖虚拟机：一旦"绿"意味着"某台 VM 恰好开着"，闸门就变成了
+#    脆弱物（本项目最反对的"靠人记得/靠环境凑巧"）。所以这里只跑：
+#      交叉编译 → **自己读 ELF 字节**断言 ELFCLASS64 / ELFDATA2LSB /
+#      EM_X86_64(62) / ET_DYN(PIE) / PT_INTERP=/lib64/ld-linux-x86-64.so.2
+#    真跑那一半（scp 进目标机、读回退出码、与原生 g++ 逐字节比对）留在
+#    tools\verify_linux.ps1 —— 由人跑，**日志作为证据提交**。
+#
+#  sysroot 是**构建输入、不入库**（.gitignore 的 build*/ 覆盖），随时可用
+#  tools\make_linux_sysroot.ps1 从目标机重生成。没有它就**如实跳过**并打印原因，
+#  不算失败 —— 但也就没有这条证据，台账里写清楚了。
+# ---------------------------------------------------------------------------
+Write-Host "=== Linux x86_64 目标（§18.49：离线部分）===" -ForegroundColor Cyan
+$zln = 0
+$zhLinuxSysroot = Join-Path $root 'build\sysroot-linux-x64'
+if (Test-Path $zhLinuxSysroot) {
+    & pwsh -NoProfile -File (Join-Path $root 'tools\verify_linux.ps1') -NoVm -Quiet
+    $zln = $LASTEXITCODE
+    if ($zln -eq 0) { Write-Host '  ✅ 交叉编译 + ELF 头部断言通过（真跑见 tools\verify_linux.ps1 的日志）' -ForegroundColor Green }
+    elseif ($zln -eq 2) { Write-Host '  [跳过] 前置件不全（sysroot 或 ld.lld.exe）—— 见上面的原因，不算失败' -ForegroundColor Yellow; $zln = 0 }
+    else { Write-Host '  ❌ Linux 目标（离线）判据失败' -ForegroundColor Red }
+} else {
+    Write-Host '  [跳过] 没有 build\sysroot-linux-x64' -ForegroundColor Yellow
+    Write-Host '         跑 tools\make_linux_sysroot.ps1 从目标机生成（本项不依赖 VM）' -ForegroundColor DarkGray
+}
+
+if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0 -and $bd -eq 0 -and $orph -eq 0 -and $fw -eq 0 -and $zd -eq 0 -and $cv -eq 0 -and $nm -eq 0 -and $hb -eq 0 -and $tp -eq 0 -and $dc -eq 0 -and $zi -eq 0 -and $kwg -eq 0 -and $zdl -eq 0 -and $zkn -eq 0 -and $zcu -eq 0 -and $zpa -eq 0 -and $zex -eq 0 -and $zpt -eq 0 -and $zst -eq 0 -and $zln -eq 0) {
+    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 边界台账 + 孤儿产物 + 公开层转发 + 中文类型名定义 + 标准头覆盖 + 中文名占用 + 汉化标尺 + 第三方开源项目 + 手写文档数字 + 实例化 + 关键字 + 英文残留 + 关键字措辞 + 列号口径 + 诊断对称 + 表达式打印 + 补丁一致 + 语句声明打印 + Linux 目标（离线） + 铁律①：全部通过" -ForegroundColor Green
     exit 0
 }
-Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；边界台账守卫退出码 {5}；孤儿产物守卫退出码 {6}；铁律①守卫退出码 {4}；公开层转发守卫退出码 {7}；中文类型名定义守卫退出码 {8}；标准头覆盖退出码 {9}；中文名占用退出码 {10}；汉化标尺退出码 {11}；第三方开源项目退出码 {12}；手写文档数字退出码 {13}；实例化退出码 {14}；关键字退出码 {15}；英文残留退出码 {16}；关键字措辞退出码 {17}；列号口径退出码 {18}；诊断对称退出码 {19}；表达式打印退出码 {20}；补丁一致退出码 {21}；语句声明打印退出码 {22}" -f $fail, $v, $ex, $ud, $og, $bd, $orph, $fw, $zd, $cv, $nm, $hb, $tp, $dc, $zi, $kwg, $zdl, $zkn, $zcu, $zpa, $zex, $zpt, $zst) -ForegroundColor Red
+Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；边界台账守卫退出码 {5}；孤儿产物守卫退出码 {6}；铁律①守卫退出码 {4}；公开层转发守卫退出码 {7}；中文类型名定义守卫退出码 {8}；标准头覆盖退出码 {9}；中文名占用退出码 {10}；汉化标尺退出码 {11}；第三方开源项目退出码 {12}；手写文档数字退出码 {13}；实例化退出码 {14}；关键字退出码 {15}；英文残留退出码 {16}；关键字措辞退出码 {17}；列号口径退出码 {18}；诊断对称退出码 {19}；表达式打印退出码 {20}；补丁一致退出码 {21}；语句声明打印退出码 {22}；Linux 目标（离线）退出码 {23}" -f $fail, $v, $ex, $ud, $og, $bd, $orph, $fw, $zd, $cv, $nm, $hb, $tp, $dc, $zi, $kwg, $zdl, $zkn, $zcu, $zpa, $zex, $zpt, $zst, $zln) -ForegroundColor Red
 exit 1
