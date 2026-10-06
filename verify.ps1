@@ -34,6 +34,13 @@ $pass = 0; $fail = 0
 function Ok  ($m) { Write-Host ("  [ok]   " + $m) -ForegroundColor Green;  $script:pass++ }
 function Bad ($m) { Write-Host ("  [FAIL] " + $m) -ForegroundColor Red;    $script:fail++ }
 
+# --- how many checks this script performs when everything passes -------------
+#  §18.47: this number is the ONLY source of truth for "the package self-test has
+#  N items". check_zhdocs.ps1 (gate guard #15) reads it from this file and refuses
+#  any hand-written doc that quotes a different number -- so docs cannot drift.
+#  Add or remove a check -> this assertion tells you to bump the number.
+$expectedChecks = 21
+
 Write-Host ""
 Write-Host "=== Chinese++ package self-test ===" -ForegroundColor Cyan
 Write-Host "package root: $here"
@@ -345,6 +352,10 @@ if (-not $KeepTemp) { Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyCont
 Write-Host ''
 Write-Host ('=' * 60)
 if ($fail -eq 0) {
+    if ($pass -ne $expectedChecks) {
+        Write-Host ("  [FAIL] ran {0} checks, expected {1} -- bump `$expectedChecks here AND the docs that quote it" -f $pass, $expectedChecks) -ForegroundColor Red
+        exit 1
+    }
     Write-Host ("  {0} passed, 0 failed -- this package works." -f $pass) -ForegroundColor Green
     exit 0
 }
