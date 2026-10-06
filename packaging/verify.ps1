@@ -35,11 +35,12 @@ function Ok  ($m) { Write-Host ("  [ok]   " + $m) -ForegroundColor Green;  $scri
 function Bad ($m) { Write-Host ("  [FAIL] " + $m) -ForegroundColor Red;    $script:fail++ }
 
 # --- how many checks this script performs when everything passes -------------
-#  §18.47: this number is the ONLY source of truth for "the package self-test has
+#  18.47: this number is the ONLY source of truth for "the package self-test has
 #  N items". check_zhdocs.ps1 (gate guard #15) reads it from this file and refuses
 #  any hand-written doc that quotes a different number -- so docs cannot drift.
 #  Add or remove a check -> this assertion tells you to bump the number.
-$expectedChecks = 21
+#  18.48 batch 1 added three (toolchain mode / runtime DLLs / <vector> provenance).
+$expectedChecks = 24
 
 Write-Host ""
 Write-Host "=== Chinese++ package self-test ===" -ForegroundColor Cyan
@@ -314,10 +315,11 @@ if ($cfgMissing.Count) {
     Ok 'include-path config present (chinese++.cfg / clang++.cfg / clang.cfg)'
     Ok 'zhstdlib\ present'
     # The Chinese source is built from code points so this file stays ASCII:
-    #   #include-directive <vector-cn>
+    #   <include-directive> <vector-cn>
     #   #include <vector>
-    #   int main(){ 标准::向量<int> 表; 表.尾插(1); std::vector<int> 乙{1,2};
-    #               return (int)表.尺寸() + (int)乙.size() - 3; }
+    #   <int-cn> <main-cn>(){ <std-cn>::<vector-cn><<int-cn>> t; t.<push_back-cn>(1);
+    #               std::vector<int> u{1,2};
+    #               return (int)t.<size-cn>() + (int)u.size() - 3; }
     $libSrc = Join-Path $tmp 'zhlib.cpp'
     $l = -join @(
         $zhInc, ' <', [char]0x5411, [char]0x91CF, ">`n",
@@ -343,6 +345,78 @@ if ($cfgMissing.Count) {
         & cmd /c "`"$libExe`" > `"$tmp\zhlib.txt`" 2>&1"
         if ($LASTEXITCODE -eq 0) { Ok 'the Chinese-library program runs (exit 0)' }
         else { Bad ("the Chinese-library program exited " + $LASTEXITCODE) }
+    }
+}
+
+# ---------------------------------------------------------------------------
+# 3c) WHICH toolchain substrate, and is the bundled one self-contained? (18.48)
+#
+#     Two substrates exist and the user picks one at install time:
+#       bundled (default) -- lib\stl\ + bin\*.dll ship inside this package, so no
+#                            Visual Studio is needed;
+#       system            -- the machine's own Visual Studio / Windows SDK.
+#     install.ps1 writes bin\toolchain.txt. This section
+#       (a) makes sure that file exists and names a usable mode,
+#       (b) checks the VC++ runtime DLLs our own tools IMPORT are actually here
+#           (measured: chinese++.exe/clangd.exe/lld-link.exe all import
+#            MSVCP140.dll + VCRUNTIME140.dll + VCRUNTIME140_1.dll; a machine
+#            without the VC++ Redistributable cannot even START the compiler),
+#       (c) compiles an English <vector> with -H and looks at WHERE it resolved:
+#           in bundled mode it must come from inside this package, or the
+#           "no Visual Studio needed" claim is false.
+# ---------------------------------------------------------------------------
+Write-Host ''
+Write-Host '--- 3c) toolchain substrate (bundled vs the machine''s Visual Studio)'
+
+$tcFile = Join-Path $bin 'toolchain.txt'
+$tcMode = ''
+if (Test-Path $tcFile) {
+    $tm = [regex]::Match([System.IO.File]::ReadAllText($tcFile), 'mode\s*=\s*(\w+)')
+    if ($tm.Success -and $tm.Groups[1].Value -in @('bundled', 'system')) {
+        $tcMode = $tm.Groups[1].Value
+        Ok ("toolchain mode recorded: " + $tcMode)
+    } else {
+        Bad 'bin\toolchain.txt exists but has no usable "mode = bundled|system" line'
+    }
+} else {
+    Bad 'bin\toolchain.txt is missing -- run install.ps1 (it records the mode)'
+}
+
+$rtDlls = @('msvcp140.dll', 'vcruntime140.dll', 'vcruntime140_1.dll')
+$rtMissing = @($rtDlls | Where-Object { -not (Test-Path (Join-Path $bin $_)) })
+if ($rtMissing.Count) {
+    Bad ("VC++ runtime DLLs missing from bin\: " + ($rtMissing -join ', '))
+    Write-Host '         our own tools import these; on a machine without the' -ForegroundColor Yellow
+    Write-Host '         VC++ Redistributable the compiler cannot even start.' -ForegroundColor Yellow
+} else {
+    Ok ("VC++ runtime DLLs shipped app-local (" + $rtDlls.Count + " checked)")
+}
+
+# where does <vector> actually come from?
+$probeSrc = Join-Path $tmp 'prov.cpp'
+"#include <vector>" | Set-Content -Encoding ASCII $probeSrc
+Add-Content -Encoding ASCII $probeSrc 'int main(){ std::vector<int> v{1}; return (int)v.size()-1; }'
+$hOut = & $cxx -std=c++20 -fsyntax-only -H $probeSrc 2>&1
+$hCode = $LASTEXITCODE
+#  NOTE: with 2>&1 the include tree arrives as ErrorRecord objects, so force strings
+#  before matching (measured: calling .Trim() on one throws, and the check then
+#  silently contributes neither an ok nor a fail -- the count assertion caught it).
+$vecLine = @($hOut | ForEach-Object { [string]$_ } | Where-Object { $_ -match '\\vector$' } | Select-Object -First 1)
+function Get-Norm([string] $s) { return (($s -replace '\\\\', '\') -replace '/', '\').ToLower() }
+function Get-TracePath([string] $s) { return (($s -replace '^\s*\.+\s*', '').Trim()) }
+if ($hCode -ne 0) {
+    Bad 'a plain English <vector> program does not compile at all'
+    $hOut | Select-Object -First 4 | ForEach-Object { Write-Host "         $_" }
+} elseif ($tcMode -eq 'system') {
+    Ok 'system mode: <vector> resolved from the machine (Visual Studio / SDK)'
+} elseif ($vecLine.Count -eq 0) {
+    Bad 'bundled mode, but no <vector> line in the include trace (cannot tell where it came from)'
+} else {
+    $vecPath = Get-TracePath $vecLine[0]
+    if ((Get-Norm $vecPath).StartsWith((Get-Norm $here))) {
+        Ok '<vector> resolves INSIDE this package (bundled substrate works)'
+    } else {
+        Bad ('bundled mode, but <vector> came from OUTSIDE the package: ' + $vecPath)
     }
 }
 

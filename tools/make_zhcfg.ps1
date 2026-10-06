@@ -25,12 +25,21 @@
 #    pwsh -NoProfile -File tools\make_zhcfg.ps1                      # 写 <仓库>\build\Release\bin
 #    pwsh -NoProfile -File tools\make_zhcfg.ps1 -Check               # 只核对（红了=过期或被手改）
 #    pwsh -NoProfile -File tools\make_zhcfg.ps1 -BinDir <目录> -ZhRoot <目录>   # 发行包安装时用
+#    pwsh -NoProfile -File tools\make_zhcfg.ps1 -Mode system         # 用机器上的 VS（§18.48 可选项）
 #
-#  单一事实来源：`tools\zh_includes.ps1` 的 Get-ZhIncludeDirs（第 25 道守卫连带管这里）。
+#  §18.48【两种地基，用户可选，自带为默认】：
+#    · bundled（默认）：cfg 里除了 zhstdlib 的 5 条，还写**包内地基目录**（lib\stl 等）⇒
+#      **不装 VS 也能用**（头从包里来，不进 `Program Files`）。
+#    · system：cfg 只写 zhstdlib 那 5 条，STL/UCRT/Win32 头交给 clang 自己探测到的 VS/SDK ⇒
+#      与本项目 0.2 之前的行为逐字一致（最大兼容，但要装 VS）。
+#    选了哪个由发行包安装时写进 `<BinDir>\toolchain.txt`；这里 -Check 会读它，保证核对的是**当前模式**。
+#
+#  单一事实来源：`tools\zh_includes.ps1`（Get-ZhIncludeDirs + §18.48 的 Get-ZhSubstrateDirs）。
 # ============================================================================
 param(
     [string] $BinDir,
     [string] $ZhRoot,
+    [ValidateSet('bundled', 'system')][string] $Mode = 'bundled',
     [switch] $Check,
     [switch] $Quiet
 )
@@ -56,8 +65,22 @@ $utf8 = New-Object System.Text.UTF8Encoding($false)
 #       换来的是"编辑器不再是红的"，值。
 $names = @('chinese++.cfg', 'clang++.cfg', 'clang.cfg')
 
+# §18.48：核对时要用**安装时选定的那个模式**（发行包里 install.ps1 写了 bin\toolchain.txt）
+if ($Check) {
+    $tf = Join-Path $BinDir 'toolchain.txt'
+    if (Test-Path $tf) {
+        $m = [regex]::Match([System.IO.File]::ReadAllText($tf), 'mode\s*=\s*(\w+)')
+        if ($m.Success -and $m.Groups[1].Value -in @('bundled', 'system')) { $Mode = $m.Groups[1].Value }
+    }
+}
+
+$dirs = @(Get-ZhIncludeDirs $ZhRoot)
+if ($Mode -eq 'bundled') {
+    $dirs += @(Get-ZhSubstrateDirs $ZhRoot)          # 包内地基（lib\stl …）：不装 VS 也能用
+}
+
 $lines = @()
-foreach ($p in (Get-ZhIncludeDirs $ZhRoot)) {
+foreach ($p in $dirs) {
     $lines += '-isystem'
     $lines += ('"' + ($p.Replace('\', '/')) + '"')
 }

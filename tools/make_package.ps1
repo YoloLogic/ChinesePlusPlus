@@ -220,14 +220,97 @@ $zhFiles = @(Get-ChildItem (Join-Path $pkg 'zhstdlib') -Recurse -File)
 $zhKB = [int](($zhFiles | Measure-Object Length -Sum).Sum / 1KB)
 Write-Host ("  zhstdlib: {0} headers, {1} KB" -f $zhFiles.Count, $zhKB)
 
+# ---------------------------------------------------------------------------
+# 5a-2. bundled toolchain substrate   (§18.48 batch 1 -- "no Visual Studio needed")
+#
+#   WHY: a `#include <vector>` reached from our Chinese headers used to resolve
+#   from the user's Visual Studio installation. Two pieces now ship with us:
+#
+#     lib\stl\    the 184 OPEN-SOURCE MSVC STL headers (Apache-2.0 WITH
+#                 LLVM-exception). They are OUR copy, produced verbatim by
+#                 tools\vendor_msvc_stl.ps1, and the SPDX line inside every file
+#                 is the licence notice. The 86 CLOSED-SOURCE compiler support
+#                 headers (vcruntime.h / sal.h / crtdefs.h / eh.h ...) are NOT
+#                 copied -- batch 2 supplies hand-written equivalents.
+#
+#     bin\*.dll   the VC++ runtime DLLs our own tools import (VCRUNTIME140,
+#                 VCRUNTIME140_1, MSVCP140, ...). Microsoft's redistributable
+#                 terms allow shipping these WITH an application (app-local
+#                 deployment). They are runtime, not an SDK: no compiler, no
+#                 headers, no import libraries.
+#
+#   The user can still pick the machine's own Visual Studio: install.ps1
+#   -Toolchain system (the default is 'bundled').
+# ---------------------------------------------------------------------------
+$stlSrc = Join-Path $root 'vendor\msvc-stl'
+if (-not (Test-Path $stlSrc)) {
+    throw "no vendored MSVC STL at $stlSrc -- run tools\vendor_msvc_stl.ps1 first (batch 1 of 18.48)"
+}
+$stlDst = Join-Path $pkg 'lib\stl'
+New-Item -ItemType Directory -Force $stlDst | Out-Null
+Get-ChildItem $stlSrc -File | Where-Object { $_.Name -ne 'SOURCE.txt' } |
+    ForEach-Object { Copy-Item $_.FullName (Join-Path $stlDst $_.Name) -Force }
+Copy-Item (Join-Path $stlSrc 'SOURCE.txt') (Join-Path $stlDst 'SOURCE.txt') -Force
+$stlFiles = @(Get-ChildItem $stlDst -File)
+$stlKB = [int](($stlFiles | Measure-Object Length -Sum).Sum / 1KB)
+Write-Host ("  lib\stl: {0} files, {1} KB (open-source MSVC STL headers)" -f $stlFiles.Count, $stlKB)
+
+#  VC++ runtime DLLs (app-local). Source = the Visual Studio redistributable
+#  folder -- the canonical place Microsoft tells you to copy them from.
+$crtDir = $null
+$vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+$vsRoots = @()
+if (Test-Path $vswhere) {
+    $p = & $vswhere -latest -products * -property installationPath 2>$null
+    if ($p) { $vsRoots += $p.Trim() }
+}
+foreach ($g in @("$env:ProgramFiles\Microsoft Visual Studio", "${env:ProgramFiles(x86)}\Microsoft Visual Studio")) {
+    if (Test-Path $g) { $vsRoots += @(Get-ChildItem $g -Directory -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }) }
+}
+foreach ($r in $vsRoots) {
+    $redist = Join-Path $r 'VC\Redist\MSVC'
+    if (-not (Test-Path $redist)) { continue }
+    #  layout is <redist>\<toolset>\x64\Microsoft.VC143.CRT\*.dll  -> recurse
+    $hit = Get-ChildItem $redist -Recurse -Directory -ErrorAction SilentlyContinue |
+           Where-Object { $_.Name -like 'Microsoft.VC*.CRT' -and $_.FullName -match '\\x64\\' -and $_.FullName -notmatch '\\onecore\\' } |
+           Sort-Object { $_.FullName } -Descending | Select-Object -First 1
+    if ($hit) { $crtDir = $hit.FullName; break }
+}
+if (-not $crtDir) {
+    throw "cannot find the x64 VC++ runtime folder (VC\Redist\MSVC\*\x64\Microsoft.VC*.CRT). A clean machine would fail to START our tools without those DLLs; install Visual Studio Build Tools (or the VC++ Redistributable) on the BUILD machine, or copy them aside and re-run."
+}
+$crtFiles = @(Get-ChildItem $crtDir -File -Filter *.dll)
+foreach ($f in $crtFiles) { Copy-Item $f.FullName (Join-Path $pkg ('bin\' + $f.Name)) -Force }
+$crtKB = [int](($crtFiles | Measure-Object Length -Sum).Sum / 1KB)
+Write-Host ("  bin\*.dll: {0} VC++ runtime DLLs, {1} KB (app-local; source {2})" -f $crtFiles.Count, $crtKB, (Split-Path $crtDir -Leaf))
+$global:CrtShipped = ($crtFiles | ForEach-Object { $_.Name })
+
 $pkgTools = Join-Path $pkg 'tools'
 New-Item -ItemType Directory -Force $pkgTools | Out-Null
 foreach ($n in @('zh_includes.ps1', 'make_zhcfg.ps1')) {
     $s = Join-Path $root "tools\$n"
     if (-not (Test-Path $s)) { throw "missing tools\$n (needed to write the include-path cfg)" }
-    Copy-Item $s (Join-Path $pkgTools $n) -Force
+    # 18.48 (MEASURED BUG, 2026-10-06): Windows PowerShell 5.1 -- which is what
+    # install.ps1 uses, because the user's machine may not have PS 7 -- decodes a
+    # BOM-less file with the ANSI code page. A default Chinese Windows is GBK(936);
+    # there, typed Chinese arrives as mojibake (measured: a 4-character folder name
+    # decoded to garbage, 0 of 3 names matched the real folders), the generated
+    # <driver>.cfg points at folders that do not exist, and `#include <vector-cn>`
+    # fails outright. Our dev machine hides this because its ACP is 65001.
+    # FIX: a script shipped into the package is either pure ASCII, or we add a
+    # UTF-8 BOM here (a BOM overrides the code page in both PS 5.1 and PS 7).
+    $bytes = [System.IO.File]::ReadAllBytes($s)
+    $nonAscii = @($bytes | Where-Object { $_ -gt 127 }).Count
+    $hasBom = ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF)
+    if ($nonAscii -gt 0 -and -not $hasBom) {
+        $text = [System.IO.File]::ReadAllText($s)
+        [System.IO.File]::WriteAllText((Join-Path $pkgTools $n), $text, (New-Object System.Text.UTF8Encoding($true)))
+        Write-Host ("  tools\{0}: {1} non-ASCII bytes -> shipped WITH a UTF-8 BOM" -f $n, $nonAscii)
+    } else {
+        Copy-Item $s (Join-Path $pkgTools $n) -Force
+    }
 }
-Write-Host '  tools\zh_includes.ps1 + tools\make_zhcfg.ps1 copied'
+Write-Host '  tools\zh_includes.ps1 + tools\make_zhcfg.ps1 copied (ASCII, or BOM-tagged)'
 
 # ---------------------------------------------------------------------------
 # 5b. bundled portable editor (VSCodium)
@@ -331,9 +414,25 @@ $lines += "                        shipped here and is not needed."
 $lines += "  -fsanitize=address/undefined need MSVC STL + Windows SDK anyway."
 
 $lines += ""
-$lines += "=== REQUIRED on the user's machine (not in this package) ==="
-$lines += "  Visual Studio Build Tools: MSVC STL, Windows SDK, link.exe"
-$lines += "  See NOTICE.txt section 4."
+$lines += "=== toolchain substrate bundled with this package (18.48 batch 1) ==="
+$lines += "  lib\stl\          184 open-source MSVC STL headers (Apache-2.0 WITH"
+$lines += "                    LLVM-exception; copied verbatim -- see SOURCE.txt"
+$lines += "                    for the toolset version and every file's SHA256)."
+$lines += "                    This is what makes <vector>/<iostream> resolve"
+$lines += "                    WITHOUT a Visual Studio installation."
+$lines += ("  bin\*.dll         {0} VC++ runtime DLLs, app-local deployment" -f $crtFiles.Count)
+foreach ($f in ($crtFiles | Sort-Object Name)) {
+    $lines += ("  {0,-34} {1,6} KB" -f ('bin\' + $f.Name), [int]($f.Length / 1KB))
+}
+$lines += ""
+$lines += "=== still required on the user's machine (until 18.48 batch 2/3 land) ==="
+$lines += "  MSVC compiler support headers (vcruntime.h, sal.h, crtdefs.h, eh.h ...)"
+$lines += "  Windows SDK headers (UCRT + um/shared) and its import libraries"
+$lines += "  link.exe, libcmt.lib / oldnames.lib (CRT startup + static runtime)"
+$lines += "  => install Visual Studio Build Tools for now; batch 2 hand-writes the"
+$lines += "     support headers and batch 3 generates import libraries + startup"
+$lines += "     objects, after which VS becomes purely optional:"
+$lines += "     install.ps1 -Toolchain bundled (default) vs -Toolchain system."
 $lines | Set-Content -Encoding UTF8 (Join-Path $pkg 'MANIFEST.txt')
 Write-Host "  MANIFEST.txt written"
 

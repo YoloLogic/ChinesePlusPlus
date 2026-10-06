@@ -28,7 +28,15 @@ param(
     [switch] $SkipVerify,
     # Skip the editor step entirely. Useful when the user already has an editor
     # they like, and for testing the toolchain part without a 320 MB download.
-    [switch] $NoEditor
+    [switch] $NoEditor,
+    # 18.48: which toolchain substrate to use.
+    #   bundled (DEFAULT) -- the STL headers + VC++ runtime DLLs that ship inside
+    #                        this package. No Visual Studio needed.
+    #   system           -- the Visual Studio / Windows SDK installed on THIS
+    #                        machine (maximum compatibility; requires VS).
+    # The choice is recorded in bin\toolchain.txt and read back by verify.ps1
+    # and make_zhcfg.ps1, so "which one am I running" is never a guess.
+    [ValidateSet('bundled', 'system')][string] $Toolchain = 'bundled'
 )
 
 $ErrorActionPreference = 'Continue'
@@ -105,7 +113,7 @@ Write-Host ''
 Write-Host '--- 1b) <driver>.cfg (Chinese include paths)'
 $zhcfg = Join-Path $here 'tools\make_zhcfg.ps1'
 if (Test-Path $zhcfg) {
-    & powershell -NoProfile -ExecutionPolicy Bypass -File $zhcfg -BinDir $bin -ZhRoot $here
+    & powershell -NoProfile -ExecutionPolicy Bypass -File $zhcfg -BinDir $bin -ZhRoot $here -Mode $Toolchain
     if ($LASTEXITCODE -ne 0) {
         Write-Host '  [warn] could not write <driver>.cfg -- Chinese headers will not be found' -ForegroundColor Yellow
         Write-Host '         (the package folder is probably read-only)' -ForegroundColor Yellow
@@ -115,6 +123,36 @@ if (Test-Path $zhcfg) {
     Write-Host '         The Chinese library (zhstdlib\) will not be found: the search' -ForegroundColor Yellow
     Write-Host '         paths live in tools\zh_includes.ps1 and are written into' -ForegroundColor Yellow
     Write-Host '         bin\<driver>.cfg by that script.' -ForegroundColor Yellow
+}
+
+# ---------------------------------------------------------------------------
+# 1c. record WHICH toolchain the user picked (18.48)
+#
+#     Two substrates exist: the one bundled in this package (lib\stl + bin\*.dll)
+#     and the machine's own Visual Studio. Writing the choice down means
+#     verify.ps1 and make_zhcfg.ps1 -Check test the mode that is actually in use,
+#     instead of assuming. ASCII, no BOM.
+# ---------------------------------------------------------------------------
+$tcTxt = Join-Path $bin 'toolchain.txt'
+$tcBody = @(
+    '# Chinese++ toolchain mode (written by install.ps1)',
+    '# bundled = the substrate inside this package (no Visual Studio needed)',
+    '# system  = the Visual Studio / Windows SDK installed on this machine',
+    'mode = ' + $Toolchain
+) -join "`r`n"
+try {
+    [System.IO.File]::WriteAllText($tcTxt, $tcBody + "`r`n", (New-Object System.Text.UTF8Encoding($false)))
+    Write-Host ("  toolchain mode recorded: {0}  (bin\toolchain.txt)" -f $Toolchain)
+} catch {
+    Write-Host '  [warn] could not write bin\toolchain.txt (folder read-only?)' -ForegroundColor Yellow
+}
+if ($Toolchain -eq 'bundled') {
+    $stlDir = Join-Path $here 'lib\stl'
+    if (Test-Path $stlDir) {
+        Write-Host ("  bundled substrate: lib\stl has {0} headers" -f @(Get-ChildItem $stlDir -File).Count)
+    } else {
+        Write-Host '  [warn] lib\stl is missing -- bundled mode needs it (re-build the package)' -ForegroundColor Yellow
+    }
 }
 
 # ---------------------------------------------------------------------------
