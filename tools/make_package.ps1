@@ -255,6 +255,41 @@ $stlFiles = @(Get-ChildItem $stlDst -File)
 $stlKB = [int](($stlFiles | Measure-Object Length -Sum).Sum / 1KB)
 Write-Host ("  lib\stl: {0} files, {1} KB (open-source MSVC STL headers)" -f $stlFiles.Count, $stlKB)
 
+# ---------------------------------------------------------------------------
+# 5a-3. batch 2 substrate: mingw-w64 headers (public domain) + hand-written
+#       compiler support headers   (ledger 18.48 batch 2)
+#
+#   WHY THEY ARE HERE: with lib\stl alone, `<vector>` resolves but the UCRT, the
+#   Win32 API and the compiler-support headers still came from the user's Visual
+#   Studio. Batch 2 replaces them:
+#     lib\mingw\      mingw-w64's UCRT + Win32 headers (public domain), plus two
+#                     documented one-line patches so clang is treated as GNU-ish.
+#     lib\compiler\   OUR OWN hand-written vcruntime*.h / stdint.h / stdio.h /
+#                     stdlib.h / math.h / time.h (Microsoft's equivalents are
+#                     closed source; mingw's equivalents are actively wrong for
+#                     clang's intrinsic headers -- see each file's header comment).
+#   MEASURED RESULT: a TU using <vector>/<string>/<map>/<memory>/<typeinfo>/
+#   <stdexcept>/<cstdio>/<cstdlib>/<cstring>/<windows.h>/<commctrl.h>, and one
+#   using the Chinese headers <窗口>/<绘图>/<输入输出流>, both compile to .obj with
+#   ZERO "Program Files" entries in -H (scripts: build\_review_own\batch2_judge*.ps1).
+# ---------------------------------------------------------------------------
+foreach ($sub in @(@{ Src = 'vendor\mingw'; Dst = 'lib\mingw'; What = 'mingw-w64 UCRT + Win32 headers (public domain)' },
+                   @{ Src = 'vendor\compiler-support'; Dst = 'lib\compiler'; What = 'hand-written compiler support headers' })) {
+    $s = Join-Path $root $sub.Src
+    if (-not (Test-Path $s)) { throw "no substrate at $s -- run the vendor script for batch 2 of 18.48 first" }
+    $d2 = Join-Path $pkg $sub.Dst
+    New-Item -ItemType Directory -Force $d2 | Out-Null
+    Get-ChildItem $s -Recurse -File | ForEach-Object {
+        $rel = $_.FullName.Substring($s.Length + 1)
+        $dst = Join-Path $d2 $rel
+        New-Item -ItemType Directory -Force (Split-Path $dst -Parent) | Out-Null
+        Copy-Item $_.FullName $dst -Force
+    }
+    $n = @(Get-ChildItem $d2 -Recurse -File).Count
+    $kb = [int](((Get-ChildItem $d2 -Recurse -File) | Measure-Object Length -Sum).Sum / 1KB)
+    Write-Host ("  {0}: {1} files, {2} KB ({3})" -f $sub.Dst, $n, $kb, $sub.What)
+}
+
 #  VC++ runtime DLLs (app-local). Source = the Visual Studio redistributable
 #  folder -- the canonical place Microsoft tells you to copy them from.
 $crtDir = $null

@@ -30,6 +30,17 @@ $here = $PSScriptRoot
 $bin  = Join-Path $here 'bin'
 $cxx  = Join-Path $bin 'chinese++.exe'
 
+# 18.48: read the chosen toolchain mode EARLY. Sections before 3c need it to know
+# whether LINKING is expected to work yet: in bundled mode the header substrate is
+# complete but the link layer (import libraries + CRT startup objects) is batch 3,
+# so a link attempt would fail with LNK1120 and look like a regression.
+$tcMode = '(unknown)'
+$tcFile = Join-Path $bin 'toolchain.txt'
+if (Test-Path $tcFile) {
+    $tm0 = [regex]::Match([System.IO.File]::ReadAllText($tcFile), 'mode\s*=\s*(\w+)')
+    if ($tm0.Success -and $tm0.Groups[1].Value -in @('bundled', 'system')) { $tcMode = $tm0.Groups[1].Value }
+}
+
 $pass = 0; $fail = 0
 function Ok  ($m) { Write-Host ("  [ok]   " + $m) -ForegroundColor Green;  $script:pass++ }
 function Bad ($m) { Write-Host ("  [FAIL] " + $m) -ForegroundColor Red;    $script:fail++ }
@@ -39,8 +50,9 @@ function Bad ($m) { Write-Host ("  [FAIL] " + $m) -ForegroundColor Red;    $scri
 #  N items". check_zhdocs.ps1 (gate guard #15) reads it from this file and refuses
 #  any hand-written doc that quotes a different number -- so docs cannot drift.
 #  Add or remove a check -> this assertion tells you to bump the number.
-#  18.48 batch 1 added three (toolchain mode / runtime DLLs / <vector> provenance).
-$expectedChecks = 24
+#  18.48 batch 1 added three (toolchain mode / runtime DLLs / <vector> provenance);
+#  18.48 batch 2 added one more (Windows + Chinese header with no Microsoft path).
+$expectedChecks = 25
 
 Write-Host ""
 Write-Host "=== Chinese++ package self-test ===" -ForegroundColor Cyan
@@ -334,17 +346,36 @@ if ($cfgMissing.Count) {
     $l | Set-Content -Encoding UTF8 $libSrc
     $libExe = Join-Path $tmp 'zhlib.exe'
     # NOTE: deliberately NO -I and NO -isystem -- that is the whole point here.
-    $outLib = & $cxx -std=c++20 -o $libExe $libSrc 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        Bad 'compiling a Chinese standard-library include with no include flags failed:'
-        $outLib | Select-Object -First 6 | ForEach-Object { Write-Host "         $_" }
-        Write-Host '         most likely cause: the package folder was moved or renamed' -ForegroundColor Yellow
-        Write-Host '         after setup -- re-run install.ps1 (the cfg holds absolute paths).' -ForegroundColor Yellow
+    # 18.48: in bundled mode the SUBSTRATE layer is complete (headers all come from
+    # this package) but the LINK layer is not -- there are no import libraries or CRT
+    # startup objects yet, so linking reports LNK1120 "unresolved external". That is
+    # the documented boundary between batch 2 and batch 3, so the bundled branch
+    # compiles to an .obj and says so, instead of pretending the package links.
+    if ($tcMode -eq 'bundled') {
+        $libObj = Join-Path $tmp 'zhlib.obj'
+        $outLib = & $cxx -std=c++20 -c $libSrc -o $libObj 2>&1
+        if ($LASTEXITCODE -ne 0 -or -not (Test-Path $libObj)) {
+            Bad 'bundled mode: compiling a Chinese include with no flags failed'
+            $outLib | Select-Object -First 6 | ForEach-Object { Write-Host "         $_" }
+        } else {
+            Ok 'compiles a Chinese include + std::vector with no flags (bundled mode)'
+            $objLen = (Get-Item $libObj).Length
+            if ($objLen -gt 1000) { Ok ("the object file is real (" + $objLen + " bytes); linking arrives with the link layer (18.48 batch 3)") }
+            else { Bad ("the object file looks empty (" + $objLen + " bytes)") }
+        }
     } else {
-        Ok 'compiles a Chinese include + std::vector in one file, with no flags'
-        & cmd /c "`"$libExe`" > `"$tmp\zhlib.txt`" 2>&1"
-        if ($LASTEXITCODE -eq 0) { Ok 'the Chinese-library program runs (exit 0)' }
-        else { Bad ("the Chinese-library program exited " + $LASTEXITCODE) }
+        $outLib = & $cxx -std=c++20 -o $libExe $libSrc 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Bad 'compiling a Chinese standard-library include with no include flags failed:'
+            $outLib | Select-Object -First 6 | ForEach-Object { Write-Host "         $_" }
+            Write-Host '         most likely cause: the package folder was moved or renamed' -ForegroundColor Yellow
+            Write-Host '         after setup -- re-run install.ps1 (the cfg holds absolute paths).' -ForegroundColor Yellow
+        } else {
+            Ok 'compiles a Chinese include + std::vector in one file, with no flags'
+            & cmd /c "`"$libExe`" > `"$tmp\zhlib.txt`" 2>&1"
+            if ($LASTEXITCODE -eq 0) { Ok 'the Chinese-library program runs (exit 0)' }
+            else { Bad ("the Chinese-library program exited " + $LASTEXITCODE) }
+        }
     }
 }
 
@@ -418,6 +449,33 @@ if ($hCode -ne 0) {
     } else {
         Bad ('bundled mode, but <vector> came from OUTSIDE the package: ' + $vecPath)
     }
+}
+
+# --- the real 18.48 batch-2 claim: a Windows + CHINESE-header program, with no
+#     Microsoft path anywhere in the include trace. Built from code points so this
+#     file stays pure ASCII; $zhInc is the Chinese "#include" spelling.
+$winSrc = Join-Path $tmp 'provwin.cpp'
+$cnWindow = -join @([char]0x7A97, [char]0x53E3)                 # window
+$winBody = @(
+    '#include <windows.h>',
+    '#include <commctrl.h>',
+    ($zhInc + ' <' + $cnWindow + '>'),
+    'int main(){ HWND h = nullptr; INITCOMMONCONTROLSEX ic{}; (void)h; (void)ic; return 0; }'
+) -join "`n"
+[System.IO.File]::WriteAllText($winSrc, $winBody, (New-Object System.Text.UTF8Encoding($false)))
+$winOut = & $cxx -std=c++20 -fsyntax-only -H $winSrc 2>&1
+$winCode = $LASTEXITCODE
+$winLines = @($winOut | ForEach-Object { [string]$_ } | Where-Object { $_ -match '^\s*\.+\s' })
+$winVS = @($winLines | Where-Object { $_ -match 'Program Files' })
+if ($winCode -ne 0) {
+    Bad 'a <windows.h> + Chinese-header program does not compile'
+    $winOut | Select-Object -First 4 | ForEach-Object { Write-Host "         $_" }
+} elseif ($tcMode -eq 'bundled' -and $winVS.Count -gt 0) {
+    Bad ("bundled mode, but " + $winVS.Count + " headers came from Program Files, e.g.: " + (Get-TracePath $winVS[0]))
+} elseif ($tcMode -eq 'bundled') {
+    Ok ("<windows.h> + a Chinese header resolve with NO Microsoft path anywhere (" + $winLines.Count + " includes traced)")
+} else {
+    Ok 'system mode: <windows.h> + a Chinese header compile against the machine''s Visual Studio'
 }
 
 # ---------------------------------------------------------------------------

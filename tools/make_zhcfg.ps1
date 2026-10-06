@@ -39,7 +39,7 @@
 param(
     [string] $BinDir,
     [string] $ZhRoot,
-    [ValidateSet('bundled', 'system')][string] $Mode = 'bundled',
+    [ValidateSet('bundled', 'system')][string] $Mode = 'system',
     [switch] $Check,
     [switch] $Quiet
 )
@@ -74,15 +74,48 @@ if ($Check) {
     }
 }
 
-$dirs = @(Get-ZhIncludeDirs $ZhRoot)
-if ($Mode -eq 'bundled') {
-    $dirs += @(Get-ZhSubstrateDirs $ZhRoot)          # 包内地基（lib\stl …）：不装 VS 也能用
+#  §18.48 批2：bundled 模式下**搜索顺序是判据的一部分**，顺序错了就编不过：
+#    ① zhstdlib 的中文头（我们自己的产物）；
+#    ② **clang 资源目录** —— 必须排在所有地基**之前**：
+#       · 它的**转发壳**（limits.h / stdint.h / vadefs.h / float.h / yvals_core.h）要
+#         `#include_next` 找到"下一个搜索位置"的真身 —— 那就是我们地基里抄/手搓的那几件；
+#       · 它的 **intrinsic 真身**（immintrin.h 等）必须先于 mingw 的同名件出现
+#         （批1 实测：被 mingw 抢先时整个 <vector> 编不过）。
+#    ③ 地基：STL 抄件 / 手搓件 / mingw 抄件。
+#  并且用 **`-nostdinc`** 把 clang 自动塞进来的 VS/SDK 路径**整条去掉** —— 这样"零 VS"是
+#  命令行层面的事实（`-v` 里零 `Program Files`），不只是"恰好没用到"。
+function Find-ClangResourceDir([string] $Bin) {
+    $cands = @(
+        (Join-Path (Split-Path $Bin -Parent) 'lib\clang'),
+        (Join-Path (Split-Path (Split-Path $Bin -Parent) -Parent) 'lib\clang')
+    )
+    foreach ($c in $cands) {
+        if (-not (Test-Path $c)) { continue }
+        $hit = Get-ChildItem $c -Directory -ErrorAction SilentlyContinue | Sort-Object Name -Descending |
+               ForEach-Object { Join-Path $_.FullName 'include' } | Where-Object { Test-Path $_ } | Select-Object -First 1
+        if ($hit) { return $hit }
+    }
+    return $null
 }
 
 $lines = @()
-foreach ($p in $dirs) {
+if ($Mode -eq 'bundled') {
+    $resDir = Find-ClangResourceDir $BinDir
+    if (-not $resDir) { throw 'bundled 模式找不到 clang 资源头目录（lib\clang\<ver>\include）—— 它是转发壳的兜底，必须有' }
+    $lines += '-nostdinc'                      # 去掉 clang 自动加的 VS/SDK 路径（零 VS 的关键）
+    #  mingw 的 UCRT 头用 `_UCRT` 决定"暴露 UCRT 那套 API"（实测：不定义时
+    #  `quick_exit`/`at_quick_exit` 不声明，MSVC STL 的 <cstdlib> 就编不过）。
+    $lines += '-D_UCRT'
+}
+foreach ($p in (Get-ZhIncludeDirs $ZhRoot)) {
     $lines += '-isystem'
     $lines += ('"' + ($p.Replace('\', '/')) + '"')
+}
+if ($Mode -eq 'bundled') {
+    foreach ($p in (@($resDir) + @(Get-ZhSubstrateDirs $ZhRoot))) {
+        $lines += '-isystem'
+        $lines += ('"' + ($p.Replace('\', '/')) + '"')
+    }
 }
 $text = ($lines -join "`n") + "`n"
 

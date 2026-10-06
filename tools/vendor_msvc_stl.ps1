@@ -103,8 +103,22 @@ if (-not $clangInc) { throw '找不到 clang 资源头目录（build\Release\lib
 $clangNames = @(Get-ChildItem $clangInc -File | ForEach-Object { $_.Name })
 Write-Host ("  clang 资源目录：{0}（{1} 个头）" -f $clangInc, $clangNames.Count)
 
-$open = @($all | Where-Object { (Test-OpenSource $_.FullName) -and ($clangNames -notcontains $_.Name) })
-$shadow = @($all | Where-Object { (Test-OpenSource $_.FullName) -and ($clangNames -contains $_.Name) })
+#  【精确规则，2026-10-06 批2 实测】clang 资源目录里的同名文件分两种：
+#    · **真身**（好几千行的 intrinsic，如 immintrin.h）⇒ 我们搬进来会 shadow 掉它，**绝不能搬**；
+#    · **转发壳**（几十~几百行、里面是 `#include_next <同名>`，如 limits.h / stdint.h / vadefs.h /
+#      yvals_core.h）⇒ 壳自己不含实现，它去"下一个搜索位置"找真身；在没装 VS 的机器上那个位置是空的
+#      ⇒ **必须由我们提供真身**（这正是"零 VS"的关键）。
+#    判据就是文件里有没有 `#include_next` —— 机器可查，不靠人记。
+function Test-MustNotShadow([string] $name) {
+    $p = Join-Path $clangInc $name
+    if (-not (Test-Path $p)) { return $false }                 # clang 没有 → 我们的可以进
+    $t = [System.IO.File]::ReadAllText($p)
+    if ($t -match '#\s*include_next') { return $false }        # 转发壳 → 必须由我们补真身
+    return $true                                                # 真身 → 绝不 shadow
+}
+
+$open = @($all | Where-Object { (Test-OpenSource $_.FullName) -and -not (Test-MustNotShadow $_.Name) })
+$shadow = @($all | Where-Object { (Test-OpenSource $_.FullName) -and (Test-MustNotShadow $_.Name) })
 $closed = @($all | Where-Object { -not (Test-OpenSource $_.FullName) })
 Write-Host ("  总共 {0} 个；可抄 {1} 个；**不抄**：闭源编译器支撑头 {2} 个 + 会被我们 shadow 的 {3} 个" -f $all.Count, $open.Count, $closed.Count, $shadow.Count)
 Write-Host ("  绝不 shadow 的：{0}" -f (($shadow | ForEach-Object { $_.Name }) -join ' '))

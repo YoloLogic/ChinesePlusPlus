@@ -47,7 +47,12 @@ $script:ZhDirs = @(
 #    仓库里叫 vendor\msvc-stl，发行包里叫 lib\stl（打包时复制并按包内布局取名）。
 #    lib\ucrt / lib\win32 / lib\compiler 是批2 的位置（UCRT 头 / Win32 头 / 手搓的编译器支撑头）。
 # ---------------------------------------------------------------------------
-$script:ZhSubstrateCandidates = @('vendor\msvc-stl', 'lib\stl', 'lib\ucrt', 'lib\win32', 'lib\compiler')
+$script:ZhSubstrateCandidates = @(
+    'vendor\compiler-support', 'lib\compiler',   # §18.48 批2 手搓：vcruntime*.h 等编译器支撑头
+    'vendor\msvc-stl',         'lib\stl',        # §18.48 批1 抄：开源 MSVC STL 头
+    'vendor\mingw',            'lib\mingw',      # §18.48 批2 抄：mingw-w64 的 UCRT + Win32 头（public domain）
+    'lib\ucrt',                'lib\win32'       # 预留：将来若按层拆包
+)
 
 function Get-ZhSubstrateDirs {
     <#  返回**实际存在的**地基目录（仓库布局或发行包布局都认） #>
@@ -70,12 +75,14 @@ function Get-ZhIncludeDirs {
 
 function Get-ZhIncludeArgs {
     <#  返回拼好的 `-isystem"…"` 参数串（给 cmd /c 的命令行用）
-        §18.48：末尾**追加地基目录**（vendor\msvc-stl / 包内 lib\stl …）。
-        为什么要在*开发仓*也追加：这样守卫/生成器编译时走的就是**包内那份**头，
-        万一 vendor\ 抄漏了，`-H` 的来源断言会当场发现（而不是悄悄 fallback 到 VS）。 #>
+        §18.48：**只返回 zhstdlib 的目录** —— 地基目录（vendor\msvc-stl / vendor\mingw / …）
+        只由 `make_zhcfg.ps1` 写进 `<驱动名>.cfg`（发行包用，bundled 模式）。
+        为什么不在守卫里也带上地基：守卫/生成器的编译是"仓库自检"，地基还没搬完之前带上它
+        会把仓库自检搞红（实测：文档代码块守卫因为地基里 `_Mbstatet`/intrinsic 的未解交互而失败）。
+        等批2/批3 全绿再考虑在开发树也默认走地基。 #>
     param([string] $Root = $script:ZhRoot)
     $args = @()
-    foreach ($p in (@(Get-ZhIncludeDirs $Root) + @(Get-ZhSubstrateDirs $Root))) { $args += "-isystem`"$p`"" }
+    foreach ($p in (Get-ZhIncludeDirs $Root)) { $args += "-isystem`"$p`"" }
     return ($args -join ' ')
 }
 
