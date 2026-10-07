@@ -496,12 +496,12 @@ if (-not $SkipThirdParty) {
 #  可见化：通过时打印当前四组数字 + 库存数字与检查的文档数。
 # ---------------------------------------------------------------------------
 Write-Host "=== 手写文档数字守卫（§17.19.55 + §18.47 库存数字）===" -ForegroundColor Cyan
-#  §18.47 【道数口径 —— 唯一事实来源】闸门共 17 道**编号守卫**（道号 9、10、13、14–27；
-#    11/12 已并号 ⇒ **道数 17 ≠ 最大道号 27**，这两个数在早期被混用过一次，别再混）。
+#  §18.47 【道数口径 —— 唯一事实来源】闸门共 18 道**编号守卫**（道号 9、10、13、14–28；
+#    11/12 已并号 ⇒ **道数 18 ≠ 最大道号 28**，这两个数在早期被混用过一次，别再混）。
 #    文档里写的「N 道守卫」由第 15 道守卫（check_zhdocs.ps1）与下面这个数对拍 ——
 #    改了守卫的道数就改这一行；不改就是文档当场红（"第 N 道"另有"不许超过最大道号"的防呆）。
-$守卫道数 = 17
-Write-Host ("  闸门编号守卫：{0} 道（道号 9、10、13、14–27；11/12 已并号）" -f $守卫道数) -ForegroundColor DarkGray
+$守卫道数 = 18
+Write-Host ("  闸门编号守卫：{0} 道（道号 9、10、13、14–28；11/12 已并号）" -f $守卫道数) -ForegroundColor DarkGray
 #  判据必须能失败 ⇒ 先跑它的 -SelfTest（12 条：两侧都测），再跑真文档（同第 26 道的做法）
 & pwsh -NoProfile -File (Join-Path $root 'tools\check_zhdocs.ps1') -SelfTest | Out-Null
 if ($LASTEXITCODE -ne 0) { Write-Host '❌ 手写文档数字守卫的【自检】没过 —— 判据抓不住东西，先修守卫' -ForegroundColor Red; exit 1 }
@@ -730,9 +730,28 @@ if (-not $zhCsPy) {
     }
 }
 
-if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0 -and $bd -eq 0 -and $orph -eq 0 -and $fw -eq 0 -and $zd -eq 0 -and $cv -eq 0 -and $nm -eq 0 -and $hb -eq 0 -and $tp -eq 0 -and $dc -eq 0 -and $zi -eq 0 -and $kwg -eq 0 -and $zdl -eq 0 -and $zkn -eq 0 -and $zcu -eq 0 -and $zpa -eq 0 -and $zex -eq 0 -and $zpt -eq 0 -and $zst -eq 0 -and $zln -eq 0 -and $zcs -eq 0) {
-    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 边界台账 + 孤儿产物 + 公开层转发 + 中文类型名定义 + 标准头覆盖 + 中文名占用 + 汉化标尺 + 第三方开源项目 + 手写文档数字 + 实例化 + 关键字 + 英文残留 + 关键字措辞 + 列号口径 + 诊断对称 + 表达式打印 + 补丁一致 + 语句声明打印 + Linux 目标（离线） + 中文对照表一致 + 铁律①：全部通过" -ForegroundColor Green
+# ---------------------------------------------------------------------------
+#  §18.55 《Chinese++ 教学教程》守卫（第 28 道）—— 2026-10-07
+#
+#  为什么加它：教程里嵌的代码与它印出来的输出，必须【真的能跑、真的对】。
+#  否则「教学文档」就成了最容易骗人的东西 —— 读者照着抄，抄出来编不过。
+#
+#  本守卫做四件事（细节见 tools\check_tutorial_cpp.ps1）：
+#    ① 教程正文与「模板 + 例子源码 + 权威关键字表」一致（转调 make_tutorial_cpp.ps1 -Check）
+#    ② 逐个例子【真编译】（chinese++.exe）
+#    ③ 逐个例子【真运行】，输出与例子头部声明的「期望输出」逐行比对
+#    ④ 自带自测：改掉一条期望输出必须被抓住（判据要能失败）
+#
+#  耗时约 10 秒（9 个例子，每个编一次跑一次）。
+# ---------------------------------------------------------------------------
+Write-Host "=== 《Chinese++ 教学教程》守卫（§18.55）===" -ForegroundColor Cyan
+& pwsh -NoProfile -File (Join-Path $root 'tools\check_tutorial_cpp.ps1') -Quiet
+$ztt = $LASTEXITCODE
+if ($ztt -ne 0) { Write-Host '  ❌ 教学教程守卫失败（见上面输出）' -ForegroundColor Red }
+
+if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0 -and $bd -eq 0 -and $orph -eq 0 -and $fw -eq 0 -and $zd -eq 0 -and $cv -eq 0 -and $nm -eq 0 -and $hb -eq 0 -and $tp -eq 0 -and $dc -eq 0 -and $zi -eq 0 -and $kwg -eq 0 -and $zdl -eq 0 -and $zkn -eq 0 -and $zcu -eq 0 -and $zpa -eq 0 -and $zex -eq 0 -and $zpt -eq 0 -and $zst -eq 0 -and $zln -eq 0 -and $zcs -eq 0 -and $ztt -eq 0) {
+    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 边界台账 + 孤儿产物 + 公开层转发 + 中文类型名定义 + 标准头覆盖 + 中文名占用 + 汉化标尺 + 第三方开源项目 + 手写文档数字 + 实例化 + 关键字 + 英文残留 + 关键字措辞 + 列号口径 + 诊断对称 + 表达式打印 + 补丁一致 + 语句声明打印 + Linux 目标（离线） + 中文对照表一致 + 教学教程 + 铁律①：全部通过" -ForegroundColor Green
     exit 0
 }
-Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；边界台账守卫退出码 {5}；孤儿产物守卫退出码 {6}；铁律①守卫退出码 {4}；公开层转发守卫退出码 {7}；中文类型名定义守卫退出码 {8}；标准头覆盖退出码 {9}；中文名占用退出码 {10}；汉化标尺退出码 {11}；第三方开源项目退出码 {12}；手写文档数字退出码 {13}；实例化退出码 {14}；关键字退出码 {15}；英文残留退出码 {16}；关键字措辞退出码 {17}；列号口径退出码 {18}；诊断对称退出码 {19}；表达式打印退出码 {20}；补丁一致退出码 {21}；语句声明打印退出码 {22}；Linux 目标（离线）退出码 {23}；中文对照表退出码 {24}" -f $fail, $v, $ex, $ud, $og, $bd, $orph, $fw, $zd, $cv, $nm, $hb, $tp, $dc, $zi, $kwg, $zdl, $zkn, $zcu, $zpa, $zex, $zpt, $zst, $zln, $zcs) -ForegroundColor Red
+Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；边界台账守卫退出码 {5}；孤儿产物守卫退出码 {6}；铁律①守卫退出码 {4}；公开层转发守卫退出码 {7}；中文类型名定义守卫退出码 {8}；标准头覆盖退出码 {9}；中文名占用退出码 {10}；汉化标尺退出码 {11}；第三方开源项目退出码 {12}；手写文档数字退出码 {13}；实例化退出码 {14}；关键字退出码 {15}；英文残留退出码 {16}；关键字措辞退出码 {17}；列号口径退出码 {18}；诊断对称退出码 {19}；表达式打印退出码 {20}；补丁一致退出码 {21}；语句声明打印退出码 {22}；Linux 目标（离线）退出码 {23}；中文对照表退出码 {24}；教学教程退出码 {25}" -f $fail, $v, $ex, $ud, $og, $bd, $orph, $fw, $zd, $cv, $nm, $hb, $tp, $dc, $zi, $kwg, $zdl, $zkn, $zcu, $zpa, $zex, $zpt, $zst, $zln, $zcs, $ztt) -ForegroundColor Red
 exit 1
