@@ -70,6 +70,20 @@ Say '=== ②③ 逐个例子真编译 + 真运行 + 比对期望输出 ==='
 if (-not (Test-Path $Cxx)) { throw "找不到编译器：$Cxx" }
 New-Item -ItemType Directory -Force -Path $Work | Out-Null
 
+# 先守【例子目录的构成】：只许有 `NN-名字.cpp`，且不许为空。
+# 为什么加它（2026-10-07 真事故）：一次失败的 PowerShell 操作（.NET 用的是进程目录、
+# 不认 Set-Location）在例子目录里留下了一个【空的 .chts 文件】，被闸门一并提交了 ——
+# 而它是空的，编译器与后续检查都不会吭声。所以构成也要机器守。
+$all = @(Get-ChildItem $exDir -File | Sort-Object Name)
+$stray = @($all | Where-Object { $_.Name -notmatch '^\d\d-.+\.cpp$' })
+$empty = @($all | Where-Object { $_.Length -eq 0 })
+if ($stray.Count -eq 0 -and $empty.Count -eq 0) { Say ("  ✅ 例子目录构成正常（{0} 个 .cpp，无杂项、无空文件）" -f $all.Count) }
+else {
+    if ($stray.Count -gt 0) { Write-Host ("  ❌ 例子目录里有多余文件（只许 NN-名字.cpp）：{0}" -f (($stray | ForEach-Object { $_.Name }) -join '、')) -ForegroundColor Red }
+    if ($empty.Count -gt 0) { Write-Host ("  ❌ 例子目录里有空文件：{0}" -f (($empty | ForEach-Object { $_.Name }) -join '、')) -ForegroundColor Red }
+    $bad++
+}
+
 $files = @(Get-ChildItem "$exDir\*.cpp" | Sort-Object Name)
 if ($files.Count -eq 0) { throw "例子目录里没有 .cpp：$exDir" }
 
@@ -114,10 +128,25 @@ if (Test-Path $probeExe) {
     $bad++
 }
 
+# ---------- ⑤ Word 文档（.docx）与教程正文同步 ----------
+Say ''
+Say '=== ⑤ Word 文档（.docx）是否与教程正文同步 ==='
+$docxGen = Join-Path $root 'tools\make_tutorial_docx.ps1'
+if (-not (Test-Path $docxGen)) {
+    Write-Host '  ❌ 找不到 tools\make_tutorial_docx.ps1' -ForegroundColor Red
+    $bad++
+} else {
+    & pwsh -NoProfile -File $docxGen -Check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host '  ❌ docx 与教程正文不同步（见上面提示）' -ForegroundColor Red
+        $bad++
+    } else { Say '  ✅ 同步' }
+}
+
 # ---------- 结论 ----------
 Say ''
 if ($bad -eq 0) {
-    Say ("教学教程守卫：通过（{0} 个例子全部真编译真运行、输出逐行相符；判据自测已证明会失败）" -f $passed)
+    Say ("教学教程守卫：通过（{0} 个例子全部真编译真运行、输出逐行相符；判据自测已证明会失败；docx 与正文同步）" -f $passed)
     exit 0
 }
 Write-Host ("教学教程守卫：失败 {0} 处" -f $bad) -ForegroundColor Red
