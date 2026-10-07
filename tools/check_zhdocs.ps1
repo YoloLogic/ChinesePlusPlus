@@ -2,7 +2,7 @@
 #  check_zhdocs.ps1 —— §17.19.55 手写文档数字守卫（第 15 道）
 #
 #  为什么加它（2026-09-30，用户提问"我们的各种 md 文档有没有跟随更新？"）：
-#    · 三本**自动生成**的台账（用法对照表 / 头文件覆盖台账 / 汉化标尺台账 / 边界台账）
+#    · 五本**自动生成**的台账（用法对照表 / 头文件覆盖台账 / 汉化标尺台账 / 边界台账 / C 库汉化台账）
 #      每次提交都被守卫强制重生成并校验 —— 它们不会漂。
 #    · 但**手写的 md** 没人守：实测 `docs\使用说明.md` 还写着"已有 67 个汉语头"（实际 103/103），
 #      `docs\汉字第一公民-路线图.md` 还把标准库记成"❌ 全英文（最大缺口）、已暂缓"。
@@ -16,6 +16,8 @@
 #    ⑤ `N 道守卫`（**不带"第"**；"第 14 道"是具体道号，不判）→ 闸门声明的 `$守卫道数`
 #    ⑥ `N 项自测`、`verify.ps1 … N 项`      → `packaging\verify.ps1` 里的 $expectedChecks
 #    ⑦ `第 N 道` 里的 N 必须 ≤ 最大道号（26）→ 防"引用了不存在的道号"
+#    ⑧ `C 线头数 N`、`C 线中文名 N`、`C 线逻辑缺口 N` → **生成的** C 库汉化台账
+#       （`docs\标准库汉化\C库汉化台账.md`，它自己由第 29 道守卫复算，见 §18.58）
 #  允许清单之外的文档（尤其 `标准库汉化方案.md`：它**故意**保留历史数字）不检查。
 #
 #  为什么加 ④⑤⑥⑦（2026-10-06，§18.47）：
@@ -101,7 +103,19 @@ function Get-InventoryNumbers {
     $ver = [System.IO.File]::ReadAllText((Join-Path $root 'packaging\verify.ps1'))
     $v = [regex]::Match($ver, '\$expectedChecks\s*=\s*(\d+)')
     if (-not $v.Success) { throw '取不到 $expectedChecks（verify.ps1 的写法变了，见 §18.47）' }
-    return [pscustomobject]@{ 产物 = $ledger; 守卫 = $guards; 道号上限 = $maxNo; 自测 = [int]$v.Groups[1].Value }
+    # ⑧ C 线数字：**唯一事实来源** = 生成的 `C库汉化台账.md`（第 29 道守卫 `make_c_ledger.ps1 -Check` 复算它）。
+    #    这里只做"手写文档 ↔ 台账"对拍，**不重算** —— 重算一次要读 26 个头的源码，没必要跑两遍。
+    $clFile = Join-Path $root 'docs\标准库汉化\C库汉化台账.md'
+    $clText = [System.IO.File]::ReadAllText($clFile)
+    $ch = [regex]::Match($clText, '共\s*\*{0,2}(\d+)\*{0,2}\s*个头')
+    $ct = [regex]::Match($clText, '\|\s*\*{0,2}合计\*{0,2}\s*\|[^|]*\|\s*\*{0,2}(\d+)\*{0,2}\s*\|\s*\*{0,2}(\d+)\*{0,2}\s*\|\s*\*{0,2}(\d+)\*{0,2}\s*\|\s*\*{0,2}(\d+)\*{0,2}\s*\|[^|]*\|[^|]*\|\s*\*{0,2}(\d+)\*{0,2}\s*\|')
+    if (-not ($ch.Success -and $ct.Success)) { throw 'C 库汉化台账格式变了：取不到「共 N 个头」或合计行（守卫要先校准，见 §18.58）' }
+    $cNames = [int]$ct.Groups[4].Value; $cGap = [int]$ct.Groups[5].Value
+    if ($cNames -ne ([int]$ct.Groups[1].Value + [int]$ct.Groups[2].Value + [int]$ct.Groups[3].Value)) {
+        throw 'C 库汉化台账合计行自相矛盾（类型+函数+值宏 ≠ 合计）；先重生成台账（见 §18.58）'
+    }
+    return [pscustomobject]@{ 产物 = $ledger; 守卫 = $guards; 道号上限 = $maxNo; 自测 = [int]$v.Groups[1].Value
+                             C头 = [int]$ch.Groups[1].Value; C中文名 = $cNames; C缺口 = $cGap }
 }
 
 function Find-InventoryMismatch($text, $inv) {
@@ -131,13 +145,24 @@ function Find-InventoryMismatch($text, $inv) {
     foreach ($mm in [regex]::Matches($text, '第\s*(\d+)\s*道')) {
         if ([int]$mm.Groups[1].Value -gt $inv.道号上限) { $bad += ("写了'第 {0} 道'，但道号最大只到 {1}" -f $mm.Groups[1].Value, $inv.道号上限) }
     }
+    # ⑧ C 线三个数字（口径写在 C 库汉化台账里；**必须带 `C 线…` 前缀**才判，
+    #    否则会去咬标准库那边的"146 个中文名"之类无关数字）
+    foreach ($mm in [regex]::Matches($text, 'C\s*线头数\s*\*{0,2}(\d+)')) {
+        if ([int]$mm.Groups[1].Value -ne $inv.C头) { $bad += ("写了'C 线头数 {0}'，C 库台账是 {1} 个" -f $mm.Groups[1].Value, $inv.C头) }
+    }
+    foreach ($mm in [regex]::Matches($text, 'C\s*线中文名\s*\*{0,2}(\d+)')) {
+        if ([int]$mm.Groups[1].Value -ne $inv.C中文名) { $bad += ("写了'C 线中文名 {0}'，C 库台账是 {1} 个" -f $mm.Groups[1].Value, $inv.C中文名) }
+    }
+    foreach ($mm in [regex]::Matches($text, 'C\s*线逻辑缺口\s*\*{0,2}(\d+)')) {
+        if ([int]$mm.Groups[1].Value -ne $inv.C缺口) { $bad += ("写了'C 线逻辑缺口 {0}'，C 库台账是 {1} 个" -f $mm.Groups[1].Value, $inv.C缺口) }
+    }
     return $bad
 }
 
 if ($SelfTest) {
     $fake = [pscustomobject]@{ 覆盖=103; 覆盖总=103; 顶层=@(388,422); 嵌套=@(363,419); 成员=@(1028,1196) }
-    $inv = [pscustomobject]@{ 产物=119; 守卫=16; 道号上限=26; 自测=21 }
-    $pass = 0; $total = 12
+    $inv = [pscustomobject]@{ 产物=119; 守卫=16; 道号上限=26; 自测=21; C头=26; C中文名=146; C缺口=211 }
+    $pass = 0; $total = 14
     if ((Find-DocMismatch '标准头 103 / 103 全覆盖' $fake).Count -eq 0) { $pass++ } else { Write-Host '  ❌ 自检1 正确数字被误报' -ForegroundColor Red }
     if ((Find-DocMismatch '已有 67 个汉语头' $fake).Count -eq 1) { $pass++ } else { Write-Host '  ❌ 自检2 漏报旧口径' -ForegroundColor Red }
     if ((Find-DocMismatch '顶层 269/444 = 60.6%' $fake).Count -eq 1) { $pass++ } else { Write-Host '  ❌ 自检3 漏报旧标尺' -ForegroundColor Red }
@@ -153,6 +178,10 @@ if ($SelfTest) {
         ((Find-InventoryMismatch 'verify.ps1`（**21 项**）' $inv).Count -eq 0) -and ((Find-InventoryMismatch 'verify.ps1`（**17 项**）' $inv).Count -eq 1)) { $pass++ } else { Write-Host '  ❌ 自检11 自测项数没判对' -ForegroundColor Red }
     if (((Find-InventoryMismatch '（119 个头，2.7 MB）' $inv).Count -eq 0) -and ((Find-InventoryMismatch '（118 个头）' $inv).Count -eq 1) -and
         ((Find-InventoryMismatch '包里有 12 个头文件' $inv).Count -eq 0)) { $pass++ } else { Write-Host '  ❌ 自检12 头数口径没判对（个头 / 个头文件 / 个中文头）' -ForegroundColor Red }
+    # ---- §18.58 C 线数字（⑧）：对的不误报 + 错的必须报 ----
+    if (((Find-InventoryMismatch 'C 线头数 26、C 线中文名 146、C 线逻辑缺口 211' $inv).Count -eq 0)) { $pass++ } else { Write-Host '  ❌ 自检13 正确 C 线数字被误报' -ForegroundColor Red }
+    if (((Find-InventoryMismatch 'C 线中文名 196' $inv).Count -eq 1) -and ((Find-InventoryMismatch 'C 线逻辑缺口 197' $inv).Count -eq 1) -and
+        ((Find-InventoryMismatch '标准库有 146 个中文名' $inv).Count -eq 0)) { $pass++ } else { Write-Host '  ❌ 自检14 C 线过期数字没判对（或误咬不带 C 线前缀的句子）' -ForegroundColor Red }
     Write-Host ("自检：{0}/{1}" -f $pass, $total) -ForegroundColor $(if ($pass -eq $total) { 'Green' } else { 'Red' })
     exit $(if ($pass -eq $total) { 0 } else { 1 })
 }
@@ -215,5 +244,5 @@ if ($blkBad.Count) {
     exit 1
 }
 if (-not $Quiet) { Write-Host ("  文档代码块编译守卫：通过（编过 {0} 块，跳过 {1} 块）" -f $blkOK, $blkSkip) -ForegroundColor Green }
-if (-not $Quiet) { Write-Host ("  手写文档数字守卫：通过（覆盖 {0}/{1}、顶层 {2}/{3}、嵌套 {4}/{5}、成员 {6}/{7}；产物 {8} 个、守卫 {9} 道（道号到 {10}）、自测 {11} 项；检查 {12} 个文档）" -f $N.覆盖, $N.覆盖总, $N.顶层[0], $N.顶层[1], $N.嵌套[0], $N.嵌套[1], $N.成员[0], $N.成员[1], $inv.产物, $inv.守卫, $inv.道号上限, $inv.自测, $docs.Count) -ForegroundColor Green }
+if (-not $Quiet) { Write-Host ("  手写文档数字守卫：通过（覆盖 {0}/{1}、顶层 {2}/{3}、嵌套 {4}/{5}、成员 {6}/{7}；产物 {8} 个、守卫 {9} 道（道号到 {10}）、自测 {11} 项；C 线 {12} 头 / 中文名 {13} / 逻辑缺口 {14}；检查 {15} 个文档）" -f $N.覆盖, $N.覆盖总, $N.顶层[0], $N.顶层[1], $N.嵌套[0], $N.嵌套[1], $N.成员[0], $N.成员[1], $inv.产物, $inv.守卫, $inv.道号上限, $inv.自测, $inv.C头, $inv.C中文名, $inv.C缺口, $docs.Count) -ForegroundColor Green }
 exit 0
