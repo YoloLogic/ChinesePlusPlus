@@ -496,12 +496,12 @@ if (-not $SkipThirdParty) {
 #  可见化：通过时打印当前四组数字 + 库存数字与检查的文档数。
 # ---------------------------------------------------------------------------
 Write-Host "=== 手写文档数字守卫（§17.19.55 + §18.47 库存数字）===" -ForegroundColor Cyan
-#  §18.47 【道数口径 —— 唯一事实来源】闸门共 16 道**编号守卫**（道号 9、10、13、14–26；
-#    11/12 已并号 ⇒ **道数 16 ≠ 最大道号 26**，这两个数在早期被混用过一次，别再混）。
+#  §18.47 【道数口径 —— 唯一事实来源】闸门共 17 道**编号守卫**（道号 9、10、13、14–27；
+#    11/12 已并号 ⇒ **道数 17 ≠ 最大道号 27**，这两个数在早期被混用过一次，别再混）。
 #    文档里写的「N 道守卫」由第 15 道守卫（check_zhdocs.ps1）与下面这个数对拍 ——
 #    改了守卫的道数就改这一行；不改就是文档当场红（"第 N 道"另有"不许超过最大道号"的防呆）。
-$守卫道数 = 16
-Write-Host ("  闸门编号守卫：{0} 道（道号 9、10、13、14–26；11/12 已并号）" -f $守卫道数) -ForegroundColor DarkGray
+$守卫道数 = 17
+Write-Host ("  闸门编号守卫：{0} 道（道号 9、10、13、14–27；11/12 已并号）" -f $守卫道数) -ForegroundColor DarkGray
 #  判据必须能失败 ⇒ 先跑它的 -SelfTest（12 条：两侧都测），再跑真文档（同第 26 道的做法）
 & pwsh -NoProfile -File (Join-Path $root 'tools\check_zhdocs.ps1') -SelfTest | Out-Null
 if ($LASTEXITCODE -ne 0) { Write-Host '❌ 手写文档数字守卫的【自检】没过 —— 判据抓不住东西，先修守卫' -ForegroundColor Red; exit 1 }
@@ -672,9 +672,67 @@ if (Test-Path $zhLinuxSysroot) {
     Write-Host '         跑 tools\make_linux_sysroot.ps1 从目标机生成（本项不依赖 VM）' -ForegroundColor DarkGray
 }
 
-if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0 -and $bd -eq 0 -and $orph -eq 0 -and $fw -eq 0 -and $zd -eq 0 -and $cv -eq 0 -and $nm -eq 0 -and $hb -eq 0 -and $tp -eq 0 -and $dc -eq 0 -and $zi -eq 0 -and $kwg -eq 0 -and $zdl -eq 0 -and $zkn -eq 0 -and $zcu -eq 0 -and $zpa -eq 0 -and $zex -eq 0 -and $zpt -eq 0 -and $zst -eq 0 -and $zln -eq 0) {
-    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 边界台账 + 孤儿产物 + 公开层转发 + 中文类型名定义 + 标准头覆盖 + 中文名占用 + 汉化标尺 + 第三方开源项目 + 手写文档数字 + 实例化 + 关键字 + 英文残留 + 关键字措辞 + 列号口径 + 诊断对称 + 表达式打印 + 补丁一致 + 语句声明打印 + Linux 目标（离线） + 铁律①：全部通过" -ForegroundColor Green
+# ---------------------------------------------------------------------------
+#  §18.54 《中文对照表》生成物一致性守卫（第 27 道）—— 2026-10-07
+#
+#  为什么加它（真事故，不是预防性设计）：
+#    `packaging\中文对照表.md` 一直是【生成物】（tools\make_cheatsheet.py），
+#    但全仓 ps1 里【没有一处】调用或核对它 —— 它只在注释与文档里被提到。
+#    于是发生了这件事：有人手改了 md（把「标准库我们没有改名」更新为
+#    「已有中文版：标准::向量<整数>」），却没改生成器；此后【只要有人跑一次
+#    生成器】，就会把正确内容改回陈旧的错误说法。
+#    实测证据（2026-10-07）：重跑后 SHA256 由 F4483911… 变成 21C86429…，
+#    diff 正是第五节的措辞。
+#
+#    本脚本原先只有 make_cheatsheet.py 内部的「表格列数自检」，那只管排版，
+#    管不到【措辞与事实】。
+#
+#  判据：python tools\make_cheatsheet.py --check（只比对、不写盘），
+#        盘上文件必须与本脚本此刻会生成的内容逐字节相同。
+#  自带自测：追加一行后 --check 必须非 0（判据要能失败），做完立刻还原。
+#  没有 python 时如实跳过（与 Linux sysroot 同一口径），不算失败。
+# ---------------------------------------------------------------------------
+Write-Host "=== 《中文对照表》生成物一致性守卫（§18.54）===" -ForegroundColor Cyan
+$zcs = 0
+$zhCsPy = Get-Command python -ErrorAction SilentlyContinue
+if (-not $zhCsPy) {
+    Write-Host '  [跳过] 没有 python —— 本守卫无法运行（生成器是 Python 写的）' -ForegroundColor Yellow
+    Write-Host '         装 Python 后本项自动生效；跳过不等于通过，台账如实记' -ForegroundColor DarkGray
+} else {
+    $zhCsScript = Join-Path $root 'tools\make_cheatsheet.py'
+    & $zhCsPy.Source $zhCsScript --check
+    $zcs = $LASTEXITCODE
+    if ($zcs -eq 0) {
+        Write-Host '  ✅ 对照表与生成器逐字节一致' -ForegroundColor Green
+        # 自带自测：改坏一个字节必须被抓；做完立刻逐字节还原
+        $zhCsMd = Join-Path $root 'packaging\中文对照表.md'
+        $zhCsOrig = [System.IO.File]::ReadAllText($zhCsMd)
+        $zhCsCaught = $false
+        try {
+            [System.IO.File]::AppendAllText($zhCsMd, "<!-- 守卫自测：故意改坏 -->`n")
+            & $zhCsPy.Source $zhCsScript --check *> $null
+            $zhCsCaught = ($LASTEXITCODE -ne 0)
+        } catch {
+            $zhCsCaught = $false
+        } finally {
+            [System.IO.File]::WriteAllText($zhCsMd, $zhCsOrig)
+        }
+        if ($zhCsCaught) {
+            Write-Host '  ✅ 自带自测：改坏一个字节会被抓（判据不是橡皮图章）' -ForegroundColor Green
+        } else {
+            Write-Host '  ❌ 自带自测失败：改坏了却仍判通过 —— 这道守卫是橡皮图章' -ForegroundColor Red
+            $zcs = 1
+        }
+    } else {
+        Write-Host '  ❌ 对照表与生成器不一致（生成物过期，或有人手改了它）' -ForegroundColor Red
+        Write-Host '     修法：python tools\make_cheatsheet.py 并提交其结果；' -ForegroundColor Yellow
+        Write-Host '           若你手改过该文件，请把改动搬进 tools\make_cheatsheet.py（它才是生成器）' -ForegroundColor Yellow
+    }
+}
+
+if ($fail -eq 0 -and $v -eq 0 -and $ud -eq 0 -and $og -eq 0 -and $ex -eq 0 -and $bd -eq 0 -and $orph -eq 0 -and $fw -eq 0 -and $zd -eq 0 -and $cv -eq 0 -and $nm -eq 0 -and $hb -eq 0 -and $tp -eq 0 -and $dc -eq 0 -and $zi -eq 0 -and $kwg -eq 0 -and $zdl -eq 0 -and $zkn -eq 0 -and $zcu -eq 0 -and $zpa -eq 0 -and $zex -eq 0 -and $zpt -eq 0 -and $zst -eq 0 -and $zln -eq 0 -and $zcs -eq 0) {
+    Write-Host "重新生成 + 全量验证 + 真实用例 + 用法对照表 + 边界台账 + 孤儿产物 + 公开层转发 + 中文类型名定义 + 标准头覆盖 + 中文名占用 + 汉化标尺 + 第三方开源项目 + 手写文档数字 + 实例化 + 关键字 + 英文残留 + 关键字措辞 + 列号口径 + 诊断对称 + 表达式打印 + 补丁一致 + 语句声明打印 + Linux 目标（离线） + 中文对照表一致 + 铁律①：全部通过" -ForegroundColor Green
     exit 0
 }
-Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；边界台账守卫退出码 {5}；孤儿产物守卫退出码 {6}；铁律①守卫退出码 {4}；公开层转发守卫退出码 {7}；中文类型名定义守卫退出码 {8}；标准头覆盖退出码 {9}；中文名占用退出码 {10}；汉化标尺退出码 {11}；第三方开源项目退出码 {12}；手写文档数字退出码 {13}；实例化退出码 {14}；关键字退出码 {15}；英文残留退出码 {16}；关键字措辞退出码 {17}；列号口径退出码 {18}；诊断对称退出码 {19}；表达式打印退出码 {20}；补丁一致退出码 {21}；语句声明打印退出码 {22}；Linux 目标（离线）退出码 {23}" -f $fail, $v, $ex, $ud, $og, $bd, $orph, $fw, $zd, $cv, $nm, $hb, $tp, $dc, $zi, $kwg, $zdl, $zkn, $zcu, $zpa, $zex, $zpt, $zst, $zln) -ForegroundColor Red
+Write-Host ("重新生成失败 {0} 个；全量验证退出码 {1}；真实用例退出码 {2}；用法对照表守卫退出码 {3}；边界台账守卫退出码 {5}；孤儿产物守卫退出码 {6}；铁律①守卫退出码 {4}；公开层转发守卫退出码 {7}；中文类型名定义守卫退出码 {8}；标准头覆盖退出码 {9}；中文名占用退出码 {10}；汉化标尺退出码 {11}；第三方开源项目退出码 {12}；手写文档数字退出码 {13}；实例化退出码 {14}；关键字退出码 {15}；英文残留退出码 {16}；关键字措辞退出码 {17}；列号口径退出码 {18}；诊断对称退出码 {19}；表达式打印退出码 {20}；补丁一致退出码 {21}；语句声明打印退出码 {22}；Linux 目标（离线）退出码 {23}；中文对照表退出码 {24}" -f $fail, $v, $ex, $ud, $og, $bd, $orph, $fw, $zd, $cv, $nm, $hb, $tp, $dc, $zi, $kwg, $zdl, $zkn, $zcu, $zpa, $zex, $zpt, $zst, $zln, $zcs) -ForegroundColor Red
 exit 1
