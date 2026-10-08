@@ -37,7 +37,6 @@
 
 | 中文头 | 英文头 | 类型 | 函数 | 值宏 | 我们合计 | 参考符号 | 参考逻辑 | 缺（逻辑） |
 |---|---|---|---|---|---|---|---|---|
-| C标准库 | cstdlib | 0 | 13 | 0 | **13** | 42 | 42 | 29 |
 | C标准整数 | cstdint | 12 | 0 | 0 | **12** | 28 | 28 | 16 |
 | C宽字符类别 | cwctype | 0 | 5 | 0 | **5** | 21 | 21 | 16 |
 | C字符串 | cstring | 0 | 10 | 0 | **10** | 23 | 23 | 13 |
@@ -53,6 +52,7 @@
 | 错误号 | cerrno | 0 | 0 | 0 | **0** | 0 | 0 | 0 |
 | C变参 | cstdarg | 1 | 0 | 0 | **1** | 0 | 0 | 0 |
 | C标准定义 | cstddef | 5 | 0 | 0 | **5** | 2 | 2 | 0 |
+| C标准库 | cstdlib | 4 | 38 | 0 | **42** | 42 | 42 | 0 |
 | C布尔 | cstdbool | 0 | 0 | 0 | **0** | 0 | 0 | 0 |
 | C断言 | cassert | 0 | 0 | 0 | **0** | 0 | 0 | 0 |
 | C对齐 | cstdalign | 0 | 0 | 0 | **0** | 0 | 0 | 0 |
@@ -63,10 +63,10 @@
 | C跳转 | csetjmp | 1 | 1 | 0 | **2** | 0 | 0 | 0 |
 | C信号 | csignal | 1 | 2 | 0 | **3** | 3 | 3 | 0 |
 | C整数极值 | climits | 0 | 0 | 3 | **3** | 0 | 0 | 0 |
-| **合计** |  | **34** | **209** | **6** | **249** | **476** | **364** | **115** |
+| **合计** |  | **38** | **234** | **6** | **278** | **476** | **364** | **86** |
 
-**一句话**：头覆盖 **26/26**；我们起了 **249** 个中文名（类型 34 / 函数 209 / 值宏 6）；
-按逻辑口径，参考全集 **364**、已覆盖 **249**、**还缺 115**；按符号口径参考 **476**（含 f/l 变体，会把缺口放大，别拿它对工作量）。
+**一句话**：头覆盖 **26/26**；我们起了 **278** 个中文名（类型 38 / 函数 234 / 值宏 6）；
+按逻辑口径，参考全集 **364**、已覆盖 **278**、**还缺 86**；按符号口径参考 **476**（含 f/l 变体，会把缺口放大，别拿它对工作量）。
 
 **零名字的头**（8 个）：`C布尔`、`C断言`、`C对齐`、`C泛型数学`、`C复数`、`C替代拼写`、`C字符转换`、`错误号`
 
@@ -78,7 +78,6 @@
 口径：逻辑名（已合并 `f`/`l` 变体）。**其中有些是宏**（转不了，见第五节），
 这里一律列出以便逐条判断，不作自动过滤。
 
-* **`C标准库`**（`cstdlib`，缺 29）：`_Exit` `abort` `at_quick_exit` `atexit` `atoll` `calloc` `div` `div_t` `labs` `ldiv` `ldiv_t` `llabs` `lldiv` `lldiv_t` `mblen` `mbstowcs` `mbtowc` `quick_exit` `realloc` `size_t` `strtod` `strtof` `strtol` `strtold` `strtoll` `strtoul` `strtoull` `wcstombs` `wctomb`
 * **`C标准整数`**（`cstdint`，缺 16）：`int_fast16_t` `int_fast32_t` `int_fast64_t` `int_fast8_t` `int_least16_t` `int_least32_t` `int_least64_t` `int_least8_t` `uint_fast16_t` `uint_fast32_t` `uint_fast64_t` `uint_fast8_t` `uint_least16_t` `uint_least32_t` `uint_least64_t` `uint_least8_t`
 * **`C宽字符类别`**（`cwctype`，缺 16）：`iswalnum` `iswblank` `iswcntrl` `iswctype` `iswgraph` `iswlower` `iswprint` `iswpunct` `iswupper` `iswxdigit` `towctrans` `wctrans` `wctrans_t` `wctype` `wctype_t` `wint_t`
 * **`C字符串`**（`cstring`，缺 13）：`memchr` `size_t` `strcoll` `strcspn` `strerror` `strncat` `strncmp` `strncpy` `strpbrk` `strrchr` `strspn` `strtok` `strxfrm`
