@@ -81,7 +81,12 @@ function Get-ZhNames([string]$path) {
     foreach ($m in [regex]::Matches($code, '使用\s+(?<zh>[^\s=;]+)\s*=\s*std::(?<en>[A-Za-z_]\w*)\s*;')) {
         $map[$m.Groups['en'].Value] = [pscustomobject]@{ 中文 = $m.Groups['zh'].Value; 类 = '类型' }
     }
-    foreach ($m in [regex]::Matches($code, '模板\s*<[^>]*>\s*声明类型\(自动\)\s*(?<zh>[^\s(]+)\s*\([^)]*\)\s*\{\s*返回\s+std::(?<en>[A-Za-z_]\w*)\s*\(')) {
+    # §18.60：`模板 <...> 约束 (...) 声明类型(自动) 名(...)` 是**加了算术约束的形态** ——
+    #   正则必须容忍中间的 `约束 (...)`，否则那 17 个名字会被**静默漏数**
+    #   （实测：漏数时台账报 232 个名字 / 缺 132，真值应是 249 / 115）。
+    #   这正是本仓记过的坑：扫描器"只认它见过的那种条目形态"，漏扫的名字**不会变成未覆盖**，
+    #   它只是**不存在** —— 所以改生成器形态时必须回头核对守卫打印的数字有没有跟着变。
+    foreach ($m in [regex]::Matches($code, '模板\s*<[^>]*>\s*(?:约束\s*\([^)]*\)\s*)?声明类型\(自动\)\s*(?<zh>[^\s(]+)\s*\([^)]*\)\s*\{\s*返回\s+std::(?<en>[A-Za-z_]\w*)\s*\(')) {
         $map[$m.Groups['en'].Value] = [pscustomobject]@{ 中文 = $m.Groups['zh'].Value; 类 = '函数' }
     }
     foreach ($m in [regex]::Matches($code, '内联\s+常量\s+\S+\s+(?<zh>[^\s=;]+)\s*=\s*(?<en>[A-Za-z_]\w*)\s*;')) {
