@@ -196,6 +196,12 @@ if (Test-Path $cerrno) { $zhFiles += Get-Item $cerrno }
 $rows = @()
 $sumSymRef = 0; $sumSymOurs = 0; $sumLogRef = 0; $sumLogOurs = 0
 $sumType = 0; $sumFunc = 0; $sumMacro = 0
+#  §18.65 口径修正：合计缺口**必须等于逐头缺口之和**（$sumMissing），
+#  不能再用 `Σ参考 - Σ我们` —— 那个差会把"我们有、但参考集里根本没有的名字"
+#  （宏 FLT_MAX/Eof、编译器内建 nullptr_t/max_align_t/byte、变量 va_list、C 函数 jmp_buf/longjmp …）
+#  当成"销账"减掉。实测：Σ参考 364 - Σ我们 310 = 54，而逐头缺口之和是 **66**，差 12 就是这批名字。
+$sumMissing = 0; $sumOursExtra = 0
+$oursExtraNames = @()
 $gaps = @()
 $zeroNameHeaders = @()
 
@@ -219,6 +225,11 @@ foreach ($f in $zhFiles) {
     $sumSymOurs += $zh.Count
     $sumLogRef += $logRef.Count
     $sumLogOurs += $logOurs.Count
+    #  逐头累计：缺口 + "我们的名字里参考集没有的"
+    $sumMissing += $missing.Count
+    $extra = @($zh.Keys | Where-Object { $logRef -notcontains $_ })
+    $sumOursExtra += $extra.Count
+    if ($extra.Count -gt 0) { $oursExtraNames += [pscustomobject]@{ 头 = $f.Name; 名字 = $extra } }
 
     if ($zh.Count -eq 0) { $zeroNameHeaders += $f.Name }
     if ($missing.Count -gt 0) { $gaps += [pscustomobject]@{ 头 = $f.Name; 英文 = $inc; 缺 = $missing } }
@@ -227,6 +238,20 @@ foreach ($f in $zhFiles) {
         头 = $f.Name; 英文 = $inc
         类型 = $typeN; 函数 = $funcN; 值宏 = $macroN; 合计 = $zh.Count
         参考符号 = $refNames.Count; 参考逻辑 = $logRef.Count; 缺逻辑 = $missing.Count
+    }
+}
+
+# ---------------------------------------------------------------- 口径自检（判据要能失败）
+#  §18.65：合计缺口必须同时满足两条 ——
+#    ① 逐头缺口之和（这是"还缺多少对(头,名字)"的定义）；
+#    ② 恒等式 Σ参考 = Σ我们 + Σ缺口 − Σ(我们多出来的)。
+#  两条对不上就抛错：说明某处把"我们有但参考没有的名字"算进了销账（§18.65 修掉的正是这个）。
+if ($refAvailable) {
+    $lhs = $sumMissing
+    $rhs = $sumLogRef - $sumLogOurs + $sumOursExtra
+    if ($lhs -ne $rhs) {
+        throw ("C 库台账口径自检失败（§18.65）：逐头缺口之和 {0} ≠ Σ参考 {1} − Σ我们 {2} + 我们多出来的 {3} = {4}" -f `
+            $lhs, $sumLogRef, $sumLogOurs, $sumOursExtra, $rhs)
     }
 }
 
@@ -282,13 +307,18 @@ foreach ($r in ($rows | Sort-Object -Property @{Expression = '缺逻辑'; Descen
         $r.头, $r.英文, $r.类型, $r.函数, $r.值宏, $r.合计, $r.参考符号, $r.参考逻辑, $r.缺逻辑)
 }
 W ("| **合计** |  | **{0}** | **{1}** | **{2}** | **{3}** | **{4}** | **{5}** | **{6}** |" -f `
-    $sumType, $sumFunc, $sumMacro, ($sumType + $sumFunc + $sumMacro), $sumSymRef, $sumLogRef, ($sumLogRef - $sumLogOurs))
+    $sumType, $sumFunc, $sumMacro, ($sumType + $sumFunc + $sumMacro), $sumSymRef, $sumLogRef, $sumMissing)
 W ''
 W ('**一句话**：头覆盖 **{0}/26**；我们起了 **{1}** 个中文名（类型 {2} / 函数 {3} / 值宏 {4}）；' -f `
     $zhFiles.Count, ($sumType + $sumFunc + $sumMacro), $sumType, $sumFunc, $sumMacro)
 if ($refAvailable) {
     W ('按逻辑口径，参考全集 **{0}**、已覆盖 **{1}**、**还缺 {2}**；按符号口径参考 **{3}**（含 f/l 变体，会把缺口放大，别拿它对工作量）。' -f `
-        $sumLogRef, $sumLogOurs, ($sumLogRef - $sumLogOurs), $sumSymRef)
+        $sumLogRef, ($sumLogRef - $sumMissing), $sumMissing, $sumSymRef)
+    W ''
+    W ('> ⚠ **口径**：`还缺 {0}` = **逐头缺口之和**（{1} 个头的缺相加），**不是** `Σ参考 − Σ我们`。' -f $sumMissing, @($rows | Where-Object { $_.缺逻辑 -gt 0 }).Count)
+    W ('> 两者差 **{0}**，因为我们的名字里有 {0} 个**参考集里根本没有**（宏 `FLT_MAX`/`Eof`、' -f $sumOursExtra)
+    W '> 编译器内建 `nullptr_t`/`max_align_t`/`byte`、变量 `va_list`、C 函数 `jmp_buf`/`longjmp`…）——'
+    W '> 它们**既不是缺口、也不该被当成销账**。（§18.65 修正；此前的 218/159/115/86/70/54 都少了这 12。）'
 }
 W ''
 if ($zeroNameHeaders.Count -gt 0) {
@@ -346,5 +376,5 @@ if ($Check) {
 }
 
 [System.IO.File]::WriteAllText($outPath, $text)
-Write-Host ("已生成 {0}（{1} 行；头 {2} 个、中文名 {3} 个、缺（逻辑）{4} 个）" -f `
-    $outPath, ($text -split "`n").Count, $zhFiles.Count, ($sumType + $sumFunc + $sumMacro), ($sumLogRef - $sumLogOurs))
+Write-Host ("已生成 {0}（{1} 行；头 {2} 个、中文名 {3} 个、缺（逻辑）{4} 个 = 逐头缺口之和；另有 {5} 个名字参考集里没有）" -f `
+    $outPath, ($text -split "`n").Count, $zhFiles.Count, ($sumType + $sumFunc + $sumMacro), $sumMissing, $sumOursExtra)
