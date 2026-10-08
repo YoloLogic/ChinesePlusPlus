@@ -169,6 +169,7 @@ function Test-MergeVariants {
 # 为什么写死：这些是**结论**，不是从文件里能算出来的。每一条都附理由，
 # 且都已在本仓台账里有据（方案 §3.4.1 / §3.11 / 关键字大检查报告 / 大检查问题台账）。
 $boundaries = @(
+    [pscustomobject]@{ 类别 = '同一个类型的内部拼写'; 例子 = '_Mbstatet（cwchar / cstdio 的缺口里各出现一次）'; 为什么 = '它就是 mbstate_t 本体（MSVC 的内部拼写）—— C 语言里是 `typedef _Mbstatet mbstate_t;` ⇒ 只给这一个类型起一个中文名（`多字节状态`），_Mbstatet 不再另起（§18.59）' }
     [pscustomobject]@{ 类别 = '宏：无法起别名'; 例子 = 'errno、EINVAL 等 E* 一族'; 为什么 = 'C 头里是宏，别名层只能给"名字"起别名，宏没有别名机制' }
     [pscustomobject]@{ 类别 = '宏：无法起别名'; 例子 = 'assert（cassert）'; 为什么 = '同上；且它在 NDEBUG 下会被整体抹掉' }
     [pscustomobject]@{ 类别 = '函数式宏：无法转发'; 例子 = 'va_start、va_arg、va_end、va_copy、setjmp'; 为什么 = '函数式宏不是函数，变参模板转发够不着（方案 §3.4.1 已登记）' }

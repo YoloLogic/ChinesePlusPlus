@@ -34,7 +34,14 @@ function Get-ParenDepthAt([string] $s, [int] $idx, [int] $base) {
 }
 function Get-ZhNames([string] $dir) {
     $out = @()
-    $zhProducts = @(Get-ChildItem (Get-ZhIncludeDirs $root) -File -ErrorAction SilentlyContinue)
+    # §18.59 **修正一处"橡皮图章"**（实测发现的既有缺陷）：原先这一行写死 `Get-ZhIncludeDirs $root`，
+    #   把传进来的 `$dir` **无声忽略** ⇒ 自测里 `Get-ZhNames $d` 报的临时目录根本没被扫，
+    #   5 个 fixture 一个都没进判据。实测后果：原版 `-SelfTest` 报「4/5、退出码 1」
+    #   （自检1 永远失败，2–5 因为"真产物本来就没冲突"而白过）。
+    #   闸门跑的是**不带** -SelfTest 的那条（所以长期没人发现）。
+    #   ⇒ 认 $dir：给了就扫它（自测/历史回放用），没给才走产品目录表。
+    $zhProducts = if ($dir) { @(Get-ChildItem $dir -File -ErrorAction SilentlyContinue) }
+                  else { @(Get-ChildItem (Get-ZhIncludeDirs $root) -File -ErrorAction SilentlyContinue) }
 if ($zhProducts.Count -eq 0) { Write-Host "❌ 一个产物都没扫到 —— 跑 0 条的通过不是通过（§15.3）" -ForegroundColor Red; exit 1 }
 foreach ($f in ($zhProducts | Sort-Object Name)) {
         $stack = New-Object System.Collections.ArrayList   # 花括号种类栈
@@ -62,7 +69,17 @@ foreach ($f in ($zhProducts | Sort-Object Name)) {
                 $hit = $null; $kind = ''
                 # 别名：使用 X = … / 模板 <…> 使用 X = …
                 $m = [regex]::Match($code, "^\s*(?:模板\s*<[^>]*>\s*)?使用\s+($Name)\s*=(?!=)")
-                if ($m.Success -and $parenBase -eq 0 -and ($braceFirst -lt 0 -or $m.Index -lt $braceFirst)) { $hit = $m.Groups[1].Value; $kind = '别名' }
+                if ($m.Success -and $parenBase -eq 0 -and ($braceFirst -lt 0 -or $m.Index -lt $braceFirst)) {
+                    $hit = $m.Groups[1].Value; $kind = '别名'
+                    # §18.59：把别名【右端文本】也记下来。理由（编译器实测，不是猜）：
+                    #   `using 大小类型 = std::size_t;` 在同一个名域里写两遍**合法**（同型重声明），
+                    #   而 `std::size_t` 与 `unsigned int` 这种【不同型】才报
+                    #   「别名声明 被重定义，类型不同」。这条守卫原先一律判红 ⇒ 会把
+                    #   "多个 C 头各自声明同一个 size_t 别名"这种正常写法误报成冲突。
+                    #   现在按右端文本是否逐字相同来区分（压掉空白；取到分号为止）。
+                    $mt = [regex]::Match($code.Substring($m.Index), '^\s*(?:模板\s*<[^>]*>\s*)?使用\s+[^=]+=\s*(?<t>[^;]+);')
+                    $target = if ($mt.Success) { ($mt.Groups['t'].Value -replace '\s+', ' ').Trim() } else { '' }
+                }
                 # 变量/常量：内联 … X = … / 常量表达式 … X = …
                 if (-not $hit -and $code -notmatch '^\s*#') {
                     $m2 = [regex]::Match($code, "(?<![\w:])($Name)\s*=(?!=)")
@@ -71,7 +88,8 @@ foreach ($f in ($zhProducts | Sort-Object Name)) {
                     }
                 }
                 if ($hit) {
-                    $out += [pscustomobject]@{ Product = $f.Name; Line = $i + 1; Path = $path; Name = $hit; Kind = $kind; Guarded = ($cond -gt 0) }
+                    $out += [pscustomobject]@{ Product = $f.Name; Line = $i + 1; Path = $path; Name = $hit; Kind = $kind; Guarded = ($cond -gt 0)
+                                               Target = $(if ($kind -eq '别名') { $target } else { '' }) }
                 }
             }
 
@@ -95,19 +113,27 @@ foreach ($f in ($zhProducts | Sort-Object Name)) {
 }
 
 function Test-ZhNames($names) {
-    $conflicts = @(); $cond = @()
+    $conflicts = @(); $cond = @(); $sameType = @()
     foreach ($g in ($names | Group-Object { "$($_.Path)::$($_.Name)" })) {
         $items = @($g.Group)
         if ($items.Count -lt 2) { continue }
         $prods = @($items | ForEach-Object { $_.Product } | Sort-Object -Unique)
         if ($prods.Count -lt 2) { continue }                    # 同一产物里同名：交给编译器
         if (@($items | Where-Object { $_.Guarded }).Count -gt 0) { $cond += $g.Name; continue }
+        # §18.59：**全是别名、且右端逐字相同** ⇒ 这是合法的同型重声明，不算冲突
+        #   （编译器实测：同名同型 `using` 写两遍编得过；同名不同型才报"类型不同"）。
+        #   右端不同、或掺了变量/常量（变量没有重载，同名就是重定义）⇒ 照旧报。
+        $allAlias = (@($items | Where-Object { $_.Kind -eq '别名' }).Count -eq $items.Count)
+        if ($allAlias) {
+            $tgts = @($items | ForEach-Object { $_.Target } | Sort-Object -Unique)
+            if ($tgts.Count -eq 1 -and [string]$tgts[0] -ne '') { $sameType += $g.Name; continue }
+        }
         $conflicts += [pscustomobject]@{
             Name = $g.Name
             Where = (($items | ForEach-Object { "$($_.Product):$($_.Line)($($_.Kind))" }) -join ' ')
         }
     }
-    return [pscustomobject]@{ Conflicts = @($conflicts); Conditional = @($cond) }
+    return [pscustomobject]@{ Conflicts = @($conflicts); Conditional = @($cond); SameType = @($sameType) }
 }
 
 if ($SelfTest) {
@@ -115,7 +141,7 @@ if ($SelfTest) {
     New-Item -ItemType Directory -Force $d | Out-Null
     $utf8 = New-Object System.Text.UTF8Encoding($false)
     $w = { param($n, $t) [System.IO.File]::WriteAllText("$d\$n", $t, $utf8) }
-    $pass = 0; $total = 5
+    $pass = 0; $total = 8
     # 1 两个产物各自声明同名变量 -> 必须报
     & $w '甲' "名域 标准 {`n  内联 自动& 标准输出 = std::cout;`n}`n"
     & $w '乙' "名域 标准 {`n  内联 文件* 常量& 标准输出 = stdin;`n}`n"
@@ -138,12 +164,29 @@ if ($SelfTest) {
     & $w '甲' "名域 标准 {`n  空型 甲一() { 整数 丙 = 1; }`n}`n"
     & $w '乙' "名域 标准 {`n  空型 乙一() { 整数 丙 = 2; }`n}`n"
     if ((Test-ZhNames (Get-ZhNames $d)).Conflicts.Count -eq 0) { $pass++ } else { Write-Host '  ❌ 自检5 误报"函数体内局部变量"' -ForegroundColor Red }
+    # ---- §18.59 别名同型重声明（编译器实测支撑的三条）----
+    # 6 两个产物各自 `使用 X = 同一右端;` -> **不报**（同型重声明合法）
+    Remove-Item "$d\*" -Force
+    & $w '甲' "名域 标准 {`n  使用 大小类型 = std::size_t;`n}`n"
+    & $w '乙' "名域 标准 {`n  使用 大小类型 = std::size_t;`n}`n"
+    $r6 = Test-ZhNames (Get-ZhNames $d)
+    if ($r6.Conflicts.Count -eq 0 -and $r6.SameType.Count -eq 1) { $pass++ } else { Write-Host ('  ❌ 自检6 误报"同名同型别名重声明"（冲突 {0} 个）' -f $r6.Conflicts.Count) -ForegroundColor Red }
+    # 7 同名但右端不同 -> **必须报**（编译器实测：`size_t` vs `unsigned int` = 别名声明被重定义，类型不同）
+    Remove-Item "$d\*" -Force
+    & $w '甲' "名域 标准 {`n  使用 大小类型 = std::size_t;`n}`n"
+    & $w '乙' "名域 标准 {`n  使用 大小类型 = unsigned int;`n}`n"
+    if ((Test-ZhNames (Get-ZhNames $d)).Conflicts.Count -gt 0) { $pass++ } else { Write-Host '  ❌ 自检7 漏报"同名不同型别名"' -ForegroundColor Red }
+    # 8 一个是别名一个是变量 -> **必须报**（变量没有重载，同名就是重定义）
+    Remove-Item "$d\*" -Force
+    & $w '甲' "名域 标准 {`n  使用 大小类型 = std::size_t;`n}`n"
+    & $w '乙' "名域 标准 {`n  内联 整数 常量& 大小类型 = 1;`n}`n"
+    if ((Test-ZhNames (Get-ZhNames $d)).Conflicts.Count -gt 0) { $pass++ } else { Write-Host '  ❌ 自检8 漏报"别名与变量同名"' -ForegroundColor Red }
     Remove-Item -Recurse -Force $d -ErrorAction SilentlyContinue
     Write-Host ("自检：{0}/{1}" -f $pass, $total) -ForegroundColor $(if ($pass -eq $total) { 'Green' } else { 'Red' })
     exit $(if ($pass -eq $total) { 0 } else { 1 })
 }
 
-$scan = if ($Dir) { $Dir } else { Join-Path $root 'zhstdlib' }
+$scan = if ($Dir) { $Dir } else { $null }   # §18.59：$null ⇒ Get-ZhNames 走产品目录表（与原来一致）
 $all = Get-ZhNames $scan
 $r = Test-ZhNames $all
 if (-not $Quiet) {
@@ -154,6 +197,10 @@ if (-not $Quiet) {
 if ($r.Conditional.Count) {
     Write-Host ("  ⚠ 条件编译内同名 {0} 个（家族头 #ifndef 一主一从，§17.19.25）：{1}" -f `
         $r.Conditional.Count, (($r.Conditional | Select-Object -First 6) -join ' ')) -ForegroundColor DarkYellow
+}
+if ($r.SameType.Count) {
+    Write-Host ("  ℹ 同名同型别名重声明 {0} 个（合法，§18.59；不计冲突）：{1}" -f `
+        $r.SameType.Count, (($r.SameType | Select-Object -First 8) -join ' ')) -ForegroundColor DarkGray
 }
 if ($r.Conflicts.Count) {
     Write-Host ("  ❌ 跨产物同名 {0} 个（变量/别名没有重载 —— 同名就是重定义）：" -f $r.Conflicts.Count) -ForegroundColor Red

@@ -37,7 +37,6 @@
 
 | 中文头 | 英文头 | 类型 | 函数 | 值宏 | 我们合计 | 参考符号 | 参考逻辑 | 缺（逻辑） |
 |---|---|---|---|---|---|---|---|---|
-| C宽字符 | cwchar | 0 | 4 | 0 | **4** | 64 | 64 | 60 |
 | C数学 | cmath | 0 | 18 | 0 | **18** | 186 | 74 | 56 |
 | C标准库 | cstdlib | 0 | 13 | 0 | **13** | 42 | 42 | 29 |
 | C标准整数 | cstdint | 12 | 0 | 0 | **12** | 28 | 28 | 16 |
@@ -50,6 +49,7 @@
 | C字符类别 | cctype | 0 | 9 | 0 | **9** | 14 | 14 | 5 |
 | C整数格式 | cinttypes | 1 | 2 | 0 | **3** | 7 | 7 | 4 |
 | C本地化 | clocale | 1 | 1 | 0 | **2** | 3 | 3 | 1 |
+| C宽字符 | cwchar | 4 | 59 | 0 | **63** | 64 | 64 | 1 |
 | 错误号 | cerrno | 0 | 0 | 0 | **0** | 0 | 0 | 0 |
 | C变参 | cstdarg | 1 | 0 | 0 | **1** | 0 | 0 | 0 |
 | C标准定义 | cstddef | 5 | 0 | 0 | **5** | 2 | 2 | 0 |
@@ -63,10 +63,10 @@
 | C跳转 | csetjmp | 1 | 1 | 0 | **2** | 0 | 0 | 0 |
 | C信号 | csignal | 1 | 2 | 0 | **3** | 3 | 3 | 0 |
 | C整数极值 | climits | 0 | 0 | 3 | **3** | 0 | 0 | 0 |
-| **合计** |  | **28** | **112** | **6** | **146** | **476** | **364** | **218** |
+| **合计** |  | **32** | **167** | **6** | **205** | **476** | **364** | **159** |
 
-**一句话**：头覆盖 **26/26**；我们起了 **146** 个中文名（类型 28 / 函数 112 / 值宏 6）；
-按逻辑口径，参考全集 **364**、已覆盖 **146**、**还缺 218**；按符号口径参考 **476**（含 f/l 变体，会把缺口放大，别拿它对工作量）。
+**一句话**：头覆盖 **26/26**；我们起了 **205** 个中文名（类型 32 / 函数 167 / 值宏 6）；
+按逻辑口径，参考全集 **364**、已覆盖 **205**、**还缺 159**；按符号口径参考 **476**（含 f/l 变体，会把缺口放大，别拿它对工作量）。
 
 **零名字的头**（8 个）：`C布尔`、`C断言`、`C对齐`、`C泛型数学`、`C复数`、`C替代拼写`、`C字符转换`、`错误号`
 
@@ -78,7 +78,6 @@
 口径：逻辑名（已合并 `f`/`l` 变体）。**其中有些是宏**（转不了，见第五节），
 这里一律列出以便逐条判断，不作自动过滤。
 
-* **`C宽字符`**（`cwchar`，缺 60）：`_Mbstatet` `btowc` `fgetwc` `fgetws` `fputwc` `fputws` `fwide` `fwprintf` `fwscanf` `getwc` `getwchar` `mbrlen` `mbrtowc` `mbsinit` `mbsrtowcs` `mbstate_t` `putwc` `putwchar` `size_t` `swprintf` `swscanf` `tm` `ungetwc` `vfwprintf` `vfwscanf` `vswprintf` `vswscanf` `vwprintf` `vwscanf` `wcrtomb` `wcschr` `wcscoll` `wcscspn` `wcsftime` `wcsncat` `wcsncmp` `wcsncpy` `wcspbrk` `wcsrchr` `wcsrtombs` `wcsspn` `wcsstr` `wcstod` `wcstof` `wcstok` `wcstol` `wcstold` `wcstoll` `wcstoul` `wcstoull` `wcsxfrm` `wctob` `wint_t` `wmemchr` `wmemcmp` `wmemcpy` `wmemmove` `wmemset` `wprintf` `wscanf`
 * **`C数学`**（`cmath`，缺 56）：`abs` `acosh` `asinh` `atanh` `cbrt` `copysign` `cosh` `double_t` `erf` `erfc` `exp2` `expm1` `fdim` `float_t` `fma` `fmax` `fmin` `fpclassify` `frexp` `hypot` `ilogb` `isfinite` `isgreater` `isgreaterequal` `isinf` `isless` `islessequal` `islessgreater` `isnan` `isnormal` `isunordered` `ldexp` `lgamma` `llrint` `llround` `log1p` `log2` `logb` `lrint` `lround` `modf` `nan` `nanf` `nanl` `nearbyint` `nextafter` `nexttoward` `remainder` `remquo` `rint` `scalbln` `scalbn` `signbit` `tanh` `tgamma` `trunc`
 * **`C标准库`**（`cstdlib`，缺 29）：`_Exit` `abort` `at_quick_exit` `atexit` `atoll` `calloc` `div` `div_t` `labs` `ldiv` `ldiv_t` `llabs` `lldiv` `lldiv_t` `mblen` `mbstowcs` `mbtowc` `quick_exit` `realloc` `size_t` `strtod` `strtof` `strtol` `strtold` `strtoll` `strtoul` `strtoull` `wcstombs` `wctomb`
 * **`C标准整数`**（`cstdint`，缺 16）：`int_fast16_t` `int_fast32_t` `int_fast64_t` `int_fast8_t` `int_least16_t` `int_least32_t` `int_least64_t` `int_least8_t` `uint_fast16_t` `uint_fast32_t` `uint_fast64_t` `uint_fast8_t` `uint_least16_t` `uint_least32_t` `uint_least64_t` `uint_least8_t`
@@ -91,11 +90,13 @@
 * **`C字符类别`**（`cctype`，缺 5）：`isblank` `iscntrl` `isgraph` `isprint` `isxdigit`
 * **`C整数格式`**（`cinttypes`，缺 4）：`strtoimax` `strtoumax` `wcstoimax` `wcstoumax`
 * **`C本地化`**（`clocale`，缺 1）：`setlocale`
+* **`C宽字符`**（`cwchar`，缺 1）：`_Mbstatet`
 
 ## 五、硬边界（做不了的，别当欠账）
 
 | 类别 | 例子 | 为什么 |
 |---|---|---|
+| 同一个类型的内部拼写 | _Mbstatet（cwchar / cstdio 的缺口里各出现一次） | 它就是 mbstate_t 本体（MSVC 的内部拼写）—— C 语言里是 `typedef _Mbstatet mbstate_t;` ⇒ 只给这一个类型起一个中文名（`多字节状态`），_Mbstatet 不再另起（§18.59） |
 | 宏：无法起别名 | errno、EINVAL 等 E* 一族 | C 头里是宏，别名层只能给"名字"起别名，宏没有别名机制 |
 | 宏：无法起别名 | assert（cassert） | 同上；且它在 NDEBUG 下会被整体抹掉 |
 | 函数式宏：无法转发 | va_start、va_arg、va_end、va_copy、setjmp | 函数式宏不是函数，变参模板转发够不着（方案 §3.4.1 已登记） |
