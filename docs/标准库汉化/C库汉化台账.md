@@ -39,14 +39,12 @@
 |---|---|---|---|---|---|---|---|---|
 | C数学 | cmath | 2 | 60 | 0 | **62** | 186 | 74 | 12 |
 | C标准输入输出 | cstdio | 1 | 39 | 1 | **41** | 49 | 49 | 9 |
-| C浮点环境 | cfenv | 2 | 2 | 0 | **4** | 13 | 13 | 9 |
 | C时间 | ctime | 3 | 6 | 0 | **9** | 15 | 15 | 6 |
 | C字符转换 | cuchar | 0 | 0 | 0 | **0** | 6 | 6 | 6 |
-| C字符类别 | cctype | 0 | 9 | 0 | **9** | 14 | 14 | 5 |
 | C整数格式 | cinttypes | 1 | 2 | 0 | **3** | 7 | 7 | 4 |
-| C本地化 | clocale | 1 | 1 | 0 | **2** | 3 | 3 | 1 |
 | C宽字符 | cwchar | 4 | 59 | 0 | **63** | 64 | 64 | 1 |
 | 错误号 | cerrno | 0 | 0 | 0 | **0** | 0 | 0 | 0 |
+| C本地化 | clocale | 1 | 2 | 0 | **3** | 3 | 3 | 0 |
 | C变参 | cstdarg | 1 | 0 | 0 | **1** | 0 | 0 | 0 |
 | C标准定义 | cstddef | 5 | 0 | 0 | **5** | 2 | 2 | 0 |
 | C标准库 | cstdlib | 4 | 38 | 0 | **42** | 42 | 42 | 0 |
@@ -55,6 +53,7 @@
 | C断言 | cassert | 0 | 0 | 0 | **0** | 0 | 0 | 0 |
 | C对齐 | cstdalign | 0 | 0 | 0 | **0** | 0 | 0 | 0 |
 | C泛型数学 | ctgmath | 0 | 0 | 0 | **0** | 0 | 0 | 0 |
+| C浮点环境 | cfenv | 2 | 11 | 0 | **13** | 13 | 13 | 0 |
 | C浮点极值 | cfloat | 0 | 0 | 2 | **2** | 0 | 0 | 0 |
 | C复数 | ccomplex | 0 | 0 | 0 | **0** | 0 | 0 | 0 |
 | C宽字符类别 | cwctype | 3 | 18 | 0 | **21** | 21 | 21 | 0 |
@@ -63,12 +62,13 @@
 | C信号 | csignal | 1 | 2 | 0 | **3** | 3 | 3 | 0 |
 | C整数极值 | climits | 0 | 0 | 3 | **3** | 0 | 0 | 0 |
 | C字符串 | cstring | 1 | 22 | 0 | **23** | 23 | 23 | 0 |
-| **合计** |  | **58** | **259** | **6** | **323** | **476** | **364** | **53** |
+| C字符类别 | cctype | 0 | 14 | 0 | **14** | 14 | 14 | 0 |
+| **合计** |  | **58** | **274** | **6** | **338** | **476** | **364** | **38** |
 
-**一句话**：头覆盖 **26/26**；我们起了 **323** 个中文名（类型 58 / 函数 259 / 值宏 6）；
-按逻辑口径，参考全集 **364**、已覆盖 **311**、**还缺 53**；按符号口径参考 **476**（含 f/l 变体，会把缺口放大，别拿它对工作量）。
+**一句话**：头覆盖 **26/26**；我们起了 **338** 个中文名（类型 58 / 函数 274 / 值宏 6）；
+按逻辑口径，参考全集 **364**、已覆盖 **326**、**还缺 38**；按符号口径参考 **476**（含 f/l 变体，会把缺口放大，别拿它对工作量）。
 
-> ⚠ **口径**：`还缺 53` = **逐头缺口之和**（9 个头的缺相加），**不是** `Σ参考 − Σ我们`。
+> ⚠ **口径**：`还缺 38` = **逐头缺口之和**（6 个头的缺相加），**不是** `Σ参考 − Σ我们`。
 > 两者差 **12**，因为我们的名字里有 12 个**参考集里根本没有**（宏 `FLT_MAX`/`Eof`、
 > 编译器内建 `nullptr_t`/`max_align_t`/`byte`、变量 `va_list`、C 函数 `jmp_buf`/`longjmp`…）——
 > 它们**既不是缺口、也不该被当成销账**。（§18.65 修正；此前的 218/159/115/86/70/54 都少了这 12。）
@@ -85,12 +85,9 @@
 
 * **`C数学`**（`cmath`，缺 12）：`fpclassify` `isfinite` `isgreater` `isgreaterequal` `isinf` `isless` `islessequal` `islessgreater` `isnan` `isnormal` `isunordered` `signbit`
 * **`C标准输入输出`**（`cstdio`，缺 9）：`_Mbstatet` `fgetpos` `fpos_t` `freopen` `fsetpos` `getc` `putc` `setbuf` `size_t`
-* **`C浮点环境`**（`cfenv`，缺 9）：`fegetenv` `fegetexceptflag` `fegetround` `feholdexcept` `feraiseexcept` `fesetenv` `fesetexceptflag` `fesetround` `feupdateenv`
 * **`C时间`**（`ctime`，缺 6）：`asctime` `ctime` `mktime` `size_t` `timespec` `timespec_get`
 * **`C字符转换`**（`cuchar`，缺 6）：`c16rtomb` `c32rtomb` `mbrtoc16` `mbrtoc32` `mbstate_t` `size_t`
-* **`C字符类别`**（`cctype`，缺 5）：`isblank` `iscntrl` `isgraph` `isprint` `isxdigit`
 * **`C整数格式`**（`cinttypes`，缺 4）：`strtoimax` `strtoumax` `wcstoimax` `wcstoumax`
-* **`C本地化`**（`clocale`，缺 1）：`setlocale`
 * **`C宽字符`**（`cwchar`，缺 1）：`_Mbstatet`
 
 ## 五、硬边界（做不了的，别当欠账）
