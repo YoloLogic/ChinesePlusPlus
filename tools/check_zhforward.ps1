@@ -46,7 +46,12 @@ $root = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
 # ---------------------------------------------------------------------------
 function Get-Forwarders([string] $dir) {
     $out = @()
-    $zhProducts = @(Get-ChildItem (Get-ZhIncludeDirs $root) -File -ErrorAction SilentlyContinue)
+    # §18.61 修正一处"橡皮图章自测"（与 check_zhname 同一个形状）：
+    #   原先写死 `Get-ZhIncludeDirs $root`、**无声忽略传入的 $dir** ⇒ 自测里传进来的临时目录
+    #   根本没被扫，6 条 fixture 一个都没进判据（实测原版 -SelfTest = 「4/6、退出码 1」）。
+    #   闸门跑的是**不带** -SelfTest 的那条 ⇒ 长期没人发现。认 $dir：给了就扫它，没给才走产品目录表。
+    $zhProducts = if ($dir) { @(Get-ChildItem $dir -File -ErrorAction SilentlyContinue) }
+                  else { @(Get-ChildItem (Get-ZhIncludeDirs $root) -File -ErrorAction SilentlyContinue) }
 if ($zhProducts.Count -eq 0) { Write-Host "❌ 一个产物都没扫到 —— 跑 0 条的通过不是通过（§15.3）" -ForegroundColor Red; exit 1 }
 foreach ($f in ($zhProducts | Sort-Object Name)) {
         $stack = New-Object System.Collections.ArrayList
@@ -60,7 +65,9 @@ foreach ($f in ($zhProducts | Sort-Object Name)) {
             $code = ($raw -replace '//.*$', '')
             if ($code.Trim().Length -eq 0) { continue }
 
-            $m = [regex]::Match($code, '模板\s*<([^>]*)>\s*声明类型\(自动\)\s*([^\s(]+)\s*\(([^)]*)\)\s*([^{]{0,60}?)\{')
+            # §18.61：容忍 `约束 (...)`（§18.60 给 17 条数学转发加的 requires 子句）——
+            #   否则那 17 条会被**静默漏扫**（本守卫只查"同名同签名=重定义"，漏扫就等于不查）。
+            $m = [regex]::Match($code, '模板\s*<([^>]*)>\s*(?:约束\s*\([^)]*\)\s*)?声明类型\(自动\)\s*([^\s(]+)\s*\(([^)]*)\)\s*([^{]{0,60}?)\{')
             $inType = @($stack | Where-Object { $_.Kind -eq 'type' }).Count -gt 0
             $path   = (@($stack | Where-Object { $_.Kind -eq 'ns' } | ForEach-Object { $_.Name }) -join '::')
             if ($m.Success -and -not $inType) {
@@ -202,7 +209,7 @@ if ($SelfTest) {
 # ---------------------------------------------------------------------------
 #  正式运行
 # ---------------------------------------------------------------------------
-$fw = Get-Forwarders (Join-Path $root 'zhstdlib')
+$fw = Get-Forwarders $null   # §18.61：$null ⇒ 走产品目录表（与原来等效）；给了目录就只扫那个目录
 $r  = Test-Forwarders $fw
 Show-Result $fw $r -Quiet:$Quiet
 exit $(if ($r.Conflicts.Count -eq 0) { 0 } else { 1 })
