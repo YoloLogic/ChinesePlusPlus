@@ -37,7 +37,6 @@
 
 | 中文头 | 英文头 | 类型 | 函数 | 值宏 | 我们合计 | 参考符号 | 参考逻辑 | 缺（逻辑） |
 |---|---|---|---|---|---|---|---|---|
-| C宽字符类别 | cwctype | 0 | 5 | 0 | **5** | 21 | 21 | 16 |
 | C字符串 | cstring | 0 | 10 | 0 | **10** | 23 | 23 | 13 |
 | C数学 | cmath | 2 | 60 | 0 | **62** | 186 | 74 | 12 |
 | C标准输入输出 | cstdio | 1 | 39 | 1 | **41** | 49 | 49 | 9 |
@@ -59,14 +58,15 @@
 | C泛型数学 | ctgmath | 0 | 0 | 0 | **0** | 0 | 0 | 0 |
 | C浮点极值 | cfloat | 0 | 0 | 2 | **2** | 0 | 0 | 0 |
 | C复数 | ccomplex | 0 | 0 | 0 | **0** | 0 | 0 | 0 |
+| C宽字符类别 | cwctype | 3 | 18 | 0 | **21** | 21 | 21 | 0 |
 | C替代拼写 | ciso646 | 0 | 0 | 0 | **0** | 0 | 0 | 0 |
 | C跳转 | csetjmp | 1 | 1 | 0 | **2** | 0 | 0 | 0 |
 | C信号 | csignal | 1 | 2 | 0 | **3** | 3 | 3 | 0 |
 | C整数极值 | climits | 0 | 0 | 3 | **3** | 0 | 0 | 0 |
-| **合计** |  | **54** | **234** | **6** | **294** | **476** | **364** | **70** |
+| **合计** |  | **57** | **247** | **6** | **310** | **476** | **364** | **54** |
 
-**一句话**：头覆盖 **26/26**；我们起了 **294** 个中文名（类型 54 / 函数 234 / 值宏 6）；
-按逻辑口径，参考全集 **364**、已覆盖 **294**、**还缺 70**；按符号口径参考 **476**（含 f/l 变体，会把缺口放大，别拿它对工作量）。
+**一句话**：头覆盖 **26/26**；我们起了 **310** 个中文名（类型 57 / 函数 247 / 值宏 6）；
+按逻辑口径，参考全集 **364**、已覆盖 **310**、**还缺 54**；按符号口径参考 **476**（含 f/l 变体，会把缺口放大，别拿它对工作量）。
 
 **零名字的头**（8 个）：`C布尔`、`C断言`、`C对齐`、`C泛型数学`、`C复数`、`C替代拼写`、`C字符转换`、`错误号`
 
@@ -78,7 +78,6 @@
 口径：逻辑名（已合并 `f`/`l` 变体）。**其中有些是宏**（转不了，见第五节），
 这里一律列出以便逐条判断，不作自动过滤。
 
-* **`C宽字符类别`**（`cwctype`，缺 16）：`iswalnum` `iswblank` `iswcntrl` `iswctype` `iswgraph` `iswlower` `iswprint` `iswpunct` `iswupper` `iswxdigit` `towctrans` `wctrans` `wctrans_t` `wctype` `wctype_t` `wint_t`
 * **`C字符串`**（`cstring`，缺 13）：`memchr` `size_t` `strcoll` `strcspn` `strerror` `strncat` `strncmp` `strncpy` `strpbrk` `strrchr` `strspn` `strtok` `strxfrm`
 * **`C数学`**（`cmath`，缺 12）：`fpclassify` `isfinite` `isgreater` `isgreaterequal` `isinf` `isless` `islessequal` `islessgreater` `isnan` `isnormal` `isunordered` `signbit`
 * **`C标准输入输出`**（`cstdio`，缺 9）：`_Mbstatet` `fgetpos` `fpos_t` `freopen` `fsetpos` `getc` `putc` `setbuf` `size_t`
