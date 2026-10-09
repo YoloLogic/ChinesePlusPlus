@@ -4,7 +4,7 @@
 > 同时英文照旧可用。项目口号：**不是创新的汉语编程，却是最强的汉语编程。**
 >
 > 编译器：`build\Release\bin\chinese++.exe`（即 `clang++.exe` 的硬链接）
-> **发给别人用的那条路**：`dist\Chinese++-0.2-win64.zip` → 解压 → 双击 `一键安装.cmd`
+> **发给别人用的那条路**：`dist\Chinese++-0.3-win64.zip` → 解压 → 双击 `一键安装.cmd`
 
 ---
 
@@ -19,7 +19,7 @@
 | 想知道**汉语标准库现在到哪了** | [`标准库汉化/标准库汉化方案.md`](标准库汉化/标准库汉化方案.md) **§17.19.53 收官总账**，再对着 [`汉化标尺台账.md`](标准库汉化/汉化标尺台账.md) 与 [`头文件覆盖台账.md`](标准库汉化/头文件覆盖台账.md) 核数字 |
 | 要**独立复核**（人或 AI） | 一条命令即可：`powershell -File E:\Chinese++\tools\acceptance.ps1`；细节见 [`诊断汉化/诊断汉化-独立复核.md`](诊断汉化/诊断汉化-独立复核.md) |
 | 想知道**凭什么说"别人的代码也编得过"** | [`..\third_party\README.md`](../third_party/README.md) —— 拿 **8 个真实开源项目**（tinyxml2 / pugixml / fmt / googletest / cJSON / zlib / libuv / lz4）与官方 clang 逐项对照，一条命令可复跑。**其中 `pugixml,cJSON,lz4,fmt` 四项已进总判据**（`tools\regen_zhstdlib.ps1` 第 14 道守卫，每次提交都跑） |
-| 想**发给别人用** | [`打包/打包方案.md`](打包/打包方案.md) —— **§7.5～§7.8 是落地与实测记录**（发行包已产出：`dist\Chinese++-0.2-win64.zip`，80.8 MB）。推荐的第一个动作仍是[`打包/一键配置-VSCode.md`](打包/一键配置-VSCode.md) |
+| 想**发给别人用** | [`打包/打包方案.md`](打包/打包方案.md) —— **§7.5～§7.8 是落地与实测记录**（发行包已产出：`dist\Chinese++-0.3-win64.zip`，101 MB）。推荐的第一个动作仍是[`打包/一键配置-VSCode.md`](打包/一键配置-VSCode.md) |
 | 想看**网页那一角（第四条产品线）** | [`ChineseTypeScript/ChineseTypeScript-说明.md`](ChineseTypeScript/ChineseTypeScript-说明.md) —— 把 Go 版 TypeScript 汉化：汉语关键字与英文**同一个 token**，`.chts` 源编译出的 js **仍是标准英文关键字**、能被 node 直接跑 |
 
 ---
@@ -45,8 +45,8 @@
 | [`..\教程\Chinese++-教学教程.md`](../教程/Chinese++-教学教程.md) | **给学习者的教程**（不是手册）：程序骨架 / 变量与类型 / 运算符与符号 / 分支与循环 / 函数 / 自定义类型 / 模板与名域 / 基础标准库 / 预处理，共 10 课。每课都嵌**能直接编译运行**的例子与真实输出；附录 B 是从《中文对照表》切进来的关键字总表。**Word 版** `教程\Chinese++-教学教程.docx` 由 `tools\make_tutorial_docx.ps1` 从同一份 md 生成（确定性，可比哈希） | 改了 `教程\例子\` 或 `教程\教程模板.md` 后重新生成：`tools\make_tutorial_cpp.ps1`（再跑 `tools\make_tutorial_docx.ps1` 出 Word 版）。两者都由第 28 道守卫看住 |
 
 > ✅ `docs\打包\` 里的两份**过去是设计稿，现在都已实施**（2026-09-26 更新）：
-> `tools\make_package.ps1` 产出 `dist\Chinese++-0.2-win64\`（未压缩 **206 MB** / **661** 个文件，
-> 自 §18.48 起另含**整套地基**：开源 MSVC STL 头 + 2037 个 mingw-w64 头 + 11 个手搓编译器支撑头 + 10 个 VC++ 运行库 DLL）与 `.zip`（**92 MB**），包内 `verify.ps1` **26 项**自测已通过。
+> `tools\make_package.ps1` 产出 `dist\Chinese++-0.3-win64\`（未压缩 **302 MB** / **2764** 个文件，
+> 自 §18.48 起另含**整套地基**：开源 MSVC STL 头 + 2037 个 mingw-w64 头 + 11 个手搓编译器支撑头 + 10 个 VC++ 运行库 DLL）与 `.zip`（**101 MB**），包内 `verify.ps1` **29 项**自测已通过（其中 5 项逐份点名检查许可/合规文件）。**许可**：本项目原创部分用自定义条款（源码公开、**禁止重新发布**、允许自由使用含商用、允许非营利原样转发）—— 正文见 `licenses\LICENSE`，范围判定见 `licenses\LICENSE-SCOPE.md`。
 > **版本**：Chinese++ **0.2**（win64）；包内二进制的 SHA256、以及"zip 未重打、
 > 源码树已比它新"这件事，见 [`打包/README.md`](打包/README.md) 的版本表。
 > **没做**的两件：① 没在**没有 Visual Studio**的机器上验过（§18.48 起把 VS 那层搬进包里：

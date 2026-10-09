@@ -152,13 +152,26 @@ Write-Host ("  lib\clang\{0}\lib\windows: {1} runtime files, {2} KB" -f $ver, $r
 
 # ---------------------------------------------------------------------------
 # 4. licenses  (Apache-2.0 section 4(a) and 4(b); NOT optional)
+#
+#    0.3 起还随包**本项目自己**的许可与合规文件（用户 2026-10-09 裁定：
+#    原创部分用**自定义条款** —— 源码公开、禁止重新打包再发布、允许自由使用（含商用）、
+#    允许非营利原样转发；LLVM/微软部分各按各的许可，不得被本项目条款覆盖；
+#    名称/图标另立名称条款）：
+#      LICENSE          本项目原创部分的许可正文（自定义条款）
+#      LICENSE-SCOPE.md 哪些受"禁止再发布"约束、哪些不受（含"看文件头 SPDX"的机器可查规则）
+#      TRADEMARK.md     名称与图标条款
+#      NOTICE.txt       发行说明 + 第三方披露（已按 0.3 实况订正）
+#      LICENSE.TXT      LLVM 的许可正文（Apache-2.0 with LLVM Exceptions，与上游逐字节相同）
+#    缺任何一份都直接 throw —— 这是发行义务，不是可选项。
 # ---------------------------------------------------------------------------
-if (-not (Test-Path (Join-Path $licSrc 'LICENSE.TXT'))) {
-    throw "licenses\LICENSE.TXT missing -- run tests\checks\verify_licenses.py first"
+foreach ($lic in 'LICENSE', 'LICENSE.TXT', 'NOTICE.txt', 'LICENSE-SCOPE.md', 'TRADEMARK.md') {
+    $src = Join-Path $licSrc $lic
+    if (-not (Test-Path $src)) {
+        throw "licenses\$lic missing -- 许可/合规文件必须随包分发（见 licenses\LICENSE-SCOPE.md）"
+    }
+    Copy-Item $src (Join-Path $pkg $lic) -Force
 }
-Copy-Item (Join-Path $licSrc 'LICENSE.TXT') (Join-Path $pkg 'LICENSE.TXT') -Force
-Copy-Item (Join-Path $licSrc 'NOTICE.txt')  (Join-Path $pkg 'NOTICE.txt')  -Force
-Write-Host "  LICENSE.TXT + NOTICE.txt copied"
+Write-Host "  LICENSE + LICENSE.TXT + NOTICE.txt + LICENSE-SCOPE.md + TRADEMARK.md copied"
 
 # ---------------------------------------------------------------------------
 # 5. installer, editor kit, examples
