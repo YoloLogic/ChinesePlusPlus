@@ -220,15 +220,49 @@ chinese++ 你的文件.cpp -fno-chinese-diagnostics
 ## 快速开始
 
 **下载：** [最新发布版](https://github.com/YoloLogic/ChinesePlusPlus/releases/latest) ·
-直接下 [Chinese++-0.2-win64.zip](https://github.com/YoloLogic/ChinesePlusPlus/releases/latest/download/Chinese++-0.2-win64.zip)
+直接下 [Chinese++-0.3-win64.zip](https://github.com/YoloLogic/ChinesePlusPlus/releases/latest/download/Chinese++-0.3-win64.zip)
 
 > 在 Releases 页面找 **Assets** 区块 —— 它**可能是折叠的，点一下展开**才能看到附件。
 
-### 第 1 步：先装 Visual Studio 的 C++ 组件（**必须，别跳过**）
+### 第 1 步：Visual Studio —— **可选**（默认那套工具链不需要它）
 
-**已经装过 Visual Studio、且勾了「使用 C++ 的桌面开发」的 —— 跳过这一步。**
+本包自带一套工具链基底（`bundled` 模式，**默认**）：
 
-三条路，挑一条：
+| 在包里 | 是什么 |
+|---|---|
+`lib\stl`（176 个头） | 开源版 **MSVC STL 头** |
+`lib\mingw`（2037 个） | mingw-w64 的 **UCRT + Win32 头** |
+`lib\crt`（29 个） | 我们自己的 **CRT 与导入库** |
+`lib\compiler`（12 个） | 编译器支持头（手写） |
+`bin\*.dll`（10 个） | **VC++ 运行时 DLL**（app-local） |
+`zhstdlib\`（119 个头） | **汉语标准库**（`#包含 <向量>` 那一层） |
+
+**实测**（`install.ps1` 结尾会自己跑 `verify.ps1`；下面是 0.3 包在 2026-10-09 的真实输出）：
+
+```
+--- 3) Visual Studio Build Tools  [bundled mode]
+found: C:\Program Files\Microsoft Visual Studio\2022\Community
+(bundled mode does not use it: headers/CRT/import libs and lld-link all come from this package)
+[ok]   compiles a Chinese include + std::vector in one file, with no flags (bundled mode)
+[ok]   the Chinese-library program links and runs (exit 0, bundled mode)
+[ok]   <windows.h> + a Chinese header resolve with NO Microsoft path anywhere (608 includes traced)
+[ok]   bundled mode: the link read 48 libraries, none from Program Files
+  26 passed, 0 failed -- this package works.
+```
+
+注意后两行：**没有任何微软路径参与**、**链接读的 48 个库没有一个来自 Program Files**。
+
+**那你什么时候还需要 Visual Studio？** 只有想用 `system` 模式时才需要：
+
+| 模式 | 怎么开 | 用谁的标准库 | 什么时候选它 |
+|---|---|---|---|
+`bundled`（**默认**） | 什么都不用做 | 包内自带的那套基底 | 开箱即用；不想在别人机器上再装东西；CI |
+`system` | `powershell -File install.ps1 -Toolchain system` | **你机器上**的 Visual Studio / Windows SDK | 要和现有 VS 工程、现成第三方库**完全一致**地链接时 |
+
+（选完记在 `bin\toolchain.txt`；`verify.ps1` 按**实际在用的**那种基底验。
+0.1/0.2 早期确实"必须先装 VS" —— 那时只发编译器本体；**0.2 起带了基底**，本 README 与 `常见问题.md` 都已订正。）
+
+**要装的话**（想用 system 模式）：
 
 ```powershell
 # 最快：一行命令
@@ -242,13 +276,9 @@ winget install --id Microsoft.VisualStudio.2022.BuildTools --override "--quiet -
 
 > 下载约 2 GB，装完约占 6 GB，需要管理员权限，需要几分钟。
 
-**为什么必须装？** 本工具链**不自带标准库** —— C++ 标准库（`std::vector`、`std::string`…）、C 运行库、Windows SDK 都是微软的东西，没有权利把它们打包分发。
+**system 模式没装的症状**：编译时报 `找不到文件（名字） 'cstdio'`。
 
-**这也是一件好事**：正因为用的是微软原封不动的 MSVC STL，本编译器编出来的东西和官方 clang / MSVC 编出来的**二进制兼容**，可以互相链接，现成的第三方库照用。
-
-**没装的症状**：编译时报 `找不到文件（名字） 'cstdio'`。看到「找不到文件」这类错，十有八九就是这一条。
-
-**不确定装没装？** 跑第 3 步的 `verify.ps1` —— 它不但会告诉你缺什么，还会真编一个中文 hello world。
+**不确定装没装？** 跑第 3 步的 `verify.ps1` —— 它真编真链接真运行，**26 项全过**才算能用。
 
 ### 第 2 步：双击 `一键安装.cmd`
 
@@ -262,7 +292,7 @@ winget install --id Microsoft.VisualStudio.2022.BuildTools --override "--quiet -
   ⚠ 里面是**绝对路径**：**移动或改名本文件夹之后，重新双击一次一键安装**即可。
 - 检查 Visual Studio Build Tools，缺了就打印**确切**要装什么
 - 把官方 VS Code 下载到本目录的 `.\vscode\`，用**便携模式**配好（中文语言包 + clangd），**你自己装的那个 VS Code 一个字节都不动**
-- 跑**包内自测**（21 项）：中文关键字、`#包含 <向量>` 不带任何 `-I` 也能编、AddressSanitizer 真报一次
+- 跑**包内自测**（26 项）：中文关键字、`#包含 <向量>` 不带任何 `-I` 也能编、AddressSanitizer 真报一次
   内存错误、`--coverage` 真链上……**全过才算能用**
 
 > **需要联网**（下载 VS Code 约 320 MB）。断网了就重新双击一次，已装好的部分不会重装，中断的部分会重来，**不需要先删掉什么**。

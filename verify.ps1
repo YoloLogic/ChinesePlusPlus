@@ -30,16 +30,29 @@ $here = $PSScriptRoot
 $bin  = Join-Path $here 'bin'
 $cxx  = Join-Path $bin 'chinese++.exe'
 
+# 18.48: read the chosen toolchain mode EARLY. Sections before 3c need it to know
+# whether LINKING is expected to work yet: in bundled mode the header substrate is
+# complete but the link layer (import libraries + CRT startup objects) is batch 3,
+# so a link attempt would fail with LNK1120 and look like a regression.
+$tcMode = '(unknown)'
+$tcFile = Join-Path $bin 'toolchain.txt'
+if (Test-Path $tcFile) {
+    $tm0 = [regex]::Match([System.IO.File]::ReadAllText($tcFile), 'mode\s*=\s*(\w+)')
+    if ($tm0.Success -and $tm0.Groups[1].Value -in @('bundled', 'system')) { $tcMode = $tm0.Groups[1].Value }
+}
+
 $pass = 0; $fail = 0
 function Ok  ($m) { Write-Host ("  [ok]   " + $m) -ForegroundColor Green;  $script:pass++ }
 function Bad ($m) { Write-Host ("  [FAIL] " + $m) -ForegroundColor Red;    $script:fail++ }
 
 # --- how many checks this script performs when everything passes -------------
-#  §18.47: this number is the ONLY source of truth for "the package self-test has
+#  18.47: this number is the ONLY source of truth for "the package self-test has
 #  N items". check_zhdocs.ps1 (gate guard #15) reads it from this file and refuses
 #  any hand-written doc that quotes a different number -- so docs cannot drift.
 #  Add or remove a check -> this assertion tells you to bump the number.
-$expectedChecks = 21
+#  18.48 batch 1 added three (toolchain mode / runtime DLLs / <vector> provenance);
+#  18.48 batch 2 added one more (Windows + Chinese header with no Microsoft path).
+$expectedChecks = 26
 
 Write-Host ""
 Write-Host "=== Chinese++ package self-test ===" -ForegroundColor Cyan
@@ -233,12 +246,17 @@ foreach ($f in @('asan_ignorelist.txt', 'cfi_ignorelist.txt')) {
 $srcA = Join-Path $tmp 'asan.cpp'
 "int main() { int *p = new int[4]; delete[] p; return p[0]; }`n" | Set-Content -Encoding ASCII $srcA
 $exeA = Join-Path $tmp 'asan.exe'
+
 & $cxx -fsanitize=address -o $exeA $srcA 2>&1 | Out-Null
 if ($LASTEXITCODE -eq 0) { Ok '-fsanitize=address compiles and links' }
 else { Bad '-fsanitize=address failed to compile or link' }
 
 # (b) it must REPORT -- this is the DLL half, and it fails silently without it
-if ((Test-Path $exeA) -and $rtDir -and (Test-Path $rtDir)) {
+if (-not (Test-Path $exeA)) {
+    Bad 'AddressSanitizer executable was not produced'
+} elseif (-not $rtDir -or -not (Test-Path $rtDir)) {
+    Bad 'AddressSanitizer runtime directory is missing (lib\clang\<ver>\lib\windows)'
+} else {
     $savedPath = $env:PATH
     $env:PATH = "$rtDir;$env:PATH"
     $t6 = Join-Path $tmp 'asan.txt'
@@ -253,8 +271,22 @@ $srcC = Join-Path $tmp 'cov.cpp'
 "int add(int a, int b) { return a + b; } int main() { return add(1,2) == 3 ? 0 : 1; }`n" |
     Set-Content -Encoding ASCII $srcC
 $exeC = Join-Path $tmp 'cov.exe'
+
 & $cxx --coverage -o $exeC $srcC 2>&1 | Out-Null
-if ($LASTEXITCODE -eq 0) { Ok '--coverage compiles and links' }
+$covLinked = ($LASTEXITCODE -eq 0)
+$covGcda = $false
+if ($covLinked -and $rtDir -and (Test-Path $rtDir)) {
+    # 真跑：--coverage 的 .gcda 是在**退出时**由 clang_rt.profile 落盘的，
+    # 它靠 atexit 注册 —— 这正是 bundled 地基里我们手搓的那条链
+    # （vendor\crt\startup-extra.cpp + crt0 调 ucrtbase 的 exit），所以必须真跑才算数。
+    $savedPath3 = $env:PATH
+    $env:PATH = "$rtDir;$env:PATH"
+    & cmd /c "`"$exeC`" > `"$(Join-Path $tmp 'cov.txt')`" 2>&1" | Out-Null
+    $env:PATH = $savedPath3
+    $covGcda = [bool](Get-ChildItem $tmp -Filter '*cov.gcda' -ErrorAction SilentlyContinue)
+}
+if ($covLinked -and $covGcda) { Ok '--coverage compiles, links, runs and writes its .gcda' }
+elseif ($covLinked) { Bad '--coverage linked but wrote no .gcda after running' }
 else { Bad '--coverage failed to compile or link' }
 
 # UBSan CANNOT be linked on its own here. The package FAQ section 9 records the
@@ -314,10 +346,21 @@ if ($cfgMissing.Count) {
     Ok 'include-path config present (chinese++.cfg / clang++.cfg / clang.cfg)'
     Ok 'zhstdlib\ present'
     # The Chinese source is built from code points so this file stays ASCII:
-    #   #include-directive <vector-cn>
+    #   <include-directive> <vector-cn>
     #   #include <vector>
-    #   int main(){ 标准::向量<int> 表; 表.尾插(1); std::vector<int> 乙{1,2};
-    #               return (int)表.尺寸() + (int)乙.size() - 3; }
+    #   <int-cn> <main-cn>(){ <std-cn>::<vector-cn><<int-cn>> t; t.<push_back-cn>(1);
+    #               std::vector<int> u{1,2};
+    #               char buf[9000]; buf[0]=1; buf[8999]=2;
+    #               return (int)t.<size-cn>() + (int)u.size() - 3
+    #                      + (buf[0]-1) + (buf[8999]-2); }
+    #
+    #  ⚠ The 9000-byte LOCAL is not decoration: a frame larger than 4 KB makes the
+    #    compiler call __chkstk, which is hand-written asm in vendor\crt\
+    #    security-cookie.cpp. MEASURED 2026-10-06: the first version of that asm
+    #    walked the guard page wrongly, so EVERY function with a >4 KB frame died
+    #    with 0xC0000005 in the prologue -- before a single statement ran, which
+    #    made it look like a static-initialization bug for a long time. This line
+    #    is what keeps that from coming back unnoticed.
     $libSrc = Join-Path $tmp 'zhlib.cpp'
     $l = -join @(
         $zhInc, ' <', [char]0x5411, [char]0x91CF, ">`n",
@@ -326,24 +369,159 @@ if ($cfgMissing.Count) {
         [char]0x6807, [char]0x51C6, '::', [char]0x5411, [char]0x91CF, '<', [char]0x6574, [char]0x6570, '> ',
         [char]0x8868, '; ', [char]0x8868, '.', [char]0x5C3E, [char]0x63D2, '(1); ',
         'std::vector<int> ', [char]0x4E59, '{1,2}; ',
+        'char buf[9000]; buf[0]=1; buf[8999]=2; ',
         [char]0x8FD4, [char]0x56DE, ' (int)', [char]0x8868, '.', [char]0x5C3A, [char]0x5BF8,
-        '() + (int)', [char]0x4E59, '.size() - 3; }'
+        '() + (int)', [char]0x4E59, '.size() - 3 + (buf[0]-1) + (buf[8999]-2); }'
     )
     $l | Set-Content -Encoding UTF8 $libSrc
     $libExe = Join-Path $tmp 'zhlib.exe'
     # NOTE: deliberately NO -I and NO -isystem -- that is the whole point here.
+    # 18.48 batch 3 closed the last gap: BOTH modes now link and run, so this is a
+    # single unified assertion.  (It used to compile-to-.obj only in bundled mode,
+    # because the link layer did not exist yet.)
     $outLib = & $cxx -std=c++20 -o $libExe $libSrc 2>&1
     if ($LASTEXITCODE -ne 0) {
-        Bad 'compiling a Chinese standard-library include with no include flags failed:'
+        Bad ("compiling a Chinese standard-library include with no include flags failed ({0} mode):" -f $tcMode)
         $outLib | Select-Object -First 6 | ForEach-Object { Write-Host "         $_" }
-        Write-Host '         most likely cause: the package folder was moved or renamed' -ForegroundColor Yellow
-        Write-Host '         after setup -- re-run install.ps1 (the cfg holds absolute paths).' -ForegroundColor Yellow
+        if ($tcMode -eq 'system') {
+            Write-Host '         most likely cause: the package folder was moved or renamed' -ForegroundColor Yellow
+            Write-Host '         after setup -- re-run install.ps1 (the cfg holds absolute paths).' -ForegroundColor Yellow
+        }
     } else {
-        Ok 'compiles a Chinese include + std::vector in one file, with no flags'
+        Ok ("compiles a Chinese include + std::vector in one file, with no flags ({0} mode)" -f $tcMode)
         & cmd /c "`"$libExe`" > `"$tmp\zhlib.txt`" 2>&1"
-        if ($LASTEXITCODE -eq 0) { Ok 'the Chinese-library program runs (exit 0)' }
+        if ($LASTEXITCODE -eq 0) { Ok ("the Chinese-library program links and runs (exit 0, {0} mode)" -f $tcMode) }
         else { Bad ("the Chinese-library program exited " + $LASTEXITCODE) }
     }
+}
+
+# ---------------------------------------------------------------------------
+# 3c) WHICH toolchain substrate, and is the bundled one self-contained? (18.48)
+#
+#     Two substrates exist and the user picks one at install time:
+#       bundled (default) -- lib\stl\ + bin\*.dll ship inside this package, so no
+#                            Visual Studio is needed;
+#       system            -- the machine's own Visual Studio / Windows SDK.
+#     install.ps1 writes bin\toolchain.txt. This section
+#       (a) makes sure that file exists and names a usable mode,
+#       (b) checks the VC++ runtime DLLs our own tools IMPORT are actually here
+#           (measured: chinese++.exe/clangd.exe/lld-link.exe all import
+#            MSVCP140.dll + VCRUNTIME140.dll + VCRUNTIME140_1.dll; a machine
+#            without the VC++ Redistributable cannot even START the compiler),
+#       (c) compiles an English <vector> with -H and looks at WHERE it resolved:
+#           in bundled mode it must come from inside this package, or the
+#           "no Visual Studio needed" claim is false.
+# ---------------------------------------------------------------------------
+Write-Host ''
+Write-Host '--- 3c) toolchain substrate (bundled vs the machine''s Visual Studio)'
+
+$tcFile = Join-Path $bin 'toolchain.txt'
+$tcMode = ''
+if (Test-Path $tcFile) {
+    $tm = [regex]::Match([System.IO.File]::ReadAllText($tcFile), 'mode\s*=\s*(\w+)')
+    if ($tm.Success -and $tm.Groups[1].Value -in @('bundled', 'system')) {
+        $tcMode = $tm.Groups[1].Value
+        Ok ("toolchain mode recorded: " + $tcMode)
+    } else {
+        Bad 'bin\toolchain.txt exists but has no usable "mode = bundled|system" line'
+    }
+} else {
+    Bad 'bin\toolchain.txt is missing -- run install.ps1 (it records the mode)'
+}
+
+$rtDlls = @('msvcp140.dll', 'vcruntime140.dll', 'vcruntime140_1.dll')
+$rtMissing = @($rtDlls | Where-Object { -not (Test-Path (Join-Path $bin $_)) })
+if ($rtMissing.Count) {
+    Bad ("VC++ runtime DLLs missing from bin\: " + ($rtMissing -join ', '))
+    Write-Host '         our own tools import these; on a machine without the' -ForegroundColor Yellow
+    Write-Host '         VC++ Redistributable the compiler cannot even start.' -ForegroundColor Yellow
+} else {
+    Ok ("VC++ runtime DLLs shipped app-local (" + $rtDlls.Count + " checked)")
+}
+
+# where does <vector> actually come from?
+$probeSrc = Join-Path $tmp 'prov.cpp'
+"#include <vector>" | Set-Content -Encoding ASCII $probeSrc
+Add-Content -Encoding ASCII $probeSrc 'int main(){ std::vector<int> v{1}; return (int)v.size()-1; }'
+$hOut = & $cxx -std=c++20 -fsyntax-only -H $probeSrc 2>&1
+$hCode = $LASTEXITCODE
+#  NOTE: with 2>&1 the include tree arrives as ErrorRecord objects, so force strings
+#  before matching (measured: calling .Trim() on one throws, and the check then
+#  silently contributes neither an ok nor a fail -- the count assertion caught it).
+$vecLine = @($hOut | ForEach-Object { [string]$_ } | Where-Object { $_ -match '\\vector$' } | Select-Object -First 1)
+function Get-Norm([string] $s) { return (($s -replace '\\\\', '\') -replace '/', '\').ToLower() }
+function Get-TracePath([string] $s) { return (($s -replace '^\s*\.+\s*', '').Trim()) }
+if ($hCode -ne 0) {
+    Bad 'a plain English <vector> program does not compile at all'
+    $hOut | Select-Object -First 4 | ForEach-Object { Write-Host "         $_" }
+} elseif ($tcMode -eq 'system') {
+    Ok 'system mode: <vector> resolved from the machine (Visual Studio / SDK)'
+} elseif ($vecLine.Count -eq 0) {
+    Bad 'bundled mode, but no <vector> line in the include trace (cannot tell where it came from)'
+} else {
+    $vecPath = Get-TracePath $vecLine[0]
+    if ((Get-Norm $vecPath).StartsWith((Get-Norm $here))) {
+        Ok '<vector> resolves INSIDE this package (bundled substrate works)'
+    } else {
+        Bad ('bundled mode, but <vector> came from OUTSIDE the package: ' + $vecPath)
+    }
+}
+
+# --- the real 18.48 batch-2 claim: a Windows + CHINESE-header program, with no
+#     Microsoft path anywhere in the include trace. Built from code points so this
+#     file stays pure ASCII; $zhInc is the Chinese "#include" spelling.
+$winSrc = Join-Path $tmp 'provwin.cpp'
+$cnWindow = -join @([char]0x7A97, [char]0x53E3)                 # window
+$winBody = @(
+    '#include <windows.h>',
+    '#include <commctrl.h>',
+    ($zhInc + ' <' + $cnWindow + '>'),
+    'int main(){ HWND h = nullptr; INITCOMMONCONTROLSEX ic{}; (void)h; (void)ic; return 0; }'
+) -join "`n"
+[System.IO.File]::WriteAllText($winSrc, $winBody, (New-Object System.Text.UTF8Encoding($false)))
+$winOut = & $cxx -std=c++20 -fsyntax-only -H $winSrc 2>&1
+$winCode = $LASTEXITCODE
+$winLines = @($winOut | ForEach-Object { [string]$_ } | Where-Object { $_ -match '^\s*\.+\s' })
+$winVS = @($winLines | Where-Object { $_ -match 'Program Files' })
+if ($winCode -ne 0) {
+    Bad 'a <windows.h> + Chinese-header program does not compile'
+    $winOut | Select-Object -First 4 | ForEach-Object { Write-Host "         $_" }
+} elseif ($tcMode -eq 'bundled' -and $winVS.Count -gt 0) {
+    Bad ("bundled mode, but " + $winVS.Count + " headers came from Program Files, e.g.: " + (Get-TracePath $winVS[0]))
+} elseif ($tcMode -eq 'bundled') {
+    Ok ("<windows.h> + a Chinese header resolve with NO Microsoft path anywhere (" + $winLines.Count + " includes traced)")
+} else {
+    Ok 'system mode: <windows.h> + a Chinese header compile against the machine''s Visual Studio'
+}
+
+# --- LINK-layer provenance (18.48 batch 3): with -Wl,/verbose we can see every
+#     library lld-link actually READ. In bundled mode none of them may come from
+#     Program Files -- that is the difference between "zero VS" as a fact and
+#     "happened not to need it". Search paths (clang still passes the VS -libpath:
+#     entries) are NOT reads, so only "Reading" lines count.
+if ($tcMode -eq 'bundled') {
+    $lnkSrc = Join-Path $tmp 'linkprov.cpp'
+    "#include <vector>`nint main(){ std::vector<int> v{1}; return (int)v.size()-1; }`n" |
+        Set-Content -Encoding ASCII $lnkSrc
+    $lnkExe = Join-Path $tmp 'linkprov.exe'
+    #  NOTE: '-Wl,/verbose' MUST stay quoted -- unquoted, PowerShell's parser chokes
+    #  on the comma ("missing argument in parameter list"), measured 2026-10-06.
+    $lnkOut = & $cxx -std=c++20 '-Wl,/verbose' -o $lnkExe $lnkSrc 2>&1
+    $lnkCode = $LASTEXITCODE
+    $lnkLines = @($lnkOut | ForEach-Object { [string]$_ })
+    $readLibs = @($lnkLines | Where-Object { $_ -match 'lld-link: Reading' })
+    $msLibs   = @($readLibs | Where-Object { $_ -match 'Program Files' })
+    if ($lnkCode -ne 0) {
+        Bad 'bundled mode: a real link of a <vector> program failed'
+        $lnkLines | Where-Object { $_ -match 'error|错误' } | Select-Object -First 4 |
+            ForEach-Object { Write-Host "         $_" }
+    } elseif ($msLibs.Count -gt 0) {
+        Bad ("bundled mode, but the link READ " + $msLibs.Count + " librar(y|ies) from Program Files, e.g.: " + $msLibs[0].Trim())
+    } else {
+        Ok ("bundled mode: the link read " + $readLibs.Count + " libraries, none from Program Files")
+    }
+} else {
+    Ok 'system mode: the link reads the machine''s Visual Studio / SDK libraries (as designed)'
 }
 
 # ---------------------------------------------------------------------------

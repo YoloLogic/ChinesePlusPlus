@@ -1,12 +1,12 @@
-Chinese++ 0.2  (win64, target x86_64-pc-windows-msvc)
-built: 2026-10-06 09:42:02
+Chinese++ 0.3  (win64, target x86_64-pc-windows-msvc)
+built: 2026-10-09 12:34:57
 
 === bin (one real file per family; aliases are NOT in the zip) ===
-chinese++.exe          79 MB  42C2440E4B9DA79187506F80513603276A1D288CF799FD8F56205AA51E40C12E
+chinese++.exe          89 MB  37C985AE1135EE6772E1B0B39002D90D1A6B32FA3832691D3512AD5B359C08D9
 lld-link.exe           45 MB  56383779DA485C5484EA7597D395D950C622AD96F047F6959B605112CDE8205A
-llvm-ar.exe             8 MB  1E821562D386081AE2046B1AB8615C340364CD34BCA6A01BBE2886120CB72509
+llvm-ar.exe            13 MB  58D8E55FE7FB4591EE6C4660674BE6B9256A4155B4EF51A2D8F57CB669774B5D
 clangd.exe             45 MB  25022EAE006C345C29DFDE1AAC61F6FC65E2CD13DA059D58CE4053CBE3187C74
-llvm-rc.exe             1 MB  98823C73B4F17F5A0A4FB07CBFC7164C0E3C1495E267431E383645C6906DDB1C
+llvm-rc.exe             1 MB  2CDF6EBDD5E18D1EE10FE39D30440D52251EB9C4D40469EFC47139E6C8BE573C
 
 aliases install.ps1 creates (hardlink, falling back to a copy):
   clang.exe  ->  chinese++.exe
@@ -69,6 +69,29 @@ aliases install.ps1 creates (hardlink, falling back to a copy):
                         shipped here and is not needed.
   -fsanitize=address/undefined need MSVC STL + Windows SDK anyway.
 
-=== REQUIRED on the user's machine (not in this package) ===
-  Visual Studio Build Tools: MSVC STL, Windows SDK, link.exe
-  See NOTICE.txt section 4.
+=== toolchain substrate bundled with this package (18.48 batch 1) ===
+  lib\stl\          184 open-source MSVC STL headers (Apache-2.0 WITH
+                    LLVM-exception; copied verbatim -- see SOURCE.txt
+                    for the toolset version and every file's SHA256).
+                    This is what makes <vector>/<iostream> resolve
+                    WITHOUT a Visual Studio installation.
+  bin\*.dll         10 VC++ runtime DLLs, app-local deployment
+  bin\concrt140.dll                     317 KB
+  bin\msvcp140_1.dll                     35 KB
+  bin\msvcp140_2.dll                    274 KB
+  bin\msvcp140_atomic_wait.dll           49 KB
+  bin\msvcp140_codecvt_ids.dll           31 KB
+  bin\msvcp140.dll                      545 KB
+  bin\vccorlib140.dll                   344 KB
+  bin\vcruntime140_1.dll                 49 KB
+  bin\vcruntime140_threads.dll           38 KB
+  bin\vcruntime140.dll                  122 KB
+
+=== still required on the user's machine (until 18.48 batch 2/3 land) ===
+  MSVC compiler support headers (vcruntime.h, sal.h, crtdefs.h, eh.h ...)
+  Windows SDK headers (UCRT + um/shared) and its import libraries
+  link.exe, libcmt.lib / oldnames.lib (CRT startup + static runtime)
+  => install Visual Studio Build Tools for now; batch 2 hand-writes the
+     support headers and batch 3 generates import libraries + startup
+     objects, after which VS becomes purely optional:
+     install.ps1 -Toolchain bundled (default) vs -Toolchain system.

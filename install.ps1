@@ -28,7 +28,15 @@ param(
     [switch] $SkipVerify,
     # Skip the editor step entirely. Useful when the user already has an editor
     # they like, and for testing the toolchain part without a 320 MB download.
-    [switch] $NoEditor
+    [switch] $NoEditor,
+    # 18.48: which toolchain substrate to use.
+    #   bundled (DEFAULT) -- the STL headers + VC++ runtime DLLs that ship inside
+    #                        this package. No Visual Studio needed.
+    #   system           -- the Visual Studio / Windows SDK installed on THIS
+    #                        machine (maximum compatibility; requires VS).
+    # The choice is recorded in bin\toolchain.txt and read back by verify.ps1
+    # and make_zhcfg.ps1, so "which one am I running" is never a guess.
+    [ValidateSet('bundled', 'system')][string] $Toolchain = 'bundled'
 )
 
 $ErrorActionPreference = 'Continue'
@@ -105,7 +113,7 @@ Write-Host ''
 Write-Host '--- 1b) <driver>.cfg (Chinese include paths)'
 $zhcfg = Join-Path $here 'tools\make_zhcfg.ps1'
 if (Test-Path $zhcfg) {
-    & powershell -NoProfile -ExecutionPolicy Bypass -File $zhcfg -BinDir $bin -ZhRoot $here
+    & powershell -NoProfile -ExecutionPolicy Bypass -File $zhcfg -BinDir $bin -ZhRoot $here -Mode $Toolchain
     if ($LASTEXITCODE -ne 0) {
         Write-Host '  [warn] could not write <driver>.cfg -- Chinese headers will not be found' -ForegroundColor Yellow
         Write-Host '         (the package folder is probably read-only)' -ForegroundColor Yellow
@@ -115,6 +123,42 @@ if (Test-Path $zhcfg) {
     Write-Host '         The Chinese library (zhstdlib\) will not be found: the search' -ForegroundColor Yellow
     Write-Host '         paths live in tools\zh_includes.ps1 and are written into' -ForegroundColor Yellow
     Write-Host '         bin\<driver>.cfg by that script.' -ForegroundColor Yellow
+}
+
+# ---------------------------------------------------------------------------
+# 1c. record WHICH toolchain the user picked (18.48)
+#
+#     Two substrates exist: the one bundled in this package (lib\stl + bin\*.dll)
+#     and the machine's own Visual Studio. Writing the choice down means
+#     verify.ps1 and make_zhcfg.ps1 -Check test the mode that is actually in use,
+#     instead of assuming. ASCII, no BOM.
+# ---------------------------------------------------------------------------
+$tcTxt = Join-Path $bin 'toolchain.txt'
+$tcBody = @(
+    '# Chinese++ toolchain mode (written by install.ps1)',
+    '# bundled = the substrate inside this package (no Visual Studio needed)',
+    '# system  = the Visual Studio / Windows SDK installed on this machine',
+    #  NOTE the parentheses: inside an array literal PowerShell's comma binds
+    #  TIGHTER than '+', so `'mode = ' + $Toolchain` would produce the two
+    #  elements 'mode = ' and $Toolchain -- i.e. a `mode = ` line with nothing
+    #  after it, and the mode on a line of its own.  Measured 2026-10-06: that is
+    #  exactly what shipped, and every reader of this file silently fell back to
+    #  "unknown mode".  Parenthesize it.
+    ('mode = ' + $Toolchain)
+) -join "`r`n"
+try {
+    [System.IO.File]::WriteAllText($tcTxt, $tcBody + "`r`n", (New-Object System.Text.UTF8Encoding($false)))
+    Write-Host ("  toolchain mode recorded: {0}  (bin\toolchain.txt)" -f $Toolchain)
+} catch {
+    Write-Host '  [warn] could not write bin\toolchain.txt (folder read-only?)' -ForegroundColor Yellow
+}
+if ($Toolchain -eq 'bundled') {
+    $stlDir = Join-Path $here 'lib\stl'
+    if (Test-Path $stlDir) {
+        Write-Host ("  bundled substrate: lib\stl has {0} headers" -f @(Get-ChildItem $stlDir -File).Count)
+    } else {
+        Write-Host '  [warn] lib\stl is missing -- bundled mode needs it (re-build the package)' -ForegroundColor Yellow
+    }
 }
 
 # ---------------------------------------------------------------------------
@@ -161,13 +205,19 @@ if ($AddToUserPath) {
 }
 
 # ---------------------------------------------------------------------------
-# 3. Visual Studio Build Tools
+# 3. Visual Studio Build Tools -- **OPTIONAL** since 18.48
 #
-#    The toolchain needs the MSVC STL headers, the Windows SDK and link.exe.
-#    None of them are in this package (see NOTICE.txt section 4).
+#    bundled (default): the package carries its own substitute for everything
+#    VS used to provide (MSVC STL headers, UCRT/Win32 headers, our own CRT +
+#    import libraries + lld-link).  Visual Studio is then NOT required, and this
+#    section is informational only.
+#
+#    system: the pre-0.2 behaviour -- the toolchain reads the MSVC STL headers,
+#    the Windows SDK and link.exe out of the machine's Visual Studio install.
+#    Then VS really is required, and the section says so.
 # ---------------------------------------------------------------------------
 Write-Host ''
-Write-Host '--- 3) Visual Studio Build Tools'
+Write-Host ("--- 3) Visual Studio Build Tools  [{0} mode]" -f $Toolchain)
 
 function Find-VS {
     $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
@@ -187,11 +237,24 @@ if ($vs) {
     $ucrt = Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10\Include'
     if (Test-Path $ucrt) { Write-Host ("  Windows SDK includes: " + (Get-ChildItem $ucrt -Directory | Sort-Object Name -Descending | Select-Object -First 1).Name) }
     else { Write-Host '  [warn] Windows SDK include dir not found under Program Files (x86)\Windows Kits\10' -ForegroundColor Yellow }
+    if ($Toolchain -eq 'bundled') {
+        Write-Host '  (bundled mode does not use it: headers/CRT/import libs and lld-link all come from this package)'
+    }
+} elseif ($Toolchain -eq 'bundled') {
+    Write-Host '  not installed -- and that is fine in bundled mode.' -ForegroundColor Green
+    Write-Host '  The compiler takes the C++ standard library headers, the C runtime and' -ForegroundColor DarkGray
+    Write-Host '  the Windows headers from lib\stl / lib\compiler / lib\mingw in this' -ForegroundColor DarkGray
+    Write-Host '  package, and links with the bundled lld-link.  Nothing gets read from' -ForegroundColor DarkGray
+    Write-Host '  Program Files.' -ForegroundColor DarkGray
+    Write-Host '  (Pass -Toolchain system to use a machine-wide Visual Studio instead.)' -ForegroundColor DarkGray
 } else {
     Write-Host '  [missing] Visual Studio C++ build tools were not found.' -ForegroundColor Yellow
     Write-Host ''
-    Write-Host '  This toolchain uses the MSVC standard library and the Windows SDK,' -ForegroundColor Yellow
-    Write-Host '  which are NOT bundled. Install them with either:' -ForegroundColor Yellow
+    Write-Host '  You asked for -Toolchain system, which reads the MSVC standard library' -ForegroundColor Yellow
+    Write-Host '  and the Windows SDK out of a local Visual Studio install.  Install it,' -ForegroundColor Yellow
+    Write-Host '  or re-run with -Toolchain bundled (the default) to need nothing.' -ForegroundColor Yellow
+    Write-Host ''
+    Write-Host '  Install with:'
     Write-Host ''
     Write-Host '    winget install --id Microsoft.VisualStudio.2022.BuildTools ^'
     Write-Host '      --override "--quiet --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"'
