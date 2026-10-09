@@ -1,0 +1,37 @@
+Chinese++ · 汉语编程 —— 许可总览（License overview）
+====================================================
+
+本项目的【原创部分】采用 GNU Affero General Public License v3.0（AGPL-3.0）。
+完整正文见同目录 LICENSE-AGPL-3.0.txt。
+
+但本发行包**不是单一许可**，不同部分适用不同许可 —— 判定规则与逐项说明见
+同目录 LICENSE-SCOPE.md，要点：
+
+  * 本项目原创（中文关键字表/诊断正文表、中文标准库 zhstdlib 中我们写的那部分、
+    tools\ / packaging\ / tests\ / docs\、安装与自检脚本、文档）
+        -> AGPL-3.0（LICENSE-AGPL-3.0.txt）
+
+  * 从 LLVM / Clang 派生的（全部二进制、lib\clang\**、patches\*）
+        -> Apache License v2.0 with LLVM Exceptions（LICENSE.TXT，与上游逐字节相同）
+        -> **不受本项目 AGPL 限制**：Apache-2.0 给接收者的权利（再分发、商用、再许可）保持不变。
+
+  * 从微软 MSVC STL 派生的（zhstdlib\标准库\ 的深度复制轨道）
+        -> 同上，Apache-2.0 with LLVM Exceptions
+        -> 判定办法：文件头带 `SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception`
+
+  * 第三方随包（mingw-w64 头、开源版 MSVC STL 头、微软可再分发的 VC++ 运行时 DLL）
+        -> 各按各的许可，逐项见 NOTICE.txt
+
+【用本工具链编译出来的程序】版权与许可完全归写它的人 —— AGPL 不对编译产物附加任何条件。
+
+【名称与图标】`Chinese++` / `汉语编程` 属项目作者所有，**独立于软件许可**：
+再分发允许，但不得用本项目名称与图标发布衍生版本。详见 TRADEMARK.md。
+
+---
+
+This project's original work is licensed under AGPL-3.0 (see LICENSE-AGPL-3.0.txt).
+Parts derived from LLVM/Clang and from Microsoft's MSVC STL remain under
+Apache License v2.0 with LLVM Exceptions (see LICENSE.TXT) and are NOT covered by the AGPL.
+Third-party components keep their own licenses (see NOTICE.txt); per-file scope rules are in
+LICENSE-SCOPE.md; the name/logo policy is in TRADEMARK.md.
+Programs you build with this toolchain are entirely yours -- the AGPL adds no conditions to them.

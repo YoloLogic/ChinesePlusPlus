@@ -50,7 +50,7 @@
 - `主函数` is the same identifier as `main`
 - The standard library deliberately keeps its English names — renaming it would cut the project off from the existing ecosystem
 - The `error:` / `warning:` prefixes stay English on purpose, so editors and CI keep parsing them
-- Built on a modified **LLVM/Clang 24.0.0git**, distributed under **Apache-2.0 WITH LLVM-exception** (see [`LICENSE.TXT`](LICENSE.TXT)); modification notice in [`NOTICE.txt`](NOTICE.txt)
+- Built on a modified **LLVM/Clang 24.0.0git**; the LLVM-derived parts stay under **Apache-2.0 WITH LLVM-exception** (see [`LICENSE.TXT`](LICENSE.TXT)); modification notice in [`NOTICE.txt`](NOTICE.txt). This project's **own** work is under **AGPL-3.0** (see [`LICENSE`](LICENSE) / [`LICENSE-AGPL-3.0.txt`](LICENSE-AGPL-3.0.txt), scope rules in [`LICENSE-SCOPE.md`](LICENSE-SCOPE.md)); name/logo policy in [`TRADEMARK.md`](TRADEMARK.md). **Programs you build with it are entirely yours.**
 - Windows x64 only (`x86_64-pc-windows-msvc`)
 
 **Requirement:** the **MSVC STL and Windows SDK are not bundled** — install Visual Studio Build Tools with the C++ workload first, or compilation will fail with `file not found: 'cstdio'`.
@@ -384,11 +384,15 @@ C 运行库 25（C标准输入输出 / C数学 / C字符串…）＋ windows系�
 
 | 文件 | 内容 |
 |---|---|
-| **[`常见问题.md`](常见问题.md)** | **使用前必读** —— 安装、编辑器、报错排查 |
+| **[`常见问题.md`](常见问题.md)** | **使用前必读** —— 安装、编辑器、报错排查、许可与再分发 |
 | [`中文对照表.md`](中文对照表.md) | 中英关键字对照表。由脚本从编译器**真正在用的那两张表**自动生成，不是手写的 —— 手写的副本一定会和编译器漂移 |
-| [`NOTICE.txt`](NOTICE.txt) | 发行说明、改动清单、第三方声明 |
-| [`MANIFEST.txt`](MANIFEST.txt) | 构建时间与各二进制的 SHA256 |
-| [`LICENSE.TXT`](LICENSE.TXT) | 许可证正文 |
+| [`NOTICE.txt`](NOTICE.txt) | 发行说明、改动清单、第三方声明（**0.3 起按实况订正**） |
+| [`MANIFEST.txt`](MANIFEST.txt) | 构建时间与各文件的 SHA256 |
+| [`LICENSE`](LICENSE) | 许可总览（先看这一份） |
+| [`LICENSE-AGPL-3.0.txt`](LICENSE-AGPL-3.0.txt) | 本项目**原创部分**的许可正文（AGPL-3.0） |
+| [`LICENSE-SCOPE.md`](LICENSE-SCOPE.md) | **哪些算 AGPL、哪些不算**（含"看文件头 SPDX"的机器可查规则） |
+| [`LICENSE.TXT`](LICENSE.TXT) | LLVM 的许可正文（Apache-2.0 with LLVM Exceptions，与上游逐字节相同） |
+| [`TRADEMARK.md`](TRADEMARK.md) | 名称与图标条款（与软件许可分开） |
 
 ---
 
@@ -401,17 +405,31 @@ C 运行库 25（C标准输入输出 / C数学 / C字符串…）＋ windows系�
 - 上游项目：[llvm.org](https://llvm.org/)（LLVM 24.0.0git）
 - 目标平台：`x86_64-pc-windows-msvc`
 
-## 许可证
+## 许可证（0.3 起：本项目原创部分用 AGPL-3.0）
 
-本发行包内 LLVM 派生的全部内容，采用 **Apache License v2.0 with LLVM Exceptions** 分发。许可证正文完整附于 [`LICENSE.TXT`](LICENSE.TXT)（15141 字节，与上游 `LICENSE.TXT` 逐字节相同）。**请连同该文件一起分发。**
+本发行包**不是单一许可**。判定规则与逐项说明见 [`LICENSE-SCOPE.md`](LICENSE-SCOPE.md)：
 
-本工具链**不是**微软官方产品，与 Microsoft 无隶属或背书关系。它使用但你**没有**获得微软的 MSVC STL、Windows SDK 与 Visual C++ 运行库 —— 那些需要使用者自行安装并遵守微软自己的许可条款。
+| 哪一部分 | 许可 | 你能做什么 |
+|---|---|---|
+本项目原创（中文关键字表 / 中文诊断正文表 / 中文标准库里我们写的那部分 / 安装与自检脚本 / 文档） | **AGPL-3.0** —— 正文 [`LICENSE-AGPL-3.0.txt`](LICENSE-AGPL-3.0.txt) | 读、改、用、再分发；**改了再分发要同样开源**，做成网络服务也要给源码 |
+从 **LLVM/Clang** 派生的（全部二进制、`lib\clang\**`、补丁） | **Apache-2.0 with LLVM Exceptions** —— 正文 [`LICENSE.TXT`](LICENSE.TXT)（15141 字节，与上游逐字节相同） | 可再分发、可商用、可再许可 —— **不受**本项目 AGPL 限制，我们也无权限制 |
+从**微软 MSVC STL** 派生的（中文标准库里的深度复制轨道） | 同上，**不是** AGPL。判定办法：文件头带 `SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception` | 同上 |
+第三方随包（`lib\mingw\` 的 mingw-w64 头、`lib\stl\` 的开源版 MSVC STL 头、`bin\*.dll`） | 各按各的许可，逐项见 [`NOTICE.txt`](NOTICE.txt) | 那些 DLL 是微软**可再分发**的运行库 |
+
+* **你用本工具链编译出来的程序，版权与许可完全归你** —— AGPL 不对编译产物附加任何条件。
+* **名称与图标**（`Chinese++` / `汉语编程`）**独立于软件许可**，见 [`TRADEMARK.md`](TRADEMARK.md)：
+  再分发本身允许（AGPL 允许，Apache-2.0 也允许），但不得用本项目名称与图标发布衍生版本。
+* 关于微软部分，如实说明：包里**带了**开源版 MSVC STL 头、mingw-w64 的 UCRT/Win32 头、
+  我们自己的 CRT 与导入库，以及 **10 个 app-local 的、微软明确允许再分发的 VC++ 运行时 DLL** ——
+  这正是"默认 `bundled` 模式开箱即用、不用先装 Visual Studio"的原因。
+  **微软的 Windows SDK 库与 MSVC 工具链本体（cl.exe 等）不在包内**，要用 `system` 模式请自行安装并遵守微软条款。
+  本工具链**不是**微软官方产品，与 Microsoft 无隶属或背书关系。
 
 ## 免责声明
 
 **本工具链按「现状」提供，不附带任何担保。** 使用它及其脚本所造成的任何后果 —— 包括但不限于系统或数据损坏、软件冲突、编译产物有问题、项目延期 —— **发布者不承担责任。** 请在使用前自行备份重要数据。
 
-本包内 LLVM / Clang 部分依 Apache License v2.0 with LLVM Exceptions 分发，**其中的免责与责任限制条款同样适用。**
+本包内 LLVM / Clang 部分依 Apache License v2.0 with LLVM Exceptions 分发，**其中的免责与责任限制条款同样适用**；本项目原创部分依 AGPL-3.0 分发（正文见 [`LICENSE-AGPL-3.0.txt`](LICENSE-AGPL-3.0.txt)），该许可证同样**不含任何担保**。
 
 ---
 

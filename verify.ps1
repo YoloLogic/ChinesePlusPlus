@@ -52,7 +52,7 @@ function Bad ($m) { Write-Host ("  [FAIL] " + $m) -ForegroundColor Red;    $scri
 #  Add or remove a check -> this assertion tells you to bump the number.
 #  18.48 batch 1 added three (toolchain mode / runtime DLLs / <vector> provenance);
 #  18.48 batch 2 added one more (Windows + Chinese header with no Microsoft path).
-$expectedChecks = 26
+$expectedChecks = 30
 
 Write-Host ""
 Write-Host "=== Chinese++ package self-test ===" -ForegroundColor Cyan
@@ -104,7 +104,10 @@ if ($resdir -and (Test-Path (Join-Path $resdir.FullName 'include\stddef.h'))) {
     Ok ("resource dir present: lib\clang\" + $resdir.Name + "\include")
 } else { Bad 'resource dir (lib\clang\<ver>\include\stddef.h) missing' }
 
-foreach ($f in @('LICENSE.TXT','NOTICE.txt')) {
+# 许可与合规文件必须齐（0.3 起是 5 份：LLVM 的 LICENSE.TXT、发行说明 NOTICE.txt、
+# 本项目原创部分的 AGPL-3.0 正文、许可范围说明、名称/商标条款）——
+# 缺任何一份都是【发行义务没尽到】，所以逐份点名检查（见 licenses\LICENSE-SCOPE.md）。
+foreach ($f in @('LICENSE','LICENSE.TXT','NOTICE.txt','LICENSE-AGPL-3.0.txt','LICENSE-SCOPE.md','TRADEMARK.md')) {
     if (Test-Path (Join-Path $here $f)) { Ok "$f present" } else { Bad "$f missing (license obligation)" }
 }
 
@@ -137,7 +140,7 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host ""
     Write-Host "  most likely cause: Visual Studio Build Tools are not installed." -ForegroundColor Yellow
     Write-Host "  this toolchain uses the MSVC STL and the Windows SDK; they are not" -ForegroundColor Yellow
-    Write-Host "  bundled. see NOTICE.txt section 4." -ForegroundColor Yellow
+    Write-Host "  bundled. see NOTICE.txt section 7（包里带的是什么、各是什么许可）." -ForegroundColor Yellow
 } else {
     Ok 'compiles a Chinese hello world'
     $runOut = & cmd /c "`"$exe1`" 2>&1"

@@ -1,7 +1,8 @@
 Chinese++ 中文编程工具链 —— 发行说明与第三方声明
 ==================================================
 
-本文件说明这个发行包里装了什么、依据哪些许可证、以及我们改动了什么。
+本文件说明这个发行包里装了什么、依据哪些许可证、我们改动了什么，
+以及**包里为什么同时存在多种许可**（完整判定规则见同目录 LICENSE-SCOPE.md）。
 
 
 一、这是一个【修改过的】LLVM/Clang（重要）
@@ -19,25 +20,43 @@ Chinese++ 中文编程工具链 —— 发行说明与第三方声明
   * 让 `主函数` 与 `main` 成为同一个标识符
 
 改动**不涉及**任何 `Diagnostic*.td`：那 17 个文件与上游逐字节相同。
-所有改动都以补丁形式保存在 `patches\` 下。
+所有改动都以补丁形式保存在 patches\ 下。
 
 上游项目：https://llvm.org/  （LLVM 24.0.0git）
 
 
-二、许可证
-----------
+二、许可证：本项目原创部分用 AGPL-3.0
+--------------------------------------
 
-本发行包内 LLVM 派生的全部内容，采用
+本项目**自己写的那部分**（中文关键字表、中文诊断正文表、中文标准库 zhstdlib、
+安装与自检脚本、文档）采用 **GNU Affero General Public License v3.0**。
+完整正文见同目录 **LICENSE-AGPL-3.0.txt**。
+
+**哪些算"我们自己写的"、哪些不算，判定规则写在同一目录的 LICENSE-SCOPE.md**，
+那里也说明了：从 LLVM / 微软 MSVC STL 派生的文件**不适用** AGPL，仍按 Apache-2.0
+with LLVM Exceptions 处理（判定办法：看文件头有没有
+`SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception`）。
+
+**用本工具链编译出来的程序，版权与许可完全归写它的人** —— AGPL 不对编译产物附加任何条件。
+
+
+三、LLVM 派生部分：Apache License v2.0 with LLVM Exceptions
+------------------------------------------------------------
+
+本发行包内 LLVM 派生的全部内容（全部二进制、lib\clang\**、patches\*），采用
 **Apache License v2.0 with LLVM Exceptions**。
 
-许可证正文完整附在本目录的 `LICENSE.TXT`（15141 字节，与上游 `LICENSE.TXT`
-逐字节相同）。请连同 `LICENSE.TXT` 一起分发。
+许可证正文完整附在本目录的 **LICENSE.TXT**（与上游 `LICENSE.TXT` 逐字节相同）。
+**请连同 LICENSE.TXT 一起分发。**
 
 本发行包**不含** LLVM 项目的 NOTICE 文件内容 —— 上游 LLVM 本身不提供 NOTICE 文件，
 因此 Apache-2.0 第 4(d) 条不适用。
 
+⚠ **重要**：你从本包拿到的这些二进制，仍然享有 Apache-2.0 给你的全部权利
+（可再分发、可商用、可再许可）。本项目的 AGPL **不改变、也无权改变**这部分的权利。
 
-三、包里装了什么
+
+四、包里装了什么
 ----------------
 
   bin\chinese++.exe     C++ 编译器（中文为主，英文照旧可用）
@@ -49,53 +68,85 @@ Chinese++ 中文编程工具链 —— 发行说明与第三方声明
   bin\lld.exe / ld.lld.exe / wasm-ld.exe
   bin\llvm-ar.exe / llvm-lib.exe / llvm-ranlib.exe
   bin\llvm-rc.exe       Windows 资源编译器
+  bin\*.dll             10 个 Visual C++ 运行时库（见第七节）
   lib\clang\24\include\ 编译器内建头文件（stddef.h / stdint.h 等）
+  lib\clang\24\lib\windows\  compiler-rt 运行时（见第六节）
+  lib\stl\              开源版 MSVC STL 头（见第七节）
+  lib\mingw\            mingw-w64 的 UCRT + Win32 头（见第七节）
+  lib\crt\  lib\compiler\  我们自己的 CRT / 导入库 / 编译器支持头
+  zhstdlib\             中文标准库（119 个头）
 
   ※ 上面若干 `.exe` 是**同一个程序的硬链接**。若复制或解压后硬链接丢失，
     会变成多份独立副本（功能不受影响，只是占用变大）。
     安装脚本会用 New-Item -ItemType HardLink 重建。
 
 
-四、包里【没有】装什么（因此需要用户自备）
-------------------------------------------
+五、包里【没有】装什么
+----------------------
 
-  1. **C++ 标准库与 Windows SDK**。本工具链在 Windows 上使用微软的
-     MSVC STL 与 Windows UCRT/SDK，这些**不在本发行包内**，需要用户
-     自行安装 Visual Studio Build Tools（含 C++ 生成工具与 Windows SDK）。
-     我们**没有再分发**任何微软的库或头文件。
-
-  2. **compiler-rt 运行时**（clang_rt.*）。因此
-     `-fsanitize=*`、`--coverage`、PGO 目前不可用。
-
+  1. **微软的 Windows SDK 库与 MSVC 工具链本体**（cl.exe、Windows SDK 的 .lib/.h 全集）。
+     本包自带一套**可再分发的基底**（第七节）足以开箱即用；
+     若你要切到"用本机 Visual Studio"的 system 模式，请自行安装 Visual Studio Build Tools。
+  2. **Visual Studio Code 编辑器本体**（默认包不打包，安装脚本按需从官网下载到包内 .\vscode\，
+     便携模式，不动你已有的 VS Code）。
   3. **不是**微软官方产品，与 Microsoft 无隶属或背书关系。
 
 
-五、生成物的运行时依赖
-----------------------
+六、compiler-rt 运行时：**已包含**
+----------------------------------
 
-用本工具链编出来的程序，在运行时需要微软的 Visual C++ 运行库
-（MSVCP140.dll / VCRUNTIME140.dll 等）。这属于微软可再分发的运行库，
-但**不在本包内** —— 用户的开发机上装了 Visual Studio 即已具备。
+  lib\clang\24\lib\windows\ 内含 compiler-rt 运行时（12 个文件）。
+  因此 `-fsanitize=address`、`-fsanitize=undefined`、`--coverage` 等**可用**，
+  包内自检（verify.ps1）会真编真跑并核对它们确实报出问题。
 
 
-六、本发行包自身的版本
+七、包里带的第三方（以及微软可再分发的部件）
+--------------------------------------------
+
+  这些**不是**本项目的版权，各按各的许可，逐文件来源与 SHA256 见 MANIFEST.txt：
+
+  1. **开源版 MSVC STL 头**（lib\stl\，176 个文件）
+     来源：microsoft/STL（开源仓库），许可：Apache-2.0 with LLVM Exceptions。
+     我们**没有再分发**微软随 Visual Studio 发行的 STL 头，用的是开源仓库那一份。
+
+  2. **mingw-w64 的 UCRT + Win32 头**（lib\mingw\，2037 个文件）
+     来源：mingw-w64 项目，许可：多为 public domain 或 MIT 类（以各文件头为准）。
+
+  3. **Visual C++ 运行时库 DLL**（bin\*.dll，10 个：msvcp140*.dll / vcruntime140*.dll /
+     concrt140.dll / vccorlib140.dll 等）
+     来源：Microsoft Visual C++ 可再分发运行库，按微软的再分发条款**随包附带**（app-local）。
+     它们让"开箱即用"成立：不需要你机器上先装 Visual Studio 就能跑起来。
+     这些 DLL 的著作权属微软，适用微软自己的许可条款。
+
+  4. 其余（lib\crt\、lib\compiler\、zhstdlib\、tools\、二进制）见第二、三节。
+
+
+八、本发行包自身的版本
 ----------------------
 
   Chinese++ <版本号>
   构建自 LLVM/Clang 24.0.0git + 本仓库的补丁
   目标平台：x86_64-pc-windows-msvc
 
-  （版本号与构建日期由打包脚本填入。）
+  （版本号与构建日期由打包脚本填入；每个文件的 SHA256 见 MANIFEST.txt。）
 
 
-七、联系方式
+九、名称与图标
+--------------
+
+  `Chinese++` / `汉语编程` 的名称与图标属项目作者所有，**独立于软件许可**：
+  AGPL 允许你再分发代码，但不授予你使用本项目名称与图标的权利。
+  完整条款见同目录 **TRADEMARK.md**。
+
+
+十、联系方式
 ------------
 
   QQ：1396257961
 
 
-八、免责声明
-------------
+十一、免责声明
+--------------
 
   **本工具链按「现状」提供，不附带任何担保。** 使用它及其脚本所造成的
   任何后果 —— 包括但不限于系统或数据损坏、软件冲突、编译产物有问题、
@@ -103,7 +154,8 @@ Chinese++ 中文编程工具链 —— 发行说明与第三方声明
 
   本包内 LLVM / Clang 部分依 **Apache License v2.0 with LLVM Exceptions**
   分发；该许可证正文见同目录 LICENSE.TXT，**其中的免责与责任限制条款同样适用**。
+  本项目原创部分依 **AGPL-3.0** 分发（正文见 LICENSE-AGPL-3.0.txt），
+  该许可证同样**不含任何担保**。
 
   本工具链**不是微软官方产品**，与 Microsoft 无隶属或背书关系。
-  它使用但你**没有**获得微软的 MSVC STL、Windows SDK 与 Visual C++ 运行库 ——
-  那些需要使用者自行安装并遵守微软自己的许可条款。
+  包内微软部件（VC++ 运行时 DLL 与开源 MSVC STL 头）适用微软或上游各自的许可条款。
