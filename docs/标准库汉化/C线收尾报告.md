@@ -1,7 +1,7 @@
 # C 线收尾报告（Chinese++ 的 C 库汉化，§18.58–§18.67，2026-10-07/08）
 
 > **一句话**：26 个中文 C 包装头，中文名 **146 → 362**；逻辑缺口 **230 → 14**，
-> 而剩下这 14 个**全部是硬边界**（12 个函数式宏 + 2 个 `_MbStatet` 别名）——
+> 而剩下这 14 个**全部是硬边界**（12 个函数式宏 + 2 个 `_Mbstatet` 别名）——
 > 也就是说：**除硬边界外，C 线已全覆盖**。
 
 ## 一、账（逻辑口径 = 一个中文名覆盖整族 f/l 重载）
@@ -37,7 +37,7 @@
 | 类 | 个数 | 名字 | 为什么 |
 |---|---|---|---|
 数学**函数式宏** | 12 | `fpclassify` `isfinite` `isinf` `isnan` `isnormal` `isgreater` `isgreaterequal` `isless` `islessequal` `islessgreater` `isunordered` `signbit` | 它们是**宏**、不是函数：`std::` 里没有可转发的实体。要汉化就得**自己写实现**（`#define` 宏层），而那正是用户裁定**不做**的"纯 C 别名层"。 |
-MSVC 内部标签 | 2 | `_MbStatet`（同时出现在 `cwchar` 与 `cstdio` 两个头的参考集里） | 它是 `mbstate_t` **同一个类型**的 MSVC 内部拼写；我们已用 `多字节状态` 覆盖 `mbstate_t` 本身。 |
+MSVC 内部标签 | 2 | `_Mbstatet`（同时出现在 `cwchar` 与 `cstdio` 两个头的参考集里） | 它是 `mbstate_t` **同一个类型**的 MSVC 内部拼写；我们已用 `多字节状态` 覆盖 `mbstate_t` 本身。 |
 C11 已删 | 0 | （`gets`） | 这套 STL 里 `std::gets` 根本不存在 ⇒ 无源可转（§18.19 已登记）。 |
 系统 API / 不做纯 C 的头 | 0 | `threads.h`/`stdatomic.h`/`stdbit.h`/`stdnoreturn.h`/`stdckdint.h` | 用户裁定"不做纯 C" ⇒ 这几个头保持英文，不在 C 线的覆盖目标里。 |
 
