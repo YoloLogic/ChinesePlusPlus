@@ -88,11 +88,12 @@ foreach ($r in ($头结果 | Sort-Object @{Expression='通过';Descending=$false
 $探针 = @{
     '文件系统' = @'
 #包含 <文件系统>
+    #include <fstream>
 整数 主函数() {
     自动 目录 = std::filesystem::temp_directory_path() / "zh_fs_probe";
     std::filesystem::create_directory(目录);
     自动 文件 = 目录 / "a.txt";
-    { std::ofstream(文件) << "x"; }
+    { std::ofstream 流(文件); 流 << "x"; }
     std::filesystem::copy_file(文件, 目录 / "b.txt", std::filesystem::copy_options::overwrite_existing);
     std::filesystem::rename(目录 / "b.txt", 目录 / "c.txt");
     返回 std::filesystem::exists(目录 / "c.txt") ? 0 : 1;
@@ -128,7 +129,7 @@ $探针 = @{
 '@
     '复数' = @'
 #包含 <复数>
-整数 主函数() { std::complex<双精度> 甲(-1.0, 0.0); 返回 标准::符号位(甲) ? 0 : 1; }
+整数 主函数() { std::complex<双精度> 甲(-1.0, 0.0); 返回 std::signbit(甲.real()) ? 0 : 1; }
 '@
     '格式化文本' = @'
 #包含 <格式化文本>
