@@ -1,0 +1,97 @@
+Chinese++ 0.3  (win64, target x86_64-pc-windows-msvc)
+built: 2026-10-09 20:20:46
+
+=== bin (one real file per family; aliases are NOT in the zip) ===
+chinese++.exe          89 MB  37C985AE1135EE6772E1B0B39002D90D1A6B32FA3832691D3512AD5B359C08D9
+lld-link.exe           45 MB  56383779DA485C5484EA7597D395D950C622AD96F047F6959B605112CDE8205A
+llvm-ar.exe            13 MB  58D8E55FE7FB4591EE6C4660674BE6B9256A4155B4EF51A2D8F57CB669774B5D
+clangd.exe             45 MB  25022EAE006C345C29DFDE1AAC61F6FC65E2CD13DA059D58CE4053CBE3187C74
+llvm-rc.exe             1 MB  2CDF6EBDD5E18D1EE10FE39D30440D52251EB9C4D40469EFC47139E6C8BE573C
+
+aliases install.ps1 creates (hardlink, falling back to a copy):
+  clang.exe  ->  chinese++.exe
+  clang++.exe  ->  chinese++.exe
+  clang-cl.exe  ->  chinese++.exe
+  clang-cpp.exe  ->  chinese++.exe
+  lld.exe  ->  lld-link.exe
+  ld.lld.exe  ->  lld-link.exe
+  wasm-ld.exe  ->  lld-link.exe
+  llvm-lib.exe  ->  llvm-ar.exe
+  llvm-ranlib.exe  ->  llvm-ar.exe
+
+=== NOT shipped on purpose ===
+  lib\*.lib                     918 MB, compiler's own build output
+  llvm-tblgen / clang-tblgen / llvm-min-tblgen /
+  clang-tidy-confusable-chars-gen / llvm-lit    build-time tools
+  opt / llc / llvm-as / llvm-dis / llvm-config / lldb /
+  clang-tidy / libclang / polly                  LLVM tools, not
+                                                 needed to compile
+
+=== compiler-rt runtime libraries (SHIPPED) ===
+  lib\clang\24\lib\windows\      the runtimes themselves
+  lib\clang\24\include\sanitizer\  and include\profile\  headers
+  lib\clang\24\share\            asan/cfi/hwasan/msan ignorelists
+  clang_rt.asan_dynamic_runtime_thunk-x86_64.lib        117 KB
+  clang_rt.asan_dynamic-x86_64.dll                      514 KB
+  clang_rt.asan_dynamic-x86_64.lib                      108 KB
+  clang_rt.asan_static_runtime_thunk-x86_64.lib         181 KB
+  clang_rt.builtins-x86_64.lib                          185 KB
+  clang_rt.profile_rocm-x86_64.lib                     1784 KB
+  clang_rt.profile-x86_64.lib                           149 KB
+  clang_rt.stats_client-x86_64.lib                       10 KB
+  clang_rt.stats-x86_64.lib                            2352 KB
+  clang_rt.ubsan_loop_detect-x86_64.lib                   5 KB
+  clang_rt.ubsan_standalone_cxx-x86_64.lib               56 KB
+  clang_rt.ubsan_standalone-x86_64.lib                 2871 KB
+
+  -fsanitize=address    VERIFIED: links, and catches a real
+                        heap-use-after-free at run time.
+                        NOTE: clang_rt.asan_dynamic-x86_64.dll must
+                        be on PATH (or beside the .exe) to RUN the
+                        program. install.ps1 puts it on PATH.
+  --coverage            VERIFIED: links and runs.
+  -fsanitize=undefined  CANNOT LINK ON ITS OWN here. Fails with:
+                          __imp_getenv            (gone with /MD)
+                          __imp_CommandLineToArgvW (gone with shell32.lib)
+                          __imp_SymLoadModuleEx    (needs dbghelp.lib)
+                          __coe_win::ContinueOnError / RawWrite
+                        __coe_win is implemented in NEITHER this VS/SDK
+                        NOR anywhere in the LLVM source tree -- and not
+                        in Microsoft's own clang_rt.ubsan_standalone
+                        either (member lists compared). Upstream skew.
+  -fsanitize=address,undefined   VERIFIED: links, and UBSan really
+                        reports undefined behaviour. This is the form
+                        to use -- UBSan needs the ASan runtime to
+                        resolve those symbols. Do not use it alone.
+  -fopenmp              works, but not because of this package:
+                        Visual Studio already ships libomp.lib in
+                        VC\Tools\MSVC\<ver>\lib\x64\. It is not
+                        shipped here and is not needed.
+  -fsanitize=address/undefined need MSVC STL + Windows SDK anyway.
+
+=== toolchain substrate bundled with this package (18.48 batch 1) ===
+  lib\stl\          184 open-source MSVC STL headers (Apache-2.0 WITH
+                    LLVM-exception; copied verbatim -- see SOURCE.txt
+                    for the toolset version and every file's SHA256).
+                    This is what makes <vector>/<iostream> resolve
+                    WITHOUT a Visual Studio installation.
+  bin\*.dll         10 VC++ runtime DLLs, app-local deployment
+  bin\concrt140.dll                     317 KB
+  bin\msvcp140_1.dll                     35 KB
+  bin\msvcp140_2.dll                    274 KB
+  bin\msvcp140_atomic_wait.dll           49 KB
+  bin\msvcp140_codecvt_ids.dll           31 KB
+  bin\msvcp140.dll                      545 KB
+  bin\vccorlib140.dll                   344 KB
+  bin\vcruntime140_1.dll                 49 KB
+  bin\vcruntime140_threads.dll           38 KB
+  bin\vcruntime140.dll                  122 KB
+
+=== still required on the user's machine (until 18.48 batch 2/3 land) ===
+  MSVC compiler support headers (vcruntime.h, sal.h, crtdefs.h, eh.h ...)
+  Windows SDK headers (UCRT + um/shared) and its import libraries
+  link.exe, libcmt.lib / oldnames.lib (CRT startup + static runtime)
+  => install Visual Studio Build Tools for now; batch 2 hand-writes the
+     support headers and batch 3 generates import libraries + startup
+     objects, after which VS becomes purely optional:
+     install.ps1 -Toolchain bundled (default) vs -Toolchain system.

@@ -1,0 +1,42 @@
+{
+  // Chinese++ 编辑器配置（便携版）
+  //
+  // 这个文件里的 @@CLANGD@@ 与 @@CXX@@ 会被替换成**本包内的绝对路径**
+  // （install.ps1 或 configure-workspace.ps1 做这件事）。
+  //
+  // 注意：因为是绝对路径，**移动或改名本包文件夹之后，这些路径会失效**。
+  // 那时重新跑一次「一键安装」或「一键为工作区配置」即可写回正确路径。
+  // （这里以前写的是「搬到任何盘符都能用」——那是错的。）
+
+  // ① 必须指向【我们的】clangd。
+  //    clangd 扩展默认会自己下载一个官方 clangd，那个不认识中文关键字，
+  //    会把 如果/类型/返回 全部标成红波浪。
+  "clangd.path": "@@CLANGD@@",
+
+  "clangd.arguments": [
+    "--background-index",
+    "--header-insertion=iwyu",
+    "--completion-style=detailed",
+    "--pch-storage=memory",
+    "--fallback-style=LLVM",
+    // ② 让 clangd 去问我们的编译器"系统头在哪"（MSVC STL / Windows SDK）。
+    //    没有这一条，#include <cstdio> 会报找不到。
+    "--query-driver=@@CXX@@"
+  ],
+
+  "clangd.onConfigChanged": "restart",
+
+  // ③ 中文源码必须 UTF-8 读写
+  "files.encoding": "utf8",
+  "files.autoGuessEncoding": false,
+
+  // ④ 关掉微软 C/C++ 扩展的 IntelliSense，免得和 clangd 抢标红
+  "C_Cpp.intelliSenseEngine": "disabled",
+
+  "[cpp]": { "editor.tabSize": 4, "editor.insertSpaces": true },
+
+  "files.exclude": {
+    "**/*.obj": true, "**/*.ilk": true, "**/*.pdb": true, "**/*.pcm": true
+  },
+  "search.exclude": { "**/out": true }
+}
