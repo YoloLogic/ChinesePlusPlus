@@ -26,7 +26,7 @@ _STL_DISABLE_CLANG_WARNINGS
 使用 名域 std;
 _EXPORT_STD class 类型索引实现 { // wraps a typeinfo for indexing
 public:
-    类型索引实现(const type_info& _Tinfo) noexcept : _类型指针(&_Tinfo) {}
+    类型索引实现(const std::type_info& _Tinfo) noexcept : _类型指针(&_Tinfo) {}
 
     _NODISCARD size_t hash_code() const noexcept {
         return _类型指针->hash_code();
@@ -75,7 +75,7 @@ public:
     }
 
 private:
-    const type_info* _类型指针;
+    const std::type_info* _类型指针;
 };
 
 template <>
