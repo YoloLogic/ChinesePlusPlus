@@ -204,3 +204,64 @@ extern "C" __declspec(dllexport) std::pmr::memory_resource* __cdecl
 _Aligned_get_default_resource() noexcept {
     return &zh_aligned_instance();
 }
+
+// ---------------------------------------------------------------------------
+//  5) <shared_mutex> / <mutex>: xthreads.h:48-53
+//
+//     void __cdecl _Smtx_lock_exclusive(_Smtx_t*) noexcept;
+//     void __cdecl _Smtx_lock_shared(_Smtx_t*) noexcept;
+//     int  __cdecl _Smtx_try_lock_exclusive(_Smtx_t*) noexcept;
+//     int  __cdecl _Smtx_try_lock_shared(_Smtx_t*) noexcept;
+//     void __cdecl _Smtx_unlock_exclusive(_Smtx_t*) noexcept;
+//     void __cdecl _Smtx_unlock_shared(_Smtx_t*) noexcept;
+//
+//  _Smtx_t is an SRWLOCK (a single pointer-sized field, zero-initialized by the
+//  STL's shared_mutex constructor), so the Win32 slim reader/writer lock is the
+//  direct ABI match. Implemented here because these live in Microsoft's
+//  static runtime, which may not be redistributed.
+// ---------------------------------------------------------------------------
+extern "C" {
+    __declspec(dllimport) void __stdcall AcquireSRWLockExclusive(void* _Lock);
+    __declspec(dllimport) void __stdcall AcquireSRWLockShared(void* _Lock);
+    __declspec(dllimport) unsigned char __stdcall TryAcquireSRWLockExclusive(void* _Lock);
+    __declspec(dllimport) unsigned char __stdcall TryAcquireSRWLockShared(void* _Lock);
+    __declspec(dllimport) void __stdcall ReleaseSRWLockExclusive(void* _Lock);
+    __declspec(dllimport) void __stdcall ReleaseSRWLockShared(void* _Lock);
+}
+
+extern "C" void __cdecl _Smtx_lock_exclusive(void* _Mtx) noexcept {
+    AcquireSRWLockExclusive(_Mtx);
+}
+
+extern "C" void __cdecl _Smtx_lock_shared(void* _Mtx) noexcept {
+    AcquireSRWLockShared(_Mtx);
+}
+
+extern "C" int __cdecl _Smtx_try_lock_exclusive(void* _Mtx) noexcept {
+    return TryAcquireSRWLockExclusive(_Mtx) != 0;
+}
+
+extern "C" int __cdecl _Smtx_try_lock_shared(void* _Mtx) noexcept {
+    return TryAcquireSRWLockShared(_Mtx) != 0;
+}
+
+extern "C" void __cdecl _Smtx_unlock_exclusive(void* _Mtx) noexcept {
+    ReleaseSRWLockExclusive(_Mtx);
+}
+
+extern "C" void __cdecl _Smtx_unlock_shared(void* _Mtx) noexcept {
+    ReleaseSRWLockShared(_Mtx);
+}
+
+// ---------------------------------------------------------------------------
+//  6) <chrono> tzdb: __msvc_tzdb.hpp:93
+//
+//     void __stdcall __std_free_crt(void* _Ptr) noexcept;
+//
+//  Frees a buffer that __std_calloc_crt handed out, so it must use the same heap.
+// ---------------------------------------------------------------------------
+extern "C" void __stdcall __std_free_crt(void* _Ptr) noexcept {
+    if (_Ptr != nullptr) {
+        free(_Ptr);
+    }
+}
