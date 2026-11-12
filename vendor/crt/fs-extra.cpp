@@ -376,3 +376,177 @@ __declspec(dllexport) void __stdcall __std_fs_directory_iterator_close(void* _Ha
 }
 
 } // extern "C"
+// ============================================================================
+//  Third slice: handles and paths (Chinese++ section 18.59, batch 1+2 of the
+//  appendix-A plan). Same ABI, same reasons; enums transcribed from the header.
+// ============================================================================
+
+extern "C" {
+
+enum class __std_fs_file_handle : __int64 { _Invalid = -1 };
+
+enum class __std_access_rights : unsigned long {
+    _Delete                = 0x00010000,
+    _File_read_attributes  = 0x0080,
+    _File_write_attributes = 0x0100,
+    _File_generic_write    = 0x00120116,
+};
+
+enum class __std_fs_file_flags : unsigned long {
+    _None               = 0,
+    _Backup_semantics   = 0x02000000,
+    _Open_reparse_point = 0x00200000,
+};
+
+enum class __std_fs_volume_name_kind : unsigned long {
+    _Dos  = 0, _Guid = 1, _Nt = 2, _None = 4,
+};
+
+struct __std_ulong_and_error {
+    unsigned long _Size;
+    __std_win_error _Error;
+};
+
+__declspec(dllimport) void* __stdcall CreateFileW(const wchar_t*, unsigned long, unsigned long,
+                            void*, unsigned long, unsigned long, void*);
+__declspec(dllimport) int   __stdcall CloseHandle(void*);
+__declspec(dllimport) unsigned long __stdcall GetFinalPathNameByHandleW(void*, wchar_t*, unsigned long, unsigned long);
+__declspec(dllimport) unsigned long __stdcall GetTempPathW(unsigned long, wchar_t*);
+__declspec(dllimport) unsigned long __stdcall GetCurrentDirectoryW(unsigned long, wchar_t*);
+__declspec(dllimport) unsigned long __stdcall GetFullPathNameW(const wchar_t*, unsigned long, wchar_t*, wchar_t**);
+
+// ---------------------------------------------------------------------------
+//  __std_fs_open_handle  (xfilesystem_abi.h:253-256)
+// ---------------------------------------------------------------------------
+__declspec(dllexport) __std_win_error __stdcall
+__std_fs_open_handle(__std_fs_file_handle* _Handle, const wchar_t* _File_name,
+                     __std_access_rights _Desired_access, __std_fs_file_flags _Flags) noexcept {
+    if (_Handle == nullptr || _File_name == nullptr) {
+        return __std_win_error::_Invalid_parameter;
+    }
+    // FILE_SHARE_READ|WRITE|DELETE = 7, OPEN_EXISTING = 3
+    void* h = CreateFileW(_File_name, static_cast<unsigned long>(_Desired_access), 7UL, nullptr, 3UL,
+                          static_cast<unsigned long>(_Flags), nullptr);
+    if (h == (void*)-1 || h == nullptr) {
+        *_Handle = __std_fs_file_handle::_Invalid;
+        return static_cast<__std_win_error>(GetLastError());
+    }
+    *_Handle = static_cast<__std_fs_file_handle>(reinterpret_cast<__int64>(h));
+    return __std_win_error::_Success;
+}
+
+// ---------------------------------------------------------------------------
+//  __std_fs_close_handle  (xfilesystem_abi.h:257)
+// ---------------------------------------------------------------------------
+__declspec(dllexport) void __stdcall __std_fs_close_handle(__std_fs_file_handle _Handle) noexcept {
+    if (_Handle != __std_fs_file_handle::_Invalid) {
+        CloseHandle(reinterpret_cast<void*>(static_cast<__int64>(_Handle)));
+    }
+}
+
+// ---------------------------------------------------------------------------
+//  __std_fs_get_file_attributes_by_handle  (xfilesystem_abi.h:259-261)
+// ---------------------------------------------------------------------------
+__declspec(dllexport) __std_win_error __stdcall
+__std_fs_get_file_attributes_by_handle(__std_fs_file_handle _Handle, unsigned long* _File_attributes) noexcept {
+    if (_File_attributes == nullptr) {
+        return __std_win_error::_Invalid_parameter;
+    }
+    unsigned long 属性 = 0;
+    // GetFileInformationByHandle's first field is dwFileAttributes; reuse the
+    // struct declared earlier in this file.
+    zh_by_handle_information info;
+    if (GetFileInformationByHandle(reinterpret_cast<void*>(static_cast<__int64>(_Handle)), &info) == 0) {
+        return static_cast<__std_win_error>(GetLastError());
+    }
+    属性 = info.dwFileAttributes;
+    *_File_attributes = 属性;
+    return __std_win_error::_Success;
+}
+
+// ---------------------------------------------------------------------------
+//  __std_fs_get_full_path_name  (xfilesystem_abi.h:253-254)
+// ---------------------------------------------------------------------------
+__declspec(dllexport) __std_ulong_and_error __stdcall
+__std_fs_get_full_path_name(const wchar_t* _Source, unsigned long _Target_size, wchar_t* _Target) noexcept {
+    __std_ulong_and_error 结果;
+    结果._Size  = 0;
+    结果._Error = __std_win_error::_Invalid_parameter;
+    if (_Source == nullptr || _Target == nullptr || _Target_size == 0) {
+        return 结果;
+    }
+    const unsigned long n = GetFullPathNameW(_Source, _Target_size, _Target, nullptr);
+    if (n == 0) {
+        结果._Error = static_cast<__std_win_error>(GetLastError());
+        return 结果;
+    }
+    结果._Size  = n;
+    结果._Error = __std_win_error::_Success;
+    return 结果;
+}
+
+// ---------------------------------------------------------------------------
+//  __std_fs_get_final_path_name_by_handle  (xfilesystem_abi.h:262-265)
+// ---------------------------------------------------------------------------
+__declspec(dllexport) __std_ulong_and_error __stdcall
+__std_fs_get_final_path_name_by_handle(__std_fs_file_handle _Handle, wchar_t* _Target,
+                                       unsigned long _Target_size, __std_fs_volume_name_kind _Flags) noexcept {
+    __std_ulong_and_error 结果;
+    结果._Size  = 0;
+    结果._Error = __std_win_error::_Invalid_parameter;
+    if (_Target == nullptr || _Target_size == 0) {
+        return 结果;
+    }
+    const unsigned long n = GetFinalPathNameByHandleW(
+        reinterpret_cast<void*>(static_cast<__int64>(_Handle)), _Target, _Target_size,
+        static_cast<unsigned long>(_Flags));
+    if (n == 0) {
+        结果._Error = static_cast<__std_win_error>(GetLastError());
+        return 结果;
+    }
+    结果._Size  = n;
+    结果._Error = __std_win_error::_Success;
+    return 结果;
+}
+
+// ---------------------------------------------------------------------------
+//  __std_fs_get_temp_path / __std_fs_get_current_path  (xfilesystem_abi.h:316-321)
+// ---------------------------------------------------------------------------
+__declspec(dllexport) __std_ulong_and_error __stdcall
+__std_fs_get_temp_path(wchar_t* _Target) noexcept {
+    __std_ulong_and_error 结果;
+    结果._Size  = 0;
+    结果._Error = __std_win_error::_Invalid_parameter;
+    if (_Target == nullptr) {
+        return 结果;
+    }
+    // _Target is documented as __std_fs_temp_path_max (261) wide chars.
+    const unsigned long n = GetTempPathW(261UL, _Target);
+    if (n == 0) {
+        结果._Error = static_cast<__std_win_error>(GetLastError());
+        return 结果;
+    }
+    结果._Size  = n;
+    结果._Error = __std_win_error::_Success;
+    return 结果;
+}
+
+__declspec(dllexport) __std_ulong_and_error __stdcall
+__std_fs_get_current_path(unsigned long _Target_size, wchar_t* _Target) noexcept {
+    __std_ulong_and_error 结果;
+    结果._Size  = 0;
+    结果._Error = __std_win_error::_Invalid_parameter;
+    if (_Target == nullptr || _Target_size == 0) {
+        return 结果;
+    }
+    const unsigned long n = GetCurrentDirectoryW(_Target_size, _Target);
+    if (n == 0) {
+        结果._Error = static_cast<__std_win_error>(GetLastError());
+        return 结果;
+    }
+    结果._Size  = n;
+    结果._Error = __std_win_error::_Success;
+    return 结果;
+}
+
+} // extern "C"
