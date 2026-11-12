@@ -16,6 +16,11 @@
 #include <vcruntime.h>
 #include <stddef.h>
 
+#ifdef __cpp_aligned_new
+namespace std {
+    enum class align_val_t : size_t {};
+}
+#endif // __cpp_aligned_new
 #ifndef __NOTHROW_T_DEFINED
 #define __NOTHROW_T_DEFINED
 extern "C++" {
@@ -43,6 +48,24 @@ void* __cdecl operator new(size_t _Size, const std::nothrow_t&) noexcept;
 void* __cdecl operator new[](size_t _Size, const std::nothrow_t&) noexcept;
 void  __cdecl operator delete(void* _Block, const std::nothrow_t&) noexcept;
 void  __cdecl operator delete[](void* _Block, const std::nothrow_t&) noexcept;
+#ifdef __cpp_aligned_new
+//  Aligned overloads (__cpp_aligned_new). MISSING in the first pass: <execution>
+//  line 296 calls `::operator new(_Bytes, align_val_t{_Align}, nothrow)` and the
+//  overload set was empty, so overload resolution failed at COMPILE time.
+//  Definitions live in vendor\crt\newdelete.cpp.
+void* __cdecl operator new(size_t _Size, ::std::align_val_t _Al);
+void* __cdecl operator new(size_t _Size, ::std::align_val_t _Al, ::std::nothrow_t const&) noexcept;
+void* __cdecl operator new[](size_t _Size, ::std::align_val_t _Al);
+void* __cdecl operator new[](size_t _Size, ::std::align_val_t _Al, ::std::nothrow_t const&) noexcept;
+
+void __cdecl operator delete(void* _Block, ::std::align_val_t _Al) noexcept;
+void __cdecl operator delete(void* _Block, ::std::align_val_t _Al, ::std::nothrow_t const&) noexcept;
+void __cdecl operator delete[](void* _Block, ::std::align_val_t _Al) noexcept;
+void __cdecl operator delete[](void* _Block, ::std::align_val_t _Al, ::std::nothrow_t const&) noexcept;
+
+void __cdecl operator delete(void* _Block, size_t _Size, ::std::align_val_t _Al) noexcept;
+void __cdecl operator delete[](void* _Block, size_t _Size, ::std::align_val_t _Al) noexcept;
+#endif // __cpp_aligned_new
 
 // --- placement forms ------------------------------------------------------
 //  MEASURED: <xutility> (pulled in by <vector>) uses a placement new expression
