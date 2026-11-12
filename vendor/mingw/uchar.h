@@ -27,10 +27,15 @@
 #include <stdint.h>	/* uint_leastXX_t */
 #include <wchar.h>	/* mbstate_t */
 
-/* Remember that g++ >= 4.4 defines these types only in c++0x mode */
-#if !(defined(__cplusplus) && defined(__GXX_EXPERIMENTAL_CXX0X__)) ||	\
-    !defined(__GNUC__) ||						\
-    (!defined(__clang__) && (__GNUC__ < 4 || (__GNUC__ == 4 &&	__GNUC_MINOR__ < 4)))
+/* Chinese++ §18.55 -- vendored patch.
+   The stock condition below typedefs char16_t/char32_t whenever
+   __GXX_EXPERIMENTAL_CXX0X__ is absent. clang defines __GNUC__ but NOT
+   __GXX_EXPERIMENTAL_CXX0X__, so the condition held in C++ mode and the
+   typedefs collided with the language's own keywords:
+       error: cannot combine with previous 'type-name' declaration specifier
+   In C++11 and later char16_t/char32_t are builtin, so only typedef them
+   for C. (C still needs them: they are not C keywords.) */
+#if !defined(__cplusplus)
 typedef uint_least16_t char16_t;
 typedef uint_least32_t char32_t;
 #endif
