@@ -78,3 +78,83 @@ void __cdecl operator delete(void* _Ptr, const std::nothrow_t&) noexcept {
 void __cdecl operator delete[](void* _Ptr, const std::nothrow_t&) noexcept {
     free(_Ptr);
 }
+
+// ---------------------------------------------------------------------------
+//  Aligned allocation (__cpp_aligned_new). Missing in the first pass; surfaced
+//  by <execution>:296, which calls
+//      ::operator new(_Bytes, align_val_t{_Align}, nothrow)
+//  Same reason as the unaligned ones: the definitions live in Microsoft's
+//  static C++ runtime, which may not be redistributed.
+//
+//  align_val_t is passed by value and is size_t-wide, so declaring it here with
+//  the same underlying type keeps the ABI identical. This file stays
+//  header-free, so there is no other declaration to collide with.
+// ---------------------------------------------------------------------------
+extern "C" {
+__declspec(dllimport) void* __cdecl _aligned_malloc(zh_size_t, zh_size_t);
+__declspec(dllimport) void  __cdecl _aligned_free(void*);
+}
+
+namespace std {
+enum class align_val_t : zh_size_t {};
+}
+
+static void* zh_aligned_alloc_or_throw(zh_size_t _Size, zh_size_t _Align) {
+    void* _Ptr = _aligned_malloc(_Size ? _Size : 1, _Align);
+    if (!_Ptr) {
+        std::_Xbad_alloc();
+    }
+    return _Ptr;
+}
+
+void* __cdecl operator new(zh_size_t _Size, std::align_val_t _Align) {
+    return zh_aligned_alloc_or_throw(_Size, (zh_size_t)_Align);
+}
+
+void* __cdecl operator new[](zh_size_t _Size, std::align_val_t _Align) {
+    return zh_aligned_alloc_or_throw(_Size, (zh_size_t)_Align);
+}
+
+void __cdecl operator delete(void* _Ptr, std::align_val_t) noexcept {
+    if (_Ptr) {
+        _aligned_free(_Ptr);
+    }
+}
+
+void __cdecl operator delete[](void* _Ptr, std::align_val_t) noexcept {
+    if (_Ptr) {
+        _aligned_free(_Ptr);
+    }
+}
+
+void __cdecl operator delete(void* _Ptr, zh_size_t, std::align_val_t) noexcept {
+    if (_Ptr) {
+        _aligned_free(_Ptr);
+    }
+}
+
+void __cdecl operator delete[](void* _Ptr, zh_size_t, std::align_val_t) noexcept {
+    if (_Ptr) {
+        _aligned_free(_Ptr);
+    }
+}
+
+void* __cdecl operator new(zh_size_t _Size, std::align_val_t _Align, const std::nothrow_t&) noexcept {
+    return _aligned_malloc(_Size ? _Size : 1, (zh_size_t)_Align);
+}
+
+void* __cdecl operator new[](zh_size_t _Size, std::align_val_t _Align, const std::nothrow_t&) noexcept {
+    return _aligned_malloc(_Size ? _Size : 1, (zh_size_t)_Align);
+}
+
+void __cdecl operator delete(void* _Ptr, std::align_val_t, const std::nothrow_t&) noexcept {
+    if (_Ptr) {
+        _aligned_free(_Ptr);
+    }
+}
+
+void __cdecl operator delete[](void* _Ptr, std::align_val_t, const std::nothrow_t&) noexcept {
+    if (_Ptr) {
+        _aligned_free(_Ptr);
+    }
+}
