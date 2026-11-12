@@ -40,9 +40,12 @@ if ($LASTEXITCODE -ne 0) {
 $临时 = Join-Path $env:TEMP ('cdzc-wiki-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
 & git clone --depth 1 $wikiUrl $临时 2>&1 | Select-Object -Last 1 | ForEach-Object { Write-Host ('  ' + $_) }
 
-$页面 = Get-ChildItem $本目录 -File -Filter '*.md'
+$页面 = Get-ChildItem $本目录 -Recurse -File | Where-Object { $_.Extension -in '.md','.svg' }
 foreach ($p in $页面) {
-    Copy-Item $p.FullName (Join-Path $临时 $p.Name) -Force
+    $相对 = $p.FullName.Substring($本目录.Length).TrimStart('\')
+    $目标 = Join-Path $临时 $相对
+    New-Item -ItemType Directory -Force (Split-Path $目标 -Parent) | Out-Null
+    Copy-Item $p.FullName $目标 -Force
 }
 # wiki 侧的统一入口：Home.md 就是首页
 Write-Host ('  同步 {0} 个页面：{1}' -f $页面.Count, (($页面 | ForEach-Object { $_.BaseName }) -join '、'))

@@ -23536,13 +23536,13 @@ index 6035259..c54c8a3 100644
  }
  
  void StmtPrinter::VisitCXXThrowExpr(CXXThrowExpr *Node) {
-+  StringRef 抛出 = getPrintedKeywordSpelling(Policy, tok::kw_throw, "throw");
++  StringRef 抛出拼写 = getPrintedKeywordSpelling(Policy, tok::kw_throw, "throw");
    if (!Node->getSubExpr())
 -    OS << "throw";
-+    OS << 抛出;
++    OS << 抛出拼写;
    else {
 -    OS << "throw ";
-+    OS << 抛出 << ' ';
++    OS << 抛出拼写 << ' ';
      PrintExpr(Node->getSubExpr());
    }
  }
