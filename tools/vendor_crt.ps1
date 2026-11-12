@@ -107,7 +107,8 @@ foreach ($d in @((Join-Path $root 'vendor\compiler-support'), (Join-Path $root '
 }
 $objs = @()
 foreach ($f in @('crt0.c', 'newdelete.cpp', 'stl-internals.cpp', 'security-cookie.cpp',
-                 'startup-extra.cpp', 'typeinfo.cpp', 'asan-annotate.cpp', 'runtime-extra.cpp', 'tzdb-extra.cpp')) {
+                 'startup-extra.cpp', 'typeinfo.cpp', 'asan-annotate.cpp', 'runtime-extra.cpp', 'tzdb-extra.cpp', 'fs-extra.cpp',
+                   'xcharconv_ryu_tables.cpp', 'xcharconv_tables_float.cpp', 'xcharconv_tables_double.cpp')) {
     $o = Join-Path $work ($f -replace '\.[^.]+$', '.obj')
     #  typeinfo.cpp 必须 -fno-rtti：见该文件头部 WHY ③ —— 一旦本模块自己发 RTTI，
     #  clang 会先占掉 `??_7type_info@@6B@` 这个名字，真正的 vftable 被改名为 `.1`。
