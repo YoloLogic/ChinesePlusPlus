@@ -550,3 +550,199 @@ __std_fs_get_current_path(unsigned long _Target_size, wchar_t* _Target) noexcept
 }
 
 } // extern "C"
+// ============================================================================
+//  Fourth slice: reparse points, links, permissions, narrow->wide
+//  (Chinese++ section 18.59, batch 3+4+5 of appendix A). Last 9 of the 32.
+// ============================================================================
+
+extern "C" {
+
+struct __std_fs_reparse_data_buffer {
+    unsigned long _Reparse_tag;
+    unsigned short _Reparse_data_length;
+    unsigned short _Reserved;
+    union {
+        struct {
+            unsigned short _Substitute_name_offset;
+            unsigned short _Substitute_name_length;
+            unsigned short _Print_name_offset;
+            unsigned short _Print_name_length;
+            unsigned long _Flags;
+            wchar_t _Path_buffer[1];
+        } _Symbolic_link_reparse_buffer;
+        struct {
+            unsigned short _Substitute_name_offset;
+            unsigned short _Substitute_name_length;
+            unsigned short _Print_name_offset;
+            unsigned short _Print_name_length;
+            wchar_t _Path_buffer[1];
+        } _Mount_point_reparse_buffer;
+        struct { unsigned char _Data_buffer[1]; } _Generic_reparse_buffer;
+    };
+};
+
+__declspec(dllimport) int __stdcall DeviceIoControl(void*, unsigned long, void*, unsigned long,
+                              void*, unsigned long, unsigned long*, void*);
+__declspec(dllimport) unsigned char __stdcall CreateSymbolicLinkW(const wchar_t*, const wchar_t*, unsigned long);
+__declspec(dllimport) unsigned char __stdcall CreateHardLinkW(const wchar_t*, const wchar_t*, void*);
+__declspec(dllimport) int __stdcall SetFileAttributesW(const wchar_t*, unsigned long);
+__declspec(dllimport) int __stdcall MultiByteToWideChar(unsigned int, unsigned long, const char*, int, wchar_t*, int);
+
+// ---------------------------------------------------------------------------
+//  reparse points  (xfilesystem_abi.h, four functions)
+// ---------------------------------------------------------------------------
+__declspec(dllexport) __std_win_error __stdcall
+__std_fs_read_reparse_data_buffer(__std_fs_file_handle _Handle, void* _Buffer, unsigned long _Buffer_size) noexcept {
+    if (_Buffer == nullptr || _Buffer_size == 0) {
+        return __std_win_error::_Invalid_parameter;
+    }
+    unsigned long 返回字节 = 0;
+    const int ok = DeviceIoControl(
+        reinterpret_cast<void*>(static_cast<__int64>(_Handle)),
+        0x000900A8UL /* FSCTL_GET_REPARSE_POINT */,
+        nullptr, 0, _Buffer, _Buffer_size, &返回字节, nullptr);
+    if (ok == 0) {
+        return static_cast<__std_win_error>(GetLastError());
+    }
+    return __std_win_error::_Success;
+}
+
+__declspec(dllexport) __std_win_error __stdcall
+__std_fs_write_reparse_data_buffer(__std_fs_file_handle _Handle,
+                                   const __std_fs_reparse_data_buffer* _Buffer) noexcept {
+    if (_Buffer == nullptr) {
+        return __std_win_error::_Invalid_parameter;
+    }
+    unsigned long 返回字节 = 0;
+    const unsigned long 输入长度 =
+        static_cast<unsigned long>(_Buffer->_Reparse_data_length) + 8UL; // 8 = header
+    const int ok = DeviceIoControl(
+        reinterpret_cast<void*>(static_cast<__int64>(_Handle)),
+        0x000900A4UL /* FSCTL_SET_REPARSE_POINT */,
+        const_cast<void*>(reinterpret_cast<const void*>(_Buffer)), 输入长度,
+        nullptr, 0, &返回字节, nullptr);
+    if (ok == 0) {
+        return static_cast<__std_win_error>(GetLastError());
+    }
+    return __std_win_error::_Success;
+}
+
+__declspec(dllexport) bool __stdcall
+__std_fs_is_junction_from_reparse_data_buffer(const __std_fs_reparse_data_buffer* _Buffer) noexcept {
+    if (_Buffer == nullptr) {
+        return false;
+    }
+    return _Buffer->_Reparse_tag == 0xA0000003UL; // IO_REPARSE_TAG_MOUNT_POINT
+}
+
+__declspec(dllexport) void __stdcall
+__std_fs_read_name_from_reparse_data_buffer(__std_fs_reparse_data_buffer* _Handle,
+                                            wchar_t** _Offset, unsigned short* _Length) noexcept {
+    if (_Offset != nullptr) { *_Offset = nullptr; }
+    if (_Length != nullptr) { *_Length = 0; }
+    if (_Handle == nullptr) {
+        return;
+    }
+    if (_Handle->_Reparse_tag == 0xA0000003UL) {
+        // junction / mount point
+        if (_Offset) {
+            *_Offset = reinterpret_cast<wchar_t*>(
+                reinterpret_cast<char*>(_Handle) + 8 +
+                _Handle->_Mount_point_reparse_buffer._Substitute_name_offset);
+        }
+        if (_Length) { *_Length = _Handle->_Mount_point_reparse_buffer._Substitute_name_length; }
+    } else {
+        // symlink
+        if (_Offset) {
+            *_Offset = reinterpret_cast<wchar_t*>(
+                reinterpret_cast<char*>(_Handle) + 8 +
+                _Handle->_Symbolic_link_reparse_buffer._Substitute_name_offset);
+        }
+        if (_Length) { *_Length = _Handle->_Symbolic_link_reparse_buffer._Substitute_name_length; }
+    }
+}
+
+// ---------------------------------------------------------------------------
+//  links  (xfilesystem_abi.h, three functions)
+// ---------------------------------------------------------------------------
+__declspec(dllexport) __std_win_error __stdcall
+__std_fs_create_symbolic_link(const wchar_t* _Symlink_file_name, const wchar_t* _Target_file_name) noexcept {
+    if (_Symlink_file_name == nullptr || _Target_file_name == nullptr) {
+        return __std_win_error::_Invalid_parameter;
+    }
+    // 0x2 = SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE
+    if (CreateSymbolicLinkW(_Symlink_file_name, _Target_file_name, 0x2UL) != 0) {
+        return __std_win_error::_Success;
+    }
+    return static_cast<__std_win_error>(GetLastError());
+}
+
+__declspec(dllexport) __std_win_error __stdcall
+__std_fs_create_directory_symbolic_link(const wchar_t* _Symlink_file_name, const wchar_t* _Target_file_name) noexcept {
+    if (_Symlink_file_name == nullptr || _Target_file_name == nullptr) {
+        return __std_win_error::_Invalid_parameter;
+    }
+    // 0x1 = SYMBOLIC_LINK_FLAG_DIRECTORY, 0x2 = ALLOW_UNPRIVILEGED_CREATE
+    if (CreateSymbolicLinkW(_Symlink_file_name, _Target_file_name, 0x3UL) != 0) {
+        return __std_win_error::_Success;
+    }
+    return static_cast<__std_win_error>(GetLastError());
+}
+
+__declspec(dllexport) __std_win_error __stdcall
+__std_fs_create_hard_link(const wchar_t* _File_name, const wchar_t* _Existing_file_name) noexcept {
+    if (_File_name == nullptr || _Existing_file_name == nullptr) {
+        return __std_win_error::_Invalid_parameter;
+    }
+    if (CreateHardLinkW(_File_name, _Existing_file_name, nullptr) != 0) {
+        return __std_win_error::_Success;
+    }
+    return static_cast<__std_win_error>(GetLastError());
+}
+
+// ---------------------------------------------------------------------------
+//  __std_fs_change_permissions  (xfilesystem_abi.h:311-312)
+// ---------------------------------------------------------------------------
+__declspec(dllexport) __std_win_error __stdcall
+__std_fs_change_permissions(const wchar_t* _Path, bool _Follow_symlinks, bool _Readonly) noexcept {
+    (void)_Follow_symlinks;
+    if (_Path == nullptr) {
+        return __std_win_error::_Invalid_parameter;
+    }
+    unsigned long 属性 = GetFileAttributesW(_Path);
+    if (属性 == 0xFFFFFFFFUL) {
+        return static_cast<__std_win_error>(GetLastError());
+    }
+    const unsigned long 只读位 = 0x1UL; // FILE_ATTRIBUTE_READONLY
+    属性 = _Readonly ? (属性 | 只读位) : (属性 & ~只读位);
+    if (SetFileAttributesW(_Path, 属性) == 0) {
+        return static_cast<__std_win_error>(GetLastError());
+    }
+    return __std_win_error::_Success;
+}
+
+// ---------------------------------------------------------------------------
+//  __std_fs_convert_narrow_to_wide
+// ---------------------------------------------------------------------------
+__declspec(dllexport) __std_fs_convert_result __stdcall
+__std_fs_convert_narrow_to_wide(__std_code_page _Code_page, const char* _Input_str, int _Input_len,
+                                wchar_t* _Output_str, int _Output_len) noexcept {
+    __std_fs_convert_result 结果;
+    结果._Len = 0;
+    结果._Err = __std_win_error::_Invalid_parameter;
+    if (_Input_str == nullptr || _Output_str == nullptr || _Output_len <= 0) {
+        return 结果;
+    }
+    const unsigned int cp = (static_cast<unsigned int>(_Code_page) == 0u) ? GetACP()
+                                                                         : static_cast<unsigned int>(_Code_page);
+    const int n = MultiByteToWideChar(cp, 0, _Input_str, _Input_len, _Output_str, _Output_len);
+    if (n == 0) {
+        结果._Err = static_cast<__std_win_error>(GetLastError());
+        return 结果;
+    }
+    结果._Len = n;
+    结果._Err = __std_win_error::_Success;
+    return 结果;
+}
+
+} // extern "C"
