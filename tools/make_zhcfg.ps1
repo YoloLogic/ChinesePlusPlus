@@ -1,4 +1,4 @@
-﻿# ============================================================================
+# ============================================================================
 #  make_zhcfg.ps1 -- 让「只敲 chinese++ 文件.cpp」真的成立：生成 <驱动名>.cfg
 #
 #  为什么需要它（§18.30，2026-10-05 实测）：
@@ -106,6 +106,16 @@ if ($Mode -eq 'bundled') {
     #  mingw 的 UCRT 头用 `_UCRT` 决定"暴露 UCRT 那套 API"（实测：不定义时
     #  `quick_exit`/`at_quick_exit` 不声明，MSVC STL 的 <cstdlib> 就编不过）。
     $lines += '-D_UCRT'
+#  MinGW 把 signbit 定义成函数式宏，而 MSVC 的 <cmath> 用 "using ::signbit;" 引入它。
+#  函数式宏会让那条 using 声明失效，于是 <complex>/<format> 报 "没有与 signbit 匹配的函数"。
+#  zh_crt_compat.h 先 #undef 再补真函数（只补 signbit，不碰 MSVC 自己的 constexpr 版本）。
+if ($Mode -eq 'bundled') {
+    $compat = Join-Path $ZhRoot 'lib\compiler\zh_crt_compat.h'
+    if (Test-Path $compat) {
+        $lines += '-include'
+        $lines += ('"' + ($compat.Replace('\', '/')) + '"')
+    }
+}
 }
 foreach ($p in (Get-ZhIncludeDirs $ZhRoot)) {
     $lines += '-isystem'
