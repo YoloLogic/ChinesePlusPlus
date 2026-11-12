@@ -53,4 +53,19 @@ inline bool signbit(double _X) noexcept { return __signbit(_X) != 0; }
 inline bool signbit(float _X) noexcept { return __signbitf(_X) != 0; }
 inline bool signbit(long double _X) noexcept { return __signbitl(_X) != 0; }
 
+
+// ---------------------------------------------------------------------------
+//  setjmp: lib/stl/csetjmp:23 does `using ::setjmp;`, but vendor\mingw\setjmp.h
+//  defines it as a function-like macro:  #define setjmp(BUF) _setjmp3((BUF), NULL)
+//  A using-declaration cannot name a macro. Drop the macro and expose a real
+//  function (defined in vendor\crt\runtime-extra.cpp, forwarding to _setjmp).
+//    MEASURED (llvm-readobj --coff-exports): ucrtbase.dll / vcruntime140.dll /
+//    msvcrt.dll export _setjmp and _setjmpex, but NOT _setjmp3 -- the earlier
+//    attempt forwarding to _setjmp3 therefore broke every link.
+// ---------------------------------------------------------------------------
+#include <setjmp.h>
+#ifdef setjmp
+#undef setjmp
+#endif
+extern "C" int __cdecl setjmp(jmp_buf) noexcept;
 #endif // ZH_CRT_COMPAT_H
