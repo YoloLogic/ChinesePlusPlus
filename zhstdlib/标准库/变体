@@ -479,7 +479,7 @@ public:
 #endif // ^^^ workaround ^^^
 
 template <size_t _Idx, class _存储>
-_NODISCARD constexpr decltype(auto) _Variant_raw_get(_存储&& _Obj) noexcept {
+_NODISCARD constexpr decltype(auto) _变体_裸取(_存储&& _Obj) noexcept {
     // access the _Idx-th element of a _变体_存储
     if constexpr (_Idx == 0) {
         return static_cast<_存储&&>(_Obj)._取();
@@ -498,17 +498,17 @@ _NODISCARD constexpr decltype(auto) _Variant_raw_get(_存储&& _Obj) noexcept {
     } else if constexpr (_Idx == 7) {
         return static_cast<_存储&&>(_Obj)._Tail._Tail._Tail._Tail._Tail._Tail._Tail._取();
     } else if constexpr (_Idx < 16) {
-        return _Variant_raw_get<_Idx - 8>(
+        return _变体_裸取<_Idx - 8>(
             static_cast<_存储&&>(_Obj)._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail);
     } else if constexpr (_Idx < 32) {
-        return _Variant_raw_get<_Idx - 16>(static_cast<_存储&&>(_Obj)
+        return _变体_裸取<_Idx - 16>(static_cast<_存储&&>(_Obj)
                 ._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail);
     } else if constexpr (_Idx < 64) {
-        return _Variant_raw_get<_Idx - 32>(static_cast<_存储&&>(_Obj)
+        return _变体_裸取<_Idx - 32>(static_cast<_存储&&>(_Obj)
                 ._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail
                 ._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail);
     } else { // _Idx >= 64
-        return _Variant_raw_get<_Idx - 64>(static_cast<_存储&&>(_Obj)
+        return _变体_裸取<_Idx - 64>(static_cast<_存储&&>(_Obj)
                 ._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail
                 ._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail
                 ._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail._Tail
@@ -523,7 +523,7 @@ struct _带标记 { // aggregate a runtime value and a compile-time tag value
 };
 
 template <class _存储, size_t _Idx>
-using _变体_带标记引用类型 = _带标记<decltype(_Variant_raw_get<_Idx>(_STD declval<_存储>()))&&, _Idx>;
+using _变体_带标记引用类型 = _带标记<decltype(_变体_裸取<_Idx>(_STD declval<_存储>()))&&, _Idx>;
 
 template <class _Fn, class _存储>
 using _变体_裸访问类型 = decltype(_STD declval<_Fn>()(_STD declval<_变体_带标记引用类型<_存储, 0>>()));
@@ -533,7 +533,7 @@ _NODISCARD constexpr _变体_裸访问类型<_Fn, _存储> _Variant_raw_visit_di
     noexcept(is_nothrow_invocable_v<_Fn, _变体_带标记引用类型<_存储, _Idx>>) {
     // call _Func with the _Idx-th element in _存储 (tagged with _Idx)
     return static_cast<_Fn&&>(_Func)(
-        _变体_带标记引用类型<_存储, _Idx>{_Variant_raw_get<_Idx>(static_cast<_存储&&>(_Var))});
+        _变体_带标记引用类型<_存储, _Idx>{_变体_裸取<_Idx>(static_cast<_存储&&>(_Var))});
 }
 
 template <class _Fn, class _存储>
@@ -584,7 +584,7 @@ struct _变体_裸访问1<-1> { // Fallback case for variants too large for any 
     case (n) + 1:                                                                                                 \
         if constexpr ((n) < _Size) {                                                                              \
             return static_cast<_Fn&&>(_Func)(                                                                     \
-                _变体_带标记引用类型<_存储, (n)>{_Variant_raw_get<(n)>(static_cast<_存储&&>(_Obj))}); \
+                _变体_带标记引用类型<_存储, (n)>{_变体_裸取<(n)>(static_cast<_存储&&>(_Obj))}); \
         }                                                                                                         \
         _STL_UNREACHABLE;                                                                                         \
         [[fallthrough]]
@@ -701,7 +701,7 @@ struct _变体_赋值访问器 { // visitor that implements assignment for varia
             _Self._重置();
         } else {
             if (_Self._Which == _Idx) { // same alternative: assign directly
-                auto& _Target = _Variant_raw_get<_Idx>(_Self._存储());
+                auto& _Target = _变体_裸取<_Idx>(_Self._存储());
                 _Target       = static_cast<_类型&&>(_Source._Val);
             } else { // different alternative
                 if constexpr (is_lvalue_reference_v<_类型>) { // RHS is an lvalue: copy
@@ -781,7 +781,7 @@ public:
         // pre: _Idx == 索引()
         using _带索引值类型 = remove_cv_t<_元_取位常量<变体实现<_Types...>, _Idx>>;
         if constexpr (_Idx != 变体无位置 && !is_trivially_destructible_v<_带索引值类型>) {
-            _Variant_raw_get<_Idx>(_存储()).~_带索引值类型();
+            _变体_裸取<_Idx>(_存储()).~_带索引值类型();
         }
     }
 
@@ -999,7 +999,7 @@ public:
         // assign/就地构造 the alternative chosen by overload resolution of _Obj with f(_Types)...
         constexpr size_t _TargetIdx = _变体_初始化索引<_类型, _Types...>::value;
         if (索引() == _TargetIdx) {
-            auto& _Target = _Variant_raw_get<_TargetIdx>(_存储());
+            auto& _Target = _变体_裸取<_TargetIdx>(_存储());
             _Target       = static_cast<_类型&&>(_Obj);
         } else {
             using _目标类型 = _变体_初始化类型<_类型, _Types...>;
@@ -1108,7 +1108,7 @@ public:
                         constexpr size_t _Idx = decltype(_Ref)::_Idx;
                         if constexpr (_Idx != 变体无位置) {
                             using _STD swap;
-                            swap(_Variant_raw_get<_Idx>(this->_存储()), _Ref._Val); // intentional ADL
+                            swap(_变体_裸取<_Idx>(this->_存储()), _Ref._Val); // intentional ADL
                         }
                     });
             } else {
@@ -1130,7 +1130,7 @@ private:
         _STL_INTERNAL_CHECK(因异常无值());
         _就地构造(_存储(), integral_constant<size_t, _Idx>{}, static_cast<_ArgTypes&&>(_Args)...);
         this->_置索引(_Idx);
-        return _Variant_raw_get<_Idx>(_存储());
+        return _变体_裸取<_Idx>(_存储());
     }
 
     _CONSTEXPR20 void _由之就地构造(变体实现&& _That) noexcept(conjunction_v<is_nothrow_move_constructible<_Types>...>) {
@@ -1163,7 +1163,7 @@ _NODISCARD constexpr decltype(auto) 取(变体实现<_Types...>& _Var) {
     // access the contained value of _Var if its _Idx-th alternative is active
     static_assert(_Idx < sizeof...(_Types), "变体实现 索引 out of bounds");
     if (_Var.索引() == _Idx) {
-        return _Variant_raw_get<_Idx>(_Var._存储());
+        return _变体_裸取<_Idx>(_Var._存储());
     }
 
     _Throw_bad_variant_access();
@@ -1173,7 +1173,7 @@ _NODISCARD constexpr decltype(auto) 取(变体实现<_Types...>&& _Var) {
     // access the contained value of _Var if its _Idx-th alternative is active
     static_assert(_Idx < sizeof...(_Types), "变体实现 索引 out of bounds");
     if (_Var.索引() == _Idx) {
-        return _Variant_raw_get<_Idx>(_STD move(_Var)._存储());
+        return _变体_裸取<_Idx>(_STD move(_Var)._存储());
     }
 
     _Throw_bad_variant_access();
@@ -1183,7 +1183,7 @@ _NODISCARD constexpr decltype(auto) 取(const 变体实现<_Types...>& _Var) {
     // access the contained value of _Var if its _Idx-th alternative is active
     static_assert(_Idx < sizeof...(_Types), "变体实现 索引 out of bounds");
     if (_Var.索引() == _Idx) {
-        return _Variant_raw_get<_Idx>(_Var._存储());
+        return _变体_裸取<_Idx>(_Var._存储());
     }
 
     _Throw_bad_variant_access();
@@ -1193,7 +1193,7 @@ _NODISCARD constexpr decltype(auto) 取(const 变体实现<_Types...>&& _Var) {
     // access the contained value of _Var if its _Idx-th alternative is active
     static_assert(_Idx < sizeof...(_Types), "变体实现 索引 out of bounds");
     if (_Var.索引() == _Idx) {
-        return _Variant_raw_get<_Idx>(_STD move(_Var)._存储());
+        return _变体_裸取<_Idx>(_STD move(_Var)._存储());
     }
 
     _Throw_bad_variant_access();
@@ -1248,13 +1248,13 @@ _EXPORT_STD template <size_t _Idx, class... _Types>
 _NODISCARD constexpr auto 条件取(变体实现<_Types...>* _Ptr) noexcept {
     // 取 the address of *_Ptr's contained value if it holds alternative _Idx
     static_assert(_Idx < sizeof...(_Types), "变体实现 索引 out of bounds");
-    return _Ptr && _Ptr->索引() == _Idx ? _STD addressof(_Variant_raw_get<_Idx>(_Ptr->_存储())) : nullptr;
+    return _Ptr && _Ptr->索引() == _Idx ? _STD addressof(_变体_裸取<_Idx>(_Ptr->_存储())) : nullptr;
 }
 _EXPORT_STD template <size_t _Idx, class... _Types>
 _NODISCARD constexpr auto 条件取(const 变体实现<_Types...>* _Ptr) noexcept {
     // 取 the address of *_Ptr's contained value if it holds alternative _Idx
     static_assert(_Idx < sizeof...(_Types), "变体实现 索引 out of bounds");
-    return _Ptr && _Ptr->索引() == _Idx ? _STD addressof(_Variant_raw_get<_Idx>(_Ptr->_存储())) : nullptr;
+    return _Ptr && _Ptr->索引() == _Idx ? _STD addressof(_变体_裸取<_Idx>(_Ptr->_存储())) : nullptr;
 }
 
 _EXPORT_STD template <class _类型, class... _Types>
@@ -1291,7 +1291,7 @@ struct _变体_关系访问器2 { // evaluate _操作 with the contained value o
         // determine the relationship between the stored values of _Left and _Right
         // pre: _Left.索引() == _Idx && _Right.索引() == _Idx
         if constexpr (_Idx != 变体无位置) {
-            return _操作{}(_Variant_raw_get<_Idx>(_Left), _Right._Val);
+            return _操作{}(_变体_裸取<_Idx>(_Left), _Right._Val);
         } else { // return whatever _操作 returns for equal values
             return _操作{}(0, 0);
         }
@@ -1407,7 +1407,7 @@ _NODISCARD constexpr size_t _变体_访问索引1(
 
 template <class _Callable, class... _Types>
 using _变体_访问结果类型 =
-    decltype(_STD invoke(_STD declval<_Callable>(), _Variant_raw_get<0>(_STD declval<_Types>()._存储())...));
+    decltype(_STD invoke(_STD declval<_Callable>(), _变体_裸取<0>(_STD declval<_Types>()._存储())...));
 
 template <class>
 struct _变体_分派器;
@@ -1425,12 +1425,12 @@ struct _变体_分派器<index_sequence<_Is...>> {
 #if _HAS_CXX20
         else if constexpr (is_void_v<_返回>) {
             static_cast<void>(_STD invoke(static_cast<_Callable&&>(_Obj),
-                _Variant_raw_get<_Is - 1>(static_cast<_Types&&>(_Args)._存储())...));
+                _变体_裸取<_Is - 1>(static_cast<_Types&&>(_Args)._存储())...));
         }
 #endif // _HAS_CXX20
         else {
             return _STD invoke(static_cast<_Callable&&>(_Obj),
-                _Variant_raw_get<_Is - 1>(static_cast<_Types&&>(_Args)._存储())...);
+                _变体_裸取<_Is - 1>(static_cast<_Types&&>(_Args)._存储())...);
         }
     }
 };
