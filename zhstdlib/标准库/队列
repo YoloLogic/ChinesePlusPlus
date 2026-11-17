@@ -23,8 +23,8 @@
 #include <iterator>
 #endif // _HAS_CXX23
 
-#pragma pack(压入, _CRT_PACKING)
-#pragma warning(压入, _STL_WARNING_LEVEL)
+#pragma pack(push, _CRT_PACKING)
+#pragma warning(push, _STL_WARNING_LEVEL)
 #pragma warning(disable : _STL_DISABLED_WARNINGS)
 _STL_DISABLE_CLANG_WARNINGS
 #pragma push_macro("new")
@@ -512,8 +512,8 @@ struct formatter<优先队列实现<_类型, _Container, _比较器>, _CharT>
 
 #pragma pop_macro("new")
 _STL_RESTORE_CLANG_WARNINGS
-#pragma warning(弹出)
-#pragma pack(弹出)
+#pragma warning(pop)
+#pragma pack(pop)
 #endif // _STL_COMPILER_PREPROCESSOR
 // [ZH-DERIVE-LAYER] 汉语派生层（英文兼容层）从这一行开始 —— 本行【以上】属抄来那层，有英文名就是欠账
 // ============================================================================

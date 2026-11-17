@@ -85,6 +85,20 @@ private:
 // NOTE: std::__non_rtti_object is defined by the STL's own <typeinfo>
 // (measured: defining it here as well gives "redefinition of '__non_rtti_object'").
 
+
+// MSVC STL <typeinfo> 契约：::bad_cast / ::bad_typeid 由编译器头提供（实测：不补则报未声明）。
+class _NODISCARD bad_cast : public exception {
+public:
+    bad_cast() noexcept = default;
+    _NODISCARD char const* what() const noexcept override { return "bad cast"; }
+};
+
+class _NODISCARD bad_typeid : public exception {
+public:
+    bad_typeid() noexcept = default;
+    _NODISCARD char const* what() const noexcept override { return "bad typeid"; }
+};
+
 } // namespace std
 
 } // extern "C++"

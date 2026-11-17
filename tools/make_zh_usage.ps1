@@ -203,8 +203,12 @@ if ($sysEntries.Count) {
 
 W '---'
 W ''
-W ('**覆盖**：抄+派生 {0} 个、别名 {1} 个、C 包装 {2} 个、Windows 系统 {3} 个，共 {4} 个中文头。' -f `
-    $mainEntries.Count, $aliasEntries.Count, $cEntries.Count, $sysEntries.Count, ($mainEntries.Count + $aliasEntries.Count + $cEntries.Count + $sysEntries.Count))
+# [fix] 手写层产物（无生成器条目）也要计入总数，否则 check_zhdocs 的"台账 vs 盘子"对不上
+$手写层数 = 0
+$手写名单 = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent) 'tools\手写层产物.txt'
+if (Test-Path $手写名单) { $手写层数 = @(Get-Content $手写名单 | Where-Object { $_.Trim() -and -not $_.Trim().StartsWith('#') }).Count }
+W ('**覆盖**：抄+派生 {0} 个、别名 {1} 个、C 包装 {2} 个、Windows 系统 {3} 个、手写层 {5} 个，共 {4} 个中文头。' -f `
+    $mainEntries.Count, $aliasEntries.Count, $cEntries.Count, $sysEntries.Count, ($mainEntries.Count + $aliasEntries.Count + $cEntries.Count + $sysEntries.Count + $手写层数), $手写层数)
 W ''
 W '**还缺什么**（不要说"做完了"）：'
 W ''

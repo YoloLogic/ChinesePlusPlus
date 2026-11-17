@@ -106,6 +106,9 @@ if ($Mode -eq 'bundled') {
     #  mingw 的 UCRT 头用 `_UCRT` 决定"暴露 UCRT 那套 API"（实测：不定义时
     #  `quick_exit`/`at_quick_exit` 不声明，MSVC STL 的 <cstdlib> 就编不过）。
     $lines += '-D_UCRT'
+    # MSVC STL 契约：_HAS_EXCEPTIONS 必须由构建系统定义。不定义时 yvals.h 走
+    # !_HAS_EXCEPTIONS 分支：_THROW(x) = x._Raise() → 内部抛出 __fastfail（第 3 轮实测 0xC0000409）。
+    $lines += '-D_HAS_EXCEPTIONS=1'
 #  MinGW 把 signbit 定义成函数式宏，而 MSVC 的 <cmath> 用 "using ::signbit;" 引入它。
 #  函数式宏会让那条 using 声明失效，于是 <complex>/<format> 报 "没有与 signbit 匹配的函数"。
 #  zh_crt_compat.h 先 #undef 再补真函数（只补 signbit，不碰 MSVC 自己的 constexpr 版本）。
@@ -140,6 +143,16 @@ if ($Mode -eq 'bundled') {
                            'mingwex','mingw32')) {
             $f = Join-Path $crtDir ($lib + '.lib')
             if (Test-Path $f) { $lines += ('-Wl,' + $f.Replace('\', '/')) }
+        }
+        # [fix] 静态库/导入库是**顺序敏感**的：mingwex/mingw32 排在 ucrtbase 之后，
+        # 它们引用的 __mingw_module_is_dll / _fpreset 就再也解不出来（lld-link 实测）。
+        # 把关键导入库在末尾再列一遍，保证后扫描的库的未定义符号也能被满足。
+        # [fix] 补齐地基缺失符号（__mingw_module_is_dll / _fpreset / timespec_get）
+        $compatLib = Join-Path $crtDir 'compat.lib'
+        if (Test-Path $compatLib) { $lines += ('-Wl,' + $compatLib.Replace('\', '/')) }
+        foreach ($lib in @('ucrtbase','ucrt','msvcp140','vcruntime140','vcruntime140_1','libcmt')) {
+            $f2 = Join-Path $crtDir ($lib + '.lib')
+            if (Test-Path $f2) { $lines += ('-Wl,' + $f2.Replace('\', '/')) }
         }
         foreach ($nd in @('libcmt','oldnames','libcpmt','msvcprt')) {
             $lines += ('-Wl,/nodefaultlib:' + $nd)

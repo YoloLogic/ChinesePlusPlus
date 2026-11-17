@@ -14,6 +14,7 @@
 #define _VCRUNTIME_NEW_H
 
 #include <vcruntime.h>
+#include <vcruntime_exception.h>
 #include <stddef.h>
 
 #ifdef __cpp_aligned_new

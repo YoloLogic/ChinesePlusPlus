@@ -191,8 +191,8 @@ extern "C" inline void _检查内存序(const unsigned int _Order) noexcept {
 #endif // ^^^ Unsupported hardware ^^^
 
 #pragma warning(push)
-#pragma warning(disable : 6001) // "Using uninitialized memory '_守卫'"
-#pragma warning(disable : 28113) // "Accessing a local variable _守卫 via an Interlocked function: This is an unusual
+#pragma warning(disable : 6001) // "Using uninitialized memory '_Guard'"
+#pragma warning(disable : 28113) // "Accessing a local variable _Guard via an Interlocked function: This is an unusual
                                  // usage which could be reconsidered."
 extern "C" inline void _原子线程栅栏(const unsigned int _Order) noexcept {
     if (_Order == _原子内存序松弛) {

@@ -15,6 +15,15 @@
 // §18.19 实测改正了原先"变参无法转发"的错误结论。真正转发不了的只剩**宏**：setjmp / va_start / va_arg / va_end / va_copy。
 #pragma once
 #include <cwchar>
+#undef getwc
+#undef putwc
+#undef getwchar
+#undef putwchar
+#undef fgetwc
+#undef fputwc
+#undef fgetws
+#undef fputws
+#undef ungetwc
 
 名域 标准 {
     使用 多字节状态 = std::mbstate_t;
@@ -44,19 +53,17 @@
     模板 <类型名... 参数> 声明类型(自动) 宽串转双精度(参数&&... 值) { 返回 std::wcstod(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 宽串转单精度(参数&&... 值) { 返回 std::wcstof(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 宽串转长双精度(参数&&... 值) { 返回 std::wcstold(static_cast<参数&&>(值)...); }
-    //  mingw 的 stdin/stdout 是宏（__acrt_iob_func(0/1)），不能写 ::stdin。这里直接走 UCRT。
-
-模板 <类型名... 参数> 声明类型(自动) 复制宽内存(参数&&... 值) { 返回 std::wmemcpy(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 复制宽内存(参数&&... 值) { 返回 std::wmemcpy(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 移动宽内存(参数&&... 值) { 返回 std::wmemmove(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 填充宽内存(参数&&... 值) { 返回 std::wmemset(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 比较宽内存(参数&&... 值) { 返回 std::wmemcmp(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 宽内存查找字符(参数&&... 值) { 返回 std::wmemchr(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 声明类型(自动) 取宽字符(参数&&... 值) { 返回 std::fgetwc(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 声明类型(自动) 放宽字符(参数&&... 值) { 返回 std::fputwc(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 取宽字符(参数&&... 值) { 返回 std::getwc(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 放宽字符(参数&&... 值) { 返回 std::putwc(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 从文件取宽字符(参数&&... 值) { 返回 std::fgetwc(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 向文件放宽字符(参数&&... 值) { 返回 std::fputwc(static_cast<参数&&>(值)...); }
-    模板 <类型名... 参数> 声明类型(自动) 取输入宽字符(参数&&... 值) { 返回 std::fgetwc(__acrt_iob_func(0)); }
-    模板 <类型名... 参数> 声明类型(自动) 放输出宽字符(参数&&... 值) { 返回 std::fputwc(static_cast<参数&&>(值)..., __acrt_iob_func(1)); }
+    模板 <类型名... 参数> 声明类型(自动) 取输入宽字符(参数&&... 值) { 返回 std::getwchar(static_cast<参数&&>(值)...); }
+    模板 <类型名... 参数> 声明类型(自动) 放输出宽字符(参数&&... 值) { 返回 std::putwchar(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 从文件取宽字符串(参数&&... 值) { 返回 std::fgetws(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 向文件放宽字符串(参数&&... 值) { 返回 std::fputws(static_cast<参数&&>(值)...); }
     模板 <类型名... 参数> 声明类型(自动) 放回宽字符(参数&&... 值) { 返回 std::ungetwc(static_cast<参数&&>(值)...); }

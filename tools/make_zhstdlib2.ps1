@@ -1102,7 +1102,7 @@ $H = @{
   }
   'any' = @{
     zh      = '任意'
-    types   = [ordered]@{ 'any' = '任意实现'
+    types   = [ordered]@{ 'any' = '任意实现'; 'type_info' = 'std::type_info'   # [fix] 只写中文头时 type_info 在 细节:: 里会与 std::type_info 歧义，直接限定
                           # §16.27：自有内部件也要翻
                           '_Any_representation' = '_任意表示'
                           '_Any_big_RTTI'       = '_任意大对象类型信息'
@@ -5015,7 +5015,7 @@ $H = @{
   'typeindex' = @{
     zh      = '类型索引'
     realInclude = @('typeindex')   # §16.29「乙」
-    types   = [ordered]@{ 'type_index' = '类型索引实现' }
+    types   = [ordered]@{ 'type_index' = '类型索引实现'; 'type_info' = 'std::type_info' }   # [fix] 只写中文头时 type_info 歧义
     # ⚠ hash_code / name 【不登记】（§16.30.3）：正文里 `_Target->hash_code()` /
     #   `_Target->name()` 调的是【借来的】std::type_info 的成员，改名会报
     #   "type_info 中没有名为 '哈希值' 的成员"。中文名在 deriveExtra 手写、调 基类::hash_code/name。
@@ -5097,6 +5097,11 @@ $H = @{
     # `decltype(_Abs_time - _Now)` 的私有别名（原文第 97 行），只在本类用 -> 已并入下面的 types 表。
     # ⚠ std::condition_variable（非 _any）其实定义在 <mutex> 里；这个头只有 _any
     pub     = '条件变量任意'
+    # [fix] <条件变量> 本来只抄了 condition_variable_any；std::condition_variable
+    #   定义在 <mutex> 里（realInclude 已把真头带进来）。
+    #   注意：必须用 namespaceExtra（名域 标准 层），deriveExtra 是派生类内部，会变成
+    #   条件变量任意::条件变量 —— `标准::条件变量` 仍不存在（实测）。
+    namespaceExtra = '    使用 条件变量 = std::condition_variable;'
     types   = [ordered]@{ 'condition_variable_any' = '条件变量任意实现'
                           # 这个头里 `shared_ptr<mutex>` / `_Ptr->_Mymtx()` 必须落到
                           # 【我们自己那份 <互斥量>】的家族里，否则碰到 std 的私有成员
@@ -7437,6 +7442,14 @@ function Get-RenamePattern([string] $name) {
     return '(?<!_RANGES\s+)\b' + [regex]::Escape($name) + '\b'
 }
 $origText = $text          # §17.27.3 守卫用：改名【之前】的正文（登记有没有落地必须在原文上量）
+# ---- [fix] 保护 #pragma 行：push/pop 是 pragma 参数，不是标识符，不能被改名（栈/队列 曾被改成 pack(压入)）----
+$pragmaMask = @{}
+$text = [regex]::Replace($text, '(?m)^[ \t]*#pragma[^\r\n]*', {
+    param($pm)
+    $k = "//__ZH_PRAGMA_$($pragmaMask.Count)__"
+    $pragmaMask[$k] = $pm.Value
+    $k
+})
 foreach ($k in $INTERNAL_NAMES.Keys) {
     if ($spec.types.Contains($k)) { continue }
     $c = ([regex]::Matches($text, (Get-RenamePattern $k))).Count
@@ -7491,6 +7504,9 @@ if ($zeroHit.Count) {
     Write-Host '        §17.27.4 的幽灵 API（链表 shrink_to_fit -> 基类::收缩至适应）就是这样被掩盖的。' -ForegroundColor Yellow
     throw "登记≠落地（§17.27.3）：先把这些登记删掉或搬到真正定义它的条目上，再生成"
 }
+
+# ---- [fix] 还原被保护的 #pragma 行 ----
+foreach ($pk in $pragmaMask.Keys) { $text = $text.Replace($pk, $pragmaMask[$pk]) }
 Write-Host "  步3/4 类型 $nT 处 / 成员 $nM 处 / 数据 $nD 处"
 # ⚠ realInclude 必须插在【改名之后】：否则 `#include <optional>` 里的 optional
 #   会被类型改名改成 `#include <可选实现>` -> fatal error: 找不到文件 '可选实现'。
@@ -7934,6 +7950,14 @@ Remove-Item $probe -Force -ErrorAction SilentlyContinue
 # 这样不必为多类重构整张表，现有条目一行都不用改。
 if ($spec.ContainsKey('noPub')) { $layer = '' }
 $layerText = $layer
+# [fix] namespaceExtra：放进 `名域 标准 { }` 内、派生类外的别名 / 转发。
+#   deriveExtra 是派生类【内部】的成员转发，命名空间级别的别名放不进去。
+if ($spec.ContainsKey('namespaceExtra') -and $spec.namespaceExtra) {
+    $iNs = $layerText.LastIndexOf('}')
+    if ($iNs -gt 0) {
+        $layerText = $layerText.Substring(0, $iNs) + "`n" + $spec.namespaceExtra + "`n" + $layerText.Substring($iNs)
+    }
+}
 if ($spec.ContainsKey('extra')) { $layerText += "`n" + $spec.extra }
 # ---------------------------------------------------------------------------
 #  ⚠ 派生层必须插在【包含守卫的 #endif 之前】，不能追加到文件最末。

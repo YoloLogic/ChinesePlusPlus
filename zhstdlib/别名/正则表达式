@@ -8,6 +8,7 @@
 // 变体（英文里带 _v 的变量模板形式）暂未提供中文名，属"必须的妥协"，见方案 §六。
 #pragma once
 #include <regex>
+#包含 <字符串>
 
 名域 标准 {
     模板 <类型名 字符类型, 类型名 特征 = std::regex_traits<字符类型>> 使用 基本正则 = std::basic_regex<字符类型, 特征>;
@@ -44,4 +45,15 @@
     内联 常量 std::regex_constants::syntax_option_type 基本语法 = std::regex_constants::basic;
     内联 常量 std::regex_constants::syntax_option_type 扩展语法 = std::regex_constants::extended;
     内联 常量 std::regex_constants::syntax_option_type 脚本语法 = std::regex_constants::ECMAScript;
+    模板 <类型名 字符类型, 类型名 字符串特征, 类型名 正则特征>
+    布尔 正则匹配(const 基础字符串<字符类型, 字符串特征>& 甲, const std::basic_regex<字符类型, 正则特征>& 乙,
+                  std::regex_constants::match_flag_type 丙 = std::regex_constants::match_default) {
+        返回 std::regex_match(甲.开始(), 甲.结束(), 乙, 丙);
+    }
+    模板 <类型名 字符类型, 类型名 字符串特征, 类型名 正则特征>
+    布尔 正则查找(const 基础字符串<字符类型, 字符串特征>& 甲, const std::basic_regex<字符类型, 正则特征>& 乙,
+                  std::regex_constants::match_flag_type 丙 = std::regex_constants::match_default) {
+        返回 std::regex_search(甲.开始(), 甲.结束(), 乙, 丙);
+    }
+
 }

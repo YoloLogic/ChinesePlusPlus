@@ -1470,10 +1470,10 @@ struct iterator_traits<计数迭代器实现<_Iter>> : iterator_traits<_Iter> {
 } }
 
 #pragma push_macro("stdext")
-#pragma push_macro("检查数组迭代器")
+#pragma push_macro("checked_array_iterator")
 #pragma push_macro("make_checked_array_iterator")
 #pragma push_macro("make_unchecked_array_iterator")
-#pragma push_macro("未检查数组迭代器")
+#pragma push_macro("unchecked_array_iterator")
 #undef stdext
 #undef 检查数组迭代器
 #undef make_checked_array_iterator
@@ -1871,10 +1871,10 @@ _STL_RESTORE_DEPRECATED_WARNING
 } }
 #endif // _HAS_CXX20
 
-#pragma pop_macro("未检查数组迭代器")
+#pragma pop_macro("unchecked_array_iterator")
 #pragma pop_macro("make_unchecked_array_iterator")
 #pragma pop_macro("make_checked_array_iterator")
-#pragma pop_macro("检查数组迭代器")
+#pragma pop_macro("checked_array_iterator")
 #pragma pop_macro("stdext")
 
 #pragma pop_macro("new")

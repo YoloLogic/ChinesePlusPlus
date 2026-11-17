@@ -850,7 +850,11 @@ if ($products.Count -eq 0) { throw "实例化守卫：选中的产物数为 0（
 if (-not $Only.Count) {
     $inLedger = @($products | ForEach-Object { $_.Product })
     $onDisk = @(Get-ChildItem (Get-ZhIncludeDirs $root) -File -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })
-    $miss = @($onDisk | Where-Object { $inLedger -notcontains $_ })
+    # [fix] 手写层产物白名单：它们没有生成器条目，但确实在盘上
+    $手写层 = @()
+    $手写名单 = Join-Path $root 'tools\手写层产物.txt'
+    if (Test-Path $手写名单) { $手写层 = @(Get-Content $手写名单 | Where-Object { $_.Trim() -and -not $_.Trim().StartsWith('#') } | ForEach-Object { $_.Trim() }) }
+    $miss = @($onDisk | Where-Object { $inLedger -notcontains $_ -and $手写层 -notcontains $_ })
     if ($miss.Count) {
         Write-Host ("❌ 实例化守卫漏扫了 {0} 个产物（盘上有、但三张生成器表的扫描没看见）：{1}" -f $miss.Count, ($miss -join ' ')) -ForegroundColor Red
         Write-Host '   修法：表的条目形态变了 ⇒ 补上本脚本的扫描正则（那条正则必须能匹配表里所有合法形态）。' -ForegroundColor Yellow

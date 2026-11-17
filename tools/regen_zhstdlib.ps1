@@ -86,7 +86,10 @@ $riOk = 0
 foreach ($j in $jobs) {
     if ($j.Once) {
         Write-Host ("=== {0}  (一次生成全部) ===" -f $j.Script) -ForegroundColor Cyan
+        $prevEap = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'   # 用例会故意往 stderr 写东西，别让 Stop 终止
         $o = & pwsh -NoProfile -File (Join-Path $root "tools\$($j.Script)") 2>&1
+        $ErrorActionPreference = $prevEap
         $last = ([string]($o | Select-Object -Last 1)).Trim()
         # make_zhc.ps1 的收尾行是「  通过 25 / 25」，带前缀 —— 所以取行尾的 N / M
         $ok = ($last -match '(\d+)\s*/\s*(\d+)\s*$') -and ($Matches[1] -eq $Matches[2])
@@ -336,7 +339,12 @@ foreach ($j in $jobs) {
 }
 $genText += [System.IO.File]::ReadAllText((Join-Path $root 'tools\make_zhc.ps1'))
 $orphans = @()
+# [fix] 手写层产物白名单（没有生成器出处，但合法）：汉语层 / 类型特征中文 / 内存
+$手写层 = @()
+$手写名单 = Join-Path $root 'tools\手写层产物.txt'
+if (Test-Path $手写名单) { $手写层 = @(Get-Content $手写名单 | Where-Object { $_.Trim() -and -not $_.Trim().StartsWith('#') } | ForEach-Object { $_.Trim() }) }
 foreach ($pf in (Get-ChildItem (Get-ZhIncludeDirs $root) -File -ErrorAction SilentlyContinue)) {
+    if ($手写层 -contains $pf.Name) { continue }
     if ($genText.IndexOf("'" + $pf.Name + "'") -lt 0) { $orphans += $pf.Name }
 }
 Write-Host ("=== 孤儿产物守卫（§17.27.63.2）：{0} 个产物，孤儿 {1} 个 ===" -f (Get-ChildItem (Get-ZhIncludeDirs $root) -File -ErrorAction SilentlyContinue).Count, $orphans.Count) -ForegroundColor Cyan
@@ -710,8 +718,13 @@ if (-not $zhCsPy) {
         $zhCsCaught = $false
         try {
             [System.IO.File]::AppendAllText($zhCsMd, "<!-- 守卫自测：故意改坏 -->`n")
-            & $zhCsPy.Source $zhCsScript --check *> $null
+            # [fix] WinPS 5.1 下原生命令写 stderr + EAP=Stop 会抛 NativeCommandError，
+            #   被 catch 吞掉 → 假「橡皮图章」。自测期间改 Continue，并显式吃掉 stderr。
+            $prevEap = $ErrorActionPreference
+            $ErrorActionPreference = 'Continue'
+            & $zhCsPy.Source $zhCsScript --check 2>&1 | Out-Null
             $zhCsCaught = ($LASTEXITCODE -ne 0)
+            $ErrorActionPreference = $prevEap
         } catch {
             $zhCsCaught = $false
         } finally {
