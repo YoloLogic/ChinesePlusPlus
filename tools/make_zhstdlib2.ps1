@@ -1393,11 +1393,9 @@ $H = @{
 使用 _Container_base0     = _容器基类0;
 使用 _Container_base      = _容器基类;
 使用 _Container_proxy     = _容器代理;
-模板 <类型名 分配器参数> 使用 _Container_proxy_ptr = _容器代理指针<分配器参数>;
 使用 _Iterator_base12     = _迭代器基类12;
 使用 _Iterator_base0      = _迭代器基类0;
 使用 _Iterator_base       = _迭代器基类;
-使用 _Fake_proxy_ptr_impl = _假代理指针实现;
 使用 _Fake_allocator      = _假分配器;
 
 } }  // 名域 标准::细节
@@ -3020,6 +3018,10 @@ $H = @{
   }
   'xmemory' = @{
     zh      = '内存内部件'
+    # [fix] 代理族归属（§17.27.71 阶段(4) 第一步）：细节::_假分配器 是
+    #   std::_Fake_allocator 的别名，而不是另抄一份 struct —— 借用 std 的
+    #   _Alloc_proxy(const _Fake_allocator&) 才不会两份类型互不相认。
+    copyFixes = @( @('struct _假分配器 {};', 'using _假分配器 = _STD _Fake_allocator;') )
     realInclude = @('memory', 'xutility')
     noPub   = $true
     # -----------------------------------------------------------------------
