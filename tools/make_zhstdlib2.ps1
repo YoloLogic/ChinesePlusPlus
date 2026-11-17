@@ -3021,6 +3021,12 @@ $H = @{
     # [fix] 代理族归属（§17.27.71 阶段(4) 第一步）：细节::_假分配器 是
     #   std::_Fake_allocator 的别名，而不是另抄一份 struct —— 借用 std 的
     #   _Alloc_proxy(const _Fake_allocator&) 才不会两份类型互不相认。
+    #
+    # [裁定 2026-11-17] 代理族**全中文**：暂不实施（见 docs\标准库汉化\代理族裁定.md）。
+    #   判据：用户不直接书写这些内部件名；报错里出现也无可操作性；
+    #   自托管要重做整条迭代器调试链，风险大于收益。
+    #   将来若做：先抄 _Container_base0/_Container_base12，再统一所有别名点，
+    #   并保证 include 顺序无关（§17.27.71 前置条件）。
     copyFixes = @( @('struct _假分配器 {};', 'using _假分配器 = _STD _Fake_allocator;') )
     realInclude = @('memory', 'xutility')
     noPub   = $true
