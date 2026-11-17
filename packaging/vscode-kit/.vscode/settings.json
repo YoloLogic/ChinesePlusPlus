@@ -33,6 +33,14 @@
   // ④ 关掉微软 C/C++ 扩展的 IntelliSense，免得和 clangd 抢标红
   "C_Cpp.intelliSenseEngine": "disabled",
 
+  // ② 让 C/C++ 扩展/Code Runner 都知道该用哪个编译器（@@CXX@@ 由安装器替换）
+  "C_Cpp.default.compilerPath": "@@CXX@@",
+  "C_Cpp.default.cppStandard": "c++20",
+  "code-runner.executorMap": {
+    "cpp": "\"@@CXX@@\" -std=c++20 \"$fullFileName\" -o \"$dirWithoutTrailingSlash\\$fileNameWithoutExt.exe\" && \"$dirWithoutTrailingSlash\\$fileNameWithoutExt.exe\""
+  },
+  "code-runner.runInTerminal": true,
+
   "[cpp]": { "editor.tabSize": 4, "editor.insertSpaces": true },
 
   "files.exclude": {

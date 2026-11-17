@@ -37,6 +37,9 @@ param(
     # forbids "share, publish ... the software"), so the default package is
     # toolchain-only and install.ps1 downloads the editor on the user's machine.
     [switch] $WithEditor,
+    # 方案 C（Dev-C++ 式）：把「中文大战代码」(CDZC) 整目录打进包里。
+    # 给了它就复制到 <包>\editor\，并预装扩展（便携模式，离线可用）。
+    [string] $EditorPath,
     # Where to assemble the package. Default: <repo>\dist.
     #
     # WHY THIS IS A PARAMETER: "does the package work" must be tested where a
@@ -382,6 +385,30 @@ Write-Host '  tools\zh_includes.ps1 + tools\make_zhcfg.ps1 copied (ASCII, or BOM
 #     completion and diagnostics, which is the part that shows off the Chinese
 #     keywords.
 # ---------------------------------------------------------------------------
+if ($EditorPath) {
+    if (-not (Test-Path $EditorPath)) { throw "没有这个编辑器目录：$EditorPath" }
+    Write-Host ('  bundling the Chinese editor from: ' + $EditorPath)
+    $edst = Join-Path $pkg 'editor'
+    New-Item -ItemType Directory -Force $edst | Out-Null
+    Copy-Item (Join-Path $EditorPath '*') $edst -Recurse -Force -ErrorAction Stop
+    # 便携模式：设置/扩展都留在 editor\data 下
+    New-Item -ItemType Directory -Force (Join-Path $edst 'data\extensions') | Out-Null
+    New-Item -ItemType Directory -Force (Join-Path $edst 'data\user-data\User') | Out-Null
+    # 预装扩展（离线）：从本机扩展目录复制已知的四个
+    $extRoot = Join-Path $env:USERPROFILE '.vscode\extensions'
+    if (Test-Path $extRoot) {
+        $want = @('llvm-vs-code-extensions.vscode-clangd*', 'formulahendry.code-runner*',
+                  'ms-ceintl.vscode-language-pack-zh-hans*')
+        foreach ($pat in $want) {
+            Get-ChildItem $extRoot -Directory -Filter $pat -ErrorAction SilentlyContinue | ForEach-Object {
+                Copy-Item $_.FullName (Join-Path $edst 'data\extensions\' ) -Recurse -Force -ErrorAction SilentlyContinue
+                Write-Host ('    bundled extension: ' + $_.Name)
+            }
+        }
+    }
+    $exe = Get-ChildItem $edst -Recurse -Depth 2 -Include '中文大战代码.exe' -File -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($exe) { Write-Host ('  editor: ' + $exe.FullName) } else { Write-Host '  [warn] 中文大战代码.exe not found after copy' -ForegroundColor Yellow }
+} else {
 $codiumZip = Join-Path $root 'build\_downloads\VSCodium-win32-x64.zip'
 if ($WithEditor -and (Test-Path $codiumZip)) {
     Write-Host '  bundling VSCodium (portable)...'
@@ -400,6 +427,7 @@ if ($WithEditor -and (Test-Path $codiumZip)) {
         Write-Host '  [warn] -WithEditor given but no VSCodium zip in build\_downloads' -ForegroundColor Yellow
     }
     Write-Host '  toolchain-only package (install.ps1 downloads the editor on demand)' -ForegroundColor DarkGray
+}
 }
 
 # ---------------------------------------------------------------------------

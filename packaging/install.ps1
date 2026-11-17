@@ -310,7 +310,7 @@ $CPPTOOLS_EXT = 'ms-vscode.cpptools'
 $editorDir    = Join-Path $here 'vscode'
 
 function Enable-Portable($dir) {
-    $ed = Get-ChildItem $dir -Recurse -Depth 2 -Include 'Code.exe', 'VSCodium.exe' -File -ErrorAction SilentlyContinue |
+    $ed = Get-ChildItem $dir -Recurse -Depth 2 -Include 'Code.exe', 'VSCodium.exe', '中文大战代码.exe' -File -ErrorAction SilentlyContinue |
           Select-Object -First 1
     if (-not $ed) { return $null }
     $data = Join-Path $ed.Directory.FullName 'data'
@@ -376,7 +376,7 @@ function Find-InstalledEditor {
             Select-Object -First 1)
 }
 
-$bundled = Get-ChildItem $here -Recurse -Depth 2 -Include 'VSCodium.exe', 'Code.exe' -File -ErrorAction SilentlyContinue |
+$bundled = Get-ChildItem $here -Recurse -Depth 2 -Include 'VSCodium.exe', 'Code.exe', '中文大战代码.exe' -File -ErrorAction SilentlyContinue |
            Where-Object { $_.Directory.FullName -notlike "$editorDir*" } | Select-Object -First 1
 
 $ed = $null
@@ -457,8 +457,9 @@ if ($ed) {
     Write-Host '  your own VS Code installation is not touched.'
 
     # extensions: the editor's own CLI installs them into data\extensions
-    $cli = Get-ChildItem $ed.Directory.FullName -Recurse -Depth 2 -Include 'code.cmd', 'codium.cmd' -File -ErrorAction SilentlyContinue |
+    $cli = Get-ChildItem $ed.Directory.FullName -Recurse -Depth 2 -Include 'code.cmd', 'codium.cmd', 'cdzc.cmd' -File -ErrorAction SilentlyContinue |
            Select-Object -First 1
+    $isCdzc = ($ed.Name -eq '中文大战代码.exe')
     if ($cli) {
         # Ask what is already there, so a re-run does not re-download the .vsix
         # files from the marketplace.
@@ -470,6 +471,10 @@ if ($ed) {
         # only for Code.exe; under VSCodium the tasks still work, only the run
         # button does not.
         $exts = @($LANG_PACK, $CLANGD_EXT)
+        if ($isCdzc) {
+            Write-Host '  Chinese-editor build: extensions are pre-bundled (offline), skipping the marketplace' -ForegroundColor DarkGray
+            $exts = @()
+        }
         if ($ed.Name -eq 'Code.exe') {
             $exts += $CPPTOOLS_EXT
         } else {
@@ -653,6 +658,22 @@ if ($editorFailed) {
     Write-Host '======================================================================' -ForegroundColor Yellow
     exit 2
 }
+
+# 6b. one-click launcher (Dev-C++ style: double-click -> editor opens the examples folder)
+try {
+    $launcher = Join-Path $here '启动.cmd'
+    $lines = @(
+        '@echo off',
+        'setlocal',
+        'cd /d "%~dp0"',
+        ('set "ED=' + $ed.FullName + '"'),
+        'if not exist "%ED%" ( echo 找不到编辑器，请先运行 一键安装.cmd & pause & exit /b 1 )',
+        'start "" "%ED%" "%~dp0examples"',
+        'endlocal'
+    )
+    $lines | Set-Content -Encoding Default $launcher
+    Write-Host '  wrote 启动.cmd (double-click to open the editor with examples)'
+} catch { Write-Host '  [warn] could not write 启动.cmd' -ForegroundColor Yellow }
 
 # ---------------------------------------------------------------------------
 # 7. what to do next
