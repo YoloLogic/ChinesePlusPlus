@@ -85,25 +85,28 @@ if ((Test-Path $backup) -and -not $Force) {
 #    would drop them, so we do a minimal TEXT edit instead: insert our key
 #    block right after the opening brace. Everything else is left untouched.
 # ---------------------------------------------------------------------------
-$clangdEsc = $clangd.Replace('\', '\\')
 $cxxEsc    = $cxx.Replace('\', '\\')
-$block = @"
+$block = @'
   // ---- added by Chinese++ (restore removes exactly this) ----
-  "clangd.path": "$clangdEsc",
+  "clangd.path": "@@CLANGD@@",
   "clangd.arguments": [
     "--background-index",
     "--header-insertion=iwyu",
     "--completion-style=detailed",
     "--pch-storage=memory",
     "--fallback-style=LLVM",
-    "--query-driver=$cxxEsc"
-  ]
+    "--query-driver=@@CXX@@"
+  ],
+  "C_Cpp.default.compilerPath": "@@CXX@@",
+  "C_Cpp.default.cppStandard": "c++20",
+  "code-runner.executorMap": {
+    "cpp": "\"@@CXX@@\" -std=c++20 \"$fullFileName\" -o \"$dirWithoutTrailingSlash\\$fileNameWithoutExt.exe\" && \"$dirWithoutTrailingSlash\\$fileNameWithoutExt.exe\""
+  },
+  "code-runner.runInTerminal": true
   // ---- end of Chinese++ block ----
-"@
-# NOTE the block does NOT end with a comma: the insertion below supplies the
-# separating comma. Ending with one produced ",," and made settings.json invalid
-# JSON -- caught by validating the result with a strict parser on 2026-09-25.
-
+'@
+$block = $block.Replace('@@CLANGD@@', $clangd.Replace('\', '\\'))
+$block = $block.Replace('@@CXX@@', $cxxEsc)
 $text = ''
 if (Test-Path $settings) { $text = [System.IO.File]::ReadAllText($settings) }
 
@@ -127,6 +130,10 @@ if ($text -match 'added by Chinese\+\+') {
 $beforeText = $text
 $text = [regex]::Replace($text, '"clangd\.arguments"\s*:\s*\[[^\]]*\]\s*,?', '')
 $text = [regex]::Replace($text, '"clangd\.path"\s*:\s*"[^"]*"\s*,?', '')
+$text = [regex]::Replace($text, '"C_Cpp\.default\.compilerPath"\s*:\s*"[^"]*"\s*,?', '')
+$text = [regex]::Replace($text, '"C_Cpp\.default\.cppStandard"\s*:\s*"[^"]*"\s*,?', '')
+$text = [regex]::Replace($text, '"code-runner\.executorMap"\s*:\s*\{[^}]*\}\s*,?', '')
+$text = [regex]::Replace($text, '"code-runner\.runInTerminal"\s*:\s*(true|false)\s*,?', '')
 $text = [regex]::Replace($text, ',\s*(\r?\n\s*)\}', '$1}')
 if ($text -ne $beforeText) {
     Write-Host '  removed the previous clangd.path / clangd.arguments entries'
@@ -159,12 +166,15 @@ $codeCmd = Join-Path $env:LOCALAPPDATA 'Programs\Microsoft VS Code\bin\code.cmd'
 if (-not (Test-Path $codeCmd)) { $codeCmd = 'code' }
 $have = @()
 try { $have = & $codeCmd --list-extensions 2>$null } catch { }
-if ($have -contains 'llvm-vs-code-extensions.vscode-clangd') {
-    Write-Host '  clangd extension: already installed in your VS Code'
-} else {
-    Write-Host '  installing the clangd extension into your VS Code...'
-    & $codeCmd --install-extension llvm-vs-code-extensions.vscode-clangd --force 2>&1 |
-        Select-Object -Last 2 | ForEach-Object { Write-Host ("    " + $_) }
+$want = @('llvm-vs-code-extensions.vscode-clangd', 'formulahendry.code-runner')
+foreach ($ext in $want) {
+    if ($have -contains $ext) {
+        Write-Host ("  " + $ext + ": already installed")
+    } else {
+        Write-Host ("  installing " + $ext + " ...")
+        & $codeCmd --install-extension $ext --force 2>&1 |
+            Select-Object -Last 2 | ForEach-Object { Write-Host ("    " + $_) }
+    }
 }
 
 Write-Host ''

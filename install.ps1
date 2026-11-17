@@ -18,13 +18,17 @@
 #
 #  Usage:
 #      powershell -File <package>\install.ps1
-#      powershell -File <package>\install.ps1 -AddToUserPath   # opt-in, permanent
+#      powershell -File <package>\install.ps1                # DEFAULT: also adds bin\ to your USER PATH
+#      powershell -File <package>\install.ps1 -NoUserPath     # keep the permanent PATH untouched
 #
 #  ENCODING: PURE ASCII (PowerShell 5.1 reads BOM-less files as GBK).
 # ============================================================================
 
 param(
+    # Kept for compatibility: the user PATH is now added BY DEFAULT.
     [switch] $AddToUserPath,
+    # Skip the permanent PATH edit (portable / keep-everything-local users).
+    [switch] $NoUserPath,
     [switch] $SkipVerify,
     # Skip the editor step entirely. Useful when the user already has an editor
     # they like, and for testing the toolchain part without a 320 MB download.
@@ -171,6 +175,8 @@ $lines = @(
     '@echo off',
     'rem Double-click to open a shell that can see chinese++ from this folder.',
     'rem Nothing outside this window is modified.',
+    'rem NOTE: install.ps1 already adds bin\\ to your USER PATH by default;',
+    'rem       this env.cmd is only a fallback for the current session.',
     ('set "PATH=%~dp0bin;%PATH%"'),
     'rem ---------------------------------------------------------------------',
     'rem The compiler-rt sanitizer runtimes live in lib\clang\<ver>\lib\windows.',
@@ -192,7 +198,7 @@ $lines = @(
 $lines | Set-Content -Encoding ASCII $envCmd
 Write-Host "  wrote $envCmd"
 
-if ($AddToUserPath) {
+if (-not $NoUserPath) {
     $cur = [Environment]::GetEnvironmentVariable('Path', 'User')
     if ($cur -notlike "*$bin*") {
         [Environment]::SetEnvironmentVariable('Path', "$cur;$bin", 'User')
@@ -201,7 +207,7 @@ if ($AddToUserPath) {
         Write-Host "           edit the user PATH manually." -ForegroundColor Yellow
     } else { Write-Host '  already on the USER PATH' }
 } else {
-    Write-Host '  (not touching the permanent PATH; pass -AddToUserPath to opt in)' -ForegroundColor DarkGray
+    Write-Host '  (skipped the permanent PATH because -NoUserPath was given)' -ForegroundColor DarkGray
 }
 
 # ---------------------------------------------------------------------------

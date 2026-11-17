@@ -41,6 +41,9 @@ param(
     [string] $ZhRoot,
     [ValidateSet('bundled', 'system')][string] $Mode = 'system',
     [switch] $Check,
+    # 发行包专用：把默认 C++ 标准（C++20）写进 C++ 驱动的 cfg，
+    # 让「裸敲 chinese++ x.cpp」能编。构建树/测试不传（否则 `-x c` 会冲突）。
+    [switch] $DefaultCppStd,
     [switch] $Quiet
 )
 $ErrorActionPreference = 'Stop'
@@ -177,14 +180,17 @@ $text = ($lines -join "`n") + "`n"
 $bad = @(); $checked = 0
 foreach ($n in $names) {
     $f = Join-Path $BinDir $n
+    # 发行包：C++ 驱动预置 C++20（clang.cfg 是 C 驱动读的，永不写）
+    $oneText = $text
+    if ($DefaultCppStd -and $n -ne 'clang.cfg') { $oneText = "-std=c++20`n" + $text }
     if ($Check) {
         $checked++
         if (-not (Test-Path $f)) { $bad += ($n + '：不存在'); continue }
-        if ([System.IO.File]::ReadAllText($f) -ne $text) {
+        if ([System.IO.File]::ReadAllText($f) -ne $oneText) {
             $bad += ($n + '：内容与 tools\zh_includes.ps1 不一致（少一条搜索路径就「某个头找不到」）')
         }
     } else {
-        [System.IO.File]::WriteAllText($f, $text, $utf8)
+        [System.IO.File]::WriteAllText($f, $oneText, $utf8)
     }
 }
 
